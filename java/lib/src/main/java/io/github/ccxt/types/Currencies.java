@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class Currencies {
+public final class Currencies implements Iterable<CurrencyInterface> {
     public Map<String, CurrencyInterface> currencies;
 
     @SuppressWarnings("unchecked")
@@ -25,5 +25,31 @@ public final class Currencies {
         CurrencyInterface c = currencies.get(key);
         if (c == null) throw new NoSuchElementException("Key not found: " + key);
         return c;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public CurrencyInterface getOrNull(String key) {
+        return currencies.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return currencies.size();
+    }
+
+    public boolean isEmpty() {
+        return currencies.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (CurrencyInterface x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<CurrencyInterface> iterator() {
+        return this.currencies.values().iterator();
     }
 }

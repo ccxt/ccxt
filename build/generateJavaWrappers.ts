@@ -487,6 +487,105 @@ function genMethodCached(m: MethodInfo, castToObject = false): string {
 }
 
 /**
+ * Typed state accessors emitted on every typed exchange wrapper.
+ *
+ * The base tier declares its caches as `Object` (`markets`, `currencies`, `tickers`
+ * in BaseExchange.java) and `market(symbol)` / `currency(code)` both return `Object`,
+ * so a consumer that wants to read a market off the public surface has to hand-cast
+ * (`(Map<String, Object>) ex.markets` / `new MarketInterface(...)`) — measured in
+ * JN-20 from a compiled consumer snippet.
+ *
+ * WHY THESE ARE NEW NAMES AND NOT OVERLOADS. A typed overload
+ * `MarketInterface market(String symbol)` would win overload resolution over the
+ * inherited `Object market(Object symbol)` at every internal `this.market(symbol)`
+ * call site — 2040 of them in the generated tree, all passing a String — and would
+ * hand Core code a MarketInterface where it does
+ * `java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);`
+ * (an inconvertible-types compile error, or a CCE where the cast is unchecked).
+ * `getMarket` / `getCurrency` cannot collide: neither name exists anywhere in the
+ * Java tree, so overload resolution for the existing call sites is untouched.
+ *
+ * The same rule bans a zero-arg typed `loadMarkets()` overload, which is the
+ * canonical first call in every other ccxt language. `this.loadMarkets()` appears at
+ * 3000+ internal sites and `(this.loadMarkets()).join()` stops compiling the moment
+ * the zero-arg overload returns a Map — the identical hazard that keeps
+ * `loadMarkets` off ZERO_REQUIRED_TYPED_WHITELIST above. `loadMarkets(boolean)` is
+ * already typed, so the market-loading path is covered without it.
+ */
+function genStateAccessors(includeTickers: boolean): string[] {
+    const lines: string[] = [];
+    lines.push(`    // --- Typed state accessors --------------------------------------------------`);
+    lines.push(`    // Read-only, null-safe typed views over state the base tier still holds as`);
+    lines.push(`    // Object. They name what the box already contains; they never re-shape it.`);
+    lines.push(``);
+    lines.push(`    /**`);
+    lines.push(`     * Typed market lookup: the same validation, lookup and ${'`'}ArgumentsRequired` +
+        ` / ExchangeError / BadSymbol${'`'}`);
+    lines.push(`     * exceptions as the inherited ${'`'}market(symbol)${'`'}, returning MarketInterface`);
+    lines.push(`     * instead of Object. Never returns null for a symbol the base resolves.`);
+    lines.push(`     */`);
+    lines.push(`    public MarketInterface getMarket(String symbol) {`);
+    lines.push(`        return TypeHelper.toMarket(super.market(symbol));`);
+    lines.push(`    }`);
+    lines.push(``);
+    lines.push(`    /**`);
+    lines.push(`     * Typed currency lookup — the currency() counterpart of getMarket().`);
+    lines.push(`     */`);
+    lines.push(`    public CurrencyInterface getCurrency(String code) {`);
+    lines.push(`        return TypeHelper.toCurrency(super.currency(code));`);
+    lines.push(`    }`);
+    lines.push(``);
+    lines.push(`    /**`);
+    lines.push(`     * Typed view of the loaded markets map. Null until markets are loaded —`);
+    lines.push(`     * call loadMarkets(boolean) first. Rebuilt per call (no cache: loadMarkets(true)`);
+    lines.push(`     * replaces the underlying map, so a cached view would go stale).`);
+    lines.push(`     */`);
+    lines.push(`    @SuppressWarnings("unchecked")`);
+    lines.push(`    public Map<String, MarketInterface> getMarkets() {`);
+    lines.push(`        Object raw = this.markets;`);
+    lines.push(`        if (!(raw instanceof Map)) return null;`);
+    lines.push(`        java.util.LinkedHashMap<String, MarketInterface> result = new java.util.LinkedHashMap<>();`);
+    lines.push(`        for (Map.Entry<String, Object> entry : ((Map<String, Object>) raw).entrySet()) {`);
+    lines.push(`            result.put(entry.getKey(), TypeHelper.toMarket(entry.getValue()));`);
+    lines.push(`        }`);
+    lines.push(`        return result;`);
+    lines.push(`    }`);
+    lines.push(``);
+    lines.push(`    /**`);
+    lines.push(`     * Typed view of the loaded currencies map. Null until currencies are loaded.`);
+    lines.push(`     */`);
+    lines.push(`    @SuppressWarnings("unchecked")`);
+    lines.push(`    public Map<String, CurrencyInterface> getCurrencies() {`);
+    lines.push(`        Object raw = this.currencies;`);
+    lines.push(`        if (!(raw instanceof Map)) return null;`);
+    lines.push(`        java.util.LinkedHashMap<String, CurrencyInterface> result = new java.util.LinkedHashMap<>();`);
+    lines.push(`        for (Map.Entry<String, Object> entry : ((Map<String, Object>) raw).entrySet()) {`);
+    lines.push(`            result.put(entry.getKey(), TypeHelper.toCurrency(entry.getValue()));`);
+    lines.push(`        }`);
+    lines.push(`        return result;`);
+    lines.push(`    }`);
+    if (includeTickers) {
+        lines.push(``);
+        lines.push(`    /**`);
+        lines.push(`     * Typed view of the tickers cache ${'`'}this.tickers${'`'} (the same map fetchTickers()`);
+        lines.push(`     * and watchTickers() write into). Empty before the first fetch/watch.`);
+        lines.push(`     */`);
+        lines.push(`    @SuppressWarnings("unchecked")`);
+        lines.push(`    public Map<String, Ticker> getTickers() {`);
+        lines.push(`        Object raw = this.tickers;`);
+        lines.push(`        if (!(raw instanceof Map)) return null;`);
+        lines.push(`        java.util.LinkedHashMap<String, Ticker> result = new java.util.LinkedHashMap<>();`);
+        lines.push(`        for (Map.Entry<String, Object> entry : ((Map<String, Object>) raw).entrySet()) {`);
+        lines.push(`            result.put(entry.getKey(), TypeHelper.toTicker(entry.getValue()));`);
+        lines.push(`        }`);
+        lines.push(`        return result;`);
+        lines.push(`    }`);
+    }
+    lines.push(``);
+    return lines;
+}
+
+/**
  * Generate a typed exchange wrapper class that extends the Core class.
  *
  * e.g., Binance extends BinanceCore with typed overloads.
@@ -551,6 +650,11 @@ function generateTypedExchangeClass(exchangeId: string, methods: MethodInfo[], j
     lines.push(`        });`);
     lines.push(`    }`);
     lines.push(``);
+
+    // Typed state accessors (markets/currencies/tickers caches + market()/currency()
+    // lookups). Prediction venues keep PredictionTicker (no `symbol` field — the
+    // handle is `market`/`outcome`), so they get no getTickers() view.
+    lines.push(...genStateAccessors(javaPackage !== 'io.github.ccxt.exchanges.prediction'));
 
     // All typed methods
     for (const m of methods) {

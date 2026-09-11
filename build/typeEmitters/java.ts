@@ -721,7 +721,7 @@ function renderNewDictionary (className: string, elementClass: string, elementIs
         out.push ('import java.util.stream.Collectors;');
     }
     out.push ('');
-    out.push ('public final class ' + className + ' {');
+    out.push ('public final class ' + className + ' implements Iterable<' + mapValue + '> {');
     out.push (INDENT + 'public Map<String, ' + mapValue + '> ' + fieldName + ';');
     if (hasInfo) {
         out.push (INDENT + 'public Map<String, Object> info;');
@@ -754,6 +754,32 @@ function renderNewDictionary (className: string, elementClass: string, elementIs
     out.push (BODY + mapValue + ' ' + shortVar + ' = ' + fieldName + '.get(key);');
     out.push (BODY + 'if (' + shortVar + ' == null) throw new NoSuchElementException("Key not found: " + key);');
     out.push (BODY + 'return ' + shortVar + ';');
+    out.push (INDENT + '}');
+    out.push ('');
+    out.push (INDENT + '/**');
+    out.push (INDENT + ' * Nullable counterpart of get(), for the keys an exchange simply does');
+    out.push (INDENT + ' * not report — a missing symbol is routine here, not an error.');
+    out.push (INDENT + ' */');
+    out.push (INDENT + 'public ' + mapValue + ' getOrNull(String key) {');
+    out.push (BODY + 'return ' + fieldName + '.get(key);');
+    out.push (INDENT + '}');
+    out.push ('');
+    out.push (INDENT + '/** Number of entries the exchange reported. */');
+    out.push (INDENT + 'public int size() {');
+    out.push (BODY + 'return ' + fieldName + '.size();');
+    out.push (INDENT + '}');
+    out.push ('');
+    out.push (INDENT + 'public boolean isEmpty() {');
+    out.push (BODY + 'return ' + fieldName + '.isEmpty();');
+    out.push (INDENT + '}');
+    out.push ('');
+    out.push (INDENT + '/**');
+    out.push (INDENT + ' * Typed iteration over the values, in the order the exchange reported');
+    out.push (INDENT + ' * them: for (' + mapValue + ' x : this) { ... }');
+    out.push (INDENT + ' */');
+    out.push (INDENT + '@Override');
+    out.push (INDENT + 'public java.util.Iterator<' + mapValue + '> iterator() {');
+    out.push (BODY + 'return this.' + fieldName + '.values().iterator();');
     out.push (INDENT + '}');
     out.push ('}');
     return out.join ('\n') + '\n';

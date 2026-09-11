@@ -45,6 +45,71 @@ public class Hyperliquid extends HyperliquidCore {
         });
     }
 
+    // --- Typed state accessors --------------------------------------------------
+    // Read-only, null-safe typed views over state the base tier still holds as
+    // Object. They name what the box already contains; they never re-shape it.
+
+    /**
+     * Typed market lookup: the same validation, lookup and `ArgumentsRequired / ExchangeError / BadSymbol`
+     * exceptions as the inherited `market(symbol)`, returning MarketInterface
+     * instead of Object. Never returns null for a symbol the base resolves.
+     */
+    public MarketInterface getMarket(String symbol) {
+        return TypeHelper.toMarket(super.market(symbol));
+    }
+
+    /**
+     * Typed currency lookup — the currency() counterpart of getMarket().
+     */
+    public CurrencyInterface getCurrency(String code) {
+        return TypeHelper.toCurrency(super.currency(code));
+    }
+
+    /**
+     * Typed view of the loaded markets map. Null until markets are loaded —
+     * call loadMarkets(boolean) first. Rebuilt per call (no cache: loadMarkets(true)
+     * replaces the underlying map, so a cached view would go stale).
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, MarketInterface> getMarkets() {
+        Object raw = this.markets;
+        if (!(raw instanceof Map)) return null;
+        java.util.LinkedHashMap<String, MarketInterface> result = new java.util.LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : ((Map<String, Object>) raw).entrySet()) {
+            result.put(entry.getKey(), TypeHelper.toMarket(entry.getValue()));
+        }
+        return result;
+    }
+
+    /**
+     * Typed view of the loaded currencies map. Null until currencies are loaded.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, CurrencyInterface> getCurrencies() {
+        Object raw = this.currencies;
+        if (!(raw instanceof Map)) return null;
+        java.util.LinkedHashMap<String, CurrencyInterface> result = new java.util.LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : ((Map<String, Object>) raw).entrySet()) {
+            result.put(entry.getKey(), TypeHelper.toCurrency(entry.getValue()));
+        }
+        return result;
+    }
+
+    /**
+     * Typed view of the tickers cache `this.tickers` (the same map fetchTickers()
+     * and watchTickers() write into). Empty before the first fetch/watch.
+     */
+    @SuppressWarnings("unchecked")
+    public Map<String, Ticker> getTickers() {
+        Object raw = this.tickers;
+        if (!(raw instanceof Map)) return null;
+        java.util.LinkedHashMap<String, Ticker> result = new java.util.LinkedHashMap<>();
+        for (Map.Entry<String, Object> entry : ((Map<String, Object>) raw).entrySet()) {
+            result.put(entry.getKey(), TypeHelper.toTicker(entry.getValue()));
+        }
+        return result;
+    }
+
     @SuppressWarnings("unchecked")
     public Currencies fetchCurrencies(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchCurrencies(params));

@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class OrderBooks {
+public final class OrderBooks implements Iterable<OrderBook> {
     public Map<String, OrderBook> orderBooks;
 
     @SuppressWarnings("unchecked")
@@ -23,5 +23,31 @@ public final class OrderBooks {
         OrderBook ob = orderBooks.get(key);
         if (ob == null) throw new NoSuchElementException("Key not found: " + key);
         return ob;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public OrderBook getOrNull(String key) {
+        return orderBooks.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return orderBooks.size();
+    }
+
+    public boolean isEmpty() {
+        return orderBooks.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (OrderBook x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<OrderBook> iterator() {
+        return this.orderBooks.values().iterator();
     }
 }

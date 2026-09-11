@@ -423,5 +423,76 @@ class TypesTest {
         assertEquals(2, currencies.currencies.size());
         assertEquals("Bitcoin", currencies.get("BTC").name);
         assertEquals("Ethereum", currencies.get("ETH").name);
+        assertEquals(2, currencies.size());
+        assertFalse(currencies.isEmpty());
+        assertEquals("Ethereum", currencies.getOrNull("ETH").name);
+        assertNull(currencies.getOrNull("MISSING"));
+    }
+
+    // ==========================================
+    // Container ergonomics: getOrNull / size / isEmpty / typed iteration
+    // ==========================================
+
+    @Test
+    void testTickersGetOrNull() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("BTC/USDT", Map.of("symbol", "BTC/USDT", "last", 37000.0));
+        Tickers tickers = new Tickers(data);
+        // get() is unchanged (still throws); getOrNull() is the nullable counterpart
+        assertThrows(java.util.NoSuchElementException.class, () -> tickers.get("MISSING"));
+        assertNull(tickers.getOrNull("MISSING"));
+        assertEquals(37000.0, tickers.getOrNull("BTC/USDT").last);
+    }
+
+    @Test
+    void testTickersIteration() {
+        Map<String, Object> data = new LinkedHashMap<>();
+        data.put("BTC/USDT", Map.of("symbol", "BTC/USDT", "last", 37000.0));
+        data.put("ETH/USDT", Map.of("symbol", "ETH/USDT", "last", 2000.0));
+        Tickers tickers = new Tickers(data);
+        List<String> seen = new ArrayList<>();
+        for (Ticker t : tickers) {
+            seen.add(t.symbol);
+        }
+        assertEquals(List.of("BTC/USDT", "ETH/USDT"), seen);
+    }
+
+    @Test
+    void testListValuedWrapperIteration() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("BTC/USDT", List.of(Map.of("tier", 1L, "minNotional", 0.0)));
+        LeverageTiers tiers = new LeverageTiers(data);
+        int rows = 0;
+        for (List<LeverageTier> tier : tiers) {
+            rows += tier.size();
+        }
+        assertEquals(1, rows);
+        assertEquals(1, tiers.size());
+    }
+
+    // ==========================================
+    // Idempotent nominal-type lifts (used by the typed exchange accessors)
+    // ==========================================
+
+    @Test
+    void testNominalLiftsAreIdempotentAndNullSafe() {
+        assertNull(TypeHelper.toMarket(null));
+        assertNull(TypeHelper.toCurrency(null));
+        assertNull(TypeHelper.toTicker(null));
+
+        Map<String, Object> rawMarket = Map.of("symbol", "BTC/USDT", "base", "BTC");
+        MarketInterface market = TypeHelper.toMarket(rawMarket);
+        assertEquals("BTC/USDT", market.symbol);
+        assertSame(market, TypeHelper.toMarket(market));
+
+        Map<String, Object> rawCurrency = Map.of("code", "BTC", "name", "Bitcoin");
+        CurrencyInterface currency = TypeHelper.toCurrency(rawCurrency);
+        assertEquals("BTC", currency.code);
+        assertSame(currency, TypeHelper.toCurrency(currency));
+
+        Map<String, Object> rawTicker = Map.of("symbol", "BTC/USDT", "last", 37000.0);
+        Ticker ticker = TypeHelper.toTicker(rawTicker);
+        assertEquals(37000.0, ticker.last);
+        assertSame(ticker, TypeHelper.toTicker(ticker));
     }
 }

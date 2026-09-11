@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class MarginModes {
+public final class MarginModes implements Iterable<MarginMode> {
     public Map<String, MarginMode> modes;
 
     @SuppressWarnings("unchecked")
@@ -23,5 +23,31 @@ public final class MarginModes {
         MarginMode m = modes.get(key);
         if (m == null) throw new NoSuchElementException("Key not found: " + key);
         return m;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public MarginMode getOrNull(String key) {
+        return modes.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return modes.size();
+    }
+
+    public boolean isEmpty() {
+        return modes.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (MarginMode x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<MarginMode> iterator() {
+        return this.modes.values().iterator();
     }
 }

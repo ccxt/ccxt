@@ -9,7 +9,7 @@ import java.util.NoSuchElementException;
 
 // Dedicated prediction-market ticker collection — a dict keyed by outcome handle ->
 // PredictionTicker. Mirrors the base Tickers class but holds native PredictionTickers.
-public final class PredictionTickers {
+public final class PredictionTickers implements Iterable<PredictionTicker> {
     public Map<String, PredictionTicker> tickers;
     public Map<String, Object> info;
 
@@ -29,5 +29,31 @@ public final class PredictionTickers {
         PredictionTicker t = tickers.get(key);
         if (t == null) throw new NoSuchElementException("Key not found: " + key);
         return t;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public PredictionTicker getOrNull(String key) {
+        return tickers.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return tickers.size();
+    }
+
+    public boolean isEmpty() {
+        return tickers.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (PredictionTicker x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<PredictionTicker> iterator() {
+        return this.tickers.values().iterator();
     }
 }

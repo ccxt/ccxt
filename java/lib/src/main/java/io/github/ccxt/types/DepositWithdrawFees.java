@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class DepositWithdrawFees {
+public final class DepositWithdrawFees implements Iterable<DepositWithdrawFee> {
     public Map<String, DepositWithdrawFee> fees;
     public Map<String, Object> info;
 
@@ -27,5 +27,31 @@ public final class DepositWithdrawFees {
         DepositWithdrawFee f = fees.get(key);
         if (f == null) throw new NoSuchElementException("Key not found: " + key);
         return f;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public DepositWithdrawFee getOrNull(String key) {
+        return fees.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return fees.size();
+    }
+
+    public boolean isEmpty() {
+        return fees.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (DepositWithdrawFee x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<DepositWithdrawFee> iterator() {
+        return this.fees.values().iterator();
     }
 }
