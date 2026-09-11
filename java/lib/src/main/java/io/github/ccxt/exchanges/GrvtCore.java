@@ -2115,7 +2115,7 @@ public class GrvtCore extends GrvtApi
                 }
             }
         }
-        Object timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
+        Long timestamp = (Long) this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
         final Object finalTxId = txId;
         final Object finalDirection = direction;
         final Object finalNetworkCode = networkCode;

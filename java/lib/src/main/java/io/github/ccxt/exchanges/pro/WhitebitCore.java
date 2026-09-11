@@ -249,7 +249,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object data = this.safeValue(parameters, 1);
-        Object timestamp = this.safeTimestamp(data, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(data, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
@@ -596,7 +596,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object orderId = this.safeString(trade, 3);
-        Object timestamp = this.safeTimestamp(trade, 1);
+        Long timestamp = (Long) this.safeTimestamp(trade, 1);
         Object id = this.safeString(trade, 0);
         Object price = this.safeString(trade, 4);
         Object amount = this.safeString(trade, 5);
@@ -790,8 +790,8 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             remaining = this.safeString(order, "left");
             amount = this.safeString(order, "amount");
         }
-        Object timestamp = this.safeTimestamp(order, "ctime");
-        Object lastTradeTimestamp = this.safeTimestamp(order, "mtime");
+        Long timestamp = (Long) this.safeTimestamp(order, "ctime");
+        Long lastTradeTimestamp = (Long) this.safeTimestamp(order, "mtime");
         Object symbol = Helpers.GetValue(market, "symbol");
         Long rawSide = this.safeInteger(order, "side");
         String side = ((Helpers.isTrue((Helpers.isEqual(rawSide, 1))))) ? "sell" : "buy";

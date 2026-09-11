@@ -513,7 +513,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         Object messageHash = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data");
         Object keys = Helpers.objectKeys(data);
-        Object timestamp = this.safeTimestamp(message, "time");
+        Long timestamp = (Long) this.safeTimestamp(message, "time");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));

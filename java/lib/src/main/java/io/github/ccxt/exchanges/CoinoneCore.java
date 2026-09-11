@@ -1260,7 +1260,7 @@ public class CoinoneCore extends CoinoneApi
             symbol = Helpers.add(Helpers.add(base, "/"), quote);
             market = this.safeMarket(symbol, market, "/");
         }
-        Object timestamp = this.safeTimestamp2(order, "timestamp", "updatedAt");
+        Long timestamp = (Long) this.safeTimestamp2(order, "timestamp", "updatedAt");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger2(order, "ordered_at", "updated_at"); // v2.1 sends milliseconds

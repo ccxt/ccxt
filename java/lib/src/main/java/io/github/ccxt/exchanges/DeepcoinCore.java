@@ -1421,7 +1421,7 @@ public class DeepcoinCore extends DeepcoinApi
         String currencyId = this.safeString(transaction, "coin");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Double amount = this.safeNumber(transaction, "amount");
-        Object timestamp = this.safeTimestamp(transaction, "createTime");
+        Long timestamp = (Long) this.safeTimestamp(transaction, "createTime");
         String networkId = this.safeString(transaction, "chainName");
         Object network = this.networkIdToCode(networkId, code);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
@@ -3644,7 +3644,7 @@ public class DeepcoinCore extends DeepcoinApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp(info, "CreateTime");
+        Long timestamp = (Long) this.safeTimestamp(info, "CreateTime");
         String instrumentID = this.safeString2(info, "instrumentID", "instrumentId");
         market = this.safeMarket(instrumentID, market, null, "swap");
         final Object finalMarket = market;

@@ -114,7 +114,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         //
         Object symbol = this.symbol(this.safeString(message, 0));
         Object data = this.safeValue(message, 1, new java.util.HashMap<String, Object>() {{}});
-        Object timestamp = this.safeTimestamp(data, "last_update_at");
+        Long timestamp = (Long) this.safeTimestamp(data, "last_update_at");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp);
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
@@ -223,7 +223,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.symbol(this.safeString(trade, 2));
-        Object timestamp = this.safeTimestamp(trade, 0);
+        Long timestamp = (Long) this.safeTimestamp(trade, 0);
         Object side = this.safeString(trade, 5);
         Object priceString = this.safeString(trade, 3);
         Object amountString = this.safeString(trade, 4);

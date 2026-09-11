@@ -1538,7 +1538,7 @@ public class DigifinexCore extends DigifinexApi
         String marketId = (String)this.safeStringUpper2(ticker, "symbol", "instrument_id");
         String symbol = (String) this.safeSymbol(marketId, market, null, marketType);
         market = this.safeMarket(marketId, market, null, marketType);
-        Object timestamp = this.safeTimestamp(ticker, "date");
+        Long timestamp = (Long) this.safeTimestamp(ticker, "date");
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
         {
             timestamp = this.safeInteger(ticker, "timestamp");
@@ -1640,7 +1640,7 @@ public class DigifinexCore extends DigifinexApi
         {
             market = this.safeMarket(marketId);
         }
-        Object timestamp = this.safeTimestamp2(trade, "date", "timestamp");
+        Long timestamp = (Long) this.safeTimestamp2(trade, "date", "timestamp");
         String side = this.safeString2(trade, "type", "side");
         Object type = null;
         String takerOrMaker = null;
@@ -3306,7 +3306,7 @@ public class DigifinexCore extends DigifinexApi
         currency = this.safeCurrency(currencyId, currency);
         Double amount = this.safeNumber2(item, "num", "change");
         Double after = this.safeNumber(item, "balance");
-        Object timestamp = this.safeTimestamp(item, "time");
+        Long timestamp = (Long) this.safeTimestamp(item, "time");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger(item, "timestamp");

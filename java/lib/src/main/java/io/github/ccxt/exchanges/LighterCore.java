@@ -2899,7 +2899,7 @@ public class LighterCore extends LighterApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(order, "market_index");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeTimestamp(order, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(order, "timestamp");
         Object isAsk = this.safeBool(order, "is_ask");
         if (Helpers.isTrue(Helpers.isEqual(isAsk, null)))
         {

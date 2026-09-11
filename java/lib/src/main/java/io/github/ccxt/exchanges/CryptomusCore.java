@@ -694,7 +694,7 @@ public class CryptomusCore extends CryptomusApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeTimestamp(data, "timestamp");
+            Long timestamp = (Long) this.safeTimestamp(data, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         });
 
@@ -766,7 +766,7 @@ public class CryptomusCore extends CryptomusApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp(trade, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(trade, "timestamp");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", CryptomusCore.this.safeString(trade, "trade_id") );
             put( "timestamp", timestamp );

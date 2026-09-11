@@ -651,7 +651,7 @@ public class CoinmateCore extends CoinmateApi
             }};
             java.util.Map<String, Object> response = (this.publicGetOrderBook(this.extend(request, parameters))).join();
             Object orderbook = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeTimestamp(orderbook, "timestamp");
+            Long timestamp = (Long) this.safeTimestamp(orderbook, "timestamp");
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
         });
 
@@ -775,7 +775,7 @@ public class CoinmateCore extends CoinmateApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp(ticker, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(ticker, "timestamp");
         Double last = this.safeNumber(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", CoinmateCore.this.safeString(market, "symbol") );

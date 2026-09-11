@@ -497,7 +497,7 @@ public class IndodaxCore extends IndodaxApi
         Object balances = this.safeValue(response, "return", new java.util.HashMap<String, Object>() {{}});
         Object free = this.safeDict(balances, "balance", new java.util.HashMap<String, Object>() {{}});
         Object used = this.safeValue(balances, "balance_hold", new java.util.HashMap<String, Object>() {{}});
-        Object timestamp = this.safeTimestamp(balances, "server_time");
+        Long timestamp = (Long) this.safeTimestamp(balances, "server_time");
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
@@ -620,7 +620,7 @@ public class IndodaxCore extends IndodaxApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = (String) this.safeSymbol(null, market);
-        Object timestamp = this.safeTimestamp(ticker, "server_time");
+        Long timestamp = (Long) this.safeTimestamp(ticker, "server_time");
         String baseVolume = Helpers.add("vol_", this.safeStringLower(market, "baseId"));
         String quoteVolume = Helpers.add("vol_", this.safeStringLower(market, "quoteId"));
         String last = this.safeString(ticker, "last");
@@ -749,7 +749,7 @@ public class IndodaxCore extends IndodaxApi
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp(trade, "date");
+        Long timestamp = (Long) this.safeTimestamp(trade, "date");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", IndodaxCore.this.safeString(trade, "tid") );
             put( "info", trade );
@@ -1620,7 +1620,7 @@ public class IndodaxCore extends IndodaxApi
         //     },
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String status = this.safeString(transaction, "status");
-        Object timestamp = this.safeTimestamp2(transaction, "success_time", "submit_time");
+        Long timestamp = (Long) this.safeTimestamp2(transaction, "success_time", "submit_time");
         String depositId = this.safeString(transaction, "deposit_id");
         Double feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;

@@ -1704,7 +1704,7 @@ public class BitrueCore extends BitrueApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp(ohlcv, "i");
+        Long timestamp = (Long) this.safeTimestamp(ohlcv, "i");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger(ohlcv, "idx");

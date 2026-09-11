@@ -597,7 +597,7 @@ public class ZaifCore extends ZaifApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String side = this.safeString(trade, "trade_type");
         side = ((Helpers.isTrue((Helpers.isEqual(side, "bid"))))) ? "buy" : "sell";
-        Object timestamp = this.safeTimestamp(trade, "date");
+        Long timestamp = (Long) this.safeTimestamp(trade, "date");
         String id = this.safeString2(trade, "id", "tid");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
@@ -790,7 +790,7 @@ public class ZaifCore extends ZaifApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String side = this.safeString(order, "action");
         side = ((Helpers.isTrue((Helpers.isEqual(side, "bid"))))) ? "buy" : "sell";
-        Object timestamp = this.safeTimestamp(order, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(order, "timestamp");
         String marketId = this.safeString(order, "currency_pair");
         String symbol = (String) this.safeSymbol(marketId, market, "_");
         String price = this.safeString(order, "price");

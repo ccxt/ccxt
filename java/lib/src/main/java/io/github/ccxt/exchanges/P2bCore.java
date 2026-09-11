@@ -803,7 +803,7 @@ public class P2bCore extends P2bApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerProduct2(trade, "time", "deal_time", 1000);
+        Long timestamp = (Long) this.safeIntegerProduct2(trade, "time", "deal_time", 1000);
         String takerOrMaker = this.safeString(trade, "role");
         if (Helpers.isTrue(Helpers.isEqual(takerOrMaker, "1")))
         {
@@ -1499,7 +1499,7 @@ public class P2bCore extends P2bApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
+        Long timestamp = (Long) this.safeIntegerProduct2(order, "timestamp", "ctime", 1000);
         String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         final Object finalMarket = market;

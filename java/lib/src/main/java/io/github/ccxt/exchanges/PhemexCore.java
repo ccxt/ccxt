@@ -2883,7 +2883,7 @@ public class PhemexCore extends PhemexApi
         String status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         String side = (String)this.safeStringLower(order, "side");
         String type = this.parseOrderType(this.safeString(order, "ordType"));
-        Object timestamp = this.safeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001);
+        Long timestamp = (Long) this.safeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001);
         Object fee = null;
         Object feeCost = this.fromEv(this.safeString(order, "cumFeeEv"), market);
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))

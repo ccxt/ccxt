@@ -482,7 +482,7 @@ public class MercadoCore extends MercadoApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = (String) this.safeSymbol(null, market);
-        Object timestamp = this.safeTimestamp(ticker, "date");
+        Long timestamp = (Long) this.safeTimestamp(ticker, "date");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -554,7 +554,7 @@ public class MercadoCore extends MercadoApi
     public Object parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
+        Long timestamp = (Long) this.safeTimestamp2(trade, "date", "executed_timestamp");
         market = this.safeMarket(null, market);
         String id = this.safeString2(trade, "tid", "operation_id");
         Object type = null;
@@ -865,7 +865,7 @@ public class MercadoCore extends MercadoApi
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String marketId = this.safeString(order, "coin_pair");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeTimestamp(order, "created_timestamp");
+        Long timestamp = (Long) this.safeTimestamp(order, "created_timestamp");
         final Object finalMarket = market;
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "cost", MercadoCore.this.safeString(order, "fee") );
@@ -876,7 +876,7 @@ public class MercadoCore extends MercadoApi
         String average = this.safeString(order, "executed_price_avg");
         String amount = this.safeString(order, "quantity");
         String filled = this.safeString(order, "executed_quantity");
-        Object lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
+        Long lastTradeTimestamp = (Long) this.safeTimestamp(order, "updated_timestamp");
         Object rawTrades = this.safeValue(order, "operations", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object symbol = Helpers.GetValue(market, "symbol");
         final Object finalSide = side;

@@ -598,7 +598,7 @@ public class BtcboxCore extends BtcboxApi
         //      }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp(trade, "date");
+        Long timestamp = (Long) this.safeTimestamp(trade, "date");
         market = this.safeMarket(null, market);
         String id = this.safeString(trade, "tid");
         String priceString = this.safeString(trade, "price");

@@ -157,7 +157,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
 
     public void handleDelta(Object orderbook, Object delta)
     {
-        Object timestamp = this.safeTimestamp(delta, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(delta, "timestamp");
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "microtimestamp"));
@@ -483,7 +483,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         {
             status = "canceled";
         }
-        Object timestamp = this.safeTimestamp(order, "datetime");
+        Long timestamp = (Long) this.safeTimestamp(order, "datetime");
         market = this.safeMarket(null, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         final Object finalOrderType = orderType;

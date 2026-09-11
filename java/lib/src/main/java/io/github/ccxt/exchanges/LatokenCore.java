@@ -2207,7 +2207,7 @@ public class LatokenCore extends LatokenApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp(transfer, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(transfer, "timestamp");
         String currencyId = this.safeString(transfer, "currency");
         String status = this.safeString(transfer, "status");
         return new java.util.HashMap<String, Object>() {{
