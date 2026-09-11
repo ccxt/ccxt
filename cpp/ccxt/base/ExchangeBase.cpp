@@ -2158,7 +2158,7 @@ std::any ExchangeBase::crc32 (std::any value, std::any signed32) {
     return std::any (crc32Of (str (value), isTrue (signed32)));
 }
 
-std::any ExchangeBase::rsa (std::any, std::any, std::any) {
+std::any ExchangeBase::rsa (std::any, std::any, std::any, std::any) {
     throw NotSupported ("rsa signing is not implemented in the C++ port yet; only hmac keys work");
 }
 

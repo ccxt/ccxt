@@ -17,6 +17,86 @@
 #include <vector>
 
 namespace ccxt {
+struct NestedDictionary;
+struct MinMax;
+struct Fee;
+struct TradingFee;
+struct MarketMarginModes;
+struct Precision;
+struct Market;
+struct PredictionFees;
+struct PredictionEvent;
+struct PredictionMarket;
+struct PredictionOutcome;
+struct PredictionOrder;
+struct PredictionTrade;
+struct PredictionPosition;
+struct PredictionTicker;
+struct PredictionOrderBook;
+struct PredictionTickers;
+struct PredictionTradingFee;
+struct PredictionOpenInterest;
+struct PredictionSettlement;
+struct fetchEventsParams;
+struct Trade;
+struct Order;
+struct OrderBook;
+struct OrderBooks;
+struct Ticker;
+struct Transaction;
+struct Tickers;
+struct Currency;
+struct Balance;
+struct BalanceAccount;
+struct Account;
+struct PartialBalances;
+struct Balances;
+struct DepositAddress;
+struct WithdrawalResponse;
+struct FundingRate;
+struct FundingRates;
+struct Position;
+struct BorrowInterest;
+struct LeverageTier;
+struct LedgerEntry;
+struct DepositWithdrawFeeNetwork;
+struct DepositWithdrawFee;
+struct DepositWithdrawFees;
+struct TransferEntry;
+struct CrossBorrowRate;
+struct IsolatedBorrowRate;
+struct FundingRateHistory;
+struct OpenInterest;
+struct OpenInterests;
+struct Liquidation;
+struct OrderRequest;
+struct PredictionOrderRequest;
+struct CancellationRequest;
+struct FundingHistory;
+struct MarginMode;
+struct Greeks;
+struct Conversion;
+struct Option;
+struct LastPrice;
+struct Leverage;
+struct LongShortRatio;
+struct ADL;
+struct MarginModification;
+struct MarginLoan;
+struct Status;
+struct PositionModeInfo;
+struct Leverages;
+struct LastPrices;
+struct Currencies;
+struct TradingFees;
+struct MarginModes;
+struct OptionChain;
+struct IsolatedBorrowRates;
+struct CrossBorrowRates;
+struct LeverageTiers;
+struct OHLCV;
+struct OHLCVC;
+
 
 // ---------------------------------------------------------------------------
 // conversion support (the C++ face of C#'s Exchange.Safe* accessors)
@@ -299,6 +379,7 @@ struct Market {
     std::optional<Limits> limits;
     std::optional<int64_t> created;
     std::any info;
+    std::vector<PredictionOutcome> outcomes;
 
     Market () = default;
     explicit Market (const std::any& raw) {
@@ -343,6 +424,514 @@ struct Market {
         this->limits = typedsupport::optStruct<Limits> (raw, "limits");
         this->created = typedsupport::optInt (raw, "created");
         this->info = typedsupport::getAny (raw, "info");
+        this->outcomes = typedsupport::structList<PredictionOutcome> (raw, "outcomes");
+    }
+};
+
+struct PredictionFees {
+    std::optional<double> trading;
+    std::optional<double> resolution;
+
+    PredictionFees () = default;
+    explicit PredictionFees (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->trading = typedsupport::optNum (raw, "trading");
+        this->resolution = typedsupport::optNum (raw, "resolution");
+    }
+};
+
+struct PredictionEvent {
+    std::any info;
+    std::optional<std::string> id;
+    std::optional<std::string> event;
+    std::optional<std::string> title;
+    std::optional<std::string> description;
+    std::optional<std::string> slug;
+    std::optional<std::string> category;
+    std::vector<std::string> tags;
+    std::vector<PredictionMarket> markets;
+    std::optional<bool> mutuallyExclusive;
+    std::optional<bool> active;
+    std::optional<bool> resolved;
+    std::optional<double> volume;
+    std::optional<double> liquidity;
+    std::optional<int64_t> created;
+    std::optional<std::string> createdDatetime;
+    std::optional<int64_t> end;
+    std::optional<std::string> endDatetime;
+    std::optional<std::string> image;
+    std::optional<std::string> url;
+
+    PredictionEvent () = default;
+    explicit PredictionEvent (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->info = typedsupport::getAny (raw, "info");
+        this->id = typedsupport::optStr (raw, "id");
+        this->event = typedsupport::optStr (raw, "event");
+        this->title = typedsupport::optStr (raw, "title");
+        this->description = typedsupport::optStr (raw, "description");
+        this->slug = typedsupport::optStr (raw, "slug");
+        this->category = typedsupport::optStr (raw, "category");
+        this->tags = typedsupport::stringList (raw, "tags");
+        this->markets = typedsupport::structList<PredictionMarket> (raw, "markets");
+        this->mutuallyExclusive = typedsupport::optBool (raw, "mutuallyExclusive");
+        this->active = typedsupport::optBool (raw, "active");
+        this->resolved = typedsupport::optBool (raw, "resolved");
+        this->volume = typedsupport::optNum (raw, "volume");
+        this->liquidity = typedsupport::optNum (raw, "liquidity");
+        this->created = typedsupport::optInt (raw, "created");
+        this->createdDatetime = typedsupport::optStr (raw, "createdDatetime");
+        this->end = typedsupport::optInt (raw, "end");
+        this->endDatetime = typedsupport::optStr (raw, "endDatetime");
+        this->image = typedsupport::optStr (raw, "image");
+        this->url = typedsupport::optStr (raw, "url");
+    }
+};
+
+struct PredictionMarket {
+    std::any info;
+    std::optional<std::string> id;
+    std::optional<std::string> market;
+    std::optional<std::string> event;
+    std::optional<std::string> marketType;
+    std::optional<std::string> executionModel;
+    std::optional<std::string> title;
+    std::optional<std::string> description;
+    std::vector<PredictionOutcome> outcomes;
+    std::optional<std::string> underlying;
+    std::optional<double> floorStrike;
+    std::optional<double> capStrike;
+    std::optional<std::string> strikeType;
+    std::optional<std::string> collateral;
+    std::optional<bool> active;
+    std::optional<bool> closed;
+    std::optional<bool> resolved;
+    std::optional<std::string> resolvedOutcome;
+    std::optional<double> settlementValue;
+    std::optional<int64_t> created;
+    std::optional<std::string> createdDatetime;
+    std::optional<int64_t> end;
+    std::optional<std::string> endDatetime;
+    std::optional<double> volume;
+    std::optional<double> liquidity;
+    std::optional<double> openInterest;
+    std::optional<double> tickSize;
+    std::any limits;
+    std::optional<PredictionFees> fees;
+    std::optional<std::string> resolutionSource;
+    std::optional<std::string> image;
+
+    PredictionMarket () = default;
+    explicit PredictionMarket (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->info = typedsupport::getAny (raw, "info");
+        this->id = typedsupport::optStr (raw, "id");
+        this->market = typedsupport::optStr (raw, "market");
+        this->event = typedsupport::optStr (raw, "event");
+        this->marketType = typedsupport::optStr (raw, "marketType");
+        this->executionModel = typedsupport::optStr (raw, "executionModel");
+        this->title = typedsupport::optStr (raw, "title");
+        this->description = typedsupport::optStr (raw, "description");
+        this->outcomes = typedsupport::structList<PredictionOutcome> (raw, "outcomes");
+        this->underlying = typedsupport::optStr (raw, "underlying");
+        this->floorStrike = typedsupport::optNum (raw, "floorStrike");
+        this->capStrike = typedsupport::optNum (raw, "capStrike");
+        this->strikeType = typedsupport::optStr (raw, "strikeType");
+        this->collateral = typedsupport::optStr (raw, "collateral");
+        this->active = typedsupport::optBool (raw, "active");
+        this->closed = typedsupport::optBool (raw, "closed");
+        this->resolved = typedsupport::optBool (raw, "resolved");
+        this->resolvedOutcome = typedsupport::optStr (raw, "resolvedOutcome");
+        this->settlementValue = typedsupport::optNum (raw, "settlementValue");
+        this->created = typedsupport::optInt (raw, "created");
+        this->createdDatetime = typedsupport::optStr (raw, "createdDatetime");
+        this->end = typedsupport::optInt (raw, "end");
+        this->endDatetime = typedsupport::optStr (raw, "endDatetime");
+        this->volume = typedsupport::optNum (raw, "volume");
+        this->liquidity = typedsupport::optNum (raw, "liquidity");
+        this->openInterest = typedsupport::optNum (raw, "openInterest");
+        this->tickSize = typedsupport::optNum (raw, "tickSize");
+        this->limits = typedsupport::getAny (raw, "limits");
+        this->fees = typedsupport::optStruct<PredictionFees> (raw, "fees");
+        this->resolutionSource = typedsupport::optStr (raw, "resolutionSource");
+        this->image = typedsupport::optStr (raw, "image");
+    }
+};
+
+struct PredictionOutcome {
+    std::any info;
+    std::optional<std::string> outcome;
+    std::optional<std::string> outcomeId;
+    std::optional<std::string> label;
+    std::optional<std::string> market;
+    std::optional<std::string> marketId;
+    std::optional<std::string> event;
+    std::optional<double> price;
+    std::optional<double> bid;
+    std::optional<double> ask;
+    std::optional<bool> active;
+    std::optional<bool> winner;
+    std::optional<double> settleFraction;
+    std::optional<Precision> precision;
+
+    PredictionOutcome () = default;
+    explicit PredictionOutcome (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->info = typedsupport::getAny (raw, "info");
+        this->outcome = typedsupport::optStr (raw, "outcome");
+        this->outcomeId = typedsupport::optStr (raw, "outcomeId");
+        this->label = typedsupport::optStr (raw, "label");
+        this->market = typedsupport::optStr (raw, "market");
+        this->marketId = typedsupport::optStr (raw, "marketId");
+        this->event = typedsupport::optStr (raw, "event");
+        this->price = typedsupport::optNum (raw, "price");
+        this->bid = typedsupport::optNum (raw, "bid");
+        this->ask = typedsupport::optNum (raw, "ask");
+        this->active = typedsupport::optBool (raw, "active");
+        this->winner = typedsupport::optBool (raw, "winner");
+        this->settleFraction = typedsupport::optNum (raw, "settleFraction");
+        this->precision = typedsupport::optStruct<Precision> (raw, "precision");
+    }
+};
+
+struct PredictionOrder {
+    std::optional<std::string> id;
+    std::optional<std::string> clientOrderId;
+    std::optional<std::string> datetime;
+    std::optional<int64_t> timestamp;
+    std::optional<int64_t> lastTradeTimestamp;
+    std::optional<int64_t> lastUpdateTimestamp;
+    std::optional<std::string> status;
+    std::optional<std::string> type;
+    std::optional<std::string> timeInForce;
+    std::optional<std::string> side;
+    std::optional<double> price;
+    std::optional<double> average;
+    std::optional<double> amount;
+    std::optional<double> filled;
+    std::optional<double> remaining;
+    std::optional<double> cost;
+    std::optional<Fee> fee;
+    std::optional<bool> reduceOnly;
+    std::optional<bool> postOnly;
+    std::any info;
+    std::optional<std::string> outcome;
+    std::optional<std::string> outcomeId;
+    std::optional<std::string> label;
+    std::optional<std::string> market;
+    std::optional<std::string> event;
+    std::vector<PredictionTrade> trades;
+
+    PredictionOrder () = default;
+    explicit PredictionOrder (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->id = typedsupport::optStr (raw, "id");
+        this->clientOrderId = typedsupport::optStr (raw, "clientOrderId");
+        this->datetime = typedsupport::optStr (raw, "datetime");
+        this->timestamp = typedsupport::optInt (raw, "timestamp");
+        this->lastTradeTimestamp = typedsupport::optInt (raw, "lastTradeTimestamp");
+        this->lastUpdateTimestamp = typedsupport::optInt (raw, "lastUpdateTimestamp");
+        this->status = typedsupport::optStr (raw, "status");
+        this->type = typedsupport::optStr (raw, "type");
+        this->timeInForce = typedsupport::optStr (raw, "timeInForce");
+        this->side = typedsupport::optStr (raw, "side");
+        this->price = typedsupport::optNum (raw, "price");
+        this->average = typedsupport::optNum (raw, "average");
+        this->amount = typedsupport::optNum (raw, "amount");
+        this->filled = typedsupport::optNum (raw, "filled");
+        this->remaining = typedsupport::optNum (raw, "remaining");
+        this->cost = typedsupport::optNum (raw, "cost");
+        this->fee = typedsupport::optStruct<Fee> (raw, "fee");
+        this->reduceOnly = typedsupport::optBool (raw, "reduceOnly");
+        this->postOnly = typedsupport::optBool (raw, "postOnly");
+        this->info = typedsupport::getAny (raw, "info");
+        this->outcome = typedsupport::optStr (raw, "outcome");
+        this->outcomeId = typedsupport::optStr (raw, "outcomeId");
+        this->label = typedsupport::optStr (raw, "label");
+        this->market = typedsupport::optStr (raw, "market");
+        this->event = typedsupport::optStr (raw, "event");
+        this->trades = typedsupport::structList<PredictionTrade> (raw, "trades");
+    }
+};
+
+struct PredictionTrade {
+    std::any info;
+    std::optional<double> amount;
+    std::optional<std::string> datetime;
+    std::optional<std::string> id;
+    std::optional<std::string> order;
+    std::optional<double> price;
+    std::optional<int64_t> timestamp;
+    std::optional<std::string> type;
+    std::optional<std::string> side;
+    std::optional<std::string> takerOrMaker;
+    std::optional<double> cost;
+    std::optional<Fee> fee;
+    std::optional<std::string> outcome;
+    std::optional<std::string> outcomeId;
+    std::optional<std::string> label;
+    std::optional<std::string> market;
+    std::optional<double> realizedPnl;
+
+    PredictionTrade () = default;
+    explicit PredictionTrade (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->info = typedsupport::getAny (raw, "info");
+        this->amount = typedsupport::optNum (raw, "amount");
+        this->datetime = typedsupport::optStr (raw, "datetime");
+        this->id = typedsupport::optStr (raw, "id");
+        this->order = typedsupport::optStr (raw, "order");
+        this->price = typedsupport::optNum (raw, "price");
+        this->timestamp = typedsupport::optInt (raw, "timestamp");
+        this->type = typedsupport::optStr (raw, "type");
+        this->side = typedsupport::optStr (raw, "side");
+        this->takerOrMaker = typedsupport::optStr (raw, "takerOrMaker");
+        this->cost = typedsupport::optNum (raw, "cost");
+        this->fee = typedsupport::optStruct<Fee> (raw, "fee");
+        this->outcome = typedsupport::optStr (raw, "outcome");
+        this->outcomeId = typedsupport::optStr (raw, "outcomeId");
+        this->label = typedsupport::optStr (raw, "label");
+        this->market = typedsupport::optStr (raw, "market");
+        this->realizedPnl = typedsupport::optNum (raw, "realizedPnl");
+    }
+};
+
+struct PredictionPosition {
+    std::optional<std::string> id;
+    std::any info;
+    std::optional<int64_t> timestamp;
+    std::optional<std::string> datetime;
+    std::optional<double> contracts;
+    std::optional<double> contractSize;
+    std::optional<std::string> side;
+    std::optional<double> notional;
+    std::optional<double> unrealizedPnl;
+    std::optional<double> realizedPnl;
+    std::optional<double> collateral;
+    std::optional<double> entryPrice;
+    std::optional<double> markPrice;
+    std::optional<double> lastPrice;
+    std::optional<double> percentage;
+    std::optional<std::string> outcome;
+    std::optional<std::string> outcomeId;
+    std::optional<std::string> label;
+    std::optional<std::string> market;
+    std::optional<std::string> event;
+    std::optional<bool> resolved;
+    std::optional<bool> won;
+    std::optional<double> settleFraction;
+    std::optional<double> payout;
+
+    PredictionPosition () = default;
+    explicit PredictionPosition (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->id = typedsupport::optStr (raw, "id");
+        this->info = typedsupport::getAny (raw, "info");
+        this->timestamp = typedsupport::optInt (raw, "timestamp");
+        this->datetime = typedsupport::optStr (raw, "datetime");
+        this->contracts = typedsupport::optNum (raw, "contracts");
+        this->contractSize = typedsupport::optNum (raw, "contractSize");
+        this->side = typedsupport::optStr (raw, "side");
+        this->notional = typedsupport::optNum (raw, "notional");
+        this->unrealizedPnl = typedsupport::optNum (raw, "unrealizedPnl");
+        this->realizedPnl = typedsupport::optNum (raw, "realizedPnl");
+        this->collateral = typedsupport::optNum (raw, "collateral");
+        this->entryPrice = typedsupport::optNum (raw, "entryPrice");
+        this->markPrice = typedsupport::optNum (raw, "markPrice");
+        this->lastPrice = typedsupport::optNum (raw, "lastPrice");
+        this->percentage = typedsupport::optNum (raw, "percentage");
+        this->outcome = typedsupport::optStr (raw, "outcome");
+        this->outcomeId = typedsupport::optStr (raw, "outcomeId");
+        this->label = typedsupport::optStr (raw, "label");
+        this->market = typedsupport::optStr (raw, "market");
+        this->event = typedsupport::optStr (raw, "event");
+        this->resolved = typedsupport::optBool (raw, "resolved");
+        this->won = typedsupport::optBool (raw, "won");
+        this->settleFraction = typedsupport::optNum (raw, "settleFraction");
+        this->payout = typedsupport::optNum (raw, "payout");
+    }
+};
+
+struct PredictionTicker {
+    std::any info;
+    std::optional<int64_t> timestamp;
+    std::optional<std::string> datetime;
+    std::optional<double> high;
+    std::optional<double> low;
+    std::optional<double> bid;
+    std::optional<double> bidVolume;
+    std::optional<double> ask;
+    std::optional<double> askVolume;
+    std::optional<double> open;
+    std::optional<double> close;
+    std::optional<double> last;
+    std::optional<double> change;
+    std::optional<double> percentage;
+    std::optional<double> average;
+    std::optional<double> quoteVolume;
+    std::optional<double> baseVolume;
+    std::optional<std::string> outcome;
+    std::optional<std::string> outcomeId;
+    std::optional<std::string> label;
+    std::optional<std::string> market;
+    std::optional<std::string> event;
+    std::optional<double> openInterest;
+
+    PredictionTicker () = default;
+    explicit PredictionTicker (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->info = typedsupport::getAny (raw, "info");
+        this->timestamp = typedsupport::optInt (raw, "timestamp");
+        this->datetime = typedsupport::optStr (raw, "datetime");
+        this->high = typedsupport::optNum (raw, "high");
+        this->low = typedsupport::optNum (raw, "low");
+        this->bid = typedsupport::optNum (raw, "bid");
+        this->bidVolume = typedsupport::optNum (raw, "bidVolume");
+        this->ask = typedsupport::optNum (raw, "ask");
+        this->askVolume = typedsupport::optNum (raw, "askVolume");
+        this->open = typedsupport::optNum (raw, "open");
+        this->close = typedsupport::optNum (raw, "close");
+        this->last = typedsupport::optNum (raw, "last");
+        this->change = typedsupport::optNum (raw, "change");
+        this->percentage = typedsupport::optNum (raw, "percentage");
+        this->average = typedsupport::optNum (raw, "average");
+        this->quoteVolume = typedsupport::optNum (raw, "quoteVolume");
+        this->baseVolume = typedsupport::optNum (raw, "baseVolume");
+        this->outcome = typedsupport::optStr (raw, "outcome");
+        this->outcomeId = typedsupport::optStr (raw, "outcomeId");
+        this->label = typedsupport::optStr (raw, "label");
+        this->market = typedsupport::optStr (raw, "market");
+        this->event = typedsupport::optStr (raw, "event");
+        this->openInterest = typedsupport::optNum (raw, "openInterest");
+    }
+};
+
+struct PredictionOrderBook {
+    std::vector<std::vector<double>> asks;
+    std::vector<std::vector<double>> bids;
+    std::optional<std::string> datetime;
+    std::optional<int64_t> timestamp;
+    std::optional<int64_t> nonce;
+    std::optional<std::string> outcome;
+    std::optional<std::string> outcomeId;
+    std::optional<std::string> market;
+
+    PredictionOrderBook () = default;
+    explicit PredictionOrderBook (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->asks = typedsupport::numberRows (raw, "asks");
+        this->bids = typedsupport::numberRows (raw, "bids");
+        this->datetime = typedsupport::optStr (raw, "datetime");
+        this->timestamp = typedsupport::optInt (raw, "timestamp");
+        this->nonce = typedsupport::optInt (raw, "nonce");
+        this->outcome = typedsupport::optStr (raw, "outcome");
+        this->outcomeId = typedsupport::optStr (raw, "outcomeId");
+        this->market = typedsupport::optStr (raw, "market");
+    }
+};
+
+struct PredictionTickers {
+    std::map<std::string, PredictionTicker> predictionTickers;
+    std::any info;
+
+    PredictionTickers () = default;
+    explicit PredictionTickers (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->info = typedsupport::getAny (raw, "info");
+        for (const auto& kv : std::any_cast<dict> (raw).entries ()) {
+            if (kv.first == "info") { continue; }
+            this->predictionTickers.emplace (kv.first, PredictionTicker (kv.second));
+        }
+    }
+
+    const PredictionTicker& operator[] (const std::string& key) const { return this->predictionTickers.at (key); }
+    bool has (const std::string& key) const { return this->predictionTickers.count (key) > 0; }
+    std::size_t size () const { return this->predictionTickers.size (); }
+};
+
+struct PredictionTradingFee {
+    std::any info;
+    std::optional<double> maker;
+    std::optional<double> taker;
+    std::optional<bool> percentage;
+    std::optional<bool> tierBased;
+    std::optional<std::string> outcome;
+    std::optional<std::string> outcomeId;
+    std::optional<std::string> market;
+
+    PredictionTradingFee () = default;
+    explicit PredictionTradingFee (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->info = typedsupport::getAny (raw, "info");
+        this->maker = typedsupport::optNum (raw, "maker");
+        this->taker = typedsupport::optNum (raw, "taker");
+        this->percentage = typedsupport::optBool (raw, "percentage");
+        this->tierBased = typedsupport::optBool (raw, "tierBased");
+        this->outcome = typedsupport::optStr (raw, "outcome");
+        this->outcomeId = typedsupport::optStr (raw, "outcomeId");
+        this->market = typedsupport::optStr (raw, "market");
+    }
+};
+
+struct PredictionOpenInterest {
+    std::optional<double> openInterestAmount;
+    std::optional<double> openInterestValue;
+    std::optional<int64_t> timestamp;
+    std::optional<std::string> datetime;
+    std::any info;
+    std::optional<std::string> outcome;
+    std::optional<std::string> outcomeId;
+    std::optional<std::string> market;
+
+    PredictionOpenInterest () = default;
+    explicit PredictionOpenInterest (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->openInterestAmount = typedsupport::optNum (raw, "openInterestAmount");
+        this->openInterestValue = typedsupport::optNum (raw, "openInterestValue");
+        this->timestamp = typedsupport::optInt (raw, "timestamp");
+        this->datetime = typedsupport::optStr (raw, "datetime");
+        this->info = typedsupport::getAny (raw, "info");
+        this->outcome = typedsupport::optStr (raw, "outcome");
+        this->outcomeId = typedsupport::optStr (raw, "outcomeId");
+        this->market = typedsupport::optStr (raw, "market");
+    }
+};
+
+struct PredictionSettlement {
+    std::any info;
+    std::optional<std::string> id;
+    std::optional<int64_t> timestamp;
+    std::optional<std::string> datetime;
+    std::optional<std::string> outcome;
+    std::optional<std::string> outcomeId;
+    std::optional<std::string> market;
+    std::optional<std::string> event;
+    std::optional<std::string> result;
+    std::optional<bool> won;
+    std::optional<double> amount;
+    std::optional<double> price;
+    std::optional<double> cost;
+    std::optional<double> payout;
+    std::optional<double> pnl;
+
+    PredictionSettlement () = default;
+    explicit PredictionSettlement (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->info = typedsupport::getAny (raw, "info");
+        this->id = typedsupport::optStr (raw, "id");
+        this->timestamp = typedsupport::optInt (raw, "timestamp");
+        this->datetime = typedsupport::optStr (raw, "datetime");
+        this->outcome = typedsupport::optStr (raw, "outcome");
+        this->outcomeId = typedsupport::optStr (raw, "outcomeId");
+        this->market = typedsupport::optStr (raw, "market");
+        this->event = typedsupport::optStr (raw, "event");
+        this->result = typedsupport::optStr (raw, "result");
+        this->won = typedsupport::optBool (raw, "won");
+        this->amount = typedsupport::optNum (raw, "amount");
+        this->price = typedsupport::optNum (raw, "price");
+        this->cost = typedsupport::optNum (raw, "cost");
+        this->payout = typedsupport::optNum (raw, "payout");
+        this->pnl = typedsupport::optNum (raw, "pnl");
     }
 };
 
@@ -1308,6 +1897,26 @@ struct OrderRequest {
         if (this->price.has_value ()) { d.set ("price", std::any (*this->price)); }
         if (this->params.has_value ()) { d.set ("params", this->params); }
         return std::any (d);
+    }
+};
+
+struct PredictionOrderRequest {
+    std::optional<std::string> outcome;
+    std::optional<std::string> type;
+    std::optional<std::string> side;
+    std::optional<double> amount;
+    std::optional<double> price;
+    std::any params;
+
+    PredictionOrderRequest () = default;
+    explicit PredictionOrderRequest (const std::any& raw) {
+        if (!isDict (raw)) { return; }
+        this->outcome = typedsupport::optStr (raw, "outcome");
+        this->type = typedsupport::optStr (raw, "type");
+        this->side = typedsupport::optStr (raw, "side");
+        this->amount = typedsupport::optNum (raw, "amount");
+        this->price = typedsupport::optNum (raw, "price");
+        this->params = typedsupport::getAny (raw, "params");
     }
 };
 

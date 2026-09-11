@@ -43,6 +43,9 @@ const TYPED_API_FILE        = './cpp/ccxt/base/Exchange.TypedApi.inc';
 const ERRORS_FILE           = './cpp/ccxt/base/Errors.h';
 const EXCHANGES_FOLDER      = './cpp/ccxt/exchanges/';
 const PRO_EXCHANGES_FOLDER  = './cpp/ccxt/pro/';
+const PREDICTION_BASE_FILE  = './ts/src/base/PredictionExchange.ts';
+const PREDICTION_FOLDER     = './cpp/ccxt/prediction/';
+const PREDICTION_BASE_HEADER = './cpp/ccxt/base/PredictionExchange.h';
 const BASE_TESTS_FOLDER     = './cpp/tests/Generated/Base/';
 const EXCHANGE_TESTS_FOLDER = './cpp/tests/Generated/';
 const TS_BASE_TESTS_FOLDER  = './ts/src/test/base/';
@@ -552,7 +555,8 @@ function rewriteDecimalsAssignments (content: string): string {
 function rewriteReservedIdentifiers (content: string): string {
     return outsideStringLiterals (content, (masked) => masked
         .replace (/\bsigned\b/g, 'signedFlag')
-        .replace (/\bauto\b/g, 'autoFlag'));
+        .replace (/\bauto\b/g, 'autoFlag')
+        .replace (/\berrno\b/g, 'errnoFlag'));   // <cerrno> macro, same collision class
 }
 
 // The transpiler can shadow a global helper with a same-named local (okx: `const isArray
@@ -753,6 +757,131 @@ class CppTranspilerDriver {
     // struct set becomes `T FetchX (...)` calling the dynamic camelCase core and
     // converting the result. Methods with unmappable pieces stay dynamic-only.
 
+    // shared by the Exchange facade (transpileTypedApi) and the prediction facade
+    // (predictionTypedApiLines): the structNames map is the only difference -- the
+    // main facade excludes Prediction* structs, the prediction facade includes them.
+    mapTypedReturn (structNames: Map<string, string>, retRaw: string): { type: string, wrap: (call: string) => string } | undefined {
+        const ret = retRaw.split ('|').map ((s) => s.trim ()).filter ((s) => s !== 'undefined' && s !== 'null').join ('|').trim ();
+        if (ret === 'Int' || ret === 'int') {
+            return { 'type': 'std::optional<int64_t>', 'wrap': (c) => 'typedsupport::anyInt (' + c + ')' };
+        }
+        if (ret === 'Str') {
+            return { 'type': 'std::optional<std::string>', 'wrap': (c) => 'typedsupport::anyStr (' + c + ')' };
+        }
+        if (ret === 'Num') {
+            return { 'type': 'std::optional<double>', 'wrap': (c) => 'typedsupport::anyNum (' + c + ')' };
+        }
+        if (ret === 'Bool') {
+            return { 'type': 'std::optional<bool>', 'wrap': (c) => 'typedsupport::anyBool (' + c + ')' };
+        }
+        if (ret.endsWith ('[]')) {
+            const elem = ret.slice (0, -2).trim ();
+            const cpp = structNames.get (elem);
+            if (cpp !== undefined) {
+                return { 'type': 'std::vector<' + cpp + '>', 'wrap': (c) => 'typedVector<' + cpp + '> (' + c + ')' };
+            }
+            return undefined;
+        }
+        if (ret.startsWith ('Dictionary<') && ret.endsWith ('>')) {
+            const inner = ret.slice (11, -1).trim ();
+            const cpp = structNames.get (inner);
+            if (cpp !== undefined) {
+                return { 'type': 'std::map<std::string, ' + cpp + '>', 'wrap': (c) => 'typedMap<' + cpp + '> (' + c + ')' };
+            }
+            return undefined;
+        }
+        const cpp = structNames.get (ret);
+        if (cpp !== undefined) {
+            return { 'type': cpp, 'wrap': (c) => cpp + ' (' + c + ')' };
+        }
+        return undefined;
+    }
+
+    mapTypedParam (raw: string): { decl: string, conv: string } | undefined {
+        const text = raw.trim ();
+        if (text === '') {
+            return undefined;
+        }
+        const eq = text.indexOf ('=');
+        const head = (eq >= 0 ? text.slice (0, eq) : text).trim ();
+        const def = eq >= 0 ? text.slice (eq + 1).trim () : undefined;
+        const colon = head.indexOf (':');
+        const name = (colon >= 0 ? head.slice (0, colon) : head).trim ();
+        let type = colon >= 0 ? head.slice (colon + 1).trim () : undefined;
+        if (type !== undefined) {
+            type = type.split ('|').map ((s) => s.trim ()).filter ((s) => s !== 'undefined' && s !== 'null').join ('|').trim ();
+        }
+        const conv = 'typedAny (' + name + ')';
+        // params bag and other untyped-object args (fetchEventsParams is the
+        // prediction tier's params-bag interface)
+        if ((type === undefined || type === 'object' || type === 'any' || type === 'Dict' || type === '{}' || type === 'fetchEventsParams') && def === '{}') {
+            return { 'decl': 'const dict& ' + name + ' = dict {}', 'conv': conv };
+        }
+        if (type === undefined && def === 'undefined') {
+            return { 'decl': 'const std::any& ' + name + ' = std::any {}', 'conv': conv };
+        }
+        if (type === undefined) {
+            return undefined;
+        }
+        const stringLike = type === 'string' || type === 'OrderType' || type === 'OrderSide' || type === 'MarketType' || type === 'SubType' || type === 'IndexType';
+        if (stringLike) {
+            if (def === undefined) {
+                return { 'decl': 'const std::string& ' + name, 'conv': conv };
+            }
+            if (def.startsWith ("'") && def.endsWith ("'")) {
+                return { 'decl': 'const std::string& ' + name + ' = "' + def.slice (1, -1) + '"', 'conv': conv };
+            }
+            if (def === 'undefined') {
+                return { 'decl': 'const std::optional<std::string>& ' + name + ' = std::nullopt', 'conv': conv };
+            }
+            return undefined;
+        }
+        if (type === 'Str') {
+            return { 'decl': 'const std::optional<std::string>& ' + name + (def !== undefined ? ' = std::nullopt' : ''), 'conv': conv };
+        }
+        if (type === 'Strings' || type === 'string[]') {
+            return { 'decl': 'const std::vector<std::string>& ' + name + (def !== undefined ? ' = {}' : ''), 'conv': conv };
+        }
+        if (type === 'Int' || type === 'int') {
+            return { 'decl': 'std::optional<int64_t> ' + name + (def !== undefined ? ' = std::nullopt' : ''), 'conv': conv };
+        }
+        if (type === 'Num') {
+            return { 'decl': 'std::optional<double> ' + name + (def !== undefined ? ' = std::nullopt' : ''), 'conv': conv };
+        }
+        if (type === 'number') {
+            if (def === undefined) {
+                return { 'decl': 'double ' + name, 'conv': conv };
+            }
+            if (def === 'undefined') {
+                return { 'decl': 'std::optional<double> ' + name + ' = std::nullopt', 'conv': conv };
+            }
+            if (/^-?[0-9.]+$/.test (def)) {
+                return { 'decl': 'double ' + name + ' = ' + def, 'conv': conv };
+            }
+            return undefined;
+        }
+        if (type === 'boolean') {
+            if (def === undefined) {
+                return { 'decl': 'bool ' + name, 'conv': conv };
+            }
+            if (def === 'true' || def === 'false') {
+                return { 'decl': 'bool ' + name + ' = ' + def, 'conv': conv };
+            }
+            if (def === 'undefined') {
+                return { 'decl': 'const std::optional<bool>& ' + name + ' = std::nullopt', 'conv': conv };
+            }
+            return undefined;
+        }
+        if (type === 'Bool') {
+            return { 'decl': 'const std::optional<bool>& ' + name + (def !== undefined ? ' = std::nullopt' : ''), 'conv': conv };
+        }
+        if (type === 'OrderRequest[]' || type === 'CancellationRequest[]') {
+            const elem = type.slice (0, -2);
+            return { 'decl': 'const std::vector<' + elem + '>& ' + name, 'conv': 'typedAnyList (' + name + ')' };
+        }
+        return undefined;
+    }
+
     transpileTypedApi (baseExchangeFile = TS_BASE_FILE, force = true) {
         if (skipUpToDateStage ('cpp', 'typed api', force,
             [ baseExchangeFile, './ts/src/base/types.ts' ],
@@ -800,127 +929,6 @@ class CppTranspilerDriver {
             'fetchPermissions', 'fetchTransactions',
         ]);
 
-        const mapReturn = (retRaw: string): { type: string, wrap: (call: string) => string } | undefined => {
-            const ret = retRaw.split ('|').map ((s) => s.trim ()).filter ((s) => s !== 'undefined' && s !== 'null').join ('|').trim ();
-            if (ret === 'Int' || ret === 'int') {
-                return { 'type': 'std::optional<int64_t>', 'wrap': (c) => 'typedsupport::anyInt (' + c + ')' };
-            }
-            if (ret === 'Str') {
-                return { 'type': 'std::optional<std::string>', 'wrap': (c) => 'typedsupport::anyStr (' + c + ')' };
-            }
-            if (ret === 'Num') {
-                return { 'type': 'std::optional<double>', 'wrap': (c) => 'typedsupport::anyNum (' + c + ')' };
-            }
-            if (ret === 'Bool') {
-                return { 'type': 'std::optional<bool>', 'wrap': (c) => 'typedsupport::anyBool (' + c + ')' };
-            }
-            if (ret.endsWith ('[]')) {
-                const elem = ret.slice (0, -2).trim ();
-                const cpp = structNames.get (elem);
-                if (cpp !== undefined) {
-                    return { 'type': 'std::vector<' + cpp + '>', 'wrap': (c) => 'typedVector<' + cpp + '> (' + c + ')' };
-                }
-                return undefined;
-            }
-            if (ret.startsWith ('Dictionary<') && ret.endsWith ('>')) {
-                const inner = ret.slice (11, -1).trim ();
-                const cpp = structNames.get (inner);
-                if (cpp !== undefined) {
-                    return { 'type': 'std::map<std::string, ' + cpp + '>', 'wrap': (c) => 'typedMap<' + cpp + '> (' + c + ')' };
-                }
-                return undefined;
-            }
-            const cpp = structNames.get (ret);
-            if (cpp !== undefined) {
-                return { 'type': cpp, 'wrap': (c) => cpp + ' (' + c + ')' };
-            }
-            return undefined;
-        };
-
-        const mapParam = (raw: string): { decl: string, conv: string } | undefined => {
-            const text = raw.trim ();
-            if (text === '') {
-                return undefined;
-            }
-            const eq = text.indexOf ('=');
-            const head = (eq >= 0 ? text.slice (0, eq) : text).trim ();
-            const def = eq >= 0 ? text.slice (eq + 1).trim () : undefined;
-            const colon = head.indexOf (':');
-            const name = (colon >= 0 ? head.slice (0, colon) : head).trim ();
-            let type = colon >= 0 ? head.slice (colon + 1).trim () : undefined;
-            if (type !== undefined) {
-                type = type.split ('|').map ((s) => s.trim ()).filter ((s) => s !== 'undefined' && s !== 'null').join ('|').trim ();
-            }
-            const conv = 'typedAny (' + name + ')';
-            // params bag and other untyped-object args
-            if ((type === undefined || type === 'object' || type === 'any' || type === 'Dict' || type === '{}') && def === '{}') {
-                return { 'decl': 'const dict& ' + name + ' = dict {}', 'conv': conv };
-            }
-            if (type === undefined && def === 'undefined') {
-                return { 'decl': 'const std::any& ' + name + ' = std::any {}', 'conv': conv };
-            }
-            if (type === undefined) {
-                return undefined;
-            }
-            const stringLike = type === 'string' || type === 'OrderType' || type === 'OrderSide' || type === 'MarketType' || type === 'SubType' || type === 'IndexType';
-            if (stringLike) {
-                if (def === undefined) {
-                    return { 'decl': 'const std::string& ' + name, 'conv': conv };
-                }
-                if (def.startsWith ("'") && def.endsWith ("'")) {
-                    return { 'decl': 'const std::string& ' + name + ' = "' + def.slice (1, -1) + '"', 'conv': conv };
-                }
-                if (def === 'undefined') {
-                    return { 'decl': 'const std::optional<std::string>& ' + name + ' = std::nullopt', 'conv': conv };
-                }
-                return undefined;
-            }
-            if (type === 'Str') {
-                return { 'decl': 'const std::optional<std::string>& ' + name + (def !== undefined ? ' = std::nullopt' : ''), 'conv': conv };
-            }
-            if (type === 'Strings' || type === 'string[]') {
-                return { 'decl': 'const std::vector<std::string>& ' + name + (def !== undefined ? ' = {}' : ''), 'conv': conv };
-            }
-            if (type === 'Int' || type === 'int') {
-                return { 'decl': 'std::optional<int64_t> ' + name + (def !== undefined ? ' = std::nullopt' : ''), 'conv': conv };
-            }
-            if (type === 'Num') {
-                return { 'decl': 'std::optional<double> ' + name + (def !== undefined ? ' = std::nullopt' : ''), 'conv': conv };
-            }
-            if (type === 'number') {
-                if (def === undefined) {
-                    return { 'decl': 'double ' + name, 'conv': conv };
-                }
-                if (def === 'undefined') {
-                    return { 'decl': 'std::optional<double> ' + name + ' = std::nullopt', 'conv': conv };
-                }
-                if (/^-?[0-9.]+$/.test (def)) {
-                    return { 'decl': 'double ' + name + ' = ' + def, 'conv': conv };
-                }
-                return undefined;
-            }
-            if (type === 'boolean') {
-                if (def === undefined) {
-                    return { 'decl': 'bool ' + name, 'conv': conv };
-                }
-                if (def === 'true' || def === 'false') {
-                    return { 'decl': 'bool ' + name + ' = ' + def, 'conv': conv };
-                }
-                if (def === 'undefined') {
-                    return { 'decl': 'const std::optional<bool>& ' + name + ' = std::nullopt', 'conv': conv };
-                }
-                return undefined;
-            }
-            if (type === 'Bool') {
-                return { 'decl': 'const std::optional<bool>& ' + name + (def !== undefined ? ' = std::nullopt' : ''), 'conv': conv };
-            }
-            if (type === 'OrderRequest[]' || type === 'CancellationRequest[]') {
-                const elem = type.slice (0, -2);
-                return { 'decl': 'const std::vector<' + elem + '>& ' + name, 'conv': 'typedAnyList (' + name + ')' };
-            }
-            return undefined;
-        };
-
         const src = fs.readFileSync (baseExchangeFile, 'utf8');
         const re = /^    (?:async\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)\s*:\s*Promise<([^{]+?)>\s*\{/gm;
         const emitted = new Set<string> ();
@@ -928,6 +936,7 @@ class CppTranspilerDriver {
         let match;
         while ((match = re.exec (src)) !== null) {
             const name = match[1];
+
             // the ws tier (watch*/*Ws) IS on the typed surface: the facade calls the
             // virtual camelCase method, so a REST instance throws the base stub's
             // NotSupported while a pro instance (ccxt::pro::<id>) dispatches to its
@@ -936,7 +945,7 @@ class CppTranspilerDriver {
             if (denylist.has (name) || emitted.has (name)) {
                 continue;
             }
-            const ret = mapReturn (match[3]);
+            const ret = this.mapTypedReturn (structNames, match[3]);
             if (ret === undefined) {
                 continue;
             }
@@ -946,7 +955,7 @@ class CppTranspilerDriver {
             const convs: string[] = [];
             let mappable = true;
             for (const piece of argPieces) {
-                const mapped = mapParam (piece);
+                const mapped = this.mapTypedParam (piece);
                 if (mapped === undefined) {
                     mappable = false;
                     break;
@@ -1298,11 +1307,11 @@ class CppTranspilerDriver {
     // ...)` or the "method" key of a subscription dict) emit as bare `this->Name`
     // identifiers that cannot compile. Method names are known: the class source
     // declares them, so exactly those bare references become string literals.
-    stringifyMethodReferences (id: string, content: string): string {
+    stringifyMethodReferences (id: string, content: string, sourceDir = 'pro'): string {
         // methods may live on the REST base or the shared base fragments
         // (e.g. delay(d, this->loadOrderBook, ...) where loadOrderBook is
         // Exchange's own), so the whole class surface is scanned
-        let source = fs.readFileSync ('./ts/src/pro/' + id + '.ts').toString ();
+        let source = fs.readFileSync ('./ts/src/' + sourceDir + '/' + id + '.ts').toString ();
         for (const fragment of [ BASE_METHODS_FILE, TRADING_METHODS_FILE ]) {
             if (fs.existsSync (fragment)) {
                 source += '\n' + fs.readFileSync (fragment).toString ();
@@ -1426,6 +1435,229 @@ class CppTranspilerDriver {
             overwriteFileAndFolder (PRO_EXCHANGES_FOLDER + id + '.h', this.createProExchangeFile (id, result));
             overwriteFileAndFolder (PRO_EXCHANGES_FOLDER + 'tu_' + id + '.cpp', this.createProExchangeTu (id));
             log.green ('[cpp] Transpiled pro', (id as any).yellow);
+        }
+    }
+
+    // -----------------------------------------------------------------------
+    // prediction exchanges: ts/src/prediction/<id>.ts -> cpp/ccxt/prediction/<id>.h + tu
+    // -----------------------------------------------------------------------
+    //
+    // The prediction tier is a sibling hierarchy (mirrors C#): PredictionExchange
+    // extends Exchange, every prediction venue extends PredictionExchange, and
+    // they live in ccxt::prediction with their own factory registry. The TS
+    // sources say `extends Exchange`; that is remapped to PredictionExchange in
+    // the generated api headers (generateImplicitAPI) and here, exactly like C#.
+
+    predictionTypedApiLines (): string[] {
+        // the same facade loop as transpileTypedApi, but the structNames map
+        // INCLUDES the Prediction* structs so PredictionTicker/... returns map
+        const ir = extractTypesIR ('./ts/src/base/types.ts');
+        const renames: Record<string, string> = {
+            'FeeInterface': 'Fee',
+            'CurrencyInterface': 'Currency',
+            'MarketInterface': 'Market',
+            'TradingFeeInterface': 'TradingFee',
+        };
+        const structNames = new Map<string, string> ();
+        for (const t of ir.types) {
+            if (t.name === 'FeeStringInterface') {
+                continue;
+            }
+            if (t.kind === 'interface' || t.kind === 'dictionary'
+                || (t.kind === 'tuple' && (t.name === 'OHLCV' || t.name === 'OHLCVC'))) {
+                structNames.set (t.name, renames[t.name] !== undefined ? renames[t.name] : t.name);
+            }
+        }
+        for (const t of ir.types) {
+            if (t.kind === 'alias' && t.aliasOf !== undefined && !structNames.has (t.name)) {
+                const target = t.aliasOf.split ('|').map ((s) => s.trim ()).filter ((s) => s !== 'undefined' && s !== 'null')[0];
+                if (target !== undefined && structNames.has (target)) {
+                    structNames.set (t.name, structNames.get (target)!);
+                }
+            }
+        }
+        const src = fs.readFileSync (PREDICTION_BASE_FILE, 'utf8');
+        const re = /^    (?:async\s+)?([a-zA-Z_][a-zA-Z0-9_]*)\s*\(([^)]*)\)\s*:\s*Promise<([^{]+?)>\s*\{/gm;
+        const emitted = new Set<string> ();
+        const lines: string[] = [];
+        let match;
+        while ((match = re.exec (src)) !== null) {
+            const name = match[1];
+            if (emitted.has (name)) {
+                continue;
+            }
+            const ret = this.mapTypedReturn (structNames, match[3]);
+            if (ret === undefined) {
+                continue;
+            }
+            const argsText = match[2].trim ();
+            const argPieces = argsText === '' ? [] : splitTopLevel (argsText);
+            const decls: string[] = [];
+            const convs: string[] = [];
+            let mappable = true;
+            for (const piece of argPieces) {
+                const mapped = this.mapTypedParam (piece);
+                if (mapped === undefined) {
+                    mappable = false;
+                    break;
+                }
+                decls.push (mapped.decl);
+                convs.push (mapped.conv);
+            }
+            if (!mappable) {
+                continue;
+            }
+            emitted.add (name);
+            const pascal = name.charAt (0).toUpperCase () + name.slice (1);
+            const call = 'awaitValue (std::any (this->' + name + ' (' + convs.join (', ') + ')))';
+            lines.push ('    // typed facade over ' + name);
+            lines.push ('    ' + ret.type + ' ' + pascal + ' (' + decls.join (', ') + ') {');
+            lines.push ('        return ' + ret.wrap (call) + ';');
+            lines.push ('    }');
+            lines.push ('');
+        }
+        return lines;
+    }
+
+    transpilePredictionBase (force = true) {
+        if (skipUpToDateStage ('cpp', 'prediction base', force,
+            [ PREDICTION_BASE_FILE, './ts/src/base/types.ts' ],
+            [ PREDICTION_BASE_HEADER, './cpp/ccxt/base/Types.h' ])) {
+            return;
+        }
+        assertNoDroppedConstructs (PREDICTION_BASE_FILE);
+        const stripped = writeOverloadStrippedFile (PREDICTION_BASE_FILE);
+        const result: any = this.transpiler.transpileCppByPath (stripped);
+        removeOverloadStrippedFile (stripped, PREDICTION_BASE_FILE);
+        let content = result.content as string;
+        // TS: PredictionExchange extends BaseExchange (= ts/src/base/Exchange.ts,
+        // which is ccxt::Exchange in this port)
+        content = content.replace (/class PredictionExchange\s*:\s*public BaseExchange/,
+                                   'class PredictionExchange : public Exchange');
+        // C++ does not inherit constructors; the backend emits none for the base
+        content = content.replace (/^(class PredictionExchange\s*:\s*public Exchange\s*\{\s*\npublic:\n)/m,
+                                   `$1    PredictionExchange () = default;\n    explicit PredictionExchange (std::any config) : Exchange (config) {}\n`);
+        // the TS base delegates to a stored REST base instance (`base.method(...)`,
+        // `describeOf(base)`); the port IS that base (PredictionExchange extends
+        // Exchange), so rewrite super calls to qualified self-calls and the
+        // argument form to *this -- leaving them as `base` fails the compile
+        content = rewriteSuperCalls (content, 'Exchange');
+        content = content.replace (/\bdescribeOf\s*\(\s*base\s*\)/g, 'describeOf(*this)');
+        content = applyCommonFixes (content);
+        // dispatch over the prediction surface; fall through to Exchange::callMethod
+        const dispatch = this.buildDispatchTable ('PredictionExchange', content, 'Exchange');
+        const typed = this.predictionTypedApiLines ().join ('\n');
+        const lastBrace = content.lastIndexOf ('};');
+        if (lastBrace !== -1) {
+            content = content.slice (0, lastBrace) + dispatch + typed + content.slice (lastBrace);
+        }
+        const header = [
+            '#pragma once',
+            '',
+            ...createGeneratedHeader (),
+            '#include "Exchange.h"',
+            '',
+            'namespace ccxt {',
+            '',
+            content,
+            '',
+            '} // namespace ccxt',
+            ''
+        ].join ('\n');
+        overwriteFileAndFolder (PREDICTION_BASE_HEADER, header);
+        log.green ('[cpp] Transpiled prediction base to', (PREDICTION_BASE_HEADER as any).yellow);
+    }
+
+    createPredictionExchangeFile (id: string, result: any): string {
+        let content = result.content as string;
+        // the abstract tier carries the implicit API methods (see generateImplicitAPI)
+        const parent = id + 'Api';
+        content = content.replace (/^class\s+(\w+)\s*:\s*public\s+\w+/m, `class $1 : public ${parent}`);
+        content = content.replace (/^(class\s+\w+\s*:\s*public\s+\w+\s*\{\s*\npublic:\n)/m,
+                                   `$1    using ${parent}::${parent};\n`);
+        // super/base calls resolve to the prediction base (in ccxt, one namespace up)
+        content = rewriteSuperCalls (content, 'ccxt::PredictionExchange');
+        // method references as values ({ping: this->ping} dict entries,
+        // this->spawn(this->pong, ...)) stringify like the pro tier does
+        content = this.stringifyMethodReferences (id, content, 'prediction');
+        // prediction venues carry ws code (opinion watchOrderBook/handleTrades):
+        // the ws value fixes must run BEFORE applyCommonFixes, exactly like the
+        // pro tier and the ws base tests (ArrayCache ctors, .limit()/.append()
+        // -> wsLimit/wsAppend, etc.)
+        content = applyCommonFixes (this.applyWsValueFixes (content));
+        // the prediction dispatch falls through to PredictionExchange::callMethod
+        const dispatch = this.buildDispatchTable (id, content, 'ccxt::PredictionExchange');
+        const lastBrace = content.lastIndexOf ('};');
+        if (lastBrace !== -1) {
+            content = content.slice (0, lastBrace) + dispatch + content.slice (lastBrace);
+        }
+        return [
+            '#pragma once',
+            '',
+            ...createGeneratedHeader (),
+            '#include "../base/PredictionExchange.h"',
+            `#include "../api/prediction/${id}.h"`,
+            '#include "PredictionFactory.h"',
+            '',
+            'namespace ccxt {',
+            'namespace prediction {',
+            '',
+            content,
+            '',
+            '} // namespace prediction',
+            '} // namespace ccxt',
+            ''
+        ].join ('\n');
+    }
+
+    createPredictionExchangeTu (id: string): string {
+        return [
+            '// PLEASE DO NOT EDIT THIS FILE, IT IS GENERATED AND WILL BE OVERWRITTEN:',
+            '// https://github.com/ccxt/ccxt/blob/master/CONTRIBUTING.md#how-to-contribute-code',
+            '',
+            `#include "${id}.h"`,
+            '#include "PredictionFactory.h"',
+            '',
+            'namespace ccxt {',
+            'namespace prediction {',
+            'namespace factory {',
+            'namespace {',
+            '',
+            `std::shared_ptr<ExchangeBase> create_${id} (std::any config) {`,
+            `    return newExchange<ccxt::prediction::${id}> (config);`,
+            '}',
+            '',
+            `struct Registrar_${id} {`,
+            `    Registrar_${id} () { registerPredictionExchange ("${id}", &create_${id}); }`,
+            '};',
+            '',
+            `static Registrar_${id} g_registrar_${id};`,
+            '',
+            '} // namespace',
+            '} // namespace factory',
+            '} // namespace prediction',
+            '} // namespace ccxt',
+            ''
+        ].join ('\n');
+    }
+
+    transpilePredictionExchangeFiles (ids: string[], force = true) {
+        let files = ids.map ((id) => 'prediction/' + id + '.ts');
+        files = filterDirtyExchangeFiles ('cpp', files, force, (file: string) => ({
+            'tsPath': './ts/src/' + file,
+            'outputs': [ PREDICTION_FOLDER + path.basename (file, '.ts') + '.h' ],
+        }));
+        if (!files.length) {
+            return;
+        }
+        log.blue ('[cpp] Transpiling prediction [', files.join (', '), ']');
+        for (const file of files) {
+            const id = path.basename (file, '.ts');
+            assertNoDroppedConstructs ('./ts/src/' + file);
+            const result: any = this.transpiler.transpileCppByPath ('./ts/src/' + file);
+            overwriteFileAndFolder (PREDICTION_FOLDER + id + '.h', this.createPredictionExchangeFile (id, result));
+            overwriteFileAndFolder (PREDICTION_FOLDER + 'tu_' + id + '.cpp', this.createPredictionExchangeTu (id));
+            log.green ('[cpp] Transpiled prediction', (id as any).yellow);
         }
     }
 
@@ -2069,6 +2301,7 @@ async function runMain () {
     const baseTestsOnly = process.argv.includes ('--baseTests');
     const exchangeTestsOnly = process.argv.includes ('--tests');
     const proOnly = process.argv.includes ('--pro');
+    const predictionOnly = process.argv.includes ('--prediction');
     const typedApiOnly = process.argv.includes ('--typedApi');
     const allExchangesOnly = process.argv.includes ('--all');
     const ids = process.argv.slice (2).filter ((x) => !x.startsWith ('--'));
@@ -2107,6 +2340,16 @@ async function runMain () {
         driver.transpileProExchangeFiles (proIds, force);
         return;
     }
+    if (predictionOnly) {
+        // prediction tier: ts/src/prediction/<id>.ts -> cpp/ccxt/prediction/<id>.h.
+        // Named ids or the whole exchanges.json prediction set.
+        const predictionIds = ids.length
+            ? ids
+            : JSON.parse (fs.readFileSync ('./exchanges.json', 'utf8')).prediction || [];
+        driver.transpilePredictionBase (force);
+        driver.transpilePredictionExchangeFiles (predictionIds, force);
+        return;
+    }
     if (ids.length) {
         // a named exchange always rebuilds: the caller asked for it explicitly
         driver.transpileDerivedExchangeFiles (ids, true);
@@ -2118,6 +2361,7 @@ async function runMain () {
         // is built from the fixture dirs separately and covers the 89 venues that
         // have static fixtures upstream.
         const exchangeIds: string[] = JSON.parse (fs.readFileSync ('./exchanges.json', 'utf8')).ids;
+        const predictionIds: string[] = JSON.parse (fs.readFileSync ('./exchanges.json', 'utf8')).prediction || [];
         driver.transpileErrorHierarchy (force);
         driver.transpileBaseMethods (TS_BASE_FILE, force);
         driver.transpileTypedApi (TS_BASE_FILE, force);
@@ -2127,6 +2371,8 @@ async function runMain () {
         driver.transpileExchangeTestFiles ();
         driver.transpileTestRegistry ();
         driver.transpileDerivedExchangeFiles (exchangeIds, force);
+        driver.transpilePredictionBase (force);
+        driver.transpilePredictionExchangeFiles (predictionIds, force);
         log.bright.green ('[cpp] Transpiled all exchanges.');
         return;
     }

@@ -7,14 +7,16 @@
 
 #pragma once
 
-#include "../base/Exchange.h"
+#include "../../base/PredictionExchange.h"
 
 namespace ccxt {
 
-class polymarketApi : public Exchange {
+namespace prediction {
+
+class polymarketApi : public PredictionExchange {
 public:
     polymarketApi () = default;
-    explicit polymarketApi (std::any config) : Exchange (config) {}
+    explicit polymarketApi (std::any config) : PredictionExchange (config) {}
 
     // Calls the gammaPublicGetStatus endpoint. Returns a JSON scalar.
     virtual std::shared_future<std::any> gammaPublicGetStatus (std::any parameters = ccxt::dict {}) {
@@ -658,4 +660,5 @@ public:
 
 };
 
+} // namespace prediction
 } // namespace ccxt

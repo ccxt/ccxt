@@ -837,7 +837,10 @@ function createImplicitMethodsCpp(){
         });
         methods.push ('};');
         methods.push ('');
-        methods.push ('} // namespace ccxt');
+        methods.push (isPrediction ? '} // namespace prediction' : '} // namespace ccxt');
+        if (isPrediction) {
+            methods.push ('} // namespace ccxt');
+        }
         methods.push ('');
         storedCppMethods[exchange] = storedCppMethods[exchange].concat (methods);
     }
@@ -1119,17 +1122,26 @@ function createCppHeader(exchange: Exchange, parent: string){
     // unified-method overrides stay in the chain: bequant : bequantApi : hitbtc :
     // hitbtcApi : Exchange. Endpoint methods all route through the base callEndpoint,
     // which reads the most-derived describe(), so no per-tier dispatch exists.
+    // The prediction tier mirrors C#: its own ccxt::prediction namespace and a
+    // PredictionExchange base (the TS sources say `extends Exchange`, which every
+    // language remaps to the prediction base class).
+    const prediction = isPrediction;
+    const cppParent = (parent === 'Exchange' && prediction) ? 'PredictionExchange' : parent;
+    const baseInclude = (parent === 'Exchange')
+        ? (prediction ? '#include "../../base/PredictionExchange.h"' : '#include "../base/Exchange.h"')
+        : (prediction ? `#include "${parent}.h"` : `#include "../exchanges/${parent}.h"`);
     const header = [
         '#pragma once',
         '',
-        (parent === 'Exchange') ? '#include "../base/Exchange.h"' : `#include "../exchanges/${parent}.h"`,
+        baseInclude,
         '',
         'namespace ccxt {',
         '',
-        `class ${exchange.id}Api : public ${parent} {`,
+        ...(prediction ? ['namespace prediction {', ''] : []),
+        `class ${exchange.id}Api : public ${cppParent} {`,
         'public:',
         `    ${exchange.id}Api () = default;`,
-        `    explicit ${exchange.id}Api (std::any config) : ${parent} (config) {}`,
+        `    explicit ${exchange.id}Api (std::any config) : ${cppParent} (config) {}`,
         '',
     ].join('\n');
     storedCppMethods[exchange.id] = [ getPreamble(), header ];
