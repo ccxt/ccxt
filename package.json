@@ -116,6 +116,7 @@
     "cli.py": "python3 ./examples/py/cli.py",
     "cli.php": "php ./examples/php/cli.php",
     "cli.cs": "dotnet run --project \"./cs/cli/cli.csproj\"",
+    "cli.cpp": "./build/utils/cpp-cli.sh",
     "cpp": "./build/utils/cpp-cli.sh",
     "granular-cpp-build": "tsx build/granular-cpp-build.ts",
     "cli.go": "go run -C go ./cli/main.go",

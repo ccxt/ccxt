@@ -45,6 +45,10 @@ file (GLOB EXCHANGE_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/exchanges/tu_*.cpp)
 file (GLOB PRO_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/pro/tu_*.cpp)
 file (GLOB PREDICTION_TUS ${CMAKE_CURRENT_SOURCE_DIR}/ccxt/prediction/tu_*.cpp)
 target_sources (ccxt PRIVATE ${EXCHANGE_TUS} ${PRO_TUS} ${PREDICTION_TUS})
+# parseJson/serialise/json hot paths (ExchangeBase.cpp) are header-heavy
+# (nlohmann + the big-int quoting pass) and pay ~12x at -O0: parsing a 22MB
+# markets payload drops from ~17s to ~2.5s with this one TU at -O2.
+set_source_files_properties (ccxt/base/ExchangeBase.cpp PROPERTIES COMPILE_OPTIONS "-O2")
 target_include_directories (ccxt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries (ccxt PUBLIC Threads::Threads CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
 

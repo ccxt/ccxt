@@ -27,8 +27,10 @@
 #include "Generated/Base/test.capitalize.h"
 #include "Generated/Base/test.clone.h"
 #include "Generated/Base/test.constants.h"
+#include "Generated/Base/test.datetime.h"
 #include "Generated/Base/test.decimalToPrecision.h"
 #include "Generated/Base/test.deepExtend.h"
+#include "Generated/Base/test.ethMethods.h"
 #include "Generated/Base/test.extend.h"
 #include "Generated/Base/test.extractParams.h"
 #include "Generated/Base/test.filterBy.h"
@@ -123,6 +125,8 @@ const std::vector<Case> CORE = {
     { "wsCache",                       testWsCache },
     { "wsOrderBook",                   testWsOrderBook },
     { "assertDeepEqual",               testAssertDeepEqual },
+    { "ethMethods",                    testEthMethods },
+    { "datetime",                      testDatetime },
 };
 
 // Transpiled and compiled by CMake into the tree, but NOT gated yet. Each is blocked on
@@ -141,9 +145,7 @@ const std::vector<std::pair<const char*, const char*>> STAGED = {
     { "urlencodeBase64",        "binary value type + base64" },
     { "numberToBE",             "binary value type not in the iteration-1 runtime" },
     { "encodeDecode",           "binary value type not in the iteration-1 runtime" },
-    { "ethMethods",             "no secp256k1/keccak layer yet" },
     { "uuid",                   "needs a seeded RNG in the runtime" },
-    { "datetime",               "Time.h (parse8601/iso8601) is iteration 2" },
     { "io",                     "filesystem access is out of scope this iteration" },
     { "sleep",                  "needs the async scheduler, not just std::async" },
     { "networkMethods",         "depends on the network-code tables loaded from describe()" },

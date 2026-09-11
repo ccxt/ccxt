@@ -928,13 +928,34 @@ std::any ExchangeBase::parseJson (std::any value) {
         // strings. (std::regex is ECMAScript-flavoured: no lookbehind, hence the
         // manual prev-char check instead of (?<!...).)
         std::string text = str (value);
-        static const std::regex bigInt (R"(\d{19,})");
+        // exchange ids routinely exceed int64 (e.g. alpaca trade ids like
+        // 2880534893454904000): nlohmann stores those as double, rounding the
+        // value before any numberToString can recover it. Quote integer literals
+        // that sit in JSON value positions first so they ride through as exact
+        // strings. Hand-rolled digit-run scan: a std::regex \d{19,} pass over a
+        // multi-MB payload costs seconds at -O0 (libstdc++ regex is backtracking
+        // and header-heavy), while this loop is linear with no allocation per run.
+        const auto valuePosChar = [] (char c) {
+            return c == '{' || c == '[' || c == ',' || c == ':'
+                || c == ' ' || c == '\n' || c == '\t' || c == '\r';
+        };
         std::string out;
+        out.reserve (text.size () + 8);
         std::size_t last = 0;
-        for (auto it = std::sregex_iterator (text.begin (), text.end (), bigInt);
-             it != std::sregex_iterator (); ++it) {
-            std::size_t s = static_cast<std::size_t> (it->position ());
-            const std::size_t len = static_cast<std::size_t> (it->length ());
+        bool changed = false;
+        for (std::size_t i = 0; i < text.size ();) {
+            if (!std::isdigit (static_cast<unsigned char> (text[i]))) {
+                i++;
+                continue;
+            }
+            const std::size_t s = i;
+            while (i < text.size () && std::isdigit (static_cast<unsigned char> (text[i]))) {
+                i++;
+            }
+            const std::size_t len = i - s;
+            if (len < 19) {
+                continue;   // short literal: nothing to quote
+            }
             if (s > 0 && (text[s - 1] == '.' || std::isdigit (static_cast<unsigned char> (text[s - 1])))) {
                 continue;   // fraction tail or interior of a longer literal
             }
@@ -946,21 +967,13 @@ std::any ExchangeBase::parseJson (std::any value) {
             }
             std::size_t quoteStart = s;
             if (s > 0 && text[s - 1] == '-') {
-                const bool valuePos = (s == 1) ||
-                    (text[s - 2] == '{' || text[s - 2] == '[' || text[s - 2] == ','
-                     || text[s - 2] == ':' || text[s - 2] == ' ' || text[s - 2] == '\n'
-                     || text[s - 2] == '\t' || text[s - 2] == '\r');
-                if (valuePos) {
+                if (s == 1 || valuePosChar (text[s - 2])) {
                     quoteStart = s - 1;
                 } else {
                     continue;   // "-" belongs to a string value like "...-9223372036854775808..."
                 }
             } else {
-                const bool valuePos = (s == 0) ||
-                    (text[s - 1] == '{' || text[s - 1] == '[' || text[s - 1] == ','
-                     || text[s - 1] == ':' || text[s - 1] == ' ' || text[s - 1] == '\n'
-                     || text[s - 1] == '\t' || text[s - 1] == '\r');
-                if (!valuePos) {
+                if (!(s == 0 || valuePosChar (text[s - 1]))) {
                     continue;
                 }
             }
@@ -969,8 +982,9 @@ std::any ExchangeBase::parseJson (std::any value) {
             out += text.substr (quoteStart, s + len - quoteStart);
             out += '"';
             last = s + len;
+            changed = true;
         }
-        if (last > 0) {
+        if (changed) {
             out += text.substr (last);
             text = out;
         }
@@ -1223,6 +1237,13 @@ std::any ExchangeBase::parse8601 (std::any datetime) {
                      &year, &month, &day, &hour, &minute, &second) != 6 &&
         std::sscanf (text.c_str (), "%4d-%2d-%2d %2d:%2d:%2d",
                      &year, &month, &day, &hour, &minute, &second) != 6) {
+        return std::any {};
+    }
+    // reject out-of-range fields BEFORE timegm: glibc normalizes month 13 / hour 25
+    // into the next period and returns a valid epoch for an invalid ISO date
+    // (TS's Date.parse is strict and yields NaN -> undefined)
+    if (month < 1 || month > 12 || day < 1 || day > 31 ||
+        hour < 0 || hour > 23 || minute < 0 || minute > 59 || second < 0 || second > 60) {
         return std::any {};
     }
     long long millis = 0;
@@ -2868,13 +2889,14 @@ std::any ExchangeBase::ethEncodeStructuredData (std::any domainAny, std::any mes
             const auto base = arrayBase (field.second);
             std::vector<unsigned char> part;
             if (base.second) {
-                // array: keccak256 over the concatenated element encodings (structs are
-                // fully field-encoded per EIP-712, atomics are 32-byte encoded)
+                // array: keccak256 over the concatenated element encodings --
+                // ethers encodes each STRUCT element as typehash||fields with a
+                // per-element keccak (hashStruct), atomics as 32-byte words
                 std::vector<unsigned char> concat;
                 if (isList (fieldValue)) {
                     for (const auto& item : std::any_cast<list> (fieldValue).items ()) {
                         std::vector<unsigned char> elem = structs.count (base.first)
-                            ? encodeData (base.first, item)
+                            ? hashStruct (base.first, item)
                             : encodeAtomic (base.first, item);
                         concat.insert (concat.end (), elem.begin (), elem.end ());
                     }
