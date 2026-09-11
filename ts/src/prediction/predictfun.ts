@@ -166,8 +166,10 @@ export default class predictfun extends Exchange {
                     'create_order_market_not_trading': MarketClosed,
                 },
                 'broad': {
-                    // a 401 that is really a permission problem: the hash belongs to another wallet
-                    'do not belong to this wallet': OrderNotFound,
+                    // a 401 that is really a permission problem: the hash belongs to another wallet. the
+                    // venue's text continues 'this wallet', but the python port rewrites a mid-string
+                    // 'this' to 'self' - so the key stops short of it or it would never match there
+                    'do not belong to': OrderNotFound,
                     'order hash must be a': BadRequest,
                     'Orderbook not found': BadSymbol,
                     'market not found': BadSymbol,
@@ -301,7 +303,7 @@ export default class predictfun extends Exchange {
             slug = paramSlug;
         }
         if (slug === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchEvent() requires an event slug as the id argument or a slug parameter');
+            throw new ArgumentsRequired (this.id + ' fetchEvent() requires the "id" argument or the "slug" parameter');
         }
         const events = await this.fetchEvents (this.extend ({ 'slug': slug }, params));
         return this.safeDict (events, 0) as PredictionEvent;
@@ -1444,7 +1446,7 @@ export default class predictfun extends Exchange {
     override async fetchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
         const signerAddress = this.safeString (params, 'signerAddress', this.walletAddress);
         if (signerAddress === undefined) {
-            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletAddress, or a signer address in params to read another wallet');
+            throw new ArgumentsRequired (this.id + ' fetchMyTrades() requires a walletAddress, or a "signerAddress" parameter for any other address');
         }
         const request: Dict = {
             'signerAddress': signerAddress,
@@ -1614,7 +1616,7 @@ export default class predictfun extends Exchange {
         // it carries rather than from the outcome the caller asked for
         const partyOutcome = this.safeDict (party, 'outcome', {});
         const tokenId = this.safeString (partyOutcome, 'onChainId');
-        const outcomeObj = this.safeOutcome (tokenId, market);
+        const outcomeObj = this.outcomeForToken (tokenId, market);
         const role = this.safeString (party, 'role');
         // a resting maker fills at its own price, so the party price is the execution price for
         // that leg. the taker's party price is only its limit: the settlement records what it
@@ -1771,7 +1773,7 @@ export default class predictfun extends Exchange {
         const messageData = this.safeDict (messageResponse, 'data', {});
         const message = this.safeString (messageData, 'message');
         if (message === undefined) {
-            throw new AuthenticationError (this.id + ' authenticate() could not read the message to sign');
+            throw new AuthenticationError (this.id + ' authenticate() got an auth reply without the "message" field to sign');
         }
         const signature = this.signHash (this.hashMessage (message), this.privateKey);
         const request: Dict = {
@@ -1878,7 +1880,7 @@ export default class predictfun extends Exchange {
         const strategy = (type === 'market') ? 'MARKET' : 'LIMIT';
         const isMarket = (strategy === 'MARKET');
         if ((!isMarket) && (price === undefined)) {
-            throw new ArgumentsRequired (this.id + ' createOrder() requires a price for a limit order');
+            throw new ArgumentsRequired (this.id + ' createOrder() requires a "price" argument for a limit order');
         }
         const isBuy = (side === 'buy');
         // amounts cross the wire as collateral wei, the venue truncates the price to three
@@ -1898,7 +1900,7 @@ export default class predictfun extends Exchange {
         if (price === undefined) {
             // a priceless limit order already threw above, so this is a market order
             if (warnOnMarketOrderWithoutPrice) {
-                throw new ArgumentsRequired (this.id + ' createOrder() market orders require a price argument. To use default values set warnOnMarketOrderWithoutPrice to false in options');
+                throw new ArgumentsRequired (this.id + ' createOrder() market orders require a "price" argument. To use default values turn "warnOnMarketOrderWithoutPrice" off in options');
             }
             // it still has to name a price, so it takes the aggressive end of the range the venue
             // allows: 0.99 crosses any ask, 0.01 is crossed by any bid. the fill happens at the
@@ -2161,7 +2163,7 @@ export default class predictfun extends Exchange {
         const rawOutcome = this.safeDict (position, 'outcome', {});
         const rawMarket = this.safeDict (position, 'market', {});
         const tokenId = this.safeString (rawOutcome, 'onChainId');
-        const outcomeObj = this.safeOutcome (tokenId, market);
+        const outcomeObj = this.outcomeForToken (tokenId, market);
         // shares are collateral wei, the usd figures come back already scaled
         const contracts = Precise.stringDiv (this.safeString (position, 'amount'), '1000000000000000000');
         const entryPrice = this.safeString (position, 'averageBuyPriceUsd');
@@ -2521,7 +2523,7 @@ export default class predictfun extends Exchange {
         const topLevelHash = this.safeString2 (order, 'hash', 'orderHash');
         const orderHash = this.safeString (data, 'hash', topLevelHash);
         const tokenId = this.safeString (data, 'tokenId');
-        const outcomeObj = this.safeOutcome (tokenId, market);
+        const outcomeObj = this.outcomeForToken (tokenId, market);
         // the contract order carries the economics: a buy offers collateral for shares while a
         // sell offers shares for collateral, so which leg is the size depends on the side
         const rawSide = this.safeString (data, 'side');
@@ -2806,7 +2808,7 @@ export default class predictfun extends Exchange {
             if (explicitOperator !== undefined) {
                 operators.push (explicitOperator);
             } else if (outcome === undefined) {
-                throw new ArgumentsRequired (this.id + ' approve() requires an outcome to resolve the contracts to approve for selling, or an explicit spender in params');
+                throw new ArgumentsRequired (this.id + ' approve() requires an "outcome" to resolve the contracts to approve for selling, or an explicit "spender" parameter');
             } else {
                 operators.push (this.exchangeAddress (isNegRisk, isYieldBearing));
                 // a neg risk match mints and merges through the adapter, which moves the seller's
@@ -2816,7 +2818,7 @@ export default class predictfun extends Exchange {
                 }
             }
             if ((rpcUrl === undefined) || (ctfToken === undefined)) {
-                throw new ArgumentsRequired (this.id + ' approve() could not resolve the rpcUrl or the conditional tokens for chain ' + chainKey);
+                throw new ArgumentsRequired (this.id + ' approve() could not resolve the "rpcUrl" or the conditional tokens for chain ' + chainKey);
             }
             const approved = this.safeBool (params, 'approved', true);
             let approvedHex = '0000000000000000000000000000000000000000000000000000000000000000';
@@ -2845,12 +2847,12 @@ export default class predictfun extends Exchange {
         let spender = this.safeString (params, 'spender');
         if (spender === undefined) {
             if (outcome === undefined) {
-                throw new ArgumentsRequired (this.id + ' approve() requires an outcome to resolve the exchange to approve, or an explicit spender in params');
+                throw new ArgumentsRequired (this.id + ' approve() requires an "outcome" to resolve the exchange to approve, or an explicit "spender" parameter');
             }
             spender = this.exchangeAddress (isNegRisk, isYieldBearing);
         }
         if ((rpcUrl === undefined) || (token === undefined) || (spender === undefined)) {
-            throw new ArgumentsRequired (this.id + ' approve() could not resolve the rpcUrl, the token or the spender for chain ' + chainKey);
+            throw new ArgumentsRequired (this.id + ' approve() could not resolve the "rpcUrl", the "token" or the "spender" for chain ' + chainKey);
         }
         let amountHex = 'ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff';
         const amount = this.safeString (params, 'amount');
@@ -2997,7 +2999,7 @@ export default class predictfun extends Exchange {
      */
     handleSubscriptionError (client: Client, message: Dict, subscription: Dict) {
         const rawError = this.safeDict (message, 'error', {});
-        const error = new ExchangeError (this.id + ' subscription rejected ' + this.json (rawError));
+        const error = new ExchangeError (this.id + ' subscribe request rejected ' + this.json (rawError));
         // watch () registers a subscription before it sends and only sends while the hash is still
         // unregistered, so a rejected request has to take its own entry down - otherwise a retry
         // would skip the send and wait forever on a topic the venue never accepted
@@ -3005,7 +3007,14 @@ export default class predictfun extends Exchange {
         if ((subscribeHash !== undefined) && (subscribeHash in client.subscriptions)) {
             delete client.subscriptions[subscribeHash];
         }
-        const messageHashes = this.safeList (subscription, 'messageHashes', []);
+        let messageHashes = this.safeList (subscription, 'messageHashes', []);
+        if (this.safeString (subscription, 'topic') === 'walletEvents') {
+            // watch () registers the wallet subscription once, for whichever watcher came first, so
+            // its list is a snapshot of that moment - a narrowed watcher that joined later is known
+            // only to the client. read the live waiters now, or those later callers would never be
+            // rejected and, with the subscription gone below, never retried or torn down either
+            messageHashes = this.walletEventMessageHashes (client);
+        }
         const messageHashesLength = messageHashes.length;
         if (messageHashesLength === 0) {
             // the reply names a request this connection does not know, so the failure cannot be
@@ -3205,10 +3214,10 @@ export default class predictfun extends Exchange {
      * @name predictfun#walletEventMessageHashes
      * @description the hashes every waiter on the wallet topic is parked on, the narrowed ones included
      * @param {Client} client the websocket client
-     * @param {string} messageHash the hash this call is about to park on, not registered yet
+     * @param {string} [messageHash] the hash this call is about to park on, not registered yet
      * @returns {string[]} the message hashes
      */
-    walletEventMessageHashes (client: Client, messageHash: string): string[] {
+    walletEventMessageHashes (client: Client, messageHash: Str = undefined): string[] {
         // handleSubscriptionError rejects exactly this list, so a hash missing from it belongs to a
         // caller the venue's refusal never reaches - watchOrders (outcome) would sit forever on a
         // topic that was turned down. the unnarrowed pair is always listed, the narrowed ones are
@@ -3222,7 +3231,7 @@ export default class predictfun extends Exchange {
                 hashes.push (future);
             }
         }
-        if (!this.inArray (messageHash, hashes)) {
+        if ((messageHash !== undefined) && !this.inArray (messageHash, hashes)) {
             hashes.push (messageHash);
         }
         return hashes;
@@ -3296,6 +3305,27 @@ export default class predictfun extends Exchange {
         this.options['requestId'] = next;
         this.unlockId ();
         return next;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#outcomeForToken
+     * @description resolves the outcome a row belongs to from its own token id, taking the caller's outcome only when it names that same token
+     * @param {string} [tokenId] the on chain token id the row carries
+     * @param {object} [market] the outcome the caller asked about
+     * @returns {object} the outcome object, or a stub keyed by the token id when it is not cached
+     */
+    outcomeForToken (tokenId: Str, market: any = undefined): any {
+        // the list endpoints (orders, matches, positions) answer for the whole wallet rather than
+        // for the outcome asked about, so the caller's outcome is only a hint. safeOutcome falls
+        // back to it on any cache miss, which stamped the requested outcome onto rows from other
+        // markets - and the outcome filter afterwards then kept them, as they now matched
+        const hintId = this.safeString (market, 'outcomeId');
+        if ((tokenId === undefined) || (hintId === tokenId)) {
+            return this.safeOutcome (tokenId, market);
+        }
+        return this.safeOutcome (tokenId);
     }
 
     /**
@@ -3767,7 +3797,7 @@ export default class predictfun extends Exchange {
         try {
             await client.send (reply);
         } catch (e) {
-            const error = new NetworkError (this.id + ' pong failed with error ' + this.exceptionMessage (e));
+            const error = new NetworkError (this.id + ' pong failed - ' + this.exceptionMessage (e));
             client.reset (error);
         }
     }
@@ -3822,23 +3852,23 @@ export default class predictfun extends Exchange {
      * @name predictfun#sign
      * @description builds the request URL and attaches the api key header required by every endpoint
      * @param {string} path the endpoint path
-     * @param {string|string[]} [api] the api group and access level
+     * @param {string|string[]} [section] the api group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
      * @param {object} [headers] request headers
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: any, api: any = 'predictfun', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, section: any = 'predictfun', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         // the venue authenticates every endpoint, so the key is required up front rather than
         // per access level - a key-less request is answered with a 401 by the api gateway.
         // the testnet is the exception, it is served without an api key at all
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const apiKey = this.apiKey;
         if ((apiKey === undefined) && !sandboxMode) {
-            throw new AuthenticationError (this.id + ' sign() requires an apiKey for all endpoints');
+            throw new AuthenticationError (this.id + ' sign() requires the "apiKey" credential for all endpoints');
         }
-        const apiGroup: string = typeof api === 'string' ? api : api[0];
+        const apiGroup: string = typeof section === 'string' ? section : section[0];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['predictfun'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
