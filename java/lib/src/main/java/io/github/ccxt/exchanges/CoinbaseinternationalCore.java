@@ -1061,7 +1061,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 parameters = ((java.util.List<Object>) networkIdparametersVariable).get(1);
                 Helpers.addElementToObject(request, "network_arn_id", networkId);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "v1PrivatePostTransfersCreateCounterpartyId")))
             {
                 response = (this.v1PrivatePostTransfersCreateCounterpartyId(this.extend(request, parameters))).join();
@@ -1237,7 +1237,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "portfolio", finalPortfolio );
                 put( "margin_override", amount );
             }};
-            Object response = (this.v1PrivatePostPortfoliosMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.v1PrivatePostPortfoliosMargin(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -2936,7 +2936,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 put( "network_arn_id", finalNetworkId );
                 put( "nonce", CoinbaseinternationalCore.this.nonce() );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "v1PrivatePostTransfersWithdrawCounterparty")))
             {
                 response = (this.v1PrivatePostTransfersWithdrawCounterparty(this.extend(request, parameters))).join();

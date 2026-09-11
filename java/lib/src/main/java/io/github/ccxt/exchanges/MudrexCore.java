@@ -435,7 +435,7 @@ public class MudrexCore extends MudrexApi
             }
             Helpers.addElementToObject(request, "start_time", startTime);
             Helpers.addElementToObject(request, "end_time", endTime);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))
             {
                 response = (this.marketGetPriceMarkKline(this.extend(request, parameters))).join();
@@ -769,7 +769,7 @@ public class MudrexCore extends MudrexApi
             String requested = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trade_currency", "tradeCurrency", "currency")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trade_currency", "tradeCurrency", "currency")));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(requested, null)))
@@ -1266,7 +1266,7 @@ public class MudrexCore extends MudrexApi
                 Helpers.addElementToObject(q, "limit", limit);
             }
             java.util.Map<String, Object> request = this.extend(q, parameters);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(state, "closed")))
             {
                 response = (this.privateGetFuturesOrdersHistory(request)).join();
@@ -1594,11 +1594,11 @@ public class MudrexCore extends MudrexApi
                     Helpers.addElementToObject(request, "limit_price", lp);
                 }
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_type", "limit_price", "amount", "position_id")));
-                Object partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters))).join();
                 return partialResponse;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id")));
-            Object response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -1649,7 +1649,7 @@ public class MudrexCore extends MudrexApi
                 put( "margin", MudrexCore.this.costToPrecision(symbol, amount) );
             }};
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id")));
-            Object response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -1926,7 +1926,7 @@ public class MudrexCore extends MudrexApi
                     useInr = true;
                 }
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(useInr))
             {
                 response = (this.privatePostFuturesTransfersInr(this.extend(body, parameters))).join();

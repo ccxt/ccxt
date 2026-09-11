@@ -100,7 +100,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
                 put( "amount", amountToPrecision );
             }};
             String toAccountString = this.parseTransferType(toAccount);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(toAccountString, "TRADE")) || Helpers.isTrue(Helpers.isEqual(toAccountString, "MAIN"))))
             {
                 Helpers.addElementToObject(request, "recAccountType", toAccountString);

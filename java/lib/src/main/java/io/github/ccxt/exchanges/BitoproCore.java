@@ -1525,7 +1525,7 @@ final Object finalJ = j;
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);

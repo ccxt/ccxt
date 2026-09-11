@@ -723,7 +723,7 @@ public class Bit2cCore extends Bit2cApi
                 put( "Amount", amount );
                 put( "Pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))

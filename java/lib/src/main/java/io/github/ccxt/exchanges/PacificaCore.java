@@ -1886,7 +1886,7 @@ public class PacificaCore extends PacificaApi
             var request = ((java.util.List<Object>) requestoperationTypeVariable).get(0);
             var operationType = ((java.util.List<Object>) requestoperationTypeVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(operationType, "create_market_order")))
             {
                 response = (this.privatePostOrdersCreateMarket(this.extend(request, parameters))).join();
@@ -2427,7 +2427,7 @@ public class PacificaCore extends PacificaApi
             Object request = this.cancelOrderRequest(id, symbol, parameters);
             Object isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiryWindow", "trigger", "stop", "clientOrderId")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(isStopOrder, true)))
             {
                 response = (this.privatePostOrdersStopCancel(this.extend(request, parameters))).join();

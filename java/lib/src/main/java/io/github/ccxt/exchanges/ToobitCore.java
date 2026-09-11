@@ -1542,7 +1542,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object endpoint = null;
             java.util.List<Object> endpointparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "price");
             endpoint = ((java.util.List<Object>) endpointparametersVariable).get(0);
@@ -1557,7 +1557,7 @@ public class ToobitCore extends ToobitApi
             {
                 response = (this.commonGetQuoteV1Klines(this.extend(request, parameters))).join();
             }
-            Object candles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> candles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
                 candles = response;
@@ -1614,7 +1614,7 @@ public class ToobitCore extends ToobitApi
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 response = (this.commonGetQuoteV1Ticker24hr(this.extend(request, parameters))).join();
@@ -2506,7 +2506,7 @@ public class ToobitCore extends ToobitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateDeleteApiV1SpotOpenOrders(this.extend(request, parameters))).join();
@@ -2561,7 +2561,7 @@ public class ToobitCore extends ToobitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateDeleteApiV1SpotCancelOrderByIds(this.extend(request, parameters))).join();
@@ -2686,7 +2686,7 @@ public class ToobitCore extends ToobitApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateGetApiV1SpotOpenOrders(this.extend(request, parameters))).join();
@@ -2745,7 +2745,7 @@ public class ToobitCore extends ToobitApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateGetApiV1SpotTradeOrders(request)).join();
@@ -2801,7 +2801,7 @@ public class ToobitCore extends ToobitApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
@@ -2810,7 +2810,7 @@ public class ToobitCore extends ToobitApi
                 response = (this.privateGetApiV1FuturesHistoryOrders(request)).join();
             }
             java.util.List<Object> ordersList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
                 responseList = response;
@@ -2876,7 +2876,7 @@ public class ToobitCore extends ToobitApi
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateGetApiV1AccountTrades(this.extend(request, parameters))).join();
@@ -3003,7 +3003,7 @@ public class ToobitCore extends ToobitApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateGetApiV1AccountBalanceFlow(this.extend(request, parameters))).join();
@@ -3096,7 +3096,7 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object marketType = null;
             Object market = null;
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
@@ -3131,7 +3131,7 @@ public class ToobitCore extends ToobitApi
             // }
             //
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object entry = response;
+            java.util.Map<String, Object> entry = response;
             String marketId = this.safeString(entry, "symbol");
             market = this.safeMarket(marketId, market);
             Object fee = this.parseTradingFee(entry, market);
@@ -3239,7 +3239,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(type, "deposits")))
             {
                 response = (this.privateGetApiV1AccountDepositOrders(this.extend(request, parameters))).join();

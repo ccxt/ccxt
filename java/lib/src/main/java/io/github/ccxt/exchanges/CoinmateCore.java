@@ -986,7 +986,7 @@ public class CoinmateCore extends CoinmateApi
                 Helpers.addElementToObject(request, "destinationTag", tag);
             }
             java.util.Map<String, Object> requestParams = this.extend(request, parameters);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostBitcoinWithdrawal")))
             {
                 response = (this.privatePostBitcoinWithdrawal(requestParams)).join();
@@ -1497,7 +1497,7 @@ public class CoinmateCore extends CoinmateApi
                 method = Helpers.add(method, this.capitalize(type));
             }
             java.util.Map<String, Object> requestParams = this.extend(request, parameters);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostBuyInstant")))
             {
                 response = (this.privatePostBuyInstant(requestParams)).join();

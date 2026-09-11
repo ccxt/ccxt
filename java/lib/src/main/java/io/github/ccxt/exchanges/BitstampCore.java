@@ -2383,7 +2383,7 @@ public class BitstampCore extends BitstampApi
                 Helpers.addElementToObject(request, "client_order_id", clientOrderId);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object capitalizedSide = this.capitalize(side);
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
@@ -2535,7 +2535,7 @@ public class BitstampCore extends BitstampApi
             }
             Object market = null;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -2701,7 +2701,7 @@ public class BitstampCore extends BitstampApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 response = (this.privatePostUserTransactionsPair(this.extend(request, parameters))).join();
@@ -3635,7 +3635,7 @@ public class BitstampCore extends BitstampApi
                 put( "amount", BitstampCore.this.parseToNumeric(BitstampCore.this.currencyToPrecision(code, amount)) );
                 put( "currency", ((String)Helpers.GetValue(currency, "id")).toUpperCase() );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(fromAccount, "main")))
             {
                 Helpers.addElementToObject(request, "subAccount", toAccount);

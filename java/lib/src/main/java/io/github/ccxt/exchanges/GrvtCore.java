@@ -2310,7 +2310,7 @@ public class GrvtCore extends GrvtApi
                 put( "transfer_metadata", null );
             }};
             request = this.createSignedRequest(request, "EIP712_TRANSFER_TYPE", currency);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             try
             {
                 response = (this.privateTradingPostFullV1Transfer(this.extend(request, parameters))).join();

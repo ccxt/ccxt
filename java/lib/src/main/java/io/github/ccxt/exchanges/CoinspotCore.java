@@ -655,7 +655,7 @@ public class CoinspotCore extends CoinspotApi
                 (this.loadMarkets()).join();
             }
             String method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "private_post_ro_my_balances"))) || Helpers.isTrue((Helpers.isEqual(method, "privatePostRoMyBalances")))))
             {
                 response = (this.privatePostRoMyBalances(parameters)).join();

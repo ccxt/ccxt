@@ -2147,7 +2147,7 @@ public class KrakenCore extends KrakenApi
                 ((java.util.List<Object>)ordersRequests).add(Helpers.GetValue(orderRequest, 0));
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             final Object finalMarket = market;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
@@ -3166,7 +3166,7 @@ final Object finalId = id;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object requestId = this.safeValue(parameters, "userref", id); // string or integer
             parameters = this.omit(parameters, "userref");
             Object request = new java.util.HashMap<String, Object>() {{

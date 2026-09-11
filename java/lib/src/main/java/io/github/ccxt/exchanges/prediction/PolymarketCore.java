@@ -3151,7 +3151,7 @@ final Object finalClobTokenId = clobTokenId;
             Object outcome = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadApiCredentials()).join();
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 // scope to a single outcome token via DELETE /cancel-market-orders { asset_id }
@@ -3261,7 +3261,7 @@ final Object finalClobTokenId = clobTokenId;
                     // search results may omit the nested markets, fall back to the detail endpoint
                     Object eventId = this.safeString(rawEvent, "id");
                     Object rawEventSlug = this.safeString(rawEvent, "slug");
-                    Object detailedEvent = null;
+                    java.util.Map<String, Object> detailedEvent = null;
                     if (Helpers.isTrue(!Helpers.isEqual(eventId, null)))
                     {
                         final Object finalEventId = eventId;
@@ -3329,7 +3329,7 @@ final Object finalClobTokenId = clobTokenId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(id, "-"), 0)))
             {
                 response = (this.gammaPublicGetEventsSlugSlug(this.extend(new java.util.HashMap<String, Object>() {{

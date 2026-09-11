@@ -1682,7 +1682,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 Helpers.addElementToObject(request, "order_id", id);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateDeleteAccountOrdersOrderId")))
             {
                 response = (this.privateDeleteAccountOrdersOrderId(this.extend(request, parameters))).join();
@@ -1799,7 +1799,7 @@ public class OnetradingCore extends OnetradingApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privateGetAccountOrdersOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountOrdersOrderId(this.extend(request, parameters))).join();
             //
             //     {
             //         "order": {

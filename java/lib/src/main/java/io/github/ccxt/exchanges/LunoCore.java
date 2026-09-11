@@ -853,7 +853,7 @@ public class LunoCore extends LunoApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(limit, null)) && Helpers.isTrue(Helpers.isLessThanOrEqual(limit, 100))))
             {
                 response = (this.publicGetOrderbookTop(this.extend(request, parameters))).join();
@@ -1592,7 +1592,7 @@ public class LunoCore extends LunoApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;

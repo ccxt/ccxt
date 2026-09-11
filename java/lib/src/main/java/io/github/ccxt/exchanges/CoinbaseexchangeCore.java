@@ -1257,7 +1257,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }};
             // publicGetProductsIdTicker or publicGetProductsIdStats
             String method = this.safeString(this.options, "fetchTickerMethod", "publicGetProductsIdTicker");
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetProductsIdStats")))
             {
                 response = (this.publicGetProductsIdStats(this.extend(request, parameters))).join();
@@ -1782,7 +1782,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "id", id);
@@ -2191,7 +2191,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.inOp(parameters, "payment_method_id")))
             {
                 response = (this.privatePostWithdrawalsPaymentMethod(this.extend(request, parameters))).join();

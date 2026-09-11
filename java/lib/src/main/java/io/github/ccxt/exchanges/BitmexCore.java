@@ -3962,7 +3962,7 @@ public class BitmexCore extends BitmexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.List<Object> response = null;
             response = (this.publicGetStats(this.extend(request, parameters))).join();
             //
             //    [

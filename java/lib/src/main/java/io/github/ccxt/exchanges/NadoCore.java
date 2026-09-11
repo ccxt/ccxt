@@ -399,7 +399,7 @@ public class NadoCore extends NadoApi
             Object request = (this.createOrderRequest(symbol, type, side, amount, price, parameters)).join();
             Object placeOrder = this.safeDict(request, "place_order", new java.util.HashMap<String, Object>() {{}});
             Boolean isTriggerOrder = (Helpers.inOp(placeOrder, "trigger"));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isTriggerOrder))
             {
                 response = (this.triggerPrivatePostExecute(request)).join();
@@ -806,7 +806,7 @@ public class NadoCore extends NadoApi
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object request = (this.cancelAllOrdersRequest(symbol, parameters)).join();
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.triggerPrivatePostExecute(request)).join();
@@ -922,7 +922,7 @@ public class NadoCore extends NadoApi
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object request = (this.cancelOrdersRequest(ids, symbol, parameters)).join();
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 response = (this.triggerPrivatePostExecute(request)).join();

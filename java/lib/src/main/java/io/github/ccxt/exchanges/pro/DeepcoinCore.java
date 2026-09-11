@@ -239,7 +239,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
                 Object listenKeyExpiryTimestamp = this.safeInteger(this.options, "listenKeyExpiryTimestamp", time);
                 Boolean expired = Helpers.isGreaterThan((Helpers.subtract(time, listenKeyExpiryTimestamp)), 60000); // 1 minute before expiry
                 listenKey = this.safeString(this.options, "listenKey");
-                Object response = null;
+                java.util.Map<String, Object> response = null;
                 if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
                 {
                     response = (this.privateGetDeepcoinListenkeyAcquire(parameters)).join();

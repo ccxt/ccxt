@@ -2707,7 +2707,7 @@ public class MexcCore extends MexcApi
             java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
-            Object tickers = null;
+            java.util.List<Object> tickers = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 tickers = (this.spotPublicGetTickerBookTicker(query)).join();
@@ -5049,7 +5049,7 @@ public class MexcCore extends MexcApi
                 put( "amount", amount );
                 put( "type", addOrReduce );
             }};
-            Object response = (this.contractPrivatePostPositionChangeMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPrivatePostPositionChangeMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,

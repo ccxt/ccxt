@@ -3642,7 +3642,7 @@ public class LimitlessCore extends LimitlessApi
                     put( "page", finalPage );
                     put( "limit", pageSize );
                 }};
-                Object response = null;
+                java.util.Map<String, Object> response = null;
                 if (Helpers.isTrue(!Helpers.isEqual(categoryId, null)))
                 {
                     Helpers.addElementToObject(request, "categoryId", categoryId);

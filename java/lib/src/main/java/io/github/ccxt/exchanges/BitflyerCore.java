@@ -1199,7 +1199,7 @@ public class BitflyerCore extends BitflyerApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "product_code", BitflyerCore.this.marketIds(finalSymbols) );
             }};
-            Object response = (this.privateGetGetpositions(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateGetGetpositions(this.extend(request, parameters))).join();
             //
             //     [
             //         {

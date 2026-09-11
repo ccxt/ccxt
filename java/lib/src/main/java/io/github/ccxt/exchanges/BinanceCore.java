@@ -4660,7 +4660,7 @@ public class BinanceCore extends BinanceApi
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchTime", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetTime(query)).join();
@@ -6085,7 +6085,7 @@ public class BinanceCore extends BinanceApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 5000, see https://github.com/binance/binance-spot-api-docs/blob/master/rest-api.md#order-book
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 response = (this.eapiPublicGetDepth(this.extend(request, parameters))).join();
@@ -6781,7 +6781,7 @@ public class BinanceCore extends BinanceApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 response = (this.eapiPublicGetMark(this.extend(request, parameters))).join();
@@ -6841,7 +6841,7 @@ public class BinanceCore extends BinanceApi
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchMarkPrices", market, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "option")))
             {
                 response = (this.eapiPublicGetMark(parameters)).join();
@@ -7019,7 +7019,7 @@ public class BinanceCore extends BinanceApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 response = (this.eapiPublicGetKlines(this.extend(request, parameters))).join();
@@ -7489,7 +7489,7 @@ public class BinanceCore extends BinanceApi
                     method = "publicGetAggTrades";
                 }
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetAggTrades")))
             {
                 response = (this.publicGetAggTrades(this.extend(request, parameters))).join();
@@ -7935,7 +7935,7 @@ public class BinanceCore extends BinanceApi
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
             Object request = this.editContractOrderRequest(id, symbol, type, side, amount, price, parameters);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -8085,7 +8085,7 @@ public class BinanceCore extends BinanceApi
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "batchOrders", ordersRequests );
             }};
@@ -8922,7 +8922,7 @@ public class BinanceCore extends BinanceApi
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "batchOrders", ordersRequests );
             }};
@@ -9052,7 +9052,7 @@ public class BinanceCore extends BinanceApi
             //     params['portfolioMargin'] = isPortfolioMargin;
             // }
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 response = (this.eapiPrivatePostOrder(request)).join();
@@ -9822,7 +9822,7 @@ public class BinanceCore extends BinanceApi
                 Helpers.addElementToObject(request, "orderId", id);
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "origClientOrderId", "stop", "trigger", "conditional", "clientAlgoId")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isOptionType))
             {
                 response = (this.eapiPrivateGetOrder(this.extend(request, parameters))).join();
@@ -10352,7 +10352,7 @@ public class BinanceCore extends BinanceApi
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "conditional")));
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "option")))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -10480,7 +10480,7 @@ public class BinanceCore extends BinanceApi
             Boolean isPortfolioMarginConditional = (Helpers.isTrue(isPortfolioMargin) && Helpers.isTrue(isConditional));
             String orderIdRequest = ((Helpers.isTrue((Helpers.isEqual(isPortfolioMarginConditional, true))))) ? "strategyId" : "orderId";
             Helpers.addElementToObject(request, orderIdRequest, id);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -10962,7 +10962,7 @@ public class BinanceCore extends BinanceApi
                 }
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("origClientOrderId", "clientOrderId", "newClientStrategyId", "stop", "trigger", "conditional", "clientAlgoId")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isOptionType))
             {
                 response = (this.eapiPrivateDeleteOrder(this.extend(request, parameters))).join();
@@ -11234,7 +11234,7 @@ public class BinanceCore extends BinanceApi
             {
                 Helpers.addElementToObject(request, "orderidlist", ids);
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 response = (this.fapiPrivateDeleteBatchOrders(this.extend(request, parameters))).join();
@@ -12597,7 +12597,7 @@ public class BinanceCore extends BinanceApi
                 parameters = this.omit(parameters, "until");
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(intern, true)))
             {
                 response = (this.sapiGetPayTransactions(this.extend(request, parameters))).join();
@@ -13103,7 +13103,7 @@ public class BinanceCore extends BinanceApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isLinear))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -13192,7 +13192,7 @@ public class BinanceCore extends BinanceApi
             Boolean isSpotOrMargin = Helpers.isTrue((Helpers.isEqual(type, "spot"))) || Helpers.isTrue((Helpers.isEqual(type, "margin")));
             Object isLinear = this.isLinear(type, subType);
             Object isInverse = this.isInverse(type, subType);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isSpotOrMargin))
             {
                 response = (this.sapiGetAssetTradeFee(parameters)).join();
@@ -13552,7 +13552,7 @@ public class BinanceCore extends BinanceApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetFundingRate(this.extend(request, parameters))).join();
@@ -13625,7 +13625,7 @@ public class BinanceCore extends BinanceApi
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Object query = this.omit(parameters, "type");
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetPremiumIndex(query)).join();
@@ -14336,7 +14336,7 @@ public class BinanceCore extends BinanceApi
                 java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "loadLeverageBrackets", "papi", "portfolioMargin", false);
                 isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
-                Object response = null;
+                java.util.List<Object> response = null;
                 if (Helpers.isTrue(this.isLinear(type, subType)))
                 {
                     if (Helpers.isTrue(isPortfolioMargin))
@@ -14424,7 +14424,7 @@ public class BinanceCore extends BinanceApi
             java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "fetchLeverageTiers", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -14838,7 +14838,7 @@ final Object finalMarket = market;
             java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "fetchAccountPositions", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -14931,7 +14931,7 @@ final Object finalMarket = market;
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
             parameters = this.omit(parameters, "type");
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -15132,7 +15132,7 @@ final Object finalMarket = market;
             String defaultType = this.safeString2(this.options, "fetchFundingHistory", "defaultType", "future");
             String type = this.safeString(parameters, "type", defaultType);
             parameters = this.omit(parameters, "type");
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(this.isLinear(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -15205,7 +15205,7 @@ final Object finalMarket = market;
             java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "setLeverage", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -15383,7 +15383,7 @@ final Object finalMarket = market;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "dualSidePosition", finalDualSidePosition );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(this.isInverse(type, subType)))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -15887,7 +15887,7 @@ final Object finalMarket = market;
             java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "fetchLedger", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "option")))
             {
                 this.checkRequiredArgument("fetchLedger", code, "code");
@@ -16496,7 +16496,7 @@ final Object finalMarket = market;
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "amount", finalAmount );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object code = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
@@ -17034,7 +17034,7 @@ final Object finalMarket = market;
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isPortfolioMargin))
             {
                 response = (this.papiGetMarginMarginInterestHistory(this.extend(request, parameters))).join();
@@ -17140,7 +17140,7 @@ final Object finalMarket = market;
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "amount", BinanceCore.this.currencyToPrecision(code, amount) );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object isPortfolioMargin = null;
             java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "repayCrossMargin", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
@@ -17238,7 +17238,7 @@ final Object finalMarket = market;
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "amount", BinanceCore.this.currencyToPrecision(code, amount) );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object isPortfolioMargin = null;
             java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "borrowCrossMargin", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
@@ -17411,7 +17411,7 @@ final Object finalMarket = market;
                 int duration = this.parseTimeframe(timeframe);
                 Helpers.addElementToObject(request, "endTime", this.sum(since, Helpers.multiply(Helpers.multiply(duration, limit), 1000)));
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 response = (this.dapiDataGetOpenInterestHist(this.extend(request, parameters))).join();
@@ -17470,7 +17470,7 @@ final Object finalMarket = market;
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 response = (this.eapiPublicGetOpenInterest(this.extend(request, parameters))).join();
@@ -17643,7 +17643,7 @@ final Object finalMarket = market;
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 if (Helpers.isTrue(isPortfolioMargin))
@@ -18056,7 +18056,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchPositionMode", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             // we still have two working endpoints but positionMode is common for linear and inverse markets
             // thus we do not throw an error if the subType is not specified and default to linear for now
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
@@ -18161,7 +18161,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
             {
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -18368,7 +18368,7 @@ final Object finalMarket = market;
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 response = (this.fapiPrivateGetPositionMarginHistory(this.extend(request, parameters))).join();
@@ -18557,7 +18557,7 @@ final Object finalMarket = market;
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fromCode, "BUSD"))) || Helpers.isTrue((Helpers.isEqual(toCode, "BUSD")))))
             {
                 if (Helpers.isTrue(Helpers.isEqual(amount, null)))
@@ -18607,7 +18607,7 @@ final Object finalMarket = market;
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(code, "BUSD")))
             {
                 Integer msInDay = 86400000;
@@ -18697,7 +18697,7 @@ final Object finalMarket = market;
                 Helpers.addElementToObject(request, "endTime", now);
             }
             parameters = this.omit(parameters, "until");
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             String responseQuery = null;
             String fromCurrencyKey = null;
             String toCurrencyKey = null;
@@ -18860,7 +18860,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchFundingIntervals", market, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(this.isLinear(type, subType)))
             {
                 response = (this.fapiPublicGetFundingInfo(parameters)).join();
@@ -18939,7 +18939,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchLongShortRatioHistory", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
@@ -19020,7 +19020,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchADLRank", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
             {
                 response = (this.fapiPublicGetSymbolAdlRisk(this.extend(request, parameters))).join();
@@ -19071,7 +19071,7 @@ final Object finalMarket = market;
             java.util.List<Object> isPortfolioMarginparametersVariable = (java.util.List<Object>) this.handleOptionAndParams2(parameters, "fetchPositionsADLRank", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
             {
                 if (Helpers.isTrue(isPortfolioMargin))

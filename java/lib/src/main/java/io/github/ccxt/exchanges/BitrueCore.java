@@ -1283,7 +1283,7 @@ public class BitrueCore extends BitrueApi
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchBalance", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object result = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
@@ -1814,7 +1814,7 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object type = null;
@@ -2032,7 +2032,7 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2281,7 +2281,7 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object data = new java.util.HashMap<String, Object>() {{}};
             Object uppercaseType = ((String)type).toUpperCase();
             final Object finalSide = side;
@@ -2435,7 +2435,7 @@ public class BitrueCore extends BitrueApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object origClientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("origClientOrderId", "clientOrderId")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object data = new java.util.HashMap<String, Object>() {{}};
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(origClientOrderId, null)))
@@ -2622,7 +2622,7 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
@@ -2726,7 +2726,7 @@ public class BitrueCore extends BitrueApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object origClientOrderId = this.safeValue2(parameters, "origClientOrderId", "clientOrderId");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("origClientOrderId", "clientOrderId")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object data = new java.util.HashMap<String, Object>() {{}};
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(origClientOrderId, null)))
@@ -2810,7 +2810,7 @@ public class BitrueCore extends BitrueApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -2873,7 +2873,7 @@ public class BitrueCore extends BitrueApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol argument")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3696,7 +3696,7 @@ public class BitrueCore extends BitrueApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " setMargin only support swap markets")) ;
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractName", Helpers.GetValue(market, "id") );
                 put( "amount", BitrueCore.this.parseToNumeric(amount) );

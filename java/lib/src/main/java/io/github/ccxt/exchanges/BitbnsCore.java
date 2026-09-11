@@ -870,7 +870,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 Helpers.addElementToObject(request, "trail_rate", this.priceToPrecision(symbol, trailRate));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
                 response = (this.v2PostOrders(this.extend(request, parameters))).join();
@@ -927,7 +927,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "entry_id", id );
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             String tail = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "StopLossOrder" : "Order";
             Object quoteSide = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "quoteId"), "USDT"))))) ? "usdtcancel" : "cancel";
             quoteSide = Helpers.add(quoteSide, tail);

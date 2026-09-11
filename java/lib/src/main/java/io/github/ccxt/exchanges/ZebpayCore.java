@@ -355,7 +355,7 @@ public class ZebpayCore extends ZebpayApi
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (Helpers.isEqual(type, "spot"));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object data = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(isSpot))
             {
@@ -410,7 +410,7 @@ public class ZebpayCore extends ZebpayApi
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (Helpers.isEqual(type, "spot"));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object data = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(isSpot))
             {
@@ -652,7 +652,7 @@ public class ZebpayCore extends ZebpayApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object data = null;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -717,7 +717,7 @@ public class ZebpayCore extends ZebpayApi
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 response = (this.publicSpotGetV2ExTradefees(parameters)).join();
@@ -781,7 +781,7 @@ public class ZebpayCore extends ZebpayApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -837,7 +837,7 @@ public class ZebpayCore extends ZebpayApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.publicSpotGetV2MarketTicker(this.extend(request, parameters))).join();
@@ -967,7 +967,7 @@ public class ZebpayCore extends ZebpayApi
                 Helpers.addElementToObject(request, "endTime", until);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endtime", "until")));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(until, null)) || Helpers.isTrue(Helpers.isEqual(since, null))))
@@ -1048,7 +1048,7 @@ public class ZebpayCore extends ZebpayApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.publicSpotGetV2MarketTrades(this.extend(request, parameters))).join();
@@ -1107,7 +1107,7 @@ public class ZebpayCore extends ZebpayApi
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchMyTrades() does not support spot markets")) ;
@@ -1268,7 +1268,7 @@ public class ZebpayCore extends ZebpayApi
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Boolean isSpot = (Helpers.isEqual(type, "spot"));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isSpot))
             {
                 response = (this.privateSpotGetV2AccountBalance(parameters)).join();
@@ -1345,7 +1345,7 @@ public class ZebpayCore extends ZebpayApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", ((String)finalSide).toUpperCase() );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 var requestparametersVariable = this.orderRequest(symbol, type, amount, request, price, parameters);
@@ -1455,7 +1455,7 @@ public class ZebpayCore extends ZebpayApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
@@ -1559,7 +1559,7 @@ public class ZebpayCore extends ZebpayApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
@@ -1641,7 +1641,7 @@ public class ZebpayCore extends ZebpayApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 Helpers.addElementToObject(request, "orderId", id);

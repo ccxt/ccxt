@@ -1490,7 +1490,7 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             Long offset = this.safeInteger(parameters, "offset");
             if (Helpers.isTrue(!Helpers.isEqual(offset, null)))
             {

@@ -521,7 +521,7 @@ public class MyriadCore extends MyriadApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object result = null;
+            java.util.Map<String, Object> result = null;
             try
             {
                 result = (this.myriadPublicGetQuestionsId(this.extend(request, parameters))).join();

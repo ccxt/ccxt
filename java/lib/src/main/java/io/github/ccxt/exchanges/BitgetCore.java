@@ -4505,7 +4505,7 @@ public class BitgetCore extends BitgetApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object marginMode = null;
             Object productType = null;
             Object uta = null;
@@ -4786,7 +4786,7 @@ final Object finalMinNotional = minNotional;
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 response = (this.privateUtaGetV3AccountDepositRecords(this.extend(request, parameters))).join();
@@ -4901,7 +4901,7 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "tag", tag);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 response = (this.privateUtaPostV3AccountWithdrawal(this.extend(request, parameters))).join();
@@ -5015,7 +5015,7 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 response = (this.privateUtaGetV3AccountWithdrawalRecords(this.extend(request, parameters))).join();
@@ -5250,7 +5250,7 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, code));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 response = (this.privateUtaGetV3AccountDepositAddress(this.extend(request, parameters))).join();
@@ -5344,7 +5344,7 @@ final Object finalMinNotional = minNotional;
             java.util.List<Object> productTypeparametersVariable = (java.util.List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "fetchOrderBook", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
@@ -5574,7 +5574,7 @@ final Object finalMinNotional = minNotional;
             java.util.List<Object> productTypeparametersVariable = (java.util.List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "fetchTicker", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
@@ -5743,7 +5743,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchMarkPrice() is not supported for spot markets")) ;
@@ -5793,7 +5793,7 @@ final Object finalMinNotional = minNotional;
                 Object symbol = this.safeValue(symbols, 0);
                 market = this.market(symbol);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object type = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
@@ -6174,7 +6174,7 @@ final Object finalMinNotional = minNotional;
                 }
             }
             Object options = this.safeValue(this.options, "fetchTrades", new java.util.HashMap<String, Object>() {{}});
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object productType = null;
             java.util.List<Object> productTypeparametersVariable = (java.util.List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
@@ -6377,7 +6377,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object marginMode = null;
             Object marketType = null;
             java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchTradingFees", parameters);
@@ -6810,7 +6810,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object marketType = null;
             Object marginMode = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "fetchBalance", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
@@ -7591,7 +7591,7 @@ final Object finalMinNotional = minNotional;
             Boolean isStopLossTriggerOrder = !Helpers.isEqual(stopLossTriggerPrice, null);
             Boolean isTakeProfitTriggerOrder = !Helpers.isEqual(takeProfitTriggerPrice, null);
             Boolean isStopLossOrTakeProfitTrigger = Helpers.isTrue(isStopLossTriggerOrder) || Helpers.isTrue(isTakeProfitTriggerOrder);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "createOrder", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
@@ -8298,7 +8298,7 @@ final Object finalMinNotional = minNotional;
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "orderList", ordersRequests );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
             {
                 if (Helpers.isTrue(Helpers.isEqual(marginMode, null)))
@@ -8441,7 +8441,7 @@ final Object finalMinNotional = minNotional;
                 throw new ExchangeError((String)Helpers.add(this.id, " editOrder() params can only contain one of triggerPrice, stopLossPrice, takeProfitPrice, trailingPercent")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerType", "stopLossPrice", "takeProfitPrice", "stopLoss", "takeProfit", "clientOrderId", "trailingTriggerPrice", "trailingPercent")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object productType = null;
             Object uta = null;
             java.util.List<Object> productTypeparametersVariable = (java.util.List<Object>) this.handleProductTypeAndParams(market, parameters);
@@ -8971,7 +8971,7 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "orderIdList", orderIdList);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -9070,7 +9070,7 @@ final Object finalMinNotional = minNotional;
             }};
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "cancelAllOrders", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
@@ -9436,7 +9436,7 @@ final Object finalMinNotional = minNotional;
                 }
                 return (this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, parameters, cursorReceived, cursorSent)).join();
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object trailing = this.safeBool(parameters, "trailing");
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Boolean planTypeDefined = !Helpers.isEqual(this.safeString(parameters, "planType"), null);
@@ -10316,7 +10316,7 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
@@ -10487,7 +10487,7 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateSpotGetV2SpotAccountBills(this.extend(request, parameters))).join();
@@ -10754,7 +10754,7 @@ final Object finalMinNotional = minNotional;
                 }
                 return (this.fetchPaginatedCallCursor("fetchMyTrades", symbol, since, limit, parameters, cursorReceived, cursorSent)).join();
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 response = (this.privateUtaGetV3TradeFills(this.extend(request, parameters))).join();
@@ -10969,7 +10969,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object uta = null;
             Object result = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "fetchPosition", false)).join();
@@ -11124,7 +11124,7 @@ final Object finalMinNotional = minNotional;
             productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Boolean isHistory = false;
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "fetchPositions", false)).join();
@@ -11573,7 +11573,7 @@ final Object finalMinNotional = minNotional;
             }};
             Object productType = null;
             Object uta = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object result = null;
             java.util.List<Object> productTypeparametersVariable = (java.util.List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
@@ -11696,7 +11696,7 @@ final Object finalMinNotional = minNotional;
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object uta = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "fetchFundingRate", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
@@ -11762,7 +11762,7 @@ final Object finalMinNotional = minNotional;
             java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchFundingRates", "method", method);
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Helpers.addElementToObject(request, "productType", productType);
             if (Helpers.isTrue(Helpers.isEqual(method, "publicMixGetV2MixMarketTickers")))
             {
@@ -12017,7 +12017,7 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "settleId"));
@@ -12541,7 +12541,7 @@ final Object finalMinNotional = minNotional;
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object uta = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "fetchOpenInterest", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
@@ -12731,7 +12731,7 @@ final Object finalMinNotional = minNotional;
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
                 response = (this.privateUtaPostV3AccountTransfer(this.extend(request, parameters))).join();
@@ -13246,7 +13246,7 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object marginMode = null;
             java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchMyLiquidations", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -13528,7 +13528,7 @@ final Object finalMinNotional = minNotional;
                 put( "coin", Helpers.GetValue(currency, "id") );
             }};
             Object uta = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object result = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "fetchCrossBorrowRate", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
@@ -13691,7 +13691,7 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object marginMode = null;
             java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -13844,7 +13844,7 @@ final Object finalMinNotional = minNotional;
             }};
             Object productType = null;
             Object uta = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> productTypeparametersVariable = (java.util.List<Object>) this.handleProductTypeAndParams(market, parameters);
             productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
@@ -13899,7 +13899,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object productType = null;
             Object uta = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> productTypeparametersVariable = (java.util.List<Object>) this.handleProductTypeAndParams(null, parameters);
             productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
@@ -14032,7 +14032,7 @@ final Object finalMinNotional = minNotional;
             Object market = null;
             Object productType = null;
             Object uta = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object symbolsLength = Helpers.getArrayLength(symbols);
@@ -14440,7 +14440,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "fetchFundingInterval", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
@@ -14495,7 +14495,7 @@ final Object finalMinNotional = minNotional;
             {
                 Helpers.addElementToObject(request, "period", timeframe);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
             {
                 response = (this.publicMixGetV2MixMarketAccountLongShort(this.extend(request, parameters))).join();

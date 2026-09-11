@@ -1297,7 +1297,7 @@ public class TokocryptoCore extends TokocryptoApi
             }
             String defaultMethod = "binanceGetTrades";
             String method = this.safeString(this.options, "fetchTradesMethod", defaultMethod);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "binanceGetAggTrades"))) && Helpers.isTrue((!Helpers.isEqual(since, null)))))
             {
                 Helpers.addElementToObject(request, "startTime", since);

@@ -4648,7 +4648,7 @@ public class GateCore extends GateApi
                 }
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 Boolean isMark = (Helpers.isEqual(price, "mark"));
@@ -5935,7 +5935,7 @@ final Object finalPointFee = pointFee;
             Object ordersRequests = this.createOrdersRequest(orders, parameters);
             Object firstOrder = Helpers.GetValue(orders, 0);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(firstOrder, "symbol"));
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 response = (this.privateSpotPostBatchOrders(ordersRequests)).join();
@@ -8155,7 +8155,7 @@ final Object finalRebate = rebate;
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             java.util.Map<String, Object> extendedRequest = this.extend(request, parameters);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 response = (this.privateFuturesGetSettlePositionsContract(extendedRequest)).join();
@@ -8288,7 +8288,7 @@ final Object finalRebate = rebate;
                 request = ((java.util.List<Object>) requestparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "swap")))
             {
                 response = (this.privateFuturesGetSettlePositions(this.extend(request, parameters))).join();
@@ -8947,7 +8947,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             Object marginMode = null;
             java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("fetchBorrowInterest", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -9672,7 +9672,7 @@ final Object finalI = i;
             }
             Object type = null;
             Object currency = null;
-            Object response = null;
+            java.util.List<Object> response = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);

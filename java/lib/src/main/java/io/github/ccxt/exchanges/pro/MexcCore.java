@@ -2336,7 +2336,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             }
             Helpers.addElementToObject(this.options, "listenKeyFetching", true);
             client.future((String)messageHash); // created ahead of the request below, so concurrent callers can find it
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             try
             {
                 response = (this.spotPrivatePostUserDataStream(parameters)).join();

@@ -920,7 +920,7 @@ public class DeepcoinCore extends DeepcoinApi
                     Helpers.addElementToObject(request, "after", Helpers.mathMin(endTime, now));
                 }
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(price, "mark")))
             {
                 response = (this.publicGetDeepcoinMarketMarkPriceCandles(this.extend(request, parameters))).join();
@@ -1897,7 +1897,7 @@ public class DeepcoinCore extends DeepcoinApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String triggerPrice = this.safeString(parameters, "triggerPrice");
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 // trigger orders
@@ -2474,7 +2474,7 @@ public class DeepcoinCore extends DeepcoinApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(methodName, "fetchCanceledAndClosedOrders")))
@@ -2679,7 +2679,7 @@ public class DeepcoinCore extends DeepcoinApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object trigger = this.safeBool(parameters, "trigger", false);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 parameters = this.omit(parameters, "trigger");
@@ -2806,7 +2806,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "instId", Helpers.GetValue(market, "id") );
                 put( "ordId", id );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object trigger = this.safeBool(parameters, "trigger", false);
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
@@ -2928,7 +2928,7 @@ public class DeepcoinCore extends DeepcoinApi
             Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
             Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
             Boolean isTPSL = Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null)));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isTPSL))
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) || Helpers.isTrue((!Helpers.isEqual(amount, null)))))
@@ -3826,7 +3826,7 @@ public class DeepcoinCore extends DeepcoinApi
                 put( "instId", Helpers.GetValue(market, "id") );
                 put( "productGroup", productGroup );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(positionId, null)) && Helpers.isTrue(Helpers.isEqual(positionIds, null))))
             {
                 response = (this.privatePostDeepcoinTradeBatchClosePosition(this.extend(request, parameters))).join();
