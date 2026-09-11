@@ -578,7 +578,7 @@ class bittrade extends Exchange {
         //         )
         //    }
         //
-        $markets = $this->safe_value($response, 'data', array());
+        $markets = $this->safe_list($response, 'data', array());
         $numMarkets = count($markets);
         if ($numMarkets < 1) {
             throw new NetworkError($this->id . ' fetchMarkets() returned empty $response => ' . $this->json($markets));
@@ -862,7 +862,7 @@ class bittrade extends Exchange {
         }
         $symbols = $this->market_symbols($symbols);
         $response = Async\await($this->marketGetTickers($params));
-        $tickers = $this->safe_value($response, 'data', array());
+        $tickers = $this->safe_list($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
@@ -1067,10 +1067,10 @@ class bittrade extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $trades = $this->safe_value($data[$i], 'data', array());
+            $trades = $this->safe_list($data[$i], 'data', array());
             for ($j = 0; $j < count($trades); $j++) {
                 $trade = $this->parse_trade($trades[$j], $market);
                 $result[] = $trade;
@@ -1264,7 +1264,7 @@ class bittrade extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $balances = $this->safe_value($response['data'], 'list', array());
+        $balances = $this->safe_list($response['data'], 'list', array());
         $result = array( 'info' => $response );
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];

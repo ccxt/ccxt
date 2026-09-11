@@ -580,7 +580,7 @@ class luno extends Exchange {
         //     }
         //
         $result = array();
-        $markets = $this->safe_value($response, 'markets', array());
+        $markets = $this->safe_list($response, 'markets', array());
         for ($i = 0; $i < count($markets); $i++) {
             $market = $markets[$i];
             $id = $this->safe_string($market, 'market_id');
@@ -684,7 +684,7 @@ class luno extends Exchange {
          * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=$account-structure $account structures~ indexed by the $account type
          */
         $response = Async\await($this->privateGetBalance($params));
-        $wallets = $this->safe_value($response, 'balance', array());
+        $wallets = $this->safe_list($response, 'balance', array());
         $result = array();
         for ($i = 0; $i < count($wallets); $i++) {
             $account = $wallets[$i];
@@ -702,7 +702,7 @@ class luno extends Exchange {
     }
 
     public function parse_balance(mixed $response): array {
-        $wallets = $this->safe_value($response, 'balance', array());
+        $wallets = $this->safe_list($response, 'balance', array());
         $result = array(
             'info' => $response,
             'timestamp' => null,

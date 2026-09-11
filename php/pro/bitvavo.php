@@ -193,7 +193,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //
         $this->handle_bid_ask($client, $message);
         $event = $this->safe_string($message, 'event');
-        $tickers = $this->safe_value($message, 'data', array());
+        $tickers = $this->safe_list($message, 'data', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $data = $tickers[$i];
@@ -234,7 +234,7 @@ class bitvavo extends \ccxt\async\bitvavo {
 
     public function handle_bid_ask(Client $client, mixed $message) {
         $event = 'bidask';
-        $tickers = $this->safe_value($message, 'data', array());
+        $tickers = $this->safe_list($message, 'data', array());
         $result = array();
         for ($i = 0; $i < count($tickers); $i++) {
             $data = $tickers[$i];
@@ -1900,7 +1900,7 @@ class bitvavo extends \ccxt\async\bitvavo {
         //         }
         //     }
         //
-        $subscriptions = $this->safe_value($message, 'subscriptions', array());
+        $subscriptions = $this->safe_dict($message, 'subscriptions', array());
         $methods = array(
             'book' => array($this, 'handle_order_book_subscriptions'),
         );

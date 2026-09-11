@@ -860,7 +860,7 @@ class deribit extends Exchange {
             //         "testnet" => false
             //     }
             //
-            $currenciesResult = $this->safe_value($currenciesResponse, 'result', array());
+            $currenciesResult = $this->safe_list($currenciesResponse, 'result', array());
             for ($i = 0; $i < count($currenciesResult); $i++) {
                 $currencyId = $this->safe_string($currenciesResult[$i], 'currency');
                 $request = array(
@@ -944,7 +944,7 @@ class deribit extends Exchange {
             }
         }
         for ($i = 0; $i < count($instrumentsResponses); $i++) {
-            $instrumentsResult = $this->safe_value($instrumentsResponses[$i], 'result', array());
+            $instrumentsResult = $this->safe_list($instrumentsResponses[$i], 'result', array());
             for ($k = 0; $k < count($instrumentsResult); $k++) {
                 $market = $instrumentsResult[$k];
                 $kind = $this->safe_string($market, 'kind');
@@ -1776,7 +1776,7 @@ class deribit extends Exchange {
         //     }
         //
         $result = $this->safe_value($response, 'result', array());
-        $fees = $this->safe_value($result, 'fees', array());
+        $fees = $this->safe_list($result, 'fees', array());
         $perpetualFee = array();
         $futureFee = array();
         $optionFee = array();
@@ -2982,7 +2982,7 @@ class deribit extends Exchange {
         //         "testnet" => false
         //     }
         //
-        $volatilityResult = $this->safe_value($volatility, 'result', array());
+        $volatilityResult = $this->safe_list($volatility, 'result', array());
         $result = array();
         for ($i = 0; $i < count($volatilityResult); $i++) {
             $timestamp = $this->safe_integer($volatilityResult[$i], 0);
@@ -3366,7 +3366,7 @@ class deribit extends Exchange {
         //    }
         //
         $rates = array();
-        $result = $this->safe_value($response, 'result', array());
+        $result = $this->safe_list($response, 'result', array());
         for ($i = 0; $i < count($result); $i++) {
             $fr = $result[$i];
             $rate = $this->parse_funding_rate($fr, $market);

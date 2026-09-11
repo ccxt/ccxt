@@ -113,7 +113,7 @@ class cex extends \ccxt\async\cex {
         //     }
         //
         $data = $this->safe_value($message, 'data', array());
-        $freeBalance = $this->safe_value($data, 'balance', array());
+        $freeBalance = $this->safe_dict($data, 'balance', array());
         $usedBalance = $this->safe_value($data, 'obalance', array());
         $result = array(
             'info' => $data,
@@ -983,7 +983,7 @@ class cex extends \ccxt\async\cex {
         //     }
         //
         $symbol = $this->safe_string($message, 'oid'); // $symbol is set as requestId in watchOrders
-        $rawOrders = $this->safe_value($message, 'data', array());
+        $rawOrders = $this->safe_list($message, 'data', array());
         $myOrders = $this->orders;
         if ($myOrders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -1279,7 +1279,7 @@ class cex extends \ccxt\async\cex {
         //         "pair" => "BTC:USD"
         //     }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $pair = $this->safe_string($message, 'pair');
         $symbol = $this->pair_to_symbol($pair);
         $messageHash = 'ohlcv:' . $symbol;

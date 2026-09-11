@@ -3007,10 +3007,10 @@ class htx extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
-            $trades = $this->safe_value($data[$i], 'data', array());
+            $trades = $this->safe_list($data[$i], 'data', array());
             for ($j = 0; $j < count($trades); $j++) {
                 $trade = $this->parse_trade($trades[$j], $market);
                 $result[] = $trade;
@@ -3453,7 +3453,7 @@ class htx extends Exchange {
         if ($keysLength === 0) {
             throw new ExchangeError($this->id . ' networkCodeToId() - markets need to be loaded at first');
         }
-        $uniqueNetworkIds = $this->safe_value($this->options['networkChainIdsByNames'], $currencyCode, array());
+        $uniqueNetworkIds = $this->safe_dict($this->options['networkChainIdsByNames'], $currencyCode, array());
         if (is_array($uniqueNetworkIds) && array_key_exists($networkCode ?? '', $uniqueNetworkIds)) {
             return $uniqueNetworkIds[$networkCode];
         } else {
@@ -3713,7 +3713,7 @@ class htx extends Exchange {
                 }
                 $result = $this->safe_balance($result);
             } else {
-                $balances = $this->safe_value($data, 'list', array());
+                $balances = $this->safe_list($data, 'list', array());
                 for ($i = 0; $i < count($balances); $i++) {
                     $balance = $balances[$i];
                     $currencyId = $this->safe_string($balance, 'currency');
@@ -5250,7 +5250,7 @@ class htx extends Exchange {
         $options = $this->safe_value($this->options, $market['type'], array());
         $triggerPrice = $this->safe_string_n($params, array( 'triggerPrice', 'stopPrice', 'stop-price' ));
         if ($triggerPrice === null) {
-            $stopOrderTypes = $this->safe_value($options, 'stopOrderTypes', array());
+            $stopOrderTypes = $this->safe_dict($options, 'stopOrderTypes', array());
             if (is_array($stopOrderTypes) && array_key_exists($orderType ?? '', $stopOrderTypes)) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $triggerPrice for a trigger order');
             }
@@ -5321,7 +5321,7 @@ class htx extends Exchange {
         } else {
             $request['amount'] = $this->amount_to_precision($symbol, $amount);
         }
-        $limitOrderTypes = $this->safe_value($options, 'limitOrderTypes', array());
+        $limitOrderTypes = $this->safe_dict($options, 'limitOrderTypes', array());
         if (is_array($limitOrderTypes) && array_key_exists($orderType ?? '', $limitOrderTypes)) {
             $request['price'] = $this->price_to_precision($symbol, $price);
         }
@@ -7436,7 +7436,7 @@ class htx extends Exchange {
             }
         } else {
             $cursor = $this->safe_value($data, 'current_page');
-            $result = $this->safe_value($data, 'data', array());
+            $result = $this->safe_list($data, 'data', array());
             for ($i = 0; $i < count($result); $i++) {
                 $entry = $result[$i];
                 $entry['current_page'] = $cursor;
@@ -8479,7 +8479,7 @@ class htx extends Exchange {
             //     }
             //
         }
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $timestamp = $this->safe_integer($response, 'ts');
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
@@ -9201,7 +9201,7 @@ class htx extends Exchange {
                 'datetime' => $this->iso8601($timestamp),
             ));
         }
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $openInterest = $this->parse_open_interest($data[0], $market);
         $openInterest['timestamp'] = $timestamp;
         $openInterest['datetime'] = $this->iso8601($timestamp);
@@ -9701,7 +9701,7 @@ class htx extends Exchange {
         //              "instStatus" => "normal"
         //          }
         //
-        $chains = $this->safe_value($fee, 'chains', array());
+        $chains = $this->safe_list($fee, 'chains', array());
         $code = $this->safe_string($currency, 'code');
         $result = $this->deposit_withdraw_fee($fee);
         for ($j = 0; $j < count($chains); $j++) {

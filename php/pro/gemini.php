@@ -360,7 +360,7 @@ class gemini extends \ccxt\async\gemini {
         $marketId = strtolower($this->safe_string($message, 'symbol', ''));
         $market = $this->safe_market($marketId);
         $symbol = $this->safe_symbol($marketId, $market);
-        $changes = $this->safe_value($message, 'changes', array());
+        $changes = $this->safe_list($message, 'changes', array());
         $timeframe = $this->find_timeframe($timeframeId);
         $ohlcvsBySymbol = $this->safe_value($this->ohlcvs, $symbol);
         if ($ohlcvsBySymbol === null) {
@@ -429,7 +429,7 @@ class gemini extends \ccxt\async\gemini {
 
     public function handle_order_book(Client $client, mixed $message) {
         $isInitial = (is_array($message) && array_key_exists('auction_events' ?? '', $message)) && (is_array($message) && array_key_exists('trades' ?? '', $message)) && (is_array($message) && array_key_exists('changes' ?? '', $message));
-        $changes = $this->safe_value($message, 'changes', array());
+        $changes = $this->safe_list($message, 'changes', array());
         $marketId = $this->safe_string_lower($message, 'symbol');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];

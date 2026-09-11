@@ -1173,7 +1173,7 @@ class mexc extends Exchange {
         $id = $this->safe_string($rawCurrency, 'coin');
         $code = $this->safe_currency_code($id);
         $networks = array();
-        $chains = $this->safe_value($rawCurrency, 'networkList', array());
+        $chains = $this->safe_list($rawCurrency, 'networkList', array());
         for ($j = 0; $j < count($chains); $j++) {
             $chain = $chains[$j];
             $networkId = $this->safe_string_2($chain, 'netWork', 'network');
@@ -1291,7 +1291,7 @@ class mexc extends Exchange {
         // Notes:
         // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
         //
-        $data = $this->safe_value($response, 'symbols', array());
+        $data = $this->safe_list($response, 'symbols', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -1423,7 +1423,7 @@ class mexc extends Exchange {
         //         )
         //     }
         //
-        $data = $this->safe_value($response, 'data', array());
+        $data = $this->safe_list($response, 'data', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $market = $data[$i];
@@ -3814,7 +3814,7 @@ class mexc extends Exchange {
             $this->load_markets();
         }
         $response = $this->fetch_account_helper($marketType, $query);
-        $data = $this->safe_value($response, 'balances', array());
+        $data = $this->safe_list($response, 'balances', array());
         $result = array();
         for ($i = 0; $i < count($data); $i++) {
             $account = $data[$i];
@@ -3935,11 +3935,11 @@ class mexc extends Exchange {
         //     }
         //
         if ($marketType === 'margin') {
-            $wallet = $this->safe_value($response, 'assets', array());
+            $wallet = $this->safe_list($response, 'assets', array());
         } elseif ($marketType === 'swap') {
-            $wallet = $this->safe_value($response, 'data', array());
+            $wallet = $this->safe_list($response, 'data', array());
         } else {
-            $wallet = $this->safe_value($response, 'balances', array());
+            $wallet = $this->safe_list($response, 'balances', array());
         }
         $result = array( 'info' => $response );
         if ($marketType === 'margin') {
@@ -4464,7 +4464,7 @@ class mexc extends Exchange {
         //     }
         //
         $data = $this->safe_value($response, 'data', array());
-        $resultList = $this->safe_value($data, 'resultList', array());
+        $resultList = $this->safe_list($data, 'resultList', array());
         $result = array();
         for ($i = 0; $i < count($resultList); $i++) {
             $entry = $resultList[$i];
@@ -4637,7 +4637,7 @@ class mexc extends Exchange {
         //    }
         //
         $data = $this->safe_value($response, 'data');
-        $result = $this->safe_value($data, 'resultList', array());
+        $result = $this->safe_list($data, 'resultList', array());
         $rates = array();
         for ($i = 0; $i < count($result); $i++) {
             $entry = $result[$i];
@@ -5937,7 +5937,7 @@ class mexc extends Exchange {
         //        )
         //    }
         //
-        $networkList = $this->safe_value($transaction, 'networkList', array());
+        $networkList = $this->safe_list($transaction, 'networkList', array());
         $result = array();
         for ($j = 0; $j < count($networkList); $j++) {
             $networkEntry = $networkList[$j];
@@ -6022,7 +6022,7 @@ class mexc extends Exchange {
         //        )
         //    }
         //
-        $networkList = $this->safe_value($fee, 'networkList', array());
+        $networkList = $this->safe_list($fee, 'networkList', array());
         $result = $this->deposit_withdraw_fee($fee);
         for ($j = 0; $j < count($networkList); $j++) {
             $networkEntry = $networkList[$j];

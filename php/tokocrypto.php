@@ -773,7 +773,7 @@ class tokocrypto extends Exchange {
             $this->load_time_difference();
         }
         $data = $this->safe_value($response, 'data', array());
-        $list = $this->safe_value($data, 'list', array());
+        $list = $this->safe_list($data, 'list', array());
         $result = array();
         for ($i = 0; $i < count($list); $i++) {
             $market = $list[$i];
@@ -790,7 +790,7 @@ class tokocrypto extends Exchange {
             $filtersByType = $this->index_by($filters, 'filterType');
             $status = $this->safe_string($market, 'spotTradingEnable');
             $active = ($status === '1');
-            $permissions = $this->safe_value($market, 'permissions', array());
+            $permissions = $this->safe_list($market, 'permissions', array());
             for ($j = 0; $j < count($permissions); $j++) {
                 if ($permissions[$j] === 'TRD_GRP_003') {
                     $active = false;
@@ -851,7 +851,7 @@ class tokocrypto extends Exchange {
                 'info' => $market,
             );
             if (is_array($filtersByType) && array_key_exists('PRICE_FILTER' ?? '', $filtersByType)) {
-                $filter = $this->safe_value($filtersByType, 'PRICE_FILTER', array());
+                $filter = $this->safe_dict($filtersByType, 'PRICE_FILTER', array());
                 $entry['precision']['price'] = $this->safe_number($filter, 'tickSize');
                 // PRICE_FILTER reports zero values for maxPrice
                 // since they updated $filter types in November 2018
@@ -1593,7 +1593,7 @@ class tokocrypto extends Exchange {
             'datetime' => $this->iso8601($timestamp),
         );
         $data = $this->safe_value($response, 'data', array());
-        $balances = $this->safe_value($data, 'accountAssets', array());
+        $balances = $this->safe_list($data, 'accountAssets', array());
         for ($i = 0; $i < count($balances); $i++) {
             $balance = $balances[$i];
             $currencyId = $this->safe_string($balance, 'asset');

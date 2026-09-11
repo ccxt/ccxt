@@ -679,7 +679,7 @@ class gemini extends Exchange {
         return $result;
     }
 
-    public function parse_market_active(mixed $status) {
+    public function parse_market_active(mixed $status): ?bool {
         $statuses = array(
             'open' => true,
             'closed' => false,
@@ -703,7 +703,7 @@ class gemini extends Exchange {
         if (is_array($this->urls) && array_key_exists('test' ?? '', $this->urls)) {
             return array(); // sandbox does not have usdt markets
         }
-        $fetchUsdtMarkets = $this->safe_value($this->options, 'fetchUsdtMarkets', array());
+        $fetchUsdtMarkets = $this->safe_list($this->options, 'fetchUsdtMarkets', array());
         $result = array();
         for ($i = 0; $i < count($fetchUsdtMarkets); $i++) {
             $marketId = $fetchUsdtMarkets[$i];

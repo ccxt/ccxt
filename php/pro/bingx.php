@@ -1466,7 +1466,7 @@ class bingx extends \ccxt\async\bingx {
         $client->resolve($newPositions, 'swap:positions');
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, mixed $message): bool {
         //
         // array( $code => 100400, msg => '', timestamp => 1696245808833 )
         //

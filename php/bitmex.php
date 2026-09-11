@@ -504,7 +504,7 @@ class bitmex extends Exchange {
         $code = $this->safe_currency_code($asset);
         $id = $this->safe_string($currency, 'currency');
         $name = $this->safe_string($currency, 'name');
-        $chains = $this->safe_value($currency, 'networks', array());
+        $chains = $this->safe_list($currency, 'networks', array());
         $depositEnabled = false;
         $withdrawEnabled = false;
         $networks = array();
@@ -3093,7 +3093,7 @@ class bitmex extends Exchange {
         //        )
         //    }
         //
-        $networks = $this->safe_value($fee, 'networks', array());
+        $networks = $this->safe_list($fee, 'networks', array());
         $networksLength = count($networks);
         $result = array(
             'info' => $fee,

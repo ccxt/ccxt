@@ -571,7 +571,7 @@ class bitfinex extends Exchange {
         ));
     }
 
-    public function is_fiat(mixed $code) {
+    public function is_fiat(mixed $code): bool {
         return (is_array($this->options['fiat']) && array_key_exists($code ?? '', $this->options['fiat']));
     }
 
@@ -1013,7 +1013,7 @@ class bitfinex extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $accountsByType = $this->safe_value($this->options, 'v2AccountsByType', array());
+        $accountsByType = $this->safe_dict($this->options, 'v2AccountsByType', array());
         $requestedType = $this->safe_string($params, 'type', 'exchange');
         $accountType = $this->safe_string($accountsByType, $requestedType, $requestedType);
         if ($accountType === null) {
@@ -1072,7 +1072,7 @@ class bitfinex extends Exchange {
         if ($this->markets === null) {
             Async\await($this->load_markets());
         }
-        $accountsByType = $this->safe_value($this->options, 'v2AccountsByType', array());
+        $accountsByType = $this->safe_dict($this->options, 'v2AccountsByType', array());
         $fromId = $this->safe_string($accountsByType, $fromAccount);
         if ($fromId === null) {
             $keys = is_array($accountsByType) ? array_keys($accountsByType) : array();
@@ -2841,7 +2841,7 @@ class bitfinex extends Exchange {
         //     )
         //
         $result = array();
-        $fiat = $this->safe_value($this->options, 'fiat', array());
+        $fiat = $this->safe_dict($this->options, 'fiat', array());
         $feeData = $this->safe_value($response, 4, array());
         $makerData = $this->safe_value($feeData, 0, array());
         $takerData = $this->safe_value($feeData, 1, array());

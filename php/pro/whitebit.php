@@ -125,7 +125,7 @@ class whitebit extends \ccxt\async\whitebit {
         //     "id" => null
         // }
         //
-        $params = $this->safe_value($message, 'params', array());
+        $params = $this->safe_list($message, 'params', array());
         for ($i = 0; $i < count($params); $i++) {
             $data = $params[$i];
             $marketId = $this->safe_string($data, 7);
@@ -970,7 +970,7 @@ class whitebit extends \ccxt\async\whitebit {
             $message = $this->extend($request, $params);
             return Async\await($this->watch($url, $messageHash, $message, $method, $subscription));
         } else {
-            $subscription = $this->safe_value($client->subscriptions, $method, array());
+            $subscription = $this->safe_dict($client->subscriptions, $method, array());
             $hasSymbolSubscription = true;
             $market = $this->market($symbol);
             $marketId = $market['id'];

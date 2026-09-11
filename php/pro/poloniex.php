@@ -373,7 +373,7 @@ class poloniex extends \ccxt\async\poloniex {
         //    }
         //
         $messageHash = $this->safe_string($message, 'id');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $orders = array();
         for ($i = 0; $i < count($data); $i++) {
             $order = $data[$i];
@@ -726,7 +726,7 @@ class poloniex extends \ccxt\async\poloniex {
         //        )
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $item = $data[$i];
             $marketId = $this->safe_string($item, 'symbol');
@@ -919,7 +919,7 @@ class poloniex extends \ccxt\async\poloniex {
         //        )
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $orders = $this->orders;
         if ($orders === null) {
             $limit = $this->safe_integer($this->options, 'ordersLimit');
@@ -1105,7 +1105,7 @@ class poloniex extends \ccxt\async\poloniex {
         //        )
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $newTickers = array();
         for ($i = 0; $i < count($data); $i++) {
             $item = $data[$i];
@@ -1184,7 +1184,7 @@ class poloniex extends \ccxt\async\poloniex {
         //        "action" => "update"
         //    }
         //
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $type = $this->safe_string($message, 'action');
         $snapshot = $type === 'snapshot';
         $update = $type === 'update';
@@ -1355,7 +1355,7 @@ class poloniex extends \ccxt\async\poloniex {
         } elseif ($type === null) {
             $this->handle_order_request($client, $message);
         } else {
-            $data = $this->safe_value($message, 'data', array());
+            $data = $this->safe_list($message, 'data', array());
             $dataLength = count($data);
             if ($dataLength > 0) {
                 $method($client, $message);

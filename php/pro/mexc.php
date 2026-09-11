@@ -2187,7 +2187,7 @@ class mexc extends \ccxt\async\mexc {
         }
     }
 
-    public function handle_protobuf_message(Client $client, mixed $message) {
+    public function handle_protobuf_message(Client $client, mixed $message): bool {
         // protobuf $message decoded
         //  {
         //    "channel":"spot@public.kline.v3.api.pb@BTCUSDT@Min1",

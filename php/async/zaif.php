@@ -340,7 +340,7 @@ class zaif extends Exchange {
             'timestamp' => null,
             'datetime' => null,
         );
-        $funds = $this->safe_value($balances, 'funds', array());
+        $funds = $this->safe_dict($balances, 'funds', array());
         $currencyIds = is_array($funds) ? array_keys($funds) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
             $currencyId = $currencyIds[$i];

@@ -347,7 +347,7 @@ class okx extends \ccxt\async\okx {
         $channel = $this->safe_string($arg, 'channel');
         $marketId = $this->safe_string($arg, 'instId');
         $symbol = $this->safe_symbol($marketId);
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $tradesLimit = $this->safe_integer($this->options, 'tradesLimit', 1000);
         for ($i = 0; $i < count($data); $i++) {
             $trade = $this->parse_trade($data[$i]);
@@ -655,7 +655,7 @@ class okx extends \ccxt\async\okx {
         $market = $this->safe_market($marketId, null, '-');
         $symbol = $market['symbol'];
         $channel = $this->safe_string($arg, 'channel');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $newTickers = array();
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $this->parse_ticker($data[$i]);
@@ -1225,7 +1225,7 @@ class okx extends \ccxt\async\okx {
         if ($channel === null) {
             return;
         }
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $marketId = $this->safe_string($arg, 'instId');
         $market = $this->safe_market($marketId);
         $symbol = $market['symbol'];
@@ -1978,7 +1978,7 @@ class okx extends \ccxt\async\okx {
         $market = $this->safe_market($marketId, null, '-');
         $symbol = $market['symbol'];
         $channel = $this->safe_string($arg, 'channel', '');
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
@@ -2122,7 +2122,7 @@ class okx extends \ccxt\async\okx {
         $this->handle_my_trades($client, $message);
         $arg = $this->safe_value($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
-        $orders = $this->safe_value($message, 'data', array());
+        $orders = $this->safe_list($message, 'data', array());
         $ordersLength = count($orders);
         if ($ordersLength > 0) {
             $limit = $this->safe_integer($this->options, 'ordersLimit', 1000);
@@ -2205,7 +2205,7 @@ class okx extends \ccxt\async\okx {
         //
         $arg = $this->safe_value($message, 'arg', array());
         $channel = $this->safe_string($arg, 'channel');
-        $rawOrders = $this->safe_value($message, 'data', array());
+        $rawOrders = $this->safe_list($message, 'data', array());
         $filteredOrders = array();
         // filter orders with no last $trade id
         for ($i = 0; $i < count($rawOrders); $i++) {

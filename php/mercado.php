@@ -525,7 +525,7 @@ class mercado extends Exchange {
 
     public function parse_balance(mixed $response): array {
         $data = $this->safe_value($response, 'response_data', array());
-        $balances = $this->safe_value($data, 'balance', array());
+        $balances = $this->safe_dict($data, 'balance', array());
         $result = array( 'info' => $response );
         $currencyIds = is_array($balances) ? array_keys($balances) : array();
         for ($i = 0; $i < count($currencyIds); $i++) {
@@ -993,7 +993,7 @@ class mercado extends Exchange {
     public function orders_to_trades(mixed $orders) {
         $result = array();
         for ($i = 0; $i < count($orders); $i++) {
-            $trades = $this->safe_value($orders[$i], 'trades', array());
+            $trades = $this->safe_list($orders[$i], 'trades', array());
             for ($y = 0; $y < count($trades); $y++) {
                 $result[] = $trades[$y];
             }

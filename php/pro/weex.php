@@ -2049,7 +2049,7 @@ class weex extends \ccxt\async\weex {
         return $message;
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, mixed $message): bool {
         //
         //     {
         //         "result" => false,
