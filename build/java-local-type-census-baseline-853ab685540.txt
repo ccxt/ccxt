@@ -1,0 +1,86 @@
+java-local-type-census — generated Java local declarations by declared type
+repo: /root/worktrees/jn-x
+
+scope                                                        files   gen   locals  fields  returns   casts
+java/lib/src/main/java/io/github/ccxt/exchanges               208   208    64307       0    85630   86306
+java/lib/src/main/java/io/github/ccxt/exchanges/pro           152   152    24271       0    36546   86599
+java/lib/src/main/java/io/github/ccxt/exchanges/prediction     14    14     5308       0     4269    4141
+java/tests/src/main/java                                      115   112     1719      22      378     322
+java/lib/src/test/java                                         30     0      576       0       65      83
+TOTAL                                                         519   486    96181      22   126888  177451
+
+LOCAL DECLARATIONS BY DECLARED TYPE (total; top 15)
+  Object                                              67907  (70.60%)
+  String                                               9742  (10.13%)
+  java.util.Map<String,Object>                         8615  (8.96%)
+  java.util.List<Object>                               3564  (3.71%)
+  Long                                                 2213  (2.30%)
+  Boolean                                              1476  (1.53%)
+  var                                                   801  (0.83%)
+  Double                                                674  (0.70%)
+  java.util.LinkedHashMap<String,MarketInterface>       222  (0.23%)
+  Client                                                122  (0.13%)
+  Map<String,Object>                                    104  (0.11%)
+  Integer                                                97  (0.10%)
+  io.github.ccxt.ws.WsOrderBook                          90  (0.09%)
+  int                                                    80  (0.08%)
+  io.github.ccxt.ws.Future                               54  (0.06%)
+  ... 85 more types
+  TOTAL                                               96181
+
+METHOD RETURN TYPES (total; top 15)
+  CompletableFuture<Order>                            16372  (12.90%)
+  Order                                               16372  (12.90%)
+  CompletableFuture<List<Order>>                       7180  (5.66%)
+  List<Order>                                          7180  (5.66%)
+  java.util.concurrent.CompletableFuture<Object>       4681  (3.69%)
+  CompletableFuture<List<OHLCV>>                       4090  (3.22%)
+  List<OHLCV>                                          4090  (3.22%)
+  List<Trade>                                          3585  (2.83%)
+  CompletableFuture<List<Trade>>                       3584  (2.82%)
+  Object                                               2780  (2.19%)
+  CompletableFuture<List<Position>>                    2776  (2.19%)
+  List<Position>                                       2776  (2.19%)
+  CompletableFuture<Tickers>                           2160  (1.70%)
+  Tickers                                              2160  (1.70%)
+  CompletableFuture<List<Liquidation>>                 1923  (1.52%)
+  ... 165 more types
+  TOTAL                                              126888
+
+CASTS BY TYPE (total; top 15)
+  Map<String,Object>                                 66753  (37.62%)
+  Object                                             40386  (22.76%)
+  Long                                               29360  (16.55%)
+  Double                                             15068  (8.49%)
+  String                                             13691  (7.72%)
+  java.util.List<Object>                              7779  (4.38%)
+  java.util.Map<String,Object>                        2407  (1.36%)
+  List<String>                                        1052  (0.59%)
+  Number                                               330  (0.19%)
+  java.util.List<String>                               146  (0.08%)
+  io.github.ccxt.ws.Future                             102  (0.06%)
+  io.github.ccxt.ws.WsOrderBook                         81  (0.05%)
+  java.util.concurrent.CompletableFuture<Object>        60  (0.03%)
+  RuntimeException                                      47  (0.03%)
+  Boolean                                               43  (0.02%)
+  ... 23 more types
+  TOTAL                                             177451
+
+TOP FILES BY LOCAL DECLARATIONS (top 15)
+    1876  gen   java/lib/src/main/java/io/github/ccxt/exchanges/BinanceCore.java
+    1749  gen   java/lib/src/main/java/io/github/ccxt/exchanges/KucoinCore.java
+    1531  gen   java/lib/src/main/java/io/github/ccxt/exchanges/BybitCore.java
+    1497  gen   java/lib/src/main/java/io/github/ccxt/exchanges/BitgetCore.java
+    1381  gen   java/lib/src/main/java/io/github/ccxt/exchanges/OkxCore.java
+    1252  gen   java/lib/src/main/java/io/github/ccxt/exchanges/pro/BinanceCore.java
+    1235  gen   java/lib/src/main/java/io/github/ccxt/exchanges/HtxCore.java
+    1197  gen   java/lib/src/main/java/io/github/ccxt/exchanges/GateCore.java
+    1042  gen   java/lib/src/main/java/io/github/ccxt/exchanges/HyperliquidCore.java
+     956  gen   java/lib/src/main/java/io/github/ccxt/exchanges/prediction/MyriadCore.java
+     856  gen   java/lib/src/main/java/io/github/ccxt/exchanges/BingxCore.java
+     852  gen   java/lib/src/main/java/io/github/ccxt/exchanges/CoinbaseCore.java
+     820  gen   java/lib/src/main/java/io/github/ccxt/exchanges/MexcCore.java
+     819  gen   java/lib/src/main/java/io/github/ccxt/exchanges/pro/KucoinCore.java
+     790  gen   java/lib/src/main/java/io/github/ccxt/exchanges/PhemexCore.java
+
+JSON written to build/java-local-type-census-baseline-853ab685540.json
