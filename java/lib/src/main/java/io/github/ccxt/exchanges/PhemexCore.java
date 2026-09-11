@@ -972,7 +972,7 @@ public class PhemexCore extends PhemexApi
         {
             // "1 USD"
             // "0.005 ETH"
-            Object parts = Helpers.split(contractSizeString, " ");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(contractSizeString, " ");
             contractSize = this.parseNumber(Helpers.GetValue(parts, 0));
         } else
         {
@@ -1608,7 +1608,7 @@ public class PhemexCore extends PhemexApi
         var precise = new Precise(((String)stringN));
         precise.decimals = Helpers.subtract(precise.decimals, scale);
         precise.reduce();
-        Object preciseString = String.valueOf(precise);
+        String preciseString = String.valueOf(precise);
         return this.parseToNumeric(preciseString);
     }
 
@@ -2312,7 +2312,7 @@ public class PhemexCore extends PhemexApi
         Object takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isArray(trade)))
         {
-            Object tradeLength = Helpers.getArrayLength(trade);
+            Integer tradeLength = Helpers.getArrayLength(trade);
             timestamp = this.safeIntegerProduct(trade, 0, 0.000001);
             if (Helpers.isTrue(Helpers.isGreaterThan(tradeLength, 4)))
             {
@@ -3780,7 +3780,7 @@ public class PhemexCore extends PhemexApi
             Object order = data;
             if (Helpers.isTrue(Helpers.isArray(data)))
             {
-                Object numOrders = Helpers.getArrayLength(data);
+                Integer numOrders = Helpers.getArrayLength(data);
                 if (Helpers.isTrue(Helpers.isLessThan(numOrders, 1)))
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -5590,7 +5590,7 @@ final Object finalI = i;
             Object timestamp = this.seconds();
             Object xPhemexRequestExpiry = this.safeInteger(this.options, "x-phemex-request-expiry", 60);
             Object expiry = this.sum(timestamp, xPhemexRequestExpiry);
-            Object expiryString = String.valueOf(expiry);
+            String expiryString = String.valueOf(expiry);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "x-phemex-access-token", PhemexCore.this.apiKey );
                 put( "x-phemex-request-expiry", expiryString );

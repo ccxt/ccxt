@@ -321,7 +321,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
         Object selector = this.safeString(message, "selector", "");
-        Object parts = Helpers.split(selector, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -439,7 +439,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
         Object selector = this.safeString(message, "selector", "");
-        Object parts = Helpers.split(selector, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -572,7 +572,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
         Object selector = this.safeString(message, "selector", "");
-        Object parts = Helpers.split(selector, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -655,7 +655,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Object isSnapshot = Helpers.isEqual(channel, "v1.book.s");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -723,7 +723,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
         Object selector = this.safeString(message, "selector", "");
-        Object parts = Helpers.split(selector, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");

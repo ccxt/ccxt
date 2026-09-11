@@ -568,9 +568,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 Object swap = (Helpers.isEqual(type, "swap"));
                 Object future = (Helpers.isEqual(type, "future"));
                 Object symbol = id;
-                Object split = Helpers.split(((String)id), "_");
+                java.util.List<Object> split = (java.util.List<Object>) Helpers.split(((String)id), "_");
                 String splitMarket = this.safeString(split, 1);
-                Object baseId = Helpers.slice(((String)splitMarket), 0, Helpers.subtract(((String)((String)splitMarket)).length(), 3));
+                String baseId = Helpers.slice(((String)splitMarket), 0, Helpers.subtract(((String)((String)splitMarket)).length(), 3));
                 Object quoteId = "usd"; // always USD
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
@@ -1271,7 +1271,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 Object elements = this.safeList(response, "elements", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 // we need to reverse the list to fix chronology
                 rawTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                Object length = Helpers.getArrayLength(elements);
+                Integer length = Helpers.getArrayLength(elements);
                 for (var i = 0; Helpers.isLessThan(i, length); i++)
                 {
                     Object index = Helpers.subtract(Helpers.subtract(length, 1), i);
@@ -1869,7 +1869,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             }
             Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object clientOrderIds = this.safeList(parameters, "clientOrderIds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object clientOrderIdsLength = Helpers.getArrayLength(clientOrderIds);
+            Integer clientOrderIdsLength = Helpers.getArrayLength(clientOrderIds);
             if (Helpers.isTrue(Helpers.isGreaterThan(clientOrderIdsLength, 0)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clientOrderIds)); i++)
@@ -2734,7 +2734,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         }
         Object orderEvents = this.safeList(order, "orderEvents", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String errorStatus = this.safeString(order, "status");
-        Object orderEventsLength = Helpers.getArrayLength(orderEvents);
+        Integer orderEventsLength = Helpers.getArrayLength(orderEvents);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(order, "orderEvents"))) && Helpers.isTrue((!Helpers.isEqual(errorStatus, null)))) && Helpers.isTrue((Helpers.isEqual(orderEventsLength, 0)))))
         {
             // creteOrders error response
@@ -2812,7 +2812,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object remaining = this.safeString(details, "unfilledSize");
         Object average = null;
         Object filled2 = "0.0";
-        Object tradesLength = Helpers.getArrayLength(trades);
+        Integer tradesLength = Helpers.getArrayLength(trades);
         if (Helpers.isTrue(Helpers.isGreaterThan(tradesLength, 0)))
         {
             Object vwapSum = "0.0";
@@ -3410,8 +3410,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 continue;
             }
-            Object splitCode = Helpers.split(code, "_");
-            Object codeLength = Helpers.getArrayLength(splitCode);
+            java.util.List<Object> splitCode = (java.util.List<Object>) Helpers.split(code, "_");
+            Integer codeLength = Helpers.getArrayLength(splitCode);
             if (Helpers.isTrue(Helpers.isGreaterThan(codeLength, 1)))
             {
                 continue;
@@ -3888,7 +3888,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
             if (Helpers.isTrue(!Helpers.isEqual(i, 0)))
             {
-                Object tiersLength = Helpers.getArrayLength(tiers);
+                Integer tiersLength = Helpers.getArrayLength(tiers);
                 Object previousTier = Helpers.GetValue(tiers, Helpers.subtract(tiersLength, 1));
                 Helpers.addElementToObject(previousTier, "maxNotional", minNotional);
             }
@@ -3952,7 +3952,7 @@ final Object finalI = i;
         {
             Object market = this.market(account);
             Object marketId = Helpers.GetValue(market, "id");
-            Object splitId = Helpers.split(((String)marketId), "_");
+            java.util.List<Object> splitId = (java.util.List<Object>) Helpers.split(((String)marketId), "_");
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 return Helpers.add("fi_", this.safeString(splitId, 1));

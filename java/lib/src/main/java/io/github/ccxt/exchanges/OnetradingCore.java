@@ -1582,7 +1582,7 @@ public class OnetradingCore extends OnetradingApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;

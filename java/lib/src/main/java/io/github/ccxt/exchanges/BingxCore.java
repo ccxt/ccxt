@@ -1510,7 +1510,7 @@ public class BingxCore extends BingxApi
     public Object parseMarket(Object market)
     {
         Object id = ((String)this.safeString(market, "symbol"));
-        Object symbolParts = Helpers.split(id, "-");
+        java.util.List<Object> symbolParts = (java.util.List<Object>) Helpers.split(id, "-");
         Object baseId = Helpers.GetValue(symbolParts, 0);
         Object quoteId = Helpers.GetValue(symbolParts, 1);
         String base = (String) this.safeCurrencyCode(baseId);
@@ -4222,7 +4222,7 @@ public class BingxCore extends BingxApi
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             Object symbols = this.marketSymbols(marketIds, null, false, true, true);
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             Object market = this.market(Helpers.GetValue(symbols, 0));
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
@@ -5043,7 +5043,7 @@ public class BingxCore extends BingxApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(idsToParse)); i++)
             {
                 Object id = Helpers.GetValue(idsToParse, i);
-                Object stringId = String.valueOf(id);
+                String stringId = String.valueOf(id);
                 ((java.util.List<Object>)parsedIds).add(stringId);
             }
             Object response = null;
@@ -6700,7 +6700,7 @@ public class BingxCore extends BingxApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object networks = this.safeDict(fee, "networks", new java.util.HashMap<String, Object>() {{}});
         Object networkCodes = Helpers.objectKeys(networks);
-        Object networksLength = Helpers.getArrayLength(networkCodes);
+        Integer networksLength = Helpers.getArrayLength(networkCodes);
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", networks );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -7613,7 +7613,7 @@ public class BingxCore extends BingxApi
         {
             Object tier = this.safeDict(info, i);
             Object tierString = ((String)this.safeString(tier, "tier"));
-            Object tierParts = Helpers.split(tierString, " ");
+            java.util.List<Object> tierParts = (java.util.List<Object>) Helpers.split(tierString, " ");
             String marketId = this.safeString(tier, "symbol");
             market = this.safeMarket(marketId, market, null, "swap");
 final Object finalMarket = market;

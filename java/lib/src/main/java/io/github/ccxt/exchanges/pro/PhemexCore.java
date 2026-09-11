@@ -1076,7 +1076,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //    ]
         //
         Object channel = "trades";
-        Object tradesLength = Helpers.getArrayLength(message);
+        Integer tradesLength = Helpers.getArrayLength(message);
         if (Helpers.isTrue(Helpers.isEqual(tradesLength, 0)))
         {
             return;
@@ -1340,7 +1340,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object closed = this.safeValue(message, "closed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object open = this.safeValue(message, "open", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object orders = this.arrayConcat(open, closed);
-            Object ordersLength = Helpers.getArrayLength(orders);
+            Integer ordersLength = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isEqual(ordersLength, 0)))
             {
                 return;
@@ -1354,7 +1354,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             }
         } else
         {
-            Object messageLength = Helpers.getArrayLength(message);
+            Integer messageLength = Helpers.getArrayLength(message);
             if (Helpers.isTrue(Helpers.isEqual(messageLength, 0)))
             {
                 return;
@@ -1817,7 +1817,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                     put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList("API", PhemexCore.this.apiKey, signature, expiration)) );
                     put( "id", requestId );
                 }};
-                Object subscriptionHash = String.valueOf(requestId);
+                String subscriptionHash = String.valueOf(requestId);
                 Object message = this.extend(request, parameters);
                 if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
                 {

@@ -405,7 +405,7 @@ public class CryptomusCore extends CryptomusApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
-        Object parts = Helpers.split(marketId, "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "_");
         Object baseId = Helpers.GetValue(parts, 0);
         Object quoteId = Helpers.GetValue(parts, 1);
         String base = (String) this.safeCurrencyCode(baseId);

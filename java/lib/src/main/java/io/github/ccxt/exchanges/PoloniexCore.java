@@ -842,7 +842,7 @@ public class PoloniexCore extends PoloniexApi
         //           ],
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object ohlcvLength = Helpers.getArrayLength(ohlcv);
+        Integer ohlcvLength = Helpers.getArrayLength(ohlcv);
         Object isContract = Helpers.isEqual(ohlcvLength, 9);
         if (Helpers.isTrue(isContract))
         {
@@ -1404,7 +1404,7 @@ public class PoloniexCore extends PoloniexApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 symbols = this.marketSymbols(symbols, null, true, true, false);
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -1536,7 +1536,7 @@ public class PoloniexCore extends PoloniexApi
         String code = (String) this.safeCurrencyCode(id);
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object chainsLength = Helpers.getArrayLength(chains);
+        Integer chainsLength = Helpers.getArrayLength(chains);
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -3289,7 +3289,7 @@ public class PoloniexCore extends PoloniexApi
             //     }
             //
             Object keys = Helpers.objectKeys(response);
-            Object length = Helpers.getArrayLength(keys);
+            Integer length = Helpers.getArrayLength(keys);
             if (Helpers.isTrue(Helpers.isLessThan(length, 1)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
@@ -3742,7 +3742,7 @@ public class PoloniexCore extends PoloniexApi
                 Object currency = this.currency(code);
                 Helpers.addElementToObject(depositWithdrawFees, code, this.parseDepositWithdrawFee(feeInfo, currency));
                 Object childChains = this.safeValue(feeInfo, "childChains");
-                Object chainsLength = Helpers.getArrayLength(childChains);
+                Integer chainsLength = Helpers.getArrayLength(childChains);
                 if (Helpers.isTrue(Helpers.isGreaterThan(chainsLength, 0)))
                 {
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(childChains)); j++)
@@ -4462,7 +4462,7 @@ public class PoloniexCore extends PoloniexApi
         } else
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.nonce());
             Object auth = Helpers.add(method, "\n"); // eslint-disable-line quotes
             url = Helpers.add(url, Helpers.add("/", implodedPath));
             auth = Helpers.add(auth, Helpers.add("/", implodedPath));

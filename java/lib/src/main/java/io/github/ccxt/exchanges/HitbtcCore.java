@@ -1361,7 +1361,7 @@ public class HitbtcCore extends HitbtcApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object marketIds = this.marketIds(symbols);
-                Object delimited = String.join((String)",", (java.util.List<String>)marketIds);
+                String delimited = String.join((String)",", (java.util.List<String>)marketIds);
                 Helpers.addElementToObject(request, "symbols", delimited);
             }
             Object response = (this.publicGetPublicTicker(this.extend(request, parameters))).join();
@@ -4674,7 +4674,7 @@ public class HitbtcCore extends HitbtcApi
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), implodedPath);
         Object getRequest = null;
         Object keys = Helpers.objectKeys(query);
-        Object queryLength = Helpers.getArrayLength(keys);
+        Integer queryLength = Helpers.getArrayLength(keys);
         headers = new java.util.HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
@@ -4692,7 +4692,7 @@ public class HitbtcCore extends HitbtcApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.nonce());
             Object payload = new java.util.ArrayList<Object>(java.util.Arrays.asList(method, Helpers.add("/api/3/", implodedPath)));
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
@@ -4708,7 +4708,7 @@ public class HitbtcCore extends HitbtcApi
                 }
             }
             ((java.util.List<Object>)payload).add(timestamp);
-            Object payloadString = String.join((String)"", (java.util.List<String>)payload);
+            String payloadString = String.join((String)"", (java.util.List<String>)payload);
             Object signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
             Object secondPayload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.apiKey, ":"), signature), ":"), timestamp);
             Object encoded = this.stringToBase64(secondPayload);

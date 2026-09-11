@@ -633,7 +633,7 @@ public class BigoneCore extends BigoneApi
 }});
             }
         }
-        Object chainLength = Helpers.getArrayLength(chains);
+        Integer chainLength = Helpers.getArrayLength(chains);
         Object type = null;
         if (Helpers.isTrue(Helpers.isEqual(this.safeBool(rawCurrency, "is_fiat"), true)))
         {
@@ -2297,7 +2297,7 @@ public class BigoneCore extends BigoneApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "OpenAPIV2" );
                 put( "sub", BigoneCore.this.apiKey );
@@ -2375,7 +2375,7 @@ public class BigoneCore extends BigoneApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isLessThan(dataLength, 1)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() returned empty address response")) ;

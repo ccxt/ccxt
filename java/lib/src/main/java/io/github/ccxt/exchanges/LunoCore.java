@@ -1779,7 +1779,7 @@ public class LunoCore extends LunoApi
 
     public Object parseLedgerComment(Object comment)
     {
-        Object words = Helpers.split(comment, " ");
+        java.util.List<Object> words = (java.util.List<Object>) Helpers.split(comment, " ");
         Object types = new java.util.HashMap<String, Object>() {{
             put( "Withdrawal", "fee" );
             put( "Trading", "fee" );

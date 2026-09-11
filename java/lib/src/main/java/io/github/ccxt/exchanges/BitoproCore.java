@@ -499,7 +499,7 @@ public class BitoproCore extends BitoproApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
         }
-        Object uppercaseId = ((String)id).toUpperCase();
+        String uppercaseId = ((String)id).toUpperCase();
         String baseId = this.safeString(market, "base");
         String quoteId = this.safeString(market, "quote");
         String base = (String) this.safeCurrencyCode(baseId);
@@ -1080,7 +1080,7 @@ public class BitoproCore extends BitoproApi
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
-        Object length = Helpers.getArrayLength(candles);
+        Integer length = Helpers.getArrayLength(candles);
         if (Helpers.isTrue(Helpers.isEqual(length, 0)))
         {
             return candles;
@@ -1096,7 +1096,7 @@ public class BitoproCore extends BitoproApi
             timestamp = since;
         }
         Object i = 0;
-        Object candleLength = Helpers.getArrayLength(candles);
+        Integer candleLength = Helpers.getArrayLength(candles);
         Object resultLength = 0;
         while (Helpers.isTrue((Helpers.isLessThan(resultLength, limit))) && Helpers.isTrue((Helpers.isLessThan(i, candleLength))))
         {
@@ -1342,7 +1342,7 @@ public class BitoproCore extends BitoproApi
                 put( "amount", BitoproCore.this.amountToPrecision(symbol, amount) );
                 put( "timestamp", BitoproCore.this.milliseconds() );
             }};
-            Object orderType = ((String)type).toUpperCase();
+            String orderType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(orderType, "LIMIT")))
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));

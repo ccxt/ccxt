@@ -382,7 +382,7 @@ public class HyperliquidCore extends HyperliquidApi
         }
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && !Helpers.isTrue((Helpers.inOp(this.markets, symbol)))))
         {
-            Object symbolParts = Helpers.split(symbol, "/");
+            java.util.List<Object> symbolParts = (java.util.List<Object>) Helpers.split(symbol, "/");
             String baseName = this.safeString(symbolParts, 0);
             Object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.inOp(spotCurrencyMapping, ((String)baseName))))
@@ -543,7 +543,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object isWrapped = Helpers.isTrue(((String)fullName).startsWith(((String)"Unit "))) && Helpers.isTrue(((String)name).startsWith(((String)"U")));
             if (Helpers.isTrue(isWrapped))
             {
-                Object parts = Helpers.split(name, "U");
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(name, "U");
                 Object nameWithoutU = "";
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parts)); j++)
                 {
@@ -652,7 +652,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object hip3 = this.safeDict(options, "hip3", new java.util.HashMap<String, Object>() {{}});
             Object dexesProvided = this.safeList(hip3, "dexes", new java.util.ArrayList<Object>(java.util.Arrays.asList())); // let users provide their own list of dexes to load
             Object maxLimit = this.safeInteger(hip3, "limit", 10);
-            Object userProvidedDexesLength = Helpers.getArrayLength(dexesProvided);
+            Integer userProvidedDexesLength = Helpers.getArrayLength(dexesProvided);
             if (Helpers.isTrue(Helpers.isGreaterThan(userProvidedDexesLength, 0)))
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(userProvidedDexesLength, 0)))
@@ -661,7 +661,7 @@ public class HyperliquidCore extends HyperliquidApi
                 }
             } else
             {
-                Object fetchDexesLength = Helpers.getArrayLength(fetchDexes);
+                Integer fetchDexesLength = Helpers.getArrayLength(fetchDexes);
                 for (var i = 1; Helpers.isLessThan(i, maxLimit); i++)
                 {
                     if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(i, fetchDexesLength)))
@@ -846,7 +846,7 @@ public class HyperliquidCore extends HyperliquidApi
         {
             return 0;
         }
-        Object priceSplitted = Helpers.split(priceStr, ".");
+        java.util.List<Object> priceSplitted = (java.util.List<Object>) Helpers.split(priceStr, ".");
         if (Helpers.isTrue(Precise.stringEq(priceStr, "0")))
         {
             // Significant digits is always 5 in this case
@@ -2512,7 +2512,7 @@ public class HyperliquidCore extends HyperliquidApi
             vaultAddress = ((java.util.List<Object>) vaultAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
-            Object durationMins = (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(Helpers.divide(duration, 1000), 60))))); // convert from ms to minutes
+            Double durationMins = (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(Helpers.divide(duration, 1000), 60))))); // convert from ms to minutes
             final Object finalParameters = parameters;
             Object orderObj = new java.util.HashMap<String, Object>() {{
                 put( "a", HyperliquidCore.this.parseToInt(Helpers.GetValue(market, "baseId")) );
@@ -3666,8 +3666,8 @@ final Object finalClientOrderId = clientOrderId;
     public String getDexFromHip3Symbol(Object market)
     {
         String baseName = this.safeString(market, "baseName", "");
-        Object part = Helpers.split(baseName, ":");
-        Object partsLength = Helpers.getArrayLength(part);
+        java.util.List<Object> part = (java.util.List<Object>) Helpers.split(baseName, ":");
+        Integer partsLength = Helpers.getArrayLength(part);
         if (Helpers.isTrue(Helpers.isGreaterThan(partsLength, 1)))
         {
             return this.safeString(part, 0);
@@ -4458,7 +4458,7 @@ final Object finalClientOrderId = clientOrderId;
         {
             return null;
         }
-        Object symbolsLength = Helpers.getArrayLength(symbols);
+        Integer symbolsLength = Helpers.getArrayLength(symbols);
         if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
         {
             return null;

@@ -1086,8 +1086,8 @@ public class CoinoneCore extends CoinoneApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object orderType = ((String)((String)type)).toUpperCase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
-            Object orderSide = ((String)((String)side)).toUpperCase(); // unified lowercase order sides, same override rule
+            String orderType = ((String)((String)type)).toUpperCase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+            String orderSide = ((String)((String)side)).toUpperCase(); // unified lowercase order sides, same override rule
             if (Helpers.isTrue(!Helpers.isEqual(orderType, "LIMIT")))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
@@ -1552,7 +1552,7 @@ public class CoinoneCore extends CoinoneApi
                 {
                     continue;
                 }
-                Object parts = Helpers.split(key, "_");
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(key, "_");
                 Object currencyId = this.safeValue(parts, 0);
                 Object secondPart = this.safeValue(parts, 1);
                 String code = (String) this.safeCurrencyCode(currencyId);
@@ -1636,7 +1636,7 @@ public class CoinoneCore extends CoinoneApi
             }}, parameters));
             Object payload = this.stringToBase64(json);
             body = payload;
-            Object secret = ((String)this.secret).toUpperCase();
+            String secret = ((String)this.secret).toUpperCase();
             Object signature = this.hmac(this.encode(payload), this.encode(secret), sha512());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );

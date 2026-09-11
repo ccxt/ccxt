@@ -552,7 +552,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;
@@ -1116,7 +1116,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         Object channel = this.safeString(message, "channel");
         Object symbolSpecificMessageHash = this.safeString(message, "subscription");
         Object orders = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object ordersLength = Helpers.getArrayLength(orders);
+        Integer ordersLength = Helpers.getArrayLength(orders);
         if (Helpers.isTrue(Helpers.isGreaterThan(ordersLength, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
@@ -1295,9 +1295,9 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             Object symbolsString = Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1840,7 +1840,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 Object method = "public/auth";
-                Object nonce = String.valueOf(this.nonce());
+                String nonce = String.valueOf(this.nonce());
                 Object auth = Helpers.add(Helpers.add(Helpers.add(method, nonce), this.apiKey), nonce);
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalMethod = method;

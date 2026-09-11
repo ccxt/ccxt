@@ -810,7 +810,7 @@ public class PaymiumCore extends PaymiumApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object auth = Helpers.add(nonce, url);
             final Object finalNonce = nonce;
             headers = new java.util.HashMap<String, Object>() {{

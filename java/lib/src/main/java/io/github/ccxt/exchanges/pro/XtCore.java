@@ -1058,9 +1058,9 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             Object symbolsString = Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(new java.util.ArrayList<Object>(java.util.Arrays.asList(position)), "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1242,12 +1242,12 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             Object symbolsString = Helpers.GetValue(parts, 2);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object tickers = this.filterByArray(newTickers, "symbol", symbols);
             Object tickersSymbols = Helpers.objectKeys(tickers);
-            Object numTickers = Helpers.getArrayLength(tickersSymbols);
+            Integer numTickers = Helpers.getArrayLength(tickersSymbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numTickers, 0)))
             {
                 client.resolve(tickers, messageHash);
@@ -1443,7 +1443,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             Object eventVar = this.safeString(message, "event", "");
-            Object splitEvent = Helpers.split(eventVar, ",");
+            java.util.List<Object> splitEvent = (java.util.List<Object>) Helpers.split(eventVar, ",");
             eventVar = this.safeString(splitEvent, 0, "");
             Object tradeType = "spot";
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(data, null))) && Helpers.isTrue((Helpers.inOp(data, "fu")))))
@@ -1465,7 +1465,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object nonce = this.safeInteger(orderbook, "nonce");
             if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
             {
-                Object cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(orderbook, "cache")));
+                Integer cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(orderbook, "cache")));
                 Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
                 if (Helpers.isTrue(Helpers.isEqual(cacheLength, snapshotDelay)))
                 {

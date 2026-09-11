@@ -65,7 +65,7 @@ public class TestAfterConstruct extends BaseTest {
             Object collectedNetworkCodes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networkCodes)); i++)
             {
-                Object networkCodeLower = ((String)(Helpers.GetValue(networkCodes, i))).toLowerCase();
+                String networkCodeLower = ((String)(Helpers.GetValue(networkCodes, i))).toLowerCase();
                 Assert(!Helpers.isTrue(exchange.inArray(networkCodeLower, collectedNetworkCodes)), Helpers.add(Helpers.add("exchange.options[\"networks\"] contains multiple networkCodes with the same networkCode \"", Helpers.GetValue(networkCodes, i)), "\" in different uppercase/lowercase format"));
                 ((java.util.List<Object>)collectedNetworkCodes).add(networkCodeLower);
             }

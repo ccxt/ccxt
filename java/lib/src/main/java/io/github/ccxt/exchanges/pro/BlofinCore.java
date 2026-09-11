@@ -528,7 +528,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
+            Integer symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
@@ -936,7 +936,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             {
                 symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -1064,7 +1064,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             this.checkRequiredCredentials();
             Object milliseconds = this.milliseconds();
             Object messageHash = "authenticate_hash";
-            Object timestamp = String.valueOf(milliseconds);
+            String timestamp = String.valueOf(milliseconds);
             Object nonce = Helpers.add("n_", timestamp);
             Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/users/self/verify", "GET"), timestamp), ""), nonce);
             Object signature = this.stringToBase64(this.hmac(this.encode(auth), this.encode(this.secret), sha256()));

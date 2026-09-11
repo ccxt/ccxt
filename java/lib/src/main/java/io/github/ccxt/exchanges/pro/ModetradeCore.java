@@ -740,12 +740,12 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
-                Object ts = String.valueOf(this.nonce());
+                String ts = String.valueOf(this.nonce());
                 Object auth = ts;
                 Object secret = this.secret;
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secret, "ed25519:"), 0)))
                 {
-                    Object parts = Helpers.split(secret, "ed25519:");
+                    java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(secret, "ed25519:");
                     secret = Helpers.GetValue(parts, 1);
                 }
                 Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
@@ -1588,8 +1588,8 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 Helpers.callDynamically(this, method, new Object[] {client, message});
                 return;
             }
-            Object splitTopic = Helpers.split(topic, "@");
-            Object splitLength = Helpers.getArrayLength(splitTopic);
+            java.util.List<Object> splitTopic = (java.util.List<Object>) Helpers.split(topic, "@");
+            Integer splitLength = Helpers.getArrayLength(splitTopic);
             if (Helpers.isTrue(Helpers.isEqual(splitLength, 2)))
             {
                 Object name = this.safeString(splitTopic, 1);
@@ -1603,8 +1603,8 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                     Helpers.callDynamically(this, method, new Object[] {client, message});
                     return;
                 }
-                Object splitName = Helpers.split(name, "_");
-                Object splitNameLength = Helpers.getArrayLength(splitTopic);
+                java.util.List<Object> splitName = (java.util.List<Object>) Helpers.split(name, "_");
+                Integer splitNameLength = Helpers.getArrayLength(splitTopic);
                 if (Helpers.isTrue(Helpers.isEqual(splitNameLength, 2)))
                 {
                     Object splitNameFirst = this.safeString(splitName, 0);

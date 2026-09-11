@@ -79,8 +79,8 @@ public class TestFetchTickers extends BaseTest {
             // ensure all "active" symbols have tickers
             //
             Object nonInactiveMarkets = TestSharedMethods.getActiveMarkets(exchange);
-            Object notInactiveSymbolsLength = Helpers.getArrayLength(nonInactiveMarkets);
-            Object obtainedTickersLength = Helpers.getArrayLength(tickersValues);
+            Integer notInactiveSymbolsLength = Helpers.getArrayLength(nonInactiveMarkets);
+            Integer obtainedTickersLength = Helpers.getArrayLength(tickersValues);
             Object minRatio = 0.99; // 1.0 - 0.01 = 0.99, hardcoded to avoid C# transpiler type casting issues
             Assert(Helpers.isGreaterThanOrEqual(obtainedTickersLength, Helpers.multiply(notInactiveSymbolsLength, minRatio)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), "fetchTickers"), " must return tickers for all active markets. but returned: "), String.valueOf(obtainedTickersLength)), " tickers, "), String.valueOf(notInactiveSymbolsLength)), " active markets"));
             //
@@ -91,7 +91,7 @@ public class TestFetchTickers extends BaseTest {
             {
                 return;
             }
-            Object allMarketsLength = Helpers.getArrayLength(Helpers.objectKeys(allMarkets));
+            Integer allMarketsLength = Helpers.getArrayLength(Helpers.objectKeys(allMarkets));
             Assert(Helpers.isLessThanOrEqual(obtainedTickersLength, allMarketsLength), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), "fetchTickers"), " must return <= than all markets, but returned: "), String.valueOf(obtainedTickersLength)), " tickers, "), String.valueOf(allMarketsLength)), " markets"));
         }
     }

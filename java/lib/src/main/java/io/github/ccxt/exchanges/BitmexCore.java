@@ -1502,7 +1502,7 @@ public class BitmexCore extends BitmexApi
                 }} );
             }};
             Object response = (this.fetchOrders(symbol, null, null, this.deepExtend(filter, parameters))).join();
-            Object numResults = Helpers.getArrayLength(response);
+            Integer numResults = Helpers.getArrayLength(response);
             if (Helpers.isTrue(Helpers.isEqual(numResults, 1)))
             {
                 return Helpers.GetValue(response, 0);
@@ -2745,7 +2745,7 @@ public class BitmexCore extends BitmexApi
             {
                 ((java.util.List<Object>)execInstructions).add("ParticipateDoNotInitiate");
             }
-            Object execInstLength = Helpers.getArrayLength(execInstructions);
+            Integer execInstLength = Helpers.getArrayLength(execInstructions);
             if (Helpers.isTrue(Helpers.isGreaterThan(execInstLength, 0)))
             {
                 Helpers.addElementToObject(request, "execInst", String.join((String)",", (java.util.List<String>)execInstructions));
@@ -3596,8 +3596,8 @@ public class BitmexCore extends BitmexApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(code, "id"));
             } else if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object splitSymbol = Helpers.split(symbol, ":");
-                Object splitSymbolLength = Helpers.getArrayLength(splitSymbol);
+                java.util.List<Object> splitSymbol = (java.util.List<Object>) Helpers.split(symbol, ":");
+                Integer splitSymbolLength = Helpers.getArrayLength(splitSymbol);
                 Object timeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList("nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(splitSymbolLength, 1))) && Helpers.isTrue(this.inArray(Helpers.GetValue(splitSymbol, 1), timeframes))))
                 {
@@ -3838,7 +3838,7 @@ public class BitmexCore extends BitmexApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object networks = this.safeList(fee, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object networksLength = Helpers.getArrayLength(networks);
+        Integer networksLength = Helpers.getArrayLength(networks);
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -4643,7 +4643,7 @@ public class BitmexCore extends BitmexApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " sign() missing expires")) ;
             }
-            Object stringExpires = String.valueOf(expires);
+            String stringExpires = String.valueOf(expires);
             auth = Helpers.add(auth, stringExpires);
             Helpers.addElementToObject(headers, "api-expires", stringExpires);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT"))) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))

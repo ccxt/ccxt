@@ -1272,7 +1272,7 @@ public class CoincheckCore extends CoincheckApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object queryString = "";
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {

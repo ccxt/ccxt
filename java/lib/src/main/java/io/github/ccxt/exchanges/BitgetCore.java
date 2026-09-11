@@ -3929,12 +3929,12 @@ public class BitgetCore extends BitgetApi
                     {
                         expiry = this.safeInteger(market, "deliveryTime");
                         expiryDatetime = this.iso8601(expiry);
-                        Object expiryParts = Helpers.split(((String)expiryDatetime), "-");
+                        java.util.List<Object> expiryParts = (java.util.List<Object>) Helpers.split(((String)expiryDatetime), "-");
                         String yearPart = this.safeString(expiryParts, 0, "");
                         String dayPart = this.safeString(expiryParts, 2, "");
                         Object year = Helpers.slice(yearPart, 2, 4);
                         String month = this.safeString(expiryParts, 1);
-                        Object day = Helpers.slice(dayPart, 0, 2);
+                        String day = Helpers.slice(dayPart, 0, 2);
                         Object expiryString = Helpers.add(Helpers.add(year, month), day);
                         type = "future";
                         future = true;
@@ -3950,12 +3950,12 @@ public class BitgetCore extends BitgetApi
                     var precise = new Precise(((String)priceStep));
                     precise.decimals = Helpers.mathMax(precise.decimals, priceDecimals);
                     precise.reduce();
-                    Object priceString = String.valueOf(precise);
+                    String priceString = String.valueOf(precise);
                     pricePrecision = this.parseNumber(priceString);
                     var preciseAmount = new Precise(((String)amountStep));
                     preciseAmount.decimals = Helpers.mathMax(preciseAmount.decimals, amountDecimals);
                     preciseAmount.reduce();
-                    Object amountString = String.valueOf(preciseAmount);
+                    String amountString = String.valueOf(preciseAmount);
                     amountPrecision = this.parseNumber(amountString);
                     marginModes = new java.util.HashMap<String, Object>() {{
                         put( "cross", true );
@@ -4233,12 +4233,12 @@ public class BitgetCore extends BitgetApi
                     {
                         expiry = this.safeInteger(market, "deliveryTime");
                         expiryDatetime = this.iso8601(expiry);
-                        Object expiryParts = Helpers.split(((String)expiryDatetime), "-");
+                        java.util.List<Object> expiryParts = (java.util.List<Object>) Helpers.split(((String)expiryDatetime), "-");
                         String yearPart = this.safeString(expiryParts, 0, "");
                         String dayPart = this.safeString(expiryParts, 2, "");
                         Object year = Helpers.slice(yearPart, 2, 4);
                         String month = this.safeString(expiryParts, 1);
-                        Object day = Helpers.slice(dayPart, 0, 2);
+                        String day = Helpers.slice(dayPart, 0, 2);
                         Object expiryString = Helpers.add(Helpers.add(year, month), day);
                         type = "future";
                         future = true;
@@ -4401,7 +4401,7 @@ public class BitgetCore extends BitgetApi
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object withdraw = null;
         Object deposit = null;
-        Object chainsLength = Helpers.getArrayLength(chains);
+        Integer chainsLength = Helpers.getArrayLength(chains);
         if (Helpers.isTrue(Helpers.isEqual(chainsLength, 0)))
         {
             withdraw = false;
@@ -5816,7 +5816,7 @@ final Object finalMinNotional = minNotional;
             {
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
-                    Object symbolsLength = Helpers.getArrayLength(symbols);
+                    Integer symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                     {
                         Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
@@ -9339,7 +9339,7 @@ final Object finalMinNotional = minNotional;
                 }
             }
             Object dataList = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object dataListLength = Helpers.getArrayLength(dataList);
+            Integer dataListLength = Helpers.getArrayLength(dataList);
             if (Helpers.isTrue(Helpers.isEqual(dataListLength, 0)))
             {
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() could not find order id "), id), " in "), this.json(response))) ;
@@ -12839,7 +12839,7 @@ final Object finalMinNotional = minNotional;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object chains = this.safeList(fee, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object chainsLength = Helpers.getArrayLength(chains);
+        Integer chainsLength = Helpers.getArrayLength(chains);
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -14035,7 +14035,7 @@ final Object finalMinNotional = minNotional;
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -14599,7 +14599,7 @@ final Object finalMinNotional = minNotional;
         if (Helpers.isTrue(!Helpers.isTrue(signed) && Helpers.isTrue((Helpers.isEqual(method, "GET")))))
         {
             Object keys = Helpers.objectKeys(query);
-            Object keysLength = Helpers.getArrayLength(keys);
+            Integer keysLength = Helpers.getArrayLength(keys);
             if (Helpers.isTrue(Helpers.isGreaterThan(keysLength, 0)))
             {
                 url = Helpers.add(Helpers.add(url, "?"), this.urlencode(query));
@@ -14608,7 +14608,7 @@ final Object finalMinNotional = minNotional;
         if (Helpers.isTrue(signed))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.nonce());
             Object auth = Helpers.add(Helpers.add(timestamp, method), payload);
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {

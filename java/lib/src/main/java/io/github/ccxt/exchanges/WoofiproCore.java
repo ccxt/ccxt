@@ -902,7 +902,7 @@ public class WoofiproCore extends WoofiproApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
-        Object parts = Helpers.split(marketId, "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "_");
         Object marketType = "swap";
         String baseId = this.safeString(parts, 1);
         String quoteId = this.safeString(parts, 2);
@@ -2255,7 +2255,7 @@ public class WoofiproCore extends WoofiproApi
         {
             Object first = this.safeValue(childOrders, 0);
             Object innerChildOrders = this.safeList(first, "childOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object innerChildOrdersLength = Helpers.getArrayLength(innerChildOrders);
+            Integer innerChildOrdersLength = Helpers.getArrayLength(innerChildOrders);
             if (Helpers.isTrue(Helpers.isGreaterThan(innerChildOrdersLength, 0)))
             {
                 Object takeProfitOrder = this.safeValue(innerChildOrders, 0);
@@ -2366,13 +2366,13 @@ public class WoofiproCore extends WoofiproApi
          * @returns {object} request to be sent to the exchange
          */
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        Object orderType = ((String)type).toUpperCase();
+        String orderType = ((String)type).toUpperCase();
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
         }
         Object market = this.market(symbol);
-        Object orderSide = ((String)side).toUpperCase();
+        String orderSide = ((String)side).toUpperCase();
         final Object finalOrderSide = orderSide;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
@@ -2657,7 +2657,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(request, "side", ((String)side).toUpperCase());
-                Object orderType = ((String)type).toUpperCase();
+                String orderType = ((String)type).toUpperCase();
                 String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
                 Object isMarket = Helpers.isEqual(orderType, "MARKET");
                 Object postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -4452,7 +4452,7 @@ public class WoofiproCore extends WoofiproApi
                 parameters = this.keysort(parameters);
             }
             Object auth = "";
-            Object ts = String.valueOf(this.nonce());
+            String ts = String.valueOf(this.nonce());
             url = Helpers.add(url, pathWithParams);
             Object apiKey = this.apiKey;
             if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(apiKey, "ed25519:"), 0)))
@@ -4488,7 +4488,7 @@ public class WoofiproCore extends WoofiproApi
             Object secret = this.secret;
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secret, "ed25519:"), 0)))
             {
-                Object parts = Helpers.split(secret, "ed25519:");
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(secret, "ed25519:");
                 secret = Helpers.GetValue(parts, 1);
             }
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());

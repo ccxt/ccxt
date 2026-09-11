@@ -1078,7 +1078,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
-            Object sideUpper = ((String)side).toUpperCase();
+            String sideUpper = ((String)side).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;

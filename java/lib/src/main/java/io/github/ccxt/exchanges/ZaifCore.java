@@ -662,7 +662,7 @@ public class ZaifCore extends ZaifApi
             //      ]
             //
             Object trades = this.toArray(response);
-            Object numTrades = Helpers.getArrayLength(trades);
+            Integer numTrades = Helpers.getArrayLength(trades);
             if (Helpers.isTrue(Helpers.isEqual(numTrades, 1)))
             {
                 Object firstTrade = this.safeDict(trades, 0, new java.util.HashMap<String, Object>() {{}});

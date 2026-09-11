@@ -1043,7 +1043,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 Object symbol = this.safeString(position, "symbol");
                 Object cachedBySide = this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
                 Object cachedSides = Helpers.objectKeys(cachedBySide);
-                Object sidesLength = Helpers.getArrayLength(cachedSides);
+                Integer sidesLength = Helpers.getArrayLength(cachedSides);
                 if (Helpers.isTrue(Helpers.isEqual(sidesLength, 1)))
                 {
                     side = Helpers.GetValue(cachedSides, 0);
@@ -1061,9 +1061,9 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             Object symbolsString = Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1275,7 +1275,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object messageHash = "order";
         // initial subscription response with multiple orders
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
@@ -1436,7 +1436,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Helpers.callDynamically(stored, "append", new Object[]{trade});
             Helpers.addElementToObject(symbols, ((String)symbol), trade);
         }
-        Object numTrades = Helpers.getArrayLength(trades);
+        Integer numTrades = Helpers.getArrayLength(trades);
         if (Helpers.isTrue(Helpers.isGreaterThan(numTrades, 0)))
         {
             client.resolve(stored, messageHash);
@@ -1933,7 +1933,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         {
             Object request = this.safeValue(message, "request", new java.util.HashMap<String, Object>() {{}});
             Object args = this.safeList(request, "args", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object numArgs = Helpers.getArrayLength(args);
+            Integer numArgs = Helpers.getArrayLength(args);
             if (Helpers.isTrue(Helpers.isGreaterThan(numArgs, 0)))
             {
                 Object messageHash = Helpers.GetValue(args, 0);

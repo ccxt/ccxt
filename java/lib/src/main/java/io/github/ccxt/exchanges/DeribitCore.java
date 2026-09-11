@@ -803,8 +803,8 @@ public class DeribitCore extends DeribitApi
         // support expired option contracts
         Object quote = "USD";
         Object settle = null;
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(symbol, "-");
+        java.util.List<Object> symbolBase = (java.util.List<Object>) Helpers.split(symbol, "/");
         Object base = null;
         Object expiry = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
@@ -835,7 +835,7 @@ public class DeribitCore extends DeribitApi
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(base, "_"), Helpers.opNeg(1))))
         {
-            Object splitSymbol = Helpers.split(base, "_");
+            java.util.List<Object> splitSymbol = (java.util.List<Object>) Helpers.split(base, "_");
             splitBase = this.safeString(splitSymbol, 0);
         }
         String strike = this.safeString(optionParts, 2);
@@ -4292,7 +4292,7 @@ public class DeribitCore extends DeribitApi
     {
         if (Helpers.isTrue(!Helpers.isEqual(cursor, null)))
         {
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0)))
             {
                 Object first = Helpers.GetValue(data, 0);
@@ -4879,8 +4879,8 @@ public class DeribitCore extends DeribitApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
-            Object timestamp = String.valueOf(this.milliseconds());
+            String nonce = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.milliseconds());
             Object requestBody = "";
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {

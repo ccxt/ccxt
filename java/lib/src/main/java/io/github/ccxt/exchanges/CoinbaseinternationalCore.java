@@ -2977,7 +2977,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         if (Helpers.isTrue(signed))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object payload = "";
             if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
             {

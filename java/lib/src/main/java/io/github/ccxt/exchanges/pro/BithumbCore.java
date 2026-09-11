@@ -172,7 +172,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             {
                 symbols = this.symbols;
             }
-            Object symbolsLengthDefined = Helpers.getArrayLength(symbols);
+            Integer symbolsLengthDefined = Helpers.getArrayLength(symbols);
             Object url = ((Helpers.isTrue(isGenerationTwo))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "publicGen2") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             Object streamMarketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1250,7 +1250,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
     {
         if (Helpers.isTrue((message instanceof String)))
         {
-            Object content = ((String)message).toLowerCase();
+            String content = ((String)message).toLowerCase();
             if (Helpers.isTrue(Helpers.isEqual(content, "pong")))
             {
                 this.handlePong(client, message);

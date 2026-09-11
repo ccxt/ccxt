@@ -3421,7 +3421,7 @@ public class AsterCore extends AsterApi
          * @returns {object} request to be sent to the exchange
          */
         Object market = this.market(symbol);
-        Object initialUppercaseType = ((String)type).toUpperCase();
+        String initialUppercaseType = ((String)type).toUpperCase();
         Object isMarketOrder = Helpers.isEqual(initialUppercaseType, "MARKET");
         Object isLimitOrder = Helpers.isEqual(initialUppercaseType, "LIMIT");
         final Object finalSide = side;
@@ -4868,10 +4868,10 @@ public class AsterCore extends AsterApi
             }
             Object pricePrecision = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "price"));
             Object pricePrecisionPlusOne = Helpers.add(pricePrecision, 1);
-            Object pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
+            String pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
             var rounder = new Precise(Helpers.add("5e-", pricePrecisionPlusOneString));
-            Object rounderString = String.valueOf(rounder);
+            String rounderString = String.valueOf(rounder);
             Object liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             Object truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
             if (Helpers.isTrue(Helpers.isEqual(truncatedLiquidationPrice, null)))
@@ -5504,7 +5504,7 @@ public class AsterCore extends AsterApi
             //    ]
             //
             Object approvedBuilders = result;
-            Object length = Helpers.getArrayLength(approvedBuilders);
+            Integer length = Helpers.getArrayLength(approvedBuilders);
             Object found = false;
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {

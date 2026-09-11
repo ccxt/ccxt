@@ -1332,9 +1332,9 @@ public class BitbankCore extends BitbankApi
             // since bitbank offers no server time endpoint to compensate against
             String authMethod = this.safeString(this.options, "authMethod", "timeWindow");
             Object isTimeWindow = (Helpers.isEqual(authMethod, "timeWindow"));
-            Object requestTime = String.valueOf(this.milliseconds());
+            String requestTime = String.valueOf(this.milliseconds());
             String timeWindow = this.safeString(this.options, "timeWindow", "5000");
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object auth = null;
             if (Helpers.isTrue(isTimeWindow))
             {

@@ -1011,19 +1011,19 @@ public class HibachiCore extends HibachiApi
         Object feeRateInternal = Precise.stringDiv(Precise.stringMul(feeRateStr, feeRateFactor), one, 0);
         // Encoding
         Object nonce16 = this.intToBase16(nonce);
-        Object noncePadded = Helpers.padStart((String)nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        String noncePadded = Helpers.padStart((String)nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedNonce = this.base16ToBinary(noncePadded);
         Object numericId = this.intToBase16(this.safeInteger(market, "numericId"));
-        Object numericIdPadded = Helpers.padStart((String)numericId, ((Number)8).intValue(), ((String)"0").charAt(0));
+        String numericIdPadded = Helpers.padStart((String)numericId, ((Number)8).intValue(), ((String)"0").charAt(0));
         Object encodedMarketId = this.base16ToBinary(numericIdPadded);
         Object quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
-        Object quantityPadded = Helpers.padStart((String)quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        String quantityPadded = Helpers.padStart((String)quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedQuantity = this.base16ToBinary(quantityPadded);
         Object sideInternal16 = this.intToBase16(sideInternal);
-        Object sidePadded = Helpers.padStart((String)sideInternal16, ((Number)8).intValue(), ((String)"0").charAt(0));
+        String sidePadded = Helpers.padStart((String)sideInternal16, ((Number)8).intValue(), ((String)"0").charAt(0));
         Object encodedSide = this.base16ToBinary(sidePadded);
         Object feeRateInternal16 = this.intToBase16(this.parseToInt(feeRateInternal));
-        Object feeRatePadded = Helpers.padStart((String)feeRateInternal16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        String feeRatePadded = Helpers.padStart((String)feeRateInternal16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedFeeRate = this.base16ToBinary(feeRatePadded);
         Object encodedPrice = this.binaryConcat();
         if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
@@ -1031,7 +1031,7 @@ public class HibachiCore extends HibachiApi
             Object priceStr = this.priceToPrecision(this.safeString(market, "symbol"), price);
             Object priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
             Object price16 = this.intToBase16(this.parseToInt(priceInternal));
-            Object pricePadded = Helpers.padStart((String)price16, ((Number)16).intValue(), ((String)"0").charAt(0));
+            String pricePadded = Helpers.padStart((String)price16, ((Number)16).intValue(), ((String)"0").charAt(0));
             // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
         }
@@ -1343,7 +1343,7 @@ public class HibachiCore extends HibachiApi
     {
         Object bigid = this.convertToBigInt(id);
         Object idbase16 = this.intToBase16(bigid);
-        Object idPadded = Helpers.padStart((String)idbase16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        String idPadded = Helpers.padStart((String)idbase16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object message = this.base16ToBinary(idPadded);
         Object signature = this.signMessage(message, this.privateKey);
         return new java.util.HashMap<String, Object>() {{
@@ -1455,7 +1455,7 @@ public class HibachiCore extends HibachiApi
             }
             Object nonce = this.nonce();
             Object nonce16 = this.intToBase16(nonce);
-            Object noncePadded = Helpers.padStart((String)nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
+            String noncePadded = Helpers.padStart((String)nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
             Object message = this.base16ToBinary(noncePadded);
             Object signature = this.signMessage(message, this.privateKey);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1495,13 +1495,13 @@ public class HibachiCore extends HibachiApi
         Object maxFeesInternal = Precise.stringDiv(Precise.stringMul(maxFeesStr, USDTFactor), one, 0);
         // Encoding
         Object usdtAsset16 = this.intToBase16(USDTAssetId);
-        Object usdtAssetPadded = Helpers.padStart((String)usdtAsset16, ((Number)8).intValue(), ((String)"0").charAt(0));
+        String usdtAssetPadded = Helpers.padStart((String)usdtAsset16, ((Number)8).intValue(), ((String)"0").charAt(0));
         Object encodedAssetId = this.base16ToBinary(usdtAssetPadded);
         Object quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
-        Object quantityPadded = Helpers.padStart((String)quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        String quantityPadded = Helpers.padStart((String)quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedQuantity = this.base16ToBinary(quantityPadded);
         Object maxFees16 = this.intToBase16(this.parseToInt(maxFeesInternal));
-        Object maxFeesPadded = Helpers.padStart((String)maxFees16, ((Number)16).intValue(), ((String)"0").charAt(0));
+        String maxFeesPadded = Helpers.padStart((String)maxFees16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedMaxFees = this.base16ToBinary(maxFeesPadded);
         Object encodedAddress = this.base16ToBinary(address);
         Object message = this.binaryConcat(encodedAssetId, encodedQuantity, encodedMaxFees, encodedAddress);
@@ -1527,7 +1527,7 @@ public class HibachiCore extends HibachiApi
 
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object withdrawAddress = Helpers.slice(address, Helpers.opNeg(40), null);
+            String withdrawAddress = Helpers.slice(address, Helpers.opNeg(40), null);
             // Get the withdraw fees
             Object exchangeInfo = (this.publicGetMarketExchangeInfo(parameters)).join();
             // {

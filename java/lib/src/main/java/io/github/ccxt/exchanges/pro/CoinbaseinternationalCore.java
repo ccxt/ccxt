@@ -107,7 +107,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             {
                 symbols = this.getActiveSymbols();
             }
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
             {
@@ -129,7 +129,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             {
                 throw new NotSupported((String)Helpers.add(this.id, " is not supported in sandbox environment")) ;
             }
-            Object timestamp = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.nonce());
             Object auth = Helpers.add(Helpers.add(Helpers.add(timestamp, this.apiKey), "CBINTLMD"), this.password);
             Object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalName = name;

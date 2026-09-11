@@ -1676,7 +1676,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object length = Helpers.getArrayLength(orders);
+            Integer length = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isGreaterThan(length, 5)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " createOrders() accepts a maximum of 5 orders")) ;
@@ -1771,7 +1771,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object length = Helpers.getArrayLength(orders);
+            Integer length = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isGreaterThan(length, 5)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " editOrders() accepts a maximum of 5 orders")) ;
@@ -3688,7 +3688,7 @@ public class BydfiCore extends BydfiApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.milliseconds());
+            String timestamp = String.valueOf(this.milliseconds());
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
                 Object payload = Helpers.add(Helpers.add(this.apiKey, timestamp), query);

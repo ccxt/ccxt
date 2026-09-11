@@ -1461,10 +1461,10 @@ public class IndependentreserveCore extends IndependentreserveApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
-                Object value = String.valueOf(Helpers.GetValue(parameters, key));
+                String value = String.valueOf(Helpers.GetValue(parameters, key));
                 ((java.util.List<Object>)auth).add(Helpers.add(Helpers.add(key, "="), value));
             }
-            Object message = String.join((String)",", (java.util.List<String>)auth);
+            String message = String.join((String)",", (java.util.List<String>)auth);
             Object signature = this.hmac(this.encode(message), this.encode(this.secret), sha256());
             Object query = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(query, "apiKey", this.apiKey);

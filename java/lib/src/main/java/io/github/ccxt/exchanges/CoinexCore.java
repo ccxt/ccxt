@@ -1488,7 +1488,7 @@ public class CoinexCore extends CoinexApi
                 Object settleId = ((Helpers.isTrue((Helpers.isEqual(subType, "linear"))))) ? "USDT" : baseId;
                 String settle = (String) this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
-                Object leveragesLength = Helpers.getArrayLength(leverages);
+                Integer leveragesLength = Helpers.getArrayLength(leverages);
     final Object finalBase = base;
                 final Object finalLeveragesLength = leveragesLength;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -3932,10 +3932,10 @@ public class CoinexCore extends CoinexApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String coinAddress = this.safeString(depositAddress, "address", "");
-        Object parts = Helpers.split(coinAddress, ":");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(coinAddress, ":");
         Object address = null;
         Object tag = null;
-        Object partsLength = Helpers.getArrayLength(parts);
+        Integer partsLength = Helpers.getArrayLength(parts);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThan(partsLength, 1)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(parts, 0), "cfx"))))
         {
             address = Helpers.GetValue(parts, 0);
@@ -4063,7 +4063,7 @@ public class CoinexCore extends CoinexApi
                 Object symbol = null;
                 if (Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    Object symbolsLength = Helpers.getArrayLength(symbols);
+                    Integer symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
                         throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
@@ -6437,15 +6437,15 @@ final Object finalI = i;
         Object requestUrl = Helpers.GetValue(api, 1);
         Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), requestUrl), "/"), version), "/"), path);
         Object query = this.omit(parameters, this.extractParams(path));
-        Object nonce = String.valueOf(this.nonce());
+        String nonce = String.valueOf(this.nonce());
         if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
         {
-            Object parts = Helpers.split(path, "/");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(path, "/");
             String firstPart = this.safeString(parts, 0, "");
-            Object numParts = Helpers.getArrayLength(parts);
+            Integer numParts = Helpers.getArrayLength(parts);
             String lastPart = this.safeString(parts, Helpers.subtract(numParts, 1), "");
-            Object lastWords = Helpers.split(lastPart, "_");
-            Object numWords = Helpers.getArrayLength(lastWords);
+            java.util.List<Object> lastWords = (java.util.List<Object>) Helpers.split(lastPart, "_");
+            Integer numWords = Helpers.getArrayLength(lastWords);
             String lastWord = this.safeString(lastWords, Helpers.subtract(numWords, 1), "");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(firstPart, "order"))) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(lastWord, "limit")) || Helpers.isTrue(Helpers.isEqual(lastWord, "market"))))))
             {

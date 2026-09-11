@@ -445,7 +445,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        Object parts = Helpers.split(((String)channel), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
         Object channelKind = this.safeString(parts, 1);
         Object isFutures = (Helpers.isEqual(channelKind, "e"));
         Object market = null;
@@ -613,7 +613,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        Object parts = Helpers.split(((String)channel), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
@@ -752,7 +752,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        Object parts = Helpers.split(((String)channel), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
@@ -862,7 +862,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        Object parts = Helpers.split(((String)channel), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))

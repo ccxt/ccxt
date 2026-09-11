@@ -4521,10 +4521,10 @@ public Object describe()
                 proxyUrl = this.proxy;
             }
         }
-        Object length = Helpers.getArrayLength(usedProxies);
+        Integer length = Helpers.getArrayLength(usedProxies);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
         {
-            Object joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
+            String joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
             throw new InvalidProxySettings((String)Helpers.add(Helpers.add(Helpers.add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")) ;
         }
         return proxyUrl;
@@ -4594,10 +4594,10 @@ public Object describe()
             socksProxy = ((Helpers.isTrue(issocksProxyCallbackDefined))) ? Helpers.callDynamically(this, "socksProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "socks_proxy_callback", new Object[] { url, method, headers, body });
         }
         // check
-        Object length = Helpers.getArrayLength(usedProxies);
+        Integer length = Helpers.getArrayLength(usedProxies);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
         {
-            Object joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
+            String joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
             throw new InvalidProxySettings((String)Helpers.add(Helpers.add(Helpers.add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")) ;
         }
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(httpProxy, httpsProxy, socksProxy));
@@ -4634,10 +4634,10 @@ public Object describe()
             wsSocksProxy = ((Helpers.isTrue((isWsSocksProxyDefined)))) ? this.wsSocksProxy : this.ws_socks_proxy;
         }
         // check
-        Object length = Helpers.getArrayLength(usedProxies);
+        Integer length = Helpers.getArrayLength(usedProxies);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
         {
-            Object joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
+            String joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
             throw new InvalidProxySettings((String)Helpers.add(Helpers.add(Helpers.add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: wsProxy, wssProxy, wsSocksProxy")) ;
         }
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(wsProxy, wssProxy, wsSocksProxy));
@@ -4662,7 +4662,7 @@ public Object describe()
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         Object uniqChars = (this.unique(this.stringToCharsArray(address)));
-        Object length = Helpers.getArrayLength(uniqChars); // py transpiler trick
+        Integer length = Helpers.getArrayLength(uniqChars); // py transpiler trick
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(length, 1)) || Helpers.isTrue(Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength))) || Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(address, " "), Helpers.opNeg(1)))))
         {
             throw new InvalidAddress((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " address is invalid or has less than "), String.valueOf(this.minFundingAddressLength)), " characters: \""), String.valueOf(address)), "\"")) ;
@@ -4694,7 +4694,7 @@ public Object describe()
         Object fromStart = Helpers.getArg(optionalArgs, 2, false);
         if (Helpers.isTrue(this.valueIsDefined(limit)))
         {
-            Object arrayLength = Helpers.getArrayLength(array);
+            Integer arrayLength = Helpers.getArrayLength(array);
             if (Helpers.isTrue(Helpers.isGreaterThan(arrayLength, 0)))
             {
                 Object ascending = true;
@@ -5943,7 +5943,7 @@ public Object describe()
         {
             return ((Helpers.isTrue((!Helpers.isEqual(defaultValue, null))))) ? defaultValue : methodDict;
         }
-        Object splited = Helpers.split(paramName, "."); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        java.util.List<Object> splited = (java.util.List<Object>) Helpers.split(paramName, "."); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         Object parentKey = Helpers.GetValue(splited, 0);
         String subKey = this.safeString(splited, 1);
         if (!Helpers.isTrue((Helpers.inOp(methodDict, parentKey))))
@@ -6085,7 +6085,7 @@ public Object describe()
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(networks);
-        Object length = Helpers.getArrayLength(keys);
+        Integer length = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(!Helpers.isEqual(length, 0)))
         {
             for (var i = 0; Helpers.isLessThan(i, length); i++)
@@ -6507,7 +6507,7 @@ public Object describe()
             }
         }
         Object debtBalanceArray = Helpers.objectKeys(debtBalance);
-        Object length = Helpers.getArrayLength(debtBalanceArray);
+        Integer length = Helpers.getArrayLength(debtBalanceArray);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(length, null))) && Helpers.isTrue((!Helpers.isEqual(length, 0)))))
         {
             Helpers.addElementToObject(balance, "debt", debtBalance);
@@ -6662,7 +6662,7 @@ public Object describe()
             {
                 reducedFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            Object reducedLength = Helpers.getArrayLength(reducedFees);
+            Integer reducedLength = Helpers.getArrayLength(reducedFees);
             for (var i = 0; Helpers.isLessThan(i, reducedLength); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(reducedFees, i), "cost", this.safeNumber(Helpers.GetValue(reducedFees, i), "cost"));
@@ -7129,7 +7129,7 @@ public Object describe()
             {
                 reducedFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            Object reducedLength = Helpers.getArrayLength(reducedFees);
+            Integer reducedLength = Helpers.getArrayLength(reducedFees);
             for (var i = 0; Helpers.isLessThan(i, reducedLength); i++)
             {
                 Helpers.addElementToObject(reducedFees, i, this.parseFeeNumeric(Helpers.GetValue(reducedFees, i)));
@@ -7171,7 +7171,7 @@ public Object describe()
     public Object findNearestCeiling(Object arr, Object providedValue)
     {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
-        Object length = Helpers.getArrayLength(arr);
+        Integer length = Helpers.getArrayLength(arr);
         for (var i = 0; Helpers.isLessThan(i, length); i++)
         {
             Object current = Helpers.GetValue(arr, i);
@@ -7701,7 +7701,7 @@ public Object describe()
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(startRegex, null)))
                 {
-                    Object splitted_by_start = Helpers.split(content, startRegex);
+                    java.util.List<Object> splitted_by_start = (java.util.List<Object>) Helpers.split(content, startRegex);
                     content = Helpers.GetValue(splitted_by_start, 1); // we need second part after start
                 }
                 if (Helpers.isTrue(Helpers.isEqual(content, null)))
@@ -7710,7 +7710,7 @@ public Object describe()
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(endRegex, null)))
                 {
-                    Object splitted_by_end = Helpers.split(content, endRegex);
+                    java.util.List<Object> splitted_by_end = (java.util.List<Object>) Helpers.split(content, endRegex);
                     content = Helpers.GetValue(splitted_by_end, 0); // we need first part after start
                 }
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(returnAsJson, true))) && Helpers.isTrue(((content instanceof String)))))
@@ -7825,7 +7825,7 @@ public Object describe()
             }
             return symbols;
         }
-        Object symbolsLength = Helpers.getArrayLength(symbols);
+        Integer symbolsLength = Helpers.getArrayLength(symbols);
         if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
         {
             if (!Helpers.isTrue(allowEmpty))
@@ -8168,7 +8168,7 @@ public Object describe()
         Object isIndexedByUnifiedNetworkCode = Helpers.getArg(optionalArgs, 0, false);
         Object chosenNetworkId = null;
         Object availableNetworkIds = Helpers.objectKeys(indexedNetworkEntries);
-        Object responseNetworksLength = Helpers.getArrayLength(availableNetworkIds);
+        Integer responseNetworksLength = Helpers.getArrayLength(availableNetworkIds);
         if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(responseNetworksLength, 0)))
@@ -8936,7 +8936,7 @@ public Object describe()
         Object i_close = 4;
         Object i_volume = 5;
         Object i_count = 6;
-        Object tradesLength = Helpers.getArrayLength(trades);
+        Integer tradesLength = Helpers.getArrayLength(trades);
         Object oldest = Helpers.mathMin(tradesLength, limit);
         Object options = this.safeDict(this.options, "buildOHLCVC", new java.util.HashMap<String, Object>() {{}});
         Object skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
@@ -8962,7 +8962,7 @@ public Object describe()
             {
                 continue;
             }
-            Object ohlcv_length = Helpers.getArrayLength(ohlcvs);
+            Integer ohlcv_length = Helpers.getArrayLength(ohlcvs);
             Object candle = Helpers.subtract(ohlcv_length, 1);
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
@@ -9097,7 +9097,7 @@ public Object describe()
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
             {
                 Object markets = Helpers.GetValue(this.markets_by_id, marketId);
-                Object numMarkets = Helpers.getArrayLength(markets);
+                Integer numMarkets = Helpers.getArrayLength(markets);
                 if (Helpers.isTrue(Helpers.isEqual(numMarkets, 1)))
                 {
                     return Helpers.GetValue(markets, 0);
@@ -9124,8 +9124,8 @@ public Object describe()
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(delimiter, null)) && Helpers.isTrue(!Helpers.isEqual(delimiter, ""))))
             {
-                Object parts = Helpers.split(marketId, delimiter);
-                Object partsLength = Helpers.getArrayLength(parts);
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, delimiter);
+                Integer partsLength = Helpers.getArrayLength(parts);
                 final Object finalMarketId = marketId;
                 Object result = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "symbol", finalMarketId );
@@ -10294,7 +10294,7 @@ public Object describe()
             throw new ArgumentsRequired((String)Helpers.add(this.id, " currency() requires a code argument")) ;
         }
         Object keys = Helpers.objectKeys(this.currencies);
-        Object numCurrencies = Helpers.getArrayLength(keys);
+        Integer numCurrencies = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(Helpers.isEqual(numCurrencies, 0)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " currencies not loaded")) ;
@@ -10362,7 +10362,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverageSuffixes)); i++)
         {
             Object leverageSuffix = Helpers.GetValue(leverageSuffixes, i);
-            Object endsWithSuffix = ((String)currencyCode).endsWith(((String)leverageSuffix));
+            Boolean endsWithSuffix = ((String)currencyCode).endsWith(((String)leverageSuffix));
             if (Helpers.isTrue(endsWithSuffix))
             {
                 if (!Helpers.isTrue(checkBaseCoin))
@@ -10371,7 +10371,7 @@ public Object describe()
                 } else
                 {
                     // check if base currency is inside dict
-                    Object baseCurrencyCode = Helpers.replace((String)currencyCode, (String)leverageSuffix, (String)"");
+                    String baseCurrencyCode = Helpers.replace((String)currencyCode, (String)leverageSuffix, (String)"");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(existingCurrencies, null))) && Helpers.isTrue((Helpers.inOp(existingCurrencies, baseCurrencyCode)))))
                     {
                         return true;
@@ -11365,7 +11365,7 @@ public Object describe()
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
         Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
-        Object lowercaseAccount = ((String)account).toLowerCase();
+        String lowercaseAccount = ((String)account).toLowerCase();
         if (Helpers.isTrue(Helpers.inOp(accountsByType, lowercaseAccount)))
         {
             return Helpers.GetValue(accountsByType, lowercaseAccount);
@@ -11394,10 +11394,10 @@ public Object describe()
         * @returns {undefined}
         */
         Object options = Helpers.getArg(optionalArgs, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object optionsLength = Helpers.getArrayLength(options);
+        Integer optionsLength = Helpers.getArrayLength(options);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(argument, null))) || Helpers.isTrue((Helpers.isTrue((Helpers.isGreaterThan(optionsLength, 0))) && Helpers.isTrue((!Helpers.isTrue((this.inArray(argument, options)))))))))
         {
-            Object messageOptions = String.join((String)", ", (java.util.List<String>)options);
+            String messageOptions = String.join((String)", ", (java.util.List<String>)options);
             Object message = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a "), argumentName), " argument");
             if (Helpers.isTrue(!Helpers.isEqual(messageOptions, "")))
             {
@@ -11497,7 +11497,7 @@ public Object describe()
         */
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object networkKeys = Helpers.objectKeys(Helpers.GetValue(fee, "networks"));
-        Object numNetworks = Helpers.getArrayLength(networkKeys);
+        Integer numNetworks = Helpers.getArrayLength(networkKeys);
         if (Helpers.isTrue(Helpers.isEqual(numNetworks, 1)))
         {
             Helpers.addElementToObject(fee, "withdraw", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), Helpers.GetValue(networkKeys, 0)), "withdraw"));
@@ -11738,7 +11738,7 @@ public Object describe()
                             Helpers.addElementToObject(parameters, "until", Helpers.subtract(paginationTimestamp, 1));
                         }
                         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, null, maxEntriesPerRequest, parameters })).join();
-                        Object responseLength = Helpers.getArrayLength(response);
+                        Integer responseLength = Helpers.getArrayLength(response);
                         if (Helpers.isTrue(this.verbose))
                         {
                             Object backwardMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength));
@@ -11768,7 +11768,7 @@ public Object describe()
                     {
                         // do it forwards, starting from the since
                         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paginationTimestamp, maxEntriesPerRequest, parameters })).join();
-                        Object responseLength = Helpers.getArrayLength(response);
+                        Integer responseLength = Helpers.getArrayLength(response);
                         if (Helpers.isTrue(this.verbose))
                         {
                             Object forwardMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength));
@@ -11914,7 +11914,7 @@ public Object describe()
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
                 }
-                Object requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(until, since)), step))));
+                Double requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(until, since)), step))));
                 if (Helpers.isTrue(Helpers.isGreaterThan(requiredCalls, maxCalls)))
                 {
                     throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is "), String.valueOf(maxCalls)), " required calls is "), String.valueOf(requiredCalls))) ;
@@ -12017,7 +12017,7 @@ public Object describe()
                     {
                         throw new NullResponse((String)Helpers.add(this.id, " fetchPaginatedCallCursor() returned empty response")) ;
                     }
-                    Object responseLength = Helpers.getArrayLength(response);
+                    Integer responseLength = Helpers.getArrayLength(response);
                     if (Helpers.isTrue(this.verbose))
                     {
                         Object cursorString = ((Helpers.isTrue((Helpers.isEqual(cursorValue, null))))) ? "" : cursorValue;
@@ -12110,10 +12110,10 @@ public Object describe()
                     Helpers.addElementToObject(parameters, ((String)pageKey), Helpers.add(i, 1));
                     Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequest, parameters })).join();
                     errors = 0;
-                    Object responseLength = Helpers.getArrayLength(response);
+                    Integer responseLength = Helpers.getArrayLength(response);
                     if (Helpers.isTrue(this.verbose))
                     {
-                        Object iteration = String.valueOf((Helpers.add(i, 1)));
+                        String iteration = String.valueOf((Helpers.add(i, 1)));
                         Object incrementalMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Incremental pagination call ", iteration), " method "), method), " response length "), String.valueOf(responseLength));
                         this.log(incrementalMessage);
                     }
@@ -12171,7 +12171,7 @@ public Object describe()
                 ((java.util.List<Object>)uniqueResult).add(entry);
             }
         }
-        Object valuesLength = Helpers.getArrayLength(uniqueResult);
+        Integer valuesLength = Helpers.getArrayLength(uniqueResult);
         if (Helpers.isTrue(Helpers.isGreaterThan(valuesLength, 0)))
         {
             return uniqueResult;
@@ -12476,9 +12476,9 @@ public Object describe()
             return null;
         }
         // parse YYMMDD to datetime string
-        Object year = Helpers.slice(date, 0, 2);
-        Object month = Helpers.slice(date, 2, 4);
-        Object day = Helpers.slice(date, 4, 6);
+        String year = Helpers.slice(date, 0, 2);
+        String month = Helpers.slice(date, 2, 4);
+        String day = Helpers.slice(date, 4, 6);
         // the milliseconds are spelled out because every caller writes the result into
         // expiryDatetime, which types.ts documents in the ISO 8601 form with them
         Object reconstructedDate = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("20", year), "-"), month), "-"), day), "T00:00:00.000Z");
@@ -12492,8 +12492,8 @@ public Object describe()
             return null;
         }
         // parse 240119 to 19JAN24
-        Object year = Helpers.slice(date, 0, 2);
-        Object monthRaw = Helpers.slice(date, 2, 4);
+        String year = Helpers.slice(date, 0, 2);
+        String monthRaw = Helpers.slice(date, 2, 4);
         Object month = null;
         Object day = Helpers.slice(date, 4, 6);
         if (Helpers.isTrue(Helpers.isEqual(monthRaw, "01")))
@@ -12563,8 +12563,8 @@ public Object describe()
         {
             date = Helpers.add("0", date);
         }
-        Object year = Helpers.slice(date, 0, 2);
-        Object monthName = Helpers.slice(date, 2, 5);
+        String year = Helpers.slice(date, 0, 2);
+        String monthName = Helpers.slice(date, 2, 5);
         String month = this.safeString(monthMappping, monthName);
         Object day = Helpers.slice(date, 5, 7);
         Object reconstructedDate = Helpers.add(Helpers.add(day, month), year);
@@ -12750,7 +12750,7 @@ public Object describe()
     {
         String topic = this.safeString(subscription, "topic");
         Object symbols = this.safeList(subscription, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object symbolsLength = Helpers.getArrayLength(symbols);
+        Integer symbolsLength = Helpers.getArrayLength(symbols);
         if (Helpers.isTrue(Helpers.isEqual(topic, "ohlcv")))
         {
             Object symbolsAndTimeframes = this.safeList(subscription, "symbolsAndTimeframes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));

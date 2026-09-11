@@ -1091,7 +1091,7 @@ public class WeexCore extends WeexApi
             }
         }
         Object networkKeys = Helpers.objectKeys(networks);
-        Object networksLength = Helpers.getArrayLength(networkKeys);
+        Integer networksLength = Helpers.getArrayLength(networkKeys);
         Object emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{

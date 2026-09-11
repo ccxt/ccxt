@@ -1193,7 +1193,7 @@ public class ToobitCore extends ToobitApi
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseAsset", "");
         String quoteId = this.safeString(market, "quoteAsset");
-        Object baseParts = Helpers.split(baseId, "-");
+        java.util.List<Object> baseParts = (java.util.List<Object>) Helpers.split(baseId, "-");
         Object baseIdClean = Helpers.GetValue(baseParts, 0);
         String base = (String) this.safeCurrencyCode(baseIdClean);
         String quote = (String) this.safeCurrencyCode(quoteId);
@@ -1605,7 +1605,7 @@ public class ToobitCore extends ToobitApi
                 {
                     market = this.market(symbol);
                 }
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(length, 1))) && Helpers.isTrue((!Helpers.isEqual(market, null)))))
                 {
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
@@ -1707,7 +1707,7 @@ public class ToobitCore extends ToobitApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
                     Object market = this.market(Helpers.GetValue(symbols, 0));
@@ -1769,7 +1769,7 @@ public class ToobitCore extends ToobitApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
                     Object market = this.market(Helpers.GetValue(symbols, 0));
@@ -1851,7 +1851,7 @@ public class ToobitCore extends ToobitApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
                     Object market = this.market(Helpers.GetValue(symbols, 0));
@@ -2334,7 +2334,7 @@ public class ToobitCore extends ToobitApi
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
             // the suffix is the only signal that carries reduceOnly, so read
             // it before discarding it (spot sides have no suffix: undefined)
-            Object sideParts = Helpers.split(rawSideLower, "_");
+            java.util.List<Object> sideParts = (java.util.List<Object>) Helpers.split(rawSideLower, "_");
             String sideSuffix = this.safeString(sideParts, 1);
             if (Helpers.isTrue(!Helpers.isEqual(sideSuffix, null)))
             {
@@ -2544,7 +2544,7 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object idsString = String.join((String)",", (java.util.List<String>)ids);
+            String idsString = String.join((String)",", (java.util.List<String>)ids);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "ids", idsString );
             }};
@@ -3641,7 +3641,7 @@ public class ToobitCore extends ToobitApi
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
                 {
                     throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;

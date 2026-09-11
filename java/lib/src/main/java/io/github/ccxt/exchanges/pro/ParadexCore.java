@@ -606,7 +606,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -786,7 +786,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         if (Helpers.isTrue(!Helpers.isEqual(data, null)))
         {
             Object channel = this.safeString(data, "channel");
-            Object parts = Helpers.split(((String)channel), ".");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), ".");
             Object name = this.safeString(parts, 0);
             Object methods = new java.util.HashMap<String, Object>() {{
                 put( "trades", "handleTrade");

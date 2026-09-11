@@ -1339,7 +1339,7 @@ public class BtseCore extends BtseApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
                     String requestedSymbol = this.safeString(symbols, 0);
@@ -2293,7 +2293,7 @@ public class BtseCore extends BtseApi
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
             type = ((String)type).toUpperCase();
-            Object upperSide = ((String)((String)side)).toUpperCase();
+            String upperSide = ((String)((String)side)).toUpperCase();
             final Object finalUpperSide = upperSide;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3972,7 +3972,7 @@ public class BtseCore extends BtseApi
         String marketId = this.safeString(position, "positionId");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
-            Object parts = Helpers.split(marketId, "|");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "|");
             marketId = this.safeString(parts, 0);
         } else
         {

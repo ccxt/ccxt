@@ -1536,9 +1536,9 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
 
     public Object requestId()
     {
-        Object ts = String.valueOf(this.milliseconds());
+        String ts = String.valueOf(this.milliseconds());
         Object randomNumber = this.randNumber(4);
-        Object randomPart = String.valueOf(randomNumber);
+        String randomPart = String.valueOf(randomNumber);
         return Helpers.parseInt(Helpers.add(ts, randomPart));
     }
 
@@ -1548,7 +1548,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object messageHash = this.requestId();
-            Object messageHashStr = String.valueOf(messageHash);
+            String messageHashStr = String.valueOf(messageHash);
             Helpers.addElementToObject(request, "action", action);
             Helpers.addElementToObject(request, "requestId", messageHash);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -2233,7 +2233,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {
                 Object timestamp = this.milliseconds();
-                Object stringTimestamp = String.valueOf(timestamp);
+                String stringTimestamp = String.valueOf(timestamp);
                 Object auth = Helpers.add(Helpers.add(Helpers.add(stringTimestamp, "GET/"), this.version), "/websocket");
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 Object action = "authenticate";

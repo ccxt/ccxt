@@ -2232,7 +2232,7 @@ public class CexCore extends CexApi
         } else
         {
             this.checkRequiredCredentials();
-            Object seconds = String.valueOf(this.seconds());
+            String seconds = String.valueOf(this.seconds());
             body = this.json(query);
             Object auth = Helpers.add(Helpers.add(path, seconds), body);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");

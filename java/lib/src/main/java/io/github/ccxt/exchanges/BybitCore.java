@@ -2287,7 +2287,7 @@ public class BybitCore extends BybitApi
         Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeListN(result, new java.util.ArrayList<Object>(java.util.Arrays.asList("list", "rows", "data", "dataList")), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String paginationCursor = this.safeString2(result, "nextPageCursor", "cursor");
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(paginationCursor, null))) && Helpers.isTrue((Helpers.isGreaterThan(dataLength, 0)))))
         {
             Object first = Helpers.GetValue(data, 0);
@@ -2422,8 +2422,8 @@ public class BybitCore extends BybitApi
         // support expired option contracts
         Object quote = null;
         Object settle = null;
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(symbol, "-");
+        java.util.List<Object> symbolBase = (java.util.List<Object>) Helpers.split(symbol, "/");
         Object base = null;
         Object expiry = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
@@ -2435,7 +2435,7 @@ public class BybitCore extends BybitApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createExpiredOptionMarket() missing symbolQuoteAndSettle")) ;
             }
-            Object splitQuote = Helpers.split(symbolQuoteAndSettle, ":");
+            java.util.List<Object> splitQuote = (java.util.List<Object>) Helpers.split(symbolQuoteAndSettle, ":");
             String quoteAndSettle = this.safeString(splitQuote, 0);
             quote = quoteAndSettle;
             settle = quoteAndSettle;
@@ -3087,7 +3087,7 @@ public class BybitCore extends BybitApi
                     }
                     Object dataNew = this.safeDict(responseInner, "result", new java.util.HashMap<String, Object>() {{}});
                     Object rawMarkets = this.safeList(dataNew, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    Object rawMarketsLength = Helpers.getArrayLength(rawMarkets);
+                    Integer rawMarketsLength = Helpers.getArrayLength(rawMarkets);
                     if (Helpers.isTrue(Helpers.isEqual(rawMarketsLength, 0)))
                     {
                         break;
@@ -3310,7 +3310,7 @@ public class BybitCore extends BybitApi
                         }
                         Object dataNew = this.safeDict(responseInner, "result", new java.util.HashMap<String, Object>() {{}});
                         Object rawMarkets = this.safeList(dataNew, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                        Object rawMarketsLength = Helpers.getArrayLength(rawMarkets);
+                        Integer rawMarketsLength = Helpers.getArrayLength(rawMarkets);
                         if (Helpers.isTrue(Helpers.isEqual(rawMarketsLength, 0)))
                         {
                             break;
@@ -3374,7 +3374,7 @@ public class BybitCore extends BybitApi
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " method() missing id")) ;
                 }
-                Object splitId = Helpers.split(id, "-");
+                java.util.List<Object> splitId = (java.util.List<Object>) Helpers.split(id, "-");
                 String strike = this.safeString(splitId, 2);
                 String optionLetter = this.safeString(splitId, 3);
                 Object isActive = (Helpers.isEqual(status, "Trading"));
@@ -4061,7 +4061,7 @@ public class BybitCore extends BybitApi
             {
                 symbols = this.marketSymbols(symbols);
                 market = this.market(Helpers.GetValue(symbols, 0));
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
@@ -5525,7 +5525,7 @@ public class BybitCore extends BybitApi
         }
         Object market = this.market(symbol);
         symbol = Helpers.GetValue(market, "symbol");
-        Object lowerCaseType = ((String)type).toLowerCase();
+        String lowerCaseType = ((String)type).toLowerCase();
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
         }};
@@ -6706,7 +6706,7 @@ public class BybitCore extends BybitApi
                 put( "orderId", id );
             }};
             Object result = (this.fetchOrdersClassic(symbol, null, null, this.extend(request, parameters))).join();
-            Object length = Helpers.getArrayLength(result);
+            Integer length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
@@ -6833,7 +6833,7 @@ public class BybitCore extends BybitApi
             Object innerList = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
             // see https://github.com/ccxt/ccxt/pull/29602
-            Object innerListLength = Helpers.getArrayLength(innerList);
+            Integer innerListLength = Helpers.getArrayLength(innerList);
             if (Helpers.isTrue(Helpers.isEqual(innerListLength, 0)))
             {
                 Object extra = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
@@ -7008,7 +7008,7 @@ public class BybitCore extends BybitApi
                 put( "orderId", id );
             }};
             Object result = (this.fetchClosedOrders(symbol, null, null, this.extend(request, parameters))).join();
-            Object length = Helpers.getArrayLength(result);
+            Integer length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
@@ -7056,7 +7056,7 @@ public class BybitCore extends BybitApi
                 put( "orderId", id );
             }};
             Object result = (this.fetchOpenOrders(symbol, null, null, this.extend(request, parameters))).join();
-            Object length = Helpers.getArrayLength(result);
+            Integer length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
@@ -8490,7 +8490,7 @@ public class BybitCore extends BybitApi
             Object symbol = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue(Helpers.isArray(symbols))))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() does not accept an array with more than one symbol")) ;
@@ -10231,7 +10231,7 @@ public class BybitCore extends BybitApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object chains = this.safeList(fee, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object chainsLength = Helpers.getArrayLength(chains);
+        Integer chainsLength = Helpers.getArrayLength(chains);
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -10737,7 +10737,7 @@ public class BybitCore extends BybitApi
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -11042,7 +11042,7 @@ public class BybitCore extends BybitApi
             Object response = (this.publicGetV5MarketRiskLimit(this.extend(request, parameters))).join();
             Object result = this.addPaginationCursorToResult(response);
             Object first = this.safeDict(result, 0);
-            Object total = Helpers.getArrayLength(result);
+            Integer total = Helpers.getArrayLength(result);
             Object lastIndex = Helpers.subtract(total, 1);
             Object last = this.safeDict(result, lastIndex, new java.util.HashMap<String, Object>() {{}});
             String cursorValue = this.safeString(first, "nextPageCursor");
@@ -12401,7 +12401,7 @@ final Object finalMarket = market;
             Object isV3UnifiedMargin = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "unified/v3"), 0);
             Object isV3Contract = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "contract/v3"), 0);
             Object isV5UnifiedAccount = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "v5"), 0);
-            Object timestamp = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.nonce());
             if (Helpers.isTrue(isOpenapi))
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))

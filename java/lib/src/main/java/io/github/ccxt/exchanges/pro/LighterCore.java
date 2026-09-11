@@ -215,7 +215,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //
         Object data = this.safeDict(message, "order_book", new java.util.HashMap<String, Object>() {{}});
         Object channel = this.safeString(message, "channel", "");
-        Object parts = Helpers.split(channel, ":");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(channel, ":");
         Object marketId = Helpers.GetValue(parts, 1);
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -695,14 +695,14 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //     }
         //
         Object liquidationData = this.safeList(message, "liquidation_trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object liquidationDataLength = Helpers.getArrayLength(liquidationData);
+        Integer liquidationDataLength = Helpers.getArrayLength(liquidationData);
         if (Helpers.isTrue(Helpers.isGreaterThan(liquidationDataLength, 0)))
         {
             this.handleLiquidation(client, message);
         }
         Object data = this.safeList(message, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object channel = this.safeString(message, "channel", "");
-        Object parts = Helpers.split(channel, ":");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(channel, ":");
         Object marketId = Helpers.GetValue(parts, 1);
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -713,7 +713,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
         {
             Object iReversed = Helpers.subtract(Helpers.subtract(dataLength, 1), i);
@@ -920,11 +920,11 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //     }
         //
         Object channel = this.safeString(message, "channel", "");
-        Object parts = Helpers.split(channel, ":");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(channel, ":");
         Object accountIndex = Helpers.GetValue(parts, 1);
         Object data = this.safeDict(message, "trades", new java.util.HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(data);
-        Object idsLength = Helpers.getArrayLength(marketIds);
+        Integer idsLength = Helpers.getArrayLength(marketIds);
         if (Helpers.isTrue(Helpers.isEqual(idsLength, 0)))
         {
             return false;  // nothing to process
@@ -941,7 +941,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Object marketId = Helpers.GetValue(marketIds, i);
             Object market = this.safeMarket(marketId);
             Object trades = this.safeList(data, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object tradesLength = Helpers.getArrayLength(trades);
+            Integer tradesLength = Helpers.getArrayLength(trades);
             for (var j = 0; Helpers.isLessThan(j, tradesLength); j++)
             {
                 Object jReversed = Helpers.subtract(Helpers.subtract(tradesLength, 1), j);
@@ -1145,7 +1145,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //
         Object data = this.safeList(message, "liquidation_trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object channel = this.safeString(message, "channel", "");
-        Object parts = Helpers.split(channel, ":");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(channel, ":");
         Object marketId = Helpers.GetValue(parts, 1);
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -1156,7 +1156,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             this.liquidations = new ArrayCache(((Number)limit).intValue());
             stored = this.liquidations;
         }
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
         {
             Object iReversed = Helpers.subtract(Helpers.subtract(dataLength, 1), i);
@@ -1613,7 +1613,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //
         Object data = this.safeDict(message, "orders", new java.util.HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(data);
-        Object idsLength = Helpers.getArrayLength(marketIds);
+        Integer idsLength = Helpers.getArrayLength(marketIds);
         if (Helpers.isTrue(Helpers.isEqual(idsLength, 0)))
         {
             return false;  // nothing to process

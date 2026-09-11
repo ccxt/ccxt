@@ -1278,7 +1278,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -1370,7 +1370,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -1681,7 +1681,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -2033,7 +2033,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -2176,7 +2176,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -2377,7 +2377,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -2996,7 +2996,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -3259,8 +3259,8 @@ public class ExtendedCore extends ExtendedApi
             }
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            Object uppercaseType = ((String)type).toUpperCase();
-            Object uppercaseSide = ((String)((String)side)).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
+            String uppercaseSide = ((String)((String)side)).toUpperCase();
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue(!Helpers.isEqual(uppercaseType, "LIMIT"))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " createOrder() supports limit orders for spot markets only")) ;
@@ -3760,7 +3760,7 @@ public class ExtendedCore extends ExtendedApi
             Object hasOrderIds = !Helpers.isEqual(ids, null);
             if (Helpers.isTrue(hasOrderIds))
             {
-                Object idsLength = Helpers.getArrayLength(ids);
+                Integer idsLength = Helpers.getArrayLength(ids);
                 if (Helpers.isTrue(Helpers.isGreaterThan(idsLength, 0)))
                 {
                     Helpers.addElementToObject(request, "orderIds", ids);
@@ -3773,7 +3773,7 @@ public class ExtendedCore extends ExtendedApi
             Object hasClientOrderIds = !Helpers.isEqual(clientOrderIds, null);
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
-                Object clientOrderIdsLength = Helpers.getArrayLength(clientOrderIds);
+                Integer clientOrderIdsLength = Helpers.getArrayLength(clientOrderIds);
                 if (Helpers.isTrue(Helpers.isGreaterThan(clientOrderIdsLength, 0)))
                 {
                     Helpers.addElementToObject(request, "externalOrderIds", clientOrderIds);
@@ -4059,7 +4059,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);

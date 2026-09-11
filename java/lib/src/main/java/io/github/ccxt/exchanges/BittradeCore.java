@@ -810,7 +810,7 @@ public class BittradeCore extends BittradeApi
             //    }
             //
             Object markets = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object numMarkets = Helpers.getArrayLength(markets);
+            Integer numMarkets = Helpers.getArrayLength(markets);
             if (Helpers.isTrue(Helpers.isLessThan(numMarkets, 1)))
             {
                 throw new NetworkError((String)Helpers.add(Helpers.add(this.id, " fetchMarkets() returned empty response: "), this.json(markets))) ;
@@ -1196,7 +1196,7 @@ public class BittradeCore extends BittradeApi
         Object type = this.safeString(trade, "type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
-            Object typeParts = Helpers.split(type, "-");
+            java.util.List<Object> typeParts = (java.util.List<Object>) Helpers.split(type, "-");
             side = Helpers.GetValue(typeParts, 0);
             type = Helpers.GetValue(typeParts, 1);
         }
@@ -1977,7 +1977,7 @@ public class BittradeCore extends BittradeApi
         Object status = null;
         if (Helpers.isTrue(Helpers.inOp(order, "type")))
         {
-            Object orderType = Helpers.split(Helpers.GetValue(order, "type"), "-");
+            java.util.List<Object> orderType = (java.util.List<Object>) Helpers.split(Helpers.GetValue(order, "type"), "-");
             side = Helpers.GetValue(orderType, 0);
             type = Helpers.GetValue(orderType, 1);
             status = this.parseOrderStatus(this.safeString(order, "state"));
@@ -2739,7 +2739,7 @@ public class BittradeCore extends BittradeApi
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(method, this.hostname, url, auth));
             // eslint-disable-next-line quotes
-            Object payload = String.join((String)"\n", (java.util.List<String>)content);
+            String payload = String.join((String)"\n", (java.util.List<String>)content);
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             auth = Helpers.add(auth, Helpers.add("&", this.urlencode(new java.util.HashMap<String, Object>() {{
     put( "Signature", signature );

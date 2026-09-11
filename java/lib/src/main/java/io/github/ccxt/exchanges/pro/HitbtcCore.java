@@ -194,7 +194,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
-            Object splitName = Helpers.split(name, "_subscribe");
+            java.util.List<Object> splitName = (java.util.List<Object>) Helpers.split(name, "_subscribe");
             Object messageHash = this.safeString(splitName, 0, "");
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -228,7 +228,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
-            Object messageHash = String.valueOf(this.nonce());
+            String messageHash = String.valueOf(this.nonce());
             Object subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", name );
                 put( "params", parameters );
@@ -916,7 +916,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         Object data = this.safeDict2(message, "snapshot", "update", new java.util.HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(data);
         Object channel = this.safeString(message, "ch", "");
-        Object splitChannel = Helpers.split(channel, "/");
+        java.util.List<Object> splitChannel = (java.util.List<Object>) Helpers.split(channel, "/");
         Object period = this.safeString(splitChannel, 1);
         Object timeframe = this.findTimeframe(period);
         if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
@@ -1107,7 +1107,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         }
         String marketId = (String)this.safeStringLower2(order, "instrument", "symbol");
         Object method = this.safeString(message, "method", "");
-        Object splitMethod = Helpers.split(method, "_order");
+        java.util.List<Object> splitMethod = (java.util.List<Object>) Helpers.split(method, "_order");
         Object messageHash = this.safeString(splitMethod, 0);
         String symbol = (String) this.safeSymbol(marketId);
         Object parsed = this.parseOrder(order);
@@ -1597,7 +1597,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         Object channel = this.safeString2(message, "ch", "method");
         if (Helpers.isTrue(!Helpers.isEqual(channel, null)))
         {
-            Object splitChannel = Helpers.split(channel, "/");
+            java.util.List<Object> splitChannel = (java.util.List<Object>) Helpers.split(channel, "/");
             channel = this.safeString(splitChannel, 0);
             if (Helpers.isTrue(Helpers.isEqual(channel, "orderbook")))
             {
@@ -1643,7 +1643,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             {
                 // to do improve this, not very reliable right now
                 Object first = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
-                Object arrayLength = Helpers.getArrayLength(result);
+                Integer arrayLength = Helpers.getArrayLength(result);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(arrayLength, 0))) || Helpers.isTrue((Helpers.inOp(first, "client_order_id")))))
                 {
                     this.handleOrderRequest(client, message);

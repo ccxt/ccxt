@@ -569,8 +569,8 @@ public class BtcmarketsCore extends BtcmarketsApi
         Object tag = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
-            Object addressParts = Helpers.split(address, "?dt=");
-            Object numParts = Helpers.getArrayLength(addressParts);
+            java.util.List<Object> addressParts = (java.util.List<Object>) Helpers.split(address, "?dt=");
+            Integer numParts = Helpers.getArrayLength(addressParts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
                 address = Helpers.GetValue(addressParts, 0);
@@ -1184,7 +1184,7 @@ public class BtcmarketsCore extends BtcmarketsApi
                 put( "amount", BtcmarketsCore.this.amountToPrecision(symbol, amount) );
                 put( "side", ((Helpers.isTrue((Helpers.isEqual(finalSide, "buy"))))) ? "Bid" : "Ask" );
             }};
-            Object lowercaseType = ((String)type).toLowerCase();
+            String lowercaseType = ((String)type).toLowerCase();
             Object orderTypes = this.safeValue(this.options, "orderTypes", new java.util.HashMap<String, Object>() {{
                 put( "limit", "Limit" );
                 put( "market", "Market" );
@@ -1773,7 +1773,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object secret = this.base64ToBinary(this.secret);
             Object auth = Helpers.add(Helpers.add(method, request), nonce);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "GET"))) || Helpers.isTrue((Helpers.isEqual(method, "DELETE")))))

@@ -811,7 +811,7 @@ public class CoinbaseCore extends CoinbaseApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "next_starting_after");
             Object accounts = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object length = Helpers.getArrayLength(accounts);
+            Integer length = Helpers.getArrayLength(accounts);
             Object lastIndex = Helpers.subtract(length, 1);
             Object last = this.safeDict(accounts, lastIndex, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cursor, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
@@ -877,7 +877,7 @@ public class CoinbaseCore extends CoinbaseApi
             //     }
             //
             Object accounts = this.safeList(response, "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object accountsLength = Helpers.getArrayLength(accounts);
+            Integer accountsLength = Helpers.getArrayLength(accounts);
             String cursor = this.safeString(response, "cursor");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(accountsLength, 0))) && Helpers.isTrue((!Helpers.isEqual(cursor, null)))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
@@ -986,7 +986,7 @@ public class CoinbaseCore extends CoinbaseApi
         String currencyId = this.safeString(currency, "code", currencyIdV3);
         String typeV3 = this.safeString(account, "name");
         String typeV2 = this.safeString(account, "type");
-        Object parts = Helpers.split(((String)typeV3), " ");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)typeV3), " ");
         final Object finalActive = active;
         return new java.util.HashMap<String, Object>() {{
             put( "id", CoinbaseCore.this.safeString2(account, "id", "uuid") );
@@ -1959,7 +1959,7 @@ public class CoinbaseCore extends CoinbaseApi
                 Object market = Helpers.GetValue(result, i);
                 Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
                 Object realMarketIds = this.safeList(info, "alias_to", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object length = Helpers.getArrayLength(realMarketIds);
+                Integer length = Helpers.getArrayLength(realMarketIds);
                 if (Helpers.isTrue(Helpers.isGreaterThan(length, 0)))
                 {
                     Helpers.addElementToObject(market, "alias", Helpers.GetValue(realMarketIds, 0));
@@ -2431,7 +2431,7 @@ public class CoinbaseCore extends CoinbaseApi
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(assetId, null)))
                 {
-                    Object lowerCaseName = ((String)((String)name)).toLowerCase();
+                    String lowerCaseName = ((String)((String)name)).toLowerCase();
                     if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                     {
                         Helpers.addElementToObject(networks, code, lowerCaseName);
@@ -3133,7 +3133,7 @@ public class CoinbaseCore extends CoinbaseApi
             Object response = (this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> ledger = this.parseLedger(data, currency, since, limit);
-            Object length = Helpers.getArrayLength(ledger);
+            Integer length = Helpers.getArrayLength(ledger);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
                 return ledger;
@@ -3467,8 +3467,8 @@ public class CoinbaseCore extends CoinbaseApi
         Object accountId = null;
         if (Helpers.isTrue(!Helpers.isEqual(path, null)))
         {
-            Object parts = Helpers.split(path, "/");
-            Object numParts = Helpers.getArrayLength(parts);
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(path, "/");
+            Integer numParts = Helpers.getArrayLength(parts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 3)))
             {
                 accountId = Helpers.GetValue(parts, 3);
@@ -4700,7 +4700,7 @@ public class CoinbaseCore extends CoinbaseApi
                 sinceString = this.numberToString(this.parseToInt(Helpers.divide(since, 1000)));
             } else
             {
-                Object now = String.valueOf(this.seconds());
+                String now = String.valueOf(this.seconds());
                 sinceString = Precise.stringSub(now, String.valueOf(requestedDuration));
             }
             Helpers.addElementToObject(request, "start", sinceString);
@@ -5336,7 +5336,7 @@ public class CoinbaseCore extends CoinbaseApi
         Object currencyId = null;
         if (Helpers.isTrue(!Helpers.isEqual(addressLabel, null)))
         {
-            Object splitAddressLabel = Helpers.split(addressLabel, " ");
+            java.util.List<Object> splitAddressLabel = (java.util.List<Object>) Helpers.split(addressLabel, " ");
             currencyId = this.safeString(splitAddressLabel, 0);
         } else
         {
@@ -6317,7 +6317,7 @@ public class CoinbaseCore extends CoinbaseApi
         if (Helpers.isTrue(!Helpers.isEqual(url, null)))
         {
             uri = Helpers.add(Helpers.add(method, " "), Helpers.replace((String)url, (String)"https://", (String)""));
-            Object quesPos = Helpers.getIndexOf(uri, "?");
+            Integer quesPos = Helpers.getIndexOf(uri, "?");
             // Due to we use mb_strpos, quesPos could be false in php. In that case, the quesPos >= 0 is true
             // Also it's not possible that the question mark is first character, only check > 0 here.
             if (Helpers.isTrue(Helpers.isGreaterThan(quesPos, 0)))
@@ -6464,7 +6464,7 @@ public class CoinbaseCore extends CoinbaseApi
                 {
                     Object nonce = this.nonce();
                     Object timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
-                    Object timestampString = String.valueOf(timestamp);
+                    String timestampString = String.valueOf(timestamp);
                     Object auth = Helpers.add(Helpers.add(Helpers.add(timestampString, method), savedPath), payload);
                     Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                     final Object finalTimestampString = timestampString;
@@ -6564,7 +6564,7 @@ public class CoinbaseCore extends CoinbaseApi
         {
             if (Helpers.isTrue(Helpers.isArray(errors)))
             {
-                Object numErrors = Helpers.getArrayLength(errors);
+                Integer numErrors = Helpers.getArrayLength(errors);
                 if (Helpers.isTrue(Helpers.isGreaterThan(numErrors, 0)))
                 {
                     errorCode = this.safeString(Helpers.GetValue(errors, 0), "id");
