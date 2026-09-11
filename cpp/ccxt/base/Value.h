@@ -32,20 +32,54 @@ class OrderedMap {
 public:
     using entry = std::pair<std::string, std::any>;
 
+    // dicts with few keys (the vast majority in market data: precision/limits/
+    // filters/fee dicts are 2-10 entries) skip the unordered_map index entirely:
+    // a linear scan over the vector beats hashing a string + map lookup + bounds
+    // check, especially with the port's -O0 TU compiles of the hash machinery.
+    static constexpr std::size_t LINEAR_THRESHOLD = 8;
+
     std::vector<entry> entries;
     std::unordered_map<std::string, std::size_t> offsets;
 
+    bool linearMode () const { return this->entries.size () <= LINEAR_THRESHOLD; }
+
     bool has (const std::string& key) const {
+        if (this->linearMode ()) {
+            for (const auto& kv : this->entries) {
+                if (kv.first == key) return true;
+            }
+            return false;
+        }
         return this->offsets.find (key) != this->offsets.end ();
     }
 
     // returns an empty any for a missing key, matching JS `obj[k] === undefined`
     std::any get (const std::string& key) const {
+        if (this->linearMode ()) {
+            for (const auto& kv : this->entries) {
+                if (kv.first == key) return kv.second;
+            }
+            return std::any {};
+        }
         const auto it = this->offsets.find (key);
         return (it == this->offsets.end ()) ? std::any {} : this->entries[it->second].second;
     }
 
     void set (const std::string& key, const std::any& value) {
+        if (this->entries.size () < LINEAR_THRESHOLD) {
+            for (auto& kv : this->entries) {
+                if (kv.first == key) {
+                    kv.second = value;   // in place: order preserved
+                    return;
+                }
+            }
+            this->entries.emplace_back (key, value);
+            if (this->entries.size () == LINEAR_THRESHOLD) {
+                // crossing into indexed mode: build the offset table once
+                this->rebuildOffsets ();
+            }
+            return;
+        }
         const auto it = this->offsets.find (key);
         if (it != this->offsets.end ()) {
             this->entries[it->second].second = value;   // in place: order preserved
@@ -55,20 +89,42 @@ public:
         this->entries.emplace_back (key, value);
     }
 
+    // pre-size both stores (jsonToAny knows the object size up front); avoids
+    // the rehash/reallocation churn of growing a 4000-key dict 12 times
+    void reserve (std::size_t n) {
+        this->entries.reserve (n);
+        if (n > LINEAR_THRESHOLD) this->offsets.reserve (n);
+    }
+
     // JS `delete obj[k]` — reindexes, so it is O(n); rare enough not to matter
     void erase (const std::string& key) {
+        if (this->linearMode ()) {
+            for (auto it = this->entries.begin (); it != this->entries.end (); ++it) {
+                if (it->first == key) {
+                    this->entries.erase (it);
+                    return;
+                }
+            }
+            return;
+        }
         const auto it = this->offsets.find (key);
         if (it == this->offsets.end ()) {
             return;
         }
         this->entries.erase (this->entries.begin () + static_cast<long> (it->second));
+        this->rebuildOffsets ();
+    }
+
+    std::size_t size () const { return this->entries.size (); }
+
+private:
+    void rebuildOffsets () {
         this->offsets.clear ();
+        this->offsets.reserve (this->entries.size ());
         for (std::size_t i = 0; i < this->entries.size (); i++) {
             this->offsets.emplace (this->entries[i].first, i);
         }
     }
-
-    std::size_t size () const { return this->entries.size (); }
 };
 
 class dict {
