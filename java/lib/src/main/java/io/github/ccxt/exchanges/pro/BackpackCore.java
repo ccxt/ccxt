@@ -103,7 +103,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             Object unwatch = Helpers.getArg(optionalArgs, 1, false);
             this.checkRequiredCredentials();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
-            Object instruction = "subscribe";
+            String instruction = "subscribe";
             Object ts = String.valueOf(this.nonce());
             Object method = ((Helpers.isTrue(unwatch))) ? "UNSUBSCRIBE" : "SUBSCRIBE";
             Object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
@@ -1342,7 +1342,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //         stream: 'account.orderUpdate.ETH_USDC'
         //     }
         //
-        Object messageHash = "orders";
+        String messageHash = "orders";
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
@@ -1582,7 +1582,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //         stream: 'account.positionUpdate'
         //     }
         //
-        Object messageHash = "positions";
+        String messageHash = "positions";
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
@@ -1636,8 +1636,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object contracts = this.safeString(position, "Q");
         Object markPrice = this.safeString(position, "M");
         Object netQuantity = this.safeNumber(position, "q");
-        Object hedged = false;
-        Object side = "long";
+        Boolean hedged = false;
+        String side = "long";
         if (Helpers.isTrue(!Helpers.isEqual(netQuantity, null)))
         {
             if (Helpers.isTrue(Helpers.isLessThan(netQuantity, 0)))

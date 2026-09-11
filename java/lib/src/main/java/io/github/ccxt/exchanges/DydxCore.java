@@ -592,7 +592,7 @@ public class DydxCore extends DydxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.indexerGetTime(parameters)).join();
+            Object response = (this.indexerGetTime(parameters)).join();
             //
             // {
             //     "iso": "2025-07-20T15:12:13.466Z",
@@ -632,7 +632,7 @@ public class DydxCore extends DydxApi
         //     "defaultFundingRate1H": "0"
         // }
         //
-        Object quoteId = "USDC";
+        String quoteId = "USDC";
         String marketId = this.safeString(market, "ticker");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
@@ -643,15 +643,15 @@ public class DydxCore extends DydxApi
         String baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        Object settleId = "USDC";
+        String settleId = "USDC";
         String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
-        Object contract = true;
-        Object swap = true;
+        Boolean contract = true;
+        Boolean swap = true;
         String amountPrecisionStr = this.safeString(market, "stepSize");
         String pricePrecisionStr = this.safeString(market, "tickSize");
         String status = this.safeString(market, "status");
-        Object active = true;
+        Boolean active = true;
         if (Helpers.isTrue(!Helpers.isEqual(status, "ACTIVE")))
         {
             active = false;
@@ -727,7 +727,7 @@ public class DydxCore extends DydxApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            java.util.Map<String, Object> response = (this.indexerGetPerpetualMarkets(this.extend(request, parameters))).join();
+            Object response = (this.indexerGetPerpetualMarkets(this.extend(request, parameters))).join();
             //
             // {
             //     "markets": {
@@ -825,7 +825,7 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -833,7 +833,7 @@ public class DydxCore extends DydxApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            java.util.Map<String, Object> response = (this.indexerGetTradesPerpetualMarketMarket(this.extend(request, parameters))).join();
+            Object response = (this.indexerGetTradesPerpetualMarketMarket(this.extend(request, parameters))).join();
             //
             // {
             //     "trades": [
@@ -904,7 +904,7 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "resolution", DydxCore.this.safeString(DydxCore.this.timeframes, timeframe, timeframe) );
@@ -923,7 +923,7 @@ public class DydxCore extends DydxApi
             {
                 Helpers.addElementToObject(request, "toIso", this.iso8601(until));
             }
-            java.util.Map<String, Object> response = (this.indexerGetCandlesPerpetualMarketsMarket(this.extend(request, parameters))).join();
+            Object response = (this.indexerGetCandlesPerpetualMarketsMarket(this.extend(request, parameters))).join();
             //
             // {
             //     "candles": [
@@ -980,7 +980,7 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -993,7 +993,7 @@ public class DydxCore extends DydxApi
             {
                 Helpers.addElementToObject(request, "effectiveBeforeOrAt", this.iso8601(until));
             }
-            java.util.Map<String, Object> response = (this.indexerGetHistoricalFundingMarket(this.extend(request, parameters))).join();
+            Object response = (this.indexerGetHistoricalFundingMarket(this.extend(request, parameters))).join();
             //
             // {
             //     "historicalFunding": [
@@ -1007,7 +1007,7 @@ public class DydxCore extends DydxApi
             //     ]
             // }
             //
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rows = this.safeList(response, "historicalFunding", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
@@ -1164,7 +1164,7 @@ public class DydxCore extends DydxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
-            java.util.Map<String, Object> order = (this.indexerGetOrdersOrderId(this.extend(request, parameters))).join();
+            Object order = (this.indexerGetOrdersOrderId(this.extend(request, parameters))).join();
             return this.parseOrder(order);
         });
 
@@ -1220,7 +1220,7 @@ public class DydxCore extends DydxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.List<Object> response = (this.indexerGetOrders(this.extend(request, parameters))).join();
+            Object response = (this.indexerGetOrders(this.extend(request, parameters))).join();
             //
             // [
             //     {
@@ -1435,7 +1435,7 @@ public class DydxCore extends DydxApi
                 put( "subaccountNumber", finalSubAccountNumber );
                 put( "status", "OPEN" );
             }};
-            java.util.Map<String, Object> response = (this.indexerGetPerpetualPositions(this.extend(request, parameters))).join();
+            Object response = (this.indexerGetPerpetualPositions(this.extend(request, parameters))).join();
             //
             // {
             //     "positions": [
@@ -1579,7 +1579,7 @@ public class DydxCore extends DydxApi
             //     }
             // }
             //
-            java.util.Map<String, Object> response = (this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).join();
+            Object response = (this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).join();
             Object account = this.safeDict(response, "info", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(account, "pub_key", new java.util.HashMap<String, Object>() {{
         put( "key", Helpers.GetValue(Helpers.GetValue(account, "pub_key"), "key") );
@@ -1616,7 +1616,7 @@ public class DydxCore extends DydxApi
         }
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         Object orderType = ((String)type).toUpperCase();
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Object market = this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
@@ -1629,8 +1629,8 @@ public class DydxCore extends DydxApi
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         Object stopLossPrice = this.safeValue(parameters, "stopLossPrice", triggerPrice);
         Object takeProfitPrice = this.safeValue(parameters, "takeProfitPrice");
-        Object isConditional = Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null));
-        Object isMarket = Helpers.isEqual(orderType, "MARKET");
+        Boolean isConditional = Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfitPrice, null));
+        Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
         String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce", "GTT");
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
         Object amountStr = this.amountToPrecision(symbol, amount);
@@ -1642,8 +1642,8 @@ public class DydxCore extends DydxApi
         Object quantumConversionExponent = Helpers.GetValue(marketInfo, "quantumConversionExponent");
         Object priceScale = this.pow("10", Precise.stringSub(Precise.stringSub(atomicResolution, quantumConversionExponent), "-6"));
         Object subticks = Precise.stringMul(priceStr, priceScale);
-        Object clientMetadata = 0;
-        Object conditionalType = 0;
+        Integer clientMetadata = 0;
+        Integer conditionalType = 0;
         Object conditionalOrderTriggerSubticks = "0";
         Object orderFlag = null;
         Object timeInForceNumber = null;
@@ -1793,7 +1793,7 @@ public class DydxCore extends DydxApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.nodeRpcGetAbciInfo(parameters)).join();
+            Object response = (this.nodeRpcGetAbciInfo(parameters)).join();
             //
             // {
             //     "jsonrpc": "2.0",
@@ -1869,7 +1869,7 @@ public class DydxCore extends DydxApi
                 put( "tx", signedTx );
             }};
             // nodeRpcGetBroadcastTxAsync
-            java.util.Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+            Object response = (this.nodeRpcGetBroadcastTxSync(request)).join();
             //
             // {
             //     "jsonrpc": "2.0",
@@ -1926,7 +1926,7 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId", id);
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
@@ -2003,7 +2003,7 @@ public class DydxCore extends DydxApi
                 put( "tx", signedTx );
             }};
             // nodeRpcGetBroadcastTxAsync
-            java.util.Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+            Object response = (this.nodeRpcGetBroadcastTxSync(request)).join();
             //
             // {
             //     "jsonrpc": "2.0",
@@ -2047,7 +2047,7 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             Object clientOrderIds = this.safeList(parameters, "clientOrderIds");
             if (Helpers.isTrue(Helpers.isEqual(clientOrderIds, null)))
             {
@@ -2091,7 +2091,7 @@ public class DydxCore extends DydxApi
                 put( "tx", signedTx );
             }};
             // nodeRpcGetBroadcastTxAsync
-            java.util.Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+            Object response = (this.nodeRpcGetBroadcastTxSync(request)).join();
             //
             // {
             //     "jsonrpc": "2.0",
@@ -2134,11 +2134,11 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.indexerGetOrderbooksPerpetualMarketMarket(this.extend(request, parameters))).join();
+            Object response = (this.indexerGetOrderbooksPerpetualMarketMarket(this.extend(request, parameters))).join();
             //
             // {
             //     "bids": [
@@ -2281,7 +2281,7 @@ public class DydxCore extends DydxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "txBytes", txBytes );
             }};
-            java.util.Map<String, Object> response = (this.nodeRestPostCosmosTxV1beta1Simulate(request)).join();
+            Object response = (this.nodeRestPostCosmosTxV1beta1Simulate(request)).join();
             //
             // {
             //     gas_info: { gas_wanted: '18446744073709551615', gas_used: '86055' },
@@ -2440,7 +2440,7 @@ public class DydxCore extends DydxApi
                 put( "tx", signedTx );
             }};
             // nodeRpcGetBroadcastTxAsync
-            java.util.Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+            Object response = (this.nodeRpcGetBroadcastTxSync(request)).join();
             //
             // {
             //     "jsonrpc": "2.0",
@@ -2634,7 +2634,7 @@ public class DydxCore extends DydxApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw requires subaccountId.")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("subaccountId")));
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Object currency = this.currency(code);
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
             Object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
@@ -2659,7 +2659,7 @@ public class DydxCore extends DydxApi
                 put( "tx", signedTx );
             }};
             // nodeRpcGetBroadcastTxAsync
-            java.util.Map<String, Object> response = (this.nodeRpcGetBroadcastTxSync(request)).join();
+            Object response = (this.nodeRpcGetBroadcastTxSync(request)).join();
             //
             // {
             //     "jsonrpc": "2.0",
@@ -2826,7 +2826,7 @@ public class DydxCore extends DydxApi
                 put( "address", finalUserAddress );
                 put( "subaccountNumber", finalSubAccountNumber );
             }};
-            java.util.Map<String, Object> response = (this.indexerGetTransfers(this.extend(request, parameters))).join();
+            Object response = (this.indexerGetTransfers(this.extend(request, parameters))).join();
             //
             // {
             //     "transfers": [
@@ -2878,7 +2878,7 @@ public class DydxCore extends DydxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "address", finalUserAddress );
             }};
-            java.util.Map<String, Object> response = (this.indexerGetAddressesAddress(this.extend(request, parameters))).join();
+            Object response = (this.indexerGetAddressesAddress(this.extend(request, parameters))).join();
             //
             // {
             //     "subaccounts": [
@@ -2924,7 +2924,7 @@ public class DydxCore extends DydxApi
             // }
             //
             Object rows = this.safeList(response, "subaccounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object account = Helpers.GetValue(rows, i);
@@ -2974,7 +2974,7 @@ public class DydxCore extends DydxApi
                 put( "address", finalUserAddress );
                 put( "subaccountNumber", finalSubaccountNumber );
             }};
-            java.util.Map<String, Object> response = (this.indexerGetAddressesAddressSubaccountNumberSubaccountNumber(this.extend(request, parameters))).join();
+            Object response = (this.indexerGetAddressesAddressSubaccountNumberSubaccountNumber(this.extend(request, parameters))).join();
             //
             // {
             //     "subaccount": {

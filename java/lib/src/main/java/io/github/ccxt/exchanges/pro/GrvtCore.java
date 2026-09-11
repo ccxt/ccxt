@@ -589,7 +589,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
         Object parsed = this.parseWsOHLCV(data, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
-        Object resolveData = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, stored));
+        java.util.List<Object> resolveData = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
 
@@ -654,7 +654,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             var channelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "channel", "v1.book.d");
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
-            Object isSnapshot = Helpers.isEqual(channel, "v1.book.s");
+            Boolean isSnapshot = Helpers.isEqual(channel, "v1.book.s");
             Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
@@ -735,8 +735,8 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object sequenceNumber = this.safeInteger(message, "sequence_number", 0);
         Object stream = this.safeString(message, "stream");
-        Object isSnapshotChannel = Helpers.isEqual(stream, "v1.book.s");
-        Object isSnapshotMessage = Helpers.isLessThanOrEqual(sequenceNumber, 0);
+        Boolean isSnapshotChannel = Helpers.isEqual(stream, "v1.book.s");
+        Boolean isSnapshotMessage = Helpers.isLessThanOrEqual(sequenceNumber, 0);
         if (Helpers.isTrue(Helpers.isTrue(isSnapshotChannel) || Helpers.isTrue(isSnapshotMessage)))
         {
             Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
@@ -830,7 +830,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             (this.authenticate()).join();
             Object subAccountId = this.getSubAccountId(parameters);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -1005,7 +1005,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object position = this.parseWsPosition(data);
         Object symbol = this.safeString(position, "symbol");
         Helpers.callDynamically(this.positions, "append", new Object[]{position});
-        Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         ((java.util.List<Object>)newPositions).add(position);
         client.resolve(newPositions, Helpers.add("positions::", symbol));
         client.resolve(newPositions, "positions");

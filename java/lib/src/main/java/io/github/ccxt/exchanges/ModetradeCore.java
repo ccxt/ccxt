@@ -760,7 +760,7 @@ public class ModetradeCore extends ModetradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicSystemInfo(parameters)).join();
+            Object response = (this.v1PublicGetPublicSystemInfo(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -809,7 +809,7 @@ public class ModetradeCore extends ModetradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicSystemInfo(parameters)).join();
+            Object response = (this.v1PublicGetPublicSystemInfo(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -856,7 +856,7 @@ public class ModetradeCore extends ModetradeApi
         //
         String marketId = this.safeString(market, "symbol", "");
         Object parts = Helpers.split(marketId, "_");
-        Object marketType = "swap";
+        String marketType = "swap";
         String baseId = this.safeString(parts, 1);
         String quoteId = this.safeString(parts, 2);
         String base = (String) this.safeCurrencyCode(baseId);
@@ -930,7 +930,7 @@ public class ModetradeCore extends ModetradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicInfo(parameters)).join();
+            Object response = (this.v1PublicGetPublicInfo(parameters)).join();
             //
             //   {
             //     "success": true,
@@ -987,7 +987,7 @@ public class ModetradeCore extends ModetradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicToken(parameters)).join();
+            Object response = (this.v1PublicGetPublicToken(parameters)).join();
             //
             // {
             //     "success": true,
@@ -1128,7 +1128,7 @@ public class ModetradeCore extends ModetradeApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object isFromFetchOrder = (Helpers.inOp(trade, "id"));
+        Boolean isFromFetchOrder = (Helpers.inOp(trade, "id"));
         Object timestamp = this.safeInteger(trade, "executed_timestamp");
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
@@ -1148,7 +1148,7 @@ public class ModetradeCore extends ModetradeApi
         Object takerOrMaker = null;
         if (Helpers.isTrue(isFromFetchOrder))
         {
-            Object isMaker = Helpers.isEqual(this.safeString(trade, "is_maker"), "1");
+            Boolean isMaker = Helpers.isEqual(this.safeString(trade, "is_maker"), "1");
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         }
         final Object finalTakerOrMaker = takerOrMaker;
@@ -1193,7 +1193,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1201,7 +1201,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicMarketTrades(this.extend(request, parameters))).join();
+            Object response = (this.v1PublicGetPublicMarketTrades(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1320,11 +1320,11 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicFundingRateSymbol(this.extend(request, parameters))).join();
+            Object response = (this.v1PublicGetPublicFundingRateSymbol(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1367,7 +1367,7 @@ public class ModetradeCore extends ModetradeApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicFundingRates(parameters)).join();
+            Object response = (this.v1PublicGetPublicFundingRates(parameters)).join();
             //
             // {
             //     "success": true,
@@ -1429,7 +1429,7 @@ public class ModetradeCore extends ModetradeApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Object market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
@@ -1440,7 +1440,7 @@ public class ModetradeCore extends ModetradeApi
             var requestparametersVariable = this.handleUntilOption("end_t", request, parameters, 0.001);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.Map<String, Object> response = (this.v1PublicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
+            Object response = (this.v1PublicGetPublicFundingRateHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1462,7 +1462,7 @@ public class ModetradeCore extends ModetradeApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object result = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object entry = Helpers.GetValue(result, i);
@@ -1572,7 +1572,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 Helpers.addElementToObject(request, "size", Helpers.mathMin(limit, 500));
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetFundingFeeHistory(this.extend(request, parameters))).join();
+            Object response = (this.v1PrivateGetFundingFeeHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1621,7 +1621,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetClientInfo(parameters)).join();
+            Object response = (this.v1PrivateGetClientInfo(parameters)).join();
             //
             // {
             //     "success": true,
@@ -1653,7 +1653,7 @@ public class ModetradeCore extends ModetradeApi
             String maker = this.safeString(data, "futures_maker_fee_rate");
             String taker = this.safeString(data, "futures_taker_fee_rate");
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            java.util.List<Object> symbols = this.symbols;
+            Object symbols = this.symbols;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -1695,7 +1695,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1704,7 +1704,7 @@ public class ModetradeCore extends ModetradeApi
                 limit = Helpers.mathMin(limit, 1000);
                 Helpers.addElementToObject(request, "max_level", limit);
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetOrderbookSymbol(this.extend(request, parameters))).join();
+            Object response = (this.v1PrivateGetOrderbookSymbol(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -1760,7 +1760,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", ModetradeCore.this.safeString(ModetradeCore.this.timeframes, timeframe, timeframe) );
@@ -1769,7 +1769,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetKline(this.extend(request, parameters))).join();
+            Object response = (this.v1PrivateGetKline(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             //
             // {
@@ -2000,7 +2000,7 @@ public class ModetradeCore extends ModetradeApi
          */
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         Object orderType = ((String)type).toUpperCase();
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+        Object market = this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
@@ -2014,11 +2014,11 @@ public class ModetradeCore extends ModetradeApi
         String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
         Object stopLoss = this.safeValue(parameters, "stopLoss");
         Object takeProfit = this.safeValue(parameters, "takeProfit");
-        Object hasStopLoss = !Helpers.isEqual(stopLoss, null);
-        Object hasTakeProfit = !Helpers.isEqual(takeProfit, null);
+        Boolean hasStopLoss = !Helpers.isEqual(stopLoss, null);
+        Boolean hasTakeProfit = !Helpers.isEqual(takeProfit, null);
         String algoType = this.safeString(parameters, "algoType");
-        Object isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(hasStopLoss)) || Helpers.isTrue(hasTakeProfit)) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
-        Object isMarket = Helpers.isEqual(orderType, "MARKET");
+        Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(hasStopLoss)) || Helpers.isTrue(hasTakeProfit)) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
+        Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
         String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
         Object orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
@@ -2139,12 +2139,12 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeValue(parameters, "stopLoss");
             Object takeProfit = this.safeValue(parameters, "takeProfit");
-            Object isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLoss, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfit, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
+            Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLoss, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfit, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
             Object response = null;
             if (Helpers.isTrue(isConditional))
             {
@@ -2181,7 +2181,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -2198,7 +2198,7 @@ public class ModetradeCore extends ModetradeApi
                 String triggerPrice = this.safeString2(orderParams, "triggerPrice", "stopPrice");
                 Object stopLoss = this.safeValue(orderParams, "stopLoss");
                 Object takeProfit = this.safeValue(orderParams, "takeProfit");
-                Object isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLoss, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfit, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(orderParams, "childOrders"), null)));
+                Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)) || Helpers.isTrue(!Helpers.isEqual(stopLoss, null))) || Helpers.isTrue(!Helpers.isEqual(takeProfit, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(orderParams, "childOrders"), null)));
                 if (Helpers.isTrue(isConditional))
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " createOrders() only support non-stop order")) ;
@@ -2209,7 +2209,7 @@ public class ModetradeCore extends ModetradeApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orders", ordersRequests );
             }};
-            java.util.Map<String, Object> response = (this.v1PrivatePostBatchOrder(this.extend(request, parameters))).join();
+            Object response = (this.v1PrivatePostBatchOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -2264,7 +2264,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
@@ -2273,7 +2273,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
-            Object isConditional = Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
+            Boolean isConditional = Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
             Object orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
             Object priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
@@ -2298,7 +2298,7 @@ public class ModetradeCore extends ModetradeApi
                 }
                 Object orderType = ((String)type).toUpperCase();
                 String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
-                Object isMarket = Helpers.isEqual(orderType, "MARKET");
+                Boolean isMarket = Helpers.isEqual(orderType, "MARKET");
                 Object postOnly = this.isPostOnly(isMarket, null, parameters);
                 if (Helpers.isTrue(postOnly))
                 {
@@ -2382,7 +2382,7 @@ public class ModetradeCore extends ModetradeApi
             }};
             String clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
-            Object isByClientOrder = !Helpers.isEqual(clientOrderIdExchangeSpecific, null);
+            Boolean isByClientOrder = !Helpers.isEqual(clientOrderIdExchangeSpecific, null);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
@@ -2525,7 +2525,7 @@ public class ModetradeCore extends ModetradeApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Object market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object response = null;
@@ -2875,7 +2875,7 @@ public class ModetradeCore extends ModetradeApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "oid", id );
             }};
-            java.util.Map<String, Object> response = (this.v1PrivateGetOrderOidTrades(this.extend(request, parameters))).join();
+            Object response = (this.v1PrivateGetOrderOidTrades(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -2959,7 +2959,7 @@ public class ModetradeCore extends ModetradeApi
             var requestparametersVariable = this.handleUntilOption("end_t", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.Map<String, Object> response = (this.v1PrivateGetTrades(this.extend(request, parameters))).join();
+            Object response = (this.v1PrivateGetTrades(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -3032,7 +3032,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetClientHolding(parameters)).join();
+            Object response = (this.v1PrivateGetClientHolding(parameters)).join();
             //
             // {
             //     "success": true,
@@ -3088,7 +3088,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 Helpers.addElementToObject(request, "type", transactionType);
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetAssetHistory(this.extend(request, parameters))).join();
+            Object response = (this.v1PrivateGetAssetHistory(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -3344,7 +3344,7 @@ public class ModetradeCore extends ModetradeApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.v1PrivateGetWithdrawNonce(parameters)).join();
+            Object response = (this.v1PrivateGetWithdrawNonce(parameters)).join();
             //
             //     {
             //         "success": true,
@@ -3411,7 +3411,7 @@ public class ModetradeCore extends ModetradeApi
                     throw new NotSupported((String)Helpers.add(this.id, " withdraw() only support USDC")) ;
                 }
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Object currency = this.currency(code);
             String verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
             String chainId = this.safeString(parameters, "chainId");
             Object currencyNetworks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
@@ -3473,7 +3473,7 @@ public class ModetradeCore extends ModetradeApi
                 put( "message", withdrawRequest );
             }};
             parameters = this.omit(parameters, "chainId");
-            java.util.Map<String, Object> response = (this.v1PrivatePostWithdrawRequest(this.extend(request, parameters))).join();
+            Object response = (this.v1PrivatePostWithdrawRequest(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -3521,8 +3521,8 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> response = (this.v1PrivateGetClientInfo(parameters)).join();
+            Object market = this.market(symbol);
+            Object response = (this.v1PrivateGetClientInfo(parameters)).join();
             //
             // {
             //     "success": true,
@@ -3577,8 +3577,8 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object isMinLeverage = Helpers.isLessThan(leverage, 1);
-            Object isMaxLeverage = Helpers.isGreaterThan(leverage, 50);
+            Boolean isMinLeverage = Helpers.isLessThan(leverage, 1);
+            Boolean isMaxLeverage = Helpers.isGreaterThan(leverage, 50);
             if (Helpers.isTrue(Helpers.isTrue(isMinLeverage) || Helpers.isTrue(isMaxLeverage)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " leverage should be between 1 and 50")) ;
@@ -3693,11 +3693,11 @@ public class ModetradeCore extends ModetradeApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPosition() requires a symbol argument")) ;
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.v1PrivateGetPositionSymbol(this.extend(request, parameters))).join();
+            Object response = (this.v1PrivateGetPositionSymbol(this.extend(request, parameters))).join();
             //
             // {
             //     "success": true,
@@ -3750,7 +3750,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.v1PrivateGetPositions(parameters)).join();
+            Object response = (this.v1PrivateGetPositions(parameters)).join();
             //
             // {
             //     "success": true,
@@ -3824,8 +3824,8 @@ public class ModetradeCore extends ModetradeApi
         } else
         {
             this.checkRequiredCredentials();
-            Object isPostOrPut = Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT"));
-            Object isOrder = Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(path, "algo/order")) || Helpers.isTrue(Helpers.isEqual(path, "order"))) || Helpers.isTrue(Helpers.isEqual(path, "batch-order"));
+            Boolean isPostOrPut = Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT"));
+            Boolean isOrder = Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(path, "algo/order")) || Helpers.isTrue(Helpers.isEqual(path, "order"))) || Helpers.isTrue(Helpers.isEqual(path, "batch-order"));
             if (Helpers.isTrue(Helpers.isTrue(isPostOrPut) && Helpers.isTrue(isOrder)))
             {
                 Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
@@ -3849,7 +3849,7 @@ public class ModetradeCore extends ModetradeApi
             Object auth = "";
             Object ts = String.valueOf(this.nonce());
             url = Helpers.add(url, pathWithParams);
-            String apiKey = this.apiKey;
+            Object apiKey = this.apiKey;
             if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(apiKey, "ed25519:"), 0)))
             {
                 apiKey = Helpers.add("ed25519:", apiKey);

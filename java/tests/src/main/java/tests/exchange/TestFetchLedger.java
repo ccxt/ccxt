@@ -16,7 +16,7 @@ public class TestFetchLedger extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchLedger";
+        String method = "fetchLedger";
         Object items = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{code})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         Object now = exchange.milliseconds();

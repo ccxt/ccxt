@@ -318,7 +318,7 @@ public class RevolutxCore extends RevolutxApi
         String maxOrderSize = this.safeString(market, "max_order_size");
         String minOrderSizeQuote = this.safeString(market, "min_order_size_quote");
         String status = this.safeString(market, "status");
-        Object active = (Helpers.isEqual(status, "active"));
+        Boolean active = (Helpers.isEqual(status, "active"));
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         final Object finalBase = base;
         return new java.util.HashMap<String, Object>() {{
@@ -445,7 +445,7 @@ public class RevolutxCore extends RevolutxApi
         String name = this.safeString(currency, "name");
         Object scale = this.safeInteger(currency, "scale");
         String status = this.safeString(currency, "status");
-        Object active = (Helpers.isEqual(status, "active"));
+        Boolean active = (Helpers.isEqual(status, "active"));
         String assetType = this.safeString(currency, "asset_type");
         Object type = ((Helpers.isTrue((Helpers.isEqual(assetType, "crypto"))))) ? "crypto" : "fiat";
         Object precision = ((Helpers.isTrue((!Helpers.isEqual(scale, null))))) ? Helpers.mathPow(Double.parseDouble(Helpers.toString(10)), Double.parseDouble(Helpers.toString(Helpers.opNeg(scale)))) : null;
@@ -618,7 +618,7 @@ public class RevolutxCore extends RevolutxApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                    Object market = this.market(symbol);
                     ((java.util.List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
                 }
                 Helpers.addElementToObject(request, "symbols", String.join((String)",", (java.util.List<String>)marketIds));
@@ -726,7 +726,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -805,7 +805,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", RevolutxCore.this.safeInteger(RevolutxCore.this.timeframes, timeframe, 5) );
@@ -955,7 +955,7 @@ public class RevolutxCore extends RevolutxApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object trade = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
@@ -1159,7 +1159,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
             String cost = this.safeString2(parameters, "cost", "quote_size");
             String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
@@ -1379,7 +1379,7 @@ public class RevolutxCore extends RevolutxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Object market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbols", Helpers.GetValue(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1414,7 +1414,7 @@ public class RevolutxCore extends RevolutxApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object order = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
@@ -1456,10 +1456,10 @@ public class RevolutxCore extends RevolutxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Object market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbols", Helpers.GetValue(market, "id"));
             }
-            Object thirtyDays = 2592000000L;
+            Long thirtyDays = 2592000000L;
             Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -1498,7 +1498,7 @@ public class RevolutxCore extends RevolutxApi
             }
             Object response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types")))))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object order = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
@@ -1615,11 +1615,11 @@ public class RevolutxCore extends RevolutxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol parameter")) ;
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object thirtyDays = 2592000000L;
+            Long thirtyDays = 2592000000L;
             Long until = (Long) this.safeInteger2(parameters, "until", "until");
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -1658,7 +1658,7 @@ public class RevolutxCore extends RevolutxApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object trade = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
@@ -1700,7 +1700,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
             String cost = this.safeString2(parameters, "cost", "quote_size");
             String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");

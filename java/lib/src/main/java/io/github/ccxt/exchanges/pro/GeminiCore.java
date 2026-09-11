@@ -69,8 +69,8 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String messageHash = (String) Helpers.add("trades:", Helpers.GetValue(market, "symbol"));
+            Object market = this.market(symbol);
+            Object messageHash = Helpers.add("trades:", Helpers.GetValue(market, "symbol"));
             Object marketId = Helpers.GetValue(market, "id");
             if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
             {
@@ -216,7 +216,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             }
         }
         Helpers.callDynamically(stored, "append", new Object[]{trade});
-        String messageHash = (String) Helpers.add("trades:", symbol);
+        Object messageHash = Helpers.add("trades:", symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -260,7 +260,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         //     }
         //
         String marketId = (String)this.safeStringLower(message, "symbol");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         Object trades = this.safeValue(message, "trades");
         if (Helpers.isTrue(!Helpers.isEqual(trades, null)))
         {
@@ -277,7 +277,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 Object trade = this.parseWsTrade(Helpers.GetValue(trades, i), market);
                 Helpers.callDynamically(stored, "append", new Object[]{trade});
             }
-            String messageHash = (String) Helpers.add("trades:", symbol);
+            Object messageHash = Helpers.add("trades:", symbol);
             client.resolve(stored, messageHash);
         }
     }
@@ -291,7 +291,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
             {
                 Object marketId = Helpers.GetValue(Helpers.GetValue(trades, i), "symbol");
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(((String)marketId).toLowerCase());
+                Object market = this.safeMarket(((String)marketId).toLowerCase());
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object trade = this.parseWsTrade(Helpers.GetValue(trades, i), market);
                 Helpers.addElementToObject(trade, "timestamp", timestamp);
@@ -310,7 +310,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object stored = Helpers.GetValue(storesForSymbols, symbol);
-                String messageHash = (String) Helpers.add("trades:", symbol);
+                Object messageHash = Helpers.add("trades:", symbol);
                 client.resolve(stored, messageHash);
             }
         }
@@ -341,7 +341,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             Object timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
@@ -350,7 +350,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(GeminiCore.this.safeStringUpper(market, "id"))) );
     }})) );
             }};
-            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol")), ":"), timeframeId);
+            Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol")), ":"), timeframeId);
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/v2/marketdata");
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -394,7 +394,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         Object timeframeEndIndex = Helpers.getIndexOf(timeframeId, "_");
         timeframeId = Helpers.slice(timeframeId, 0, timeframeEndIndex);
         Object marketId = ((String)this.safeString(message, "symbol", "")).toLowerCase();
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         String symbol = (String) this.safeSymbol(marketId, market);
         Object changes = this.safeList(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object timeframe = this.findTimeframe(timeframeId);
@@ -421,7 +421,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             Object parsed = this.parseOHLCV(Helpers.GetValue(changes, index), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv:", symbol), ":"), timeframeId);
+        Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv:", symbol), ":"), timeframeId);
         client.resolve(stored, messageHash);
         return message;
     }
@@ -447,8 +447,8 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String messageHash = (String) Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
+            Object market = this.market(symbol);
+            Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             Object marketId = Helpers.GetValue(market, "id");
             if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
             {
@@ -472,12 +472,12 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
 
     public void handleOrderBook(Client client, Object message)
     {
-        Object isInitial = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "auction_events"))) && Helpers.isTrue((Helpers.inOp(message, "trades")))) && Helpers.isTrue((Helpers.inOp(message, "changes")));
+        Boolean isInitial = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "auction_events"))) && Helpers.isTrue((Helpers.inOp(message, "trades")))) && Helpers.isTrue((Helpers.inOp(message, "changes")));
         Object changes = this.safeList(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String marketId = (String)this.safeStringLower(message, "symbol");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("orderbook:", symbol);
+        Object messageHash = Helpers.add("orderbook:", symbol);
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -491,7 +491,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             }
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(changes)); i++)
         {
             Object delta = Helpers.GetValue(changes, i);
@@ -581,7 +581,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         // }
         //
         Object marketId = Helpers.GetValue(Helpers.GetValue(rawBidAskChanges, 0), "symbol");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(((String)marketId).toLowerCase());
+        Object market = this.safeMarket(((String)marketId).toLowerCase());
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.bidsasks, symbol))))
         {
@@ -589,7 +589,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             Helpers.addElementToObject(Helpers.GetValue(this.bidsasks, symbol), "symbol", symbol);
         }
         Object currentBidAsk = Helpers.GetValue(this.bidsasks, symbol);
-        String messageHash = (String) Helpers.add("bidsasks:", symbol);
+        Object messageHash = Helpers.add("bidsasks:", symbol);
         // last update always overwrites the previous state and is the latest state
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBidAskChanges)); i++)
         {
@@ -637,19 +637,19 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 throw new NotSupported((String)Helpers.add(this.id, " watchMultiple requires at least one symbol")) ;
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            java.util.Map<String, Object> firstMarket = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+            Object firstMarket = this.market(Helpers.GetValue(symbols, 0));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(firstMarket, "spot"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(firstMarket, "linear"), true)))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchMultiple supports only spot or linear-swap symbols")) ;
             }
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object messageHash = Helpers.add(Helpers.add(itemHashName, ":"), symbol);
                 ((java.util.List<Object>)messageHashes).add(messageHash);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Object market = this.market(symbol);
                 ((java.util.List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
             }
             Object queryStr = String.join((String)",", (java.util.List<String>)marketIds);
@@ -687,15 +687,15 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         //   ...
         //
         Object marketId = Helpers.GetValue(Helpers.GetValue(rawOrderBookChanges, 0), "symbol");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(((String)marketId).toLowerCase());
+        Object market = this.safeMarket(((String)marketId).toLowerCase());
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("orderbook:", symbol);
+        Object messageHash = Helpers.add("orderbook:", symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
-            io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
+            Object ob = this.orderBook();
             Helpers.addElementToObject(this.orderbooks, symbol, ob);
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Object bids = Helpers.GetValue(orderbook, "bids");
         Object asks = Helpers.GetValue(orderbook, "asks");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrderBookChanges)); i++)
@@ -796,10 +796,10 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             (this.authenticate(authParams)).join();
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Object market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
-            String messageHash = (String) "orders";
+            String messageHash = "orders";
             Object orders = (this.watch(url, messageHash, null, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -865,7 +865,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         //         }
         //     ]
         //
-        String messageHash = (String) "orders";
+        String messageHash = "orders";
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -909,8 +909,8 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         Object marketId = this.safeString(order, "symbol");
         Object typeId = this.safeString(order, "order_type");
         Object behavior = this.safeString(order, "behavior");
-        Object timeInForce = "GTC";
-        Object postOnly = false;
+        String timeInForce = "GTC";
+        Boolean postOnly = false;
         if (Helpers.isTrue(Helpers.isEqual(behavior, "immediate-or-cancel")))
         {
             timeInForce = "IOC";
@@ -1052,17 +1052,17 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             {
                 return;
             }
-            Object orderBookItems = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object bidaskItems = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object collectedEventsOfTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orderBookItems = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> bidaskItems = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> collectedEventsOfTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object eventsLength = Helpers.getArrayLength(events);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
             {
                 Object eventVar = Helpers.GetValue(events, i);
                 Object eventType = this.safeString(eventVar, "type");
-                Object isOrderBook = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(eventType, "change"))) && Helpers.isTrue((Helpers.inOp(eventVar, "side")))) && Helpers.isTrue(this.inArray(Helpers.GetValue(eventVar, "side"), new java.util.ArrayList<Object>(java.util.Arrays.asList("ask", "bid"))));
+                Boolean isOrderBook = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(eventType, "change"))) && Helpers.isTrue((Helpers.inOp(eventVar, "side")))) && Helpers.isTrue(this.inArray(Helpers.GetValue(eventVar, "side"), new java.util.ArrayList<Object>(java.util.Arrays.asList("ask", "bid"))));
                 Object eventReason = this.safeString(eventVar, "reason");
-                Object isBidAsk = Helpers.isTrue((Helpers.isEqual(eventReason, "top-of-book"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(isOrderBook) && Helpers.isTrue((Helpers.isEqual(eventReason, "initial")))) && Helpers.isTrue(Helpers.isEqual(eventsLength, 2))));
+                Boolean isBidAsk = Helpers.isTrue((Helpers.isEqual(eventReason, "top-of-book"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(isOrderBook) && Helpers.isTrue((Helpers.isEqual(eventReason, "initial")))) && Helpers.isTrue(Helpers.isEqual(eventsLength, 2))));
                 if (Helpers.isTrue(isBidAsk))
                 {
                     ((java.util.List<Object>)bidaskItems).add(eventVar);

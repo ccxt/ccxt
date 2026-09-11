@@ -120,8 +120,8 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object assets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> assets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -176,7 +176,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchOHLCV() supports 1s and 1m timeframes only")) ;
             }
-            Object prefix = "kline";
+            String prefix = "kline";
             if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))
             {
                 prefix = "markKline";
@@ -259,7 +259,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(((String)s).toUpperCase());
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")));
+        java.util.List<Object> parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(data, "t"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), tf);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))

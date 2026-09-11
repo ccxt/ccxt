@@ -21,7 +21,7 @@ public class TestLastPrice extends BaseTest {
             put( "price", exchange.parseNumber("1.234") );
             put( "side", "buy" );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "datetime", "side", "price")); // binance sometimes provides empty prices for old pairs
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "datetime", "side", "price")); // binance sometimes provides empty prices for old pairs
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         //

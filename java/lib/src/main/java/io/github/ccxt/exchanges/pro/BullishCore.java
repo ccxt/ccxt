@@ -413,7 +413,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
 
     public Object separateBidsOrAsks(Object entry)
     {
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         // 300 = '54885.0000000'
         // 301 = '0.06141566'
         // 302 ='53714.0000000'
@@ -558,7 +558,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                     Helpers.addElementToObject(symbols, symbol, true);
                 }
             }
-            Object messageHash = "orders";
+            String messageHash = "orders";
             client.resolve(orders, messageHash);
             Object keys = Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -691,7 +691,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                     Helpers.addElementToObject(symbols, symbol, true);
                 }
             }
-            Object messageHash = "myTrades";
+            String messageHash = "myTrades";
             client.resolve(trades, messageHash);
             Object keys = Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -880,7 +880,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object positions = this.positions;
-        Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);

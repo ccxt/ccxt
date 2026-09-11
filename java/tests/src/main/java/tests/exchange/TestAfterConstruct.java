@@ -29,7 +29,7 @@ public class TestAfterConstruct extends BaseTest {
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "networks"))))
         {
             // only allow these whitelisted unified networkCodes to be repeated
-            Object allowedUnifiedAliases = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"));
+            java.util.List<Object> allowedUnifiedAliases = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC", "ERC20", "ETH", "TRX", "TRC20", "BRC20", "CRONOS", "CRC20", "CRO", "BEP20", "BSC", "HECO", "HRC20", "HT", "OP", "OPTIMISM", "SOL", "POLYGON", "MATIC", "CARDANO", "ADA", "ATOM", "COSMOS"));
             // safeDict, not exchange.options['networks']: a direct missing-key access throws
             // KeyError in Python (e.g. an exchange whose options has no 'networks', like the
             // hyperliquid prediction market)
@@ -50,7 +50,7 @@ public class TestAfterConstruct extends BaseTest {
             //
             Object networkCodes = Helpers.objectKeys(Helpers.GetValue(exchange.options, "networks"));
             // 3) ensure that the same network-id is not assigned to multiple networkCodes
-            Object collectedNetworkIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> collectedNetworkIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networkCodes)); i++)
             {
                 Object networkCode = Helpers.GetValue(networkCodes, i);
@@ -62,7 +62,7 @@ public class TestAfterConstruct extends BaseTest {
                 ((java.util.List<Object>)collectedNetworkIds).add(networkId);
             }
             // 4) ensure that there are no same networkCode with different case (uppercase/lowercase)
-            Object collectedNetworkCodes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> collectedNetworkCodes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networkCodes)); i++)
             {
                 Object networkCodeLower = ((String)(Helpers.GetValue(networkCodes, i))).toLowerCase();

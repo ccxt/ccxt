@@ -24,7 +24,7 @@ public class TestTransfer extends BaseTest {
             put( "toAccount", "swap" );
             put( "status", "ok" );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("fromAccount", "toAccount"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("fromAccount", "toAccount"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, exchange.milliseconds());
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "currency"), requestedCode);

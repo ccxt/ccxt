@@ -316,7 +316,7 @@ public class BtcturkCore extends BtcturkApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicGetServerExchangeinfo(parameters)).join();
+            Object response = (this.publicGetServerExchangeinfo(parameters)).join();
             //
             //    {
             //        "data": {
@@ -495,7 +495,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privateGetUsersBalances(parameters)).join();
+            Object response = (this.privateGetUsersBalances(parameters)).join();
             //
             //     {
             //       "data": [
@@ -538,11 +538,11 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
+            Object response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
             //     {
             //       "data": {
             //         "timestamp": 1618827901241,
@@ -633,7 +633,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.publicGetTicker(parameters)).join();
+            Object response = (this.publicGetTicker(parameters)).join();
             Object tickers = this.safeList(response, "data");
             return this.parseTickers(tickers, symbols);
         });
@@ -756,7 +756,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             // let maxCount = 50;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
@@ -765,7 +765,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 Helpers.addElementToObject(request, "last", limit);
             }
-            java.util.Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
+            Object response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
             //     {
             //       "data": [
@@ -836,7 +836,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             final Object finalTimeframe = timeframe;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -869,7 +869,7 @@ public class BtcturkCore extends BtcturkApi
                     Helpers.addElementToObject(request, "from", Helpers.subtract(this.parseToInt(Helpers.divide(0, 1000)), limitSeconds));
                 }
             }
-            java.util.Map<String, Object> response = (this.graphGetKlinesHistory(this.extend(request, parameters))).join();
+            Object response = (this.graphGetKlinesHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "s": "ok",
@@ -917,7 +917,7 @@ public class BtcturkCore extends BtcturkApi
         Object since = Helpers.getArg(optionalArgs, 2, null);
         Object limit = Helpers.getArg(optionalArgs, 3, null);
         Object tail = Helpers.getArg(optionalArgs, 4, false);
-        Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object timestamp = this.safeList(ohlcvs, "t", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object high = this.safeList(ohlcvs, "h", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object open = this.safeList(ohlcvs, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -965,7 +965,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             final Object finalType = type;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderType", side );
@@ -984,7 +984,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 Helpers.addElementToObject(request, "newClientOrderId", this.uuid());
             }
-            java.util.Map<String, Object> response = (this.privatePostOrder(this.extend(request, parameters))).join();
+            Object response = (this.privatePostOrder(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
@@ -1011,7 +1011,7 @@ public class BtcturkCore extends BtcturkApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            java.util.Map<String, Object> response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
+            Object response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
             //
             //    {
             //        "success": true,
@@ -1057,7 +1057,7 @@ public class BtcturkCore extends BtcturkApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "pairSymbol", Helpers.GetValue(market, "id"));
             }
-            java.util.Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
+            Object response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object bids = this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object asks = this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1090,7 +1090,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
             }};
@@ -1103,7 +1103,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 Helpers.addElementToObject(request, "startTime", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
             }
-            java.util.Map<String, Object> response = (this.privateGetAllOrders(this.extend(request, parameters))).join();
+            Object response = (this.privateGetAllOrders(this.extend(request, parameters))).join();
             // {
             //   "data": [
             //     {
@@ -1239,7 +1239,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> response = (this.privateGetUsersTransactionsTrade()).join();
+            Object response = (this.privateGetUsersTransactionsTrade()).join();
             //
             //     {
             //       "data": [

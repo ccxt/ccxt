@@ -70,13 +70,13 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
                 put( "hostname", UpbitCore.this.hostname );
             }});
             Client client = this.client(url);
-            Object subscriptionsKey = "upbitPublicSubscriptions";
+            String subscriptionsKey = "upbitPublicSubscriptions";
             if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, subscriptionsKey))))
             {
                 Helpers.addElementToObject(client.subscriptions, subscriptionsKey, new java.util.HashMap<String, Object>() {{}});
             }
             Object subscriptions = Helpers.GetValue(client.subscriptions, subscriptionsKey);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -92,7 +92,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
     }});
                 }
             }
-            Object finalMessage = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
+            java.util.List<Object> finalMessage = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "ticket", UpbitCore.this.uuid() );
     }}));
             Object channelKeys = Helpers.objectKeys(subscriptions);
@@ -478,7 +478,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
                 (this.loadMarkets()).join();
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
-                Object symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol));
+                java.util.List<Object> symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol));
                 Object marketIds = this.marketIds(symbols);
                 Helpers.addElementToObject(request, "codes", marketIds);
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
@@ -489,7 +489,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             url = Helpers.add(url, "/private");
             Client client = this.client(url);
             // Track private channel subscriptions to support multiple concurrent watches
-            Object subscriptionsKey = "upbitPrivateSubscriptions";
+            String subscriptionsKey = "upbitPrivateSubscriptions";
             if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, subscriptionsKey))))
             {
                 Helpers.addElementToObject(client.subscriptions, subscriptionsKey, new java.util.HashMap<String, Object>() {{}});
@@ -500,20 +500,20 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
                 channelKey = Helpers.add(Helpers.add(channel, ":"), symbol);
             }
             Object subscriptions = Helpers.GetValue(client.subscriptions, subscriptionsKey);
-            Object isNewChannel = !Helpers.isTrue((Helpers.inOp(subscriptions, channelKey)));
+            Boolean isNewChannel = !Helpers.isTrue((Helpers.inOp(subscriptions, channelKey)));
             if (Helpers.isTrue(isNewChannel))
             {
                 Helpers.addElementToObject(subscriptions, channelKey, request);
             }
             // Build subscription message with all requested private channels
             // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
-            Object requests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> requests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object channelKeys = Helpers.objectKeys(subscriptions);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(channelKeys)); i++)
             {
                 ((java.util.List<Object>)requests).add(Helpers.GetValue(subscriptions, Helpers.GetValue(channelKeys, i)));
             }
-            Object message = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
+            java.util.List<Object> message = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "ticket", UpbitCore.this.uuid() );
     }}));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(requests)); i++)

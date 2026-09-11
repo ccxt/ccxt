@@ -111,7 +111,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            String messageHash = (String) Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
+            Object messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
             Object trades = (this.watchPublic("trade", market, messageHash, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -173,7 +173,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Object market = this.market(Helpers.GetValue(symbols, i));
                 ((java.util.List<Object>)markets).add(market);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("trade:", Helpers.GetValue(market, "symbol")));
             }
@@ -215,7 +215,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Object market = this.market(Helpers.GetValue(symbols, i));
                 ((java.util.List<Object>)markets).add(market);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("trade:", Helpers.GetValue(market, "symbol")));
             }
@@ -243,7 +243,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            String messageHash = (String) Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
+            Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, Helpers.GetValue(market, "symbol")))))
             {
                 Object snapshot = (this.fetchOrderBook((Object)(symbol), (Object)(limit))).join();
@@ -305,8 +305,8 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                String messageHash = (String) Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
+                Object market = this.market(symbol);
+                Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
                 ((java.util.List<Object>)markets).add(market);
                 ((java.util.List<Object>)messageHashes).add(messageHash);
                 if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, Helpers.GetValue(market, "symbol")))))
@@ -347,7 +347,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Object market = this.market(Helpers.GetValue(symbols, i));
                 ((java.util.List<Object>)markets).add(market);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("orderbook:", Helpers.GetValue(market, "symbol")));
             }
@@ -379,7 +379,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv:", timeframe), ":"), Helpers.GetValue(market, "symbol"));
+            Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv:", timeframe), ":"), Helpers.GetValue(market, "symbol"));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "granularity", NadoCore.this.safeInteger(NadoCore.this.timeframes, timeframe, NadoCore.this.parseTimeframe(timeframe)) );
             }};
@@ -427,7 +427,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
                 Object marketSymbol = this.safeString(symbolAndTimeframe, 0);
                 Object timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketSymbol);
+                Object market = this.market(marketSymbol);
                 ((java.util.List<Object>)markets).add(market);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv:", timeframe), ":"), Helpers.GetValue(market, "symbol")));
                 ((java.util.List<Object>)subscriptionParams).add(this.extend(new java.util.HashMap<String, Object>() {{
@@ -500,7 +500,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
                 Object marketSymbol = this.safeString(symbolAndTimeframe, 0);
                 Object timeframe = this.safeString(symbolAndTimeframe, 1, "1m");
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketSymbol);
+                Object market = this.market(marketSymbol);
                 ((java.util.List<Object>)markets).add(market);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv:", timeframe), ":"), Helpers.GetValue(market, "symbol")));
                 ((java.util.List<Object>)subscriptionParams).add(this.extend(new java.util.HashMap<String, Object>() {{
@@ -575,7 +575,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
-            String messageHash = (String) "ticker";
+            Object messageHash = "ticker";
             Object streamType = "all_bbo";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
@@ -622,7 +622,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
-            String messageHash = (String) "ticker";
+            Object messageHash = "ticker";
             Object streamType = "all_bbo";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
@@ -658,7 +658,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
-            String messageHash = (String) "bidask";
+            Object messageHash = "bidask";
             Object streamType = "all_bbo";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
@@ -705,7 +705,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
-            String messageHash = (String) "bidask";
+            Object messageHash = "bidask";
             Object streamType = "all_bbo";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
@@ -959,7 +959,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
-                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    Object market = this.market(Helpers.GetValue(symbols, 0));
                     messageHash = Helpers.add(messageHash, Helpers.add(":", Helpers.GetValue(market, "symbol")));
                     productId = this.parseToInt(Helpers.GetValue(market, "id"));
                 }
@@ -1013,7 +1013,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
-                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
+                    Object market = this.market(Helpers.GetValue(symbols, 0));
                     messageHash = Helpers.add(messageHash, Helpers.add(":", Helpers.GetValue(market, "symbol")));
                     productId = this.parseToInt(Helpers.GetValue(market, "id"));
                 }
@@ -1065,7 +1065,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             parameters = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", NadoCore.this.requestId() );
             }}, parameters);
@@ -1134,7 +1134,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             // for cancel_and_place the request id is echoed from the nested place_order object
             parameters = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", NadoCore.this.requestId() );
@@ -1220,7 +1220,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrdersWs() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
@@ -1249,7 +1249,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object cancelledOrders = this.safeList(data, "cancelled_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cancelledOrders)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
@@ -1304,7 +1304,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object response = (this.watchExecuteRequest(requestIdString, request)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object cancelledOrders = this.safeList(data, "cancelled_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cancelledOrders)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
@@ -1329,7 +1329,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchExecuteRequest() requires requestIdString")) ;
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "gateway");
-            String messageHash = (String) Helpers.add("execute:", requestIdString);
+            Object messageHash = Helpers.add("execute:", requestIdString);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
 
@@ -1444,7 +1444,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             this.checkRequiredCredentials();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "subscriptions");
             Client client = this.client(url);
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(!Helpers.isEqual(authenticated, null)))
             {
@@ -1603,7 +1603,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object subscriptionParams = Helpers.getArg(optionalArgs, 1, null);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "subscriptions");
             Client client = this.client(url);
-            Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
             {
                 Object messageHash = Helpers.GetValue(messageHashes, i);
@@ -1755,9 +1755,9 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
     public void handleTrade(Client client, Object message)
     {
         Object marketId = this.safeString(message, "product_id");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("trade:", symbol);
+        Object messageHash = Helpers.add("trade:", symbol);
         Object trades = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(trades, null)))
         {
@@ -1801,7 +1801,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         //     }
         //
         Object marketId = this.safeString(message, "product_id");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object granularity = this.safeInteger(message, "granularity");
         Object timeframe = this.findTimeframe(granularity);
@@ -1822,7 +1822,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         }
         Object parsed = this.parseOHLCV(message, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
-        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv:", timeframe), ":"), symbol);
+        Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv:", timeframe), ":"), symbol);
         client.resolve(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, stored)), messageHash);
     }
 
@@ -1990,7 +1990,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
     public void handlePosition(Client client, Object message)
     {
         Object marketId = this.safeString(message, "product_id");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         if (!Helpers.isTrue(this.safeBool(market, "contract", false)))
         {
             return;
@@ -2085,11 +2085,11 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+            Object market = this.safeMarket(marketId);
             Object bbo = this.safeDict(bbos, marketId, new java.util.HashMap<String, Object>() {{}});
             Object bid = this.safeString(bbo, "bid");
             Object ask = this.safeString(bbo, "ask");
-            Object maxPrice = "170141183460469231731687303715884105727";
+            String maxPrice = "170141183460469231731687303715884105727";
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Precise.stringGt(bid, "0")) && Helpers.isTrue(Precise.stringGt(ask, "0"))) && !Helpers.isTrue(Precise.stringEquals(bid, maxPrice))) && !Helpers.isTrue(Precise.stringEquals(ask, maxPrice))))
             {
                 Object ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -2126,7 +2126,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object bidAsk = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseX18(this.safeString(delta, 0)), this.parseX18(this.safeString(delta, 1))));
+        java.util.List<Object> bidAsk = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseX18(this.safeString(delta, 0)), this.parseX18(this.safeString(delta, 1))));
         Helpers.callDynamically(bookside, "storeArray", new Object[]{bidAsk});
     }
 
@@ -2144,14 +2144,14 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         //     }
         //
         Object marketId = this.safeString(message, "product_id");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             return;
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        String messageHash = (String) Helpers.add("orderbook:", symbol);
+        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        Object messageHash = Helpers.add("orderbook:", symbol);
         Object maxTimestamp = this.safeString(orderbook, "maxTimestamp");
         Object lastMaxTimestamp = this.safeString(message, "last_max_timestamp");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(maxTimestamp, null))) && Helpers.isTrue((!Helpers.isEqual(lastMaxTimestamp, null)))) && Helpers.isTrue((!Helpers.isEqual(maxTimestamp, lastMaxTimestamp)))))
@@ -2208,7 +2208,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         {
             return;
         }
-        String messageHash = (String) Helpers.add("execute:", id);
+        Object messageHash = Helpers.add("execute:", id);
         Object subscription = this.safeValue(client.subscriptions, messageHash);
         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
         {
@@ -2422,7 +2422,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             return;
         }
         Object id = this.safeString(message, "id");
-        Object hasResult = (Helpers.inOp(message, "result"));
+        Boolean hasResult = (Helpers.inOp(message, "result"));
         Object result = this.safeValue(message, "result");
         Object method = this.safeString(result, "method");
         if (Helpers.isTrue(Helpers.isEqual(method, "pong")))

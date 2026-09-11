@@ -1376,3 +1376,741 @@ export function installJavaLocalTypes (transpiler) {
     };
     printer._javaLocalTypesPatched = true;
 }
+
+// ===== JAVA-RE-4 slice: literal / boolean-expression locals =====
+//
+// Additive extension of this module (see the header above): a SECOND, independent
+// patcher installed next to installJavaLocalTypes. Same monkey-patch shape, same
+// per-local use-scan philosophy, its own marker flag (`_localTypesLiteralPatched`).
+// The two patchers chain harmlessly: this one only rewrites declarations whose
+// initializer is a literal / boolean expression, the structural one only rewrites
+// `this.<call>(...)` values, and each no-ops when the other already moved the type
+// token (its marker is not found any more).
+//
+// The Java printer declares every initialised body local as `Object` (VAR_TOKEN), even
+// when the printed VALUE is already a concrete Java type:
+//
+//     Object name = "binance";                       -> String name = "binance";
+//     Object fee = 0;                                -> Integer fee = 0;
+//     Object futures = 1024L;                        -> Long futures = 1024L;
+//     Object rate = 0.5;                             -> Double rate = 0.5;
+//     Object paginate = false;                       -> Boolean paginate = false;
+//     Object params = new java.util.HashMap<...>(){{ put(...) }}   -> java.util.Map<String, Object>
+//     Object parts = new java.util.ArrayList<Object>(...)          -> java.util.List<Object>
+//     Object ok = Helpers.isGreaterThan(a, b);       -> Boolean ok = ...;
+//
+// Every one of those values is ALREADY the named type at runtime (the literal prints
+// `0` -> int boxed to Integer, `true` -> boolean boxed to Boolean, the object literal
+// prints the anonymous HashMap<String, Object> the printer emits everywhere, the array
+// literal an ArrayList<Object>), so naming the type moves no box and changes no value —
+// EXCEPT where javac resolves something at COMPILE time against the declared type. Those
+// cases are rejected per local by literalIsSafeToRetype() below (receiver hard casts,
+// `+` overload families, `instanceof`/`typeof`, `as` casts, array destructuring, spell
+// writes, pro-core typed-wrapper calls). Every later write to the local must likewise be
+// provable to the same type (literalTypeOfValue), else the local keeps `Object` exactly
+// as before.
+//
+// Sub-families in this slice, with the reason each is already the named type:
+//   (a) literals: string literal -> String; numeric literal -> Integer / Long / Double
+//       (by the printed literal: `2147483648` prints `2147483648L`, `1.5` prints `1.5`,
+//       hex by the same printNumericLiteral rule); true/false -> Boolean; object literal
+//       -> java.util.Map<String, Object> (drives OBJECT_OPENING `new java.util.HashMap
+//       <String, Object>() {{`); array literal -> java.util.List<Object> (drives
+//       ARRAY_OPENING `new java.util.ArrayList<Object>(java.util.Arrays.asList(`).
+//   (b) comparison / logical / `!` expressions: `<`,`<=`,`>`,`>=`,`==`,`===`,`!=`,`!==`
+//       print Helpers.isEqual / isGreaterThan / ... (declared primitive `boolean`),
+//       `&&`/`||` print Helpers.isTrue(a) && Helpers.isTrue(b), `!x` prints
+//       `!Helpers.isTrue(x)`, `k in o` -> Helpers.inOp, `x instanceof T` ->
+//       Helpers.isInstance(x, T.class) — all primitives, boxed to Boolean by the Object
+//       declaration, so the narrowed spelling is Boolean (boxed, never the primitive:
+//       boxed survives `x == null` / Object parameters / `((Number)x)` casts).
+//   (c) `new X(...)` constructor initialisers: NOT retyped — the printer already emits
+//       `var` for a bare NewExpression initializer (isNew ? "var " : VAR_TOKEN), so the
+//       local is already concretely typed; census in the generated tree: 0 `Object x =
+//       new` sites in exchanges/** while 70 locals carry the printer's `var`.  Nothing
+//       to add here. (`let x = new X(...).method()` is a CallExpression initializer and
+//       is not provable, same as before.)
+//   (d) `for` loop counters: NOT retyped — printForStatement rewrites the emitted
+//       `Object i = 0` to `var i = 0` (a primitive int) and printPostfixUnaryExpression
+//       emits the plain `i++`, so counters are already typed; census: 0 `for (Object x =`
+//       sites in the generated tree (the 47 remaining `for (Object x :` hits are for-of
+//       iterations, a different print path).  Retyping here would be a REGRESSION: the
+//       declaration would be rewritten before printForStatement's `.replace("Object ",
+//       "var ")` runs, pre-empting it and leaving a boxed `Integer i = 0` counter.
+//
+// WHAT IS DELIBERATELY NOT TYPED (each proven against the printer, not guessed):
+//   * `let x = undefined;` / `let x;` — the printer emits `Object x = null`; a null box
+//     proves nothing.
+//   * locals initialised from a PARAMETER, a method call, a ternary, an `as` cast or
+//     another local — see the abandoned java-loc-literals module; those families
+//     (dataflow / ternary / as-string / as-any[]) are OUT OF SCOPE for this slice.  With
+//     this reduced value typer the accepted set is a strict SUBSET of that module's
+//     accepted set (same use-scan rules, fewer provable values), so its full-tree
+//     compile proof carries over to this slice.
+//   * `let x: Dict = ...` annotations — Java prints no annotations; nothing to read.
+//
+// THE USE SCAN. Naming the type never changes the runtime box; it only changes what javac
+// resolves statically. literalIsSafeToRetype walks EVERY identifier use of the local in
+// its enclosing function (by source name and by the printer's `finalX` capture renames,
+// which mutate escapedText in place) and rejects the local when a use would compile
+// differently or not at all against the narrowed type:
+//   * writes: `=` with a value that is not the same type (or nullish); every compound
+//     assignment (`x += y` prints `x = Helpers.add(x, y)` — Object result for the numeric
+//     families, a different add overload for strings); `++`/`--` outside the numeric
+//     families (printPostfixUnaryExpression emits the plain operator);
+//   * `+`: the LEFT operand's static type selects the Helpers.add overload. A String
+//     local on the left is accepted only when the RIGHT operand is provably a non-null
+//     String (add(String,String) == add(Object,Object) for every such input; with any
+//     other right operand add(Object,Object) can take its numeric or null branch first
+//     and diverge from add(String,Object)). A right operand is always fine, and the
+//     non-String families never change the selected overload (only add(Object,Object)
+//     applies to them).
+//   * hard receiver casts the printer emits: `((String)x)` for search/startsWith/endsWith/
+//     trim/toUpperCase/toLowerCase/replace/replaceAll/padEnd/padStart and `((java.util.
+//     List<Object>)x)` for push/shift/pop/reverse — accepted only for the matching family
+//     (`(String)StringLocal` and `(List<Object>)List<Object>Local` are identity casts);
+//     `join` casts the receiver to `(java.util.List<String>)`, inconvertible from every
+//     family here, so it is rejected outright; `length` keeps its printer branch
+//     (`((String)x).length()` for a String receiver, Helpers.getArrayLength(x) otherwise);
+//     `includes` prints the raw `x.contains(y)` and is accepted for lists only.
+//   * argument positions the printer hard-casts: startsWith/endsWith/replace/replaceAll
+//     cast their haystack arguments to `(String)`, padEnd/padStart cast the pad argument
+//     to `((Number)x)` and the pad string to `(String)`.
+//   * `typeof x` prints `x instanceof String/Long/...` (invalid when x IS that type),
+//     `Number.isInteger(x)` prints `(x instanceof Integer) || (x instanceof Long)`
+//     (inconvertible for every family), `delete obj[k]` casts the key to `(String)` and
+//     the container to `(java.util.Map<String,Object>)`, `x as string` prints `((String)x)`,
+//     `x as any` prints `((Object)x)` (an Object static type — never narrowable),
+//     `x as any[]` prints `(java.util.List<Object>)x`.
+//   * `[a, b] = x` / `const [a, b] = x` print a `(java.util.List<Object>)` cast of a
+//     synthetic `var` holder — lists only; `...x` spread; ternary arm reads (the arm
+//     unifies the conditional's static type, which can then flip an enclosing overload);
+//     `await x` (prints `(x).join()`); tagged templates; unknown parent shapes are
+//     rejected, so the default is Object.
+//   * in pro cores (the file path contains /pro/) a local that feeds a `this.<async>()`
+//     call as an argument, directly or through `(x)` / `x + y` / `c ? x : y`, keeps
+//     Object: the typed REST wrapper the pro core extends declares typed overloads
+//     (`fetchTicker(String)`, `watchTrades(String, Map<String, Object>)`) that win Java
+//     overload resolution over the `Object...` cores once the argument's static type is
+//     concrete — same guard as patchJavaLocalTypes#isSafeToNarrow.
+//
+// Installed on the printer from BOTH the main-thread Transpiler (setupTranspiler in
+// build/javaTranspiler.ts) and the piscina worker (build/java-worker.ts), exactly like
+// patchJavaLocalTypes / installJavaLocalTypes. Pure declaration-type diff: the retype
+// replaces only the leading type token of the emitted declaration line.
+
+const LITERAL_STRING_TYPE = 'String';
+const LITERAL_BOOLEAN_TYPE = 'Boolean';
+const LITERAL_INTEGER_TYPE = 'Integer';
+const LITERAL_LONG_TYPE = 'Long';
+const LITERAL_DOUBLE_TYPE = 'Double';
+const LITERAL_NUMERIC_TYPES = new Set ([ LITERAL_INTEGER_TYPE, LITERAL_LONG_TYPE, LITERAL_DOUBLE_TYPE ]);
+const LITERAL_MAP_TYPE = 'java.util.Map<String, Object>';
+const LITERAL_LIST_TYPE = 'java.util.List<Object>';
+const LITERAL_TYPED_TYPES = new Set ([ LITERAL_STRING_TYPE, LITERAL_BOOLEAN_TYPE, ...LITERAL_NUMERIC_TYPES, LITERAL_MAP_TYPE, LITERAL_LIST_TYPE ]);
+
+// printer method name -> the receiver cast the Java print emits. A narrowed local used
+// as the receiver is accepted only for an identity-compatible family.
+const LITERAL_LIST_CAST_RECEIVERS = new Set ([ 'push', 'reverse', 'pop', 'shift' ]);
+const LITERAL_STRING_CAST_RECEIVERS = new Set ([ 'search', 'startsWith', 'endsWith', 'trim', 'toUpperCase', 'toLowerCase', 'replace', 'replaceAll', 'padEnd', 'padStart' ]);
+// receiver printed through an Object-taking helper (Helpers.slice/split/concat/
+// getIndexOf, String.valueOf) — safe for every family
+const LITERAL_OBJECT_RECEIVER_METHODS = new Set ([ 'slice', 'split', 'concat', 'toString', 'indexOf' ]);
+const LITERAL_LIST_ONLY_RECEIVERS = new Set ([ 'includes' ]);
+const LITERAL_REJECTED_RECEIVERS = new Set ([ 'join', 'sort' ]);
+// argument indices the printer hard-casts inside these calls
+const LITERAL_STRING_CAST_ARGUMENTS = {
+    'startsWith': [ 1 ], 'endsWith': [ 1 ],
+    'replace': [ 1, 2 ], 'replaceAll': [ 1, 2 ],
+    'join': [ 0 ], 'padEnd': [ 1 ], 'padStart': [ 1 ],
+};
+const LITERAL_NUMBER_CAST_ARGUMENTS = { 'padEnd': [ 0 ], 'padStart': [ 0 ] };
+
+// printed through Helpers.isEqual / isGreaterThan / isLessThan / isGreaterThanOrEqual /
+// isLessThanOrEqual / inOp / isInstance — all declared primitive `boolean` in Helpers.java
+const LITERAL_BOOLEAN_BINARY_OPERATORS = new Set ([
+    ts.SyntaxKind.EqualsEqualsToken, ts.SyntaxKind.EqualsEqualsEqualsToken,
+    ts.SyntaxKind.ExclamationEqualsToken, ts.SyntaxKind.ExclamationEqualsEqualsToken,
+    ts.SyntaxKind.GreaterThanToken, ts.SyntaxKind.GreaterThanEqualsToken,
+    ts.SyntaxKind.LessThanToken, ts.SyntaxKind.LessThanEqualsToken,
+    ts.SyntaxKind.AmpersandAmpersandToken, ts.SyntaxKind.BarBarToken,
+    ts.SyntaxKind.InKeyword, ts.SyntaxKind.InstanceOfKeyword,
+]);
+
+// an identifier use of the local that is only the DECLARATION name / a member name
+function literalIsNotAUse (n) {
+    const parent = n.parent;
+    if (parent === undefined) {
+        return true;
+    }
+    switch (parent.kind) {
+        case ts.SyntaxKind.VariableDeclaration:
+        case ts.SyntaxKind.Parameter:
+        case ts.SyntaxKind.BindingElement:
+        case ts.SyntaxKind.PropertyDeclaration:
+        case ts.SyntaxKind.PropertySignature:
+        case ts.SyntaxKind.PropertyAssignment:
+        case ts.SyntaxKind.MethodDeclaration:
+        case ts.SyntaxKind.MethodSignature:
+        case ts.SyntaxKind.FunctionDeclaration:
+        case ts.SyntaxKind.ClassDeclaration:
+        case ts.SyntaxKind.InterfaceDeclaration:
+        case ts.SyntaxKind.TypeAliasDeclaration:
+        case ts.SyntaxKind.EnumDeclaration:
+        case ts.SyntaxKind.EnumMember:
+        case ts.SyntaxKind.ImportSpecifier:
+        case ts.SyntaxKind.NamespaceImport:
+        case ts.SyntaxKind.ModuleDeclaration:
+        case ts.SyntaxKind.LabeledStatement:
+            return parent.name === n;
+        case ts.SyntaxKind.PropertyAccessExpression:
+        case ts.SyntaxKind.QualifiedName:
+            return parent.name === n;
+        default:
+            return false;
+    }
+}
+
+// climb `(x)` / `x!` wrappers: their print is the expression itself, so the position that
+// consumes the value is the parent of the climbed node (the printer's printCondition /
+// Helpers wrappers see through them too)
+function literalClimbIdentityWrappers (node) {
+    let current = node;
+    while (current.parent !== undefined
+        && (ts.isParenthesizedExpression (current.parent)
+            || current.parent.kind === ts.SyntaxKind.NonNullExpression)) {
+        current = current.parent;
+    }
+    return current;
+}
+
+// the printer renames identifiers captured by an object literal in place: `x` -> `finalX`
+// (`_2`, `_3` ... per reassignment version). Reads of the local may carry any of those
+// names by the time this module scans.
+function literalCaptureNames (sourceName, printer) {
+    const names = new Set ([ String (sourceName) ]);
+    let base = String (sourceName);
+    try {
+        const final = printer.getFinalVarName (base);
+        if (typeof final === 'string' && final.length > 0) {
+            names.add (final);
+            base = final;
+        }
+    } catch (e) {
+        // getFinalVarName is best-effort; the plain source name is always matched
+    }
+    return names;
+}
+
+function literalMatchesLocalName (escapedText, sourceName, names) {
+    if (escapedText === sourceName) {
+        return true;
+    }
+    for (const candidate of names) {
+        if (escapedText === candidate) {
+            return true;
+        }
+        if (typeof escapedText === 'string' && escapedText.startsWith (candidate + '_')) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function literalCollectUses (scope, sourceName, names) {
+    const index = identifierIndex (scope);
+    const uses = [];
+    for (const [ name, nodes ] of index) {
+        if (literalMatchesLocalName (name, sourceName, names)) {
+            uses.push (...nodes);
+        }
+    }
+    return uses;
+}
+
+// a local / parameter in the same function declared under a name that would shadow the
+// type token being emitted (`String String = ...` leaves the later `String x = ...`
+// unresolvable)
+function literalTypeTokenShadowed (scope, javaType) {
+    const tokens = new Set ();
+    if (javaType === LITERAL_MAP_TYPE || javaType === LITERAL_LIST_TYPE) {
+        tokens.add ('java');
+    } else {
+        tokens.add (javaType);
+    }
+    const index = identifierIndex (scope);
+    for (const token of tokens) {
+        const nodes = index.get (token);
+        if (nodes === undefined) {
+            continue;
+        }
+        for (const n of nodes) {
+            const parent = n.parent;
+            if (parent !== undefined && parent.name === n
+                && (ts.isVariableDeclaration (parent) || ts.isParameter (parent))) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+// the Java print of the literal decides the type: printNumericLiteral appends `L` when
+// the value exceeds Integer.MAX_VALUE (and leaves `1e3`/`1.5` as double literals)
+function literalTypeOfNumericLiteral (printer, node) {
+    let text = node.text;
+    try {
+        text = printer.printNumericLiteral (node);
+    } catch (e) {
+        // fall through to the raw text
+    }
+    if (typeof text !== 'string') {
+        return undefined;
+    }
+    if (text.endsWith ('L')) {
+        return LITERAL_LONG_TYPE;
+    }
+    // hex / binary literals print as-is and are int literals in Java whatever their
+    // digits contain (`0x1e5` is 485) — only the `L` suffix makes them long
+    if (text.startsWith ('0x') || text.startsWith ('0X') || text.startsWith ('0b') || text.startsWith ('0B')) {
+        return LITERAL_INTEGER_TYPE;
+    }
+    if (text.indexOf ('.') !== -1 || text.indexOf ('e') !== -1 || text.indexOf ('E') !== -1) {
+        return LITERAL_DOUBLE_TYPE;
+    }
+    return LITERAL_INTEGER_TYPE;
+}
+
+function literalObjectLiteralIsPlain (node) {
+    return node.properties.every ((p) =>
+        p.kind === ts.SyntaxKind.PropertyAssignment
+        || p.kind === ts.SyntaxKind.ShorthandPropertyAssignment);
+}
+
+function literalArrayLiteralIsPlain (node) {
+    return node.elements.every ((e) =>
+        e.kind !== ts.SyntaxKind.SpreadElement && e.kind !== ts.SyntaxKind.OmittedExpression);
+}
+
+const LITERAL_NULLISH = { nullish: true, type: undefined, nonNull: false };
+
+// the printed Java static type of `node`, when it is one of this slice's families —
+// returns { type, nonNull } or undefined (never narrowable / out of slice) or NULLISH.
+// Deliberately REDUCED versus the abandoned java-loc-literals module: no ternary unify,
+// no `as` casts, no dataflow reads of other locals.
+function literalTypeOfValue (printer, node) {
+    if (node === undefined) {
+        return undefined;
+    }
+    switch (node.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+            return { type: LITERAL_STRING_TYPE, nonNull: true };
+        case ts.SyntaxKind.NumericLiteral: {
+            const type = literalTypeOfNumericLiteral (printer, node);
+            return (type === undefined) ? undefined : { type, nonNull: true };
+        }
+        case ts.SyntaxKind.TrueKeyword:
+        case ts.SyntaxKind.FalseKeyword:
+            return { type: LITERAL_BOOLEAN_TYPE, nonNull: true };
+        case ts.SyntaxKind.NullKeyword:
+            return LITERAL_NULLISH;
+        case ts.SyntaxKind.Identifier:
+            return node.escapedText === 'undefined' ? LITERAL_NULLISH : undefined;
+        case ts.SyntaxKind.ParenthesizedExpression:
+        case ts.SyntaxKind.NonNullExpression:
+            return literalTypeOfValue (printer, node.expression);
+        case ts.SyntaxKind.BinaryExpression:
+            // `a < b`, `a === b`, `a && b`, `k in o`, `a instanceof T` all print boolean
+            // helpers — except the assignment/arithmetic operators
+            return LITERAL_BOOLEAN_BINARY_OPERATORS.has (node.operatorToken.kind)
+                ? { type: LITERAL_BOOLEAN_TYPE, nonNull: true }
+                : undefined;
+        case ts.SyntaxKind.PrefixUnaryExpression:
+            // `!x` prints `!Helpers.isTrue(x)`
+            return node.operator === ts.SyntaxKind.ExclamationToken
+                ? { type: LITERAL_BOOLEAN_TYPE, nonNull: true }
+                : undefined;
+        case ts.SyntaxKind.ObjectLiteralExpression:
+            return literalObjectLiteralIsPlain (node) ? { type: LITERAL_MAP_TYPE, nonNull: true } : undefined;
+        case ts.SyntaxKind.ArrayLiteralExpression:
+            return literalArrayLiteralIsPlain (node) ? { type: LITERAL_LIST_TYPE, nonNull: true } : undefined;
+        default:
+            return undefined;
+    }
+}
+
+// when CCXT_JAVA_LOCAL_CENSUS is set, record every accepted String left-hand `+` operand
+// (the one place a narrowed String can change Helpers.add overload selection). The rule
+// only accepts a provably non-null String right operand, where add(String,String) /
+// add(String,Object) are identical to add(Object,Object) for every input — the log lets a
+// reviewer verify that claim on the real tree.
+const literalPlusLeftAccepted = [];
+function literalRecordPlusLeftAccepted (declaration, node, right) {
+    if (!process.env['CCXT_JAVA_LOCAL_CENSUS']) {
+        return;
+    }
+    try {
+        literalPlusLeftAccepted.push ({
+            file: declaration.getSourceFile ().fileName.replace (/^.*[\\/]ts[\\/]/, 'ts/'),
+            name: String (declaration.name.escapedText),
+            right: (right.getText ? right.getText () : '<no text>').slice (0, 80),
+        });
+    } catch (e) {}
+}
+
+function literalDumpPlusLeftAccepted () {
+    if (literalPlusLeftAccepted.length === 0) {
+        return;
+    }
+    try {
+        process.stderr.write ('[java-literal-types plus-left accepted]\n'
+            + literalPlusLeftAccepted.map ((e) => `  ${e.file} ${e.name} + ${e.right}`).join ('\n') + '\n');
+    } catch (e) {}
+}
+
+function literalIsProvablyStringValue (printer, value) {
+    if (value === undefined) {
+        return false;
+    }
+    const resolved = literalTypeOfValue (printer, value);
+    return resolved !== undefined && resolved.nullish !== true
+        && resolved.type === LITERAL_STRING_TYPE && resolved.nonNull === true;
+}
+
+function literalAssignable (targetType, value) {
+    if (value === undefined) {
+        return false;
+    }
+    if (value.nullish === true) {
+        return true; // null is assignable to every reference type emitted here
+    }
+    return value.type === targetType;
+}
+
+// is `n` the argument of a Number.isInteger(...) call, whose Java print is
+// `(x instanceof Integer) || (x instanceof Long)` (inconvertible for every family here)
+function literalIsNumberIsIntegerArgument (n) {
+    const parent = n.parent;
+    if (parent === undefined || !ts.isCallExpression (parent)) {
+        return false;
+    }
+    if (parent.arguments.indexOf (n) === -1) {
+        return false;
+    }
+    const callee = parent.expression;
+    return ts.isPropertyAccessExpression (callee)
+        && callee.expression.kind === ts.SyntaxKind.Identifier
+        && callee.expression.escapedText === 'Number'
+        && callee.name.escapedText === 'isInteger';
+}
+
+// reject the refinement when a later use needs the local to stay `Object` (see the
+// header for the per-parent rule set)
+function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, isProFile) {
+    const javaType = value.type;
+    const isString = javaType === LITERAL_STRING_TYPE;
+    const isList = javaType === LITERAL_LIST_TYPE;
+    const isMap = javaType === LITERAL_MAP_TYPE;
+    const isNumeric = LITERAL_NUMERIC_TYPES.has (javaType);
+    if (literalTypeTokenShadowed (scope, javaType)) {
+        return false;
+    }
+    const names = literalCaptureNames (sourceName, printer);
+    for (const raw of literalCollectUses (scope, sourceName, names)) {
+        if (raw === declaration.name) {
+            continue;
+        }
+        if (literalIsNotAUse (raw)) {
+            continue;
+        }
+        // positional checks run on the node that actually carries the value (parens /
+        // `x!` print as the inner expression)
+        const n = literalClimbIdentityWrappers (raw);
+        const parent = n.parent;
+        if (parent === undefined) {
+            continue;
+        }
+        // a use that would move a `this.<async>()` argument onto a typed wrapper overload
+        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
+            return false;
+        }
+        switch (parent.kind) {
+            case ts.SyntaxKind.PostfixUnaryExpression:
+                // `x++` / `x--` print the plain operator — numeric boxes only
+                if (!isNumeric) {
+                    return false;
+                }
+                break;
+            case ts.SyntaxKind.PrefixUnaryExpression: {
+                const op = parent.operator;
+                if (op === ts.SyntaxKind.ExclamationToken) {
+                    break; // `!Helpers.isTrue(x)` — valid for every family
+                }
+                if (op === ts.SyntaxKind.MinusToken) {
+                    break; // Helpers.opNeg(x) — Object-taking
+                }
+                if (op === ts.SyntaxKind.PlusToken) {
+                    if (!isNumeric) {
+                        return false; // prints +(x)
+                    }
+                    break;
+                }
+                return false; // ~x and friends print raw operators
+            }
+            case ts.SyntaxKind.SpreadElement:
+                return false;
+            case ts.SyntaxKind.TypeOfExpression:
+                return false; // `typeof x` prints `x instanceof String/Long/...`
+            case ts.SyntaxKind.TaggedTemplateExpression:
+                return false;
+            case ts.SyntaxKind.AwaitExpression:
+                return false; // prints (x).join()
+            case ts.SyntaxKind.ConditionalExpression:
+                // `x ? a : b` prints through printCondition (`Helpers.isTrue(x)`) — fine.
+                // An ARM read unifies the conditional's static type, which can then flip
+                // an enclosing overload, so arm reads keep the local Object.
+                if (parent.condition !== n) {
+                    return false;
+                }
+                break;
+            case ts.SyntaxKind.AsExpression: {
+                const typeNode = parent.type;
+                if (typeNode.kind === ts.SyntaxKind.StringKeyword) {
+                    if (!isString) {
+                        return false; // ((String)x)
+                    }
+                } else if (typeNode.kind === ts.SyntaxKind.AnyKeyword) {
+                    return false; // ((Object)x) — never narrowable
+                } else if (typeNode.kind === ts.SyntaxKind.ArrayType) {
+                    if (!(isList && typeNode.elementType.kind === ts.SyntaxKind.AnyKeyword)) {
+                        return false; // (java.util.List<Object>)x / (java.util.List<String>)x
+                    }
+                }
+                break;
+            }
+            case ts.SyntaxKind.ArrayLiteralExpression:
+                // `[a, b] = f()` prints a (java.util.List<Object>) cast of a synthetic var
+                if (parent.parent !== undefined && ts.isBinaryExpression (parent.parent)
+                    && parent.parent.left === parent
+                    && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
+                    && !isList) {
+                    return false;
+                }
+                break;
+            case ts.SyntaxKind.VariableDeclaration:
+                // `const [a, b] = x` prints a (java.util.List<Object>) cast of a synthetic var
+                if (parent.name?.kind === ts.SyntaxKind.ArrayBindingPattern && !isList) {
+                    return false;
+                }
+                break;
+            case ts.SyntaxKind.PropertyAccessExpression: {
+                const method = String (parent.name?.escapedText);
+                if (method === 'length') {
+                    break; // String: ((String)x).length(); otherwise Helpers.getArrayLength(x)
+                }
+                if (LITERAL_OBJECT_RECEIVER_METHODS.has (method)) {
+                    break; // printer prints through an Object-taking helper
+                }
+                if (LITERAL_LIST_CAST_RECEIVERS.has (method)) {
+                    if (!isList) {
+                        return false; // ((java.util.List<Object>)x).add/get/... / Collections.reverse
+                    }
+                    break;
+                }
+                if (LITERAL_STRING_CAST_RECEIVERS.has (method)) {
+                    if (!isString) {
+                        return false; // ((String)x).trim() etc.
+                    }
+                    break;
+                }
+                if (LITERAL_LIST_ONLY_RECEIVERS.has (method)) {
+                    if (!isList) {
+                        return false; // raw x.contains(y)
+                    }
+                    break;
+                }
+                if (LITERAL_REJECTED_RECEIVERS.has (method)) {
+                    return false;
+                }
+                return false; // unknown receiver print — keep Object
+            }
+            case ts.SyntaxKind.ElementAccessExpression: {
+                const grandparent = parent.parent;
+                if (grandparent !== undefined && grandparent.kind === ts.SyntaxKind.DeleteExpression) {
+                    if (parent.expression === n) {
+                        if (!isMap) {
+                            return false; // ((java.util.Map<String,Object>)x).remove(...)
+                        }
+                    } else if (parent.argumentExpression === n) {
+                        if (!isString) {
+                            return false; // .remove((String)key)
+                        }
+                    }
+                }
+                break; // GetValue(x, k) / Helpers.addElementToObject(x, k, v) — Object-taking
+            }
+            case ts.SyntaxKind.BinaryExpression: {
+                const op = parent.operatorToken.kind;
+                if (parent.left === n) {
+                    if (op === ts.SyntaxKind.EqualsToken) {
+                        if (!literalAssignable (javaType, literalTypeOfValue (printer, parent.right))) {
+                            return false;
+                        }
+                    } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
+                        return false; // x = Helpers.add(x, y) — Object result / different overload
+                    } else if (op === ts.SyntaxKind.PlusToken) {
+                        if (isString) {
+                            if (!literalIsProvablyStringValue (printer, parent.right)) {
+                                return false; // add overload family selection
+                            }
+                            literalRecordPlusLeftAccepted (declaration, n, parent.right);
+                        }
+                    }
+                }
+                break;
+            }
+            case ts.SyntaxKind.CallExpression: {
+                if (parent.expression === n) {
+                    return false; // dynamic callee
+                }
+                if (parent.arguments.indexOf (n) === -1) {
+                    break;
+                }
+                if (literalIsNumberIsIntegerArgument (n)) {
+                    return false;
+                }
+                const callee = parent.expression;
+                if (callee !== undefined && ts.isPropertyAccessExpression (callee)) {
+                    const method = String (callee.name?.escapedText);
+                    const index = parent.arguments.indexOf (n);
+                    const stringIdx = LITERAL_STRING_CAST_ARGUMENTS[method];
+                    if (stringIdx !== undefined && stringIdx.indexOf (index) !== -1 && !isString) {
+                        return false; // ((String)x) on the argument
+                    }
+                    const numberIdx = LITERAL_NUMBER_CAST_ARGUMENTS[method];
+                    if (numberIdx !== undefined && numberIdx.indexOf (index) !== -1 && !isNumeric) {
+                        return false; // ((Number)x).intValue() on the argument
+                    }
+                }
+                break;
+            }
+            default:
+                break;
+        }
+    }
+    return true;
+}
+
+function literalLocalTypeCore (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return undefined;
+    }
+    const value = literalTypeOfValue (printer, declaration.initializer);
+    if (value === undefined || value.nullish === true) {
+        return undefined;
+    }
+    const sourceName = declaration.name.escapedText;
+    const fileName = declaration.getSourceFile ().fileName;
+    const isProFile = /[\\/]pro[\\/]/.test (fileName);
+    if (!literalIsSafeToRetype (printer, scope, declaration, sourceName, value, isProFile)) {
+        return undefined;
+    }
+    return value;
+}
+
+function literalFamilyOf (declaration) {
+    let initializer = declaration.initializer;
+    // `('a')` / `x!` classify as their inner value's family
+    while (initializer !== undefined
+        && (initializer.kind === ts.SyntaxKind.ParenthesizedExpression
+            || initializer.kind === ts.SyntaxKind.NonNullExpression)) {
+        initializer = initializer.expression;
+    }
+    switch (initializer.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+            return 'literal-string';
+        case ts.SyntaxKind.NumericLiteral:
+            return 'literal-number';
+        case ts.SyntaxKind.TrueKeyword:
+        case ts.SyntaxKind.FalseKeyword:
+            return 'literal-boolean';
+        case ts.SyntaxKind.ObjectLiteralExpression:
+            return 'literal-object';
+        case ts.SyntaxKind.ArrayLiteralExpression:
+            return 'literal-array';
+        case ts.SyntaxKind.BinaryExpression:
+        case ts.SyntaxKind.PrefixUnaryExpression:
+            return 'boolean-expression';
+        default:
+            return 'other:' + initializer.kind;
+    }
+}
+
+// census of retyped locals per family (exported for the campaign bookkeeping; also
+// printed at process exit when CCXT_JAVA_LOCAL_CENSUS is set — note piscina worker
+// realms do NOT fire the exit hook, so tree-wide numbers come from the diff census)
+export const javaLiteralTypeCensus = {};
+
+function literalBumpCensus (family) {
+    javaLiteralTypeCensus[family] = (javaLiteralTypeCensus[family] ?? 0) + 1;
+}
+
+let literalCensusHookInstalled = false;
+function literalMaybeInstallCensusHook () {
+    if (literalCensusHookInstalled || !process.env['CCXT_JAVA_LOCAL_CENSUS']) {
+        return;
+    }
+    literalCensusHookInstalled = true;
+    process.on ('exit', () => {
+        try {
+            process.stderr.write ('[java-literal-types census] ' + JSON.stringify (javaLiteralTypeCensus) + '\n');
+        } catch (e) {}
+    });
+    process.on ('exit', literalDumpPlusLeftAccepted);
+}
+
+// this slice's patcher; installed next to installJavaLocalTypes at both call sites
+// (build/javaTranspiler.ts#setupTranspiler and build/java-worker.ts)
+export function patchJavaLiteralLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._localTypesLiteralPatched) {
+        return;
+    }
+    literalMaybeInstallCensusHook ();
+    const original = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = original (node, identation);
+        const declaration = node?.declarations?.[0];
+        if (declaration === undefined || declaration.initializer === undefined
+            || node.declarations.length !== 1 || !ts.isIdentifier (declaration.name)) {
+            return printed;
+        }
+        // a `for (let i = 0; ...)` initializer: printForStatement already rewrites the
+        // emitted `Object i = 0` to `var i = 0` (a primitive int) and `i++` prints the
+        // plain operator, so loop counters are already typed — retyping here would
+        // pre-empt the rewrite and leave a boxed Integer counter (census: 0 sites)
+        if (declaration.parent?.parent?.kind === ts.SyntaxKind.ForStatement) {
+            return printed;
+        }
+        const value = literalLocalTypeCore (printer, declaration);
+        if (value === undefined || !LITERAL_TYPED_TYPES.has (value.type)) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed; // already retyped by another slice's patcher or unexpected shape
+        }
+        literalBumpCensus (literalFamilyOf (declaration));
+        return printed.slice (0, at) + `${iden}${value.type} ` + printed.slice (at + marker.length - (printedName.length + 3));
+    };
+    printer._localTypesLiteralPatched = true;
+}

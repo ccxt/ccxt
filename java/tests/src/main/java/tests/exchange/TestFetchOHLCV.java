@@ -16,7 +16,7 @@ public class TestFetchOHLCV extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchOHLCV";
+        String method = "fetchOHLCV";
         Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);
         Assert(Helpers.isGreaterThan(Helpers.getArrayLength(timeframeKeys), 0), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " - no timeframes found"));
         // prefer 1m timeframe if available, otherwise return the first one
@@ -25,7 +25,7 @@ public class TestFetchOHLCV extends BaseTest {
         {
             chosenTimeframeKey = Helpers.GetValue(timeframeKeys, 0);
         }
-        Object limit = 10;
+        Integer limit = 10;
         Object duration = exchange.parseTimeframe(chosenTimeframeKey);
         Object since = Helpers.subtract(Helpers.subtract(exchange.milliseconds(), Helpers.multiply(Helpers.multiply(duration, limit), 1000)), 1000);
         Object ohlcvs = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{symbol, chosenTimeframeKey, since, limit})).join();

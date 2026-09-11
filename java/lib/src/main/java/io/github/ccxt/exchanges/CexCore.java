@@ -379,7 +379,7 @@ public class CexCore extends CexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             ((java.util.List<Object>)promises).add(this.publicPostGetCurrenciesInfo(parameters));
             //
             //    {
@@ -431,7 +431,7 @@ public class CexCore extends CexApi
     {
         String id = this.safeString(rawCurrency, "currency");
         String code = (String) this.safeCurrencyCode(id);
-        Object isFiat = (Helpers.isEqual(this.safeBool(rawCurrency, "fiat"), true));
+        Boolean isFiat = (Helpers.isEqual(this.safeBool(rawCurrency, "fiat"), true));
         Object type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
         Object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
@@ -442,8 +442,8 @@ public class CexCore extends CexApi
             Object networkId = Helpers.GetValue(keys, j);
             Object rawNetwork = Helpers.GetValue(rawNetworks, networkId);
             Object networkCode = this.networkIdToCode(networkId, code);
-            Object deposit = Helpers.isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
-            Object withdraw = Helpers.isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
+            Boolean deposit = Helpers.isEqual(this.safeString(rawNetwork, "deposit"), "enabled");
+            Boolean withdraw = Helpers.isEqual(this.safeString(rawNetwork, "withdrawal"), "enabled");
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 final Object finalNetworkCode = networkCode;
@@ -509,7 +509,7 @@ public class CexCore extends CexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicPostGetPairsInfo(parameters)).join();
+            Object response = (this.publicPostGetPairsInfo(parameters)).join();
             //
             //    {
             //        "ok": "ok",
@@ -613,7 +613,7 @@ public class CexCore extends CexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.publicPostGetServerTime(parameters)).join();
+            Object response = (this.publicPostGetServerTime(parameters)).join();
             //
             //    {
             //        "ok": "ok",
@@ -680,7 +680,7 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "pairs", this.marketIds(symbols));
             }
-            java.util.Map<String, Object> response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
+            Object response = (this.publicPostGetTicker(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -765,7 +765,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -785,7 +785,7 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "pageSize", Helpers.mathMin(limit, 10000)); // has a bug, still returns more trades
             }
-            java.util.Map<String, Object> response = (this.publicPostGetTradeHistory(this.extend(request, parameters))).join();
+            Object response = (this.publicPostGetTradeHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -864,11 +864,11 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.publicPostGetOrderBook(this.extend(request, parameters))).join();
+            Object response = (this.publicPostGetOrderBook(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -928,7 +928,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             final Object finalDataType = dataType;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -962,7 +962,7 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.Map<String, Object> response = (this.publicPostGetCandles(this.extend(request, parameters))).join();
+            Object response = (this.publicPostGetCandles(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -1010,7 +1010,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privatePostGetMyCurrentFee(parameters)).join();
+            Object response = (this.privatePostGetMyCurrentFee(parameters)).join();
             //
             //    {
             //        "ok": "ok",
@@ -1047,13 +1047,13 @@ public class CexCore extends CexApi
                 Helpers.addElementToObject(result, Helpers.GetValue(parsed, "symbol"), parsed);
             }
         }
-        java.util.List<Object> symbols = this.symbols;
+        Object symbols = this.symbols;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
             if (!Helpers.isTrue((Helpers.inOp(result, symbol))))
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+                Object market = this.market(symbol);
                 Helpers.addElementToObject(result, symbol, this.parseTradingFee(response, market));
             }
         }
@@ -1083,7 +1083,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privatePostGetMyAccountStatusV3(parameters)).join();
+            Object response = (this.privatePostGetMyAccountStatusV3(parameters)).join();
             //
             //    {
             //        "ok": "ok",
@@ -1149,7 +1149,7 @@ public class CexCore extends CexApi
             Object accountBalance = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostGetMyAccountStatusV3")))
             {
-                java.util.Map<String, Object> response = (this.privatePostGetMyAccountStatusV3(parameters)).join();
+                Object response = (this.privatePostGetMyAccountStatusV3(parameters)).join();
                 //
                 //    {
                 //        "ok": "ok",
@@ -1168,7 +1168,7 @@ public class CexCore extends CexApi
                 accountBalance = this.safeDict(balances, accountName, new java.util.HashMap<String, Object>() {{}});
             } else
             {
-                java.util.Map<String, Object> response = (this.privatePostGetMyWalletBalance(parameters)).join();
+                Object response = (this.privatePostGetMyWalletBalance(parameters)).join();
                 //
                 //    {
                 //        "ok": "ok",
@@ -1238,7 +1238,7 @@ public class CexCore extends CexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object isClosedOrders = (Helpers.isEqual(status, "closed"));
+            Boolean isClosedOrders = (Helpers.isEqual(status, "closed"));
             if (Helpers.isTrue(isClosedOrders))
             {
                 Helpers.addElementToObject(request, "archived", true);
@@ -1269,7 +1269,7 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "serverCreateTimestampTo", until);
             }
-            java.util.Map<String, Object> response = (this.privatePostGetMyOrders(this.extend(request, parameters))).join();
+            Object response = (this.privatePostGetMyOrders(this.extend(request, parameters))).join();
             //
             // if called without `pair`
             //
@@ -1562,7 +1562,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
@@ -1598,7 +1598,7 @@ public class CexCore extends CexApi
                 Helpers.addElementToObject(request, "type", "Stop Limit");
                 Helpers.addElementToObject(request, "stopPrice", triggerPrice);
             }
-            java.util.Map<String, Object> response = (this.privatePostDoMyNewOrder(this.extend(request, parameters))).join();
+            Object response = (this.privatePostDoMyNewOrder(this.extend(request, parameters))).join();
             //
             // on success
             //
@@ -1679,7 +1679,7 @@ public class CexCore extends CexApi
                 put( "cancelRequestId", Helpers.add("c_", String.valueOf((CexCore.this.milliseconds()))) );
                 put( "timestamp", CexCore.this.milliseconds() );
             }};
-            java.util.Map<String, Object> response = (this.privatePostDoCancelMyOrder(this.extend(request, parameters))).join();
+            Object response = (this.privatePostDoCancelMyOrder(this.extend(request, parameters))).join();
             //
             //      {"ok":"ok","data":{}}
             //
@@ -1709,7 +1709,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> response = (this.privatePostDoCancelAllOrders(parameters)).join();
+            Object response = (this.privatePostDoCancelAllOrders(parameters)).join();
             //
             //    {
             //        "ok": "ok",
@@ -1722,7 +1722,7 @@ public class CexCore extends CexApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object ids = this.safeList(data, "clientOrderIds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -1783,7 +1783,7 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "dateTo", until);
             }
-            java.util.Map<String, Object> response = (this.privatePostGetMyTransactionHistory(this.extend(request, parameters))).join();
+            Object response = (this.privatePostGetMyTransactionHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -1901,7 +1901,7 @@ public class CexCore extends CexApi
             {
                 Helpers.addElementToObject(request, "dateTo", until);
             }
-            java.util.Map<String, Object> response = (this.privatePostGetMyFundingHistory(this.extend(request, parameters))).join();
+            Object response = (this.privatePostGetMyFundingHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -2021,8 +2021,8 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object fromMain = (Helpers.isEqual(fromAccount, ""));
+            Object currency = this.currency(code);
+            Boolean fromMain = (Helpers.isEqual(fromAccount, ""));
             Object targetAccount = ((Helpers.isTrue(fromMain))) ? toAccount : fromAccount;
             String guid = this.safeString(parameters, "guid", this.uuid());
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2068,14 +2068,14 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Object currency = this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", CexCore.this.currencyToPrecision(code, amount) );
                 put( "fromAccountId", fromAccount );
                 put( "toAccountId", toAccount );
             }};
-            java.util.Map<String, Object> response = (this.privatePostDoMyInternalTransfer(this.extend(request, parameters))).join();
+            Object response = (this.privatePostDoMyInternalTransfer(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",
@@ -2162,7 +2162,7 @@ public class CexCore extends CexApi
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Object currency = this.currency(code);
             final Object finalAccountId = accountId;
             final Object finalNetworkCode = networkCode;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2170,7 +2170,7 @@ public class CexCore extends CexApi
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "blockchain", CexCore.this.networkCodeToId(finalNetworkCode, Helpers.GetValue(currency, "code")) );
             }};
-            java.util.Map<String, Object> response = (this.privatePostGetDepositAddress(this.extend(request, parameters))).join();
+            Object response = (this.privatePostGetDepositAddress(this.extend(request, parameters))).join();
             //
             //    {
             //        "ok": "ok",

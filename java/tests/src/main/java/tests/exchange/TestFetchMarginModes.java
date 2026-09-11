@@ -16,7 +16,7 @@ public class TestFetchMarginModes extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchMarginModes";
+        String method = "fetchMarginModes";
         Object marginModes = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarginModes", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, marginModes, symbol);
         Object marginModeKeys = Helpers.objectKeys(marginModes);

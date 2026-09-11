@@ -945,7 +945,7 @@ public class PhemexCore extends PhemexApi
         base = Helpers.replace((String)((String)base), (String)" ", (String)""); // replace space for junction codes, eg. `1000 SHIB`
         String quote = (String) this.safeCurrencyCode(quoteId);
         String settle = (String) this.safeCurrencyCode(settleId);
-        Object inverse = false;
+        Boolean inverse = false;
         if (Helpers.isTrue(!Helpers.isEqual(settleId, quoteId)))
         {
             inverse = true;
@@ -979,7 +979,7 @@ public class PhemexCore extends PhemexApi
             // "1.0"
             contractSize = this.parseNumber(contractSizeString);
         }
-        Object isLinear = !Helpers.isTrue(inverse);
+        Boolean isLinear = !Helpers.isTrue(inverse);
         final Object finalBase = base;
         final Object finalSettle = settle;
         final Object finalSettleId = settleId;
@@ -1362,7 +1362,7 @@ public class PhemexCore extends PhemexApi
             Object riskLimitsById = this.indexBy(riskLimits, "symbol");
             Object v1ProductsById = this.indexBy(v1ProductsData, "symbol");
             Object currenciesByCode = this.indexBy(currencies, "currency");
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(products)); i++)
             {
                 Object market = Helpers.GetValue(products, i);
@@ -1405,7 +1405,7 @@ public class PhemexCore extends PhemexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> response = (this.v2GetPublicProducts(parameters)).join();
+            Object response = (this.v2GetPublicProducts(parameters)).join();
             //
             //     {
             //         "code":0,
@@ -1506,11 +1506,11 @@ public class PhemexCore extends PhemexApi
             put( "datetime", PhemexCore.this.iso8601(timestamp) );
             put( "nonce", null );
         }};
-        Object sides = new java.util.ArrayList<Object>(java.util.Arrays.asList(bidsKey, asksKey));
+        java.util.List<Object> sides = new java.util.ArrayList<Object>(java.util.Arrays.asList(bidsKey, asksKey));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sides)); i++)
         {
             Object side = Helpers.GetValue(sides, i);
-            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object bidasks = this.safeValue(orderbook, side);
             for (var k = 0; Helpers.isLessThan(k, Helpers.getArrayLength(bidasks)); k++)
             {
@@ -1544,12 +1544,12 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            Object isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
+            Boolean isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) && Helpers.isTrue(isStableSettled)))
             {
                 response = (this.v2GetMdV2Orderbook(this.extend(request, parameters))).join();
@@ -1728,7 +1728,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             Object userLimit = limit;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1736,9 +1736,9 @@ public class PhemexCore extends PhemexApi
             }};
             Long until = (Long) this.safeInteger2(parameters, "until", "to");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
-            Object isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
-            Object usesSpecialFromToEndpoint = Helpers.isTrue(((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) || Helpers.isTrue(isStableSettled)))) && Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(since, null))) || Helpers.isTrue((!Helpers.isEqual(until, null)))));
-            Object maxLimit = 1000;
+            Boolean isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
+            Boolean usesSpecialFromToEndpoint = Helpers.isTrue(((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) || Helpers.isTrue(isStableSettled)))) && Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(since, null))) || Helpers.isTrue((!Helpers.isEqual(until, null)))));
+            Integer maxLimit = 1000;
             if (Helpers.isTrue(usesSpecialFromToEndpoint))
             {
                 maxLimit = 2000;
@@ -1929,7 +1929,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2074,12 +2074,12 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
-            Object isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
+            Boolean isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) && Helpers.isTrue(isStableSettled)))
             {
                 response = (this.v2GetMdV2Trade(this.extend(request, parameters))).join();
@@ -2541,12 +2541,12 @@ public class PhemexCore extends PhemexApi
         Object balance = this.safeValue(data, "account", new java.util.HashMap<String, Object>() {{}});
         String currencyId = this.safeString(balance, "currency");
         String code = (String) this.safeCurrencyCode(currencyId);
-        java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+        Object currency = this.currency(code);
         Object valueScale = this.safeInteger(currency, "valueScale", 8);
         Object account = this.account();
         String accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
         String totalUsedBalanceEv = this.safeString2(balance, "totalUsedBalanceEv", "totalUsedBalanceRv");
-        Object needsConversion = (!Helpers.isEqual(code, "USDT"));
+        Boolean needsConversion = (!Helpers.isEqual(code, "USDT"));
         Helpers.addElementToObject(account, "total", ((Helpers.isTrue(needsConversion))) ? this.fromEn(accountBalanceEv, valueScale) : accountBalanceEv);
         Helpers.addElementToObject(account, "used", ((Helpers.isTrue(needsConversion))) ? this.fromEn(totalUsedBalanceEv, valueScale) : totalUsedBalanceEv);
         Helpers.addElementToObject(result, ((String)code), account);
@@ -2603,7 +2603,7 @@ public class PhemexCore extends PhemexApi
                     {
                         coin = settle;
                     }
-                    java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(coin);
+                    Object currency = this.currency(coin);
                     Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(currency, "id"), "USDT")))
                     {
@@ -2896,7 +2896,7 @@ public class PhemexCore extends PhemexApi
         }
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         Object triggerPrice = this.parseNumber(this.omitZero(this.fromEp(this.safeString(order, "stopPxEp"))));
-        Object postOnly = (Helpers.isEqual(timeInForce, "PO"));
+        Boolean postOnly = (Helpers.isEqual(timeInForce, "PO"));
         final Object finalClientOrderId = clientOrderId;
         final Object finalTimeInForce = timeInForce;
         final Object finalFee = fee;
@@ -3071,7 +3071,7 @@ public class PhemexCore extends PhemexApi
         }
         String timeInForce = this.parseTimeInForce(this.safeString(order, "timeInForce"));
         Object triggerPrice = this.omitZero(this.safeString2(order, "stopPx", "stopPxRp"));
-        Object postOnly = (Helpers.isEqual(timeInForce, "PO"));
+        Boolean postOnly = (Helpers.isEqual(timeInForce, "PO"));
         Object reduceOnly = this.safeValue(order, "reduceOnly");
         String execInst = this.safeString(order, "execInst");
         if (Helpers.isTrue(Helpers.isEqual(execInst, "ReduceOnly")))
@@ -3138,7 +3138,7 @@ public class PhemexCore extends PhemexApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object isSwap = this.safeBool(market, "swap", false);
-        Object hasPnl = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(order, "closedPnl"))) || Helpers.isTrue((Helpers.inOp(order, "closedPnlRv")))) || Helpers.isTrue((Helpers.inOp(order, "totalPnlRv")));
+        Boolean hasPnl = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(order, "closedPnl"))) || Helpers.isTrue((Helpers.inOp(order, "closedPnlRv")))) || Helpers.isTrue((Helpers.inOp(order, "totalPnlRv")));
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isSwap, true))) || Helpers.isTrue(hasPnl)))
         {
             return this.parseSwapOrder(order, market);
@@ -3180,7 +3180,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             Object requestSide = this.capitalize(side);
             type = this.capitalize(type);
             final Object finalType = type;
@@ -3192,9 +3192,9 @@ public class PhemexCore extends PhemexApi
             String clientOrderId = this.safeString2(parameters, "clOrdID", "clientOrderId");
             Object stopLoss = this.safeValue(parameters, "stopLoss");
             Object takeProfit = this.safeValue(parameters, "takeProfit");
-            Object hasStopLoss = (!Helpers.isEqual(stopLoss, null));
-            Object hasTakeProfit = (!Helpers.isEqual(takeProfit, null));
-            Object isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
+            Boolean hasStopLoss = (!Helpers.isEqual(stopLoss, null));
+            Boolean hasTakeProfit = (!Helpers.isEqual(takeProfit, null));
+            Boolean isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
                 String brokerId = this.safeString(this.options, "brokerId", "CCXT123456");
@@ -3539,13 +3539,13 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdID");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "clOrdID")));
-            Object isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
+            Boolean isStableSettled = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT"))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC")));
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "clOrdID", clientOrderId);
@@ -3639,7 +3639,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -3698,7 +3698,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             Object trigger = this.safeValue2(parameters, "stop", "trigger", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3752,7 +3752,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -3830,7 +3830,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -3895,7 +3895,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -4081,7 +4081,7 @@ public class PhemexCore extends PhemexApi
                 limit = Helpers.mathMin(200, limit);
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object isUSDTSettled = Helpers.isTrue((!Helpers.isEqual(type, "spot"))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(symbol, null))) || Helpers.isTrue((Helpers.isEqual(this.safeString(market, "settle"), "USDT")))));
+            Boolean isUSDTSettled = Helpers.isTrue((!Helpers.isEqual(type, "spot"))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(symbol, null))) || Helpers.isTrue((Helpers.isEqual(this.safeString(market, "settle"), "USDT")))));
             if (Helpers.isTrue(isUSDTSettled))
             {
                 Helpers.addElementToObject(request, "currency", "USDT");
@@ -4247,7 +4247,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Object currency = this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
@@ -4264,7 +4264,7 @@ public class PhemexCore extends PhemexApi
                 Helpers.addElementToObject(request, "chainName", network);
                 parameters = this.omit(parameters, "network");
             }
-            java.util.Map<String, Object> response = (this.privateGetExchangeWalletsV2DepositAddress(this.extend(request, parameters))).join();
+            Object response = (this.privateGetExchangeWalletsV2DepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -4323,7 +4323,7 @@ public class PhemexCore extends PhemexApi
             {
                 currency = this.currency(code);
             }
-            java.util.Map<String, Object> response = (this.privateGetExchangeWalletsDepositList(parameters)).join();
+            Object response = (this.privateGetExchangeWalletsDepositList(parameters)).join();
             //
             //     {
             //         "code":0,
@@ -4378,7 +4378,7 @@ public class PhemexCore extends PhemexApi
             {
                 currency = this.currency(code);
             }
-            java.util.Map<String, Object> response = (this.privateGetExchangeWalletsWithdrawList(parameters)).join();
+            Object response = (this.privateGetExchangeWalletsWithdrawList(parameters)).join();
             //
             //     {
             //         "code":0,
@@ -4600,7 +4600,7 @@ public class PhemexCore extends PhemexApi
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object isUSDTSettled = Helpers.isEqual(settle, "USDT");
+            Boolean isUSDTSettled = Helpers.isEqual(settle, "USDT");
             if (Helpers.isTrue(isUSDTSettled))
             {
                 code = "USDT";
@@ -4611,7 +4611,7 @@ public class PhemexCore extends PhemexApi
             {
                 code = ((Helpers.isTrue((Helpers.isEqual(subType, "linear"))))) ? "USD" : "BTC";
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Object currency = this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
@@ -4711,7 +4711,7 @@ public class PhemexCore extends PhemexApi
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object positions = this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object position = Helpers.GetValue(positions, i);
@@ -4746,7 +4746,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4755,7 +4755,7 @@ public class PhemexCore extends PhemexApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(200, limit));
             }
-            java.util.Map<String, Object> response = (this.privateGetApiDataGFuturesClosedPosition(this.extend(request, parameters))).join();
+            Object response = (this.privateGetApiDataGFuturesClosedPosition(this.extend(request, parameters))).join();
             //
             //    {
             //        "code": "0",
@@ -4907,7 +4907,7 @@ public class PhemexCore extends PhemexApi
         Object side = null;
         if (Helpers.isTrue(!Helpers.isEqual(rawSide, null)))
         {
-            Object isLong = (Helpers.isTrue(Helpers.isEqual(rawSide, "Buy")) || Helpers.isTrue(Helpers.isEqual(rawSide, "1")));
+            Boolean isLong = (Helpers.isTrue(Helpers.isEqual(rawSide, "Buy")) || Helpers.isTrue(Helpers.isEqual(rawSide, "1")));
             side = ((Helpers.isTrue(isLong))) ? "long" : "short";
         }
         // Inverse long contract: unRealizedPnl = (posSize * contractSize) / avgEntryPrice - (posSize * contractSize) / markPrice
@@ -5005,7 +5005,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -5018,7 +5018,7 @@ public class PhemexCore extends PhemexApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object response = null;
-            Object isStableSettled = Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"));
+            Boolean isStableSettled = Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"));
             if (Helpers.isTrue(isStableSettled))
             {
                 response = (this.privateGetApiDataGFuturesFundingFees(this.extend(request, parameters))).join();
@@ -5081,10 +5081,10 @@ public class PhemexCore extends PhemexApi
             return value;
         }
         // it was confirmed by phemex support, that USDT contracts use direct amounts in funding fees, while USD & INVERSE needs 'valueScale'
-        Object isStableSettled = Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"));
+        Boolean isStableSettled = Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"));
         if (!Helpers.isTrue(isStableSettled))
         {
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrency(currencyCode);
+            Object currency = this.safeCurrency(currencyCode);
             String scale = this.safeString(Helpers.GetValue(currency, "info"), "valueScale");
             Object tickPrecision = this.parsePrecision(scale);
             value = Precise.stringMul(value, tickPrecision);
@@ -5110,7 +5110,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
@@ -5118,7 +5118,7 @@ public class PhemexCore extends PhemexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
+            Object response = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 response = (this.v1GetMdTicker24hr(this.extend(request, parameters))).join();
@@ -5244,12 +5244,12 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "posBalanceEv", PhemexCore.this.toEv(amount, market) );
             }};
-            java.util.Map<String, Object> response = (this.privatePostPositionsAssign(this.extend(request, parameters))).join();
+            Object response = (this.privatePostPositionsAssign(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5325,7 +5325,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports swap contracts only")) ;
@@ -5338,7 +5338,7 @@ public class PhemexCore extends PhemexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object isCross = Helpers.isEqual(marginMode, "cross");
+            Boolean isCross = Helpers.isEqual(marginMode, "cross");
             if (Helpers.isTrue(this.inArray(Helpers.GetValue(market, "settle"), new java.util.ArrayList<Object>(java.util.Arrays.asList("USDT", "USDC")))))
             {
                 String currentLeverage = this.safeString(parameters, "leverage");
@@ -5386,7 +5386,7 @@ public class PhemexCore extends PhemexApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " setPositionMode() supports USDT settled markets only")) ;
@@ -5428,13 +5428,13 @@ public class PhemexCore extends PhemexApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object first = this.safeValue(symbols, 0);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(first);
+                Object market = this.market(first);
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "settle"), "USD")))
                 {
                     throw new BadSymbol((String)Helpers.add(this.id, " fetchLeverageTiers() supports USD settled markets only")) ;
                 }
             }
-            java.util.Map<String, Object> response = (this.publicGetCfgV2Products(parameters)).join();
+            Object response = (this.publicGetCfgV2Products(parameters)).join();
             //
             //     {
             //         "code":0,
@@ -5598,7 +5598,7 @@ final Object finalI = i;
             Object payload = "";
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {
-                Object isOrderPlacement = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(path, "g-orders"))) || Helpers.isTrue((Helpers.isEqual(path, "spot/orders")))) || Helpers.isTrue((Helpers.isEqual(path, "orders")));
+                Boolean isOrderPlacement = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(path, "g-orders"))) || Helpers.isTrue((Helpers.isEqual(path, "spot/orders")))) || Helpers.isTrue((Helpers.isEqual(path, "orders")));
                 if (Helpers.isTrue(isOrderPlacement))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(this.safeString(parameters, "clOrdID"), null)))
@@ -5664,7 +5664,7 @@ final Object finalI = i;
             Object isHedged = this.safeBool(parameters, "hedged", false);
             Object longLeverageRr = this.safeInteger(parameters, "longLeverageRr");
             Object shortLeverageRr = this.safeInteger(parameters, "shortLeverageRr");
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -5716,7 +5716,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Object currency = this.currency(code);
             Object accountsByType = this.safeValue(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -5738,7 +5738,7 @@ final Object finalI = i;
                     put( "moveOp", finalDirection );
                     put( "amountEv", scaledAmmount );
                 }};
-                java.util.Map<String, Object> response = (this.privatePostAssetsTransfer(this.extend(request, parameters))).join();
+                Object response = (this.privatePostAssetsTransfer(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "code": "0",
@@ -5766,7 +5766,7 @@ final Object finalI = i;
                     put( "currency", Helpers.GetValue(currency, "id") );
                     put( "bizType", PhemexCore.this.safeString(parameters, "bizType", "SPOT") );
                 }};
-                java.util.Map<String, Object> response = (this.privatePostAssetsUniversalTransfer(this.extend(request, parameters))).join();
+                Object response = (this.privatePostAssetsUniversalTransfer(this.extend(request, parameters))).join();
                 //
                 //     {
                 //         "code": "0",
@@ -5830,7 +5830,7 @@ final Object finalI = i;
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTransfers() requires a code argument")) ;
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Object currency = this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
@@ -5842,7 +5842,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            java.util.Map<String, Object> response = (this.privateGetAssetsTransfer(this.extend(request, parameters))).join();
+            Object response = (this.privateGetAssetsTransfer(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -5973,8 +5973,8 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object isUsdtSettled = Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"));
+            Object market = this.market(symbol);
+            Boolean isUsdtSettled = Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT")) || Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDC"));
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
@@ -6036,7 +6036,7 @@ final Object finalI = i;
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object rates = this.safeValue(data, "rows");
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rates)); i++)
             {
                 Object item = Helpers.GetValue(rates, i);
@@ -6084,7 +6084,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Object currency = this.currency(code);
             Object networkCode = null;
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
@@ -6116,7 +6116,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "addressTag", tag);
             }
-            java.util.Map<String, Object> response = (this.privatePostPhemexWithdrawWalletsApiCreateWithdraw(this.extend(request, parameters))).join();
+            Object response = (this.privatePostPhemexWithdrawWalletsApiCreateWithdraw(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -6169,7 +6169,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest is only supported for contract markets.")) ;
@@ -6177,7 +6177,7 @@ final Object finalI = i;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.Map<String, Object> response = (this.v2GetMdV2Ticker24hr(this.extend(request, parameters))).join();
+            Object response = (this.v2GetMdV2Ticker24hr(this.extend(request, parameters))).join();
             //
             //    {
             //        error: null,
@@ -6261,15 +6261,15 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCode);
-            java.util.Map<String, Object> toCurrency = (java.util.Map<String, Object>) this.currency(toCode);
+            Object fromCurrency = this.currency(fromCode);
+            Object toCurrency = this.currency(toCode);
             Object valueScale = this.safeInteger(fromCurrency, "valueScale");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "fromCurrency", fromCode );
                 put( "toCurrency", toCode );
                 put( "fromAmountEv", PhemexCore.this.toEn(amount, valueScale) );
             }};
-            java.util.Map<String, Object> response = (this.privateGetAssetsQuote(this.extend(request, parameters))).join();
+            Object response = (this.privateGetAssetsQuote(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -6317,8 +6317,8 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCode);
-            java.util.Map<String, Object> toCurrency = (java.util.Map<String, Object>) this.currency(toCode);
+            Object fromCurrency = this.currency(fromCode);
+            Object toCurrency = this.currency(toCode);
             Object valueScale = this.safeInteger(fromCurrency, "valueScale");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "code", id );
@@ -6329,7 +6329,7 @@ final Object finalI = i;
             {
                 Helpers.addElementToObject(request, "fromAmountEv", this.toEn(amount, valueScale));
             }
-            java.util.Map<String, Object> response = (this.privatePostAssetsConvert(this.extend(request, parameters))).join();
+            Object response = (this.privatePostAssetsConvert(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -6347,9 +6347,9 @@ final Object finalI = i;
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(data, "fromCurrency");
-            java.util.Map<String, Object> fromResult = (java.util.Map<String, Object>) this.safeCurrency(fromCurrencyId, fromCurrency);
+            Object fromResult = this.safeCurrency(fromCurrencyId, fromCurrency);
             String toCurrencyId = this.safeString(data, "toCurrency");
-            java.util.Map<String, Object> to = (java.util.Map<String, Object>) this.safeCurrency(toCurrencyId, toCurrency);
+            Object to = this.safeCurrency(toCurrencyId, toCurrency);
             return this.parseConversion(data, fromResult, to);
         });
 
@@ -6398,7 +6398,7 @@ final Object finalI = i;
             var requestparametersVariable = this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.Map<String, Object> response = (this.privateGetAssetsConvert(this.extend(request, parameters))).join();
+            Object response = (this.privateGetAssetsConvert(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 0,
@@ -6555,7 +6555,7 @@ final Object finalI = i;
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsADLRank", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object isUSDTSettled = Helpers.isEqual(settle, "USDT");
+            Boolean isUSDTSettled = Helpers.isEqual(settle, "USDT");
             if (Helpers.isTrue(isUSDTSettled))
             {
                 code = "USDT";
@@ -6566,7 +6566,7 @@ final Object finalI = i;
             {
                 code = ((Helpers.isTrue((Helpers.isEqual(subType, "linear"))))) ? "USD" : "BTC";
             }
-            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            Object currency = this.currency(code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
@@ -6590,7 +6590,7 @@ final Object finalI = i;
             }
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object ranks = this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ranks)); i++)
             {
                 Object rank = Helpers.GetValue(ranks, i);

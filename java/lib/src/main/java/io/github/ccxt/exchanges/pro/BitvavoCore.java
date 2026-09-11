@@ -91,7 +91,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             Object messageHash = Helpers.add(Helpers.add(name, "@"), Helpers.GetValue(market, "id"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalName = name;
@@ -119,11 +119,11 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList(methodName));
-            Object args = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList(methodName));
+            java.util.List<Object> args = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Object market = this.market(Helpers.GetValue(symbols, i));
                 ((java.util.List<Object>)args).add(((String)Helpers.GetValue(market, "id")));
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -214,12 +214,12 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         this.handleBidAsk(client, message);
         Object eventVar = this.safeString(message, "event");
         Object tickers = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
         {
             Object data = Helpers.GetValue(tickers, i);
             Object marketId = this.safeString(data, "market");
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
+            Object market = this.safeMarket(marketId, null, "-");
             Object messageHash = Helpers.add(Helpers.add(eventVar, "@"), marketId);
             Object ticker = this.parseTicker(data, market);
             Object symbol = Helpers.GetValue(ticker, "symbol");
@@ -260,9 +260,9 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
 
     public void handleBidAsk(Client client, Object message)
     {
-        Object eventVar = "bidask";
+        String eventVar = "bidask";
         Object tickers = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
         {
             Object data = Helpers.GetValue(tickers, i);
@@ -342,9 +342,9 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //     }
         //
         Object marketId = this.safeString(message, "market");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
+        Object market = this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object name = "trades";
+        String name = "trades";
         Object messageHash = Helpers.add(Helpers.add(name, "@"), marketId);
         Object trade = this.parseTrade(message, market);
         Object tradesArray = this.safeValue(this.trades, symbol);
@@ -382,12 +382,12 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object name = "trades";
-            Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            String name = "trades";
+            java.util.List<Object> marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Object market = this.market(Helpers.GetValue(symbols, i));
                 ((java.util.List<Object>)marketIds).add(((String)Helpers.GetValue(market, "id")));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(name, "@"), Helpers.GetValue(market, "id")));
             }
@@ -453,12 +453,12 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object name = "trades";
-            Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            String name = "trades";
+            java.util.List<Object> marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Object market = this.market(Helpers.GetValue(symbols, i));
                 ((java.util.List<Object>)marketIds).add(((String)Helpers.GetValue(market, "id")));
                 ((java.util.List<Object>)subMessageHashes).add(Helpers.add(Helpers.add(name, "@"), Helpers.GetValue(market, "id")));
             }
@@ -500,9 +500,9 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object name = "candles";
+            String name = "candles";
             Object marketId = Helpers.GetValue(market, "id");
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object messageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(name, "@"), marketId), "_"), interval);
@@ -562,9 +562,9 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //         ]
         //     }
         //
-        Object name = "candles";
+        String name = "candles";
         Object marketId = this.safeString(message, "market");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
+        Object market = this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object interval = this.safeString(message, "interval");
         // use a reverse lookup in a static map instead
@@ -613,13 +613,13 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "candles";
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            String name = "candles";
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.Map<String, Object> marketIdsByInterval = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbolAndTimeframe, 0));
+                Object market = this.market(Helpers.GetValue(symbolAndTimeframe, 0));
                 Object timeframeString = Helpers.GetValue(symbolAndTimeframe, 1);
                 Object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!Helpers.isTrue((Helpers.inOp(marketIdsByInterval, interval))))
@@ -630,7 +630,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 ((java.util.List<Object>)intervalIds).add(Helpers.GetValue(market, "id"));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("multi:", name), "@"), Helpers.GetValue(market, "id")), "_"), interval));
             }
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object intervals = Helpers.objectKeys(marketIdsByInterval);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(intervals)); i++)
             {
@@ -703,13 +703,13 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "candles";
+            String name = "candles";
             Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.Map<String, Object> marketIdsByInterval = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbolAndTimeframe, 0));
+                Object market = this.market(Helpers.GetValue(symbolAndTimeframe, 0));
                 Object timeframeString = Helpers.GetValue(symbolAndTimeframe, 1);
                 Object interval = this.safeString(this.timeframes, timeframeString, timeframeString);
                 if (!Helpers.isTrue((Helpers.inOp(marketIdsByInterval, interval))))
@@ -763,9 +763,9 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object name = "book";
+            String name = "book";
             Object messageHash = Helpers.add(Helpers.add(name, "@"), Helpers.GetValue(market, "id"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalName = name;
@@ -815,12 +815,12 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object name = "book";
-            Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            String name = "book";
+            java.util.List<Object> marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Object market = this.market(Helpers.GetValue(symbols, i));
                 ((java.util.List<Object>)marketIds).add(((String)Helpers.GetValue(market, "id")));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(name, "@"), Helpers.GetValue(market, "id")));
             }
@@ -889,12 +889,12 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object name = "book";
-            Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            String name = "book";
+            java.util.List<Object> marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
+                Object market = this.market(Helpers.GetValue(symbols, i));
                 ((java.util.List<Object>)marketIds).add(((String)Helpers.GetValue(market, "id")));
                 ((java.util.List<Object>)subMessageHashes).add(Helpers.add(Helpers.add(name, "@"), Helpers.GetValue(market, "id")));
             }
@@ -969,10 +969,10 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //
         Object eventVar = this.safeString(message, "event");
         Object marketId = this.safeString(message, "market");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
+        Object market = this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add(Helpers.add(eventVar, "@"), Helpers.GetValue(market, "id"));
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
+        Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
             return;
@@ -1017,7 +1017,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 // order book - skip it so the getBook request is not sent for a dead market
                 return null;
             }
-            Object name = "getBook";
+            String name = "getBook";
             Object messageHash = Helpers.add(Helpers.add(name, "@"), marketId);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalName = name;
@@ -1059,9 +1059,9 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         }
         Object marketId = this.safeString(response, "market");
         String symbol = (String) this.safeSymbol(marketId, null, "-");
-        Object name = "book";
+        String name = "book";
         Object messageHash = Helpers.add(Helpers.add(name, "@"), marketId);
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
+        Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
             // the market was unsubscribed while this snapshot request was in flight
@@ -1102,7 +1102,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
 
     public void handleOrderBookSubscriptions(Client client, Object message, Object marketIds)
     {
-        Object name = "book";
+        String name = "book";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = this.safeString(marketIds, i);
@@ -1137,7 +1137,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 put( "action", "unsubscribe" );
                 put( "channels", channels );
             }};
-            Object unsubHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> unsubHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subMessageHashes)); i++)
             {
                 ((java.util.List<Object>)unsubHashes).add(Helpers.add("unsubscribe:", Helpers.GetValue(subMessageHashes, i)));
@@ -1219,12 +1219,12 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object marketId = Helpers.GetValue(market, "id");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object name = "account";
-            String messageHash = (String) Helpers.add("order:", symbol);
+            String name = "account";
+            Object messageHash = Helpers.add("order:", symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -1270,12 +1270,12 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object marketId = Helpers.GetValue(market, "id");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object name = "account";
-            String messageHash = (String) Helpers.add("myTrades:", symbol);
+            String name = "account";
+            Object messageHash = Helpers.add("myTrades:", symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -1488,7 +1488,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
                 put( "market", Helpers.GetValue(market, "id") );
@@ -2146,9 +2146,9 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //     }
         //
         Object marketId = this.safeString(message, "market");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
+        Object market = this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("order:", symbol);
+        Object messageHash = Helpers.add("order:", symbol);
         Object order = this.parseOrder(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -2178,9 +2178,9 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //     }
         //
         Object marketId = this.safeString(message, "market");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
+        Object market = this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = (String) Helpers.add("myTrades:", symbol);
+        Object messageHash = Helpers.add("myTrades:", symbol);
         Object trade = this.parseTrade(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
@@ -2228,7 +2228,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            String messageHash = (String) "authenticated";
+            String messageHash = "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {
@@ -2236,7 +2236,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 Object stringTimestamp = String.valueOf(timestamp);
                 Object auth = Helpers.add(Helpers.add(Helpers.add(stringTimestamp, "GET/"), this.version), "/websocket");
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
-                Object action = "authenticate";
+                String action = "authenticate";
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "action", action );
                     put( "key", BitvavoCore.this.apiKey );
@@ -2260,7 +2260,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //         "authenticated": true
         //     }
         //
-        String messageHash = (String) "authenticated";
+        String messageHash = "authenticated";
         Object authenticated = this.safeBool(message, "authenticated", false);
         if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {
@@ -2300,7 +2300,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object action = this.safeString(message, "action");
         Object buildMessage = this.buildMessageHash(action, message);
         Object messageHash = this.safeString(message, "requestId", buildMessage);
-        Object rejected = false;
+        Boolean rejected = false;
         try
         {
             this.handleErrors(code, ((String)error), client.url, "", new java.util.HashMap<String, Object>() {{}}, ((String)error), message, new java.util.HashMap<String, Object>() {{}}, new java.util.HashMap<String, Object>() {{}});

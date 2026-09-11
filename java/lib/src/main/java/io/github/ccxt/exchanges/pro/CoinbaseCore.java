@@ -229,8 +229,8 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             symbols = this.marketSymbols(symbols, null, false);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
@@ -284,9 +284,9 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object watchMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object unWatchMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> watchMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> unWatchMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             symbols = this.marketSymbols(symbols, null, false);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
@@ -330,7 +330,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{}};
         Object timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
-        Object isCloudAPiKey = Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.apiKey, "organizations/"), 0))) || Helpers.isTrue((((String)this.secret).startsWith(((String)"-----BEGIN"))));
+        Boolean isCloudAPiKey = Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.apiKey, "organizations/"), 0))) || Helpers.isTrue((((String)this.secret).startsWith(((String)"-----BEGIN"))));
         Object auth = Helpers.add(Helpers.add(timestamp, name), String.join((String)",", (java.util.List<String>)productIds));
         if (!Helpers.isTrue(isCloudAPiKey))
         {
@@ -570,7 +570,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object events = this.safeList(message, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object datetime = this.safeString(message, "timestamp");
         Long timestamp = this.parse8601(datetime);
-        Object newTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> newTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object tickersObj = Helpers.GetValue(events, i);
@@ -1011,7 +1011,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         {
             return;
         }
-        Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1219,7 +1219,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         //
         Object events = this.safeList(message, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object firstEvent = this.safeDict(events, 0, new java.util.HashMap<String, Object>() {{}});
-        Object isUnsub = (Helpers.inOp(firstEvent, "subscriptions"));
+        Boolean isUnsub = (Helpers.inOp(firstEvent, "subscriptions"));
         Object subKeys = Helpers.objectKeys(Helpers.GetValue(firstEvent, "subscriptions"));
         Object subKeysLength = Helpers.getArrayLength(subKeys);
         if (Helpers.isTrue(Helpers.isTrue(isUnsub) && Helpers.isTrue(Helpers.isEqual(subKeysLength, 0))))

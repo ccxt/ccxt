@@ -22,7 +22,7 @@ public class TestMarginModification extends BaseTest {
             put( "symbol", "ADA/USDT:USDT" );
             put( "status", "ok" );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "symbol", "code", "total", "amount"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("status", "symbol", "code", "total", "amount"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "code"));
         //

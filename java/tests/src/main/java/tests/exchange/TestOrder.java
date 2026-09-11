@@ -43,7 +43,7 @@ public class TestOrder extends BaseTest {
             put( "fee", new java.util.HashMap<String, Object>() {{}} );
             put( "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee")); // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "stopPrice", "trades", "timestamp", "datetime", "lastTradeTimestamp", "average", "type", "timeInForce", "postOnly", "side", "price", "amount", "cost", "filled", "remaining", "status", "fee")); // there are exchanges that return only order id, so we don't need to strictly requite all props to be set.
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         //

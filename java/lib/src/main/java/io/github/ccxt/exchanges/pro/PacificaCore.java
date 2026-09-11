@@ -173,7 +173,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             // }
             //
             Object code = this.safeInteger(response, "code");
-            Object success = false;
+            Boolean success = false;
             if (Helpers.isTrue(Helpers.isEqual(code, 200)))
             {
                 success = true;
@@ -227,12 +227,12 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Object batchOperationType = "edit_order";
+            String batchOperationType = "edit_order";
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             Object request = this.editOrderRequest(id, symbol, type, side, amount, price, market, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("originAddress", "agentAddress", "expiryWindow", "clientOrderId")));
             Object isTestnet = this.isSandboxModeEnabled;
@@ -253,7 +253,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             //   "type": "edit_order"
             // }
             Object code = this.safeInteger(response, "code");
-            Object success = false;
+            Boolean success = false;
             if (Helpers.isTrue(Helpers.isEqual(code, 200)))
             {
                 success = true;
@@ -303,7 +303,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object batchOperationType = "batch_orders";
+            String batchOperationType = "batch_orders";
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -352,7 +352,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                 Object error = this.safeString(order, "error");
                 Object success = this.safeBool(order, "success", false);
                 Object marketId = this.safeString(order, "symbol");
-                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+                Object market = this.safeMarket(marketId);
                 Object orderId = this.safeString(order, "i");
                 Object clientOrderId = this.safeString(order, "I");
                 Object status = null;
@@ -399,7 +399,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object operationType = "cancel_order";
+            String operationType = "cancel_order";
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -430,7 +430,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             // }
             //
             Object code = this.safeInteger(response, "code");
-            Object success = false;
+            Boolean success = false;
             if (Helpers.isTrue(Helpers.isEqual(code, 200)))
             {
                 success = true;
@@ -483,7 +483,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            Object operationType = "cancel_all_orders";
+            String operationType = "cancel_all_orders";
             Object request = this.cancelAllOrdersRequest(symbol, parameters);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("excludeReduceOnly", "agentAddress", "originAddress", "expiryWindow")));
             Object isTestnet = this.isSandboxModeEnabled;
@@ -532,12 +532,12 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             Object aggLevel = null;
             var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
             aggLevel = ((java.util.List<Object>) aggLevelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) aggLevelparametersVariable).get(1);
-            String messageHash = (String) Helpers.add("orderbook:", symbol);
+            Object messageHash = Helpers.add("orderbook:", symbol);
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
@@ -577,13 +577,13 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             Object aggLevel = null;
             var aggLevelparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "aggLevel", 1);
             aggLevel = ((java.util.List<Object>) aggLevelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) aggLevelparametersVariable).get(1);
             Object subMessageHash = Helpers.add("orderbook:", symbol);
-            String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
+            Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
@@ -639,7 +639,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         //
         Object entry = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(entry, "s");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object levels = this.safeList(entry, "l", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -655,12 +655,12 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         }
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
-            io.github.ccxt.ws.WsOrderBook ob = this.orderBook(snapshot);
+            Object ob = this.orderBook(snapshot);
             Helpers.addElementToObject(this.orderbooks, symbol, ob);
         }
-        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
-        String messageHash = (String) Helpers.add("orderbook:", symbol);
+        Object messageHash = Helpers.add("orderbook:", symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -707,7 +707,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true);
-            String messageHash = (String) "tickers";
+            String messageHash = "tickers";
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
@@ -748,8 +748,8 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true);
-            Object subMessageHash = "tickers";
-            String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
+            String subMessageHash = "tickers";
+            Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
@@ -850,7 +850,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             var userAddressparametersVariable = this.handleOriginAndSingleAddress("unWatchMyTrades", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            String messageHash = (String) "unsubscribe:myTrades";
+            String messageHash = "unsubscribe:myTrades";
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
@@ -890,13 +890,13 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         //     ],
         // }
         //
-        Object parsedTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> parsedTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object info = Helpers.GetValue(data, i);
             Object marketId = this.safeString(info, "symbol");
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+            Object market = this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object ticker = this.parseWsTicker(info, market);
             Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -970,7 +970,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             client.resolve(trades, currentMessageHash);
         }
         // non-symbol specific
-        String messageHash = (String) "myTrades";
+        String messageHash = "myTrades";
         client.resolve(trades, messageHash);
     }
 
@@ -997,9 +997,9 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String messageHash = (String) Helpers.add("trade:", symbol);
+            Object messageHash = Helpers.add("trade:", symbol);
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
@@ -1040,10 +1040,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object subMessageHash = Helpers.add("trade:", symbol);
-            String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
+            Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
@@ -1082,7 +1082,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         Object entry = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object first = this.safeDict(entry, 0, new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(first, "s");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
@@ -1090,14 +1090,14 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             var stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
+        Object trades = Helpers.GetValue(this.trades, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entry)); i++)
         {
             Object data = this.safeDict(entry, i, new java.util.HashMap<String, Object>() {{}});
             Object trade = this.parseWsTrade(data);
             Helpers.callDynamically(trades, "append", new Object[]{trade});
         }
-        String messageHash = (String) Helpers.add("trade:", symbol);
+        Object messageHash = Helpers.add("trade:", symbol);
         client.resolve(trades, messageHash);
     }
 
@@ -1219,7 +1219,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object isTestnet = this.isSandboxModeEnabled;
             Object parsedTf = this.safeString(this.timeframes, timeframe, timeframe);
@@ -1233,7 +1233,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                     put( "interval", parsedTf );
                 }} );
             }};
-            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("candles:", parsedTf), ":"), symbol);
+            Object messageHash = Helpers.add(Helpers.add(Helpers.add("candles:", parsedTf), ":"), symbol);
             Object message = this.extend(request, parameters);
             Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -1266,7 +1266,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
@@ -1308,7 +1308,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timeframe = this.safeString(data, "i");
         if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
@@ -1329,7 +1329,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         }
         Object parsed = this.parseOHLCV(data);
         Helpers.callDynamically(ohlcv, "append", new Object[]{parsed});
-        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("candles:", timeframe), ":"), symbol);
+        Object messageHash = Helpers.add(Helpers.add(Helpers.add("candles:", timeframe), ":"), symbol);
         client.resolve(ohlcv, messageHash);
     }
 
@@ -1417,7 +1417,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             {
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchOrders() does not support a symbol argument, unWatch from all markets only")) ;
             }
-            String messageHash = (String) "unsubscribe:order";
+            String messageHash = "unsubscribe:order";
             Object isTestnet = this.isSandboxModeEnabled;
             Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), "ws"), "public");
@@ -1480,7 +1480,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             return;
         }
         Object stored = this.orders;
-        Object messageHash = "order";
+        String messageHash = "order";
         java.util.Map<String, Object> marketSymbols = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
@@ -1531,10 +1531,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
     public void handleOrderBookUnsubscription(Client client, Object subscription)
     {
         Object marketId = this.safeString2(subscription, "symbol", "s");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object subMessageHash = Helpers.add("orderbook:", symbol);
-        String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
+        Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
@@ -1545,10 +1545,10 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
     public void handleTradesUnsubscription(Client client, Object subscription)
     {
         Object marketId = this.safeString2(subscription, "symbol", "s");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object subMessageHash = Helpers.add("trade:", symbol);
-        String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
+        Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (Helpers.isTrue(Helpers.inOp(this.trades, symbol)))
         {
@@ -1558,8 +1558,8 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
 
     public void handleTickersUnsubscription(Client client, Object subscription)
     {
-        Object subMessageHash = "tickers";
-        String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
+        String subMessageHash = "tickers";
+        Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         Object symbols = Helpers.objectKeys(this.tickers);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -1571,7 +1571,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
     public void handleOHLCVUnsubscription(Client client, Object subscription)
     {
         Object marketId = this.safeString2(subscription, "symbol", "s");
-        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
+        Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object interval = this.safeString(subscription, "interval");
         Object timeframe = this.findTimeframe(interval);
@@ -1580,7 +1580,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             return;
         }
         Object subMessageHash = Helpers.add(Helpers.add(Helpers.add("candles:", timeframe), ":"), symbol);
-        String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
+        Object messageHash = Helpers.add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol)))))
         {
@@ -1593,7 +1593,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
 
     public void handleOrderUnsubscription(Client client, Object subscription)
     {
-        Object subHash = "order";
+        String subHash = "order";
         Object unSubHash = Helpers.add("unsubscribe:", subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
         java.util.Map<String, Object> topicStructure = new java.util.HashMap<String, Object>() {{
@@ -1604,7 +1604,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
 
     public void handleMyTradesUnsubscription(Client client, Object subscription)
     {
-        Object subHash = "myTrades";
+        String subHash = "myTrades";
         Object unSubHash = Helpers.add("unsubscribe:", subHash);
         this.cleanUnsubscription(client, subHash, unSubHash, true);
         java.util.Map<String, Object> topicStructure = new java.util.HashMap<String, Object>() {{

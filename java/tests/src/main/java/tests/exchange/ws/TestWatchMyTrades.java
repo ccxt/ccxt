@@ -16,12 +16,12 @@ public class TestWatchMyTrades extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "watchMyTrades";
+        String method = "watchMyTrades";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         while (Helpers.isLessThan(now, ends))
         {
-            Object success = true;
+            Boolean success = true;
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             try
             {
