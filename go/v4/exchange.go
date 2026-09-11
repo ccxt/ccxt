@@ -407,7 +407,7 @@ func (this *BaseExchange) InitThrottler() {
   - @param {object} params - Additional exchange-specific parameters for the request.
   - @throws An error if the markets cannot be loaded or prepared.
 */
-func (this *BaseExchange) LoadMarkets(params ...any) <-chan any {
+func (this *BaseExchange) LoadMarketsAsync(params ...any) <-chan any {
 	reload := GetArg(params, 0, false).(bool)
 	this.loadMu.Lock()
 
@@ -424,7 +424,7 @@ func (this *BaseExchange) LoadMarkets(params ...any) <-chan any {
 
 	if !this.marketsLoading || reload {
 		this.marketsLoading = true
-		markets := <-this.LoadMarketsHelper(params...)
+		markets := <-this.LoadMarketsHelperAsync(params...)
 		this.marketsLoaded = true
 		this.marketsLoading = false
 		for _, ch := range this.loadMarketsSubscribers {
@@ -438,7 +438,7 @@ func (this *BaseExchange) LoadMarkets(params ...any) <-chan any {
 	return ch
 }
 
-func (this *BaseExchange) LoadMarketsHelper(params ...any) <-chan any {
+func (this *BaseExchange) LoadMarketsHelperAsync(params ...any) <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -470,14 +470,14 @@ func (this *BaseExchange) LoadMarketsHelper(params ...any) <-chan any {
 		var currencies any = nil
 		hasFetchCurrencies := this.Has["fetchCurrencies"]
 		if IsBool(hasFetchCurrencies) && IsTrue(hasFetchCurrencies) {
-			currencies = <-this.DerivedExchange.FetchCurrencies(params)
+			currencies = <-this.DerivedExchange.FetchCurrenciesAsync(params)
 			// this.cachedCurrenciesMutex.Lock()
 			// this.Options["cachedCurrencies"] = currencies
 			this.Options.Store("cachedCurrencies", currencies)
 			// this.cachedCurrenciesMutex.Unlock()
 		}
 
-		markets := <-this.DerivedExchange.FetchMarkets(params)
+		markets := <-this.DerivedExchange.FetchMarketsAsync(params)
 		PanicOnError(markets)
 
 		// this.cachedCurrenciesMutex.Lock()
@@ -515,7 +515,7 @@ func (this *BaseExchange) Throttle(cost any) <-chan any {
 	return ch
 }
 
-func (this *BaseExchange) FetchMarkets(optionalArgs ...any) <-chan any {
+func (this *BaseExchange) FetchMarketsAsync(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		// defer close(ch)
@@ -526,7 +526,7 @@ func (this *BaseExchange) FetchMarkets(optionalArgs ...any) <-chan any {
 	return ch
 }
 
-func (this *BaseExchange) FetchCurrencies(optionalArgs ...any) <-chan any {
+func (this *BaseExchange) FetchCurrenciesAsync(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		defer close(ch)
@@ -594,7 +594,7 @@ func (this *BaseExchange) callEndpoint(endpoint2 any, parameters any) <-chan any
 					cost = parsed
 				}
 			}
-			res := <-this.Fetch2(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
+			res := <-this.Fetch2Async(path, api, method, parameters, map[string]any{}, nil, map[string]any{"cost": cost})
 			PanicOnError(res)
 			ch <- res
 		} else {
@@ -1437,7 +1437,7 @@ func parseStarknetBigInt(value any) *big.Int {
 	return nil
 }
 
-func (this *BaseExchange) GetZKContractSignatureObj(seed any, params any) <-chan any {
+func (this *BaseExchange) GetZKContractSignatureObjAsync(seed any, params any) <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -1455,7 +1455,7 @@ func (this *BaseExchange) GetZKContractSignatureObj(seed any, params any) <-chan
 	return ch
 }
 
-func (this *BaseExchange) GetZKTransferSignatureObj(seed any, params any) <-chan any {
+func (this *BaseExchange) GetZKTransferSignatureObjAsync(seed any, params any) <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -1473,7 +1473,7 @@ func (this *BaseExchange) GetZKTransferSignatureObj(seed any, params any) <-chan
 	return ch
 }
 
-func (this *BaseExchange) LoadDydxProtos() <-chan any {
+func (this *BaseExchange) LoadDydxProtosAsync() <-chan any {
 	ch := make(chan any)
 
 	go func() {
@@ -1714,7 +1714,7 @@ func (this *BaseExchange) Watch(args ...any) <-chan any {
 						}
 					}
 				}
-				sendFutureChannel := <-client.Send(message)
+				sendFutureChannel := <-client.SendAsync(message)
 				if err, ok := sendFutureChannel.(error); ok {
 					client.OnError(err)
 					client.Subscriptions.Delete(subscribeHash.(string))
@@ -2042,7 +2042,7 @@ func (this *BaseExchange) WatchMultiple(args ...any) <-chan any {
 						}
 					}
 				}
-				sendFutureChannel := <-client.Send(message)
+				sendFutureChannel := <-client.SendAsync(message)
 				if err, ok := sendFutureChannel.(error); ok {
 					for _, subscribeHash := range missingSubscriptions {
 						client.Subscriptions.Delete(subscribeHash)
@@ -2133,7 +2133,7 @@ func (this *BaseExchange) Delay(timeout any, method any, args ...any) {
 // LoadOrderBook lives on *Exchange (not *BaseExchange): it calls FetchRestOrderBookSafe, one of the
 // 62 symbol-based methods that hang off *Exchange. Only regular WS venues (whose core embeds Exchange)
 // use it; prediction venues embed BaseExchange and never call it.
-func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, optionalArgs ...any) <-chan any {
+func (this *Exchange) LoadOrderBookAsync(client any, messageHash any, symbol any, optionalArgs ...any) <-chan any {
 	limit := GetArg(optionalArgs, 0, nil)
 	params := GetArg(optionalArgs, 1, map[string]any{})
 	maxRetries := this.HandleOption("watchOrderBook", "snapshotMaxRetries", 3)
@@ -2141,7 +2141,7 @@ func (this *Exchange) LoadOrderBook(client any, messageHash any, symbol any, opt
 	if stored, exists := this.Orderbooks.Load(symbol.(string)); exists {
 		orderBookInterface := stored.(OrderBookInterface)
 		for tries < maxRetries.(int) {
-			orderBook := <-this.FetchRestOrderBookSafe(symbol, limit, params)
+			orderBook := <-this.FetchRestOrderBookSafeAsync(symbol, limit, params)
 			cache := (*orderBookInterface.GetCache()).([]any)
 			index := ToFloat64(this.DerivedExchange.GetCacheIndex(orderBook, cache))
 			if index >= 0 {
@@ -2268,7 +2268,7 @@ func (this *BaseExchange) UnlockId() bool {
 
 // FetchOutcome is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges override it (kalshi resolves a single outcome on demand).
-func (this *BaseExchange) FetchOutcome(outcomeSymbol any) <-chan any {
+func (this *BaseExchange) FetchOutcomeAsync(outcomeSymbol any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		defer close(ch)
@@ -2282,7 +2282,7 @@ func (this *BaseExchange) FetchOutcome(outcomeSymbol any) <-chan any {
 // FetchOutcomes is a default stub so every exchange satisfies IDerivedExchange.
 // The prediction base provides the real fallback (a per-outcome fetchOutcome loop) and
 // kalshi/polymarket override it with batched by-id requests.
-func (this *BaseExchange) FetchOutcomes(outcomeSymbols any) <-chan any {
+func (this *BaseExchange) FetchOutcomesAsync(outcomeSymbols any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		defer close(ch)
@@ -2303,7 +2303,7 @@ func (this *BaseExchange) SignEvmTransaction(tx any, privateKey any) any {
 
 // FetchEvents is a default stub so every exchange satisfies IDerivedExchange.
 // Prediction exchanges (PredictionExchange and its derivatives) override it.
-func (this *BaseExchange) FetchEvents(optionalArgs ...any) <-chan any {
+func (this *BaseExchange) FetchEventsAsync(optionalArgs ...any) <-chan any {
 	ch := make(chan any)
 	go func() any {
 		defer close(ch)
