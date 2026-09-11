@@ -379,7 +379,7 @@ public class BitbankCore extends BitbankApi
 
     }
 
-    public Object parseMarket(Object entry)
+    public java.util.Map<String, Object> parseMarket(Object entry)
     {
         String id = this.safeString(entry, "name");
         String baseId = this.safeString(entry, "base_asset");
@@ -440,7 +440,7 @@ public class BitbankCore extends BitbankApi
         }});
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = (String) this.safeSymbol(null, market);
@@ -533,7 +533,7 @@ public class BitbankCore extends BitbankApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -776,7 +776,7 @@ public class BitbankCore extends BitbankApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -871,7 +871,7 @@ public class BitbankCore extends BitbankApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "order_id");
@@ -1256,7 +1256,7 @@ public class BitbankCore extends BitbankApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // withdraw

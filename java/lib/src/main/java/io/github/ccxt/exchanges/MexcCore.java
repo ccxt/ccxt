@@ -2066,7 +2066,7 @@ public class MexcCore extends MexcApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = null;
@@ -2539,7 +2539,7 @@ public class MexcCore extends MexcApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
@@ -2981,7 +2981,7 @@ public class MexcCore extends MexcApi
             //         "transactTime": 1661992652132
             //     }
             //
-            Object order = this.parseOrder(response, market);
+            java.util.Map<String, Object> order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "side", side);
             Helpers.addElementToObject(order, "type", type);
             if (Helpers.isTrue(Helpers.isEqual(this.safeString(order, "price"), null)))
@@ -4113,7 +4113,7 @@ public class MexcCore extends MexcApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // spot
@@ -5947,7 +5947,7 @@ final Object finalRiskIncrVol = riskIncrVol;
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -6216,7 +6216,7 @@ final Object finalRiskIncrVol = riskIncrVol;
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // fetchPositions

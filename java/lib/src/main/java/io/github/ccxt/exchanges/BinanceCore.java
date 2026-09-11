@@ -5326,7 +5326,7 @@ public class BinanceCore extends BinanceApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         Boolean swap = false;
         Boolean future = false;
@@ -6153,7 +6153,7 @@ public class BinanceCore extends BinanceApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         // markPrices
         //
@@ -6740,7 +6740,7 @@ public class BinanceCore extends BinanceApi
         {
             String marketId = this.safeString(Helpers.GetValue(response, i), "symbol");
             java.util.Map<String, Object> tickerMarket = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, "spot");
-            Object parsedTicker = this.parseTicker(Helpers.GetValue(response, i));
+            java.util.Map<String, Object> parsedTicker = this.parseTicker(Helpers.GetValue(response, i));
             Helpers.addElementToObject(parsedTicker, "symbol", Helpers.GetValue(tickerMarket, "symbol"));
             ((java.util.List<Object>)results).add(parsedTicker);
         }
@@ -7092,7 +7092,7 @@ public class BinanceCore extends BinanceApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         if (Helpers.isTrue(Helpers.inOp(trade, "isDustTrade")))
@@ -8184,7 +8184,7 @@ public class BinanceCore extends BinanceApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // spot
@@ -11177,7 +11177,7 @@ public class BinanceCore extends BinanceApi
             } else
             {
                 final Object finalResponse = response;
-                Object order = this.safeOrder(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> order = this.safeOrder(new java.util.HashMap<String, Object>() {{
                     put( "info", finalResponse );
                 }});
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList(order));
@@ -11748,13 +11748,13 @@ public class BinanceCore extends BinanceApi
                     ((java.util.List<Object>)data).add(Helpers.GetValue(logs, j));
                 }
             }
-            java.util.List<Object> trades = this.parseTrades(data, null, since, limit);
+            java.util.List<java.util.Map<String, Object>> trades = this.parseTrades(data, null, since, limit);
             return this.filterBySinceLimit(trades, since, limit);
         });
 
     }
 
-    public Object parseDustTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseDustTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -12080,7 +12080,7 @@ public class BinanceCore extends BinanceApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits

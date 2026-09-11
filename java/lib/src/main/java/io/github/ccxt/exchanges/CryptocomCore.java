@@ -1589,7 +1589,7 @@ public class CryptocomCore extends CryptocomApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object responseResult = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeList(responseResult, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2959,7 +2959,7 @@ public class CryptocomCore extends CryptocomApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTicker
@@ -3023,7 +3023,7 @@ public class CryptocomCore extends CryptocomApi
         }}, market);
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -3124,7 +3124,7 @@ public class CryptocomCore extends CryptocomApi
         return this.safeString(timeInForces, ((String)timeInForce), timeInForce);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder, cancelOrder
@@ -3255,7 +3255,7 @@ public class CryptocomCore extends CryptocomApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -4183,7 +4183,7 @@ public class CryptocomCore extends CryptocomApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {

@@ -1300,7 +1300,7 @@ public class CoinbaseCore extends CoinbaseApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fiat deposit
@@ -1529,7 +1529,7 @@ public class CoinbaseCore extends CoinbaseApi
         }};
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchMyBuys, fetchMySells
@@ -1974,7 +1974,7 @@ public class CoinbaseCore extends CoinbaseApi
 
     }
 
-    public Object parseSpotMarket(Object market, Object feeTier)
+    public java.util.Map<String, Object> parseSpotMarket(Object market, Object feeTier)
     {
         //
         //         {
@@ -2743,7 +2743,7 @@ public class CoinbaseCore extends CoinbaseApi
             //
             Object data = this.safeList(response, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
-            Object ticker = this.parseTicker(first, market);
+            java.util.Map<String, Object> ticker = this.parseTicker(first, market);
             Helpers.addElementToObject(ticker, "bid", this.safeNumber(response, "best_bid"));
             Helpers.addElementToObject(ticker, "ask", this.safeNumber(response, "best_ask"));
             return ticker;
@@ -2751,7 +2751,7 @@ public class CoinbaseCore extends CoinbaseApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTickerV2
@@ -3132,7 +3132,7 @@ public class CoinbaseCore extends CoinbaseApi
             // eg: instance.last_http_response -> pagination.next_starting_after
             java.util.Map<String, Object> response = (this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> ledger = this.parseLedger(data, currency, since, limit);
+            java.util.List<java.util.Map<String, Object>> ledger = this.parseLedger(data, currency, since, limit);
             Object length = Helpers.getArrayLength(ledger);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
@@ -3921,7 +3921,7 @@ public class CoinbaseCore extends CoinbaseApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -6007,7 +6007,7 @@ public class CoinbaseCore extends CoinbaseApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // {

@@ -990,7 +990,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         Object marketId = this.safeString(message, "product_id");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
-            Object ticker = this.parseTicker(message);
+            java.util.Map<String, Object> ticker = this.parseTicker(message);
             Object symbol = Helpers.GetValue(ticker, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1004,7 +1004,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         return message;
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {

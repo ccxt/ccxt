@@ -817,7 +817,7 @@ public class ParadexCore extends ParadexApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //     {
@@ -1330,7 +1330,7 @@ public class ParadexCore extends ParadexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1656,7 +1656,7 @@ public class ParadexCore extends ParadexApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -2033,7 +2033,7 @@ public class ParadexCore extends ParadexApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // {
@@ -2415,7 +2415,7 @@ public class ParadexCore extends ParadexApi
             //     "type": "MARKET"
             // }
             //
-            Object order = this.parseOrder(response, market);
+            java.util.Map<String, Object> order = this.parseOrder(response, market);
             return order;
         });
 
@@ -2562,7 +2562,7 @@ public class ParadexCore extends ParadexApi
             // }
             //
             Object responseOrders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> parsedOrders = this.parseOrders(responseOrders);
+            Object parsedOrders = this.parseOrders(responseOrders);
             Object errors = this.safeList(response, "errors", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(errors)); i++)
             {
@@ -3038,7 +3038,7 @@ public class ParadexCore extends ParadexApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -3226,7 +3226,7 @@ public class ParadexCore extends ParadexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {
@@ -3669,7 +3669,7 @@ public class ParadexCore extends ParadexApi
         }};
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits & fetchWithdrawals

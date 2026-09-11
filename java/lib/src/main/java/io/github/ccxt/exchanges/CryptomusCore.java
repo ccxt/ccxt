@@ -384,7 +384,7 @@ public class CryptomusCore extends CryptomusApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //     {
@@ -603,7 +603,7 @@ public class CryptomusCore extends CryptomusApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -753,7 +753,7 @@ public class CryptomusCore extends CryptomusApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -824,7 +824,7 @@ public class CryptomusCore extends CryptomusApi
 
     }
 
-    public Object parseBalance(Object balance)
+    public java.util.Map<String, Object> parseBalance(Object balance)
     {
         //
         //     {
@@ -1145,7 +1145,7 @@ public class CryptomusCore extends CryptomusApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder

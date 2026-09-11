@@ -117,7 +117,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //         "TimeStamp": "1534862990358"
         //     }
         //
-        Object ticker = this.parseTicker(payload);
+        java.util.Map<String, Object> ticker = this.parseTicker(payload);
         Object symbol = Helpers.GetValue(ticker, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -208,7 +208,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         java.util.Map<String, Object> updates = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(payload)); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(payload, i));
+            java.util.Map<String, Object> trade = this.parseTrade(Helpers.GetValue(payload, i));
             Object symbol = Helpers.GetValue(trade, "symbol");
             Object tradesArray = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))

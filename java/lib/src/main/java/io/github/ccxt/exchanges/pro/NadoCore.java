@@ -2092,7 +2092,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             String maxPrice = "170141183460469231731687303715884105727";
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Precise.stringGt(bid, "0")) && Helpers.isTrue(Precise.stringGt(ask, "0"))) && !Helpers.isTrue(Precise.stringEquals(bid, maxPrice))) && !Helpers.isTrue(Precise.stringEquals(ask, maxPrice))))
             {
-                Object ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
                     put( "symbol", Helpers.GetValue(market, "symbol") );
                     put( "timestamp", timestamp );
                     put( "datetime", NadoCore.this.iso8601(timestamp) );

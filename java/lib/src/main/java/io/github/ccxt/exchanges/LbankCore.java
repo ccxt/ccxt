@@ -872,7 +872,7 @@ public class LbankCore extends LbankApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1198,7 +1198,7 @@ public class LbankCore extends LbankApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (old) spotPublicGetTrades
@@ -1488,7 +1488,7 @@ public class LbankCore extends LbankApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         // spotPrivatePostUserInfo
@@ -1833,7 +1833,7 @@ public class LbankCore extends LbankApi
             //    }
             //
             Object balanceResponse = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new java.util.HashMap<String, Object>() {{}} : response;
-            Object balanceResult = this.parseBalance(balanceResponse);
+            java.util.Map<String, Object> balanceResult = this.parseBalance(balanceResponse);
             if (Helpers.isTrue(Helpers.isEqual(balanceResult, null)))
             {
                 throw new NullResponse((String)Helpers.add(this.id, " fetchBalance() returned empty response")) ;
@@ -2099,7 +2099,7 @@ public class LbankCore extends LbankApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOrderSupplement (private)
@@ -2961,7 +2961,7 @@ public class LbankCore extends LbankApi
         return this.safeString(this.safeValue(statuses, ((String)type), new java.util.HashMap<String, Object>() {{}}), status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits (private)

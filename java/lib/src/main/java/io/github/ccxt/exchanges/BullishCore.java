@@ -745,7 +745,7 @@ public class BullishCore extends BullishApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //     {
@@ -1350,7 +1350,7 @@ public class BullishCore extends BullishApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1517,7 +1517,7 @@ public class BullishCore extends BullishApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -2401,7 +2401,7 @@ public class BullishCore extends BullishApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOrders, fetchOrder
@@ -2675,7 +2675,7 @@ public class BullishCore extends BullishApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //     {
@@ -3071,7 +3071,7 @@ public class BullishCore extends BullishApi
         return this.safeBalance(result);
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -3142,7 +3142,7 @@ public class BullishCore extends BullishApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     [

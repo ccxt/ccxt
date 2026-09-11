@@ -1177,7 +1177,7 @@ public class ToobitCore extends ToobitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(all)); i++)
             {
                 Object market = Helpers.GetValue(all, i);
-                Object parsed = this.parseMarket(market);
+                java.util.Map<String, Object> parsed = this.parseMarket(market);
                 if (Helpers.isTrue(!Helpers.isEqual(parsed, null)))
                 {
                     ((java.util.List<Object>)result).add(parsed);
@@ -1188,7 +1188,7 @@ public class ToobitCore extends ToobitApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseAsset", "");
@@ -1379,7 +1379,7 @@ public class ToobitCore extends ToobitApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1643,7 +1643,7 @@ public class ToobitCore extends ToobitApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "s");
@@ -2012,7 +2012,7 @@ public class ToobitCore extends ToobitApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -2262,7 +2262,7 @@ public class ToobitCore extends ToobitApi
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(request, parameters));
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder, cancelOrder
@@ -3252,7 +3252,7 @@ public class ToobitCore extends ToobitApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits & fetchWithdrawals
@@ -3682,7 +3682,7 @@ public class ToobitCore extends ToobitApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "symbol");

@@ -830,7 +830,7 @@ public class HollaexCore extends HollaexApi
         return this.filterByArrayTickers(result, "symbol", symbols);
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTicker
@@ -935,7 +935,7 @@ public class HollaexCore extends HollaexApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -1161,7 +1161,7 @@ public class HollaexCore extends HollaexApi
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parse8601(this.safeString(ohlcv, "time")), this.safeNumber(ohlcv, "open"), this.safeNumber(ohlcv, "high"), this.safeNumber(ohlcv, "low"), this.safeNumber(ohlcv, "close"), this.safeNumber(ohlcv, "volume")));
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Long timestamp = this.parse8601(this.safeString(response, "updated_at"));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -1479,7 +1479,7 @@ public class HollaexCore extends HollaexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder, fetchOpenOrder, fetchOpenOrders
@@ -2094,7 +2094,7 @@ public class HollaexCore extends HollaexApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchWithdrawals, fetchDeposits

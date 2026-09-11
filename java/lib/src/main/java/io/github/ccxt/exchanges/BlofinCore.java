@@ -741,7 +741,7 @@ public class BlofinCore extends BlofinApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String id = this.safeString(market, "instId");
         String type = (String)this.safeStringLower(market, "instType");
@@ -895,7 +895,7 @@ public class BlofinCore extends BlofinApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // response similar for REST & WS
@@ -1045,7 +1045,7 @@ public class BlofinCore extends BlofinApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetch trades (response similar for REST & WS)
@@ -1146,7 +1146,7 @@ public class BlofinCore extends BlofinApi
                     put( "currency", finalFeeCurrency_2 );
                 }} );
             }};
-            return result;
+            return (java.util.Map<String, Object>) result;
         } else
         {
             final Object finalFee = fee;
@@ -1474,7 +1474,7 @@ public class BlofinCore extends BlofinApi
         }
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         // "data" similar for REST & WS
@@ -1733,7 +1733,7 @@ public class BlofinCore extends BlofinApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // response similar for REST & WS
@@ -1948,7 +1948,7 @@ public class BlofinCore extends BlofinApi
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0);
-            Object order = this.parseOrder(first, market);
+            java.util.Map<String, Object> order = this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
             return order;
@@ -2475,7 +2475,7 @@ public class BlofinCore extends BlofinApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //
@@ -2960,7 +2960,7 @@ public class BlofinCore extends BlofinApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // response similar for REST & WS

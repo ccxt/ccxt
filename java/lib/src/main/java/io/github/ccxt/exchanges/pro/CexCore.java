@@ -1100,7 +1100,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         {
             Object rawOrder = Helpers.GetValue(rawOrders, i);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
-            Object order = this.parseOrder(rawOrder, market);
+            java.util.Map<String, Object> order = this.parseOrder(rawOrder, market);
             Helpers.addElementToObject(order, "status", "open");
             Helpers.callDynamically(myOrders, "append", new Object[]{order});
         }

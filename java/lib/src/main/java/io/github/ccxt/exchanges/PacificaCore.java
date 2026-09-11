@@ -849,7 +849,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //     {
         //       "symbol": "BTC",
@@ -1759,7 +1759,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // user trades:
@@ -2709,7 +2709,7 @@ public class PacificaCore extends PacificaApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object info = Helpers.GetValue(data, i);
-                Object ticker = this.parseTicker(info);
+                java.util.Map<String, Object> ticker = this.parseTicker(info);
                 String symbol = this.safeString(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -2721,7 +2721,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -3005,7 +3005,7 @@ public class PacificaCore extends PacificaApi
             // }
             //
             Object data = this.addPaginationCursorToResult(response);
-            java.util.List<Object> orders = this.parseOrders(data, market, since, limit);
+            java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(data, market, since, limit);
             return orders;
         });
 
@@ -3172,7 +3172,7 @@ public class PacificaCore extends PacificaApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOpenOrders
@@ -3385,7 +3385,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {

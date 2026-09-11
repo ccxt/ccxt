@@ -1399,7 +1399,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //    {
@@ -1593,7 +1593,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //    {
@@ -1632,7 +1632,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         }};
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         //    {
@@ -1758,7 +1758,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //   {
@@ -2019,7 +2019,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //    {
@@ -2116,7 +2116,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         //    {
@@ -2327,7 +2327,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //    {

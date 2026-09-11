@@ -1084,7 +1084,7 @@ public class PoloniexCore extends PoloniexApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         if (Helpers.isTrue(Helpers.inOp(market, "ctType")))
         {
@@ -1095,7 +1095,7 @@ public class PoloniexCore extends PoloniexApi
         }
     }
 
-    public Object parseSpotMarket(Object market)
+    public java.util.Map<String, Object> parseSpotMarket(Object market)
     {
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseCurrencyName");
@@ -1154,7 +1154,7 @@ public class PoloniexCore extends PoloniexApi
         }});
     }
 
-    public Object parseSwapMarket(Object market)
+    public java.util.Map<String, Object> parseSwapMarket(Object market)
     {
         //
         //            {
@@ -1292,7 +1292,7 @@ public class PoloniexCore extends PoloniexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //  spot:
@@ -1639,7 +1639,7 @@ public class PoloniexCore extends PoloniexApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1965,7 +1965,7 @@ public class PoloniexCore extends PoloniexApi
             //         }
             //     ]
             //
-            java.util.List<Object> result = this.parseTrades(response, market, since, limit);
+            java.util.List<java.util.Map<String, Object>> result = this.parseTrades(response, market, since, limit);
             return result;
         });
 
@@ -1985,7 +1985,7 @@ public class PoloniexCore extends PoloniexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOpenOrder
@@ -2876,7 +2876,7 @@ public class PoloniexCore extends PoloniexApi
             //         "updateTime": 1646196019020
             //     }
             //
-            Object order = this.parseOrder(response);
+            java.util.Map<String, Object> order = this.parseOrder(response);
             Helpers.addElementToObject(order, "id", id);
             return order;
         });
@@ -2950,7 +2950,7 @@ public class PoloniexCore extends PoloniexApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -3602,8 +3602,8 @@ public class PoloniexCore extends PoloniexApi
             }
             Object withdrawals = this.safeValue(response, "withdrawals", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object deposits = this.safeValue(response, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> withdrawalTransactions = this.parseTransactions(withdrawals, currency, since, limit);
-            java.util.List<Object> depositTransactions = this.parseTransactions(deposits, currency, since, limit);
+            java.util.List<java.util.Map<String, Object>> withdrawalTransactions = this.parseTransactions(withdrawals, currency, since, limit);
+            java.util.List<java.util.Map<String, Object>> depositTransactions = this.parseTransactions(deposits, currency, since, limit);
             java.util.List<Object> transactions = (java.util.List<Object>) this.arrayConcat(depositTransactions, withdrawalTransactions);
             return this.filterByCurrencySinceLimit(this.sortBy(transactions, "timestamp"), code, since, limit);
         });
@@ -3637,7 +3637,7 @@ public class PoloniexCore extends PoloniexApi
                 currency = this.currency(code);
             }
             Object withdrawals = this.safeValue(response, "withdrawals", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> transactions = this.parseTransactions(withdrawals, currency, since, limit);
+            java.util.List<java.util.Map<String, Object>> transactions = this.parseTransactions(withdrawals, currency, since, limit);
             return this.filterByCurrencySinceLimit(transactions, code, since, limit);
         });
 
@@ -3832,7 +3832,7 @@ public class PoloniexCore extends PoloniexApi
                 currency = this.currency(code);
             }
             Object deposits = this.safeValue(response, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> transactions = this.parseTransactions(deposits, currency, since, limit);
+            java.util.List<java.util.Map<String, Object>> transactions = this.parseTransactions(deposits, currency, since, limit);
             return this.filterByCurrencySinceLimit(transactions, code, since, limit);
         });
 
@@ -3853,7 +3853,7 @@ public class PoloniexCore extends PoloniexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // deposits
@@ -4245,7 +4245,7 @@ public class PoloniexCore extends PoloniexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //            {

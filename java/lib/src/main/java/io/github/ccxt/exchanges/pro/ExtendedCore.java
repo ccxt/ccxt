@@ -428,7 +428,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(rawTrades, i));
+            java.util.Map<String, Object> trade = this.parseTrade(Helpers.GetValue(rawTrades, i));
             Object symbol = this.safeString(trade, "symbol");
             Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
@@ -541,7 +541,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             {
                 continue;
             }
-            Object position = this.parsePosition(rawPosition);
+            java.util.Map<String, Object> position = this.parsePosition(rawPosition);
             ((java.util.List<Object>)newPositions).add(position);
             Helpers.callDynamically(stored, "append", new Object[]{position});
         }
@@ -609,7 +609,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<Object>)(rawOrders))); i++)
         {
-            Object order = this.parseOrder(Helpers.GetValue((java.util.List<Object>)(rawOrders), i));
+            java.util.Map<String, Object> order = this.parseOrder(Helpers.GetValue((java.util.List<Object>)(rawOrders), i));
             Object symbol = this.safeString(order, "symbol");
             Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{order});
@@ -783,7 +783,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             timestamp = this.safeInteger(message, "ts");
         }
         final Object finalTimestamp = timestamp;
-        Object ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
             put( "datetime", ExtendedCore.this.iso8601(finalTimestamp) );
@@ -889,7 +889,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Helpers.addElementToObject(subscription, "nonce", nonce);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(data, i), market);
+            java.util.Map<String, Object> trade = this.parseTrade(Helpers.GetValue(data, i), market);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
         client.resolve(stored, messageHash);

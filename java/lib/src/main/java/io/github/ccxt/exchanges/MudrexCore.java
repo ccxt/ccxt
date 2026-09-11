@@ -566,7 +566,7 @@ public class MudrexCore extends MudrexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String ms = this.safeString(ticker, "symbol");
@@ -672,7 +672,7 @@ public class MudrexCore extends MudrexApi
 
     }
 
-    public Object parseMarket(Object asset)
+    public java.util.Map<String, Object> parseMarket(Object asset)
     {
         String ms = this.safeString(asset, "symbol");
         Object base = ms;
@@ -800,7 +800,7 @@ public class MudrexCore extends MudrexApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
         String currency = this.safeString(response, "currency", "USDT");
@@ -1007,7 +1007,7 @@ public class MudrexCore extends MudrexApi
                 put( "order_type", Helpers.GetValue(request, "order_type") );
                 put( "trigger_type", Helpers.GetValue(request, "trigger_type") );
             }});
-            Object order = this.parseOrder(merged, market);
+            java.util.Map<String, Object> order = this.parseOrder(merged, market);
             Helpers.addElementToObject(order, "info", data);
             return order;
         });
@@ -1081,7 +1081,7 @@ public class MudrexCore extends MudrexApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String oms = this.safeString(order, "symbol");
@@ -1401,7 +1401,7 @@ public class MudrexCore extends MudrexApi
                 Object p = Helpers.GetValue(rows, i);
                 String symRaw = this.safeString(p, "symbol");
                 java.util.Map<String, Object> m = (java.util.Map<String, Object>) this.safeMarket(symRaw);
-                Object pos = this.parsePosition(p, m);
+                java.util.Map<String, Object> pos = this.parsePosition(p, m);
                 ((java.util.List<Object>)outPos).add(pos);
             }
             return this.filterByArrayPositions(outPos, "symbol", symbols, false);
@@ -1469,7 +1469,7 @@ public class MudrexCore extends MudrexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         market = this.safeMarket(null, market);
@@ -1806,7 +1806,7 @@ public class MudrexCore extends MudrexApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {

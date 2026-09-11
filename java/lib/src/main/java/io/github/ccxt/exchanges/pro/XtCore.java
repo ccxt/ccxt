@@ -1052,7 +1052,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         }
         Object cache = this.positions;
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object position = this.parsePosition(data);
+        java.util.Map<String, Object> position = this.parsePosition(data);
         Helpers.callDynamically(cache, "append", new Object[]{position});
         Object messageHashes = this.findMessageHashes(client, "position::contract");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
@@ -1138,7 +1138,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         {
             Object cv = this.safeString(data, "cv");
             Boolean isSpot = !Helpers.isEqual(cv, null);
-            Object ticker = this.parseTicker(data);
+            java.util.Map<String, Object> ticker = this.parseTicker(data);
             Object symbol = Helpers.GetValue(ticker, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1229,7 +1229,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object tickerData = Helpers.GetValue(data, i);
-            Object ticker = this.parseTicker(tickerData);
+            java.util.Map<String, Object> ticker = this.parseTicker(tickerData);
             Object symbol = Helpers.GetValue(ticker, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1357,7 +1357,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         String marketId = (String)this.safeStringLower(data, "s");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
-            Object trade = this.parseTrade(data);
+            java.util.Map<String, Object> trade = this.parseTrade(data);
             Object i = this.safeString(data, "i");
             String tradeType = ((Helpers.isTrue((!Helpers.isEqual(i, null))))) ? "spot" : "contract";
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
@@ -1806,7 +1806,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             stored = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = stored;
         }
-        Object parsedTrade = this.parseTrade(data);
+        java.util.Map<String, Object> parsedTrade = this.parseTrade(data);
         Object tradeSymbol = Helpers.GetValue(parsedTrade, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(tradeSymbol, null)))
         {

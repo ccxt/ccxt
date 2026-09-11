@@ -413,7 +413,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(data, i));
+            java.util.Map<String, Object> trade = this.parseTrade(Helpers.GetValue(data, i));
             Object messageHash = Helpers.add(Helpers.add(channel, ":"), symbol);
             Object stored = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -782,7 +782,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         java.util.Map<String, Object> newTickers = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object ticker = this.parseTicker(Helpers.GetValue(data, i));
+            java.util.Map<String, Object> ticker = this.parseTicker(Helpers.GetValue(data, i));
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             Helpers.addElementToObject(newTickers, symbol, ticker);
         }
@@ -2307,7 +2307,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object rawPosition = Helpers.GetValue(data, i);
-            Object position = this.parsePosition(rawPosition);
+            java.util.Map<String, Object> position = this.parsePosition(rawPosition);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(position, "contracts"), 0)) && Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(rawPosition, "posSide"), "net"))))
             {
                 Helpers.addElementToObject(position, "side", "long");
@@ -2478,10 +2478,10 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             Object stored = ((Helpers.isTrue((Helpers.isEqual(channel, "orders-algo"))))) ? this.triggerOrders : this.orders;
             java.util.List<Object> marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> parsed = this.parseOrders(orders);
+            java.util.List<java.util.Map<String, Object>> parsed = this.parseOrders(orders);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
             {
-                Object order = Helpers.GetValue(parsed, i);
+                java.util.Map<String, Object> order = (java.util.Map<String, Object>) Helpers.GetValue(parsed, i);
                 Helpers.callDynamically(stored, "append", new Object[]{order});
                 Object symbol = Helpers.GetValue(order, "symbol");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -2563,7 +2563,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object tradeId = this.safeString(rawOrder, "tradeId", "");
             if (Helpers.isTrue(Helpers.isGreaterThan(((String)tradeId).length(), 0)))
             {
-                Object order = this.parseOrder(rawOrder);
+                java.util.Map<String, Object> order = this.parseOrder(rawOrder);
                 ((java.util.List<Object>)filteredOrders).add(order);
             }
         }
@@ -2699,7 +2699,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object stringMsg = this.json(message);
             this.handleErrors(1, "", client.url, ((String)method), new java.util.HashMap<String, Object>() {{}}, stringMsg, message, new java.util.HashMap<String, Object>() {{}}, new java.util.HashMap<String, Object>() {{}});
         }
-        java.util.List<Object> orders = this.parseOrders(args, null, null);
+        java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(args, null, null);
         Object first = this.safeDict(orders, 0, new java.util.HashMap<String, Object>() {{}});
         client.resolve(first, messageHash);
     }

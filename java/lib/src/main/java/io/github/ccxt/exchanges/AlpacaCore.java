@@ -725,7 +725,7 @@ public class AlpacaCore extends AlpacaApi
 
     }
 
-    public Object parseMarket(Object asset)
+    public java.util.Map<String, Object> parseMarket(Object asset)
     {
         //
         //     {
@@ -1306,7 +1306,7 @@ public class AlpacaCore extends AlpacaApi
                 Object latestQuote = this.safeDict(entry, "latestQuote", new java.util.HashMap<String, Object>() {{}});
                 Object latestTrade = this.safeDict(entry, "latestTrade", new java.util.HashMap<String, Object>() {{}});
                 String datetime = this.safeString(latestQuote, "t");
-                Object ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
                     put( "timestamp", AlpacaCore.this.parse8601(datetime) );
@@ -1860,7 +1860,7 @@ public class AlpacaCore extends AlpacaApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //    {
@@ -2051,7 +2051,7 @@ public class AlpacaCore extends AlpacaApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -2418,7 +2418,7 @@ public class AlpacaCore extends AlpacaApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // account activities ledger entry (paper-trading path), see https://github.com/ccxt/ccxt/issues/24847
@@ -2645,7 +2645,7 @@ public class AlpacaCore extends AlpacaApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );

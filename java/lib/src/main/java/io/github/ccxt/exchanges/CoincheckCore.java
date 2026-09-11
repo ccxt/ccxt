@@ -356,7 +356,7 @@ public class CoincheckCore extends CoincheckApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -495,7 +495,7 @@ public class CoincheckCore extends CoincheckApi
             }
             java.util.Map<String, Object> response = (this.privateGetExchangeOrdersOpens(parameters)).join();
             Object rawOrders = this.safeValue(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> parsedOrders = this.parseOrders(rawOrders, market, since, limit);
+            java.util.List<java.util.Map<String, Object>> parsedOrders = this.parseOrders(rawOrders, market, since, limit);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsedOrders)); i++)
             {
@@ -508,7 +508,7 @@ public class CoincheckCore extends CoincheckApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOpenOrders
@@ -590,7 +590,7 @@ public class CoincheckCore extends CoincheckApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // {
@@ -675,7 +675,7 @@ public class CoincheckCore extends CoincheckApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -1177,7 +1177,7 @@ public class CoincheckCore extends CoincheckApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits

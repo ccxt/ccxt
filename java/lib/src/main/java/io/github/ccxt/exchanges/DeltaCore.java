@@ -1141,7 +1141,7 @@ public class DeltaCore extends DeltaApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -1607,7 +1607,7 @@ public class DeltaCore extends DeltaApi
                 {
                     continue;
                 }
-                Object ticker = this.parseTicker(rawTicker);
+                java.util.Map<String, Object> ticker = this.parseTicker(rawTicker);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -1670,7 +1670,7 @@ public class DeltaCore extends DeltaApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public fetchTrades
@@ -1923,7 +1923,7 @@ public class DeltaCore extends DeltaApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object balances = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -2068,7 +2068,7 @@ public class DeltaCore extends DeltaApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // fetchPosition
@@ -2157,7 +2157,7 @@ public class DeltaCore extends DeltaApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder, cancelOrder, editOrder, fetchOpenOrders, fetchClosedOrders
@@ -3997,7 +3997,7 @@ public class DeltaCore extends DeltaApi
             //
             // {"result":{},"success":true}
             //
-            Object position = this.parsePosition(this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}}));
+            java.util.Map<String, Object> position = this.parsePosition(this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}}));
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(position));
         });
 

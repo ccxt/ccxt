@@ -602,7 +602,7 @@ public class HyperliquidCore extends HyperliquidApi
 }}));
         final Object finalExpiryMs = expiryMs;
         final Object finalExpiryDatetime = expiryDatetime;
-        java.util.Map<String, Object> marketRow = (java.util.Map<String, Object>) this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> marketRow = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", String.valueOf(outcomeId) );
             put( "market", finalParentSymbol );
             put( "base", Helpers.GetValue(Helpers.split(finalParentSymbol, "/"), 0) );

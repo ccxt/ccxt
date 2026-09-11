@@ -1157,7 +1157,7 @@ public class CoinsphCore extends CoinsphApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // publicGetOpenapiQuoteV1Ticker24hr
@@ -1517,7 +1517,7 @@ public class CoinsphCore extends CoinsphApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1661,7 +1661,7 @@ public class CoinsphCore extends CoinsphApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object balances = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -2025,7 +2025,7 @@ public class CoinsphCore extends CoinsphApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder POST /openapi/v1/order
@@ -2545,7 +2545,7 @@ public class CoinsphCore extends CoinsphApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits

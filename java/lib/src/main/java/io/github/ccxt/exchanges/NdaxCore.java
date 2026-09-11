@@ -860,7 +860,7 @@ public class NdaxCore extends NdaxApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String id = this.safeString(market, "InstrumentId");
         // const lowercaseId = this.safeStringLower (market, 'symbol');
@@ -1038,7 +1038,7 @@ public class NdaxCore extends NdaxApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTicker
@@ -1318,7 +1318,7 @@ public class NdaxCore extends NdaxApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -1592,7 +1592,7 @@ public class NdaxCore extends NdaxApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -1857,7 +1857,7 @@ public class NdaxCore extends NdaxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -2310,7 +2310,7 @@ public class NdaxCore extends NdaxApi
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "ClOrderId")));
             java.util.Map<String, Object> response = (this.privatePostCancelOrder(this.extend(request, parameters))).join();
-            Object order = this.parseOrder(response, market);
+            java.util.Map<String, Object> order = this.parseOrder(response, market);
             final Object finalClientOrderId = clientOrderId;
             return this.extend(order, new java.util.HashMap<String, Object>() {{
                 put( "id", id );
@@ -3014,7 +3014,7 @@ public class NdaxCore extends NdaxApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits

@@ -221,7 +221,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object marketId = this.safeString(data, "market");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
             Object messageHash = Helpers.add(Helpers.add(eventVar, "@"), marketId);
-            Object ticker = this.parseTicker(data, market);
+            java.util.Map<String, Object> ticker = this.parseTicker(data, market);
             Object symbol = Helpers.GetValue(ticker, "symbol");
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
             ((java.util.List<Object>)result).add(ticker);
@@ -346,7 +346,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object symbol = Helpers.GetValue(market, "symbol");
         String name = "trades";
         Object messageHash = Helpers.add(Helpers.add(name, "@"), marketId);
-        Object trade = this.parseTrade(message, market);
+        java.util.Map<String, Object> trade = this.parseTrade(message, market);
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
@@ -1454,7 +1454,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object response = this.safeList(message, "response");
         // const firstRawOrder = this.safeValue (response, 0, {});
         // const marketId = this.safeString (firstRawOrder, 'market');
-        java.util.List<Object> orders = this.parseOrders(response);
+        java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(response);
         // let messageHash = this.buildMessageHash (action, { 'market': marketId });
         // client.resolve (orders, messageHash);
         // messageHash = this.buildMessageHash (action, message);
@@ -1656,7 +1656,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         // const action = this.safeString (message, 'action');
         Object response = this.safeList(message, "response");
         // const marketId = this.safeString (firstRawTrade, 'market');
-        java.util.List<Object> trades = this.parseTrades((java.util.List<Object>)(response), null, null);
+        java.util.List<java.util.Map<String, Object>> trades = this.parseTrades((java.util.List<Object>)(response), null, null);
         // const messageHash = this.buildMessageHash (action, { 'market': marketId });
         Object messageHash = this.safeString(message, "requestId");
         client.resolve(trades, messageHash);
@@ -1711,7 +1711,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         // const messageHash = this.buildMessageHash (action, message);
         Object messageHash = this.safeString(message, "requestId");
         Object response = this.safeValue(message, "response");
-        Object withdraw = this.parseTransaction(response);
+        java.util.Map<String, Object> withdraw = this.parseTransaction(response);
         client.resolve(withdraw, messageHash);
     }
 
@@ -1768,7 +1768,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         // const messageHash = this.buildMessageHash (action, message);
         Object response = this.safeList(message, "response");
         Object messageHash = this.safeString(message, "requestId");
-        java.util.List<Object> withdrawals = this.parseTransactions((java.util.List<Object>)(response), null, null, null, new java.util.HashMap<String, Object>() {{
+        java.util.List<java.util.Map<String, Object>> withdrawals = this.parseTransactions((java.util.List<Object>)(response), null, null, null, new java.util.HashMap<String, Object>() {{
             put( "type", "withdrawal" );
         }});
         client.resolve(withdrawals, messageHash);
@@ -1857,7 +1857,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         Object response = this.safeValue(message, "response");
-        java.util.List<Object> deposits = this.parseTransactions(response, null, null, null, new java.util.HashMap<String, Object>() {{
+        java.util.List<java.util.Map<String, Object>> deposits = this.parseTransactions(response, null, null, null, new java.util.HashMap<String, Object>() {{
             put( "type", "deposit" );
         }});
         Object messageHash = this.safeString(message, "requestId");
@@ -2018,7 +2018,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //
         Object messageHash = this.safeString(message, "requestId");
         Object response = this.safeValue(message, "response", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object balance = this.parseBalance(response);
+        java.util.Map<String, Object> balance = this.parseBalance(response);
         client.resolve(balance, messageHash);
     }
 
@@ -2053,7 +2053,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         Object response = this.safeValue(message, "response", new java.util.HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(response);
+        java.util.Map<String, Object> order = this.parseOrder(response);
         Object messageHash = this.safeString(message, "requestId");
         client.resolve(order, messageHash);
     }
@@ -2149,7 +2149,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = (String) Helpers.add("order:", symbol);
-        Object order = this.parseOrder(message, market);
+        java.util.Map<String, Object> order = this.parseOrder(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2181,7 +2181,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = (String) Helpers.add("myTrades:", symbol);
-        Object trade = this.parseTrade(message, market);
+        java.util.Map<String, Object> trade = this.parseTrade(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

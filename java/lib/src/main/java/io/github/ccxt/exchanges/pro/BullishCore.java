@@ -216,7 +216,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         String symbol = (String) this.safeSymbol(marketId);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object rawTrades = this.safeList(data, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> trades = this.parseTrades(rawTrades, market);
+        java.util.List<java.util.Map<String, Object>> trades = this.parseTrades(rawTrades, market);
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -312,7 +312,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         Object marketId = this.safeString(data, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object parsed = this.parseTicker(data, market);
+        java.util.Map<String, Object> parsed = this.parseTicker(data, market);
         if (Helpers.isTrue(Helpers.isEqual(updateType, "update")))
         {
             Object ticker = this.safeDict(this.tickers, symbol, new java.util.HashMap<String, Object>() {{}});
@@ -550,7 +550,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(rawOrders, i);
-                Object parsedOrder = this.parseOrder(rawOrder);
+                java.util.Map<String, Object> parsedOrder = this.parseOrder(rawOrder);
                 Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
                 Object symbol = this.safeString(parsedOrder, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -683,7 +683,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
             {
                 Object rawTrade = Helpers.GetValue(rawTrades, i);
-                Object parsedTrade = this.parseTrade(rawTrade);
+                java.util.Map<String, Object> parsedTrade = this.parseTrade(rawTrade);
                 Helpers.callDynamically(trades, "append", new Object[]{parsedTrade});
                 Object symbol = this.safeString(parsedTrade, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -884,7 +884,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parsePosition(rawPosition);
+            java.util.Map<String, Object> position = this.parsePosition(rawPosition);
             Helpers.callDynamically(positions, "append", new Object[]{position});
             ((java.util.List<Object>)newPositions).add(position);
         }

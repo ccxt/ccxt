@@ -800,7 +800,7 @@ public class BackpackCore extends BackpackApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //     [
@@ -1054,7 +1054,7 @@ public class BackpackCore extends BackpackApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTicker/fetchTickers
@@ -1091,7 +1091,7 @@ public class BackpackCore extends BackpackApi
         }
         String change = this.safeString(ticker, "priceChange");
         final Object finalPercentage = percentage;
-        Object parsedTicker = this.safeTicker(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> parsedTicker = this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );
@@ -1115,7 +1115,7 @@ public class BackpackCore extends BackpackApi
             put( "indexPrice", null );
             put( "info", ticker );
         }}, market);
-        return parsedTicker;
+        return (java.util.Map<String, Object>) parsedTicker;
     }
 
     /**
@@ -1564,7 +1564,7 @@ public class BackpackCore extends BackpackApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1738,7 +1738,7 @@ public class BackpackCore extends BackpackApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         //     {
@@ -1925,7 +1925,7 @@ public class BackpackCore extends BackpackApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -2514,7 +2514,7 @@ public class BackpackCore extends BackpackApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -2715,7 +2715,7 @@ public class BackpackCore extends BackpackApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // fetchPositions

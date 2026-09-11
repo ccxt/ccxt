@@ -342,7 +342,7 @@ public class ZaifCore extends ZaifApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String id = this.safeString(market, "currency_pair");
         String name = this.safeString(market, "name");
@@ -408,7 +408,7 @@ public class ZaifCore extends ZaifApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object balances = this.safeValue(response, "return", new java.util.HashMap<String, Object>() {{}});
         Object deposit = this.safeValue(balances, "deposit");
@@ -497,7 +497,7 @@ public class ZaifCore extends ZaifApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // {
@@ -580,7 +580,7 @@ public class ZaifCore extends ZaifApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -763,7 +763,7 @@ public class ZaifCore extends ZaifApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -962,7 +962,7 @@ public class ZaifCore extends ZaifApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //     {

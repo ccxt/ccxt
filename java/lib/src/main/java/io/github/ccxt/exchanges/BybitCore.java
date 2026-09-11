@@ -3213,7 +3213,7 @@ public class BybitCore extends BybitApi
                 final Object finalType = type;
                 final Object finalStatus = status;
                 final Object finalExpiry = expiry;
-                java.util.Map<String, Object> parsedMarket = (java.util.Map<String, Object>) this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> parsedMarket = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "symbol", finalSymbol );
                     put( "base", finalBase );
@@ -3444,7 +3444,7 @@ public class BybitCore extends BybitApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // spot
@@ -4253,7 +4253,7 @@ public class BybitCore extends BybitApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public https://bybit-exchange.github.io/docs/v5/market/recent-trade
@@ -4677,7 +4677,7 @@ public class BybitCore extends BybitApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         // cross
@@ -5096,7 +5096,7 @@ public class BybitCore extends BybitApi
         return this.safeString(timeInForces, timeInForce, timeInForce);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // v1 for usdc normal account
@@ -7904,7 +7904,7 @@ public class BybitCore extends BybitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchWithdrawals
@@ -8447,7 +8447,7 @@ public class BybitCore extends BybitApi
             Object positions = this.safeList2(result, "list", "dataList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Long timestamp = this.safeInteger(response, "time");
             Object first = this.safeDict(positions, 0, new java.util.HashMap<String, Object>() {{}});
-            Object position = this.parsePosition(first, market);
+            java.util.Map<String, Object> position = this.parsePosition(first, market);
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
             return position;
@@ -8596,7 +8596,7 @@ public class BybitCore extends BybitApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // linear swap

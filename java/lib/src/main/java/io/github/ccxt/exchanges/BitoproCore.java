@@ -491,7 +491,7 @@ public class BitoproCore extends BitoproApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         Boolean active = (!Helpers.isEqual(this.safeBool(market, "maintain"), true));
         String id = this.safeString(market, "pair");
@@ -560,7 +560,7 @@ public class BitoproCore extends BitoproApi
         }});
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -741,7 +741,7 @@ public class BitoproCore extends BitoproApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -1123,7 +1123,7 @@ public class BitoproCore extends BitoproApi
         return result;
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         //     [{
@@ -1208,7 +1208,7 @@ public class BitoproCore extends BitoproApi
         return ((Helpers.isTrue((Helpers.isEqual(status, null))))) ? null : this.safeString(statuses, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -1827,7 +1827,7 @@ final Object finalJ = j;
         return this.safeString(states, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits

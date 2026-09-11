@@ -1054,7 +1054,7 @@ public class BitrueCore extends BitrueApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String id = this.safeString(market, "symbol", "");
         String lowercaseId = (String)this.safeStringLower(market, "symbol");
@@ -1182,7 +1182,7 @@ public class BitrueCore extends BitrueApi
         }});
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         // spot
@@ -1402,7 +1402,7 @@ public class BitrueCore extends BitrueApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchBidsAsks
@@ -1905,7 +1905,7 @@ public class BitrueCore extends BitrueApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -2082,7 +2082,7 @@ public class BitrueCore extends BitrueApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder - spot
@@ -3131,7 +3131,7 @@ public class BitrueCore extends BitrueApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits

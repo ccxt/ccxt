@@ -206,7 +206,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> parsedTrades = this.parseTrades(data, market);
+        java.util.List<java.util.Map<String, Object>> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parsedTrades)); j++)
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
@@ -302,7 +302,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
         {
             Object trade = Helpers.GetValue(rawTrades, i);
-            Object parsed = this.parseTrade(trade);
+            java.util.Map<String, Object> parsed = this.parseTrade(trade);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(trade, "symbol");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -451,7 +451,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
         {
             Object order = Helpers.GetValue(rawOrders, i);
-            Object parsed = this.parseOrder(order);
+            java.util.Map<String, Object> parsed = this.parseOrder(order);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(order, "symbol");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);

@@ -366,7 +366,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //         "o": 0.04657
         //     }
         //
-        Object ticker = this.parseTicker(message);
+        java.util.Map<String, Object> ticker = this.parseTicker(message);
         Object symbol = Helpers.GetValue(ticker, "symbol");
         String messageHash = (String) Helpers.add("ticker::", symbol);
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
@@ -1247,7 +1247,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                     Helpers.addElementToObject(result, code, account);
                 }
             }
-            Object parsedBalance = this.safeBalance(result);
+            java.util.Map<String, Object> parsedBalance = this.safeBalance(result);
             this.balance = this.extend(this.balance, parsedBalance);
             client.resolve(this.balance, messageHash);
         }

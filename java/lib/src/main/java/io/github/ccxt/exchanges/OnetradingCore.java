@@ -568,7 +568,7 @@ public class OnetradingCore extends OnetradingApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //   {
@@ -899,7 +899,7 @@ public class OnetradingCore extends OnetradingApi
         }};
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTicker, fetchTickers
@@ -1047,7 +1047,7 @@ public class OnetradingCore extends OnetradingApi
             java.util.List<Object> rawTickers = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(rawTickers, i));
+                java.util.Map<String, Object> ticker = this.parseTicker(Helpers.GetValue(rawTickers, i));
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -1265,7 +1265,7 @@ public class OnetradingCore extends OnetradingApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -1356,7 +1356,7 @@ public class OnetradingCore extends OnetradingApi
         }}, market);
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object balances = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -1436,7 +1436,7 @@ public class OnetradingCore extends OnetradingApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -1767,7 +1767,7 @@ public class OnetradingCore extends OnetradingApi
             //         "a10e9bd1-8f72-4cfe-9f1b-7f1c8a9bd8ee"
             //     ]
             //
-            Object order = this.safeOrder(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> order = this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }});
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(order));

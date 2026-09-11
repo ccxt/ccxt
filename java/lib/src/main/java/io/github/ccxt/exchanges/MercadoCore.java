@@ -466,7 +466,7 @@ public class MercadoCore extends MercadoApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -551,7 +551,7 @@ public class MercadoCore extends MercadoApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
@@ -637,7 +637,7 @@ public class MercadoCore extends MercadoApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object data = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
         Object balances = this.safeDict(data, "balance", new java.util.HashMap<String, Object>() {{}});
@@ -827,7 +827,7 @@ public class MercadoCore extends MercadoApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -1029,7 +1029,7 @@ public class MercadoCore extends MercadoApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //     {
@@ -1241,7 +1241,7 @@ public class MercadoCore extends MercadoApi
             java.util.Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
             Object responseData = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
             Object ordersRaw = this.safeValue(responseData, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> orders = this.parseOrders(ordersRaw, market, since, limit);
+            java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(ordersRaw, market, since, limit);
             Object trades = this.ordersToTrades(orders);
             return this.filterBySymbolSinceLimit(trades, Helpers.GetValue(market, "symbol"), since, limit);
         });

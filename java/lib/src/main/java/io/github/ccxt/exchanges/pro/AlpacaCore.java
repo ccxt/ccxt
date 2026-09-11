@@ -118,7 +118,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         //         "t": "2022-12-16T06:07:56.611063286Z"
         //    ]
         //
-        Object ticker = this.parseTicker(message);
+        java.util.Map<String, Object> ticker = this.parseTicker(message);
         Object symbol = Helpers.GetValue(ticker, "symbol");
         String messageHash = (String) Helpers.add("ticker:", symbol);
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -128,7 +128,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         client.resolve(ticker, messageHash);
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //    {
@@ -408,7 +408,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object parsed = this.parseTrade(message);
+        java.util.Map<String, Object> parsed = this.parseTrade(message);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         String messageHash = (String) Helpers.add(Helpers.add("trade", ":"), symbol);
         client.resolve(stored, messageHash);
@@ -572,7 +572,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
-        Object order = this.parseOrder(rawOrder);
+        java.util.Map<String, Object> order = this.parseOrder(rawOrder);
         Helpers.callDynamically(orders, "append", new Object[]{order});
         String messageHash = (String) "orders";
         client.resolve(orders, messageHash);

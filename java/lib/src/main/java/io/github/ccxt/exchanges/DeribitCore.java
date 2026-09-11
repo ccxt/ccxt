@@ -1436,7 +1436,7 @@ public class DeribitCore extends DeribitApi
 
     }
 
-    public Object parseBalance(Object balance)
+    public java.util.Map<String, Object> parseBalance(Object balance)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", balance );
@@ -1654,7 +1654,7 @@ public class DeribitCore extends DeribitApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTicker /public/ticker
@@ -1894,7 +1894,7 @@ public class DeribitCore extends DeribitApi
             java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(result, i));
+                java.util.Map<String, Object> ticker = this.parseTicker(Helpers.GetValue(result, i));
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -2001,7 +2001,7 @@ public class DeribitCore extends DeribitApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public)
@@ -2433,7 +2433,7 @@ public class DeribitCore extends DeribitApi
         return this.safeString(orderTypes, orderType, orderType);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -3353,7 +3353,7 @@ public class DeribitCore extends DeribitApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchWithdrawals
@@ -3429,7 +3429,7 @@ public class DeribitCore extends DeribitApi
         }};
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {

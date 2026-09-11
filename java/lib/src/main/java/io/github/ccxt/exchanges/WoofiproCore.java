@@ -868,7 +868,7 @@ public class WoofiproCore extends WoofiproApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //   {
@@ -1171,7 +1171,7 @@ public class WoofiproCore extends WoofiproApi
         return fee;
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public/market_trades
@@ -1465,7 +1465,7 @@ public class WoofiproCore extends WoofiproApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -2176,7 +2176,7 @@ public class WoofiproCore extends WoofiproApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // Possible input functions:
@@ -2519,7 +2519,7 @@ public class WoofiproCore extends WoofiproApi
             }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
-            Object order = this.parseOrder(data, market);
+            java.util.Map<String, Object> order = this.parseOrder(data, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         });
@@ -3356,7 +3356,7 @@ public class WoofiproCore extends WoofiproApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -3550,7 +3550,7 @@ public class WoofiproCore extends WoofiproApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         // example in fetchLedger
         Object currency = Helpers.getArg(optionalArgs, 0, null);
@@ -4203,7 +4203,7 @@ public class WoofiproCore extends WoofiproApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // {

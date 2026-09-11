@@ -825,7 +825,7 @@ public class ModetradeCore extends ModetradeApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         //   {
@@ -1098,7 +1098,7 @@ public class ModetradeCore extends ModetradeApi
         return fee;
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public/market_trades
@@ -1797,7 +1797,7 @@ public class ModetradeCore extends ModetradeApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // Possible input functions:
@@ -2155,7 +2155,7 @@ public class ModetradeCore extends ModetradeApi
             }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
-            Object order = this.parseOrder(data, market);
+            java.util.Map<String, Object> order = this.parseOrder(data, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         });
@@ -2993,7 +2993,7 @@ public class ModetradeCore extends ModetradeApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -3187,7 +3187,7 @@ public class ModetradeCore extends ModetradeApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         // example in fetchLedger
         Object currency = Helpers.getArg(optionalArgs, 0, null);
@@ -3592,7 +3592,7 @@ public class ModetradeCore extends ModetradeApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // {

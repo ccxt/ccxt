@@ -885,7 +885,7 @@ public class PhemexCore extends PhemexApi
         return this.safeNumber(parts, 0);
     }
 
-    public Object parseSwapMarket(Object market)
+    public java.util.Map<String, Object> parseSwapMarket(Object market)
     {
         //
         //     {
@@ -1042,7 +1042,7 @@ public class PhemexCore extends PhemexApi
         }});
     }
 
-    public Object parseSpotMarket(Object market)
+    public java.util.Map<String, Object> parseSpotMarket(Object market)
     {
         //
         //     {
@@ -1816,7 +1816,7 @@ public class PhemexCore extends PhemexApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // spot
@@ -2110,7 +2110,7 @@ public class PhemexCore extends PhemexApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades (public) spot & contract
@@ -2806,7 +2806,7 @@ public class PhemexCore extends PhemexApi
         return this.safeString(timeInForces, ((String)timeInForce), timeInForce);
     }
 
-    public Object parseSpotOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseSpotOrder(Object order, Object... optionalArgs)
     {
         //
         // spot
@@ -2934,7 +2934,7 @@ public class PhemexCore extends PhemexApi
         return this.safeString(sides, side, side);
     }
 
-    public Object parseSwapOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseSwapOrder(Object order, Object... optionalArgs)
     {
         //
         //     {
@@ -3134,7 +3134,7 @@ public class PhemexCore extends PhemexApi
         }});
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object isSwap = this.safeBool(market, "swap", false);
@@ -4427,7 +4427,7 @@ public class PhemexCore extends PhemexApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // withdraw
@@ -4790,7 +4790,7 @@ public class PhemexCore extends PhemexApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //    {

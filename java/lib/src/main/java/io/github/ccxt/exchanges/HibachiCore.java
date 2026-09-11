@@ -340,7 +340,7 @@ public class HibachiCore extends HibachiApi
         return id;
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         String marketId = this.safeString(market, "symbol");
         Double numericId = this.safeNumber(market, "id");
@@ -508,7 +508,7 @@ public class HibachiCore extends HibachiApi
         return result;
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -564,7 +564,7 @@ public class HibachiCore extends HibachiApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object prices = this.safeDict(ticker, "prices");
@@ -599,7 +599,7 @@ public class HibachiCore extends HibachiApi
         }}, market);
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         // public fetchTrades:
         //      {
@@ -807,7 +807,7 @@ public class HibachiCore extends HibachiApi
         return this.safeString(statuses, uppercaseStatus, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(order, "symbol");
@@ -1913,7 +1913,7 @@ public class HibachiCore extends HibachiApi
             //     }
             //
             Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> parsedOrders = this.parseOrders(orders, market);
+            java.util.List<java.util.Map<String, Object>> parsedOrders = this.parseOrders(orders, market);
             return this.filterBySymbolSinceLimit(parsedOrders, symbol, since, limit);
         });
 
@@ -2115,7 +2115,7 @@ public class HibachiCore extends HibachiApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // {
@@ -2485,7 +2485,7 @@ public class HibachiCore extends HibachiApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeIntegerProduct(transaction, "timestampSec", 1000);

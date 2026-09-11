@@ -517,7 +517,7 @@ public class IndependentreserveCore extends IndependentreserveApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -593,7 +593,7 @@ public class IndependentreserveCore extends IndependentreserveApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         // {
         //     "DayHighestPrice":43489.49,
@@ -686,7 +686,7 @@ public class IndependentreserveCore extends IndependentreserveApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // fetchOrder
@@ -1009,7 +1009,7 @@ public class IndependentreserveCore extends IndependentreserveApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.parse8601(Helpers.GetValue(trade, "TradeTimestampUtc"));
@@ -1383,7 +1383,7 @@ public class IndependentreserveCore extends IndependentreserveApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //    {

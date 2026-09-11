@@ -433,7 +433,7 @@ public class LimitlessCore extends LimitlessApi
                 Object raw = Helpers.GetValue(expandedRaw, i);
                 Object groupId = this.safeStringN(raw, new java.util.ArrayList<Object>(java.util.Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
                 Object eventKey = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(groupId, null)) && Helpers.isTrue(!Helpers.isEqual(groupId, "")))))) ? this.shortenSlug(groupId) : null;
-                Object m = this.parseMarket(raw);
+                java.util.Map<String, Object> m = this.parseMarket(raw);
                 ((java.util.List<Object>)markets).add(m);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventKey, null))) && Helpers.isTrue((!Helpers.isEqual(eventKey, "")))))
                 {
@@ -475,7 +475,7 @@ public class LimitlessCore extends LimitlessApi
 
     }
 
-    public Object parseMarket(Object raw)
+    public java.util.Map<String, Object> parseMarket(Object raw)
     {
         //
         // {
@@ -3558,7 +3558,7 @@ public class LimitlessCore extends LimitlessApi
                 Object raw = Helpers.GetValue(expandedMarkets, i);
                 Object groupId = this.safeStringN(raw, new java.util.ArrayList<Object>(java.util.Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
                 String eventKey = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(groupId, null)) && Helpers.isTrue(!Helpers.isEqual(groupId, "")))))) ? this.shortenSlug(groupId) : null;
-                Object m = this.parseMarket(raw);
+                java.util.Map<String, Object> m = this.parseMarket(raw);
                 if (Helpers.isTrue(Helpers.isEqual(m, null)))
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " fetchEvents() missing m")) ;

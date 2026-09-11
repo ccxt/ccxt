@@ -743,7 +743,7 @@ public class BtseCore extends BtseApi
 
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         // spot
@@ -1254,7 +1254,7 @@ public class BtseCore extends BtseApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -1548,7 +1548,7 @@ public class BtseCore extends BtseApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // spot rows carry the fields up to askQty, contract rows additionally carry
@@ -1882,7 +1882,7 @@ public class BtseCore extends BtseApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> trades = this.parseTrades(data, market, since, limit);
+            java.util.List<java.util.Map<String, Object>> trades = this.parseTrades(data, market, since, limit);
             if (Helpers.isTrue(Helpers.isEqual(until, null)))
             {
                 return trades;
@@ -2096,7 +2096,7 @@ public class BtseCore extends BtseApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchTrades
@@ -3139,7 +3139,7 @@ public class BtseCore extends BtseApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder - spot
@@ -3565,7 +3565,7 @@ public class BtseCore extends BtseApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         //     {
@@ -3926,7 +3926,7 @@ public class BtseCore extends BtseApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     {

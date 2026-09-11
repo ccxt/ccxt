@@ -4921,7 +4921,7 @@ final Object finalMinNotional = minNotional;
             //      }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object result = this.parseTransaction(data, currency);
+            java.util.Map<String, Object> result = this.parseTransaction(data, currency);
             Helpers.addElementToObject(result, "type", "withdrawal");
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new java.util.HashMap<String, Object>() {{}});
             Object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
@@ -5082,7 +5082,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -5395,7 +5395,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //   {
@@ -5954,7 +5954,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // spot, swap and future: fetchTrades
@@ -7000,7 +7000,7 @@ final Object finalMinNotional = minNotional;
         return this.safeBalance(result);
     }
 
-    public Object parseBalance(Object balance)
+    public java.util.Map<String, Object> parseBalance(Object balance)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", balance );
@@ -7113,7 +7113,7 @@ final Object finalMinNotional = minNotional;
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder, editOrder, closePosition
@@ -11293,7 +11293,7 @@ final Object finalMinNotional = minNotional;
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // fetchPosition

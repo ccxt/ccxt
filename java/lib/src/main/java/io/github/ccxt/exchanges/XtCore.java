@@ -1602,7 +1602,7 @@ public class XtCore extends XtApi
         return result;
     }
 
-    public Object parseMarket(Object market)
+    public java.util.Map<String, Object> parseMarket(Object market)
     {
         //
         // spot
@@ -2356,7 +2356,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(tickers, i), market);
+                java.util.Map<String, Object> ticker = this.parseTicker(Helpers.GetValue(tickers, i), market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -2465,7 +2465,7 @@ public class XtCore extends XtApi
                 String marketId = this.safeString(rawTicker, "s");
                 String marketType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
                 java.util.Map<String, Object> marketInner = (java.util.Map<String, Object>) this.safeMarket(marketId, market, "_", marketType);
-                Object ticker = this.parseTicker(rawTicker, marketInner);
+                java.util.Map<String, Object> ticker = this.parseTicker(rawTicker, marketInner);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -2477,7 +2477,7 @@ public class XtCore extends XtApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // spot: fetchTicker, fetchTickers
@@ -2794,7 +2794,7 @@ public class XtCore extends XtApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // spot: fetchTrades
@@ -3083,7 +3083,7 @@ public class XtCore extends XtApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         //
         // spot
@@ -4287,7 +4287,7 @@ public class XtCore extends XtApi
                 // the track endpoints do not support a server-side state filter
                 // and return entries in every state, so filter by status first,
                 // otherwise since/limit could cut off matching rows
-                java.util.List<Object> parsedOrders = this.parseOrders(orders, market);
+                java.util.List<java.util.Map<String, Object>> parsedOrders = this.parseOrders(orders, market);
                 Object filteredOrders = this.filterBy(parsedOrders, "status", status);
                 return this.filterBySinceLimit(filteredOrders, since, limit);
             }
@@ -4704,7 +4704,7 @@ public class XtCore extends XtApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // spot: createOrder
@@ -5350,7 +5350,7 @@ public class XtCore extends XtApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits
@@ -6717,7 +6717,7 @@ final Object finalMarket = market;
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         // position/list

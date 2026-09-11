@@ -1222,7 +1222,7 @@ public class HitbtcCore extends HitbtcApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -1395,7 +1395,7 @@ public class HitbtcCore extends HitbtcApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -1489,7 +1489,7 @@ public class HitbtcCore extends HitbtcApi
                 Object marketId = Helpers.GetValue(marketIds, i);
                 java.util.Map<String, Object> marketInner = (java.util.Map<String, Object>) this.market(marketId);
                 Object rawTrades = this.safeList(response, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                java.util.List<Object> parsed = this.parseTrades(rawTrades, marketInner);
+                java.util.List<java.util.Map<String, Object>> parsed = this.parseTrades(rawTrades, marketInner);
                 trades = this.arrayConcat(trades, parsed);
             }
             return trades;
@@ -1574,7 +1574,7 @@ public class HitbtcCore extends HitbtcApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // createOrder (market)
@@ -1771,7 +1771,7 @@ public class HitbtcCore extends HitbtcApi
         return this.safeString(types, ((String)type), type);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // transaction
@@ -2350,7 +2350,7 @@ public class HitbtcCore extends HitbtcApi
                     throw new NotSupported((String)Helpers.add(this.id, " fetchClosedOrders() not support this market type")) ;
                 }
             }
-            java.util.List<Object> parsed = this.parseOrders(response, market, since, limit);
+            java.util.List<java.util.Map<String, Object>> parsed = this.parseOrders(response, market, since, limit);
             return this.filterByArray(parsed, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("closed", "canceled")), false);
         });
 
@@ -3061,7 +3061,7 @@ public class HitbtcCore extends HitbtcApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // limit
@@ -3790,7 +3790,7 @@ public class HitbtcCore extends HitbtcApi
 
     }
 
-    public Object parsePosition(Object position, Object... optionalArgs)
+    public java.util.Map<String, Object> parsePosition(Object position, Object... optionalArgs)
     {
         //
         //     [

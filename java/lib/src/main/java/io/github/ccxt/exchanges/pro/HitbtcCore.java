@@ -1110,7 +1110,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         Object splitMethod = Helpers.split(method, "_order");
         Object messageHash = this.safeString(splitMethod, 0);
         String symbol = (String) this.safeSymbol(marketId);
-        Object parsed = this.parseOrder(order);
+        java.util.Map<String, Object> parsed = this.parseOrder(order);
         Helpers.callDynamically(orders, "append", new Object[]{parsed});
         client.resolve(orders, messageHash);
         client.resolve(orders, Helpers.add(Helpers.add(messageHash, "::"), symbol));
@@ -1527,7 +1527,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //
         Object messageHash = this.safeString(message, "method");
         Object parameters = this.safeValue(message, "params");
-        Object balance = this.parseBalance(parameters);
+        java.util.Map<String, Object> balance = this.parseBalance(parameters);
         this.balance = this.deepExtend(this.balance, balance);
         client.resolve(this.balance, messageHash);
     }

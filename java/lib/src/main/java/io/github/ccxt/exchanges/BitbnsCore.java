@@ -513,7 +513,7 @@ public class BitbnsCore extends BitbnsApi
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -631,7 +631,7 @@ public class BitbnsCore extends BitbnsApi
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object timestamp = null;
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -718,7 +718,7 @@ public class BitbnsCore extends BitbnsApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -1075,7 +1075,7 @@ public class BitbnsCore extends BitbnsApi
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // fetchMyTrades
@@ -1424,7 +1424,7 @@ public class BitbnsCore extends BitbnsApi
         return this.safeString(statuses, status, status);
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // fetchDeposits

@@ -557,7 +557,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         {
             return;
         }
-        java.util.List<Object> parsedTrades = this.parseTrades(data, market);
+        java.util.List<java.util.Map<String, Object>> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parsedTrades)); j++)
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
@@ -1125,7 +1125,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object stored = this.orders;
-            java.util.List<Object> parsed = this.parseOrders(orders);
+            java.util.List<java.util.Map<String, Object>> parsed = this.parseOrders(orders);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
             {
                 Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsed, i)});
@@ -1287,7 +1287,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object position = this.parsePosition(rawPosition);
+            java.util.Map<String, Object> position = this.parsePosition(rawPosition);
             ((java.util.List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
@@ -1490,7 +1490,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //
         Object messageHash = this.safeString(message, "id");
         Object rawOrder = this.safeValue(message, "result", new java.util.HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(rawOrder);
+        java.util.Map<String, Object> order = this.parseOrder(rawOrder);
         client.resolve(order, messageHash);
     }
 
