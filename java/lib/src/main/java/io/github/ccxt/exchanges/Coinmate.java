@@ -130,18 +130,6 @@ public class Coinmate extends CoinmateCore {
     public CompletableFuture<Long> fetchTimeAsync() { return fetchTimeAsync((Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
-    public Map<String, Object> fetchTradingLimits(List<String> symbols, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchTradingLimits(symbols, params));
-        return (Map<String, Object>) res;
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Map<String, Object>> fetchTradingLimitsAsync(List<String> symbols, Map<String, Object> params) {
-        return super.fetchTradingLimits(symbols, params).thenApply(res -> (Map<String, Object>) res);
-    }
-    public Map<String, Object> fetchTradingLimits(String[] symbols, Map<String, Object> params) { return fetchTradingLimits(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-    public CompletableFuture<Map<String, Object>> fetchTradingLimitsAsync(String[] symbols, Map<String, Object> params) { return fetchTradingLimitsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
     public CrossBorrowRates fetchCrossBorrowRates(Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchCrossBorrowRates(params));
         return new CrossBorrowRates(res);
@@ -260,20 +248,6 @@ public class Coinmate extends CoinmateCore {
     public CompletableFuture<Leverages> fetchLeveragesAsync(String[] symbols, Map<String, Object> params) { return fetchLeveragesAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
     @SuppressWarnings("unchecked")
-    public Map<String, Object> setPositionMode(Boolean hedged, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.setPositionMode(hedged, symbol, params));
-        return (Map<String, Object>) res;
-    }
-    public Map<String, Object> setPositionMode(Boolean hedged) { return setPositionMode(hedged, (String) null, (Map<String, Object>) null); }
-    public Map<String, Object> setPositionMode(Boolean hedged, String symbol) { return setPositionMode(hedged, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Map<String, Object>> setPositionModeAsync(Boolean hedged, String symbol, Map<String, Object> params) {
-        return super.setPositionMode(hedged, symbol, params).thenApply(res -> (Map<String, Object>) res);
-    }
-    public CompletableFuture<Map<String, Object>> setPositionModeAsync(Boolean hedged) { return setPositionModeAsync(hedged, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<Map<String, Object>> setPositionModeAsync(Boolean hedged, String symbol) { return setPositionModeAsync(hedged, symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
     public MarginModification addMargin(String symbol, Double amount, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.addMargin(symbol, amount, params));
         return new MarginModification(res);
@@ -344,20 +318,6 @@ public class Coinmate extends CoinmateCore {
     }
 
     @SuppressWarnings("unchecked")
-    public Map<String, Object> setMarginMode(String marginMode, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.setMarginMode(marginMode, symbol, params));
-        return (Map<String, Object>) res;
-    }
-    public Map<String, Object> setMarginMode(String marginMode) { return setMarginMode(marginMode, (String) null, (Map<String, Object>) null); }
-    public Map<String, Object> setMarginMode(String marginMode, String symbol) { return setMarginMode(marginMode, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Map<String, Object>> setMarginModeAsync(String marginMode, String symbol, Map<String, Object> params) {
-        return super.setMarginMode(marginMode, symbol, params).thenApply(res -> (Map<String, Object>) res);
-    }
-    public CompletableFuture<Map<String, Object>> setMarginModeAsync(String marginMode) { return setMarginModeAsync(marginMode, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<Map<String, Object>> setMarginModeAsync(String marginMode, String symbol) { return setMarginModeAsync(marginMode, symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
     public DepositAddresses fetchDepositAddressesByNetwork(String code, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchDepositAddressesByNetwork(code, params));
         return new DepositAddresses(res);
@@ -398,16 +358,6 @@ public class Coinmate extends CoinmateCore {
     }
     public OpenInterests fetchOpenInterests(String[] symbols, Map<String, Object> params) { return fetchOpenInterests(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<OpenInterests> fetchOpenInterestsAsync(String[] symbols, Map<String, Object> params) { return fetchOpenInterestsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
-
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> fetchPaymentMethods(Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.fetchPaymentMethods(params));
-        return (Map<String, Object>) res;
-    }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Map<String, Object>> fetchPaymentMethodsAsync(Map<String, Object> params) {
-        return super.fetchPaymentMethods(params).thenApply(res -> (Map<String, Object>) res);
-    }
 
     @SuppressWarnings("unchecked")
     public MarginLoan repayCrossMargin(String code, Double amount, Map<String, Object> params) {
@@ -902,18 +852,6 @@ public class Coinmate extends CoinmateCore {
     }
 
     @SuppressWarnings("unchecked")
-    public Map<String, Object> cancelAllOrdersAfter(Long timeout, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.cancelAllOrdersAfter(timeout, params));
-        return (Map<String, Object>) res;
-    }
-    public Map<String, Object> cancelAllOrdersAfter(Long timeout) { return cancelAllOrdersAfter(timeout, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Map<String, Object>> cancelAllOrdersAfterAsync(Long timeout, Map<String, Object> params) {
-        return super.cancelAllOrdersAfter(timeout, params).thenApply(res -> (Map<String, Object>) res);
-    }
-    public CompletableFuture<Map<String, Object>> cancelAllOrdersAfterAsync(Long timeout) { return cancelAllOrdersAfterAsync(timeout, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
     public List<Order> cancelOrdersForSymbols(Object orders, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.cancelOrdersForSymbols(orders, params));
         return toTypedList(res, Order::new);
@@ -968,10 +906,14 @@ public class Coinmate extends CoinmateCore {
         Object res = Helpers.joinUnwrapped(super.fetchAllGreeks(symbols, params));
         return new AllGreeks(res);
     }
+    public AllGreeks fetchAllGreeks() { return fetchAllGreeks((List<String>) null, (Map<String, Object>) null); }
+    public AllGreeks fetchAllGreeks(List<String> symbols) { return fetchAllGreeks(symbols, (Map<String, Object>) null); }
     @SuppressWarnings("unchecked")
     public CompletableFuture<AllGreeks> fetchAllGreeksAsync(List<String> symbols, Map<String, Object> params) {
         return super.fetchAllGreeks(symbols, params).thenApply(AllGreeks::new);
     }
+    public CompletableFuture<AllGreeks> fetchAllGreeksAsync() { return fetchAllGreeksAsync((List<String>) null, (Map<String, Object>) null); }
+    public CompletableFuture<AllGreeks> fetchAllGreeksAsync(List<String> symbols) { return fetchAllGreeksAsync(symbols, (Map<String, Object>) null); }
     public AllGreeks fetchAllGreeks(String[] symbols, Map<String, Object> params) { return fetchAllGreeks(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
     public CompletableFuture<AllGreeks> fetchAllGreeksAsync(String[] symbols, Map<String, Object> params) { return fetchAllGreeksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
 
@@ -1098,18 +1040,6 @@ public class Coinmate extends CoinmateCore {
         return super.fetchMarketLeverageTiers(symbol, params).thenApply(res -> toTypedList(res, LeverageTier::new));
     }
     public CompletableFuture<List<LeverageTier>> fetchMarketLeverageTiersAsync(String symbol) { return fetchMarketLeverageTiersAsync(symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
-    public Map<String, Object> createSubAccount(String name, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.createSubAccount(name, params));
-        return (Map<String, Object>) res;
-    }
-    public Map<String, Object> createSubAccount(String name) { return createSubAccount(name, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Map<String, Object>> createSubAccountAsync(String name, Map<String, Object> params) {
-        return super.createSubAccount(name, params).thenApply(res -> (Map<String, Object>) res);
-    }
-    public CompletableFuture<Map<String, Object>> createSubAccountAsync(String name) { return createSubAccountAsync(name, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
     public LastPrices fetchLastPrices(List<String> symbols, Map<String, Object> params) {
