@@ -1880,6 +1880,7 @@ public class BaseExchange {
             // threads ~1KB each); we'll address it via a different mechanism
             // (e.g. shutdown-on-Exchange.close() only, or a delayed shutdown).
         }
+        client.scheduleExecutorShutdown();
     }
 
     /**
