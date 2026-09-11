@@ -1,10 +1,11 @@
 // ccxt-cli: live exchange calls through the C++ runtime.
 //
-// usage: ccxt-cli <exchangeId> <method> [arg...] [--verbose] [--timeout N]
+// usage: ccxt-cli <exchangeId> <method> [arg...] [--verbose] [--timeout N] [--prediction]
 //   positional args after <method> are passed to the method as strings
 //   (symbols, since/limit etc.); numeric args are converted via parseNumber
 //   so fetchTicker BTC/USDT and fetchOHLCV BTC/USDT 1h 100 work.
 //   watch*/unWatch* methods run through the pro (WebSocket) tier.
+//   --prediction routes through the prediction tier (ccxt::prediction::factory).
 //   --timeout N bounds a watch call to N seconds (default: wait forever).
 //
 // The result is printed as JSON on stdout; errors go to stderr with a
@@ -12,6 +13,7 @@
 
 #include "../ccxt/exchanges/ExchangeFactory.h"
 #include "../ccxt/pro/ProExchangeFactory.h"
+#include "../ccxt/prediction/PredictionFactory.h"
 #include "../ccxt/base/ExchangeBase.h"
 
 #include <chrono>
@@ -49,11 +51,14 @@ int main (int argc, char** argv) {
     const std::string method = argv[2];
     std::vector<std::any> args;
     bool verbose = false;
+    bool prediction = false;
     int timeoutSeconds = 0;
     for (int i = 3; i < argc; i++) {
         const std::string arg = argv[i];
         if (arg == "--verbose") {
             verbose = true;
+        } else if (arg == "--prediction") {
+            prediction = true;
         } else if (arg == "--timeout") {
             if (i + 1 < argc) {
                 timeoutSeconds = std::atoi (argv[++i]);
@@ -85,9 +90,11 @@ int main (int argc, char** argv) {
             }
         }
         const bool isWsMethod = method.rfind ("watch", 0) == 0 || method.rfind ("unWatch", 0) == 0;
-        std::shared_ptr<ccxt::ExchangeBase> exchange = isWsMethod
-            ? ccxt::pro::factory::createProExchange (exchangeId, config)
-            : ccxt::factory::createExchange (exchangeId, config);
+        std::shared_ptr<ccxt::ExchangeBase> exchange = prediction
+            ? ccxt::prediction::factory::createPredictionExchange (exchangeId, config)
+            : isWsMethod
+                ? ccxt::pro::factory::createProExchange (exchangeId, config)
+                : ccxt::factory::createExchange (exchangeId, config);
         if (verbose) {
             exchange->verbose = std::any (true);
         }

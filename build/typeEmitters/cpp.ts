@@ -50,7 +50,6 @@ const TS_TO_CPP: Record<string, string> = {
 
 // declarations that never become C++ structs
 const SKIP_TYPES: RegExp[] = [
-    /^Prediction/,          // prediction tier is not ported to C++ yet
     /^FeeStringInterface$/, // internal Precise-pipeline bag
 ];
 
@@ -765,6 +764,15 @@ function emitCpp (ir: TypesIR): string {
     out.push ('#include <vector>');
     out.push ('');
     out.push ('namespace ccxt {');
+    // C++ requires declaration-before-use, and the TS declaration order is not a
+    // topological order (PredictionMarket references PredictionOutcome declared
+    // below it), so forward-declare every emitted struct up front
+    for (const type of ir.types) {
+        if (isSkipped (type.name)) { continue; }
+        if (type.kind !== 'interface' && type.kind !== 'dictionary' && type.kind !== 'tuple') { continue; }
+        out.push ('struct ' + cppName (type.name) + ';');
+    }
+    out.push ('');
     out.push (SUPPORT.trimEnd ());
     out.push ('');
     const changed: string[] = [];

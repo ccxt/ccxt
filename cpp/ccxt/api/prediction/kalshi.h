@@ -7,14 +7,16 @@
 
 #pragma once
 
-#include "../base/Exchange.h"
+#include "../../base/PredictionExchange.h"
 
 namespace ccxt {
 
-class kalshiApi : public Exchange {
+namespace prediction {
+
+class kalshiApi : public PredictionExchange {
 public:
     kalshiApi () = default;
-    explicit kalshiApi (std::any config) : Exchange (config) {}
+    explicit kalshiApi (std::any config) : PredictionExchange (config) {}
 
     // Calls the kalshiPublicGetEvents endpoint. Returns a JSON object.
     virtual std::shared_future<std::any> kalshiPublicGetEvents (std::any parameters = ccxt::dict {}) {
@@ -388,4 +390,5 @@ public:
 
 };
 
+} // namespace prediction
 } // namespace ccxt
