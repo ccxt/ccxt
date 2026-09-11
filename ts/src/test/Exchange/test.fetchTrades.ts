@@ -34,7 +34,7 @@ async function testFetchTrades (exchange: Exchange, skippedProperties: object, s
     if (!('timestampSort' in skippedProperties)) {
         testSharedMethods.assertTimestampOrder (exchange, method, symbol, trades);
     }
-    if (!('sideSequence' in skippedProperties)) {
+    if (!('side' in skippedProperties) && !('sideSequence' in skippedProperties)) {
         await helperTestFetchTradesSideSequence (exchange, skippedProperties, symbol, method, trades);
     }
     return true;
