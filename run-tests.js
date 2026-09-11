@@ -82,7 +82,11 @@ if (maxConcurrency === undefined) {
     const lightLangKeys = [ '--js', '--ts', '--python', '--python-async', '--php', '--php-async' ]
     const selectedLangs = Object.keys (langKeys).filter (key => langKeys[key])
     const onlyLightLangs = (selectedLangs.length > 0) && selectedLangs.every (key => lightLangKeys.includes (key))
-    maxConcurrency = langKeys['--java'] ? 3 : (onlyLightLangs ? 20 : 5)
+    // Live tests are network-bound: the processes sit in epoll/futex waiting on exchange
+    // endpoints, so concurrency is limited by memory, not CPU. A rust tests.bin holds
+    // ~100-270 MB, so 20 is affordable and keeps the lane from serialising on latency.
+    const onlyRust = (selectedLangs.length === 1) && langKeys['--rust']
+    maxConcurrency = langKeys['--java'] ? 3 : ((onlyLightLangs || onlyRust) ? 20 : 5)
 }
 
 const wsFlag = exchangeSpecificFlags['--ws'] ? 'WS': '';
