@@ -383,7 +383,7 @@ function renderField (ir: TypesIR, field: IRField, javaName: string, existing: E
         if (isNumericTuple (element)) {
             return {
                 'javaType': 'List<List<Double>>',
-                'statements': [ BODY + 'this.' + javaName + ' = parseEntries(data.get("' + key + '"));' ],
+                'statements': [ BODY + 'this.' + javaName + ' = parseEntries(data == null ? null : data.get("' + key + '"));' ],
                 'needsCollectors': false,
             };
         }
