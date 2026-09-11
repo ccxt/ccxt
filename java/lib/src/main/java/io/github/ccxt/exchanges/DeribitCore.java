@@ -803,8 +803,8 @@ public class DeribitCore extends DeribitApi
         // support expired option contracts
         String quote = "USD";
         Object settle = null;
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(symbol, "-");
+        java.util.List<Object> symbolBase = (java.util.List<Object>) Helpers.split(symbol, "/");
         Object base = null;
         Object expiry = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
@@ -835,7 +835,7 @@ public class DeribitCore extends DeribitApi
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(base, "_"), Helpers.opNeg(1))))
         {
-            Object splitSymbol = Helpers.split(base, "_");
+            java.util.List<Object> splitSymbol = (java.util.List<Object>) Helpers.split(base, "_");
             splitBase = this.safeString(splitSymbol, 0);
         }
         String strike = this.safeString(optionParts, 2);
@@ -978,7 +978,7 @@ public class DeribitCore extends DeribitApi
             //        "testnet": false
             //    }
             //
-            Object data = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseCurrencies(data);
         });
 
@@ -1204,7 +1204,7 @@ public class DeribitCore extends DeribitApi
                 //         "testnet": false
                 //     }
                 //
-                Object currenciesResult = this.safeList(currenciesResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> currenciesResult = (java.util.List<Object>) this.safeList(currenciesResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currenciesResult)); i++)
                 {
                     String currencyId = this.safeString(Helpers.GetValue(currenciesResult, i), "currency");
@@ -1290,7 +1290,7 @@ public class DeribitCore extends DeribitApi
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(instrumentsResponses)); i++)
             {
-                Object instrumentsResult = this.safeList(Helpers.GetValue(instrumentsResponses, i), "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> instrumentsResult = (java.util.List<Object>) this.safeList(Helpers.GetValue(instrumentsResponses, i), "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var k = 0; Helpers.isLessThan(k, Helpers.getArrayLength(instrumentsResult)); k++)
                 {
                     Object market = Helpers.GetValue(instrumentsResult, k);
@@ -1543,7 +1543,7 @@ public class DeribitCore extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseBalance(result);
         });
 
@@ -1890,7 +1890,7 @@ public class DeribitCore extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
@@ -2259,7 +2259,7 @@ public class DeribitCore extends DeribitApi
             //     }
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object fees = this.safeList(result, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> fees = (java.util.List<Object>) this.safeList(result, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> perpetualFee = new java.util.HashMap<String, Object>() {{}};
             java.util.Map<String, Object> futureFee = new java.util.HashMap<String, Object>() {{}};
             java.util.Map<String, Object> optionFee = new java.util.HashMap<String, Object>() {{}};
@@ -3683,7 +3683,7 @@ public class DeribitCore extends DeribitApi
         //         "testnet": false
         //     }
         //
-        Object volatilityResult = this.safeList(volatility, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> volatilityResult = (java.util.List<Object>) this.safeList(volatility, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(volatilityResult)); i++)
         {
@@ -4004,7 +4004,7 @@ public class DeribitCore extends DeribitApi
             //      "testnet": true
             //    }
             //
-            Object data = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "currency");
         });
 
@@ -4147,7 +4147,7 @@ public class DeribitCore extends DeribitApi
             //    }
             //
             java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object fr = Helpers.GetValue(result, i);
@@ -4292,7 +4292,7 @@ public class DeribitCore extends DeribitApi
     {
         if (Helpers.isTrue(!Helpers.isEqual(cursor, null)))
         {
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0)))
             {
                 Object first = Helpers.GetValue(data, 0);
@@ -4613,7 +4613,7 @@ public class DeribitCore extends DeribitApi
             //         "testnet": false
             //     }
             //
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object chain = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOption(chain, null, market);
         });
@@ -4797,8 +4797,8 @@ public class DeribitCore extends DeribitApi
             //         "testnet": true
             //     }
             //
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object data = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOpenInterest(data, market);
         });
 
@@ -4879,8 +4879,8 @@ public class DeribitCore extends DeribitApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
-            Object timestamp = String.valueOf(this.milliseconds());
+            String nonce = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.milliseconds());
             String requestBody = "";
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {

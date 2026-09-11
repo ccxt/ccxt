@@ -418,8 +418,8 @@ public class CexCore extends CexApi
             //            ...
             //
             Object responses = (Helpers.promiseAll(promises)).join();
-            Object dataCurrencies = this.safeList(Helpers.GetValue(responses, 0), "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object dataNetworks = this.safeDict(Helpers.GetValue(responses, 1), "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> dataCurrencies = (java.util.List<Object>) this.safeList(Helpers.GetValue(responses, 0), "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> dataNetworks = (java.util.Map<String, Object>) this.safeDict(Helpers.GetValue(responses, 1), "data", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");
             java.util.Map<String, Object> data = this.deepExtend(currenciesIndexed, dataNetworks);
             return this.parseCurrencies(this.toArray(data));
@@ -435,7 +435,7 @@ public class CexCore extends CexApi
         String type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
         Object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
-        Object rawNetworks = this.safeDict(rawCurrency, "blockchains", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> rawNetworks = (java.util.Map<String, Object>) this.safeDict(rawCurrency, "blockchains", new java.util.HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(rawNetworks);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
         {
@@ -531,7 +531,7 @@ public class CexCore extends CexApi
             //            },
             //            ...
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(data);
         });
 
@@ -623,7 +623,7 @@ public class CexCore extends CexApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "data");
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
             Long timestamp = this.safeInteger(data, "timestamp");
             return timestamp;
         });
@@ -707,7 +707,7 @@ public class CexCore extends CexApi
             //            },
             //            ...
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTickers(data, symbols);
         });
 
@@ -801,8 +801,8 @@ public class CexCore extends CexApi
             //                },
             //                ... followed by older trades
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(data, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         });
 
@@ -887,7 +887,7 @@ public class CexCore extends CexApi
             //                ],
             //                ...
             //
-            Object orderBook = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> orderBook = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(orderBook, "timestamp");
             return this.parseOrderBook(orderBook, Helpers.GetValue(market, "symbol"), timestamp);
         });
@@ -980,7 +980,7 @@ public class CexCore extends CexApi
             //            },
             //            ...
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         });
 
@@ -1021,8 +1021,8 @@ public class CexCore extends CexApi
             //                },
             //                ...
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object fees = this.safeDict(data, "tradingFee", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> fees = (java.util.Map<String, Object>) this.safeDict(data, "tradingFee", new java.util.HashMap<String, Object>() {{}});
             return this.parseTradingFees(fees, true);
         });
 
@@ -1104,8 +1104,8 @@ public class CexCore extends CexApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object balances = this.safeDict(data, "balancesPerAccounts", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> balances = (java.util.Map<String, Object>) this.safeDict(data, "balancesPerAccounts", new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> arrays = this.toArray(balances);
             return this.parseAccounts(arrays, parameters);
         });
@@ -1163,8 +1163,8 @@ public class CexCore extends CexApi
                 //                    },
                 //                    ....
                 //
-                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                Object balances = this.safeDict(data, "balancesPerAccounts", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> balances = (java.util.Map<String, Object>) this.safeDict(data, "balancesPerAccounts", new java.util.HashMap<String, Object>() {{}});
                 accountBalance = this.safeDict(balances, accountName, new java.util.HashMap<String, Object>() {{}});
             } else
             {
@@ -1197,7 +1197,7 @@ public class CexCore extends CexApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            Object balance = this.safeDict(response, key, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> balance = (java.util.Map<String, Object>) this.safeDict(response, key, new java.util.HashMap<String, Object>() {{}});
             String code = (String) this.safeCurrencyCode(key);
             java.util.Map<String, Object> account = new java.util.HashMap<String, Object>() {{
                 put( "used", CexCore.this.safeString(balance, "balanceOnHold") );
@@ -1310,7 +1310,7 @@ public class CexCore extends CexApi
             //            },
             //            ...
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -1647,7 +1647,7 @@ public class CexCore extends CexApi
             //             "rejectCode": 405,
             //             "rejectReason": "Either AmountCcy1 (OrderQty) or AmountCcy2 (CashOrderQty) should be specified for market order not both",
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -1683,7 +1683,7 @@ public class CexCore extends CexApi
             //
             //      {"ok":"ok","data":{}}
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         });
 
@@ -1720,8 +1720,8 @@ public class CexCore extends CexApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object ids = this.safeList(data, "clientOrderIds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> ids = (java.util.List<Object>) this.safeList(data, "clientOrderIds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
@@ -1799,7 +1799,7 @@ public class CexCore extends CexApi
             //            },
             //            ...
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLedger(data, currency, since, limit);
         });
 
@@ -1920,7 +1920,7 @@ public class CexCore extends CexApi
             //            },
             //            ...
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         });
 
@@ -2052,7 +2052,7 @@ public class CexCore extends CexApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransfer(data, currency);
         });
 
@@ -2084,7 +2084,7 @@ public class CexCore extends CexApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransfer(data, currency);
         });
 
@@ -2182,7 +2182,7 @@ public class CexCore extends CexApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseDepositAddress(data, currency);
         });
 
@@ -2232,7 +2232,7 @@ public class CexCore extends CexApi
         } else
         {
             this.checkRequiredCredentials();
-            Object seconds = String.valueOf(this.seconds());
+            String seconds = String.valueOf(this.seconds());
             body = this.json(query);
             Object auth = Helpers.add(Helpers.add(path, seconds), body);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
@@ -2285,7 +2285,7 @@ public class CexCore extends CexApi
         // check errors in order-engine (the responses are not standard, so we parse here)
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "do_my_new_order"), 0)))
         {
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String rejectReason = this.safeString(data, "rejectReason");
             if (Helpers.isTrue(!Helpers.isEqual(rejectReason, null)))
             {

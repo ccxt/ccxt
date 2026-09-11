@@ -184,7 +184,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
 
     public void handleTrades(Client client, Object message)
     {
-        Object payload = this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> payload = (java.util.List<Object>) this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         //
         // initial snapshot
         //
@@ -303,7 +303,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        Object payload = this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> payload = (java.util.List<Object>) this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         //
         //     [
         //         [
@@ -345,7 +345,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 }
                 java.util.List<Object> parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseToInt(Helpers.multiply((Helpers.divide(timestamp, duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
                 Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object length = Helpers.getArrayLength(stored);
+                Integer length = Helpers.getArrayLength(stored);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(length, 0))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(parsed, 0), Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0))))))
                 {
                     Object previous = Helpers.GetValue(stored, Helpers.subtract(length, 1));
@@ -480,7 +480,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        Object payload = this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> payload = (java.util.List<Object>) this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         //
         //     [
         //         0,   // 0 MDUpdateId

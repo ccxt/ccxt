@@ -868,7 +868,7 @@ public class TokocryptoCore extends TokocryptoApi
                 (this.loadTimeDifference()).join();
             }
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object list = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> list = (java.util.List<Object>) this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(list)); i++)
             {
@@ -886,7 +886,7 @@ public class TokocryptoCore extends TokocryptoApi
                 java.util.Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
                 String status = this.safeString(market, "spotTradingEnable");
                 Boolean active = (Helpers.isEqual(status, "1"));
-                Object permissions = this.safeList(market, "permissions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> permissions = (java.util.List<Object>) this.safeList(market, "permissions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(permissions)); j++)
                 {
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(permissions, j), "TRD_GRP_003")))
@@ -953,7 +953,7 @@ public class TokocryptoCore extends TokocryptoApi
                 }};
                 if (Helpers.isTrue(Helpers.inOp(filtersByType, "PRICE_FILTER")))
                 {
-                    Object filter = this.safeDict(filtersByType, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
+                    java.util.Map<String, Object> filter = (java.util.Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
                     Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "price", this.safeNumber(filter, "tickSize"));
                     // PRICE_FILTER reports zero values for maxPrice
                     // since they updated filter types in November 2018
@@ -1287,8 +1287,8 @@ public class TokocryptoCore extends TokocryptoApi
                 //        "timestamp": 1787318052414
                 //    }
                 //
-                Object data = this.safeDict(responseInner, "data", new java.util.HashMap<String, Object>() {{}});
-                Object list = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(responseInner, "data", new java.util.HashMap<String, Object>() {{}});
+                java.util.List<Object> list = (java.util.List<Object>) this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseTrades(list, market, since, limit);
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1490,7 +1490,7 @@ public class TokocryptoCore extends TokocryptoApi
      */
     public Object isNativeMarket(Object market)
     {
-        Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> marketInfo = (java.util.Map<String, Object>) this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
         String symbolType = this.safeString(marketInfo, "type");
         // a market with an unknown symbol type falls back to the binance backed
         // host, the route that answers with data for every symbol type 1 market
@@ -1546,7 +1546,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object response = (this.binanceGetTicker24hr(this.extend(request, parameters))).join();
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                Object firstTicker = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> firstTicker = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
                 return this.parseTicker(firstTicker, market);
             }
             return this.parseTicker(response, market);
@@ -1724,13 +1724,13 @@ public class TokocryptoCore extends TokocryptoApi
                 data = response;
             } else
             {
-                Object dataList = this.safeList(response, "data");
+                java.util.List<Object> dataList = (java.util.List<Object>) this.safeList(response, "data");
                 if (Helpers.isTrue(!Helpers.isEqual(dataList, null)))
                 {
                     data = dataList;
                 } else
                 {
-                    Object dataDict = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                    java.util.Map<String, Object> dataDict = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                     data = this.safeList(dataDict, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 }
             }
@@ -1806,7 +1806,7 @@ public class TokocryptoCore extends TokocryptoApi
             put( "datetime", TokocryptoCore.this.iso8601(timestamp) );
         }};
         Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-        Object balances = this.safeList(data, "accountAssets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> balances = (java.util.List<Object>) this.safeList(data, "accountAssets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object balance = Helpers.GetValue(balances, i);
@@ -2046,15 +2046,15 @@ public class TokocryptoCore extends TokocryptoApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
-            Object postOnly = this.safeBool(parameters, "postOnly", false);
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             // only supported for spot/margin api
             if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 type = "LIMIT_MAKER";
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId")));
-            Object initialUppercaseType = ((String)type).toUpperCase();
-            Object uppercaseType = initialUppercaseType;
+            String initialUppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = initialUppercaseType;
             Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
@@ -2237,7 +2237,7 @@ public class TokocryptoCore extends TokocryptoApi
             //         "timestamp": 1662710994975
             //     }
             //
-            Object rawOrder = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> rawOrder = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder, market);
         });
 
@@ -2296,7 +2296,7 @@ public class TokocryptoCore extends TokocryptoApi
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object list = this.safeValue(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rawOrder = this.safeDict(list, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> rawOrder = (java.util.Map<String, Object>) this.safeDict(list, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder);
         });
 
@@ -2377,7 +2377,7 @@ public class TokocryptoCore extends TokocryptoApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
 
@@ -2487,7 +2487,7 @@ public class TokocryptoCore extends TokocryptoApi
             //         "timestamp": 1662710683634
             //     }
             //
-            Object rawOrder = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> rawOrder = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(rawOrder);
         });
 
@@ -2566,7 +2566,7 @@ public class TokocryptoCore extends TokocryptoApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         });
 
@@ -2714,7 +2714,7 @@ public class TokocryptoCore extends TokocryptoApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object deposits = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> deposits = (java.util.List<Object>) this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit);
         });
 
@@ -2788,7 +2788,7 @@ public class TokocryptoCore extends TokocryptoApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object withdrawals = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> withdrawals = (java.util.List<Object>) this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit);
         });
 
@@ -3134,7 +3134,7 @@ public class TokocryptoCore extends TokocryptoApi
         }
         // check success value for wapi endpoints
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        Object success = this.safeBool(response, "success", true);
+        Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             String messageInner = this.safeString(response, "msg");
@@ -3208,7 +3208,7 @@ public class TokocryptoCore extends TokocryptoApi
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(config, "byLimit"))) && Helpers.isTrue((Helpers.inOp(parameters, "limit")))))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
-            Object byLimit = this.safeList(config, "byLimit", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> byLimit = (java.util.List<Object>) this.safeList(config, "byLimit", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(byLimit)); i++)
             {
                 Object entry = Helpers.GetValue(byLimit, i);

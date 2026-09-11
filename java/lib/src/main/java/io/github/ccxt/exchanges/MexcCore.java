@@ -1384,7 +1384,7 @@ public class MexcCore extends MexcApi
                 //     {}
                 //
                 Object keys = Helpers.objectKeys(response);
-                Object length = Helpers.getArrayLength(keys);
+                Integer length = Helpers.getArrayLength(keys);
                 status = ((Helpers.isTrue((Helpers.isGreaterThan(length, 0))))) ? this.json(response) : "ok";
             } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
@@ -1520,7 +1520,7 @@ public class MexcCore extends MexcApi
         String id = this.safeString(rawCurrency, "coin");
         String code = (String) this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
-        Object chains = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> chains = (java.util.List<Object>) this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -1656,7 +1656,7 @@ public class MexcCore extends MexcApi
             // Notes:
             // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
             //
-            Object data = this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -1799,7 +1799,7 @@ public class MexcCore extends MexcApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -2414,7 +2414,7 @@ public class MexcCore extends MexcApi
             Boolean isSingularMarket = false;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 isSingularMarket = Helpers.isEqual(length, 1);
                 String firstSymbol = this.safeString(symbols, 0);
                 market = this.market(firstSymbol);
@@ -2700,7 +2700,7 @@ public class MexcCore extends MexcApi
             Boolean isSingularMarket = false;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 isSingularMarket = Helpers.isEqual(length, 1);
                 market = this.market(Helpers.GetValue(symbols, 0));
             }
@@ -2850,7 +2850,7 @@ public class MexcCore extends MexcApi
         Object marginMode = Helpers.getArg(optionalArgs, 1, null);
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object orderSide = ((String)side).toUpperCase();
+        String orderSide = ((String)side).toUpperCase();
         final Object finalType = type;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
@@ -2951,7 +2951,7 @@ public class MexcCore extends MexcApi
             {
                 (this.loadMarkets()).join();
             }
-            Object test = this.safeBool(parameters, "test", false);
+            Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             Object request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, parameters);
             Object response = null;
@@ -3104,8 +3104,8 @@ public class MexcCore extends MexcApi
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createSwapOrder() requires a leverage parameter for isolated margin orders")) ;
                 }
             }
-            Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-            Object hedged = this.safeBool(parameters, "hedged", false);
+            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+            Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
             Object sideInteger = null;
             if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
             {
@@ -3159,7 +3159,7 @@ public class MexcCore extends MexcApi
             //
             // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
             //
-            Object data = this.safeDict(response, "data");
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "id", MexcCore.this.safeString(data, "orderId") );
                 put( "timestamp", MexcCore.this.safeInteger(data, "ts") );
@@ -3763,7 +3763,7 @@ public class MexcCore extends MexcApi
                     Helpers.addElementToObject(request, "page_size", 100); // max
                 }
                 java.util.Map<String, Object> swapResponse = (this.contractPrivateGetOrderListOpenOrders(this.extend(request, parameters))).join();
-                Object data = this.safeList(swapResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> data = (java.util.List<Object>) this.safeList(swapResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseOrders(data, market, since, limit, parameters);
             }
         });
@@ -4106,7 +4106,7 @@ public class MexcCore extends MexcApi
                 //         "code": "0"
                 //     }
                 //
-                Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseOrders(data, market);
             }
         });
@@ -4480,7 +4480,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             Object response = (this.fetchAccountHelper(marketType, query)).join();
-            Object data = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -4538,7 +4538,7 @@ public class MexcCore extends MexcApi
             //      "timestamp":1669109672717
             //  }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return new java.util.HashMap<String, Object>() {{
                 put( "info", data );
                 put( "symbol", symbol );
@@ -4720,7 +4720,7 @@ public class MexcCore extends MexcApi
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             String marginMode = this.safeString(parameters, "marginMode");
-            Object isMargin = this.safeBool(parameters, "margin", false);
+            Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("margin", "marginMode")));
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue((Helpers.isEqual(isMargin, true)))) || Helpers.isTrue((Helpers.isEqual(marketType, "margin")))))
@@ -5219,7 +5219,7 @@ public class MexcCore extends MexcApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object resultList = this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> resultList = (java.util.List<Object>) this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
             {
@@ -5424,7 +5424,7 @@ public class MexcCore extends MexcApi
             //    }
             //
             Object data = this.safeValue(response, "data");
-            Object result = this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
@@ -5513,7 +5513,7 @@ public class MexcCore extends MexcApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data");
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
             return this.parseLeverageTiers(data, symbols, "symbol");
         });
 
@@ -5660,7 +5660,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
                 Object networkUnified = this.networkIdToCode(networkCode, code);
-                Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(networkUnified, null))) && Helpers.isTrue((Helpers.inOp(networks, networkUnified)))))
                 {
                     Object network = ((Helpers.isTrue((Helpers.isEqual(networkUnified, null))))) ? new java.util.HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new java.util.HashMap<String, Object>() {{}});
@@ -5726,7 +5726,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             Object networkId = null;
             Object networkUnified = this.networkIdToCode(networkCode, code);
-            Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(networkUnified, null))) && Helpers.isTrue((Helpers.inOp(networks, networkUnified)))))
             {
                 Object network = ((Helpers.isTrue((Helpers.isEqual(networkUnified, null))))) ? new java.util.HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new java.util.HashMap<String, Object>() {{}});
@@ -5778,7 +5778,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 result = ((Helpers.isTrue((Helpers.isEqual(netCode, null))))) ? null : this.safeDict(addressStructures, netCode);
             } else
             {
-                Object options = this.safeDict(this.options, "defaultNetworks");
+                java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "defaultNetworks");
                 String defaultNetworkForCurrency = this.safeString(options, code);
                 if (Helpers.isTrue(!Helpers.isEqual(defaultNetworkForCurrency, null)))
                 {
@@ -6124,7 +6124,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             //         "data": []
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePositions(data);
         });
 
@@ -6210,7 +6210,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePositions(data, symbols);
         });
 
@@ -6365,7 +6365,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 //         }
                 //     }
                 //
-                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 return this.parseTransfer(data);
             } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
@@ -6702,7 +6702,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
-            Object intern = this.safeBool(parameters, "internal", false);
+            Boolean intern = (Boolean) this.safeBool(parameters, "internal", false);
             if (Helpers.isTrue(Helpers.isEqual(intern, true)))
             {
                 parameters = this.omit(parameters, "internal");
@@ -6724,7 +6724,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 //
                 return this.parseTransaction(responseForInternal, currency);
             }
-            Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             Object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
             network = this.networkCodeToId(network, Helpers.GetValue(currency, "code"));
@@ -6926,7 +6926,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object networkList = this.safeList(transaction, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> networkList = (java.util.List<Object>) this.safeList(transaction, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
@@ -7023,7 +7023,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object networkList = this.safeList(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> networkList = (java.util.List<Object>) this.safeList(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
@@ -7101,7 +7101,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLeverage(data, market);
         });
 
@@ -7152,7 +7152,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object defaultValue = Helpers.getArg(optionalArgs, 1, null);
         String defaultType = this.safeString(this.options, "defaultType");
-        Object isMargin = this.safeBool(parameters, "margin", false);
+        Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
         Object marginMode = null;
         java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -7195,7 +7195,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
@@ -7247,7 +7247,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             //        ]
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object positions = this.parsePositions(data, symbols, parameters);
             return this.filterBySinceLimit(positions, since, limit);
         });
@@ -7282,7 +7282,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports contract markets only")) ;
             }
-            Object marginModeLower = ((String)marginMode).toLowerCase();
+            String marginModeLower = ((String)marginMode).toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginModeLower, "isolated")) && Helpers.isTrue(!Helpers.isEqual(marginModeLower, "cross"))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
@@ -7394,7 +7394,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             } else
             {
                 this.checkRequiredCredentials();
-                Object timestamp = String.valueOf(this.nonce());
+                String timestamp = String.valueOf(this.nonce());
                 Object auth = "";
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "ApiKey", MexcCore.this.apiKey );
@@ -7448,7 +7448,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         //     {"code":10216,"msg":"No available deposit address"}
         //     {"success":true, "code":0, "data":1634095541710}
         //
-        Object success = this.safeBool(response, "success", false); // v1
+        Boolean success = (Boolean) this.safeBool(response, "success", false); // v1
         if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
             return null;

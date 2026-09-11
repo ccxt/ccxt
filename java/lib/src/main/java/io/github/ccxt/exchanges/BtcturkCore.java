@@ -360,8 +360,8 @@ public class BtcturkCore extends BtcturkApi
             //        ],
             //    }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object markets = this.safeList(data, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> markets = (java.util.List<Object>) this.safeList(data, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -374,7 +374,7 @@ public class BtcturkCore extends BtcturkApi
         String quoteId = this.safeString(entry, "denominator");
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        Object filters = this.safeList(entry, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> filters = (java.util.List<Object>) this.safeList(entry, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object minPrice = null;
         Object maxPrice = null;
         Object minAmount = null;
@@ -454,7 +454,7 @@ public class BtcturkCore extends BtcturkApi
 
     public Object parseBalance(Object response)
     {
-        Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
@@ -554,7 +554,7 @@ public class BtcturkCore extends BtcturkApi
             //         ]
             //       }
             //     }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
         });
@@ -634,7 +634,7 @@ public class BtcturkCore extends BtcturkApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> response = (this.publicGetTicker(parameters)).join();
-            Object tickers = this.safeList(response, "data");
+            java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(response, "data");
             return this.parseTickers(tickers, symbols);
         });
 
@@ -783,8 +783,8 @@ public class BtcturkCore extends BtcturkApi
             //       ]
             //     }
             //
-            Object data = this.safeList(response, "data");
-            Object dataList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
+            java.util.List<Object> dataList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(data, null)))
             {
                 dataList = data;
@@ -918,12 +918,12 @@ public class BtcturkCore extends BtcturkApi
         Object limit = Helpers.getArg(optionalArgs, 3, null);
         Object tail = Helpers.getArg(optionalArgs, 4, false);
         java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object timestamp = this.safeList(ohlcvs, "t", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object high = this.safeList(ohlcvs, "h", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object open = this.safeList(ohlcvs, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object low = this.safeList(ohlcvs, "l", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object close = this.safeList(ohlcvs, "c", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object volume = this.safeList(ohlcvs, "v", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> timestamp = (java.util.List<Object>) this.safeList(ohlcvs, "t", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> high = (java.util.List<Object>) this.safeList(ohlcvs, "h", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> open = (java.util.List<Object>) this.safeList(ohlcvs, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> low = (java.util.List<Object>) this.safeList(ohlcvs, "l", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> close = (java.util.List<Object>) this.safeList(ohlcvs, "c", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> volume = (java.util.List<Object>) this.safeList(ohlcvs, "v", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(timestamp)); i++)
         {
             final Object finalI = i;
@@ -985,7 +985,7 @@ public class BtcturkCore extends BtcturkApi
                 Helpers.addElementToObject(request, "newClientOrderId", this.uuid());
             }
             java.util.Map<String, Object> response = (this.privatePostOrder(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -1058,9 +1058,9 @@ public class BtcturkCore extends BtcturkApi
                 Helpers.addElementToObject(request, "pairSymbol", Helpers.GetValue(market, "id"));
             }
             java.util.Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object bids = this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object asks = this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> bids = (java.util.List<Object>) this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> asks = (java.util.List<Object>) this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(this.arrayConcat(bids, asks), market, since, limit);
         });
 
@@ -1124,7 +1124,7 @@ public class BtcturkCore extends BtcturkApi
             //     }
             //   ]
             // }
-            Object data = this.safeList(response, "data");
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -1261,8 +1261,8 @@ public class BtcturkCore extends BtcturkApi
             //       "code": "0"
             //     }
             //
-            Object data = this.safeList(response, "data");
-            Object dataList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
+            java.util.List<Object> dataList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(data, null)))
             {
                 dataList = data;
@@ -1302,7 +1302,7 @@ public class BtcturkCore extends BtcturkApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object secret = this.base64ToBinary(this.secret);
             Object auth = Helpers.add(this.apiKey, nonce);
             headers = new java.util.HashMap<String, Object>() {{

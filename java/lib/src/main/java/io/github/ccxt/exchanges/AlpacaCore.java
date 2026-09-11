@@ -657,7 +657,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
-            Object localTime = Helpers.slice(timestamp, 0, 23);
+            String localTime = Helpers.slice(timestamp, 0, 23);
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
@@ -672,7 +672,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
-            Object jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
+            String jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
             Object iso = Helpers.subtract(this.parseToInt(this.parse8601(localTime)), Helpers.multiply(Helpers.multiply(this.parseToNumeric(jetlag), 3600), 1000));
             return iso;
         });
@@ -752,7 +752,7 @@ public class AlpacaCore extends AlpacaApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
-        Object parts = Helpers.split(marketId, "/");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "/");
         String assetClass = this.safeString(asset, "class");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
@@ -895,7 +895,7 @@ public class AlpacaCore extends AlpacaApi
                 //        }
                 //    }
                 //
-                Object trades = this.safeDict(response, "trades", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> trades = (java.util.Map<String, Object>) this.safeDict(response, "trades", new java.util.HashMap<String, Object>() {{}});
                 symbolTrades = this.safeList(trades, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocLatestTrades")))
             {
@@ -913,8 +913,8 @@ public class AlpacaCore extends AlpacaApi
                 //        }
                 //    }
                 //
-                Object trades = this.safeDict(response, "trades", new java.util.HashMap<String, Object>() {{}});
-                Object symbolTrade = this.safeDict(trades, marketId, new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> trades = (java.util.Map<String, Object>) this.safeDict(response, "trades", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> symbolTrade = (java.util.Map<String, Object>) this.safeDict(trades, marketId, new java.util.HashMap<String, Object>() {{}});
                 symbolTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbolTrade));
             } else
             {
@@ -997,7 +997,7 @@ public class AlpacaCore extends AlpacaApi
             //       }
             //   }
             //
-            Object orderbooks = this.safeDict(response, "orderbooks", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> orderbooks = (java.util.Map<String, Object>) this.safeDict(response, "orderbooks", new java.util.HashMap<String, Object>() {{}});
             Object rawOrderbook = this.safeDict(orderbooks, id, new java.util.HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
             return this.parseOrderBook(rawOrderbook, Helpers.GetValue(market, "symbol"), timestamp, "b", "a", "p", "s");
@@ -1101,7 +1101,7 @@ public class AlpacaCore extends AlpacaApi
                 //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
                 //     }
                 //
-                Object bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> bars = (java.util.Map<String, Object>) this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
                 ohlcvs = this.safeList(bars, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 if (Helpers.isTrue(paginate))
                 {
@@ -1109,16 +1109,16 @@ public class AlpacaCore extends AlpacaApi
                     String pageToken = this.safeString(response, "next_page_token");
                     for (var i = 1; Helpers.isLessThan(i, paginationCalls); i++)
                     {
-                        Object ohlcvsLength = Helpers.getArrayLength(ohlcvs);
+                        Integer ohlcvsLength = Helpers.getArrayLength(ohlcvs);
                         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(pageToken, null))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(ohlcvsLength, limit)))))))
                         {
                             break;
                         }
                         Helpers.addElementToObject(request, "page_token", pageToken);
                         response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
-                        bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
-                        Object page = this.safeList(bars, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                        Object pageLength = Helpers.getArrayLength(page);
+                        bars = (java.util.Map<String, Object>) this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
+                        java.util.List<Object> page = (java.util.List<Object>) this.safeList(bars, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        Integer pageLength = Helpers.getArrayLength(page);
                         if (Helpers.isTrue(Helpers.isEqual(pageLength, 0)))
                         {
                             break;
@@ -1146,8 +1146,8 @@ public class AlpacaCore extends AlpacaApi
                 //        }
                 //     }
                 //
-                Object bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
-                Object bar = this.safeDict(bars, marketId, new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> bars = (java.util.Map<String, Object>) this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> bar = (java.util.Map<String, Object>) this.safeDict(bars, marketId, new java.util.HashMap<String, Object>() {{}});
                 ohlcvs = new java.util.ArrayList<Object>(java.util.Arrays.asList(bar));
             } else
             {
@@ -1294,17 +1294,17 @@ public class AlpacaCore extends AlpacaApi
             //     }
             //
             java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object snapshots = this.safeDict(response, "snapshots", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> snapshots = (java.util.Map<String, Object>) this.safeDict(response, "snapshots", new java.util.HashMap<String, Object>() {{}});
             Object marketIds = Helpers.objectKeys(snapshots);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-                Object entry = this.safeDict(snapshots, marketId);
-                Object dailyBar = this.safeDict(entry, "dailyBar", new java.util.HashMap<String, Object>() {{}});
-                Object prevDailyBar = this.safeDict(entry, "prevDailyBar", new java.util.HashMap<String, Object>() {{}});
-                Object latestQuote = this.safeDict(entry, "latestQuote", new java.util.HashMap<String, Object>() {{}});
-                Object latestTrade = this.safeDict(entry, "latestTrade", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> entry = (java.util.Map<String, Object>) this.safeDict(snapshots, marketId);
+                java.util.Map<String, Object> dailyBar = (java.util.Map<String, Object>) this.safeDict(entry, "dailyBar", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> prevDailyBar = (java.util.Map<String, Object>) this.safeDict(entry, "prevDailyBar", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> latestQuote = (java.util.Map<String, Object>) this.safeDict(entry, "latestQuote", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> latestTrade = (java.util.Map<String, Object>) this.safeDict(entry, "latestTrade", new java.util.HashMap<String, Object>() {{}});
                 String datetime = this.safeString(latestQuote, "t");
                 java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.safeTicker(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
@@ -1340,7 +1340,7 @@ public class AlpacaCore extends AlpacaApi
         String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         Object uuid = this.uuid();
         Object parts = Helpers.split(uuid, "-");
-        Object random_id = String.join((String)"", (java.util.List<String>)parts);
+        String random_id = String.join((String)"", (java.util.List<String>)parts);
         Object defaultClientId = this.implodeParams(clientOrderIdprefix, new java.util.HashMap<String, Object>() {{
             put( "id", random_id );
         }});
@@ -2724,7 +2724,7 @@ public class AlpacaCore extends AlpacaApi
         {
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
-            Object codeAsString = String.valueOf(code);
+            String codeAsString = String.valueOf(code);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(code, 400))) || !Helpers.isTrue((Helpers.inOp(this.httpExceptions, codeAsString)))))
             {
                 throw new ExchangeError((String)feedback) ;

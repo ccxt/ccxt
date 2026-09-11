@@ -97,7 +97,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //         "result": { "node_id": "73cf456f7cb78d59" }
         //     }
         //
-        Object result = this.safeDict(message, "result");
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(message, "result");
         if (Helpers.isTrue(!Helpers.isEqual(result, null)))
         {
             // client.resolve (true, messageHash);
@@ -180,9 +180,9 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> parsedTrade = (java.util.Map<String, Object>) this.parseTrade(data);
+        java.util.Map<String, Object> parameters = (java.util.Map<String, Object>) this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
+        Object parsedTrade = this.parseTrade(data);
         Object symbol = Helpers.GetValue(parsedTrade, "symbol");
         Object messageHash = this.safeString(parameters, "channel");
         Object stored = this.safeValue(this.trades, symbol);
@@ -264,8 +264,8 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> parameters = (java.util.Map<String, Object>) this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "market");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Long timestamp = this.safeInteger(data, "last_updated_at");
@@ -281,7 +281,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object inserts = this.safeList(data, "inserts");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<Object>)(inserts))); i++)
         {
-            Object insert = this.safeDict(inserts, i);
+            java.util.Map<String, Object> insert = (java.util.Map<String, Object>) this.safeDict(inserts, i);
             Object side = this.safeString(insert, "side");
             Object price = this.safeString(insert, "price");
             Object size = this.safeString(insert, "size");
@@ -477,9 +477,9 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseOrder(data);
+        java.util.Map<String, Object> parameters = (java.util.Map<String, Object>) this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
+        Object parsed = this.parseOrder(data);
         Object symbol = this.safeString(parsed, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -522,14 +522,14 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> parameters = (java.util.Map<String, Object>) this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object channel = this.safeString(parameters, "channel");
         Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
-        java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(data, market);
+        Object ticker = this.parseTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, channel);
         client.resolve(ticker, messageHash);
@@ -606,7 +606,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -654,8 +654,8 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> parameters = (java.util.Map<String, Object>) this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object fundingRate = this.parseFundingRateWs(data);
         Object symbol = Helpers.GetValue(fundingRate, "symbol");
         Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
@@ -721,7 +721,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //         "usOut": 1718179125962495
         //     }
         //
-        Object error = this.safeDict(message, "error");
+        java.util.Map<String, Object> error = (java.util.Map<String, Object>) this.safeDict(message, "error");
         if (Helpers.isTrue(Helpers.isEqual(error, null)))
         {
             return true;
@@ -782,11 +782,11 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             this.handleAuthenticationMessage(client, message);
             return;
         }
-        Object data = this.safeDict(message, "params");
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "params");
         if (Helpers.isTrue(!Helpers.isEqual(data, null)))
         {
             Object channel = this.safeString(data, "channel");
-            Object parts = Helpers.split(((String)channel), ".");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), ".");
             Object name = this.safeString(parts, 0);
             java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "trades", "handleTrade");

@@ -344,7 +344,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //        ]
         //    }
         //
-        String marketId = (String) this.safeString(message, "instrument_name");
+        Object marketId = this.safeString(message, "instrument_name");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object data = this.safeValue(message, "data");
@@ -356,7 +356,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Helpers.addElementToObject(this.orderbooks, symbol, this.countedOrderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        String channel = (String) this.safeString(message, "channel");
+        Object channel = this.safeString(message, "channel");
         Long nonce = (Long) this.safeInteger2(data, "u", "s");
         Object books = data;
         if (Helpers.isTrue(Helpers.isEqual(channel, "book")))
@@ -468,7 +468,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeValue(trades, 0);
-                String tradeSymbol = (String) this.safeString(first, "symbol");
+                Object tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -535,13 +535,13 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //       ]
         // }
         //
-        String channel = (String) this.safeString(message, "channel");
+        Object channel = this.safeString(message, "channel");
         if (Helpers.isTrue(Helpers.isEqual(channel, null)))
         {
             return;
         }
-        String marketId = (String) this.safeString(message, "instrument_name");
-        String symbolSpecificMessageHash = (String) this.safeString(message, "subscription");
+        Object marketId = this.safeString(message, "instrument_name");
+        Object symbolSpecificMessageHash = this.safeString(message, "subscription");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object stored = this.safeValue(this.trades, symbol);
@@ -551,8 +551,8 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object dataLength = Helpers.getArrayLength(data);
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;
@@ -774,10 +774,10 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //     }
         //
         this.handleBidAsk(client, message);
-        String messageHash = (String) this.safeString(message, "subscription");
-        String marketId = (String) this.safeString(message, "instrument_name");
+        Object messageHash = this.safeString(message, "subscription");
+        Object marketId = this.safeString(message, "instrument_name");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object ticker = Helpers.GetValue(data, i);
@@ -812,10 +812,10 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(ticker, "t");
-        String marketId = (String) this.safeString(ticker, "i");
+        Object marketId = this.safeString(ticker, "i");
         market = this.safeMarket(marketId, market, "_");
-        String quote = (String) this.safeString(market, "quote");
-        String last = (String) this.safeString(ticker, "a");
+        Object quote = this.safeString(market, "quote");
+        Object last = this.safeString(ticker, "a");
         final Object finalMarket = market;
         final Object finalQuote = quote;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -895,8 +895,8 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
 
     public void handleBidAsk(Client client, Object message)
     {
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object ticker = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
         Object parsedTicker = this.parseWsBidAsk(ticker);
         Object symbol = Helpers.GetValue(parsedTicker, "symbol");
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -910,9 +910,9 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
     public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marketId = (String) this.safeString(ticker, "i");
+        Object marketId = this.safeString(ticker, "i");
         market = this.safeMarket(marketId, market);
-        String symbol = (String) this.safeString(market, "symbol");
+        Object symbol = this.safeString(market, "symbol");
         Long timestamp = this.safeInteger(ticker, "t");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -953,7 +953,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String interval = (String) this.safeString(this.timeframes, timeframe, timeframe);
+            Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             String messageHash = (String) Helpers.add(Helpers.add(Helpers.add(Helpers.add("candlestick", "."), interval), "."), Helpers.GetValue(market, "id"));
             Object ohlcv = (this.watchPublic(messageHash, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -988,7 +988,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String interval = (String) this.safeString(this.timeframes, timeframe, timeframe);
+            Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object subMessageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add("candlestick", "."), interval), "."), Helpers.GetValue(market, "id"));
             String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("unsubscribe:ohlcv:", Helpers.GetValue(market, "symbol")), ":"), timeframe);
             Object subExtend = new java.util.HashMap<String, Object>() {{
@@ -1011,11 +1011,11 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //       "data": [ [Object] ]
         //   }
         //
-        String messageHash = (String) this.safeString(message, "subscription");
-        String marketId = (String) this.safeString(message, "instrument_name");
+        Object messageHash = this.safeString(message, "subscription");
+        Object marketId = this.safeString(message, "instrument_name");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String interval = (String) this.safeString(message, "interval");
+        Object interval = this.safeString(message, "interval");
         Object timeframe = this.findTimeframe(interval);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
@@ -1113,10 +1113,10 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //    }
         //
         Object subscription = Helpers.getArg(optionalArgs, 0, null);
-        String channel = (String) this.safeString(message, "channel");
-        String symbolSpecificMessageHash = (String) this.safeString(message, "subscription");
-        Object orders = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object ordersLength = Helpers.getArrayLength(orders);
+        Object channel = this.safeString(message, "channel");
+        Object symbolSpecificMessageHash = this.safeString(message, "subscription");
+        java.util.List<Object> orders = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Integer ordersLength = Helpers.getArrayLength(orders);
         if (Helpers.isTrue(Helpers.isGreaterThan(ordersLength, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
@@ -1277,7 +1277,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         // and has exactly one subscriptionhash which is the account type
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object firstData = this.safeValue(data, 0, new java.util.HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeList(firstData, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> rawPositions = (java.util.List<Object>) this.safeList(firstData, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
@@ -1295,9 +1295,9 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1374,14 +1374,14 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //         }
         //     }
         //
-        String messageHash = (String) this.safeString(message, "subscription");
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object positionBalances = this.safeList(Helpers.GetValue(data, 0), "position_balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object messageHash = this.safeString(message, "subscription");
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> positionBalances = (java.util.List<Object>) this.safeList(Helpers.GetValue(data, 0), "position_balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Helpers.addElementToObject(this.balance, "info", data);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positionBalances)); i++)
         {
             Object balance = Helpers.GetValue(positionBalances, i);
-            String currencyId = (String) this.safeString(balance, "instrument_name");
+            Object currencyId = this.safeString(balance, "instrument_name");
             String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(balance, "quantity"));
@@ -1393,7 +1393,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             this.balance = this.safeBalance(this.balance);
         }
         client.resolve(this.balance, messageHash);
-        String messageHashRequest = (String) this.safeString(message, "id");
+        Object messageHashRequest = this.safeString(message, "id");
         if (Helpers.isTrue(!Helpers.isEqual(messageHashRequest, null)))
         {
             client.resolve(this.balance, messageHashRequest);
@@ -1488,9 +1488,9 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //        }
         //    }
         //
-        String messageHash = (String) this.safeString(message, "id");
+        Object messageHash = this.safeString(message, "id");
         Object rawOrder = this.safeValue(message, "result", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(rawOrder);
+        Object order = this.parseOrder(rawOrder);
         client.resolve(order, messageHash);
     }
 
@@ -1574,7 +1574,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //        "code": 0
         //    }
         //
-        String messageHash = (String) this.safeString(message, "id");
+        Object messageHash = this.safeString(message, "id");
         client.resolve(message, messageHash);
     }
 
@@ -1700,8 +1700,8 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //        "message": "invalid channel {"channels":["trade.BTCUSD-PERP"]}"
         //    }
         //
-        String id = (String) this.safeString(message, "id");
-        String errorCode = (String) this.safeString(message, "code");
+        Object id = this.safeString(message, "id");
+        Object errorCode = this.safeString(message, "code");
         try
         {
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(errorCode, null)) && Helpers.isTrue(!Helpers.isEqual(errorCode, "")))) && Helpers.isTrue(!Helpers.isEqual(errorCode, "0"))))
@@ -1748,7 +1748,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             put( "user.position_balance", "handlePositions");
         }};
         Object result = this.safeValue2(message, "result", "info");
-        String channel = (String) this.safeString(result, "channel");
+        Object channel = this.safeString(result, "channel");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(channel, null))) && Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(channel, "user.trade"), Helpers.opNeg(1)))))
         {
             // channel might be user.trade.BTC_USDT
@@ -1805,7 +1805,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         {
             return;
         }
-        String method = (String) this.safeString(message, "method");
+        Object method = this.safeString(message, "method");
         java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "", "handlePing");
             put( "public/heartbeat", "handlePing");
@@ -1840,7 +1840,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 Object method = "public/auth";
-                Object nonce = String.valueOf(this.nonce());
+                String nonce = String.valueOf(this.nonce());
                 Object auth = Helpers.add(Helpers.add(Helpers.add(method, nonce), this.apiKey), nonce);
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalMethod = method;
@@ -1875,7 +1875,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
 
     public void handleUnsubscribe(Client client, Object message)
     {
-        String id = (String) this.safeString(message, "id");
+        Object id = this.safeString(message, "id");
         Object keys = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
@@ -1887,13 +1887,13 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             if (Helpers.isTrue(((String)messageHash).startsWith(((String)"unsubscribe"))))
             {
                 Object subscription = Helpers.GetValue(client.subscriptions, messageHash);
-                String subId = (String) this.safeString(subscription, "id");
+                Object subId = this.safeString(subscription, "id");
                 if (Helpers.isTrue(!Helpers.isEqual(id, subId)))
                 {
                     continue;
                 }
-                Object messageHashes = this.safeList(subscription, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> messageHashes = (java.util.List<Object>) this.safeList(subscription, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> subMessageHashes = (java.util.List<Object>) this.safeList(subscription, "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(messageHashes)); j++)
                 {
                     Object unsubHash = Helpers.GetValue(messageHashes, j);

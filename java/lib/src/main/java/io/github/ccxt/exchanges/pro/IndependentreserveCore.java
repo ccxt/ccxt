@@ -101,7 +101,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //    }
         //
         Object data = this.safeValue(message, "Data", new java.util.HashMap<String, Object>() {{}});
-        String marketId = (String) this.safeString(data, "Pair");
+        Object marketId = this.safeString(data, "Pair");
         String symbol = (String) this.safeSymbol(marketId, null, "-");
         String messageHash = (String) Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
@@ -132,8 +132,8 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String datetime = (String) this.safeString(trade, "TradeDate");
-        String marketId = (String) this.safeString(market, "Pair");
+        Object datetime = this.safeString(trade, "TradeDate");
+        Object marketId = this.safeString(market, "Pair");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", IndependentreserveCore.this.safeString(trade, "TradeGuid") );
@@ -213,23 +213,23 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //        "Event": "OrderBookSnapshot",
         //    }
         //
-        String eventVar = (String) this.safeString(message, "Event");
-        String channel = (String) this.safeString(message, "Channel");
+        Object eventVar = this.safeString(message, "Event");
+        Object channel = this.safeString(message, "Channel");
         if (Helpers.isTrue(Helpers.isEqual(channel, null)))
         {
             return;
         }
-        Object parts = Helpers.split(channel, "/");
-        String depth = (String) this.safeString(parts, 1);
-        String baseId = (String) this.safeString(parts, 2);
-        String quoteId = (String) this.safeString(parts, 3);
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(channel, "/");
+        Object depth = this.safeString(parts, 1);
+        Object baseId = this.safeString(parts, 2);
+        Object quoteId = this.safeString(parts, 3);
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object orderBook = this.safeDict(message, "Data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> orderBook = (java.util.Map<String, Object>) this.safeDict(message, "Data", new java.util.HashMap<String, Object>() {{}});
         String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), depth);
         Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
-        Object receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
+        Boolean receivedSnapshot = (Boolean) this.safeBool(subscription, "receivedSnapshot", false);
         Long timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -248,8 +248,8 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
 }}));
         } else
         {
-            Object asks = this.safeList(orderBook, "Offers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object bids = this.safeList(orderBook, "Bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> asks = (java.util.List<Object>) this.safeList(orderBook, "Offers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> bids = (java.util.List<Object>) this.safeList(orderBook, "Bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -260,8 +260,8 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         {
             Object storedAsks = Helpers.GetValue(orderbook, "asks");
             Object storedBids = Helpers.GetValue(orderbook, "bids");
-            Object asksLength = Helpers.getArrayLength(storedAsks);
-            Object bidsLength = Helpers.getArrayLength(storedBids);
+            Integer asksLength = Helpers.getArrayLength(storedAsks);
+            Integer bidsLength = Helpers.getArrayLength(storedBids);
             Object payload = "";
             for (var i = 0; Helpers.isLessThan(i, 10); i++)
             {
@@ -346,7 +346,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
 
     public void handleMessage(Client client, Object message)
     {
-        String eventVar = (String) this.safeString(message, "Event");
+        Object eventVar = this.safeString(message, "Event");
         java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
             put( "Subscriptions", "handleSubscriptions");
             put( "Heartbeat", "handleHeartbeat");

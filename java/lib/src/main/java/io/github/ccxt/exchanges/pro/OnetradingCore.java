@@ -244,7 +244,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         //         "time": "2022-06-23T16:41:00.004162Z"
         //     }
         //
-        Object tickers = this.safeList(message, "ticker_updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(message, "ticker_updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object datetime = this.safeString(message, "time");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
         {
@@ -348,7 +348,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{symbol, limit});
             }
             trades = this.filterBySymbolSinceLimit(trades, symbol, since, limit);
-            Object numTrades = Helpers.getArrayLength(trades);
+            Integer numTrades = Helpers.getArrayLength(trades);
             if (Helpers.isTrue(Helpers.isEqual(numTrades, 0)))
             {
                 return (this.watchMyTrades(symbol, since, limit, parameters)).join();
@@ -547,7 +547,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{symbol, limit});
             }
             orders = this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-            Object numOrders = Helpers.getArrayLength(orders);
+            Integer numOrders = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isEqual(numOrders, 0)))
             {
                 return (this.watchOrders(symbol, since, limit, parameters)).join();
@@ -811,8 +811,8 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object rawOrders = this.safeList(message, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object rawOrdersLength = Helpers.getArrayLength(rawOrders);
+        java.util.List<Object> rawOrders = (java.util.List<Object>) this.safeList(message, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Integer rawOrdersLength = Helpers.getArrayLength(rawOrders);
         if (Helpers.isTrue(Helpers.isEqual(rawOrdersLength, 0)))
         {
             return;
@@ -824,7 +824,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object symbol = this.safeString(order, "symbol", "");
             Helpers.callDynamically(orders, "append", new Object[]{order});
             client.resolve(this.orders, Helpers.add("orders:", symbol));
-            Object rawTrades = this.safeList(Helpers.GetValue(rawOrders, i), "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> rawTrades = (java.util.List<Object>) this.safeList(Helpers.GetValue(rawOrders, i), "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var ii = 0; Helpers.isLessThan(ii, Helpers.getArrayLength(rawTrades)); ii++)
             {
                 java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.parseTrade(Helpers.GetValue(rawTrades, ii));
@@ -1079,7 +1079,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object orderId = this.safeString(update, "order_id");
             Object datetime = this.safeString2(update, "time", "timestamp");
             Object previousOrderArray = this.filterByArray(this.orders, "id", orderId, false);
-            Object previousOrder = this.safeDict(previousOrderArray, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> previousOrder = (java.util.Map<String, Object>) this.safeDict(previousOrderArray, 0, new java.util.HashMap<String, Object>() {{}});
             symbol = Helpers.GetValue(previousOrder, "symbol");
             Object filled = this.safeString(update, "filled_amount");
             Object status = this.parseWsOrderStatus(updateType);
@@ -1206,7 +1206,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
                 {
                     Object ohlcvMarket = this.safeValue(subscription, marketId, new java.util.HashMap<String, Object>() {{}});
-                    Object marketSubscribed = this.safeBool(ohlcvMarket, timeframe, false);
+                    Boolean marketSubscribed = (Boolean) this.safeBool(ohlcvMarket, timeframe, false);
                     if (Helpers.isTrue(!Helpers.isEqual(marketSubscribed, true)))
                     {
                         type = "UPDATE_SUBSCRIPTION";
@@ -1469,7 +1469,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object symbols = Helpers.getArg(optionalArgs, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object numSymbols = Helpers.getArrayLength(symbols);
+            Integer numSymbols = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(numSymbols, 0)))
             {
                 java.util.Map<String, Object> marketsById = this.markets_by_id;
@@ -1494,7 +1494,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
                     {
                         Object marketId = Helpers.GetValue(marketIds, i);
-                        Object marketSubscribed = this.safeBool(subscription, marketId, false);
+                        Boolean marketSubscribed = (Boolean) this.safeBool(subscription, marketId, false);
                         if (Helpers.isTrue(!Helpers.isEqual(marketSubscribed, true)))
                         {
                             type = "UPDATE_SUBSCRIPTION";

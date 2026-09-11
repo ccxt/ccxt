@@ -1011,9 +1011,9 @@ public class BullishCore extends BullishApi
             } else
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
-                Object idParts = Helpers.split(id, "-");
+                java.util.List<Object> idParts = (java.util.List<Object>) Helpers.split(id, "-");
                 Object datePart = ((String)this.safeString(idParts, 2));
-                Object dateYmd = Helpers.slice(datePart, 2, null);
+                String dateYmd = Helpers.slice(datePart, 2, null);
                 symbol = Helpers.add(symbol, Helpers.add("-", dateYmd));
                 if (Helpers.isTrue(Helpers.isEqual(type, "future")))
                 {
@@ -1409,7 +1409,7 @@ public class BullishCore extends BullishApi
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
         String side = (String)this.safeStringLower(trade, "side");
-        Object isTaker = this.safeBool(trade, "isTaker");
+        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker");
         Object currency = Helpers.GetValue(market, "quote");
         String code = (String) this.safeCurrencyCode(currency);
         Double feeCost = this.safeNumber(trade, "quoteFee");
@@ -1845,7 +1845,7 @@ public class BullishCore extends BullishApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.loadMarkets(), this.handleToken())))).join();
             Object tradingAccountId = (this.loadAccount(parameters)).join();
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
                 parameters = this.handlePaginationParams("fetchOrders", since, parameters);
@@ -2290,7 +2290,7 @@ public class BullishCore extends BullishApi
             {
                 Helpers.addElementToObject(request, "type", ((String)type).toUpperCase());
             }
-            Object postOnly = this.safeBool(parameters, "postOnly", false);
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
                 parameters = this.omit(parameters, "postOnly");
@@ -2604,7 +2604,7 @@ public class BullishCore extends BullishApi
             //         "totalCount": 1
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2708,15 +2708,15 @@ public class BullishCore extends BullishApi
         Long timestamp = this.parse8601(this.safeString(transaction, "createdAtDateTime"));
         Long updated = this.parse8601(this.safeString(transaction, "updatedAtDateTime"));
         String network = this.safeString(transaction, "network");
-        Object transactionDetails = this.safeDict(transaction, "transactionDetails");
+        java.util.Map<String, Object> transactionDetails = (java.util.Map<String, Object>) this.safeDict(transaction, "transactionDetails");
         String txid = this.safeString(transactionDetails, "blockchainTxId");
         String address = this.safeString(transactionDetails, "address");
         Double amount = this.safeNumber(transaction, "quantity");
         String currencyId = this.safeString(transaction, "symbol");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transaction, "status");
-        Object sources = this.safeList(transactionDetails, "sources", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object source = this.safeDict(sources, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> sources = (java.util.List<Object>) this.safeList(transactionDetails, "sources", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> source = (java.util.Map<String, Object>) this.safeDict(sources, 0, new java.util.HashMap<String, Object>() {{}});
         String sourceAddress = this.safeString(source, "address");
         java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "currency", null );
@@ -2950,7 +2950,7 @@ public class BullishCore extends BullishApi
             //     ]
             //
             java.util.List<Object> safeResponse = this.toArray(response);
-            Object length = Helpers.getArrayLength(safeResponse);
+            Integer length = Helpers.getArrayLength(safeResponse);
             Object data = this.safeDict(safeResponse, 0, new java.util.HashMap<String, Object>() {{}});
             Object network = null;
             java.util.List<Object> networkparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
@@ -2970,7 +2970,7 @@ public class BullishCore extends BullishApi
                     // find the entry that matches the network or return first entry if not found and user did not specify a network
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(safeResponse)); i++)
                     {
-                        Object entry = this.safeDict(safeResponse, i, new java.util.HashMap<String, Object>() {{}});
+                        java.util.Map<String, Object> entry = (java.util.Map<String, Object>) this.safeDict(safeResponse, i, new java.util.HashMap<String, Object>() {{}});
                         String networkId = this.safeString(entry, "network");
                         Object networkCode = this.networkIdToCode(networkId, code);
                         if (Helpers.isTrue(Helpers.isEqual(network, networkCode)))
@@ -3324,8 +3324,8 @@ public class BullishCore extends BullishApi
             //         "requestId": "633909659774222336"
             //     }
             //
-            Object transferOptions = this.safeDict(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
-            Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+            java.util.Map<String, Object> transferOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             Object transfer = this.parseTransfer(response, currency);
             if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
@@ -3622,8 +3622,8 @@ public class BullishCore extends BullishApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.microseconds());
-            Object timestamp = String.valueOf(this.getTimestamp());
+            String nonce = String.valueOf(this.microseconds());
+            String timestamp = String.valueOf(this.getTimestamp());
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
                 Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(timestamp, nonce), method), "/trading-api/"), path);

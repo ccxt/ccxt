@@ -719,7 +719,7 @@ final Object finalBase = base;
         String code = (String) this.safeCurrencyCode(id);
         Object isFiat = this.inArray(code, fiatCurrencies);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
-        Object networksArray = this.safeList(rawCurrency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> networksArray = (java.util.List<Object>) this.safeList(rawCurrency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Boolean deposit = Helpers.isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
         Boolean withdrawal = Helpers.isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
         Boolean active = Helpers.isTrue(deposit) && Helpers.isTrue(withdrawal);
@@ -1451,7 +1451,7 @@ final Object finalBase = base;
             //         "maxItems": 0
             //     }
             //
-            Object accounts = this.safeList(response, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> accounts = (java.util.List<Object>) this.safeList(response, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseAccounts(accounts);
         });
 
@@ -1617,7 +1617,7 @@ final Object finalBase = base;
             //         "limit": 25
             //     }
             //
-            Object items = this.safeList(response, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> items = (java.util.List<Object>) this.safeList(response, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransfers(items, currency, since, limit);
         });
 
@@ -2747,7 +2747,7 @@ final Object finalBase = base;
             //         "maxItems": 100
             //     }
             //
-            Object items = this.safeList(response, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> items = (java.util.List<Object>) this.safeList(response, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLedger(items, currency, since, limit);
         });
 
@@ -3256,7 +3256,7 @@ final Object finalBase = base;
                     payload = body;
                 }
             }
-            Object timestamp = String.valueOf(this.milliseconds());
+            String timestamp = String.valueOf(this.milliseconds());
             Object auth = Helpers.add(Helpers.add(Helpers.add(timestamp, method), url), payload);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             String accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");

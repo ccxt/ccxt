@@ -137,7 +137,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //     "id": null
         // }
         //
-        Object parameters = this.safeList(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> parameters = (java.util.List<Object>) this.safeList(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parameters)); i++)
         {
             Object data = Helpers.GetValue(parameters, i);
@@ -1009,10 +1009,10 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             return;
         }
         Boolean isMargin = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(method, "Margin"), 0));
-        Object data = this.safeList(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object balanceDict = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> balanceDict = (java.util.Map<String, Object>) this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.balance, "info", balanceDict);
             if (Helpers.isTrue(isMargin))
             {
@@ -1032,7 +1032,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
                 {
                     Object currencyId = Helpers.GetValue(keys, j);
-                    Object rawBalance = this.safeDict(balanceDict, currencyId, new java.util.HashMap<String, Object>() {{}});
+                    java.util.Map<String, Object> rawBalance = (java.util.Map<String, Object>) this.safeDict(balanceDict, currencyId, new java.util.HashMap<String, Object>() {{}});
                     String code = (String) this.safeCurrencyCode(currencyId);
                     Object account = this.account();
                     Helpers.addElementToObject(account, "free", this.safeString(rawBalance, "available"));
@@ -1117,11 +1117,11 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 return (this.watch(url, messageHash, message, method, subscription)).join();
             } else
             {
-                Object subscription = this.safeDict(client.subscriptions, method, new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> subscription = (java.util.Map<String, Object>) this.safeDict(client.subscriptions, method, new java.util.HashMap<String, Object>() {{}});
                 Boolean hasSymbolSubscription = true;
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
-                Object isSubscribed = this.safeBool(subscription, marketId, false);
+                Boolean isSubscribed = (Boolean) this.safeBool(subscription, marketId, false);
                 if (Helpers.isTrue(!Helpers.isEqual(isSubscribed, true)))
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))

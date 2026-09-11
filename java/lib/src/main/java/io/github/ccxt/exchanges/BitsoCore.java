@@ -606,8 +606,8 @@ public class BitsoCore extends BitsoApi
             //             },
             //         ]
             //     }
-            Object markets = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object currencies = this.safeDict(this.options, "cachedCurrencies");
+            java.util.List<Object> markets = (java.util.List<Object>) this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> currencies = (java.util.Map<String, Object>) this.safeDict(this.options, "cachedCurrencies");
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
@@ -616,17 +616,17 @@ public class BitsoCore extends BitsoApi
                 var baseIdquoteIdVariable = Helpers.split(((String)id), "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-                Object base = ((String)baseId).toUpperCase();
-                Object quote = ((String)quoteId).toUpperCase();
-                base = this.safeCurrencyCode(base);
-                quote = this.safeCurrencyCode(quote);
+                String base = ((String)baseId).toUpperCase();
+                String quote = ((String)quoteId).toUpperCase();
+                base = (String) this.safeCurrencyCode(base);
+                quote = (String) this.safeCurrencyCode(quote);
                 Object fees = this.safeValue(market, "fees", new java.util.HashMap<String, Object>() {{}});
                 Object flatRate = this.safeValue(fees, "flat_rate", new java.util.HashMap<String, Object>() {{}});
                 String takerString = this.safeString(flatRate, "taker");
                 String makerString = this.safeString(flatRate, "maker");
                 Object taker = this.parseNumber(Precise.stringDiv(takerString, "100"));
                 Object maker = this.parseNumber(Precise.stringDiv(makerString, "100"));
-                Object feeTiers = this.safeList(fees, "structure", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> feeTiers = (java.util.List<Object>) this.safeList(fees, "structure", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
                     put( "taker", taker );
                     put( "maker", maker );
@@ -654,7 +654,7 @@ public class BitsoCore extends BitsoApi
                     put( "maker", makerFees );
                 }};
                 Helpers.addElementToObject(fee, "tiers", tiers);
-                Object baseCurrency = this.safeDict(currencies, base);
+                java.util.Map<String, Object> baseCurrency = (java.util.Map<String, Object>) this.safeDict(currencies, base);
     final Object finalBase = base;
                 final Object finalQuote = quote;
                             ((java.util.List<Object>)result).add(this.safeMarketStructure(this.extend(new java.util.HashMap<String, Object>() {{
@@ -751,9 +751,9 @@ public class BitsoCore extends BitsoApi
             //                         "type": "crypto"
             //                     }, ...
             //
-            Object payload = this.safeDict(catalogues, "payload");
-            Object currencies = this.safeDict(payload, "currencies");
-            Object metadata = this.safeList(currencies, "metadata", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> payload = (java.util.Map<String, Object>) this.safeDict(catalogues, "payload");
+            java.util.Map<String, Object> currencies = (java.util.Map<String, Object>) this.safeDict(payload, "currencies");
+            java.util.List<Object> metadata = (java.util.List<Object>) this.safeList(currencies, "metadata", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseCurrencies(metadata);
         });
 
@@ -796,7 +796,7 @@ public class BitsoCore extends BitsoApi
     public Object parseBalance(Object response)
     {
         Object payload = this.safeValue(response, "payload", new java.util.HashMap<String, Object>() {{}});
-        Object balances = this.safeList(payload, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> balances = (java.util.List<Object>) this.safeList(payload, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
@@ -1058,7 +1058,7 @@ public class BitsoCore extends BitsoApi
             //         ]
             //     }
             //
-            Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> payload = (java.util.List<Object>) this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(payload, market, timeframe, since, limit);
         });
 
@@ -1235,7 +1235,7 @@ public class BitsoCore extends BitsoApi
                 put( "book", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
-            Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> payload = (java.util.List<Object>) this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(payload, market, since, limit);
         });
 
@@ -1304,7 +1304,7 @@ public class BitsoCore extends BitsoApi
             //    }
             //
             Object payload = this.safeValue(response, "payload", new java.util.HashMap<String, Object>() {{}});
-            Object fees = this.safeList(payload, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> fees = (java.util.List<Object>) this.safeList(payload, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
             {
@@ -1373,7 +1373,7 @@ public class BitsoCore extends BitsoApi
                 put( "limit", limit );
             }};
             java.util.Map<String, Object> response = (this.privateGetUserTrades(this.extend(request, parameters))).join();
-            Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> payload = (java.util.List<Object>) this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(payload, market, since, limit);
         });
 
@@ -1416,7 +1416,7 @@ public class BitsoCore extends BitsoApi
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(Helpers.GetValue(market, "symbol"), price));
             }
             java.util.Map<String, Object> response = (this.privatePostOrders(this.extend(request, parameters))).join();
-            Object payload = this.safeDict(response, "payload", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> payload = (java.util.Map<String, Object>) this.safeDict(response, "payload", new java.util.HashMap<String, Object>() {{}});
             String id = this.safeString(payload, "oid");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -1457,7 +1457,7 @@ public class BitsoCore extends BitsoApi
             //         "payload": ["yWTQGxDMZ0VimZgZ"]
             //     }
             //
-            Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> payload = (java.util.List<Object>) this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String orderId = this.safeString(payload, 0);
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -1493,7 +1493,7 @@ public class BitsoCore extends BitsoApi
             {
                 market = this.market(symbol);
             }
-            Object oids = String.join((String)",", (java.util.List<String>)ids);
+            String oids = String.join((String)",", (java.util.List<String>)ids);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "oids", oids );
             }};
@@ -1504,7 +1504,7 @@ public class BitsoCore extends BitsoApi
             //         "payload": ["yWTQGxDMZ0VimZgZ"]
             //     }
             //
-            Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> payload = (java.util.List<Object>) this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(payload)); i++)
             {
@@ -1543,7 +1543,7 @@ public class BitsoCore extends BitsoApi
             //         "payload": ["NWUZUYNT12ljwzDT", "kZUkZmQ2TTjkkYTY"]
             //     }
             //
-            Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> payload = (java.util.List<Object>) this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> canceledOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(payload)); i++)
             {
@@ -1666,7 +1666,7 @@ public class BitsoCore extends BitsoApi
                 put( "limit", limit );
             }};
             java.util.Map<String, Object> response = (this.privateGetOpenOrders(this.extend(request, parameters))).join();
-            Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> payload = (java.util.List<Object>) this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> orders = this.parseOrders(payload, market, since, limit);
             return orders;
         });
@@ -1700,7 +1700,7 @@ public class BitsoCore extends BitsoApi
             Object payload = this.safeValue(response, "payload");
             if (Helpers.isTrue(Helpers.isArray(payload)))
             {
-                Object numOrders = Helpers.getArrayLength(payload);
+                Integer numOrders = Helpers.getArrayLength(payload);
                 if (Helpers.isTrue(Helpers.isEqual(numOrders, 1)))
                 {
                     return this.parseOrder(Helpers.GetValue(payload, 0));
@@ -1741,7 +1741,7 @@ public class BitsoCore extends BitsoApi
                 put( "oid", id );
             }};
             java.util.Map<String, Object> response = (this.privateGetOrderTradesOid(this.extend(request, parameters))).join();
-            Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> payload = (java.util.List<Object>) this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(payload, market);
         });
 
@@ -1796,7 +1796,7 @@ public class BitsoCore extends BitsoApi
             //     }
             //
             Object transactions = this.safeValue(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(transactions, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(transactions, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(first);
         });
 
@@ -1855,7 +1855,7 @@ public class BitsoCore extends BitsoApi
             //         }]
             //     }
             //
-            Object transactions = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> transactions = (java.util.List<Object>) this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(transactions, currency, since, limit, parameters);
         });
 
@@ -1884,12 +1884,12 @@ public class BitsoCore extends BitsoApi
                 put( "fund_currency", Helpers.GetValue(currency, "id") );
             }};
             java.util.Map<String, Object> response = (this.privateGetFundingDestination(this.extend(request, parameters))).join();
-            Object payload = this.safeDict(response, "payload", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> payload = (java.util.Map<String, Object>) this.safeDict(response, "payload", new java.util.HashMap<String, Object>() {{}});
             String address = this.safeString(payload, "account_identifier");
             Object tag = null;
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)address), "?dt="), 0)))
             {
-                Object parts = Helpers.split(((String)address), "?dt=");
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)address), "?dt=");
                 address = this.safeString(parts, 0);
                 tag = this.safeString(parts, 1);
             }
@@ -1975,7 +1975,7 @@ public class BitsoCore extends BitsoApi
             //
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object payload = this.safeValue(response, "payload", new java.util.HashMap<String, Object>() {{}});
-            Object depositFees = this.safeList(payload, "deposit_fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> depositFees = (java.util.List<Object>) this.safeList(payload, "deposit_fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(depositFees)); i++)
             {
                 Object depositFee = Helpers.GetValue(depositFees, i);
@@ -2089,7 +2089,7 @@ public class BitsoCore extends BitsoApi
             //        }
             //    }
             //
-            Object payload = this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> payload = (java.util.List<Object>) this.safeList(response, "payload", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseDepositWithdrawFees(payload, codes);
         });
 
@@ -2140,7 +2140,7 @@ public class BitsoCore extends BitsoApi
         Object codes = Helpers.getArg(optionalArgs, 0, null);
         Object currencyIdKey = Helpers.getArg(optionalArgs, 1, null);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-        Object depositResponse = this.safeList(response, "deposit_fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> depositResponse = (java.util.List<Object>) this.safeList(response, "deposit_fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object withdrawalResponse = this.safeValue(response, "withdrawal_fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(depositResponse)); i++)
         {
@@ -2372,7 +2372,7 @@ public class BitsoCore extends BitsoApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             endpoint = Helpers.add("/api", endpoint);
             Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(nonce, method, endpoint));
             Object request = String.join((String)"", (java.util.List<String>)content);

@@ -20,10 +20,10 @@ public class TestLoadMarkets extends BaseTest {
         Object markets = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{})).join();
         Assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
         Assert(Helpers.isArray(exchange.symbols), ".symbols is not an array");
-        Object symbolsLength = Helpers.getArrayLength(exchange.symbols);
+        Integer symbolsLength = Helpers.getArrayLength(exchange.symbols);
         Assert(!Helpers.isEqual(exchange.markets, null), ".markets is undefined");
         Object marketKeys = Helpers.objectKeys(exchange.markets);
-        Object marketKeysLength = Helpers.getArrayLength(marketKeys);
+        Integer marketKeysLength = Helpers.getArrayLength(marketKeys);
         Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
         Assert(Helpers.isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
         Assert(Helpers.isEqual(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");

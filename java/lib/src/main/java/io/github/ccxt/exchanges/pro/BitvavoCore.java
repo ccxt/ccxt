@@ -213,7 +213,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //
         this.handleBidAsk(client, message);
         Object eventVar = this.safeString(message, "event");
-        Object tickers = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
         {
@@ -261,7 +261,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
     public void handleBidAsk(Client client, Object message)
     {
         String eventVar = "bidask";
-        Object tickers = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
         {
@@ -1451,7 +1451,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         // const action = this.safeString (message, 'action');
-        Object response = this.safeList(message, "response");
+        java.util.List<Object> response = (java.util.List<Object>) this.safeList(message, "response");
         // const firstRawOrder = this.safeValue (response, 0, {});
         // const marketId = this.safeString (firstRawOrder, 'market');
         java.util.List<Object> orders = this.parseOrders(response);
@@ -1536,9 +1536,9 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
 
     public Object requestId()
     {
-        Object ts = String.valueOf(this.milliseconds());
+        String ts = String.valueOf(this.milliseconds());
         Object randomNumber = this.randNumber(4);
-        Object randomPart = String.valueOf(randomNumber);
+        String randomPart = String.valueOf(randomNumber);
         return Helpers.parseInt(Helpers.add(ts, randomPart));
     }
 
@@ -1548,7 +1548,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object messageHash = this.requestId();
-            Object messageHashStr = String.valueOf(messageHash);
+            String messageHashStr = String.valueOf(messageHash);
             Helpers.addElementToObject(request, "action", action);
             Helpers.addElementToObject(request, "requestId", messageHash);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -2202,7 +2202,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //         }
         //     }
         //
-        Object subscriptions = this.safeDict(message, "subscriptions", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> subscriptions = (java.util.Map<String, Object>) this.safeDict(message, "subscriptions", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "book", "handleOrderBookSubscriptions");
         }};
@@ -2233,7 +2233,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {
                 Long timestamp = this.milliseconds();
-                Object stringTimestamp = String.valueOf(timestamp);
+                String stringTimestamp = String.valueOf(timestamp);
                 Object auth = Helpers.add(Helpers.add(Helpers.add(stringTimestamp, "GET/"), this.version), "/websocket");
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 String action = "authenticate";
@@ -2261,7 +2261,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //     }
         //
         String messageHash = (String) "authenticated";
-        Object authenticated = this.safeBool(message, "authenticated", false);
+        Boolean authenticated = (Boolean) this.safeBool(message, "authenticated", false);
         if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once

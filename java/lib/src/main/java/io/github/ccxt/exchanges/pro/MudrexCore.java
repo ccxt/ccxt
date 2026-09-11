@@ -64,14 +64,14 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
      */
     public void setBrokerHeaders()
     {
-        String brokerId = (String) this.safeString(this.options, "broker");
+        Object brokerId = this.safeString(this.options, "broker");
         if (Helpers.isTrue(Helpers.isEqual(brokerId, null)))
         {
             return;
         }
-        Object wsOptions = this.safeDict(this.options, "ws", new java.util.HashMap<String, Object>() {{}});
-        Object innerOptions = this.safeDict(wsOptions, "options", new java.util.HashMap<String, Object>() {{}});
-        Object headers = this.safeDict(innerOptions, "headers", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> wsOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "ws", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> innerOptions = (java.util.Map<String, Object>) this.safeDict(wsOptions, "options", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> headers = (java.util.Map<String, Object>) this.safeDict(innerOptions, "headers", new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(headers, "Partner-Id", brokerId);
         Helpers.addElementToObject(innerOptions, "headers", headers);
         Helpers.addElementToObject(wsOptions, "options", innerOptions);
@@ -169,9 +169,9 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String priceType = (String) this.safeString(parameters, "price");
+            Object priceType = this.safeString(parameters, "price");
             parameters = this.omit(parameters, "price");
-            String interval = (String) this.safeString(this.timeframes, timeframe, timeframe);
+            Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(interval, "1s")) && Helpers.isTrue(!Helpers.isEqual(interval, "1m"))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchOHLCV() supports 1s and 1m timeframes only")) ;
@@ -209,13 +209,13 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
         {
             return;
         }
-        Object error = this.safeDict(message, "error");
+        java.util.Map<String, Object> error = (java.util.Map<String, Object>) this.safeDict(message, "error");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
             this.handleErrorMessage(client, message);
             return;
         }
-        String stream = (String) this.safeString(message, "stream");
+        Object stream = this.safeString(message, "stream");
         if (Helpers.isTrue(!Helpers.isEqual(stream, null)))
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(stream, "kline"), 0)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(stream, "markKline"), 0))))
@@ -230,9 +230,9 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
 
     public void handleErrorMessage(Client client, Object message)
     {
-        Object error = this.safeDict(message, "error", new java.util.HashMap<String, Object>() {{}});
-        String code = (String) this.safeString(error, "code");
-        String msg = (String) this.safeString(error, "msg");
+        java.util.Map<String, Object> error = (java.util.Map<String, Object>) this.safeDict(message, "error", new java.util.HashMap<String, Object>() {{}});
+        Object code = this.safeString(error, "code");
+        Object msg = this.safeString(error, "msg");
         Object feedback = Helpers.add(Helpers.add(this.id, " "), msg);
         if (Helpers.isTrue(Helpers.isEqual(code, "429")))
         {
@@ -243,16 +243,16 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
 
     public void handleOHLCV(Client client, Object message)
     {
-        String stream = (String) this.safeString(message, "stream");
+        Object stream = this.safeString(message, "stream");
         if (Helpers.isTrue(Helpers.isEqual(stream, null)))
         {
             return;
         }
-        Object parts = Helpers.split(stream, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(stream, "@");
         String interval = (String) Helpers.GetValue(parts, 1);
         Object tf = this.findTimeframe(interval);
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        String s = (String) this.safeString(data, "s");
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object s = this.safeString(data, "s");
         if (Helpers.isTrue(Helpers.isEqual(s, null)))
         {
             return;
@@ -278,11 +278,11 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
 
     public void handleTicker(Client client, Object message)
     {
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object t = Helpers.GetValue(data, i);
-            String s = (String) this.safeString(t, "s");
+            Object s = this.safeString(t, "s");
             if (Helpers.isTrue(Helpers.isEqual(s, null)))
             {
                 continue;
@@ -291,7 +291,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             Object symbol = Helpers.GetValue(market, "symbol");
             Long timestamp = this.milliseconds();
             Double last = this.safeNumber(t, "p");
-            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeTicker(new java.util.HashMap<String, Object>() {{
+            Object result = this.safeTicker(new java.util.HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "timestamp", timestamp );
                 put( "datetime", MudrexCore.this.iso8601(timestamp) );

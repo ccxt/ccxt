@@ -494,7 +494,7 @@ public class BitbankCore extends BitbankApi
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetPairTicker(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
         });
 
@@ -615,7 +615,7 @@ public class BitbankCore extends BitbankApi
             }};
             java.util.Map<String, Object> response = (this.publicGetPairTransactions(this.extend(request, parameters))).join();
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(data, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         });
 
@@ -669,7 +669,7 @@ public class BitbankCore extends BitbankApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object pairs = this.safeList(data, "pairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> pairs = (java.util.List<Object>) this.safeList(data, "pairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pairs)); i++)
             {
@@ -770,7 +770,7 @@ public class BitbankCore extends BitbankApi
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object candlestick = this.safeValue(data, "candlestick", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeValue(candlestick, 0, new java.util.HashMap<String, Object>() {{}});
-            Object ohlcv = this.safeList(first, "ohlcv", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> ohlcv = (java.util.List<Object>) this.safeList(first, "ohlcv", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(ohlcv, market, timeframe, since, limit);
         });
 
@@ -784,7 +784,7 @@ public class BitbankCore extends BitbankApi
             put( "datetime", null );
         }};
         Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-        Object assets = this.safeList(data, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> assets = (java.util.List<Object>) this.safeList(data, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
         {
             Object balance = Helpers.GetValue(assets, i);
@@ -1104,7 +1104,7 @@ public class BitbankCore extends BitbankApi
             }
             java.util.Map<String, Object> response = (this.privateGetUserSpotActiveOrders(this.extend(request, parameters))).join();
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(data, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
 
@@ -1151,7 +1151,7 @@ public class BitbankCore extends BitbankApi
             }
             java.util.Map<String, Object> response = (this.privateGetUserSpotTradeHistory(this.extend(request, parameters))).join();
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(data, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         });
 
@@ -1250,7 +1250,7 @@ public class BitbankCore extends BitbankApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
         });
 
@@ -1332,9 +1332,9 @@ public class BitbankCore extends BitbankApi
             // since bitbank offers no server time endpoint to compensate against
             String authMethod = this.safeString(this.options, "authMethod", "timeWindow");
             Boolean isTimeWindow = (Helpers.isEqual(authMethod, "timeWindow"));
-            Object requestTime = String.valueOf(this.milliseconds());
+            String requestTime = String.valueOf(this.milliseconds());
             String timeWindow = this.safeString(this.options, "timeWindow", "5000");
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object auth = null;
             if (Helpers.isTrue(isTimeWindow))
             {

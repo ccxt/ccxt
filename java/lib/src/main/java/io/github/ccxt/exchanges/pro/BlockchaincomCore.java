@@ -127,7 +127,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", message );
         }};
-        Object balances = this.safeList(message, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> balances = (java.util.List<Object>) this.safeList(message, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
         {
             Object entry = Helpers.GetValue(balances, i);
@@ -627,7 +627,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), this.json(message))) ;
         } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "snapshot")))
         {
-            Object orders = this.safeList(message, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(message, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
@@ -831,8 +831,8 @@ final Object finalTradeId = tradeId;
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "updated")))
         {
-            Object asks = this.safeList(message, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object bids = this.safeList(message, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> asks = (java.util.List<Object>) this.safeList(message, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> bids = (java.util.List<Object>) this.safeList(message, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);

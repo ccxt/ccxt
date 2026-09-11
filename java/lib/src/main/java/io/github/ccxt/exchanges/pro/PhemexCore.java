@@ -329,7 +329,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             ((java.util.List<Object>)tickers).add(this.parseTicker(ticker));
         } else if (Helpers.isTrue(Helpers.inOp(message, "data")))
         {
-            Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 ((java.util.List<Object>)tickers).add(this.parsePerpetualTicker(Helpers.GetValue(data, i)));
@@ -911,9 +911,9 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
             {
                 io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-                Object changes = this.safeDict2(message, "book", "orderbook_p", new java.util.HashMap<String, Object>() {{}});
-                Object asks = this.safeList(changes, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object bids = this.safeList(changes, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.Map<String, Object> changes = (java.util.Map<String, Object>) this.safeDict2(message, "book", "orderbook_p", new java.util.HashMap<String, Object>() {{}});
+                java.util.List<Object> asks = (java.util.List<Object>) this.safeList(changes, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> bids = (java.util.List<Object>) this.safeList(changes, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 this.customHandleDeltas(Helpers.GetValue(orderbook, "asks"), asks, market);
                 this.customHandleDeltas(Helpers.GetValue(orderbook, "bids"), bids, market);
                 Helpers.addElementToObject(orderbook, "nonce", nonce);
@@ -1076,7 +1076,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //    ]
         //
         String channel = "trades";
-        Object tradesLength = Helpers.getArrayLength(message);
+        Integer tradesLength = Helpers.getArrayLength(message);
         if (Helpers.isTrue(Helpers.isEqual(tradesLength, 0)))
         {
             return;
@@ -1340,7 +1340,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object closed = this.safeValue(message, "closed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object open = this.safeValue(message, "open", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> orders = (java.util.List<Object>) this.arrayConcat(open, closed);
-            Object ordersLength = Helpers.getArrayLength(orders);
+            Integer ordersLength = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isEqual(ordersLength, 0)))
             {
                 return;
@@ -1354,7 +1354,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             }
         } else
         {
-            Object messageLength = Helpers.getArrayLength(message);
+            Integer messageLength = Helpers.getArrayLength(message);
             if (Helpers.isTrue(Helpers.isEqual(messageLength, 0)))
             {
                 return;
@@ -1817,7 +1817,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                     put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList("API", PhemexCore.this.apiKey, signature, expiration)) );
                     put( "id", requestId );
                 }};
-                Object subscriptionHash = String.valueOf(requestId);
+                String subscriptionHash = String.valueOf(requestId);
                 java.util.Map<String, Object> message = this.extend(request, parameters);
                 if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
                 {
