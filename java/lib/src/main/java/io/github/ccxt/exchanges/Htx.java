@@ -236,20 +236,6 @@ public class Htx extends HtxCore {
     public CompletableFuture<DepositAddress> createDepositAddressAsync(String code) { return createDepositAddressAsync(code, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
-    public Map<String, Object> setLeverage(Long leverage, String symbol, Map<String, Object> params) {
-        Object res = Helpers.joinUnwrapped(super.setLeverage(leverage, symbol, params));
-        return (Map<String, Object>) res;
-    }
-    public Map<String, Object> setLeverage(Long leverage) { return setLeverage(leverage, (String) null, (Map<String, Object>) null); }
-    public Map<String, Object> setLeverage(Long leverage, String symbol) { return setLeverage(leverage, symbol, (Map<String, Object>) null); }
-    @SuppressWarnings("unchecked")
-    public CompletableFuture<Map<String, Object>> setLeverageAsync(Long leverage, String symbol, Map<String, Object> params) {
-        return super.setLeverage(leverage, symbol, params).thenApply(res -> (Map<String, Object>) res);
-    }
-    public CompletableFuture<Map<String, Object>> setLeverageAsync(Long leverage) { return setLeverageAsync(leverage, (String) null, (Map<String, Object>) null); }
-    public CompletableFuture<Map<String, Object>> setLeverageAsync(Long leverage, String symbol) { return setLeverageAsync(leverage, symbol, (Map<String, Object>) null); }
-
-    @SuppressWarnings("unchecked")
     public Leverage fetchLeverage(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchLeverage(symbol, params));
         return new Leverage(res);
