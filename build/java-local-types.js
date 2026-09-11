@@ -3184,50 +3184,6 @@ function dataflowDebug (message) {
     }
 }
 
-const DATAFLOW_CENSUS = process.env['CCXT_JAVA_DATAFLOW_CENSUS'] === '1';
-
-// TEMP census: the last rejection reason of dataflowLocalTypeOf
-let dataflowRejectReason = '';
-
-function dataflowReject (reason) {
-    dataflowRejectReason = reason;
-    return undefined;
-}
-
-// TEMP census: describe every use of the local
-function dataflowDescribeUses (printer, ctx, declaration, varName) {
-    const out = [];
-    for (const n of (ctx.index.identifiers.get (varName) ?? [])) {
-        if (n === declaration.name || dataflowNotAUse (n)) {
-            continue;
-        }
-        let text = '';
-        try {
-            const parent = n.parent;
-            text = (parent !== undefined ? parent.getText () : n.getText ()).replace (/\s+/g, ' ').slice (0, 90);
-        } catch (e) { text = '<err>'; }
-        out.push (text);
-    }
-    return '[' + out.join (' || ') + ']';
-}
-
-// TEMP census instrumentation
-function dataflowCensus (reason, printer, declaration, detail) {
-    if (!DATAFLOW_CENSUS) {
-        return;
-    }
-    try {
-        const sf = declaration.getSourceFile ();
-        const line = sf.getLineAndCharacterOfPosition (declaration.getStart ()).line + 1;
-        const short = sf.fileName.split ('/').slice (-2).join ('/') + ':' + line;
-        let text = '<none>';
-        if (declaration.initializer !== undefined) {
-            text = declaration.initializer.getText ().replace (/\s+/g, ' ').slice (0, 160);
-        }
-        console.error ('[dfcensus] ' + reason + '\t' + String (declaration.name.escapedText) + '\t' + short + '\t' + text + '\t' + (detail ?? ''));
-    } catch (e) { /* ignore */ }
-}
-
 // box-identical widening edges a join may take. EMPTY on purpose (see the header).
 const JAVA_WIDENING_EDGES = [];
 
@@ -3862,8 +3818,6 @@ function dataflowTypeFromWrites (printer, context, declaration, varName, initial
             // `x = Helpers.add(x, r)`); safe only for a provably non-null String r
             written = dataflowSelfAddWriteType (printer, varName, parent);
             if (written === undefined) {
-                dataflowCensus ('write-unprovable', printer, declaration, parent.right.getText ().replace (/\s+/g, ' ').slice (0, 160));
-                dataflowRejectReason = 'write-unprovable: ' + parent.right.getText ().replace (/\s+/g, ' ').slice (0, 140);
                 return undefined; // an unsafe compound write
             }
         } else if (op !== ts.SyntaxKind.EqualsToken) {
@@ -3878,8 +3832,6 @@ function dataflowTypeFromWrites (printer, context, declaration, varName, initial
         }
         dataflowDebug (`write ${varName} = ${written}`);
         if (written === undefined) {
-            dataflowCensus ('write-unprovable', printer, declaration, parent.right.getText ().replace (/\s+/g, ' ').slice (0, 160));
-            dataflowRejectReason = 'write-unprovable: ' + parent.right.getText ().replace (/\s+/g, ' ').slice (0, 140);
             return undefined; // an unprovable write
         }
         if (written === 'null') {
@@ -3887,7 +3839,6 @@ function dataflowTypeFromWrites (printer, context, declaration, varName, initial
         }
         type = (type === undefined) ? written : joinDataflowTypes (type, written);
         if (type === undefined) {
-            dataflowCensus ('write-nonjoin', printer, declaration, 'prev=' + (type === undefined ? '?' : type) + ' written=' + written);
             return undefined; // a non-joinable write
         }
     }
@@ -4148,24 +4099,20 @@ function dataflowLocalTypeOf (printer, declaration, context) {
     };
     let javaType = dataflowValueType (printer, unwrapParens (declaration.initializer), ctx);
     if (javaType === undefined) {
-        dataflowCensus ('init-unprovable', printer, declaration, '');
         dataflowDebug (`decl ${sourceName}: rejected (unprovable initializer)`);
-        return dataflowReject ('init-unprovable: ' + declaration.initializer.getText ().replace (/\s+/g, ' ').slice (0, 140));
+        return undefined;
     }
     // (a) join the initializer with every later write
-    const rejectBefore = dataflowRejectReason;
-    dataflowRejectReason = '';
     javaType = dataflowTypeFromWrites (printer, ctx, declaration, sourceName, javaType);
     if (javaType === undefined) {
         dataflowDebug (`decl ${sourceName}: rejected (unprovable/non-joinable write)`);
-        return dataflowReject ('write: ' + (dataflowRejectReason || rejectBefore));
+        return undefined;
     }
     ctx.stack.add (declaration);
     try {
         if (!dataflowIsSafeToRetype (printer, declaration, sourceName, javaType, ctx)) {
-            dataflowCensus ('unsafe-use', printer, declaration, 'type=' + javaType + ' uses=' + dataflowDescribeUses (printer, ctx, declaration, sourceName));
             dataflowDebug (`decl ${sourceName}: rejected (unsafe use) type=${javaType}`);
-            return dataflowReject ('unsafe-use type=' + javaType);
+            return undefined;
         }
     } finally {
         ctx.stack.delete (declaration);
@@ -4212,25 +4159,12 @@ function dataflowRewriteDeclaration (printer, node, identation, printed) {
     }
     const info = dataflowLocalTypeOf (printer, declaration, undefined);
     if (info === undefined) {
-        if (DATAFLOW_CENSUS) {
-            const iden = printer.getIden (identation);
-            const printedName = printer.printNode (declaration.name, 0);
-            const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
-            dataflowCensus (printed.lastIndexOf (marker) === -1 ? 'decl-marker-missing' : 'decl-candidate', printer, declaration,
-                (printed.lastIndexOf (marker) === -1 ? ('MARKER[' + JSON.stringify (marker) + '] HEAD[' + JSON.stringify (printed.slice (0, 220)) + ']') : dataflowRejectReason));
-        }
         return printed;
     }
     const iden = printer.getIden (identation);
     const printedName = printer.printNode (declaration.name, 0);
     const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
     const at = printed.lastIndexOf (marker);
-    if (DATAFLOW_CENSUS) {
-        dataflowCensus (at === -1 ? 'decl-marker-missing' : (info === undefined ? 'decl-candidate' : 'decl-typed'),
-            printer, declaration, at === -1
-                ? ('MARKER[' + JSON.stringify (marker) + '] HEAD[' + JSON.stringify (printed.slice (0, 260)) + ']')
-                : (info === undefined ? dataflowRejectReason : 'type=' + info.type));
-    }
     if (at === -1) {
         return printed; // already retyped upstream / unexpected shape — leave it alone
     }
