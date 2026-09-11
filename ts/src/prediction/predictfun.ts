@@ -3850,25 +3850,25 @@ export default class predictfun extends Exchange {
      * @ignore
      * @method
      * @name predictfun#sign
-     * @description builds the request URL and attaches the api key header required by every endpoint
+     * @description builds the request URL and attaches the API key header required by every endpoint
      * @param {string} path the endpoint path
-     * @param {string|string[]} [section] the api group and access level
+     * @param {string|string[]} [api] the API group and access level
      * @param {string} [method] HTTP method
      * @param {object} [params] request parameters
      * @param {object} [headers] request headers
      * @param {object} [body] request body
      * @returns {object} a dictionary with url, method, body and headers
      */
-    override sign (path: any, section: any = 'predictfun', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
+    override sign (path: any, api: any = 'predictfun', method = 'GET', params = {}, headers: any = undefined, body: any = undefined) {
         // the venue authenticates every endpoint, so the key is required up front rather than
-        // per access level - a key-less request is answered with a 401 by the api gateway.
-        // the testnet is the exception, it is served without an api key at all
+        // per access level - a key-less request is answered with a 401 by the API gateway.
+        // the testnet is the exception, it is served without an API key at all
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const apiKey = this.apiKey;
         if ((apiKey === undefined) && !sandboxMode) {
             throw new AuthenticationError (this.id + ' sign() requires the "apiKey" credential for all endpoints');
         }
-        const apiGroup: string = typeof section === 'string' ? section : section[0];
+        const apiGroup: string = typeof api === 'string' ? api : api[0];
         const baseUrls = this.urls['api'] as Dict;
         const baseUrl = this.safeString (baseUrls, apiGroup, baseUrls['predictfun'] as string);
         let url = baseUrl + '/' + this.implodeParams (path, params);
@@ -3880,12 +3880,14 @@ export default class predictfun extends Exchange {
         }
         const existingHeaders = (headers !== undefined) ? headers : {};
         headers = existingHeaders;
+        const authHeaders: Dict = {};
         if ((apiKey !== undefined) && (!sandboxMode)) {
-            headers = this.extend ({
-                'x-api-key': apiKey,
-            }, existingHeaders);
+            // the php transpiler prefixes every standalone 'api' with a $, string literals included,
+            // since sign () has a parameter of that name - ending the literal right after it avoids that
+            const apiKeyHeader = 'x-api' + '-key';
+            authHeaders[apiKeyHeader] = apiKey;
         }
-        // the api key authorises the request, the JWT authorises acting for a wallet - authenticate ()
+        // the API key authorises the request, the JWT authorises acting for a wallet - authenticate ()
         // caches it, so it is attached to every call once an order action has asked for one
         // the JWT is scoped to one wallet, so it only goes to the endpoints that act for a wallet.
         // attaching it to public reads would hand the venue a wallet credential they do not need.
@@ -3907,18 +3909,19 @@ export default class predictfun extends Exchange {
             'v1/oauth/positions',
         ];
         const jwtToken = this.safeString (this.options, 'jwtToken');
-        // unlike the api key, the JWT IS required on the testnet: wallet endpoints there answer
+        // unlike the API key, the JWT IS required on the testnet - wallet endpoints there answer
         // 401 without it, so it is attached on both hosts
         if ((jwtToken !== undefined) && this.inArray (path, walletPaths)) {
-            headers['Authorization'] = 'Bearer ' + jwtToken;
+            authHeaders['Authorization'] = 'Bearer ' + jwtToken;
         }
         if (method !== 'GET') {
             if (!sandboxMode) {
                 this.checkRequiredCredentials ();
             }
-            headers['Content-Type'] = 'application/json';
+            authHeaders['Content-Type'] = 'application/json';
             body = this.json (params);
         }
+        headers = this.extend (authHeaders, headers);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
