@@ -190,7 +190,8 @@
                     {
                         "salt": "1",
                         "nonce": "0",
-                        "expiration": "1789017900"
+                        "expiration": "1789017900",
+                        "warnOnMarketOrderWithoutPrice": false
                     }
                 ],
                 "output": "{\"data\":{\"order\":{\"salt\":\"1\",\"maker\":\"0xabababababababababababababababababababab\",\"signer\":\"0xabababababababababababababababababababab\",\"taker\":\"0x0000000000000000000000000000000000000000\",\"tokenId\":\"59609662274634420713255055715470737173946398995313530846306470637882773028040\",\"makerAmount\":\"9900000000000000000\",\"takerAmount\":\"10000000000000000000\",\"expiration\":1789017900,\"nonce\":\"0\",\"feeRateBps\":\"200\",\"side\":0,\"signatureType\":0,\"hash\":\"0xb5e4839d2fbf4e2306f69d07d810e5d600bc1544bcc97d7c38f1475822a86b72\",\"signature\":\"0xa2e6765ffa6f41d85120b0d0067bac77caa86c0ff86a444a177c245619ef9d5d35dff3372e44b45b08a39217dd44bcaef047676c013e057a537d4deee3f98c111c\"},\"pricePerShare\":\"990000000000000000\",\"strategy\":\"MARKET\"}}"
@@ -208,7 +209,8 @@
                     {
                         "salt": "1",
                         "nonce": "0",
-                        "expiration": "1789017900"
+                        "expiration": "1789017900",
+                        "warnOnMarketOrderWithoutPrice": false
                     }
                 ],
                 "output": "{\"data\":{\"order\":{\"salt\":\"1\",\"maker\":\"0xabababababababababababababababababababab\",\"signer\":\"0xabababababababababababababababababababab\",\"taker\":\"0x0000000000000000000000000000000000000000\",\"tokenId\":\"59609662274634420713255055715470737173946398995313530846306470637882773028040\",\"makerAmount\":\"10000000000000000000\",\"takerAmount\":\"100000000000000000\",\"expiration\":1789017900,\"nonce\":\"0\",\"feeRateBps\":\"200\",\"side\":1,\"signatureType\":0,\"hash\":\"0xfabc817c55377f27b6f94d4a02baf90c3b43f6cbf5536a6e507df68770085caf\",\"signature\":\"0xf67dee06db9f4f6fa8d2482a457ee09a1395f019799bbc4a9a8fdaae839ca7a93bece3e63cb59d03f3be2d31095c8733698636ec6c6261167cf98a0d89f03f841b\"},\"pricePerShare\":\"10000000000000000\",\"strategy\":\"MARKET\"}}"
