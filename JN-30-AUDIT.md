@@ -140,7 +140,8 @@ overload is emitted). Output: `JN-30-evidence/audit-known-census.out.txt`.
    (a KNOWN_TYPES name must be generable) holds if the file is ever deleted.
 
 Measured effect (regenerated, not hand-edited): **104 REST wrappers + 7 prediction wrappers**
-gain the typed surface; 113 files, +1336 lines, 0 deletions outside the two build edits:
+gain the typed surface — `java/` diff = **111 files, +1332 lines, 0 deletions**; the two build
+files are +4/−1 (the four table entries above):
 
 ```java
 public AllGreeks fetchAllGreeks(List<String> symbols, Map<String, Object> params) { … new AllGreeks(res); }
@@ -163,8 +164,8 @@ that family wants it.
 | step | result |
 |---|---|
 | `npx tsx build/transpileTypes.ts --lang java --check` | exit 0 (in sync) |
-| `npm run force-transpileJava` | exit 0, re-run leaves `git status` clean (idempotent) |
-| `npx tsx build/javaTranspiler.ts --prediction --force` | exit 0, `git status` clean |
-| `cd java && ./gradlew compileJava` | **BUILD SUCCESSFUL** (includes `:tests:compileJava`) |
+| `npm run force-transpileJava` | exit 0; re-run leaves `git status` clean (idempotent) |
+| `npx tsx build/javaTranspiler.ts --prediction --force` | exit 0; `git status` clean |
+| `cd java && ./gradlew clean compileJava` | **BUILD SUCCESSFUL** in 2m10s, 8 tasks executed, 0 errors (includes `:tests:compileJava`) |
 
 No `ts/src` file was touched, so the TS `tsc` / eslint gate does not apply to this branch.
