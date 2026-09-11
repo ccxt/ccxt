@@ -558,7 +558,7 @@ public class BitvavoCore extends BitvavoApi
     public Object parseMarkets(Object markets)
     {
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object fees = this.fees;
+        java.util.Map<String, Object> fees = this.fees;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
         {
             Object market = Helpers.GetValue(markets, i);

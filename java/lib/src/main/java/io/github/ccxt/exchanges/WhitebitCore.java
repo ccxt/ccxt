@@ -1434,7 +1434,7 @@ public class WhitebitCore extends WhitebitApi
             //
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             // Process all markets from the loaded markets cache
-            Object markets = this.markets;
+            java.util.Map<String, Object> markets = this.markets;
             if (Helpers.isTrue(Helpers.isEqual(markets, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;

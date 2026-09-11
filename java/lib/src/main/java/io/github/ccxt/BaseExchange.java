@@ -134,16 +134,15 @@ public class BaseExchange {
 
     public volatile List<Object> symbols = new ArrayList<>();
     public volatile List<Object> codes = new ArrayList<>();
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public volatile List ids = new ArrayList<>();
+    public volatile List<Object> ids = new ArrayList<>();
 
     public boolean substituteCommonCurrencyCodes = true;
 
     public Map<String, Object> commonCurrencies = new HashMap<>();
 
     public Object limits = new HashMap<String, Object>();
-    public Object precisionMode = DECIMAL_PLACES;
-    public volatile Object currencies_by_id = new HashMap<String, Object>();
+    public Long precisionMode = (long) DECIMAL_PLACES;
+    public volatile Map<String, Object> currencies_by_id = new HashMap<String, Object>();
 
     // account rows are plain dicts (id/type/code/info); the typed Account wrapper is
     // built at the fetchAccounts boundary, not stored here. `accountsById` is the
@@ -166,16 +165,16 @@ public class BaseExchange {
     public Map<String, Object> options = new java.util.concurrent.ConcurrentHashMap<>();
     public boolean isSandboxModeEnabled = false;
 
-    public volatile Object markets = null;
-    public volatile Object currencies = new HashMap<String, Object>();
-    public Object fees = new HashMap<String, Object>();
-    public Object requiredCredentials = new HashMap<String, Object>();
-    public Object timeframes = new HashMap<String, Object>();
+    public volatile Map<String, Object> markets = null;
+    public volatile Map<String, Object> currencies = new HashMap<String, Object>();
+    public Map<String, Object> fees = new HashMap<String, Object>();
+    public Map<String, Object> requiredCredentials = new HashMap<String, Object>();
+    public Map<String, Object> timeframes = new HashMap<String, Object>();
     public double rateLimit;
     public double rollingWindowSize = 60000;
     public String rateLimiterAlgorithm = "leakyBucket";                        // 0.0 by default
-    public Object exceptions = new HashMap<String, Object>();
-    public Object urls = new HashMap<String, Object>();
+    public Map<String, Object> exceptions = new HashMap<String, Object>();
+    public Map<String, Object> urls = new HashMap<String, Object>();
     public Object precision = new HashMap<String, Object>();
 
     // Credentials
@@ -209,11 +208,11 @@ public class BaseExchange {
 
     // Last responses — volatile for visibility across async callbacks (last-writer-wins)
     public volatile Object last_response_headers;
-    public volatile Object last_request_headers;
+    public volatile Map<String, Object> last_request_headers;
     public volatile Object last_json_response;
     public volatile Object last_http_response;
-    public volatile Object last_request_body;
-    public volatile Object last_request_url;
+    public volatile String last_request_body;
+    public volatile String last_request_url;
     public final ConcurrentLinkedQueue<Map<String, Object>> fetchHistoryCache = new ConcurrentLinkedQueue<>();
     public int fetchHistoryCacheSize = 0;
 
@@ -1995,9 +1994,9 @@ public class BaseExchange {
     /** Hand-written (not transpiled): the last_request_* fields are volatile,
      *  so plain assignments are already safe against concurrent requests. */
     public void setLastRequest(Object request) {
-        this.last_request_headers = Helpers.GetValue(request, "headers");
-        this.last_request_body = Helpers.GetValue(request, "body");
-        this.last_request_url = Helpers.GetValue(request, "url");
+        this.last_request_headers = (Map<String, Object>) Helpers.GetValue(request, "headers");
+        this.last_request_body = (String) Helpers.GetValue(request, "body");
+        this.last_request_url = (String) Helpers.GetValue(request, "url");
     }
 
     /** Check if a message is binary (byte array). */
@@ -4922,7 +4921,7 @@ public Object describe()
             {
                 Helpers.addElementToObject(this.urls, "api", this.clone(Helpers.GetValue(this.urls, "apiBackup")));
             }
-            Object newUrls = this.omit(this.urls, "apiBackup");
+            java.util.Map<String, Object> newUrls = this.omit(this.urls, "apiBackup");
             this.urls = newUrls;
             // set flag
             this.isSandboxModeEnabled = false;
@@ -4948,7 +4947,7 @@ public Object describe()
         } else if (Helpers.isTrue(Helpers.inOp(this.urls, "apiBackupDemoTrading")))
         {
             Helpers.addElementToObject(this.urls, "api", ((Object)Helpers.GetValue(this.urls, "apiBackupDemoTrading")));
-            Object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            java.util.Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
@@ -7014,7 +7013,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.")) ;
         }
-        Object markets = this.markets;
+        java.util.Map<String, Object> markets = this.markets;
         if (Helpers.isTrue(Helpers.isEqual(markets, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
@@ -8398,7 +8397,7 @@ public Object describe()
                 {
                     Object response = (this.fetchTradingLimits(symbols)).join();
                     Object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
-                    Object markets = this.markets;
+                    java.util.Map<String, Object> markets = this.markets;
                     if (Helpers.isTrue(Helpers.isEqual(markets, null)))
                     {
                         throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
@@ -10378,8 +10377,8 @@ public Object describe()
         }
         if (Helpers.isTrue((code instanceof String)))
         {
-            Object currencies = this.currencies;
-            Object currenciesById = this.currencies_by_id;
+            java.util.Map<String, Object> currencies = this.currencies;
+            java.util.Map<String, Object> currenciesById = this.currencies_by_id;
             if (Helpers.isTrue(Helpers.inOp(currencies, code)))
             {
                 return Helpers.GetValue(currencies, code);
@@ -10397,7 +10396,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " market() requires a symbol argument")) ;
         }
-        Object markets = this.markets;
+        java.util.Map<String, Object> markets = this.markets;
         if (Helpers.isTrue(Helpers.isEqual(markets, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
@@ -11447,7 +11446,7 @@ public Object describe()
         {
             return Helpers.GetValue(accountsByType, lowercaseAccount);
         }
-        Object markets = this.markets;
+        java.util.Map<String, Object> markets = this.markets;
         java.util.Map<String, Object> marketsById = this.markets_by_id;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(markets, null))) && Helpers.isTrue((Helpers.inOp(markets, account))))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(marketsById, null))) && Helpers.isTrue((Helpers.inOp(marketsById, account)))))))
         {

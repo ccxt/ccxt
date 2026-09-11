@@ -130,7 +130,7 @@ public class Main {
             }
         }
 
-        Map<String, Boolean> credentials = (Map<String, Boolean>)instance.requiredCredentials;
+        Map<String, Boolean> credentials = (Map<String, Boolean>) (Map<?, ?>) instance.requiredCredentials;
         if (noKeys || credentials == null) {
             return;
         }

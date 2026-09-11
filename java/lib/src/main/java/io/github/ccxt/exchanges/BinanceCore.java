@@ -4630,7 +4630,7 @@ public class BinanceCore extends BinanceApi
         } else if (Helpers.isTrue(Helpers.inOp(this.urls, "apiBackupDemoTrading")))
         {
             Helpers.addElementToObject(this.urls, "api", Helpers.GetValue(this.urls, "apiBackupDemoTrading"));
-            Object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            java.util.Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
@@ -13306,7 +13306,7 @@ public class BinanceCore extends BinanceApi
                 //         ...
                 //     }
                 //
-                Object markets = this.markets;
+                java.util.Map<String, Object> markets = this.markets;
                 if (Helpers.isTrue(Helpers.isEqual(markets, null)))
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
@@ -13346,7 +13346,7 @@ public class BinanceCore extends BinanceApi
                 //         "updateTime": 0
                 //     }
                 //
-                Object markets = this.markets;
+                java.util.Map<String, Object> markets = this.markets;
                 if (Helpers.isTrue(Helpers.isEqual(markets, null)))
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
@@ -16095,7 +16095,7 @@ final Object finalMarket = market;
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object urls = this.urls;
+        java.util.Map<String, Object> urls = this.urls;
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(urls, "api"), api))))
         {
             throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;

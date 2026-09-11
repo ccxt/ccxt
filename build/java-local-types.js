@@ -726,15 +726,38 @@ function isProvablyStringExpression (printer, node, selfName, narrowed) {
     }
 }
 
-// this.<member> — hand-written BaseExchange fields whose Java declaration is concrete
-// (used by the ws String prover and the error-path member family; the fields are audited
-// tree-wide: no generated exchange class redeclares any of them)
+// this.<member> — hand-written BaseExchange / PredictionExchange fields whose Java
+// declaration is concrete (used by the ws String prover and the error-path member
+// family; the fields are audited tree-wide: no generated exchange class redeclares
+// any of them). JN-8 retyped the base market/options/config fields from Object to
+// their single runtime shape (every write site in the tree proves the box: Map/List/
+// String/Long or null — see the slice report), so a generated local initialised from
+// a `this.<field>` read can carry the declared type with no checkcast.
 const THIS_MEMBER_TYPES = {
     'id': 'String', 'version': 'String', 'name': 'String', 'secret': 'String',
     'apiKey': 'String', 'password': 'String', 'uid': 'String', 'login': 'String',
     'url': 'String', 'hostname': 'String',
     'symbols': 'java.util.List<Object>',
     'markets_by_id': 'java.util.Map<String, Object>',
+    // JN-8 base fields (BaseExchange.java)
+    'markets': 'java.util.Map<String, Object>',
+    'currencies': 'java.util.Map<String, Object>',
+    'currencies_by_id': 'java.util.Map<String, Object>',
+    'timeframes': 'java.util.Map<String, Object>',
+    'urls': 'java.util.Map<String, Object>',
+    'fees': 'java.util.Map<String, Object>',
+    'exceptions': 'java.util.Map<String, Object>',
+    'requiredCredentials': 'java.util.Map<String, Object>',
+    'last_request_headers': 'java.util.Map<String, Object>',
+    'ids': 'java.util.List<Object>',
+    'precisionMode': 'Long',
+    'last_request_url': 'String',
+    'last_request_body': 'String',
+    // JN-8 prediction fields (PredictionExchange.java)
+    'outcomes': 'java.util.Map<String, Object>',
+    'outcomes_by_id': 'java.util.Map<String, Object>',
+    'events': 'java.util.Map<String, Object>',
+    'events_by_slug': 'java.util.Map<String, Object>',
 };
 
 // the Java declaration of this base method returns String (checked on the printer's own
@@ -1241,6 +1264,23 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         const memberType = THIS_MEMBER_TYPES[String (initializer.name.escapedText)];
         if (memberType !== undefined) {
             return { type: memberType };
+        }
+    }
+    // JN-8: `const newUrls = this.omit (this.urls, 'apiBackup')` — the hand-written
+    // `omit (java.util.Map<String, Object>, String)` overload (BaseExchange) returns
+    // java.util.Map<String, Object>. The generic `Functions.omit` form hands a LIST
+    // input back as-is, so the result is only provable when the first argument cannot
+    // be a list: here it is a field this slice retyped to Map<String, Object>, which
+    // is a map or null on every write path. No cast is needed — the picked overload's
+    // Java declaration is already the narrowed type.
+    if (isThisCall (initializer) && initializer.expression.name.escapedText === 'omit'
+        && initializer.arguments?.length === 2) {
+        const receiver = initializer.arguments[0];
+        const key = initializer.arguments[1];
+        if (ts.isPropertyAccessExpression (receiver) && thisPropName (receiver) !== undefined
+            && THIS_MEMBER_TYPES[String (receiver.name.escapedText)] === JAVA_STRUCTURE_TYPE
+            && ts.isStringLiteral (key)) {
+            return { type: JAVA_STRUCTURE_TYPE };
         }
     }
     if (!isThisCall (initializer)) {
@@ -3140,6 +3180,10 @@ export function installJavaLocalTypes (transpiler) {
     patchJavaCollectionLocalTypes (transpiler);
     printer._javaLocalTypesPatched = true;
     patchJavaDataflowTypes (transpiler);
+    // (6) JN-8: writes into the narrowed hand-written base fields (`exchange.currencies
+    // = currencies;` — the tests tier passes an exchange instance around, so the
+    // receiver is not `this`); its own printBinaryExpression wrapper, chained last.
+    patchJavaBaseFieldWriteCasts (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -5476,4 +5520,72 @@ export function patchJavaParameterTypes (transpiler) {
         }
         return javaType + printed.slice ('Object'.length);
     };
+}
+
+// ===== JN-8: writes into the narrowed hand-written base fields =====
+//
+// `X.<field> = value` where X is NOT `this` and <field> is a base field this slice
+// narrowed (see THIS_MEMBER_TYPES). The one live shape is the tests tier, which passes
+// an exchange instance around: `exchange.currencies = currencies;` — the value is an
+// `Object` local, so the assignment needs the same checkcast the field's declaration
+// now spells. Every write site in the tree proves the runtime box (Map/List or null;
+// see the slice report) and a checkcast on that box is free.
+//
+// `this.`-receiver writes never need this hook: BaseExchange.java is hand-written and
+// edited directly, and its `this.urls = this.omit(...)` result is the JN-8 omit rule
+// above (the local is typed, so the field write compiles). A redundant cast on a value
+// that already carries the type stays legal; the guard below keeps the wrapper
+// idempotent if another pass beat it to the marker.
+const JAVA_NARROWED_FIELD_WRITE_CASTS = {
+    'markets': JAVA_STRUCTURE_TYPE,
+    'currencies': JAVA_STRUCTURE_TYPE,
+    'currencies_by_id': JAVA_STRUCTURE_TYPE,
+    'timeframes': JAVA_STRUCTURE_TYPE,
+    'urls': JAVA_STRUCTURE_TYPE,
+    'fees': JAVA_STRUCTURE_TYPE,
+    'exceptions': JAVA_STRUCTURE_TYPE,
+    'requiredCredentials': JAVA_STRUCTURE_TYPE,
+    'last_request_headers': JAVA_STRUCTURE_TYPE,
+    'outcomes': JAVA_STRUCTURE_TYPE,
+    'outcomes_by_id': JAVA_STRUCTURE_TYPE,
+    'events': JAVA_STRUCTURE_TYPE,
+    'events_by_slug': JAVA_STRUCTURE_TYPE,
+    'ids': 'java.util.List<Object>',
+};
+
+export function patchJavaBaseFieldWriteCasts (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printBinaryExpression !== 'function' || printer._javaBaseFieldWriteCastsPatched) {
+        return;
+    }
+    const originalBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = originalBinary (node, identation);
+        if (node.operatorToken?.kind !== ts.SyntaxKind.EqualsToken) {
+            return printed;
+        }
+        const lhs = node.left;
+        if (lhs === undefined || !ts.isPropertyAccessExpression (lhs)) {
+            return printed;
+        }
+        if (lhs.expression.kind === ts.SyntaxKind.ThisKeyword || lhs.expression.kind === ts.SyntaxKind.SuperKeyword) {
+            return printed;
+        }
+        const fieldType = JAVA_NARROWED_FIELD_WRITE_CASTS[String (lhs.name.escapedText)];
+        if (fieldType === undefined) {
+            return printed;
+        }
+        const marker = `${printer.printNode (lhs, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        const head = printed.slice (0, at + marker.length);
+        const rest = printed.slice (at + marker.length);
+        if (rest.startsWith ('(' + fieldType + ')')) {
+            return printed; // already cast
+        }
+        return head + '(' + fieldType + ') ' + rest;
+    };
+    printer._javaBaseFieldWriteCastsPatched = true;
 }

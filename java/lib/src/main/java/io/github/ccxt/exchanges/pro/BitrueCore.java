@@ -485,7 +485,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
 
     public Object findSwapMarketByWsBaseQuote(Object wsBaseQuote)
     {
-        Object markets = this.markets;
+        java.util.Map<String, Object> markets = this.markets;
         if (Helpers.isTrue(Helpers.isEqual(markets, null)))
         {
             return null;
