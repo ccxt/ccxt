@@ -22,7 +22,7 @@ public class TestFetchOrderBooks extends BaseTest {
         Object symbol = Helpers.GetValue(symbols, 0);
         Object orderBooks = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBooks", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, orderBooks);
-        java.util.List<Object> orderBookKeys = Helpers.objectKeys(orderBooks);
+        java.util.List<String> orderBookKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(orderBooks);
         Assert(Helpers.isGreaterThan(Helpers.getArrayLength(orderBookKeys), 0), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " returned 0 length data"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderBookKeys)); i++)
         {

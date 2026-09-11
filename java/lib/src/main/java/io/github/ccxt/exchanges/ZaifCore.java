@@ -418,7 +418,7 @@ public class ZaifCore extends ZaifApi
             put( "datetime", null );
         }};
         Object funds = this.safeDict(balances, "funds", new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> currencyIds = Helpers.objectKeys(funds);
+        java.util.List<String> currencyIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(funds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -662,7 +662,7 @@ public class ZaifCore extends ZaifApi
             //      ]
             //
             java.util.List<Object> trades = this.toArray(response);
-            Integer numTrades = Helpers.getArrayLength(trades);
+            Object numTrades = Helpers.getArrayLength(trades);
             if (Helpers.isTrue(Helpers.isEqual(numTrades, 1)))
             {
                 Object firstTrade = this.safeDict(trades, 0, new java.util.HashMap<String, Object>() {{}});
@@ -1018,7 +1018,7 @@ public class ZaifCore extends ZaifApi
 
     public Object customNonce()
     {
-        String num = this.numberToString(Helpers.divide(this.milliseconds(), 1000));
+        Object num = this.numberToString(Helpers.divide(this.milliseconds(), 1000));
         Object nonce = Helpers.parseFloat(num);
         return toFixed(nonce, 8);
     }

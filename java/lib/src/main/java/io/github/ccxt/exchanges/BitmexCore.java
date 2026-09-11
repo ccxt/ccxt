@@ -768,7 +768,7 @@ public class BitmexCore extends BitmexApi
         Boolean withdrawEnabled = false;
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         String scale = this.safeString(currency, "scale");
-        String precisionString = (String) this.parsePrecision(scale);
+        Object precisionString = this.parsePrecision(scale);
         Object precision = this.parseNumber(precisionString);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
@@ -859,7 +859,7 @@ public class BitmexCore extends BitmexApi
     {
         java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
         String precision = this.safeString(currency, "precision");
-        String amountString = this.numberToString(amount);
+        Object amountString = this.numberToString(amount);
         String finalAmount = Precise.stringDiv(amountString, precision);
         return this.parseNumber(finalAmount);
     }
@@ -1502,7 +1502,7 @@ public class BitmexCore extends BitmexApi
                 }} );
             }};
             Object response = (this.fetchOrders(symbol, null, null, this.deepExtend(filter, parameters))).join();
-            Integer numResults = Helpers.getArrayLength(response);
+            Object numResults = Helpers.getArrayLength(response);
             if (Helpers.isTrue(Helpers.isEqual(numResults, 1)))
             {
                 return Helpers.GetValue(response, 0);
@@ -2408,13 +2408,13 @@ public class BitmexCore extends BitmexApi
         Long timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         String priceString = this.safeString2(trade, "avgPx", "price");
         Object amountString = this.convertFromRawQuantity(symbol, this.safeString2(trade, "size", "lastQty"));
-        String execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
+        Object execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
         String id = this.safeString(trade, "trdMatchID");
         String order = this.safeString(trade, "orderID");
         String side = (String)this.safeStringLower(trade, "side");
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         Object fee = null;
-        String feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
+        Object feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             String currencyId = this.safeString2(trade, "settlCurrency", "currency");
@@ -2545,8 +2545,8 @@ public class BitmexCore extends BitmexApi
             amount = this.convertFromRawQuantity(symbol, qty);
         }
         String average = this.safeString(order, "avgPx");
-        String filled = null;
-        String cumQty = this.numberToString(this.convertFromRawQuantity(symbol, this.safeString(order, "cumQty")));
+        Object filled = null;
+        Object cumQty = this.numberToString(this.convertFromRawQuantity(symbol, this.safeString(order, "cumQty")));
         if (Helpers.isTrue(isInverse))
         {
             filled = Precise.stringDiv(cumQty, average);
@@ -2745,7 +2745,7 @@ public class BitmexCore extends BitmexApi
             {
                 ((java.util.List<Object>)execInstructions).add("ParticipateDoNotInitiate");
             }
-            Integer execInstLength = Helpers.getArrayLength(execInstructions);
+            Object execInstLength = Helpers.getArrayLength(execInstructions);
             if (Helpers.isTrue(Helpers.isGreaterThan(execInstLength, 0)))
             {
                 Helpers.addElementToObject(request, "execInst", String.join((String)",", (java.util.List<String>)execInstructions));
@@ -3596,9 +3596,9 @@ public class BitmexCore extends BitmexApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(code, "id"));
             } else if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                java.util.List<Object> splitSymbol = (java.util.List<Object>) Helpers.split(symbol, ":");
-                Integer splitSymbolLength = Helpers.getArrayLength(splitSymbol);
-                java.util.List<Object> timeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList("nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"));
+                Object splitSymbol = Helpers.split(symbol, ":");
+                Object splitSymbolLength = Helpers.getArrayLength(splitSymbol);
+                java.util.List<String> timeframes = new java.util.ArrayList<String>(java.util.Arrays.asList("nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(splitSymbolLength, 1))) && Helpers.isTrue(this.inArray(Helpers.GetValue(splitSymbol, 1), timeframes))))
                 {
                     java.util.Map<String, Object> code = (java.util.Map<String, Object>) this.currency(Helpers.GetValue(splitSymbol, 0));
@@ -3838,7 +3838,7 @@ public class BitmexCore extends BitmexApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object networks = this.safeList(fee, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer networksLength = Helpers.getArrayLength(networks);
+        Object networksLength = Helpers.getArrayLength(networks);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -3854,7 +3854,7 @@ public class BitmexCore extends BitmexApi
         if (Helpers.isTrue(!Helpers.isEqual(networksLength, 0)))
         {
             String scale = this.safeString(fee, "scale");
-            String precision = (String) this.parsePrecision(scale);
+            Object precision = this.parsePrecision(scale);
             for (var i = 0; Helpers.isLessThan(i, networksLength); i++)
             {
                 Object network = Helpers.GetValue(networks, i);
@@ -4643,7 +4643,7 @@ public class BitmexCore extends BitmexApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " sign() missing expires")) ;
             }
-            String stringExpires = String.valueOf(expires);
+            Object stringExpires = String.valueOf(expires);
             auth = Helpers.add(auth, stringExpires);
             Helpers.addElementToObject(headers, "api-expires", stringExpires);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT"))) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))

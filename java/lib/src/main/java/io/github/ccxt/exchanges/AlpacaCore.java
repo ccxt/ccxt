@@ -657,7 +657,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
-            String localTime = Helpers.slice(timestamp, 0, 23);
+            Object localTime = Helpers.slice(timestamp, 0, 23);
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
@@ -672,7 +672,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
-            String jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
+            Object jetlag = Helpers.slice(timestamp, jetlagStrStart, jetlagStrEnd);
             Object iso = Helpers.subtract(this.parseToInt(this.parse8601(localTime)), Helpers.multiply(Helpers.multiply(this.parseToNumeric(jetlag), 3600), 1000));
             return iso;
         });
@@ -752,7 +752,7 @@ public class AlpacaCore extends AlpacaApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "/");
+        Object parts = Helpers.split(marketId, "/");
         String assetClass = this.safeString(asset, "class");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
@@ -1109,7 +1109,7 @@ public class AlpacaCore extends AlpacaApi
                     String pageToken = this.safeString(response, "next_page_token");
                     for (var i = 1; Helpers.isLessThan(i, paginationCalls); i++)
                     {
-                        Integer ohlcvsLength = Helpers.getArrayLength(ohlcvs);
+                        Object ohlcvsLength = Helpers.getArrayLength(ohlcvs);
                         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(pageToken, null))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(ohlcvsLength, limit)))))))
                         {
                             break;
@@ -1118,7 +1118,7 @@ public class AlpacaCore extends AlpacaApi
                         response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
                         bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
                         Object page = this.safeList(bars, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                        Integer pageLength = Helpers.getArrayLength(page);
+                        Object pageLength = Helpers.getArrayLength(page);
                         if (Helpers.isTrue(Helpers.isEqual(pageLength, 0)))
                         {
                             break;
@@ -1295,7 +1295,7 @@ public class AlpacaCore extends AlpacaApi
             //
             java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object snapshots = this.safeDict(response, "snapshots", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> marketIds = Helpers.objectKeys(snapshots);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(snapshots);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -1340,7 +1340,7 @@ public class AlpacaCore extends AlpacaApi
         String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         Object uuid = this.uuid();
         Object parts = Helpers.split(uuid, "-");
-        String random_id = String.join((String)"", (java.util.List<String>)parts);
+        Object random_id = String.join((String)"", (java.util.List<String>)parts);
         Object defaultClientId = this.implodeParams(clientOrderIdprefix, new java.util.HashMap<String, Object>() {{
             put( "id", random_id );
         }});
@@ -2724,7 +2724,7 @@ public class AlpacaCore extends AlpacaApi
         {
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
-            String codeAsString = String.valueOf(code);
+            Object codeAsString = String.valueOf(code);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(code, 400))) || !Helpers.isTrue((Helpers.inOp(this.httpExceptions, codeAsString)))))
             {
                 throw new ExchangeError((String)feedback) ;

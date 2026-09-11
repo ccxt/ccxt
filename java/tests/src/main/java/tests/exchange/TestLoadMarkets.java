@@ -20,22 +20,22 @@ public class TestLoadMarkets extends BaseTest {
         Object markets = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{})).join();
         Assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
         Assert(Helpers.isArray(exchange.symbols), ".symbols is not an array");
-        Integer symbolsLength = Helpers.getArrayLength(exchange.symbols);
+        Object symbolsLength = Helpers.getArrayLength(exchange.symbols);
         Assert(!Helpers.isEqual(exchange.markets, null), ".markets is undefined");
-        java.util.List<Object> marketKeys = Helpers.objectKeys(exchange.markets);
-        Integer marketKeysLength = Helpers.getArrayLength(marketKeys);
+        java.util.List<String> marketKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(exchange.markets);
+        Object marketKeysLength = Helpers.getArrayLength(marketKeys);
         Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
         Assert(Helpers.isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
         Assert(Helpers.isEqual(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
-        java.util.List<Object> marketValues = Helpers.objectValues(markets);
+        Object marketValues = Helpers.objectValues(markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)
         {
             TestMarket.testMarket(exchange, skippedProperties, method, Helpers.GetValue(marketValues, i));
         }
         // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
-        java.util.List<Object> marketTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option", "index"));
+        java.util.List<String> marketTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "swap", "future", "option", "index"));
         java.util.List<Object> collectedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        java.util.List<Object> allMarkets = Helpers.objectValues(exchange.markets);
+        Object allMarkets = Helpers.objectValues(exchange.markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allMarkets)); i++)
         {
             Object market = Helpers.GetValue(allMarkets, i);

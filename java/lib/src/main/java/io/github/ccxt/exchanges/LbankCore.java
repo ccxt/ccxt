@@ -581,7 +581,7 @@ public class LbankCore extends LbankApi
             //
             Object currenciesData = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> grouped = this.groupBy(currenciesData, "assetCode");
-            java.util.List<Object> values = Helpers.objectValues(grouped);
+            Object values = Helpers.objectValues(grouped);
             return this.parseCurrencies(values);
         });
 
@@ -703,7 +703,7 @@ public class LbankCore extends LbankApi
             {
                 Object market = Helpers.GetValue(data, i);
                 String marketId = this.safeString(market, "symbol");
-                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)marketId), "_");
+                Object parts = Helpers.split(((String)marketId), "_");
                 String baseId = (String) Helpers.GetValue(parts, 0);
                 String quoteId = (String) Helpers.GetValue(parts, 1);
                 String base = (String) this.safeCurrencyCode(baseId);
@@ -1023,7 +1023,7 @@ public class LbankCore extends LbankApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 symbols = this.marketSymbols(symbols);
-                Integer symbolsLength = Helpers.getArrayLength(symbols);
+                Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -1263,7 +1263,7 @@ public class LbankCore extends LbankApi
         String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(side, "_");
+            Object parts = Helpers.split(side, "_");
             side = this.safeString(parts, 0);
             String typePart = this.safeString(parts, 1);
             type = "limit";
@@ -1580,7 +1580,7 @@ public class LbankCore extends LbankApi
         {
             Object used = this.safeValue(data, "freeze", new java.util.HashMap<String, Object>() {{}});
             Object free = this.safeDict(data, "free", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> currencies = Helpers.objectKeys(free);
+            java.util.List<String> currencies = (java.util.List<String>)(java.util.List) Helpers.objectKeys(free);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
             {
                 Object currencyId = Helpers.GetValue(currencies, i);
@@ -2037,8 +2037,8 @@ public class LbankCore extends LbankApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            String amountString = this.numberToString(amount);
-                            String priceString = this.numberToString(price);
+                            Object amountString = this.numberToString(amount);
+                            Object priceString = this.numberToString(price);
                             String costRequest = Precise.stringMul(amountString, priceString);
                             quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
@@ -2199,7 +2199,7 @@ public class LbankCore extends LbankApi
         Boolean postOnly = false;
         String type = "limit";
         String rawType = this.safeString2(order, "type", "tradeType"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)rawType), "_");
+        Object parts = Helpers.split(((String)rawType), "_");
         String side = this.safeString(parts, 0);
         String typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (Helpers.isTrue(Helpers.isEqual(typePart, "market")))
@@ -2385,7 +2385,7 @@ public class LbankCore extends LbankApi
             //      }
             //
             Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Integer numOrders = Helpers.getArrayLength(result);
+            Object numOrders = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(numOrders, 1)))
             {
                 return this.parseOrder(Helpers.GetValue(result, 0));
@@ -3701,7 +3701,7 @@ public class LbankCore extends LbankApi
         } else
         {
             this.checkRequiredCredentials();
-            String timestamp = String.valueOf(this.milliseconds());
+            Object timestamp = String.valueOf(this.milliseconds());
             Object echostr = Helpers.add(this.uuid22(), this.uuid16());
             query = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "api_key", LbankCore.this.apiKey );
@@ -3722,7 +3722,7 @@ public class LbankCore extends LbankApi
             }}, query)));
             Object encoded = this.encode(auth);
             Object hash = this.hash(encoded, md5());
-            String uppercaseHash = ((String)hash).toUpperCase();
+            Object uppercaseHash = ((String)hash).toUpperCase();
             Object sign = null;
             if (Helpers.isTrue(Helpers.isEqual(signatureMethod, "RSA")))
             {

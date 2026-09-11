@@ -445,7 +445,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
+        Object parts = Helpers.split(((String)channel), "_");
         Object channelKind = this.safeString(parts, 1);
         Boolean isFutures = (Helpers.isEqual(channelKind, "e"));
         Object market = null;
@@ -490,7 +490,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         {
             return null;
         }
-        java.util.List<Object> symbols = Helpers.objectKeys(markets);
+        java.util.List<String> symbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             Object candidate = Helpers.GetValue(markets, Helpers.GetValue(symbols, i));
@@ -613,7 +613,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
+        Object parts = Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
@@ -624,7 +624,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         Object tick = this.safeValue(message, "tick", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeList(tick, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Boolean appended = false;
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
+        Object stored = this.safeValue(this.trades, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -752,7 +752,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
+        Object parts = Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
@@ -862,7 +862,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
+        Object parts = Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))

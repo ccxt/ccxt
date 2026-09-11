@@ -142,7 +142,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             var order = ((java.util.List<Object>) orderglobalParamsVariable).get(0);
             var globalParams = ((java.util.List<Object>) orderglobalParamsVariable).get(1);
             Object orders = (this.createOrdersWs(new java.util.ArrayList<Object>(java.util.Arrays.asList(((Object)order))), globalParams)).join();
-            Integer ordersLength = Helpers.getArrayLength(orders);
+            Object ordersLength = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isEqual(ordersLength, 0)))
             {
                 // not sure why but it is happening sometimes
@@ -342,7 +342,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             Object subMessageHash = Helpers.add("orderbook:", symbol);
             String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
-            String id = String.valueOf(this.nonce());
+            Object id = String.valueOf(this.nonce());
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "method", "unsubscribe" );
@@ -701,7 +701,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object mids = this.safeDict(data, "mids", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(!Helpers.isEqual(mids, null)))
         {
-            java.util.List<Object> keys = Helpers.objectKeys(mids);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(mids);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object name = Helpers.GetValue(keys, i);
@@ -807,7 +807,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object trades = this.myTrades;
         java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         Object data = this.safeList(entry, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer dataLength = Helpers.getArrayLength(data);
+        Object dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;
@@ -820,7 +820,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        java.util.List<Object> keys = Helpers.objectKeys(symbols);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object currentMessageHash = Helpers.add("myTrades:", Helpers.GetValue(keys, i));
@@ -932,7 +932,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         //     }
         //
         Object entry = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer entryLength = Helpers.getArrayLength(entry);
+        Object entryLength = Helpers.getArrayLength(entry);
         if (Helpers.isTrue(Helpers.isEqual(entryLength, 0)))
         {
             return;
@@ -1553,13 +1553,13 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
+            Object parts = Helpers.split(messageHash, "::");
             Object symbolsString = this.safeString(parts, 2);
             if (Helpers.isTrue(Helpers.isEqual(symbolsString, null)))
             {
                 continue;
             }
-            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
+            Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1754,7 +1754,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Integer dataLength = Helpers.getArrayLength(data);
+        Object dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;
@@ -1770,7 +1770,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             Object symbol = this.safeString(order, "symbol");
             Helpers.addElementToObject(marketSymbols, ((String)symbol), true);
         }
-        java.util.List<Object> keys = Helpers.objectKeys(marketSymbols);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(marketSymbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
@@ -1902,7 +1902,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         String subMessageHash = "tickers";
         String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        java.util.List<Object> symbols = Helpers.objectKeys(this.tickers);
+        java.util.List<String> symbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.tickers);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             ((java.util.Map<String,Object>)this.tickers).remove((String)Helpers.GetValue(symbols, i));
@@ -2119,7 +2119,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
             return;
         }
-        java.util.List<Object> keys = Helpers.objectKeys(methods);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(methods);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

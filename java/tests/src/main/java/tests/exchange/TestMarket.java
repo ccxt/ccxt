@@ -130,7 +130,7 @@ public class TestMarket extends BaseTest {
         {
             TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, market, "symbol");
         }
-        String logText = (String) TestSharedMethods.logTemplate(exchange, method, market);
+        Object logText = TestSharedMethods.logTemplate(exchange, method, market);
         // check taker/maker
         // todo: check not all to be within 0-1.0
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "taker", "-100");
@@ -138,13 +138,13 @@ public class TestMarket extends BaseTest {
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "maker", "-100");
         TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "maker", "100");
         // validate type ('prediction' for prediction-market exchanges)
-        java.util.List<Object> validTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
+        java.util.List<String> validTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
         java.util.List<Object> validSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse", "quanto", null));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
-        java.util.List<Object> checkedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
+        java.util.List<String> checkedTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "swap", "future", "option"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedTypes)); i++)
         {
             Object type = Helpers.GetValue(checkedTypes, i);
@@ -156,7 +156,7 @@ public class TestMarket extends BaseTest {
         // check if 'subType' is consistent
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(swap, true))) || Helpers.isTrue((Helpers.isEqual(future, true)))))
         {
-            java.util.List<Object> checkedSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
+            java.util.List<String> checkedSubTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("linear", "inverse"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedSubTypes)); i++)
             {
                 Object subType = Helpers.GetValue(checkedSubTypes, i);
@@ -190,7 +190,7 @@ public class TestMarket extends BaseTest {
             // if not spot, any of the below should be true
             Assert(Helpers.isTrue((Helpers.isEqual(contract, true))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(future, true))) || Helpers.isTrue((Helpers.isEqual(swap, true)))) || Helpers.isTrue((Helpers.isEqual(option, true)))) || Helpers.isTrue((Helpers.isEqual(isIndex, true))))), Helpers.add("for non-spot markets, any of (future/swap/option/index) should be set", logText));
         }
-        String contractSize = exchange.safeString(market, "contractSize");
+        Object contractSize = exchange.safeString(market, "contractSize");
         // contract fields
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(contract, true))) && !Helpers.isTrue(isInactiveMarket)))
         {
@@ -238,7 +238,7 @@ public class TestMarket extends BaseTest {
             Assert(!Helpers.isEqual(Helpers.GetValue(market, "expiry"), null), Helpers.add("\"expiry\" must be defined when \"future\" is true", logText));
             Assert(!Helpers.isEqual(Helpers.GetValue(market, "expiryDatetime"), null), Helpers.add("\"expiryDatetime\" must be defined when \"future\" is true", logText));
             // expiry datetime should be correct
-            String isoString = exchange.iso8601(Helpers.GetValue(market, "expiry"));
+            Object isoString = exchange.iso8601(Helpers.GetValue(market, "expiry"));
             Assert(Helpers.isEqual(Helpers.GetValue(market, "expiryDatetime"), isoString), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("expiryDatetime (\"", Helpers.GetValue(market, "expiryDatetime")), "\") must be equal to expiry in iso8601 format \""), isoString), "\""), logText));
             TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "expiry", "0");
             if (Helpers.isTrue(Helpers.isEqual(option, true)))
@@ -261,8 +261,8 @@ public class TestMarket extends BaseTest {
             Assert(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "expiry"), null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "expiryDatetime"), null))), Helpers.add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText));
         }
         // check precisions
-        java.util.List<Object> precisionKeys = Helpers.objectKeys(Helpers.GetValue(market, "precision"));
-        Integer precisionKeysLen = Helpers.getArrayLength(precisionKeys);
+        java.util.List<String> precisionKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(Helpers.GetValue(market, "precision"));
+        Object precisionKeysLen = Helpers.getArrayLength(precisionKeys);
         Assert(Helpers.isGreaterThanOrEqual(precisionKeysLen, 2), Helpers.add("precision should have \"amount\" and \"price\" keys at least", logText));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(precisionKeys)); i++)
         {
@@ -271,7 +271,7 @@ public class TestMarket extends BaseTest {
             Boolean isExclusivePair = Helpers.isEqual(Helpers.GetValue(market, "baseId"), "BTC");
             Boolean isNonSpot = !Helpers.isEqual(spot, true); // such high precision is only allowed in contract markets
             Boolean isPrice = Helpers.isEqual(priceOrAmountKey, "price");
-            Boolean isTickSize5 = Precise.stringEq("5", exchange.safeString(Helpers.GetValue(market, "precision"), priceOrAmountKey));
+            Object isTickSize5 = Precise.stringEq("5", exchange.safeString(Helpers.GetValue(market, "precision"), priceOrAmountKey));
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isNonSpot) && Helpers.isTrue(isPrice)) && Helpers.isTrue(isExclusivePair)) && Helpers.isTrue(isTickSize5)))
             {
                 continue;
@@ -282,8 +282,8 @@ public class TestMarket extends BaseTest {
             }
         }
         // check limits
-        java.util.List<Object> limitsKeys = Helpers.objectKeys(Helpers.GetValue(market, "limits"));
-        Integer limitsKeysLength = Helpers.getArrayLength(limitsKeys);
+        java.util.List<String> limitsKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(Helpers.GetValue(market, "limits"));
+        Object limitsKeysLength = Helpers.getArrayLength(limitsKeys);
         Assert(Helpers.isGreaterThanOrEqual(limitsKeysLength, 3), Helpers.add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(limitsKeys)); i++)
         {
@@ -300,7 +300,7 @@ public class TestMarket extends BaseTest {
                 // max >= 0
                 TestSharedMethods.AssertGreater(exchange, skippedProperties, method, limitEntry, "max", "0");
                 // max >= min
-                String minString = exchange.safeString(limitEntry, "min");
+                Object minString = exchange.safeString(limitEntry, "min");
                 if (Helpers.isTrue(!Helpers.isEqual(minString, null)))
                 {
                     TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "max", minString);

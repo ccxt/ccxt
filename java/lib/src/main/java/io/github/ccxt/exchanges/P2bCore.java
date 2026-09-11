@@ -391,7 +391,7 @@ public class P2bCore extends P2bApi
             //        ]
             //    }
             //
-            java.util.List<Object> markets = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object markets = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -404,7 +404,7 @@ public class P2bCore extends P2bApi
         String quoteId = this.safeString(market, "money");
         Object base = ((String)this.safeCurrencyCode(baseId));
         Object quote = ((String)this.safeCurrencyCode(quoteId));
-        java.util.Map<String, Object> limits = (java.util.Map<String, Object>) this.safeDict(market, "limits");
+        Object limits = this.safeDict(market, "limits");
         String maxAmount = this.safeString(limits, "max_amount");
         String maxPrice = this.safeString(limits, "max_price");
         final Object finalBase = base;
@@ -707,7 +707,7 @@ public class P2bCore extends P2bApi
      * @param {int} params.lastId order id
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -754,7 +754,7 @@ public class P2bCore extends P2bApi
             //        current_time: '1699255571.413828'
             //    }
             //
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(result, market, since, limit);
         });
 
@@ -891,7 +891,7 @@ public class P2bCore extends P2bApi
             //        current_time: '1699256375.030494'
             //    }
             //
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(result, market, timeframe, since, limit);
         });
 
@@ -974,7 +974,7 @@ public class P2bCore extends P2bApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        java.util.List<Object> keys = Helpers.objectKeys(response);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object currencyId = Helpers.GetValue(keys, i);
@@ -1179,7 +1179,7 @@ public class P2bCore extends P2bApi
             //        ]
             //    }
             //
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(result, market, since, limit);
         });
 
@@ -1200,7 +1200,7 @@ public class P2bCore extends P2bApi
      * @param {int} [params.offset] 0-10000, default=0
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1246,7 +1246,7 @@ public class P2bCore extends P2bApi
             //    }
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> records = (java.util.List<Object>) this.safeList(result, "records", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object records = this.safeList(result, "records", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(records, market, since, limit);
         });
 
@@ -1344,7 +1344,7 @@ public class P2bCore extends P2bApi
             //    }
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> deals = (java.util.List<Object>) this.safeList(result, "deals", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object deals = this.safeList(result, "deals", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(deals, market, since, limit);
         });
 
@@ -1446,7 +1446,7 @@ public class P2bCore extends P2bApi
             //
             Object result = this.safeValue(response, "result");
             Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> keys = Helpers.objectKeys(result);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(result);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);
@@ -1583,7 +1583,7 @@ public class P2bCore extends P2bApi
         //     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", true);
+        Object success = this.safeBool(response, "success", true);
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             String errorCode = this.safeString(response, "errorCode");

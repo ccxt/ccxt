@@ -361,7 +361,7 @@ public class CoincheckCore extends CoincheckApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        java.util.List<Object> codes = Helpers.objectKeys(this.currencies);
+        java.util.List<String> codes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -410,7 +410,7 @@ public class CoincheckCore extends CoincheckApi
             //         ]
             //     }
             //
-            java.util.List<Object> exchangeStatuses = (java.util.List<Object>) this.safeList(response, "exchange_status", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object exchangeStatuses = this.safeList(response, "exchange_status", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String status = "ok";
             Object updated = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(exchangeStatuses)); i++)
@@ -821,7 +821,7 @@ public class CoincheckCore extends CoincheckApi
             //                  ]
             //      }
             //
-            java.util.List<Object> transactions = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object transactions = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(transactions, market, since, limit);
         });
 
@@ -838,7 +838,7 @@ public class CoincheckCore extends CoincheckApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -869,7 +869,7 @@ public class CoincheckCore extends CoincheckApi
             //          "created_at": "2021-12-08T14:10:33.000Z"
             //      }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         });
 
@@ -1092,7 +1092,7 @@ public class CoincheckCore extends CoincheckApi
             //     }
             //   ]
             // }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, new java.util.HashMap<String, Object>() {{
                 put( "type", "deposit" );
             }});
@@ -1156,7 +1156,7 @@ public class CoincheckCore extends CoincheckApi
             //     }
             //   ]
             // }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit, new java.util.HashMap<String, Object>() {{
                 put( "type", "withdrawal" );
             }});
@@ -1272,7 +1272,7 @@ public class CoincheckCore extends CoincheckApi
         } else
         {
             this.checkRequiredCredentials();
-            String nonce = String.valueOf(this.nonce());
+            Object nonce = String.valueOf(this.nonce());
             Object queryString = "";
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
@@ -1319,7 +1319,7 @@ public class CoincheckCore extends CoincheckApi
         //     {"success":false,"error":"disabled API Key"}'
         //     {"success":false,"error":"invalid authentication"}
         //
-        Boolean success = (Boolean) this.safeBool(response, "success", true);
+        Object success = this.safeBool(response, "success", true);
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             String error = this.safeString(response, "error");

@@ -215,7 +215,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
         Object rawData = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> trades = this.parseTrades(rawData, market);
-        io.github.ccxt.ws.ArrayCache tradesCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
+        Object tradesCache = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesCache, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -555,7 +555,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object data = this.safeValue(message, "data");
         Long timestamp = this.safeInteger(message, "timestamp");
         Object datetime = this.safeString(message, "datetime");
-        java.util.List<Object> currencies = Helpers.objectKeys(data);
+        java.util.List<String> currencies = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", data );
             put( "timestamp", timestamp );

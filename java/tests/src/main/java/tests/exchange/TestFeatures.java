@@ -16,10 +16,10 @@ public class TestFeatures extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        java.util.List<Object> marketTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
-        java.util.List<Object> subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
+        java.util.List<String> marketTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "swap", "future", "option"));
+        java.util.List<String> subTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("linear", "inverse"));
         Object features = exchange.features;
-        java.util.List<Object> keys = Helpers.objectKeys(features);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(features);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", keys, i, marketTypes);
@@ -35,7 +35,7 @@ public class TestFeatures extends BaseTest {
                 testFeaturesInner(exchange, skippedProperties, value);
             } else
             {
-                java.util.List<Object> subKeys = Helpers.objectKeys(value);
+                java.util.List<String> subKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(value);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subKeys)); j++)
                 {
                     Object subKey = Helpers.GetValue(subKeys, j);
@@ -131,8 +131,8 @@ public class TestFeatures extends BaseTest {
                 put( "limit", 0 );
             }} );
         }};
-        java.util.List<Object> featureKeys = Helpers.objectKeys(featureObj);
-        java.util.List<Object> allMethods = Helpers.objectKeys(exchange.has);
+        java.util.List<String> featureKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(featureObj);
+        java.util.List<String> allMethods = (java.util.List<String>)(java.util.List) Helpers.objectKeys(exchange.has);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(featureKeys)); i++)
         {
             TestSharedMethods.AssertInArray(exchange, skippedProperties, "features", featureKeys, i, allMethods);

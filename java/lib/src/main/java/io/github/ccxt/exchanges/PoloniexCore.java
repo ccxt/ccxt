@@ -842,7 +842,7 @@ public class PoloniexCore extends PoloniexApi
         //           ],
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Integer ohlcvLength = Helpers.getArrayLength(ohlcv);
+        Object ohlcvLength = Helpers.getArrayLength(ohlcv);
         Boolean isContract = Helpers.isEqual(ohlcvLength, 9);
         if (Helpers.isTrue(isContract))
         {
@@ -1404,7 +1404,7 @@ public class PoloniexCore extends PoloniexApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 symbols = this.marketSymbols(symbols, null, true, true, false);
-                Integer symbolsLength = Helpers.getArrayLength(symbols);
+                Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -1536,7 +1536,7 @@ public class PoloniexCore extends PoloniexApi
         String code = (String) this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer chainsLength = Helpers.getArrayLength(chains);
+        Object chainsLength = Helpers.getArrayLength(chains);
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -2513,7 +2513,7 @@ public class PoloniexCore extends PoloniexApi
                 }
             }
         }
-        String upperCaseType = ((String)type).toUpperCase();
+        Object upperCaseType = ((String)type).toUpperCase();
         Boolean isMarket = Helpers.isEqual(upperCaseType, "MARKET");
         Object isPostOnly = this.isPostOnly(isMarket, Helpers.isEqual(upperCaseType, "LIMIT_MAKER"), parameters);
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly", "triggerPrice", "stopPrice")));
@@ -2551,8 +2551,8 @@ public class PoloniexCore extends PoloniexApi
                         throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                     } else
                     {
-                        String amountString = this.numberToString(amount);
-                        String priceString = this.numberToString(price);
+                        Object amountString = this.numberToString(amount);
+                        Object priceString = this.numberToString(price);
                         String costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
@@ -3288,8 +3288,8 @@ public class PoloniexCore extends PoloniexApi
             //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
             //     }
             //
-            java.util.List<Object> keys = Helpers.objectKeys(response);
-            Integer length = Helpers.getArrayLength(keys);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
+            Object length = Helpers.getArrayLength(keys);
             if (Helpers.isTrue(Helpers.isLessThan(length, 1)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
@@ -3695,7 +3695,7 @@ public class PoloniexCore extends PoloniexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entries)); i++)
             {
                 Object entry = Helpers.GetValue(entries, i);
-                java.util.List<Object> currencies = Helpers.objectKeys(entry);
+                java.util.List<String> currencies = (java.util.List<String>)(java.util.List) Helpers.objectKeys(entry);
                 String currencyId = this.safeString(currencies, 0);
                 Helpers.addElementToObject(data, ((String)currencyId), Helpers.GetValue(entry, ((String)currencyId)));
             }
@@ -3731,7 +3731,7 @@ public class PoloniexCore extends PoloniexApi
         Object currencyIdKey = Helpers.getArg(optionalArgs, 1, null);
         java.util.Map<String, Object> depositWithdrawFees = new java.util.HashMap<String, Object>() {{}};
         codes = this.marketCodes(codes);
-        java.util.List<Object> responseKeys = Helpers.objectKeys(response);
+        java.util.List<String> responseKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseKeys)); i++)
         {
             Object currencyId = Helpers.GetValue(responseKeys, i);
@@ -3742,7 +3742,7 @@ public class PoloniexCore extends PoloniexApi
                 java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(depositWithdrawFees, code, this.parseDepositWithdrawFee(feeInfo, currency));
                 Object childChains = this.safeValue(feeInfo, "childChains");
-                Integer chainsLength = Helpers.getArrayLength(childChains);
+                Object chainsLength = Helpers.getArrayLength(childChains);
                 if (Helpers.isTrue(Helpers.isGreaterThan(chainsLength, 0)))
                 {
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(childChains)); j++)
@@ -4462,7 +4462,7 @@ public class PoloniexCore extends PoloniexApi
         } else
         {
             this.checkRequiredCredentials();
-            String timestamp = String.valueOf(this.nonce());
+            Object timestamp = String.valueOf(this.nonce());
             Object auth = Helpers.add(method, "\n"); // eslint-disable-line quotes
             url = Helpers.add(url, Helpers.add("/", implodedPath));
             auth = Helpers.add(auth, Helpers.add("/", implodedPath));

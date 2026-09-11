@@ -595,7 +595,7 @@ public class BigoneCore extends BigoneApi
         String name = this.safeString(rawCurrency, "name");
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(rawCurrency, "binding_gateways", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        String currencyMaxPrecision = (String) this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
+        Object currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -606,7 +606,7 @@ public class BigoneCore extends BigoneApi
             String minDepositAmount = this.safeString(chain, "min_deposit_amount");
             String minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
             String withdrawalFee = this.safeString(chain, "withdrawal_fee");
-            String precision = (String) this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
+            Object precision = this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 final Object finalNetworkCode = networkCode;
@@ -633,7 +633,7 @@ public class BigoneCore extends BigoneApi
 }});
             }
         }
-        Integer chainLength = Helpers.getArrayLength(chains);
+        Object chainLength = Helpers.getArrayLength(chains);
         String type = null;
         if (Helpers.isTrue(Helpers.isEqual(this.safeBool(rawCurrency, "is_fiat"), true)))
         {
@@ -1220,7 +1220,7 @@ public class BigoneCore extends BigoneApi
 
     public Object parseContractBidsAsks(Object bidsAsks)
     {
-        java.util.List<Object> bidsAsksKeys = Helpers.objectKeys(bidsAsks);
+        java.util.List<String> bidsAsksKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(bidsAsks);
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidsAsksKeys)); i++)
         {
@@ -1826,7 +1826,7 @@ public class BigoneCore extends BigoneApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Boolean isBuy = (Helpers.isEqual(side, "buy"));
             String requestSide = ((Helpers.isTrue(isBuy))) ? "BID" : "ASK";
-            String uppercaseType = ((String)type).toUpperCase();
+            Object uppercaseType = ((String)type).toUpperCase();
             Boolean isLimit = Helpers.isEqual(uppercaseType, "LIMIT");
             Object exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
             Boolean postOnly = null;
@@ -1872,8 +1872,8 @@ public class BigoneCore extends BigoneApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            String amountString = this.numberToString(amount);
-                            String priceString = this.numberToString(price);
+                            Object amountString = this.numberToString(amount);
+                            Object priceString = this.numberToString(price);
                             Object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
                             Object costRequest = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                             Helpers.addElementToObject(request, "amount", this.costToPrecision(symbol, costRequest));
@@ -2297,7 +2297,7 @@ public class BigoneCore extends BigoneApi
         } else
         {
             this.checkRequiredCredentials();
-            String nonce = String.valueOf(this.nonce());
+            Object nonce = String.valueOf(this.nonce());
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "OpenAPIV2" );
                 put( "sub", BigoneCore.this.apiKey );
@@ -2375,7 +2375,7 @@ public class BigoneCore extends BigoneApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Integer dataLength = Helpers.getArrayLength(data);
+            Object dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isLessThan(dataLength, 1)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() returned empty address response")) ;

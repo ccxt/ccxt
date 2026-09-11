@@ -3678,6 +3678,14 @@ export function installJavaLocalTypes (transpiler) {
     // gone). Installed here so both the main-thread Transpiler and the piscina worker
     // (which both call installJavaLocalTypes) get it.
     patchJavaCollectionLocalTypes (transpiler);
+
+    // (6) JN-11 generic-parameterisation slice: array literals whose every element is a
+    // string literal, and `Object.keys(x)` locals, become `java.util.List<String>` — but
+    // only when the whole-function escape scan proves no `(java.util.List<Object>)` cast,
+    // parameterised argument, or List<Object>-declared sink can see the local. Installed
+    // before patchJavaDataflowTypes so its marker lookup (Object) no-ops on our line.
+    patchJavaGenericParameterTypes (transpiler);
+
     printer._javaLocalTypesPatched = true;
     patchJavaDataflowTypes (transpiler);
     // (6) JN-8: writes into the narrowed hand-written base fields (`exchange.currencies
@@ -6078,4 +6086,260 @@ export function patchJavaBaseFieldWriteCasts (transpiler) {
         return head + '(' + fieldType + ') ' + rest;
     };
     printer._javaBaseFieldWriteCastsPatched = true;
+}
+
+// ===== JN-11 slice: generic parameterisation of locally-consumed collections =====
+//
+// The printer emits a FRESH collection for every TS array literal and for every
+// `Object.keys(x)` call:
+//
+//     const symbols = ['a', 'b']    ->  new java.util.ArrayList<Object>(java.util.Arrays.asList("a", "b"))
+//     const keys = Object.keys(x)   ->  Helpers.objectKeys(x)
+//
+// and the declared local is typed `java.util.List<Object>` (or left `Object`). Where the
+// TS source PROVES the collection can only hold String instances and the collection NEVER
+// ESCAPES into a position that needs the Object parameterisation, both the construction's
+// type argument and the declaration move together:
+//
+//     java.util.List<String> symbols =
+//         new java.util.ArrayList<String>(java.util.Arrays.asList("a", "b"));
+//     java.util.List<String> keys =
+//         (java.util.List<String>)(java.util.List) Helpers.objectKeys(x);
+//
+// WHY BOTH MUST MOVE TOGETHER: Java generics are INVARIANT. `List<String>` is not a
+// `List<Object>` (nor vice versa), and the initializer's type argument is the inferred T
+// of Arrays.asList, so `List<Object> x = new ArrayList<String>(...)` and
+// `List<String> x = new ArrayList<Object>(...)` are both javac errors. The construction
+// is what makes this slice distinct from the declaration-only patchers.
+//
+// The `(java.util.List)` raw intermediate on the objectKeys family is mandatory: the
+// helper is declared `List<Object> objectKeys(Object)`, and javac rejects the direct
+// parameterised narrowing `(java.util.List<String>) listOfObject` as an inconvertible
+// cast (probe-verified). The raw hop is the same idiom the WS post-process uses for
+// `(java.util.List<String>)new java.util.ArrayList<Object>`; it is an unchecked
+// conversion, never a runtime check, and the helper already returns a fresh ArrayList.
+//
+// ESCAPE ANALYSIS (the hard constraint, measured over the generated tree):
+// a `List<String>` local breaks compilation the moment it flows into a `List<Object>`-
+// shaped position. The hazards in this tree are:
+//   1. the printer's own hard checkcast `((java.util.List<Object>) x)`, emitted for the
+//      array mutators `x.push/pop/shift/reverse` (1062 of the 1351 array-literal locals
+//      are rejected by this one — the empty-accumulator family);
+//   2. an argument position whose JAVA PARAMETER is parameterised — in this tree exactly
+//      `BaseExchange.omitN(Object, java.util.List<Object>)` (every Helpers helper and
+//      every other audited base method takes Object; `omit` itself resolves to its
+//      Object overload for a list argument);
+//   3. an assignment / return / conditional sink declared `java.util.List<Object>`.
+// Everything else is Object-parametered and unaffected: Helpers.GetValue / getArrayLength
+// / add / isEqual / isTrue, element writes (`Helpers.addElementToObject`), `x.length`,
+// `for..of`, and the receiver methods join/slice/concat/indexOf/includes/toString
+// (printJoinCall even casts to `(java.util.List<String>)`, which becomes an exact match).
+//
+// Conservative default: any reference shape not on the accepted list keeps the local
+// Object — a wrong narrow is a compile error, a missed narrow is not.
+
+const JAVA_STRING_LIST_TYPE = 'java.util.List<String>';
+const JAVA_STRING_LIST_RAW_CAST = '(java.util.List<String>)(java.util.List)';
+const JN11_ARRAY_OPEN = 'new java.util.ArrayList<Object>(java.util.Arrays.asList(';
+const JN11_ARRAY_OPEN_NARROW = 'new java.util.ArrayList<String>(java.util.Arrays.asList(';
+const JN11_KEYS_OPEN = 'Helpers.objectKeys(';
+// receiver methods whose Java emit takes Object (or the exact List<String> it now is)
+const JN11_SAFE_RECEIVERS = new Set ([ 'join', 'slice', 'concat', 'indexOf', 'includes', 'toString' ]);
+// the only methods in this tree with a parameterised parameter that rejects List<String>
+const JN11_PARAMETERISED_PARAM_CALLEES = new Set ([ 'omit', 'omitN' ]);
+const JN11_DEBUG = !!process.env['JAVA_JN11_DEBUG'];
+
+function jn11Debug (message, node) {
+    if (!JN11_DEBUG) {
+        return;
+    }
+    const where = node?.getSourceFile ()?.fileName ?? '?';
+    process.stderr.write (`[jn11] ${message} @ ${where.split ('/').slice (-3).join ('/')}\n`);
+}
+
+// `['a', 'b']` — a non-empty array literal whose every element is a string literal, so
+// the printed `java.util.Arrays.asList(...)` is a `List<String>` and the ArrayList can
+// carry the String type argument. (Empty literals prove nothing — their element type is
+// never[], and every empty accumulator in this tree is `push`ed into anyway.)
+function jn11StringLiteralArray (node) {
+    if (!ts.isArrayLiteralExpression (node) || node.elements.length === 0) {
+        return false;
+    }
+    return node.elements.every ((element) => ts.isStringLiteral (element) || ts.isNoSubstitutionTemplateLiteral (element));
+}
+
+// `Object.keys(x)` prints `Helpers.objectKeys(x)` — the keys of a TS Dict are strings by
+// construction, and the helper snapshots a Map's keySet.
+function jn11ObjectKeysCall (node) {
+    return ts.isCallExpression (node)
+        && ts.isPropertyAccessExpression (node.expression)
+        && node.expression.expression.kind === ts.SyntaxKind.Identifier
+        && node.expression.expression.escapedText === 'Object'
+        && node.expression.name.escapedText === 'keys'
+        && node.arguments.length === 1;
+}
+
+// is one reference of the local inside its enclosing function safe for the narrowed list?
+// Default-deny: only the shapes below (all printed with Object parameters or with the
+// exact List<String> the local now is) are accepted.
+function jn11ReferenceIsSafe (printer, reference, isProFile) {
+    const parent = reference.parent;
+    if (parent === undefined) {
+        return false;
+    }
+    // `x[k]` / `x[k] = v`: Helpers.GetValue(x, k) / Helpers.addElementToObject(x, k, v)
+    if (ts.isElementAccessExpression (parent) && parent.expression === reference) {
+        // ...but not as the target of a destructuring write (`[x[0]] = f()`)
+        const grand = parent.parent;
+        if (grand !== undefined && ts.isArrayLiteralExpression (grand) && ts.isBinaryExpression (grand.parent)
+            && grand.parent.left === grand && grand.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            return false;
+        }
+        return true;
+    }
+    if (ts.isPropertyAccessExpression (parent) && parent.expression === reference) {
+        const member = String (parent.name.escapedText);
+        if (member === 'length') {
+            // Helpers.getArrayLength(x) — Object parameter
+            return !ts.isCallExpression (parent.parent);
+        }
+        return JN11_SAFE_RECEIVERS.has (member) && ts.isCallExpression (parent.parent);
+    }
+    // a plain argument of a call: every helper in this tree takes Object except omitN
+    if (ts.isCallExpression (parent) && parent.arguments.indexOf (reference) !== -1) {
+        const callee = parent.expression;
+        const calleeName = ts.isPropertyAccessExpression (callee) ? String (callee.name.escapedText)
+            : (ts.isIdentifier (callee) ? String (callee.escapedText) : undefined);
+        if (calleeName !== undefined && JN11_PARAMETERISED_PARAM_CALLEES.has (calleeName)) {
+            return false; // omitN(Object, java.util.List<Object>) rejects a List<String>
+        }
+        if (isProFile === true && isThisOrSuperCall (parent) && isAsyncMethodCall (printer, parent)) {
+            return false; // typed wrapper overloads win resolution (feedsInheritedAsyncCall rule)
+        }
+        return true;
+    }
+    // every other shape (assignment target, return, `as`, spread, typeof, destructuring,
+    // ternary arm, template interpolation, ...) prints a cast or an invariant sink the
+    // narrowed type cannot satisfy
+    return false;
+}
+
+// the whole-function scan: every reference of the local must be safe, and no nested
+// binding may shadow the name (the printed marker is name-based).
+function jn11IsSafeToNarrow (printer, declaration, isProFile) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    const sourceName = declaration.name.escapedText;
+    const symbol = printer.getChecker ()?.getSymbolAtLocation (declaration.name);
+    let shadowed = false;
+    const references = [];
+    const visit = (n) => {
+        if (n.kind === ts.SyntaxKind.Identifier && n !== declaration.name && n.escapedText === sourceName) {
+            const own = printer.getChecker ()?.getSymbolAtLocation (n);
+            if (symbol === undefined || own === undefined || own === symbol) {
+                references.push (n);
+            }
+        }
+        if (n !== declaration
+            && (n.kind === ts.SyntaxKind.VariableDeclaration || n.kind === ts.SyntaxKind.Parameter
+                || n.kind === ts.SyntaxKind.BindingElement)) {
+            const bound = n.name;
+            if (bound !== undefined && bound.kind === ts.SyntaxKind.Identifier
+                && bound !== declaration.name && bound.escapedText === sourceName) {
+                shadowed = true;
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    ts.forEachChild (scope, visit);
+    if (shadowed) {
+        jn11Debug (`decline ${sourceName}: shadowed binding`, declaration);
+        return false;
+    }
+    for (const reference of references) {
+        if (!jn11ReferenceIsSafe (printer, reference, isProFile)) {
+            jn11Debug (`decline ${sourceName}: unsafe reference`, reference);
+            return false;
+        }
+    }
+    return true;
+}
+
+// the family this declaration initializer belongs to — or undefined when it must stay
+// Object / List<Object>.
+function jn11DeclarationFamily (printer, declaration, isProFile) {
+    const initializer = unwrapParens (declaration.initializer);
+    let family;
+    if (jn11StringLiteralArray (initializer)) {
+        family = 'array';
+    } else if (jn11ObjectKeysCall (initializer)) {
+        family = 'keys';
+    } else {
+        return undefined;
+    }
+    if (!jn11IsSafeToNarrow (printer, declaration, isProFile)) {
+        return undefined;
+    }
+    return family;
+}
+
+// Additive patcher (same monkey-patch shape as every other slice): wraps the innermost
+// printVariableDeclarationList and rewrites the two markers the earlier patchers leave
+// (`Object <name> = ` when the literal/dataflow engines declined the local, or their
+// `java.util.List<Object> <name> = ` when they retyped it). Installed from
+// installJavaLocalTypes so both the main-thread Transpiler and the piscina worker get it.
+export function patchJavaGenericParameterTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaGenericTypesPatched) {
+        return;
+    }
+    const original = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = original (node, identation);
+        if (node.declarations?.length !== 1) {
+            return printed; // multi-declarator lists are left as the printer emitted them
+        }
+        const declaration = node.declarations[0];
+        if (declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+            return printed;
+        }
+        const isProFile = /[\\/]pro[\\/]/.test (declaration.getSourceFile ().fileName);
+        let family;
+        try {
+            family = jn11DeclarationFamily (printer, declaration, isProFile);
+        } catch (e) {
+            return printed; // never break an unrelated declaration on a scan error
+        }
+        if (family === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        for (const declaredType of [ printer.VAR_TOKEN, JAVA_ARRAY_TYPE ]) {
+            const marker = `${iden}${declaredType} ${printedName} = `;
+            const at = printed.lastIndexOf (marker);
+            if (at === -1) {
+                continue;
+            }
+            const value = printed.slice (at + marker.length);
+            if (family === 'array') {
+                if (!value.startsWith (JN11_ARRAY_OPEN)) {
+                    return printed; // a surprising shape — leave it as the printer emitted it
+                }
+                jn11Debug (`typed ${printedName} -> ${JAVA_STRING_LIST_TYPE} (array literal)`, declaration);
+                return printed.slice (0, at) + `${iden}${JAVA_STRING_LIST_TYPE} ${printedName} = `
+                    + JN11_ARRAY_OPEN_NARROW + value.slice (JN11_ARRAY_OPEN.length);
+            }
+            if (!value.startsWith (JN11_KEYS_OPEN)) {
+                return printed;
+            }
+            jn11Debug (`typed ${printedName} -> ${JAVA_STRING_LIST_TYPE} (Object.keys)`, declaration);
+            return printed.slice (0, at) + `${iden}${JAVA_STRING_LIST_TYPE} ${printedName} = `
+                + `${JAVA_STRING_LIST_RAW_CAST} ${JN11_KEYS_OPEN}` + value.slice (JN11_KEYS_OPEN.length);
+        }
+        return printed;
+    };
+    printer._javaGenericTypesPatched = true;
 }

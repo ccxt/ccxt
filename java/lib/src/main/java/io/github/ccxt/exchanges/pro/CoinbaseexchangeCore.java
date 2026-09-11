@@ -190,7 +190,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers() symbols is required")) ;
             }
-            Integer symbolsLength = Helpers.getArrayLength(symbols);
+            Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " watchTickers requires a non-empty symbols array")) ;
@@ -261,7 +261,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Integer symbolsLength = Helpers.getArrayLength(symbols);
+            Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -276,7 +276,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeValue(trades, 0);
-                String tradeSymbol = this.safeString(first, "symbol");
+                Object tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -355,7 +355,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeValue(trades, 0);
-                String tradeSymbol = this.safeString(first, "symbol");
+                Object tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -393,7 +393,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeValue(orders, 0);
-                String tradeSymbol = this.safeString(first, "symbol");
+                Object tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
@@ -458,7 +458,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Integer symbolsLength = Helpers.getArrayLength(symbols);
+            Object symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -560,7 +560,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         //         "time": "2020-01-31T20:03:41.158814Z"
         //     }
         //
-        String marketId = this.safeString(message, "product_id");
+        Object marketId = this.safeString(message, "product_id");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             Object trade = this.parseWsTrade(message);
@@ -570,7 +570,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             // therefore we resolve 'matches' here instead of 'match'
             String type = "matches";
             Object messageHash = Helpers.add(Helpers.add(type, ":"), marketId);
-            io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
+            Object tradesArray = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
             {
                 Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -588,7 +588,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
 
     public Object handleMyTrade(Client client, Object message)
     {
-        String marketId = this.safeString(message, "product_id");
+        Object marketId = this.safeString(message, "product_id");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             Object trade = this.parseWsTrade(message);
@@ -687,7 +687,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         String feeCost = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(parsed, "cost"), null))) && Helpers.isTrue((!Helpers.isEqual(feeRate, null)))))
         {
-            String cost = this.safeString(parsed, "cost");
+            Object cost = this.safeString(parsed, "cost");
             feeCost = Precise.stringMul(cost, feeRate);
         }
         final Object finalFeeRate = feeRate;
@@ -796,15 +796,15 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             currentOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = currentOrders;
         }
-        String type = this.safeString(message, "type");
-        String marketId = this.safeString(message, "product_id");
+        Object type = this.safeString(message, "type");
+        Object marketId = this.safeString(message, "product_id");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             String messageHash = (String) Helpers.add("orders:", marketId);
             String symbol = (String) this.safeSymbol(marketId);
-            String orderId = this.safeString(message, "order_id");
-            String makerOrderId = this.safeString(message, "maker_order_id");
-            String takerOrderId = this.safeString(message, "taker_order_id");
+            Object orderId = this.safeString(message, "order_id");
+            Object makerOrderId = this.safeString(message, "maker_order_id");
+            Object takerOrderId = this.safeString(message, "taker_order_id");
             Object orders = this.orders;
             if (Helpers.isTrue(Helpers.isEqual(orders, null)))
             {
@@ -855,7 +855,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                             Helpers.addElementToObject(previousOrder, "average", this.parseNumber(Precise.stringDiv(totalCost, totalAmount)));
                         }
                         Helpers.addElementToObject(previousOrder, "cost", this.parseNumber(totalCost));
-                        String previousOrderFilled = this.safeString(previousOrder, "filled");
+                        Object previousOrderFilled = this.safeString(previousOrder, "filled");
                         if (Helpers.isTrue(!Helpers.isEqual(previousOrderFilled, null)))
                         {
                             Helpers.addElementToObject(previousOrder, "filled", this.parseNumber(Precise.stringAdd(previousOrderFilled, this.safeString(trade, "amount"))));
@@ -885,7 +885,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                     {
                         java.util.Map<String, Object> info = this.extend(Helpers.GetValue(previousOrder, "info"), message);
                         Object order = this.parseWsOrder(info);
-                        java.util.List<Object> keys = Helpers.objectKeys(order);
+                        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(order);
                         // update the reference
                         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
                         {
@@ -911,20 +911,20 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
     public Object parseWsOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String id = this.safeString(order, "order_id");
-        String clientOrderId = this.safeString(order, "client_oid");
-        String marketId = this.safeString(order, "product_id");
+        Object id = this.safeString(order, "order_id");
+        Object clientOrderId = this.safeString(order, "client_oid");
+        Object marketId = this.safeString(order, "product_id");
         String symbol = (String) this.safeSymbol(marketId);
-        String side = this.safeString(order, "side");
+        Object side = this.safeString(order, "side");
         Double price = this.safeNumber(order, "price");
-        String amount = this.safeString2(order, "size", "funds");
-        String time = this.safeString(order, "time");
+        Object amount = this.safeString2(order, "size", "funds");
+        Object time = this.safeString(order, "time");
         Long timestamp = this.parse8601(time);
-        String reason = this.safeString(order, "reason");
-        String status = this.parseWsOrderStatus(reason);
-        String orderType = this.safeString(order, "order_type");
-        String remaining = this.safeString(order, "remaining_size");
-        String type = this.safeString(order, "type");
+        Object reason = this.safeString(order, "reason");
+        Object status = this.parseWsOrderStatus(reason);
+        Object orderType = this.safeString(order, "order_type");
+        Object remaining = this.safeString(order, "remaining_size");
+        Object type = this.safeString(order, "type");
         String filled = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amount, null))) && Helpers.isTrue((!Helpers.isEqual(remaining, null)))))
         {
@@ -987,7 +987,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         //         "last_size": "0.41969131"
         //     }
         //
-        String marketId = this.safeString(message, "product_id");
+        Object marketId = this.safeString(message, "product_id");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             Object ticker = this.parseTicker(message);
@@ -1028,15 +1028,15 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String type = this.safeString(ticker, "type");
+        Object type = this.safeString(ticker, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
             return super.parseTicker(ticker, market);
         }
-        String marketId = this.safeString(ticker, "product_id");
+        Object marketId = this.safeString(ticker, "product_id");
         String symbol = (String) this.safeSymbol(marketId, market, "-");
         Long timestamp = this.parse8601(this.safeString(ticker, "time"));
-        String last = this.safeString(ticker, "price");
+        Object last = this.safeString(ticker, "price");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1103,8 +1103,8 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         //         ]
         //     }
         //
-        String type = this.safeString(message, "type");
-        String marketId = this.safeString(message, "product_id");
+        Object type = this.safeString(message, "type");
+        Object marketId = this.safeString(message, "product_id");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         String name = "level2";
@@ -1133,8 +1133,8 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(changes)); i++)
             {
                 Object change = Helpers.GetValue(changes, i);
-                String key = this.safeString(change, 0);
-                String side = this.safeString(sides, key);
+                Object key = this.safeString(change, 0);
+                Object side = this.safeString(sides, key);
                 Double price = this.safeNumber(change, 1);
                 Double amount = this.safeNumber(change, 2);
                 Object bookside = this.safeValue(orderbook, side);
@@ -1179,8 +1179,8 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         //         "reason": "{"message":"Invalid API Key"}"
         //     }
         //
-        String errMsg = this.safeString(message, "message");
-        String reason = this.safeString(message, "reason");
+        Object errMsg = this.safeString(message, "message");
+        Object reason = this.safeString(message, "reason");
         try
         {
             if (Helpers.isTrue(Helpers.isEqual(errMsg, "Authentication Failed")))
@@ -1199,7 +1199,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
 
     public void handleMessage(Client client, Object message)
     {
-        String type = this.safeString(message, "type");
+        Object type = this.safeString(message, "type");
         java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "snapshot", "handleOrderBook");
             put( "l2update", "handleOrderBook");

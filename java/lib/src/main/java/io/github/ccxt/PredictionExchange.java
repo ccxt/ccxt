@@ -119,14 +119,14 @@ public Object describe()
         Object tags = this.safeList(parameters, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String eventId = this.safeString(parameters, "eventId");
         String slug = this.safeString(parameters, "slug");
-        Integer queriesLength = Helpers.getArrayLength(queries);
-        Integer tagsLength = Helpers.getArrayLength(tags);
+        Object queriesLength = Helpers.getArrayLength(queries);
+        Object tagsLength = Helpers.getArrayLength(tags);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(query, null))) || Helpers.isTrue((Helpers.isGreaterThan(queriesLength, 0)))) || Helpers.isTrue((Helpers.isGreaterThan(tagsLength, 0)))) || Helpers.isTrue((!Helpers.isEqual(eventId, null)))) || Helpers.isTrue((!Helpers.isEqual(slug, null)))))
         {
             return null;
         }
         Object extraScopeParams = this.safeList(this.options, "eventScopeParams", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer extraScopeParamsLength = Helpers.getArrayLength(extraScopeParams);
+        Object extraScopeParamsLength = Helpers.getArrayLength(extraScopeParams);
         Object extraNames = "";
         for (var i = 0; Helpers.isLessThan(i, extraScopeParamsLength); i++)
         {
@@ -211,7 +211,7 @@ public Object describe()
         {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
-            Integer resultLength = Helpers.getArrayLength(result);
+            Object resultLength = Helpers.getArrayLength(result);
             Object sliceEnd = limit;
             if (Helpers.isTrue(Helpers.isGreaterThan(sliceEnd, resultLength)))
             {
@@ -270,7 +270,7 @@ public Object describe()
             Boolean matched = false;
             for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(queries)); qi++)
             {
-                String q = ((String)Helpers.GetValue(queries, qi)).toLowerCase();
+                Object q = ((String)Helpers.GetValue(queries, qi)).toLowerCase();
                 if (Helpers.isTrue(Helpers.isEqual(title, null)))
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " filterEventsBySearchIn() missing title")) ;
@@ -305,14 +305,14 @@ public Object describe()
         // of the same tag compare equal — venues surface tags in different forms and callers
         // pass any of them. keeping the word boundary avoids cross-word false positives that
         // plain concatenation would create ("us open" vs "household")
-        String lower = ((String)tag).toLowerCase();
+        Object lower = ((String)tag).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
         Object s = "";
         Boolean pendingSep = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
-            String ch = (String) Helpers.GetValue(chars, i);
+            Object ch = Helpers.GetValue(chars, i);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
             {
                 if (Helpers.isTrue(Helpers.isTrue(pendingSep) && Helpers.isTrue((!Helpers.isEqual(s, "")))))
@@ -457,7 +457,7 @@ public Object describe()
         }
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
-        java.util.List<Object> keys = Helpers.objectKeys(this.events);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.events);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object eventVar = Helpers.GetValue(this.events, Helpers.GetValue(keys, i));
@@ -627,7 +627,7 @@ public Object describe()
             put( "trillion", "T" );
             put( "percent", "pct" );
         }};
-        java.util.List<Object> stopWords = new java.util.ArrayList<Object>(java.util.Arrays.asList("will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"));
+        java.util.List<String> stopWords = new java.util.ArrayList<String>(java.util.Arrays.asList("will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"));
         Object lower = ((Helpers.isTrue((Helpers.isEqual(slug, null))))) ? "" : ((String)slug).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
@@ -635,7 +635,7 @@ public Object describe()
         Boolean lastDash = true; // start true to drop leading separators
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
-            String ch = (String) Helpers.GetValue(chars, i);
+            Object ch = Helpers.GetValue(chars, i);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
             {
                 s = Helpers.add(s, ch);
@@ -646,7 +646,7 @@ public Object describe()
                 lastDash = true;
             }
         }
-        java.util.List<Object> replacementKeys = Helpers.objectKeys(replacements);
+        java.util.List<String> replacementKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(replacements);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(replacementKeys)); i++)
         {
             Object replacementKey = Helpers.GetValue(replacementKeys, i);
@@ -656,7 +656,7 @@ public Object describe()
                 s = Helpers.replaceAll((String)s, (String)replacementKey, (String)replacementValue);
             }
         }
-        java.util.List<Object> rawParts = (java.util.List<Object>) Helpers.split(s, "-");
+        Object rawParts = Helpers.split(s, "-");
         Object parts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawParts)); i++)
         {
@@ -666,7 +666,7 @@ public Object describe()
                 ((java.util.List<Object>)parts).add(w);
             }
         }
-        String joined = String.join((String)"_", (java.util.List<String>)parts);
+        Object joined = String.join((String)"_", (java.util.List<String>)parts);
         return ((String)joined).toUpperCase();
     }
 
@@ -702,14 +702,14 @@ public Object describe()
         {
             outcome = "";
         }
-        String upper = ((String)outcome).toUpperCase();
+        Object upper = ((String)outcome).toUpperCase();
         String allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Object chars = this.stringToCharsArray(upper);
         Object label = "";
         Boolean pendingSep = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
-            String ch = (String) Helpers.GetValue(chars, i);
+            Object ch = Helpers.GetValue(chars, i);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
             {
                 if (Helpers.isTrue(Helpers.isTrue(pendingSep) && Helpers.isTrue((!Helpers.isEqual(label, "")))))
@@ -750,7 +750,7 @@ public Object describe()
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
-        java.util.List<Object> marketKeys = Helpers.objectKeys(stored);
+        java.util.List<String> marketKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(stored);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
         {
             Object key = Helpers.GetValue(marketKeys, i);
@@ -799,7 +799,7 @@ public Object describe()
                     String existingId = this.safeString(existing, "outcomeId");
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(existingId, null))) && Helpers.isTrue((!Helpers.isEqual(ocId, null)))) && Helpers.isTrue((!Helpers.isEqual(existingId, ocId)))))
                     {
-                        Integer idLen = ((String)ocId).length();
+                        Object idLen = ((String)ocId).length();
                         Object suffix = ocId;
                         if (Helpers.isTrue(Helpers.isGreaterThan(idLen, 6)))
                         {
@@ -833,7 +833,7 @@ public Object describe()
         {
             return;
         }
-        java.util.List<Object> marketKeys = Helpers.objectKeys(this.markets);
+        java.util.List<String> marketKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
         {
             this.indexMarketOutcomes(Helpers.GetValue(this.markets, Helpers.GetValue(marketKeys, i)));
@@ -852,7 +852,7 @@ public Object describe()
             this.markets = this.createSafeDictionary();
         }
         Object markets = this.safeList(eventVar, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer marketsLength = Helpers.getArrayLength(markets);
+        Object marketsLength = Helpers.getArrayLength(markets);
         for (var i = 0; Helpers.isLessThan(i, marketsLength); i++)
         {
             Object m = Helpers.GetValue(markets, i);
@@ -1011,7 +1011,7 @@ public Object describe()
         // download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
         // carry no searchable words
         Object marketPart = outcomeSymbol;
-        Integer colonIndex = Helpers.getIndexOf(outcomeSymbol, ":");
+        Object colonIndex = Helpers.getIndexOf(outcomeSymbol, ":");
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(colonIndex, 0)))
         {
             marketPart = Helpers.slice(outcomeSymbol, 0, colonIndex);
@@ -1021,8 +1021,8 @@ public Object describe()
             return null;
         }
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-        String normalized = Helpers.replaceAll((String)((String)marketPart).toLowerCase(), (String)"-", (String)"_");
-        java.util.List<Object> rawWords = (java.util.List<Object>) Helpers.split(normalized, "_");
+        Object normalized = Helpers.replaceAll((String)((String)marketPart).toLowerCase(), (String)"-", (String)"_");
+        Object rawWords = Helpers.split(normalized, "_");
         Object words = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Boolean hasLetters = false;
         String letters = "abcdefghijklmnopqrstuvwxyz";
@@ -1056,7 +1056,7 @@ public Object describe()
             ((java.util.List<Object>)words).add(word);
             hasLetters = true;
         }
-        Integer wordsLength = Helpers.getArrayLength(words);
+        Object wordsLength = Helpers.getArrayLength(words);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(wordsLength, 0))) || !Helpers.isTrue(hasLetters)))
         {
             // a purely numeric/symbolic handle is an id, not searchable text
@@ -1744,7 +1744,7 @@ public Object describe()
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
         Object rawTrades = this.safeList(outcomeOrder, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object trades = this.parsePredictionTrades(rawTrades, outcomeObj);
-        Integer tradesLength = Helpers.getArrayLength(trades);
+        Object tradesLength = Helpers.getArrayLength(trades);
         java.util.List<Object> feeList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isGreaterThan(tradesLength, 0)))
         {
@@ -1818,11 +1818,11 @@ public Object describe()
         }
         Object fee = this.safeDict(outcomeOrder, "fee");
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
-        Integer feeListLength = Helpers.getArrayLength(feeList);
+        Object feeListLength = Helpers.getArrayLength(feeList);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fee, null))) && Helpers.isTrue((Helpers.isGreaterThan(feeListLength, 0)))))
         {
             Object reduced = this.reduceFeesByCurrency(feeList);
-            Integer reducedLength = Helpers.getArrayLength(reduced);
+            Object reducedLength = Helpers.getArrayLength(reduced);
             if (Helpers.isTrue(Helpers.isGreaterThan(reducedLength, 0)))
             {
                 fee = Helpers.GetValue(reduced, 0);
@@ -2235,7 +2235,7 @@ public Object describe()
             return "";
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
-        Integer hexLength = ((String)hex).length();
+        Object hexLength = ((String)hex).length();
         if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(hexLength, 2)), 0)))
         {
             return Helpers.add("0", hex);
@@ -2324,7 +2324,7 @@ public Object describe()
         }
         Object h = this.remove0xPrefix(hexValue);
         Object start = 0;
-        Integer total = Helpers.getArrayLength(h);
+        Object total = Helpers.getArrayLength(h);
         while (Helpers.isTrue((Helpers.isLessThan(start, total))) && Helpers.isTrue((Helpers.isEqual(Helpers.slice(h, start, Helpers.add(start, 1)), "0"))))
         {
             start = Helpers.add(start, 1);

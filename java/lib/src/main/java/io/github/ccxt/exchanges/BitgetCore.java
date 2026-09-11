@@ -3735,7 +3735,7 @@ public class BitgetCore extends BitgetApi
 
             Object types = null;
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
-            java.util.List<Object> defaultMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap"));
+            java.util.List<String> defaultMarkets = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "swap"));
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOptions, null)))
             {
                 types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
@@ -3751,7 +3751,7 @@ public class BitgetCore extends BitgetApi
                 Object type = Helpers.GetValue(types, i);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) || Helpers.isTrue((Helpers.isEqual(type, "future")))))
                 {
-                    java.util.List<Object> subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
+                    java.util.List<String> subTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subTypes)); j++)
                     {
     final Object finalJ = j;
@@ -3929,12 +3929,12 @@ public class BitgetCore extends BitgetApi
                     {
                         expiry = this.safeInteger(market, "deliveryTime");
                         expiryDatetime = this.iso8601(expiry);
-                        java.util.List<Object> expiryParts = (java.util.List<Object>) Helpers.split(((String)expiryDatetime), "-");
+                        Object expiryParts = Helpers.split(((String)expiryDatetime), "-");
                         String yearPart = this.safeString(expiryParts, 0, "");
                         String dayPart = this.safeString(expiryParts, 2, "");
                         Object year = Helpers.slice(yearPart, 2, 4);
                         String month = this.safeString(expiryParts, 1);
-                        String day = Helpers.slice(dayPart, 0, 2);
+                        Object day = Helpers.slice(dayPart, 0, 2);
                         Object expiryString = Helpers.add(Helpers.add(year, month), day);
                         type = "future";
                         future = true;
@@ -3950,12 +3950,12 @@ public class BitgetCore extends BitgetApi
                     var precise = new Precise(((String)priceStep));
                     precise.decimals = Helpers.mathMax(precise.decimals, priceDecimals);
                     precise.reduce();
-                    String priceString = String.valueOf(precise);
+                    Object priceString = String.valueOf(precise);
                     pricePrecision = this.parseNumber(priceString);
                     var preciseAmount = new Precise(((String)amountStep));
                     preciseAmount.decimals = Helpers.mathMax(preciseAmount.decimals, amountDecimals);
                     preciseAmount.reduce();
-                    String amountString = String.valueOf(preciseAmount);
+                    Object amountString = String.valueOf(preciseAmount);
                     amountPrecision = this.parseNumber(amountString);
                     marginModes = new java.util.HashMap<String, Object>() {{
                         put( "cross", true );
@@ -4056,7 +4056,7 @@ public class BitgetCore extends BitgetApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            java.util.List<Object> subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"));
+            java.util.List<String> subTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"));
             java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subTypes)); i++)
             {
@@ -4233,12 +4233,12 @@ public class BitgetCore extends BitgetApi
                     {
                         expiry = this.safeInteger(market, "deliveryTime");
                         expiryDatetime = this.iso8601(expiry);
-                        java.util.List<Object> expiryParts = (java.util.List<Object>) Helpers.split(((String)expiryDatetime), "-");
+                        Object expiryParts = Helpers.split(((String)expiryDatetime), "-");
                         String yearPart = this.safeString(expiryParts, 0, "");
                         String dayPart = this.safeString(expiryParts, 2, "");
                         Object year = Helpers.slice(yearPart, 2, 4);
                         String month = this.safeString(expiryParts, 1);
-                        String day = Helpers.slice(dayPart, 0, 2);
+                        Object day = Helpers.slice(dayPart, 0, 2);
                         Object expiryString = Helpers.add(Helpers.add(year, month), day);
                         type = "future";
                         future = true;
@@ -4401,7 +4401,7 @@ public class BitgetCore extends BitgetApi
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object withdraw = null;
         Object deposit = null;
-        Integer chainsLength = Helpers.getArrayLength(chains);
+        Object chainsLength = Helpers.getArrayLength(chains);
         if (Helpers.isTrue(Helpers.isEqual(chainsLength, 0)))
         {
             withdraw = false;
@@ -5816,7 +5816,7 @@ final Object finalMinNotional = minNotional;
             {
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
-                    Integer symbolsLength = Helpers.getArrayLength(symbols);
+                    Object symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                     {
                         Helpers.addElementToObject(request, "symbol", this.safeString(market, "id"));
@@ -7378,7 +7378,7 @@ final Object finalMinNotional = minNotional;
             if (Helpers.isTrue(!Helpers.isEqual(feeDetail, null)))
             {
                 Object parsedFeeDetail = Helpers.parseJson(feeDetail);
-                java.util.List<Object> feeValues = Helpers.objectValues(parsedFeeDetail);
+                Object feeValues = Helpers.objectValues(parsedFeeDetail);
                 Object feeObject = null;
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeValues)); i++)
                 {
@@ -8098,8 +8098,8 @@ final Object finalMinNotional = minNotional;
                         throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice in options[\"createOrder\"] or params to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        String amountString = this.numberToString(amount);
-                        String priceString = this.numberToString(price);
+                        Object amountString = this.numberToString(amount);
+                        Object priceString = this.numberToString(price);
                         String quoteAmount = Precise.stringMul(amountString, priceString);
                         quantity = this.costToPrecision(symbol, quoteAmount);
                     }
@@ -8507,8 +8507,8 @@ final Object finalMinNotional = minNotional;
                         throw new InvalidOrder((String)Helpers.add(this.id, " editOrder() requires price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively provide `cost` in the params")) ;
                     } else
                     {
-                        String amountString = this.numberToString(amount);
-                        String priceString = this.numberToString(price);
+                        Object amountString = this.numberToString(amount);
+                        Object priceString = this.numberToString(price);
                         Object finalCost = ((Helpers.isTrue((Helpers.isEqual(cost, null))))) ? (Precise.stringMul(amountString, priceString)) : cost;
                         Helpers.addElementToObject(request, "size", this.priceToPrecision(symbol, finalCost));
                     }
@@ -9339,7 +9339,7 @@ final Object finalMinNotional = minNotional;
                 }
             }
             Object dataList = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Integer dataListLength = Helpers.getArrayLength(dataList);
+            Object dataListLength = Helpers.getArrayLength(dataList);
             if (Helpers.isTrue(Helpers.isEqual(dataListLength, 0)))
             {
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() could not find order id "), id), " in "), this.json(response))) ;
@@ -11454,7 +11454,7 @@ final Object finalMinNotional = minNotional;
         String side = this.safeString2(position, "holdSide", "posSide");
         String leverage = this.safeString(position, "leverage");
         Object contractSizeNumber = this.safeValue(market, "contractSize");
-        String contractSize = this.numberToString(contractSizeNumber);
+        Object contractSize = this.numberToString(contractSizeNumber);
         String baseAmount = this.safeString2(position, "total", "openTotalPos");
         String entryPrice = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("openPriceAvg", "openAvgPrice", "avgPrice")));
         String maintenanceMarginPercentage = this.safeString(position, "keepMarginRate");
@@ -12839,7 +12839,7 @@ final Object finalMinNotional = minNotional;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object chains = this.safeList(fee, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer chainsLength = Helpers.getArrayLength(chains);
+        Object chainsLength = Helpers.getArrayLength(chains);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -14035,7 +14035,7 @@ final Object finalMinNotional = minNotional;
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Integer symbolsLength = Helpers.getArrayLength(symbols);
+                Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -14598,8 +14598,8 @@ final Object finalMinNotional = minNotional;
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(!Helpers.isTrue(signed) && Helpers.isTrue((Helpers.isEqual(method, "GET")))))
         {
-            java.util.List<Object> keys = Helpers.objectKeys(query);
-            Integer keysLength = Helpers.getArrayLength(keys);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(query);
+            Object keysLength = Helpers.getArrayLength(keys);
             if (Helpers.isTrue(Helpers.isGreaterThan(keysLength, 0)))
             {
                 url = Helpers.add(Helpers.add(url, "?"), this.urlencode(query));
@@ -14608,7 +14608,7 @@ final Object finalMinNotional = minNotional;
         if (Helpers.isTrue(signed))
         {
             this.checkRequiredCredentials();
-            String timestamp = String.valueOf(this.nonce());
+            Object timestamp = String.valueOf(this.nonce());
             Object auth = Helpers.add(Helpers.add(timestamp, method), payload);
             if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
             {

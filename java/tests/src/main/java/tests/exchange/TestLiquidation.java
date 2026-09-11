@@ -26,7 +26,7 @@ public class TestLiquidation extends BaseTest {
             put( "datetime", "2017-09-01T00:00:00" );
         }};
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "datetime", "quoteValue", "baseValue", "previousClose", "price", "contractSize", "contracts"));
+        java.util.List<String> emptyAllowedFor = new java.util.ArrayList<String>(java.util.Arrays.asList("timestamp", "datetime", "quoteValue", "baseValue", "previousClose", "price", "contractSize", "contracts"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
         String logText = (String) TestSharedMethods.logTemplate(exchange, method, entry);

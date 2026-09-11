@@ -769,8 +769,8 @@ public class BitrueCore extends BitrueApi
             //
             //     {}
             //
-            java.util.List<Object> keys = Helpers.objectKeys(response);
-            Integer keysLength = Helpers.getArrayLength(keys);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
+            Object keysLength = Helpers.getArrayLength(keys);
             String formattedStatus = ((Helpers.isTrue((Helpers.isGreaterThan(keysLength, 0))))) ? "maintenance" : "ok";
             return new java.util.HashMap<String, Object>() {{
                 put( "status", formattedStatus );
@@ -947,7 +947,7 @@ public class BitrueCore extends BitrueApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object types = null;
-            java.util.List<Object> defaultTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse"));
+            java.util.List<String> defaultTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "linear", "inverse"));
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOptions, null)))
             {
@@ -1078,7 +1078,7 @@ public class BitrueCore extends BitrueApi
         Object settle = null;
         if (Helpers.isTrue(isContract))
         {
-            java.util.List<Object> symbolSplit = (java.util.List<Object>) Helpers.split(id, "-");
+            Object symbolSplit = Helpers.split(id, "-");
             baseId = this.safeString(symbolSplit, 1);
             quoteId = this.safeString(symbolSplit, 2);
             if (Helpers.isTrue(Helpers.isEqual(isLinear, true)))
@@ -2283,7 +2283,7 @@ public class BitrueCore extends BitrueApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object response = null;
             Object data = new java.util.HashMap<String, Object>() {{}};
-            String uppercaseType = ((String)type).toUpperCase();
+            Object uppercaseType = ((String)type).toUpperCase();
             final Object finalSide = side;
             final Object finalUppercaseType = uppercaseType;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2327,8 +2327,8 @@ public class BitrueCore extends BitrueApi
                         throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)")) ;
                     } else
                     {
-                        String amountString = this.numberToString(amount);
-                        String priceString = this.numberToString(price);
+                        Object amountString = this.numberToString(amount);
+                        Object priceString = this.numberToString(price);
                         String quoteAmount = Precise.stringMul(amountString, priceString);
                         Object requestAmount = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                         Helpers.addElementToObject(request, "amount", this.costToPrecision(symbol, requestAmount));
@@ -3204,13 +3204,13 @@ public class BitrueCore extends BitrueApi
         {
             if (Helpers.isTrue(!Helpers.isEqual(addressTo, null)))
             {
-                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(addressTo, "_");
+                Object parts = Helpers.split(addressTo, "_");
                 addressTo = this.safeString(parts, 0);
                 tagTo = this.safeString(parts, 1);
             }
             if (Helpers.isTrue(!Helpers.isEqual(addressFrom, null)))
             {
-                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(addressFrom, "_");
+                Object parts = Helpers.split(addressFrom, "_");
                 addressFrom = this.safeString(parts, 0);
                 tagFrom = this.safeString(parts, 1);
             }
@@ -3227,7 +3227,7 @@ public class BitrueCore extends BitrueApi
         String currencyId = this.safeString2(transaction, "symbol", "coin");
         if (Helpers.isTrue(!Helpers.isEqual(currencyId, null)))
         {
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(currencyId, "_");
+            Object parts = Helpers.split(currencyId, "_");
             currencyId = this.safeString(parts, 0);
             String networkId = this.safeString(parts, 1);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
@@ -3355,7 +3355,7 @@ public class BitrueCore extends BitrueApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object chainDetails = this.safeList(fee, "chainDetail", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer chainDetailLength = Helpers.getArrayLength(chainDetails);
+        Object chainDetailLength = Helpers.getArrayLength(chainDetails);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -3449,7 +3449,7 @@ public class BitrueCore extends BitrueApi
         Object toAccount = null;
         if (Helpers.isTrue(!Helpers.isEqual(transferType, null)))
         {
-            java.util.List<Object> accountSplit = (java.util.List<Object>) Helpers.split(transferType, "_to_");
+            Object accountSplit = Helpers.split(transferType, "_to_");
             fromAccount = this.safeString(accountSplit, 0);
             toAccount = this.safeString(accountSplit, 1);
         }
@@ -3765,7 +3765,7 @@ public class BitrueCore extends BitrueApi
                 }
             } else
             {
-                String timestamp = String.valueOf(this.nonce());
+                Object timestamp = String.valueOf(this.nonce());
                 Object signPath = null;
                 if (Helpers.isTrue(Helpers.isEqual(type, "fapi")))
                 {
@@ -3778,8 +3778,8 @@ public class BitrueCore extends BitrueApi
                 Object signMessage = Helpers.add(Helpers.add(timestamp, method), signPath);
                 if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
                 {
-                    java.util.List<Object> keys = Helpers.objectKeys(parameters);
-                    Integer keysLength = Helpers.getArrayLength(keys);
+                    java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(parameters);
+                    Object keysLength = Helpers.getArrayLength(keys);
                     if (Helpers.isTrue(Helpers.isGreaterThan(keysLength, 0)))
                     {
                         signMessage = Helpers.add(signMessage, Helpers.add("?", this.urlencode(parameters)));

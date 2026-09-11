@@ -60,7 +60,7 @@ public class TestPosition extends BaseTest {
             put( "side", "long" );
             put( "percentage", exchange.parseNumber("1.234") );
         }};
-        java.util.List<Object> emptyotAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"));
+        java.util.List<String> emptyotAllowedFor = new java.util.ArrayList<String>(java.util.Arrays.asList("liquidationPrice", "initialMargin", "initialMarginPercentage", "maintenanceMargin", "maintenanceMarginPercentage", "marginRatio"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyotAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);

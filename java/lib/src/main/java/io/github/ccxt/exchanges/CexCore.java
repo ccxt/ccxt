@@ -436,7 +436,7 @@ public class CexCore extends CexApi
         Object currencyPrecision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, "precision")));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object rawNetworks = this.safeDict(rawCurrency, "blockchains", new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> keys = Helpers.objectKeys(rawNetworks);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(rawNetworks);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
         {
             Object networkId = Helpers.GetValue(keys, j);
@@ -1032,7 +1032,7 @@ public class CexCore extends CexApi
     {
         Object useKeyAsId = Helpers.getArg(optionalArgs, 0, false);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-        java.util.List<Object> keys = Helpers.objectKeys(response);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -1193,7 +1193,7 @@ public class CexCore extends CexApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        java.util.List<Object> keys = Helpers.objectKeys(response);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -2232,7 +2232,7 @@ public class CexCore extends CexApi
         } else
         {
             this.checkRequiredCredentials();
-            String seconds = String.valueOf(this.seconds());
+            Object seconds = String.valueOf(this.seconds());
             body = this.json(query);
             Object auth = Helpers.add(Helpers.add(path, seconds), body);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");

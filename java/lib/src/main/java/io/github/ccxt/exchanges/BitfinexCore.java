@@ -893,8 +893,8 @@ public class BitfinexCore extends BitfinexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object labels = new java.util.ArrayList<Object>(java.util.Arrays.asList("pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"));
-            String config = String.join((String)",", (java.util.List<String>)labels);
+            java.util.List<String> labels = new java.util.ArrayList<String>(java.util.Arrays.asList("pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"));
+            Object config = String.join((String)",", (java.util.List<String>)labels);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "config", config );
             }};
@@ -925,7 +925,7 @@ public class BitfinexCore extends BitfinexApi
                 Object quoteId = null;
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)id), ":"), 0)))
                 {
-                    java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)id), ":");
+                    Object parts = Helpers.split(((String)id), ":");
                     baseId = Helpers.GetValue(parts, 0);
                     quoteId = Helpers.GetValue(parts, 1);
                 } else
@@ -935,8 +935,8 @@ public class BitfinexCore extends BitfinexApi
                 }
                 Object base = this.safeCurrencyCode(baseId);
                 Object quote = this.safeCurrencyCode(quoteId);
-                java.util.List<Object> splitBase = (java.util.List<Object>) Helpers.split(((String)base), "F0");
-                java.util.List<Object> splitQuote = (java.util.List<Object>) Helpers.split(((String)quote), "F0");
+                Object splitBase = Helpers.split(((String)base), "F0");
+                Object splitQuote = Helpers.split(((String)quote), "F0");
                 base = this.safeString(splitBase, 0);
                 quote = this.safeString(splitQuote, 0);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -1031,8 +1031,8 @@ public class BitfinexCore extends BitfinexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object labels = new java.util.ArrayList<Object>(java.util.Arrays.asList("pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"));
-            String config = String.join((String)",", (java.util.List<String>)labels);
+            java.util.List<String> labels = new java.util.ArrayList<String>(java.util.Arrays.asList("pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"));
+            Object config = String.join((String)",", (java.util.List<String>)labels);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "config", config );
             }};
@@ -1190,7 +1190,7 @@ public class BitfinexCore extends BitfinexApi
         // numberToString instead of an `as string` cast: the describe() default for this option is the
         // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
         // InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
-        String precision = this.numberToString(this.handleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision));
+        Object precision = this.numberToString(this.handleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object networkIds = this.safeList(indexedNetworks, id, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
@@ -1278,7 +1278,7 @@ public class BitfinexCore extends BitfinexApi
             String accountType = this.safeString(accountsByType, requestedType, requestedType);
             if (Helpers.isTrue(Helpers.isEqual(accountType, null)))
             {
-                Object keys = Helpers.objectKeys(accountsByType);
+                java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(accountsByType);
                 throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchBalance() type parameter must be one of "), String.join((String)", ", (java.util.List<String>)keys))) ;
             }
             Boolean isDerivative = Helpers.isEqual(requestedType, "derivatives");
@@ -1359,7 +1359,7 @@ public class BitfinexCore extends BitfinexApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object fromCurrencyId = this.convertDerivativesId(currency, fromAccount);
             Object toCurrencyId = this.convertDerivativesId(currency, toAccount);
-            String requestedAmount = (String) this.currencyToPrecision(code, amount);
+            Object requestedAmount = this.currencyToPrecision(code, amount);
             // this request is slightly different from v1 fromAccount -> from
             final Object finalFromId = fromId;
             final Object finalToId = toId;
@@ -1596,7 +1596,7 @@ public class BitfinexCore extends BitfinexApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Integer length = Helpers.getArrayLength(ticker);
+        Object length = Helpers.getArrayLength(ticker);
         Double firstValue = this.safeNumber(ticker, 0);
         Boolean isFetchTicker = !Helpers.isEqual(firstValue, null); // if it's Nan, then it's string (symbol)
         Object symbol = null;
@@ -1811,7 +1811,7 @@ public class BitfinexCore extends BitfinexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object tradeList = this.safeList(trade, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer tradeLength = Helpers.getArrayLength(tradeList);
+        Object tradeLength = Helpers.getArrayLength(tradeList);
         Boolean isPrivate = (Helpers.isGreaterThan(tradeLength, 5));
         String id = this.safeString(tradeList, 0);
         Object amountIndex = ((Helpers.isTrue(isPrivate))) ? 4 : 2;
@@ -2046,7 +2046,7 @@ public class BitfinexCore extends BitfinexApi
         {
             return null;
         }
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(status, " ");
+        Object parts = Helpers.split(status, " ");
         String state = this.safeString(parts, 0);
         java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "ACTIVE", "open" );
@@ -2130,7 +2130,7 @@ public class BitfinexCore extends BitfinexApi
         String statusString = this.safeString(orderList, 13);
         if (Helpers.isTrue(!Helpers.isEqual(statusString, null)))
         {
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(statusString, " @ ");
+            Object parts = Helpers.split(statusString, " @ ");
             status = this.parseOrderStatus(this.safeString(parts, 0));
         }
         String average = this.safeString(orderList, 17);
@@ -2212,7 +2212,7 @@ public class BitfinexCore extends BitfinexApi
         Object postOnlyParam = this.safeBool(parameters, "postOnly", false);
         Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Object clientOrderId = this.safeValue2(parameters, "cid", "clientOrderId");
-        String orderType = ((String)type).toUpperCase();
+        Object orderType = ((String)type).toUpperCase();
         if (Helpers.isTrue(!Helpers.isEqual(trailingAmount, null)))
         {
             orderType = "TRAILING STOP";
@@ -3204,7 +3204,7 @@ public class BitfinexCore extends BitfinexApi
         //     ]
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Integer transactionLength = Helpers.getArrayLength(transaction);
+        Object transactionLength = Helpers.getArrayLength(transaction);
         Object timestamp = null;
         Object updated = null;
         Object code = null;
@@ -3802,7 +3802,7 @@ public class BitfinexCore extends BitfinexApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            String nonce = String.valueOf(this.nonce());
+            Object nonce = String.valueOf(this.nonce());
             body = this.json(query);
             Object auth = Helpers.add(Helpers.add(Helpers.add("/api/", request), nonce), body);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha384());
@@ -3918,7 +3918,7 @@ public class BitfinexCore extends BitfinexApi
         String description = this.safeString(itemList, 8);
         if (Helpers.isTrue(!Helpers.isEqual(description, null)))
         {
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(description, " @ ");
+            Object parts = Helpers.split(description, " @ ");
             String first = (String)this.safeStringLower(parts, 0);
             type = this.parseLedgerEntryType(first);
         }
@@ -4181,7 +4181,7 @@ public class BitfinexCore extends BitfinexApi
             }
             java.util.List<Object> reversedArray = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> rawRates = this.filterBySymbolSinceLimit(rates, symbol, since, limit);
-            Integer ratesLength = Helpers.getArrayLength(rawRates);
+            Object ratesLength = Helpers.getArrayLength(rawRates);
             for (var i = 0; Helpers.isLessThan(i, ratesLength); i++)
             {
                 Object index = Helpers.subtract(Helpers.subtract(ratesLength, i), 1);
@@ -4574,7 +4574,7 @@ public class BitfinexCore extends BitfinexApi
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Integer interestLength = Helpers.getArrayLength(interest);
+        Object interestLength = Helpers.getArrayLength(interest);
         Object openInterestIndex = ((Helpers.isTrue((Helpers.isEqual(interestLength, 23))))) ? 17 : 18;
         Long timestamp = this.safeInteger(interest, 1);
         String marketId = this.safeString(interest, 0);

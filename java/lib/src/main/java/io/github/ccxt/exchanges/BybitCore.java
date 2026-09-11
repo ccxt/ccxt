@@ -2287,7 +2287,7 @@ public class BybitCore extends BybitApi
         Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeListN(result, new java.util.ArrayList<Object>(java.util.Arrays.asList("list", "rows", "data", "dataList")), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String paginationCursor = this.safeString2(result, "nextPageCursor", "cursor");
-        Integer dataLength = Helpers.getArrayLength(data);
+        Object dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(paginationCursor, null))) && Helpers.isTrue((Helpers.isGreaterThan(dataLength, 0)))))
         {
             Object first = Helpers.GetValue(data, 0);
@@ -2422,8 +2422,8 @@ public class BybitCore extends BybitApi
         // support expired option contracts
         Object quote = null;
         Object settle = null;
-        java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(symbol, "-");
-        java.util.List<Object> symbolBase = (java.util.List<Object>) Helpers.split(symbol, "/");
+        Object optionParts = Helpers.split(symbol, "-");
+        Object symbolBase = Helpers.split(symbol, "/");
         Object base = null;
         Object expiry = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
@@ -2435,7 +2435,7 @@ public class BybitCore extends BybitApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createExpiredOptionMarket() missing symbolQuoteAndSettle")) ;
             }
-            java.util.List<Object> splitQuote = (java.util.List<Object>) Helpers.split(symbolQuoteAndSettle, ":");
+            Object splitQuote = Helpers.split(symbolQuoteAndSettle, ":");
             String quoteAndSettle = this.safeString(splitQuote, 0);
             quote = quoteAndSettle;
             settle = quoteAndSettle;
@@ -2567,7 +2567,7 @@ public class BybitCore extends BybitApi
         // and we shouldn't crash in those cases
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Boolean emptyPrecisionAmount = (Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), null));
-        String amountString = this.numberToString(amount);
+        Object amountString = this.numberToString(amount);
         if (Helpers.isTrue(!Helpers.isTrue(emptyPrecisionAmount) && Helpers.isTrue((!Helpers.isEqual(amountString, "0")))))
         {
             return this.amountToPrecision(symbol, amount);
@@ -2854,7 +2854,7 @@ public class BybitCore extends BybitApi
             }
             java.util.List<Object> promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object types = null;
-            java.util.List<Object> defaultTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse", "option"));
+            java.util.List<String> defaultTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "linear", "inverse", "option"));
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOptions, null)))
             {
@@ -3087,7 +3087,7 @@ public class BybitCore extends BybitApi
                     }
                     Object dataNew = this.safeDict(responseInner, "result", new java.util.HashMap<String, Object>() {{}});
                     Object rawMarkets = this.safeList(dataNew, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    Integer rawMarketsLength = Helpers.getArrayLength(rawMarkets);
+                    Object rawMarketsLength = Helpers.getArrayLength(rawMarkets);
                     if (Helpers.isTrue(Helpers.isEqual(rawMarketsLength, 0)))
                     {
                         break;
@@ -3310,7 +3310,7 @@ public class BybitCore extends BybitApi
                         }
                         Object dataNew = this.safeDict(responseInner, "result", new java.util.HashMap<String, Object>() {{}});
                         Object rawMarkets = this.safeList(dataNew, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                        Integer rawMarketsLength = Helpers.getArrayLength(rawMarkets);
+                        Object rawMarketsLength = Helpers.getArrayLength(rawMarkets);
                         if (Helpers.isTrue(Helpers.isEqual(rawMarketsLength, 0)))
                         {
                             break;
@@ -3374,7 +3374,7 @@ public class BybitCore extends BybitApi
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " method() missing id")) ;
                 }
-                java.util.List<Object> splitId = (java.util.List<Object>) Helpers.split(id, "-");
+                Object splitId = Helpers.split(id, "-");
                 String strike = this.safeString(splitId, 2);
                 String optionLetter = this.safeString(splitId, 3);
                 Boolean isActive = (Helpers.isEqual(status, "Trading"));
@@ -4061,7 +4061,7 @@ public class BybitCore extends BybitApi
             {
                 symbols = this.marketSymbols(symbols);
                 market = this.market(Helpers.GetValue(symbols, 0));
-                Integer symbolsLength = Helpers.getArrayLength(symbols);
+                Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
@@ -5255,7 +5255,7 @@ public class BybitCore extends BybitApi
         String status = this.parseOrderStatus(rawStatus);
         Object fee = null;
         Object cumFeeDetail = this.safeDict(order, "cumFeeDetail", new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> feeCoins = Helpers.objectKeys(cumFeeDetail);
+        java.util.List<String> feeCoins = (java.util.List<String>)(java.util.List) Helpers.objectKeys(cumFeeDetail);
         String feeCoinId = this.safeString(feeCoins, 0);
         if (Helpers.isTrue(!Helpers.isEqual(feeCoinId, null)))
         {
@@ -5526,7 +5526,7 @@ public class BybitCore extends BybitApi
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         symbol = Helpers.GetValue(market, "symbol");
-        String lowerCaseType = ((String)type).toLowerCase();
+        Object lowerCaseType = ((String)type).toLowerCase();
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
         }};
@@ -5711,7 +5711,7 @@ public class BybitCore extends BybitApi
                     orderCost = cost;
                 } else
                 {
-                    String quoteAmount = Precise.stringMul(amountString, priceString);
+                    Object quoteAmount = Precise.stringMul(amountString, priceString);
                     orderCost = quoteAmount;
                 }
                 Helpers.addElementToObject(request, "qty", this.getCost(symbol, orderCost));
@@ -5735,7 +5735,7 @@ public class BybitCore extends BybitApi
                     throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
                 {
-                    String quoteAmount = Precise.stringMul(this.numberToString(amount), priceString);
+                    Object quoteAmount = Precise.stringMul(this.numberToString(amount), priceString);
                     Object costRequest = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                     Helpers.addElementToObject(request, "qty", this.getCost(symbol, costRequest));
                 }
@@ -6707,7 +6707,7 @@ public class BybitCore extends BybitApi
                 put( "orderId", id );
             }};
             Object result = (this.fetchOrdersClassic(symbol, null, null, this.extend(request, parameters))).join();
-            Integer length = Helpers.getArrayLength(result);
+            Object length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
@@ -6834,7 +6834,7 @@ public class BybitCore extends BybitApi
             Object innerList = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             // the xLength idiom transpiles to count() in php, inline .length here mis-transpiled to strlen(),
             // see https://github.com/ccxt/ccxt/pull/29602
-            Integer innerListLength = Helpers.getArrayLength(innerList);
+            Object innerListLength = Helpers.getArrayLength(innerList);
             if (Helpers.isTrue(Helpers.isEqual(innerListLength, 0)))
             {
                 String extra = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "" : " If you are trying to fetch SL/TP conditional order, you might try setting params[\"trigger\"] = true";
@@ -7009,7 +7009,7 @@ public class BybitCore extends BybitApi
                 put( "orderId", id );
             }};
             Object result = (this.fetchClosedOrders(symbol, null, null, this.extend(request, parameters))).join();
-            Integer length = Helpers.getArrayLength(result);
+            Object length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
@@ -7057,7 +7057,7 @@ public class BybitCore extends BybitApi
                 put( "orderId", id );
             }};
             Object result = (this.fetchOpenOrders(symbol, null, null, this.extend(request, parameters))).join();
-            Integer length = Helpers.getArrayLength(result);
+            Object length = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
                 Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
@@ -8491,7 +8491,7 @@ public class BybitCore extends BybitApi
             Object symbol = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue(Helpers.isArray(symbols))))
             {
-                Integer symbolsLength = Helpers.getArrayLength(symbols);
+                Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPositions() does not accept an array with more than one symbol")) ;
@@ -8792,7 +8792,7 @@ public class BybitCore extends BybitApi
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 Object useMarkPrice = this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
                 Object price = ((Helpers.isTrue(useMarkPrice))) ? markPrice : entryPrice;
-                String difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
+                Object difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
             } else
             {
@@ -8816,7 +8816,7 @@ public class BybitCore extends BybitApi
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    String difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
+                    Object difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
                     String multiply = Precise.stringMul(bustPrice, liquidationPrice);
                     maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
                     // Initial Margin = Leverage x Contracts / EntryPrice
@@ -9080,7 +9080,7 @@ public class BybitCore extends BybitApi
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             // engage in leverage setting
             // we reuse the code here instead of having two methods
-            String leverageString = this.numberToString(leverage);
+            Object leverageString = this.numberToString(leverage);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "buyLeverage", leverageString );
@@ -9697,7 +9697,7 @@ public class BybitCore extends BybitApi
             String fromId = this.safeString(accountTypes, fromAccount, fromAccount);
             String toId = this.safeString(accountTypes, toAccount, toAccount);
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            String amountToPrecision = (String) this.currencyToPrecision(code, amount);
+            Object amountToPrecision = this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "transferId", transferId );
                 put( "fromAccountType", fromId );
@@ -10232,7 +10232,7 @@ public class BybitCore extends BybitApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object chains = this.safeList(fee, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer chainsLength = Helpers.getArrayLength(chains);
+        Object chainsLength = Helpers.getArrayLength(chains);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -10738,7 +10738,7 @@ public class BybitCore extends BybitApi
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Integer symbolsLength = Helpers.getArrayLength(symbols);
+                Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -11043,7 +11043,7 @@ public class BybitCore extends BybitApi
             java.util.Map<String, Object> response = (this.publicGetV5MarketRiskLimit(this.extend(request, parameters))).join();
             Object result = this.addPaginationCursorToResult(response);
             Object first = this.safeDict(result, 0);
-            Integer total = Helpers.getArrayLength(result);
+            Object total = Helpers.getArrayLength(result);
             Object lastIndex = Helpers.subtract(total, 1);
             Object last = this.safeDict(result, lastIndex, new java.util.HashMap<String, Object>() {{}});
             String cursorValue = this.safeString(first, "nextPageCursor");
@@ -11121,7 +11121,7 @@ public class BybitCore extends BybitApi
         Object idKey = ((Helpers.isTrue((Helpers.isEqual(marketIdKey, null))))) ? "symbol" : marketIdKey;
         Object filteredResults = this.filterByArray(response, idKey, marketIds, false);
         java.util.Map<String, Object> grouped = this.groupBy(filteredResults, idKey);
-        java.util.List<Object> keys = Helpers.objectKeys(grouped);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(grouped);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);
@@ -12402,7 +12402,7 @@ final Object finalMarket = market;
             Boolean isV3UnifiedMargin = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "unified/v3"), 0);
             Boolean isV3Contract = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "contract/v3"), 0);
             Boolean isV5UnifiedAccount = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "v5"), 0);
-            String timestamp = String.valueOf(this.nonce());
+            Object timestamp = String.valueOf(this.nonce());
             if (Helpers.isTrue(isOpenapi))
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))

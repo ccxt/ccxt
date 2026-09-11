@@ -702,7 +702,7 @@ public class DigifinexCore extends DigifinexApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> groupedById = this.groupBy(data, "currency");
-            java.util.List<Object> values = Helpers.objectValues(groupedById);
+            Object values = Helpers.objectValues(groupedById);
             return this.parseCurrencies(values);
         });
 
@@ -1687,7 +1687,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " parseTrade() returned no side")) ;
             }
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(side, "_");
+            Object parts = Helpers.split(side, "_");
             side = this.safeString(parts, 0);
             type = this.safeString(parts, 1);
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
@@ -2344,8 +2344,8 @@ public class DigifinexCore extends DigifinexApi
                         throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        String amountString = this.numberToString(amount);
-                        String priceString = this.numberToString(price);
+                        Object amountString = this.numberToString(amount);
+                        Object priceString = this.numberToString(price);
                         Object costRequest = this.parseNumber(Precise.stringMul(amountString, priceString));
                         quantity = this.costToPrecision(symbol, costRequest);
                     }
@@ -2493,7 +2493,7 @@ public class DigifinexCore extends DigifinexApi
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(marketType, "spot"))) || Helpers.isTrue((Helpers.isEqual(marketType, "margin")))))
             {
                 Object canceledOrders = this.safeList(response, "success", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Integer numCanceledOrders = Helpers.getArrayLength(canceledOrders);
+                Object numCanceledOrders = Helpers.getArrayLength(canceledOrders);
                 if (Helpers.isTrue(!Helpers.isEqual(numCanceledOrders, 1)))
                 {
                     throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrder() "), id), " not found")) ;
@@ -2715,8 +2715,8 @@ public class DigifinexCore extends DigifinexApi
             lastTradeTimestamp = this.safeTimestamp(order, "finished_date");
             if (Helpers.isTrue(!Helpers.isEqual(side, null)))
             {
-                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(side, "_");
-                Integer numParts = Helpers.getArrayLength(parts);
+                Object parts = Helpers.split(side, "_");
+                Object numParts = Helpers.getArrayLength(parts);
                 if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
                 {
                     side = Helpers.GetValue(parts, 0);
@@ -3823,7 +3823,7 @@ public class DigifinexCore extends DigifinexApi
             Boolean fromSwap = (Helpers.isEqual(fromAccount, "swap"));
             Boolean toSwap = (Helpers.isEqual(toAccount, "swap"));
             Object response = null;
-            String amountString = (String) this.currencyToPrecision(code, amount);
+            Object amountString = this.currencyToPrecision(code, amount);
             if (Helpers.isTrue(Helpers.isTrue(fromSwap) || Helpers.isTrue(toSwap)))
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fromId, "1"))) && Helpers.isTrue((!Helpers.isEqual(toId, "1")))))
@@ -4441,7 +4441,7 @@ public class DigifinexCore extends DigifinexApi
                 Object symbol = null;
                 if (Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    Integer symbolsLength = Helpers.getArrayLength(symbols);
+                    Object symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
                         throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
@@ -5213,7 +5213,7 @@ final Object finalI = i;
                 }
             }
         }
-        java.util.List<Object> depositWithdrawCodes = Helpers.objectKeys(depositWithdrawFees);
+        java.util.List<String> depositWithdrawCodes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(depositWithdrawFees);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(depositWithdrawCodes)); i++)
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);

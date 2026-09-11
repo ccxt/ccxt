@@ -409,7 +409,7 @@ public class BitoproCore extends BitoproApi
             //         ]
             //     }
             //
-            java.util.List<Object> currencies = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object currencies = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseCurrencies(currencies);
         });
 
@@ -420,8 +420,8 @@ public class BitoproCore extends BitoproApi
         Object fiatCurrencies = this.handleOption("fetchCurrencies", "fiatCurrencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String currencyId = this.safeString(rawCurrency, "currency");
         String code = (String) this.safeCurrencyCode(currencyId);
-        Boolean deposit = (Boolean) this.safeBool(rawCurrency, "deposit");
-        Boolean withdraw = (Boolean) this.safeBool(rawCurrency, "withdraw");
+        Object deposit = this.safeBool(rawCurrency, "deposit");
+        Object withdraw = this.safeBool(rawCurrency, "withdraw");
         Object isFiat = this.inArray(code, fiatCurrencies);
         final Object finalDeposit = deposit;
         final Object finalWithdraw = withdraw;
@@ -465,7 +465,7 @@ public class BitoproCore extends BitoproApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> response = (this.publicGetProvisioningTradingPairs()).join();
-            java.util.List<Object> markets = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object markets = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -499,7 +499,7 @@ public class BitoproCore extends BitoproApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
         }
-        String uppercaseId = ((String)id).toUpperCase();
+        Object uppercaseId = ((String)id).toUpperCase();
         String baseId = this.safeString(market, "base");
         String quoteId = this.safeString(market, "quote");
         String base = (String) this.safeCurrencyCode(baseId);
@@ -625,7 +625,7 @@ public class BitoproCore extends BitoproApi
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetTickersPair(this.extend(request, parameters))).join();
-            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object ticker = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             //
             //     {
             //         "data":{
@@ -665,7 +665,7 @@ public class BitoproCore extends BitoproApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> response = (this.publicGetTickers()).join();
-            java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -786,7 +786,7 @@ public class BitoproCore extends BitoproApi
         String side = (String)this.safeStringLower(trade, "action");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer");
+            Object isBuyer = this.safeBool(trade, "isBuyer");
             if (Helpers.isTrue(Helpers.isEqual(isBuyer, true)))
             {
                 side = "buy";
@@ -812,7 +812,7 @@ public class BitoproCore extends BitoproApi
                 put( "rate", null );
             }};
         }
-        Boolean isTaker = (Boolean) this.safeBool(trade, "isTaker");
+        Object isTaker = this.safeBool(trade, "isTaker");
         String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isTaker, null)))
         {
@@ -858,7 +858,7 @@ public class BitoproCore extends BitoproApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -875,7 +875,7 @@ public class BitoproCore extends BitoproApi
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetTradesPair(this.extend(request, parameters))).join();
-            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -912,7 +912,7 @@ public class BitoproCore extends BitoproApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> response = (this.publicGetProvisioningLimitationsAndFees(parameters)).join();
-            java.util.Map<String, Object> tradingFeeRate = (java.util.Map<String, Object>) this.safeDict(response, "tradingFeeRate", new java.util.HashMap<String, Object>() {{}});
+            Object tradingFeeRate = this.safeDict(response, "tradingFeeRate", new java.util.HashMap<String, Object>() {{}});
             Object first = this.safeValue(tradingFeeRate, 0);
             //
             //     {
@@ -1055,7 +1055,7 @@ public class BitoproCore extends BitoproApi
                 Helpers.addElementToObject(request, "to", this.sum(Helpers.GetValue(request, "from"), Helpers.multiply(limit, timeframeInSeconds)));
             }
             java.util.Map<String, Object> response = (this.publicGetTradingHistoryPair(this.extend(request, parameters))).join();
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -1080,7 +1080,7 @@ public class BitoproCore extends BitoproApi
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
-        Integer length = Helpers.getArrayLength(candles);
+        Object length = Helpers.getArrayLength(candles);
         if (Helpers.isTrue(Helpers.isEqual(length, 0)))
         {
             return candles;
@@ -1096,7 +1096,7 @@ public class BitoproCore extends BitoproApi
             timestamp = since;
         }
         Object i = 0;
-        Integer candleLength = Helpers.getArrayLength(candles);
+        Object candleLength = Helpers.getArrayLength(candles);
         Object resultLength = 0;
         while (Helpers.isTrue((Helpers.isLessThan(resultLength, limit))) && Helpers.isTrue((Helpers.isLessThan(i, candleLength))))
         {
@@ -1175,7 +1175,7 @@ public class BitoproCore extends BitoproApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> response = (this.privateGetAccountsBalance(parameters)).join();
-            java.util.List<Object> balances = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object balances = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -1342,7 +1342,7 @@ public class BitoproCore extends BitoproApi
                 put( "amount", BitoproCore.this.amountToPrecision(symbol, amount) );
                 put( "timestamp", BitoproCore.this.milliseconds() );
             }};
-            String orderType = ((String)type).toUpperCase();
+            Object orderType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(orderType, "LIMIT")))
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
@@ -1436,7 +1436,7 @@ public class BitoproCore extends BitoproApi
 
     public Object parseCancelOrders(Object data)
     {
-        java.util.List<Object> dataKeys = Helpers.objectKeys(data);
+        java.util.List<String> dataKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
         java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(dataKeys)); i++)
         {
@@ -1498,7 +1498,7 @@ final Object finalJ = j;
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data");
             return this.parseCancelOrders(data);
         });
 
@@ -1535,7 +1535,7 @@ final Object finalJ = j;
             {
                 response = (this.privateDeleteOrdersAll(this.extend(request, parameters))).join();
             }
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             //
             //     {
             //         "data":{
@@ -1651,7 +1651,7 @@ final Object finalJ = j;
                 Helpers.addElementToObject(request, "limit", limit);
             }
             java.util.Map<String, Object> response = (this.privateGetOrdersAllPair(this.extend(request, parameters))).join();
-            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object orders = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             if (Helpers.isTrue(Helpers.isEqual(orders, null)))
             {
                 orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1719,7 +1719,7 @@ final Object finalJ = j;
                 Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
             }
             java.util.Map<String, Object> response = (this.privateGetOrdersOpen(this.extend(request, parameters))).join();
-            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object orders = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
 
@@ -1786,7 +1786,7 @@ final Object finalJ = j;
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.privateGetOrdersTradesPair(this.extend(request, parameters))).join();
-            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -1955,7 +1955,7 @@ final Object finalJ = j;
                 Helpers.addElementToObject(request, "limit", limit);
             }
             java.util.Map<String, Object> response = (this.privateGetWalletDepositHistoryCurrency(this.extend(request, parameters))).join();
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -2023,7 +2023,7 @@ final Object finalJ = j;
                 Helpers.addElementToObject(request, "limit", limit);
             }
             java.util.Map<String, Object> response = (this.privateGetWalletWithdrawHistoryCurrency(this.extend(request, parameters))).join();
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     {
             //         "data":[
@@ -2059,7 +2059,7 @@ final Object finalJ = j;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawal(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawal(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2080,7 +2080,7 @@ final Object finalJ = j;
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             java.util.Map<String, Object> response = (this.privateGetWalletWithdrawCurrencySerial(this.extend(request, parameters))).join();
-            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             //
             //     {
             //         "data":{
@@ -2137,7 +2137,7 @@ final Object finalJ = j;
             }};
             if (Helpers.isTrue(Helpers.inOp(parameters, "network")))
             {
-                java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+                Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
                 String requestedNetwork = (String)this.safeStringUpper(parameters, "network");
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("network")));
                 Object networkId = ((Helpers.isTrue((Helpers.isEqual(requestedNetwork, null))))) ? null : this.safeString(networks, requestedNetwork);
@@ -2152,7 +2152,7 @@ final Object finalJ = j;
                 Helpers.addElementToObject(request, "message", tag);
             }
             java.util.Map<String, Object> response = (this.privatePostWalletWithdrawCurrency(this.extend(request, parameters))).join();
-            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             //
             //     {
             //         "data":{
@@ -2235,7 +2235,7 @@ final Object finalJ = j;
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "currency");
         });
 

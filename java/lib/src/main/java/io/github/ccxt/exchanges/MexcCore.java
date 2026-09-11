@@ -1383,8 +1383,8 @@ public class MexcCore extends MexcApi
                 //
                 //     {}
                 //
-                java.util.List<Object> keys = Helpers.objectKeys(response);
-                Integer length = Helpers.getArrayLength(keys);
+                java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
+                Object length = Helpers.getArrayLength(keys);
                 status = ((Helpers.isTrue((Helpers.isGreaterThan(length, 0))))) ? this.json(response) : "ok";
             } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
@@ -2414,7 +2414,7 @@ public class MexcCore extends MexcApi
             Boolean isSingularMarket = false;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Integer length = Helpers.getArrayLength(symbols);
+                Object length = Helpers.getArrayLength(symbols);
                 isSingularMarket = Helpers.isEqual(length, 1);
                 String firstSymbol = this.safeString(symbols, 0);
                 market = this.market(firstSymbol);
@@ -2700,7 +2700,7 @@ public class MexcCore extends MexcApi
             Boolean isSingularMarket = false;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Integer length = Helpers.getArrayLength(symbols);
+                Object length = Helpers.getArrayLength(symbols);
                 isSingularMarket = Helpers.isEqual(length, 1);
                 market = this.market(Helpers.GetValue(symbols, 0));
             }
@@ -2850,7 +2850,7 @@ public class MexcCore extends MexcApi
         Object marginMode = Helpers.getArg(optionalArgs, 1, null);
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object symbol = Helpers.GetValue(market, "symbol");
-        String orderSide = ((String)side).toUpperCase();
+        Object orderSide = ((String)side).toUpperCase();
         final Object finalType = type;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
@@ -2872,8 +2872,8 @@ public class MexcCore extends MexcApi
                     Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
                 } else
                 {
-                    String amountString = this.numberToString(amount);
-                    String priceString = this.numberToString(price);
+                    Object amountString = this.numberToString(amount);
+                    Object priceString = this.numberToString(price);
                     String quoteAmount = Precise.stringMul(amountString, priceString);
                     amount = quoteAmount;
                     Helpers.addElementToObject(request, "quoteOrderQty", this.costToPrecision(symbol, amount));
@@ -5785,7 +5785,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                     result = this.safeDict(addressStructures, defaultNetworkForCurrency);
                 } else
                 {
-                    java.util.List<Object> keys = Helpers.objectKeys(addressStructures);
+                    java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(addressStructures);
                     String key = this.safeString(keys, 0);
                     result = this.safeDict(addressStructures, key);
                 }
@@ -7195,7 +7195,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Integer symbolsLength = Helpers.getArrayLength(symbols);
+                Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
@@ -7282,7 +7282,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports contract markets only")) ;
             }
-            String marginModeLower = ((String)marginMode).toLowerCase();
+            Object marginModeLower = ((String)marginMode).toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginModeLower, "isolated")) && Helpers.isTrue(!Helpers.isEqual(marginModeLower, "cross"))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
@@ -7394,7 +7394,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             } else
             {
                 this.checkRequiredCredentials();
-                String timestamp = String.valueOf(this.nonce());
+                Object timestamp = String.valueOf(this.nonce());
                 Object auth = "";
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "ApiKey", MexcCore.this.apiKey );

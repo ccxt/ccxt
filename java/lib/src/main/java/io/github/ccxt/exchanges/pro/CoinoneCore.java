@@ -129,7 +129,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         String quoteId = (String)this.safeStringUpper(data, "quote_currency");
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        String symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
+        Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
         Long timestamp = this.safeInteger(data, "timestamp");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
@@ -261,12 +261,12 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
-        String last = this.safeString(ticker, "last");
-        String baseId = this.safeString(ticker, "target_currency");
-        String quoteId = this.safeString(ticker, "quote_currency");
+        Object last = this.safeString(ticker, "last");
+        Object baseId = this.safeString(ticker, "target_currency");
+        Object quoteId = this.safeString(ticker, "quote_currency");
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        String symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
+        Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -356,7 +356,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object trade = this.parseWsTrade(data);
         Object symbol = Helpers.GetValue(trade, "symbol");
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
+        Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -395,8 +395,8 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         {
             side = ((Helpers.isTrue((Helpers.isEqual(isSellerMaker, true))))) ? "sell" : "buy";
         }
-        String priceString = this.safeString(trade, "price");
-        String amountString = this.safeString(trade, "qty");
+        Object priceString = this.safeString(trade, "price");
+        Object amountString = this.safeString(trade, "qty");
         final Object finalMarket = market;
         final Object finalSide = side;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
@@ -425,7 +425,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         //         "message": "Invalid Topic"
         //     }
         //
-        String type = this.safeString(message, "response_type", "");
+        Object type = this.safeString(message, "response_type", "");
         if (Helpers.isTrue(Helpers.isEqual(type, "ERROR")))
         {
             return true;
@@ -439,7 +439,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         {
             return;
         }
-        String type = this.safeString(message, "response_type");
+        Object type = this.safeString(message, "response_type");
         if (Helpers.isTrue(Helpers.isEqual(type, "PONG")))
         {
             this.handlePong(client, message);
@@ -459,7 +459,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
                 Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
                 return;
             }
-            java.util.List<Object> keys = Helpers.objectKeys(methods);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(methods);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);

@@ -224,14 +224,14 @@ public class RevolutxCore extends RevolutxApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object implodedPath = this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
-        java.util.List<Object> queryKeys = Helpers.objectKeys(query);
-        Integer queryLength = Helpers.getArrayLength(queryKeys);
+        java.util.List<String> queryKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(query);
+        Object queryLength = Helpers.getArrayLength(queryKeys);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), implodedPath);
         Object queryString = "";
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            String timestamp = String.valueOf(this.milliseconds());
+            Object timestamp = String.valueOf(this.milliseconds());
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(queryLength, 0)))
@@ -411,7 +411,7 @@ public class RevolutxCore extends RevolutxApi
             //     }
             //
             Object markets = this.safeDict(response, "data", response);
-            java.util.List<Object> keys = Helpers.objectKeys(markets);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(markets);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
@@ -507,7 +507,7 @@ public class RevolutxCore extends RevolutxApi
             //     }
             //
             Object currencies = this.safeDict(response, "data", response);
-            java.util.List<Object> keys = Helpers.objectKeys(currencies);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(currencies);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {

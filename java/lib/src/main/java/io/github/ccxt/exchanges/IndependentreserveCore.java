@@ -914,7 +914,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             Helpers.addElementToObject(request, "pageIndex", 1);
             Helpers.addElementToObject(request, "pageSize", limit);
             java.util.Map<String, Object> response = (this.privatePostGetOpenOrders(this.extend(request, parameters))).join();
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "Data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "Data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -958,7 +958,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             Helpers.addElementToObject(request, "pageIndex", 1);
             Helpers.addElementToObject(request, "pageSize", limit);
             java.util.Map<String, Object> response = (this.privatePostGetClosedOrders(this.extend(request, parameters))).join();
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "Data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "Data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -1003,7 +1003,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             {
                 market = this.market(symbol);
             }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "Data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "Data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         });
 
@@ -1067,7 +1067,7 @@ public class IndependentreserveCore extends IndependentreserveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1086,7 +1086,7 @@ public class IndependentreserveCore extends IndependentreserveApi
                 put( "numberOfRecentTradesToRetrieve", 50 );
             }};
             java.util.Map<String, Object> response = (this.publicGetGetRecentTrades(this.extend(request, parameters))).join();
-            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(response, "Trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object trades = this.safeList(response, "Trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         });
 
@@ -1403,8 +1403,8 @@ public class IndependentreserveCore extends IndependentreserveApi
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        java.util.Map<String, Object> amount = (java.util.Map<String, Object>) this.safeDict(transaction, "Amount");
-        java.util.Map<String, Object> destination = (java.util.Map<String, Object>) this.safeDict(transaction, "Destination");
+        Object amount = this.safeDict(transaction, "Amount");
+        Object destination = this.safeDict(transaction, "Destination");
         String currencyId = this.safeString(transaction, "PrimaryCurrencyCode");
         String datetime = this.safeString(transaction, "CreatedTimestampUtc");
         String address = this.safeString(destination, "Address");
@@ -1457,14 +1457,14 @@ public class IndependentreserveCore extends IndependentreserveApi
             this.checkRequiredCredentials();
             Object nonce = this.nonce();
             Object auth = new java.util.ArrayList<Object>(java.util.Arrays.asList(url, Helpers.add("apiKey=", this.apiKey), Helpers.add("nonce=", String.valueOf(nonce))));
-            java.util.List<Object> keys = Helpers.objectKeys(parameters);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(parameters);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
-                String value = String.valueOf(Helpers.GetValue(parameters, key));
+                Object value = String.valueOf(Helpers.GetValue(parameters, key));
                 ((java.util.List<Object>)auth).add(Helpers.add(Helpers.add(key, "="), value));
             }
-            String message = String.join((String)",", (java.util.List<String>)auth);
+            Object message = String.join((String)",", (java.util.List<String>)auth);
             Object signature = this.hmac(this.encode(message), this.encode(this.secret), sha256());
             java.util.Map<String, Object> query = new java.util.HashMap<String, Object>() {{}};
             Helpers.addElementToObject(query, "apiKey", this.apiKey);

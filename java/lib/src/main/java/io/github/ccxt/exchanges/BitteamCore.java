@@ -522,7 +522,7 @@ public class BitteamCore extends BitteamApi
     {
         String id = this.safeString(market, "name");
         Long numericId = this.safeInteger(market, "id");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)id), "_");
+        Object parts = Helpers.split(((String)id), "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = (String) this.safeCurrencyCode(baseId);
@@ -532,7 +532,7 @@ public class BitteamCore extends BitteamApi
         Long created = this.parse8601(timeStart);
         Object minCost = null;
         Object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new java.util.HashMap<String, Object>() {{}});
-        Boolean quoteInUsd = (Boolean) this.safeBool(currenciesValuedInUsd, quote, false);
+        Object quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
         if (Helpers.isTrue(Helpers.isEqual(quoteInUsd, true)))
         {
             Object settings = this.safeValue(market, "settings", new java.util.HashMap<String, Object>() {{}});
@@ -736,7 +736,7 @@ public class BitteamCore extends BitteamApi
         String id = this.safeString(currency, "symbol");
         Long numericId = this.safeInteger(currency, "id");
         String code = (String) this.safeCurrencyCode(id);
-        Boolean active = (Boolean) this.safeBool(currency, "active", false);
+        Object active = this.safeBool(currency, "active", false);
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         Object txLimits = this.safeValue(currency, "txLimits", new java.util.HashMap<String, Object>() {{}});
         String minWithdraw = this.safeString(txLimits, "minWithdraw");
@@ -758,7 +758,7 @@ public class BitteamCore extends BitteamApi
         Object statuses = this.safeValue(statusesResponse, numericId, new java.util.HashMap<String, Object>() {{}});
         Object deposit = this.safeValue(statuses, "depositStatus");
         Object withdraw = this.safeValue(statuses, "withdrawStatus");
-        java.util.List<Object> networkIds = Helpers.objectKeys(feesByNetworkId);
+        java.util.List<String> networkIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(feesByNetworkId);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
         String typeRaw = this.safeString(currency, "type");
@@ -1605,7 +1605,7 @@ public class BitteamCore extends BitteamApi
         {
             return null;
         }
-        String precisionString = (String) this.parsePrecision(precisionRawString);
+        Object precisionString = this.parsePrecision(precisionRawString);
         return Precise.stringMul(valueRawString, precisionString);
     }
 
@@ -1670,7 +1670,7 @@ public class BitteamCore extends BitteamApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
             {
                 Object rawTicker = Helpers.GetValue(rawTickers, i);
-                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(rawTicker);
+                Object ticker = this.parseTicker(rawTicker);
                 ((java.util.List<Object>)tickers).add(ticker);
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
@@ -2040,7 +2040,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2451,7 +2451,7 @@ public class BitteamCore extends BitteamApi
         }};
         Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
         Object balanceByCurrencies = this.omit(result, new java.util.ArrayList<Object>(java.util.Arrays.asList("free", "used", "total")));
-        java.util.List<Object> rawCurrencyIds = Helpers.objectKeys(balanceByCurrencies);
+        java.util.List<String> rawCurrencyIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(balanceByCurrencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawCurrencyIds)); i++)
         {
             Object rawCurrencyId = Helpers.GetValue(rawCurrencyIds, i);
@@ -2772,13 +2772,13 @@ public class BitteamCore extends BitteamApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/ccxt/order/"), 0))) && Helpers.isTrue((Helpers.isEqual(method, "GET")))))
                 {
-                    java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(url, "/order/");
+                    Object parts = Helpers.split(url, "/order/");
                     String orderId = this.safeString(parts, 1);
                     throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(this.id, " order "), orderId), " not found")) ;
                 }
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/cmc/orderbook/"), 0)))
                 {
-                    java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(url, "/cmc/orderbook/");
+                    Object parts = Helpers.split(url, "/cmc/orderbook/");
                     String symbolId = this.safeString(parts, 1);
                     throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " symbolId "), symbolId), " not found")) ;
                 }

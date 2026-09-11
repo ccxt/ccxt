@@ -604,7 +604,7 @@ public class CoinspotCore extends CoinspotApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
             {
                 Object currencies = Helpers.GetValue(balances, i);
-                java.util.List<Object> currencyIds = Helpers.objectKeys(currencies);
+                Object currencyIds = Helpers.objectKeys(currencies);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
                 {
                     Object currencyId = Helpers.GetValue(currencyIds, j);
@@ -620,7 +620,7 @@ public class CoinspotCore extends CoinspotApi
             }
         } else
         {
-            java.util.List<Object> currencyIds = Helpers.objectKeys(balances);
+            Object currencyIds = Helpers.objectKeys(balances);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
             {
                 Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -835,7 +835,7 @@ public class CoinspotCore extends CoinspotApi
             //
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> ids = Helpers.objectKeys(prices);
+            java.util.List<String> ids = (java.util.List<String>)(java.util.List) Helpers.objectKeys(prices);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -1078,7 +1078,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
-            String sideUpper = ((String)side).toUpperCase();
+            Object sideUpper = ((String)side).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;

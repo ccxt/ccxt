@@ -1090,8 +1090,8 @@ public class WeexCore extends WeexApi
 }});
             }
         }
-        java.util.List<Object> networkKeys = Helpers.objectKeys(networks);
-        Integer networksLength = Helpers.getArrayLength(networkKeys);
+        java.util.List<String> networkKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(networks);
+        Object networksLength = Helpers.getArrayLength(networkKeys);
         Boolean emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -1245,8 +1245,8 @@ public class WeexCore extends WeexApi
         Object pricePrecision = this.safeNumber(market, "tickSize");
         if (Helpers.isTrue(Helpers.isEqual(amountPrecision, null)))
         {
-            String amountPrecisionString = (String) this.parsePrecision(this.safeString(market, "quantityPrecision"));
-            String pricePrecisionString = (String) this.parsePrecision(this.safeString(market, "pricePrecision"));
+            Object amountPrecisionString = this.parsePrecision(this.safeString(market, "quantityPrecision"));
+            Object pricePrecisionString = this.parsePrecision(this.safeString(market, "pricePrecision"));
             amountPrecision = this.parseNumber(amountPrecisionString);
             pricePrecision = this.parseNumber(pricePrecisionString);
         }
@@ -5314,7 +5314,7 @@ public class WeexCore extends WeexApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }
             this.checkRequiredCredentials();
-            String timestamp = this.numberToString(this.nonce());
+            Object timestamp = this.numberToString(this.nonce());
             Object payload = Helpers.add(Helpers.add(Helpers.add(timestamp, method), "/"), endpoint);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "POST"))) || Helpers.isTrue(isBatch)))
             {

@@ -21,16 +21,16 @@ public class TestFetchCurrencies extends BaseTest {
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         Object numInactiveCurrencies = 0;
         Object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
-        java.util.List<Object> requiredActiveCurrencies = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC", "ETH", "USDT", "USDC"));
+        java.util.List<String> requiredActiveCurrencies = new java.util.ArrayList<String>(java.util.Arrays.asList("BTC", "ETH", "USDT", "USDC"));
         Object features = exchange.features;
         Object featuresSpot = exchange.safeDict(features, "spot", new java.util.HashMap<String, Object>() {{}});
         Object fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new java.util.HashMap<String, Object>() {{}});
         Object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
         if (Helpers.isTrue(!Helpers.isEqual(isFetchCurrenciesPrivate, true)))
         {
-            java.util.List<Object> values = Helpers.objectValues(currencies);
+            Object values = Helpers.objectValues(currencies);
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values);
-            Integer currenciesLength = Helpers.getArrayLength(values);
+            Object currenciesLength = Helpers.getArrayLength(values);
             // ensure exchange returns enough length of currencies
             Boolean skipAmount = (Helpers.inOp(skippedProperties, "amountOfCurrencies"));
             Assert(Helpers.isTrue(skipAmount) || Helpers.isTrue(Helpers.isGreaterThan(currenciesLength, 5)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return at least several currencies, but it returned "), String.valueOf(currenciesLength)));
@@ -49,7 +49,7 @@ public class TestFetchCurrencies extends BaseTest {
                     numInactiveCurrencies = Helpers.add(numInactiveCurrencies, 1);
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
-                String code = exchange.safeString(currency, "code");
+                Object code = exchange.safeString(currency, "code");
                 Object withdraw = exchange.safeBool(currency, "withdraw");
                 Object deposit = exchange.safeBool(currency, "deposit");
                 Object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
@@ -72,7 +72,7 @@ public class TestFetchCurrencies extends BaseTest {
     {
         // detect if there are currencies with different ids for the same code
         java.util.Map<String, Object> ids = new java.util.HashMap<String, Object>() {{}};
-        java.util.List<Object> keys = Helpers.objectKeys(currencyValues);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(currencyValues);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

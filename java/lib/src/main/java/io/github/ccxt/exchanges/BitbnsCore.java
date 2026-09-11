@@ -640,12 +640,12 @@ public class BitbnsCore extends BitbnsApi
             put( "datetime", BitbnsCore.this.iso8601(timestamp) );
         }};
         Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> keys = Helpers.objectKeys(data);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(key, "availableorder");
-            Integer numParts = Helpers.getArrayLength(parts);
+            Object parts = Helpers.split(key, "availableorder");
+            Object numParts = Helpers.getArrayLength(parts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
                 String currencyId = this.safeString(parts, 1);
@@ -1580,7 +1580,7 @@ public class BitbnsCore extends BitbnsApi
         String baseUrl = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api));
         Object url = Helpers.add(Helpers.add(baseUrl, "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        String nonce = String.valueOf(this.nonce());
+        Object nonce = String.valueOf(this.nonce());
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))

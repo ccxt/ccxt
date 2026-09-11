@@ -904,7 +904,7 @@ public class PacificaCore extends PacificaApi
         }
         if (Helpers.isTrue(isSpot))
         {
-            java.util.List<Object> idParts = (java.util.List<Object>) Helpers.split(id, "-");
+            Object idParts = Helpers.split(id, "-");
             quoteId = this.safeString(idParts, 1, quoteId);
         }
         Object isolatedOnly = this.safeBool(market, "isolated_only", false);
@@ -1224,7 +1224,7 @@ public class PacificaCore extends PacificaApi
 
     public Object parseAccountSettings(Object settings)
     {
-        Integer settingsLen = Helpers.getArrayLength(settings);
+        Object settingsLen = Helpers.getArrayLength(settings);
         if (Helpers.isTrue(Helpers.isEqual(settingsLen, 0)))
         {
             return new java.util.HashMap<String, Object>() {{}};
@@ -1975,7 +1975,7 @@ public class PacificaCore extends PacificaApi
         }};
         String operationType = null;
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        String orderType = ((String)type).toUpperCase();
+        Object orderType = ((String)type).toUpperCase();
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -2105,7 +2105,7 @@ public class PacificaCore extends PacificaApi
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
         //
-        Integer lenActions = Helpers.getArrayLength(actions);
+        Object lenActions = Helpers.getArrayLength(actions);
         Object maxLen = this.handleOption("batchOrdersRequest", "batchOrdersMax");
         if (Helpers.isTrue(!Helpers.isEqual(maxLen, null)))
         {
@@ -3016,7 +3016,7 @@ public class PacificaCore extends PacificaApi
         Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String paginationCursor = this.safeString(response, "next_cursor");
         Object hasMore = this.safeBool(response, "has_more", false);
-        Integer dataLength = Helpers.getArrayLength(data);
+        Object dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(hasMore, true)))
         {
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(paginationCursor, null))) && Helpers.isTrue((Helpers.isGreaterThan(dataLength, 0)))))
@@ -3108,7 +3108,7 @@ public class PacificaCore extends PacificaApi
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             // return last state
             java.util.List<Object> sorted = this.sortBy(data, "created_at", true);
-            Integer lastIdx = Helpers.getArrayLength(sorted);
+            Object lastIdx = Helpers.getArrayLength(sorted);
             Object lastInfo = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isGreaterThan(lastIdx, 0)))
             {
@@ -4334,7 +4334,7 @@ public class PacificaCore extends PacificaApi
         String host = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), api));
         Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
-        Integer paramsLen = Helpers.getArrayLength(Helpers.objectKeys(parameters));
+        Object paramsLen = Helpers.getArrayLength(Helpers.objectKeys(parameters));
         headers = new java.util.HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
@@ -4385,7 +4385,7 @@ public class PacificaCore extends PacificaApi
         if (Helpers.isTrue(this.isDictionary(value)))
         {
             Object result = new java.util.HashMap<String, Object>() {{}};
-            java.util.List<Object> keys = Helpers.objectKeys(value);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(value);
             Object sortedKeys = this.sort(keys);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sortedKeys)); i++)
             {

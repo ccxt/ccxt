@@ -621,7 +621,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         {
             trades = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseTrade(data, market)));
         }
-        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
+        Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -825,7 +825,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object dataType = this.safeString(message, "dataType", "");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(dataType, "@");
+        Object parts = Helpers.split(dataType, "@");
         String firstPart = (String) Helpers.GetValue(parts, 0);
         Boolean isAllEndpoint = (Helpers.isEqual(firstPart, "all"));
         Object marketId = this.safeString(data, "symbol", firstPart);
@@ -962,7 +962,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //
         Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
         Object dataType = this.safeString(message, "dataType", "");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(dataType, "@");
+        Object parts = Helpers.split(dataType, "@");
         String firstPart = (String) Helpers.GetValue(parts, 0);
         Boolean isAllEndpoint = (Helpers.isEqual(firstPart, "all"));
         Object marketId = this.safeString(message, "s", firstPart);
@@ -1692,9 +1692,9 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
+            Object parts = Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            java.util.List<Object> filteredSymbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
+            Object filteredSymbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", filteredSymbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1749,7 +1749,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 }})).join(); // extend the expiry
             } catch(Exception error)
             {
-                java.util.List<Object> types = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse"));
+                java.util.List<String> types = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "linear", "inverse"));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(types)); i++)
                 {
                     String type = (String) Helpers.GetValue(types, i);
@@ -1760,7 +1760,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                     }
                     Object url = Helpers.add(Helpers.add(baseUrl, "?listenKey="), listenKey);
                     Client client = this.client(url);
-                    java.util.List<Object> messageHashes = Helpers.objectKeys(client.futures);
+                    java.util.List<String> messageHashes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.futures);
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(messageHashes)); j++)
                     {
                         Object messageHash = Helpers.GetValue(messageHashes, j);

@@ -82,7 +82,7 @@ public class TestProxies extends BaseTest {
         var httpProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(1);
         var httpsProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(2);
         var socksProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(3);
-        java.util.List<Object> possibleOptionsArray = new java.util.ArrayList<Object>(java.util.Arrays.asList("proxyUrl", "proxyUrlCallback", "proxy_url", "proxy_url_callback", "httpProxy", "httpProxyCallback", "http_proxy", "http_proxy_callback", "httpsProxy", "httpsProxyCallback", "https_proxy", "https_proxy_callback", "socksProxy", "socksProxyCallback", "socks_proxy", "socks_proxy_callback"));
+        java.util.List<String> possibleOptionsArray = new java.util.ArrayList<String>(java.util.Arrays.asList("proxyUrl", "proxyUrlCallback", "proxy_url", "proxy_url_callback", "httpProxy", "httpProxyCallback", "http_proxy", "http_proxy_callback", "httpsProxy", "httpsProxyCallback", "https_proxy", "https_proxy_callback", "socksProxy", "socksProxyCallback", "socks_proxy", "socks_proxy_callback"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(possibleOptionsArray)); i++)
         {
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(possibleOptionsArray)); j++)

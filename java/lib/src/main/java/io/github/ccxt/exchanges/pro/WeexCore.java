@@ -1482,7 +1482,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
         String messageHash = "myTrades";
-        java.util.List<Object> symbolKeys = Helpers.objectKeys(symbols);
+        java.util.List<String> symbolKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
         Object market = this.getMarketFromSymbols(symbolKeys);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
@@ -1734,7 +1734,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             }
         }
         String messageHash = "orders";
-        java.util.List<Object> symbolKeys = Helpers.objectKeys(symbols);
+        java.util.List<String> symbolKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
         Object market = this.getMarketFromSymbols(symbolKeys);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
@@ -2287,9 +2287,9 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
+            Object parts = Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
+            Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
