@@ -1759,7 +1759,7 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         }
         if (ts.isBinaryExpression (parent) && parent.left === n
             && parent.operatorToken.kind === ts.SyntaxKind.PlusToken
-            && nonNull === false) {
+            && info?.nonNull === false) {
             // `x + y` prints `Helpers.add(x, y)`: a narrowed String operand switches the
             // overload to add(String, Object), which returns "nullnull" where the Object
             // overload returned null when BOTH operands are null (Helpers.add). Only a
