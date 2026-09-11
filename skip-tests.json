@@ -838,17 +838,18 @@
         "skipMethods": {
             "loadMarkets": {
                 "currencyIdAndCode": "i.e. coinbase does not have currency code TIA",
-                "max": "zero values"
+                "max": "zero values",
+                "precisionAmountAbnormal": "some markets report integer min_trade_amount such as 2",
+                "strike": "option_combo instruments are multi-leg spreads without a single strike",
+                "optionType": "option_combo instruments are multi-leg spreads without a single optionType"
             },
             "fetchCurrencies": {
-                "precision": "not provided",
-                "networks": "not provided",
                 "withdraw": "not provided",
                 "deposit": "not provided",
                 "type": "todo",
                 "activeMajorCurrencies": "todo"
             },
-            "fetchOrderBook": "exchange does not have it"
+            "fetchTickers": "requires custom param"
         }
     },
     "coinmetro": {

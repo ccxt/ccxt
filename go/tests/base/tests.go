@@ -4283,10 +4283,16 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan any) any {
 	defer close(ch)
 	defer ReturnPanicError(ch)
 	var exchange ccxt.ICoreExchange = this.InitOfflineExchange("coinbaseinternational")
+	// ECDSA (P-256) auth-token signing needs a hex-encoded secret, unlike the generic dummy one
+	exchange.SetSecret("0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef")
+	// pre-seed the gateway access token so createOrder signs the order directly instead of
+	// making a prior (offline-unreachable) public/auth network call
+	exchange.SetToken("token")
+	AddElementToObject(exchange.GetOptions(), "v2TokenExpires", Add(exchange.Milliseconds(), 100000))
 	AddElementToObject(exchange.GetOptions(), "portfolio", "random")
 	var id string = "nfqkvdjp"
 	Assert(IsEqual(GetValue(exchange.GetOptions(), "brokerId"), id), "id not in options")
-	var request any = map[string]any{}
+	var clientOrderId any = nil
 
 	{
 		func(this *testMainClass) (ret_ any) {
@@ -4297,7 +4303,12 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan any) any {
 					}
 					ret_ = func(this *testMainClass) any {
 						// catch block:
-						request = JsonParse(exchange.GetLast_request_body())
+						// buy/sell are GET endpoints, so the label is in the query string, not a JSON body
+						var url string = ToString(exchange.GetLast_request_url())
+						var urlParts []string = Split(url, "?")
+						Assert(IsGreaterThan(GetArrayLength(urlParts), 1), Add("last_request_url has no query string: ", url))
+						var query any = this.UrlencodedToDict(GetValue(urlParts, 1))
+						clientOrderId = GetValue(query, "label")
 						return nil
 					}(this)
 				}
@@ -4310,8 +4321,7 @@ func (this *testMainClass) testCoinbaseinternationalBody(ch chan any) any {
 		}(this)
 
 	}
-	var clientOrderId any = GetValue(request, "client_order_id")
-	Assert(IsEqual(StartsWith(clientOrderId, ToString(id)), true), "clientOrderId does not start with id")
+	Assert(IsTrue(IsTrue((!IsEqual(clientOrderId, nil))) && IsTrue((IsEqual(StartsWith(clientOrderId, ToString(id)), true)))), "clientOrderId does not start with id")
 	if !IsTrue(IsSync()) {
 
 		retRes305212 := (<-Close(exchange))

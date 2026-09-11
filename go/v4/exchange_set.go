@@ -148,6 +148,10 @@ func (this *BaseExchange) SetSecret(secret any) {
 	this.Secret = secret.(string)
 }
 
+func (this *BaseExchange) SetToken(token any) {
+	this.Token = token
+}
+
 func (this *BaseExchange) SetApiKey(apiKey any) {
 	this.ApiKey = apiKey.(string)
 }
