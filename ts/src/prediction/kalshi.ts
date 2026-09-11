@@ -3,7 +3,7 @@ import Exchange from '../abstract/prediction/kalshi.js';
 import { Precise } from '../base/Precise.js';
 import { rsa } from '../base/functions/rsa.js';
 import { BadSymbol, ArgumentsRequired, BadRequest, OrderNotFillable, InvalidOrder, ExchangeError } from '../base/errors.js';
-import type { Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest,     PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, OrderSide, Endpoint } from '../base/types.js';
+import type { Int, int, Str, Num, Dict, Strings, Market, PredictionOrderBook, OHLCV, Balances, PredictionOpenInterest, PredictionEvent, PredictionTicker, PredictionTickers, PredictionOrder, PredictionTrade, PredictionPosition, PredictionSettlement, fetchEventsParams,Bool, Fee, OrderSide, Endpoint } from '../base/types.js';
 
 // ---------------------------------------------------------------------------
 
