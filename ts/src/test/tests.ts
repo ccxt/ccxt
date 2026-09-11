@@ -3043,7 +3043,8 @@ class testMainClass {
         // pre-seed the gateway access token so createOrder signs the order directly instead of
         // making a prior (offline-unreachable) public/auth network call
         exchange.token = 'token';
-        exchange.options['v2TokenExpires'] = exchange.milliseconds () + 100000;
+        const tokenExpires = exchange.milliseconds () + 100000;
+        exchange.options['v2TokenExpires'] = tokenExpires;
         exchange.options['portfolio'] = 'random';
         const id = 'nfqkvdjp';
         assert (exchange.options['brokerId'] === id, 'id not in options');
