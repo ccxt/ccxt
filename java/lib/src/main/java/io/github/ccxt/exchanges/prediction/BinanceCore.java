@@ -1297,7 +1297,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 return (this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
+            Long page = (Long) Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Long offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if (Helpers.isTrue(Helpers.isGreaterThan(offSet, 0)))
@@ -1398,7 +1398,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
+            Long page = (Long) Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Long offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if (Helpers.isTrue(Helpers.isGreaterThan(offSet, 0)))
@@ -1709,7 +1709,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
-            Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
+            Long page = (Long) Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "FILLED" );
             }};

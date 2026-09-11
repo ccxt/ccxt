@@ -4653,18 +4653,35 @@ export function patchJavaLiteralLocalTypes (transpiler) {
 //     hand-written BaseExchange (Time.milliseconds() is a primitive long, boxed at the
 //     boundary). parseTimeframe -> primitive int; declared `int` and it THROWS on
 //     malformed input instead of returning undefined, so no null can ever flow in.
-//   * nonce -> deliberately NOT typed. BaseExchange.nonce() returns this.seconds() (a
-//     Long box) but the ~40 venue overrides disagree (ts/src/binance.ts returns
-//     `this.milliseconds() - this.options["timeDifference"]` -> Helpers.subtract -> a
-//     Double box; the generated BinanceCore/OkxCore keep that Double; prediction/Bitmex
-//     return milliseconds() -> Long). One local type cannot cover them without a
-//     per-venue closed table; excluded.
-//   * safeIntegerProduct2 / safeIntegerProductN (and SafeMethods.SafeNumberN) -> NOT
-//     typed: they hand the caller's raw defaultValue back on the failure path, so the
-//     box is whatever the call site passed (an Integer for the ubiquitous `0`).
-//   * safeTimestamp / safeTimestamp2 are NOT narrowable for the same reason (the Java
-//     safeTimestampN returns the caller's default untouched) — already documented in
-//     section 3; they are absent here too.
+//   * nonce -> deliberately NOT typed, RE-AUDITED by JN-22 with the full census (it stays
+//     out). 49 nonce() bodies tree-wide: BaseExchange returns this.seconds() (Long); 25
+//     return this.milliseconds() (Long); Bitfinex returns milliseconds()/seconds() on its
+//     two paths (Long); MexcCore subtracts this.safeInteger(...) (Long); BigoneCore returns
+//     this.sum(Helpers.multiply(this.microseconds(), 1000), exchangeTimeCorrection) (sum's
+//     box is not a numeric family); and 20 venues return
+//     `Helpers.subtract(this.milliseconds(), Helpers.GetValue(this.options, "timeDifference"))`
+//     — subtract(Long, Object), i.e. Long, Double or null depending on the RUNTIME box of
+//     options["timeDifference"] (a Float/Double user config makes it Double). One local type
+//     cannot cover the dispatch set; only 15 `Object x = this.nonce()` locals exist and the
+//     5 that a base-tier resolution rule WOULD type (venues with no override) are exactly the
+//     ones where a subclass override (pro/<venue>.ts) could not be excluded from the local's
+//     own file — zero today, unprovable from the printed evidence. Exclusion stands.
+//   * safeIntegerProduct2 / safeIntegerProductN -> typed ONLY for the no-default call shape
+//     (JN-22 (c), see JAVA_NUMERIC_NO_DEFAULT_TYPES below): the audited bodies return the
+//     caller's RAW defaultValue when the parse fails, so a call WITH a default can box that
+//     default (harness: missing key + default 0 -> java.lang.Long 0 because the default is
+//     fed through SafeValueN -> parse -> (long), but an unparseable default comes back raw).
+//     The no-default shape boxes Long|null on every path.
+//   * safeTimestamp / safeTimestamp2 -> typed ONLY for the no-default call shape (JN-22 (c)):
+//     the Java safeTimestampN returns the caller's raw defaultValue on the miss path
+//     (harness: missing key no default -> null; with default 0 -> java.lang.Integer 0), so
+//     the call must pass NO default. These are cast-family (the callee is declared Object).
+//   * SafeMethods.SafeNumberN / SafeFloatN are declared Double and convert the default with
+//     toDoubleQuiet (harness: missing key + default 0 -> java.lang.Double 0.0), so the
+//     section-4 header's earlier "hands the raw defaultValue back" note was over-broad for
+//     this pair; it has 0 live call sites either way (only a commented-out line in
+//     BaseExchange.java). The generated safeNumberN locals are already Double via
+//     JAVA_NUMERIC_LOCAL_TYPES.
 //
 // UPSTREAM RETYPES (the other half of the slice — all declaration-only):
 //   * java/lib/src/main/java/io/github/ccxt/BaseExchange.java: safeInteger / safeInteger2

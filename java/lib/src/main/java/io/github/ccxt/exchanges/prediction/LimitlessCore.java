@@ -1424,7 +1424,7 @@ public class LimitlessCore extends LimitlessApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(slugs)); i++)
             {
                 Object slug = Helpers.GetValue(slugs, i);
-                Object detailIndex = Helpers.multiply(i, 2);
+                Long detailIndex = (Long) Helpers.multiply(i, 2);
                 Object detail = Helpers.GetValue(responses, detailIndex);
                 Object book = Helpers.GetValue(responses, this.sum(detailIndex, 1));
                 java.util.Map<String, Object> tickerInput = new java.util.HashMap<String, Object>() {{
@@ -1743,7 +1743,7 @@ public class LimitlessCore extends LimitlessApi
             // — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
             // timestamps keep their relative order consistently across languages
             java.util.List<Object> sorted = this.sortBy(pseudoTrades, "timestamp");
-            Object ms = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long ms = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             java.util.Map<String, Object> candles = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> bucketOrder = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sorted)); i++)
@@ -1755,7 +1755,7 @@ public class LimitlessCore extends LimitlessApi
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " method() missing pTs")) ;
                 }
-                Object bucket = Helpers.multiply(this.parseToInt(Helpers.divide(pTs, ms)), ms);
+                Long bucket = (Long) Helpers.multiply(this.parseToInt(Helpers.divide(pTs, ms)), ms);
                 Object key = String.valueOf(bucket);
                 if (!Helpers.isTrue((Helpers.inOp(candles, key))))
                 {

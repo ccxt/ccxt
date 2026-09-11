@@ -1619,7 +1619,7 @@ final Object finalOi = oi;
         Double previous = this.safeNumber(price, "previous_dollars");
         // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
-        Object endTimestamp = this.safeTimestamp(ohlcv, "end_period_ts");
+        Long endTimestamp = (Long) this.safeTimestamp(ohlcv, "end_period_ts");
         Long durationSeconds = this.safeInteger(this.options, "ohlcvCandleDurationSeconds", 0);
         Object timestamp = endTimestamp;
         if (Helpers.isTrue(!Helpers.isEqual(endTimestamp, null)))

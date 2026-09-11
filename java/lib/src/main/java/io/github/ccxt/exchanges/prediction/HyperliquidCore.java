@@ -339,7 +339,7 @@ public class HyperliquidCore extends HyperliquidApi
                             bucketLabel = Helpers.add("BELOW_", Helpers.GetValue(thresholds, 0));
                         } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(index, thresholdsLength)))
                         {
-                            Object lastIdx = Helpers.subtract(thresholdsLength, 1);
+                            Long lastIdx = (Long) Helpers.subtract(thresholdsLength, 1);
                             bucketLabel = Helpers.add("ABOVE_", Helpers.GetValue(thresholds, lastIdx));
                         } else
                         {
