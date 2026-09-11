@@ -14,8 +14,11 @@ public final class IsolatedBorrowRates {
     public IsolatedBorrowRates(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.rates = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
-            this.rates.put(entry.getKey(), new IsolatedBorrowRate(entry.getValue()));
+            this.rates.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new IsolatedBorrowRate(entry.getValue()) : null);
         }
     }
 

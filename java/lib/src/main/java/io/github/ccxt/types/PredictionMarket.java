@@ -54,7 +54,7 @@ public final class PredictionMarket {
         this.description = TypeHelper.safeString(data, "description");
         Object outcomesRaw = TypeHelper.safeValue(data, "outcomes");
         if (outcomesRaw instanceof List<?> outcomesList) {
-            this.outcomes = ((List<Object>) outcomesList).stream().map(PredictionOutcome::new).collect(Collectors.toList());
+            this.outcomes = ((List<Object>) outcomesList).stream().map(e -> e instanceof Map<?, ?> ? new PredictionOutcome(e) : null).collect(Collectors.toList());
         }
         this.underlying = TypeHelper.safeString(data, "underlying");
         this.floorStrike = TypeHelper.safeFloat(data, "floorStrike");
@@ -75,9 +75,9 @@ public final class PredictionMarket {
         this.openInterest = TypeHelper.safeFloat(data, "openInterest");
         this.tickSize = TypeHelper.safeFloat(data, "tickSize");
         Object limitsRaw = TypeHelper.safeValue(data, "limits");
-        this.limits = limitsRaw != null ? new Limits(limitsRaw) : null;
+        this.limits = limitsRaw instanceof Map<?, ?> ? new Limits(limitsRaw) : null;
         Object feesRaw = TypeHelper.safeValue(data, "fees");
-        this.fees = feesRaw != null ? new PredictionFees(feesRaw) : null;
+        this.fees = feesRaw instanceof Map<?, ?> ? new PredictionFees(feesRaw) : null;
         this.resolutionSource = TypeHelper.safeString(data, "resolutionSource");
         this.image = TypeHelper.safeString(data, "image");
         this.info = TypeHelper.getInfo(data);

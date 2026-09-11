@@ -14,12 +14,12 @@ public final class AllGreeks {
     @SuppressWarnings("unchecked")
     public AllGreeks(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
-        this.info = TypeHelper.getInfo(data);
-        this.greeks = new LinkedHashMap<>();
+        this.undefined = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
-            if (!"info".equals(entry.getKey())) {
-                this.greeks.put(entry.getKey(), new Greeks(entry.getValue()));
-            }
+            this.undefined.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new Greeks(entry.getValue()) : null);
         }
     }
 

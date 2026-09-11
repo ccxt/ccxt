@@ -14,8 +14,11 @@ public final class OrderBooks {
     public OrderBooks(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.orderBooks = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
-            this.orderBooks.put(entry.getKey(), new OrderBook(entry.getValue()));
+            this.orderBooks.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new OrderBook(entry.getValue()) : null);
         }
     }
 

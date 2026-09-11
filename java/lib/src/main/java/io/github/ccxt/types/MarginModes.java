@@ -14,8 +14,11 @@ public final class MarginModes {
     public MarginModes(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.modes = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
-            this.modes.put(entry.getKey(), new MarginMode(entry.getValue()));
+            this.modes.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new MarginMode(entry.getValue()) : null);
         }
     }
 

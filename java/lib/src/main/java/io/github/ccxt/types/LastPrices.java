@@ -14,8 +14,11 @@ public final class LastPrices {
     public LastPrices(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.prices = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
-            this.prices.put(entry.getKey(), new LastPrice(entry.getValue()));
+            this.prices.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new LastPrice(entry.getValue()) : null);
         }
     }
 

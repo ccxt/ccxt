@@ -37,12 +37,12 @@ public final class CurrencyInterface {
         this.precision = TypeHelper.safeFloat(data, "precision");
         this.margin = TypeHelper.safeBool(data, "margin");
         Object limitsRaw = TypeHelper.safeValue(data, "limits");
-        this.limits = limitsRaw != null ? new CurrencyLimits(limitsRaw) : null;
+        this.limits = limitsRaw instanceof Map<?, ?> ? new CurrencyLimits(limitsRaw) : null;
         Object networksRaw = TypeHelper.safeValue(data, "networks");
         if (networksRaw instanceof Map<?, ?> networksMap) {
             this.networks = new LinkedHashMap<>();
             for (Map.Entry<String, Object> entry : ((Map<String, Object>) networksMap).entrySet()) {
-                this.networks.put(entry.getKey(), new Network(entry.getValue()));
+                this.networks.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new Network(entry.getValue()) : null);
             }
         }
         this.info = TypeHelper.getInfo(data);

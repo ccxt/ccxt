@@ -16,14 +16,14 @@ public final class DepositWithdrawFee {
     public DepositWithdrawFee(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
         Object withdrawRaw = TypeHelper.safeValue(data, "withdraw");
-        this.withdraw = withdrawRaw != null ? new DepositWithdrawFeeNetwork(withdrawRaw) : null;
+        this.withdraw = withdrawRaw instanceof Map<?, ?> ? new DepositWithdrawFeeNetwork(withdrawRaw) : null;
         Object depositRaw = TypeHelper.safeValue(data, "deposit");
-        this.deposit = depositRaw != null ? new DepositWithdrawFeeNetwork(depositRaw) : null;
+        this.deposit = depositRaw instanceof Map<?, ?> ? new DepositWithdrawFeeNetwork(depositRaw) : null;
         Object networksRaw = TypeHelper.safeValue(data, "networks");
         if (networksRaw instanceof Map<?, ?> networksMap) {
             this.networks = new LinkedHashMap<>();
             for (Map.Entry<String, Object> entry : ((Map<String, Object>) networksMap).entrySet()) {
-                this.networks.put(entry.getKey(), new DepositWithdrawFeeNetwork(entry.getValue()));
+                this.networks.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new DepositWithdrawFeeNetwork(entry.getValue()) : null);
             }
         }
         this.info = TypeHelper.getInfo(data);

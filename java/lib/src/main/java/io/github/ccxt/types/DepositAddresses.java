@@ -14,12 +14,12 @@ public final class DepositAddresses {
     @SuppressWarnings("unchecked")
     public DepositAddresses(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
-        this.info = TypeHelper.getInfo(data);
-        this.depositAddresses = new LinkedHashMap<>();
+        this.undefined = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
-            if (!"info".equals(entry.getKey())) {
-                this.depositAddresses.put(entry.getKey(), new DepositAddress(entry.getValue()));
-            }
+            this.undefined.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new DepositAddress(entry.getValue()) : null);
         }
     }
 

@@ -16,9 +16,12 @@ public final class TradingFees {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.info = TypeHelper.getInfo(data);
         this.fees = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
             if (!"info".equals(entry.getKey())) {
-                this.fees.put(entry.getKey(), new TradingFeeInterface(entry.getValue()));
+                this.fees.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new TradingFeeInterface(entry.getValue()) : null);
             }
         }
     }

@@ -14,8 +14,11 @@ public final class CrossBorrowRates {
     public CrossBorrowRates(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.rates = new LinkedHashMap<>();
+        if (data == null) {
+            return;
+        }
         for (Map.Entry<String, Object> entry : data.entrySet()) {
-            this.rates.put(entry.getKey(), new CrossBorrowRate(entry.getValue()));
+            this.rates.put(entry.getKey(), entry.getValue() instanceof Map<?, ?> ? new CrossBorrowRate(entry.getValue()) : null);
         }
     }
 

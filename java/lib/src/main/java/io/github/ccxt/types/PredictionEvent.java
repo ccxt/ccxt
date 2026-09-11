@@ -48,7 +48,7 @@ public final class PredictionEvent {
         }
         Object marketsRaw = TypeHelper.safeValue(data, "markets");
         if (marketsRaw instanceof List<?> marketsList) {
-            this.markets = ((List<Object>) marketsList).stream().map(PredictionMarket::new).collect(Collectors.toList());
+            this.markets = ((List<Object>) marketsList).stream().map(e -> e instanceof Map<?, ?> ? new PredictionMarket(e) : null).collect(Collectors.toList());
         }
         this.mutuallyExclusive = TypeHelper.safeBool(data, "mutuallyExclusive");
         this.active = TypeHelper.safeBool(data, "active");

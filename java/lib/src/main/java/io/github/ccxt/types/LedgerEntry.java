@@ -39,7 +39,7 @@ public final class LedgerEntry {
         this.after = TypeHelper.safeFloat(data, "after");
         this.status = TypeHelper.safeString(data, "status");
         Object feeRaw = TypeHelper.safeValue(data, "fee");
-        this.fee = feeRaw != null ? new Fee(feeRaw) : null;
+        this.fee = feeRaw instanceof Map<?, ?> ? new Fee(feeRaw) : null;
         this.info = TypeHelper.getInfo(data);
     }
 }

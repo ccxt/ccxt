@@ -12,7 +12,9 @@ public final class CurrencyLimits {
     @SuppressWarnings("unchecked")
     public CurrencyLimits(Object raw) {
         Map<String, Object> data = TypeHelper.toMap(raw);
-        this.amount = data.containsKey("amount") && data.get("amount") != null ? new MinMax(data.get("amount")) : null;
-        this.withdraw = data.containsKey("withdraw") && data.get("withdraw") != null ? new MinMax(data.get("withdraw")) : null;
+        Object amountRaw = TypeHelper.safeValue(data, "amount");
+        this.amount = amountRaw instanceof Map<?, ?> ? new MinMax(amountRaw) : null;
+        Object withdrawRaw = TypeHelper.safeValue(data, "withdraw");
+        this.withdraw = withdrawRaw instanceof Map<?, ?> ? new MinMax(withdrawRaw) : null;
     }
 }

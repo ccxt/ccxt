@@ -91,15 +91,15 @@ public final class MarketInterface {
         this.tierBased = TypeHelper.safeBool(data, "tierBased");
         this.feeSide = TypeHelper.safeString(data, "feeSide");
         Object precisionRaw = TypeHelper.safeValue(data, "precision");
-        this.precision = precisionRaw != null ? new Precision(precisionRaw) : null;
+        this.precision = precisionRaw instanceof Map<?, ?> ? new Precision(precisionRaw) : null;
         Object marginModesRaw = TypeHelper.safeValue(data, "marginModes");
-        this.marginModes = marginModesRaw != null ? new MarketMarginModes(marginModesRaw) : null;
+        this.marginModes = marginModesRaw instanceof Map<?, ?> ? new MarketMarginModes(marginModesRaw) : null;
         Object limitsRaw = TypeHelper.safeValue(data, "limits");
-        this.limits = limitsRaw != null ? new Limits(limitsRaw) : null;
+        this.limits = limitsRaw instanceof Map<?, ?> ? new Limits(limitsRaw) : null;
         this.created = TypeHelper.safeInteger(data, "created");
         Object outcomesRaw = TypeHelper.safeValue(data, "outcomes");
         if (outcomesRaw instanceof List<?> outcomesList) {
-            this.outcomes = ((List<Object>) outcomesList).stream().map(PredictionOutcome::new).collect(Collectors.toList());
+            this.outcomes = ((List<Object>) outcomesList).stream().map(e -> e instanceof Map<?, ?> ? new PredictionOutcome(e) : null).collect(Collectors.toList());
         }
         this.info = TypeHelper.getInfo(data);
     }
