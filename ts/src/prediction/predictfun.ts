@@ -1378,6 +1378,33 @@ export default class predictfun extends Exchange {
      * @returns {object} a [prediction ticker structure](https://docs.ccxt.com/#/?id=prediction-ticker-structure)
      */
     override parsePredictionTicker (ticker: Dict, market: Market = undefined): PredictionTicker {
+        //
+        //     {
+        //         "id": 2107,
+        //         "title": "Will Trump acquire Greenland before 2027?",
+        //         "tradingStatus": "OPEN",
+        //         "status": "REGISTERED",
+        //         "decimalPrecision": 2,
+        //         "feeRateBps": 200,
+        //         "outcomes": [
+        //             {
+        //                 "name": "Yes",
+        //                 "indexSet": 1,
+        //                 "onChainId": "43765171147442247918432418752066697760469767620931280624762484655579631167373",
+        //                 "bestBid": { "price": 0.02, "size": 1448.4122448979592 },
+        //                 "bestAsk": { "price": 0.032, "size": 675.29 },
+        //                 "status": null
+        //             },
+        //             {
+        //                 "name": "No",
+        //                 "indexSet": 2,
+        //                 "bestBid": { "price": 0.968, "size": 675.29 },
+        //                 "bestAsk": { "price": 0.98, "size": 1448.4122448979592 },
+        //                 "status": null
+        //             }
+        //         ]
+        //     }
+        //
         const info = this.safeDict (market, 'info', {});
         const indexSet = this.safeInteger (info, 'indexSet');
         const rawOutcomes = this.safeList (ticker, 'outcomes', []);
