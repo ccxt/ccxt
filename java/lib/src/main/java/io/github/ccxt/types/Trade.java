@@ -3,7 +3,9 @@
 
 package io.github.ccxt.types;
 
+import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 public final class Trade {
     public Double amount;
@@ -11,6 +13,8 @@ public final class Trade {
     public Double cost;
     public String id;
     public String order;
+    // kraken puts the raw venue order id on the unified trade as `orderId` next to `order`.
+    public String orderId;
     public Long timestamp;
     public String datetime;
     public String symbol;
@@ -18,6 +22,8 @@ public final class Trade {
     public String side;
     public String takerOrMaker;
     public Fee fee;
+    // safeTrade() always sets a `fees` list alongside the single `fee`; TS declares no field for it.
+    public List<Fee> fees;
     public Map<String, Object> info;
 
     @SuppressWarnings("unchecked")
@@ -28,6 +34,7 @@ public final class Trade {
         this.cost = TypeHelper.safeFloat(data, "cost");
         this.id = TypeHelper.safeString(data, "id");
         this.order = TypeHelper.safeString(data, "order");
+        this.orderId = TypeHelper.safeString(data, "orderId");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");
         this.datetime = TypeHelper.safeString(data, "datetime");
         this.symbol = TypeHelper.safeString(data, "symbol");
@@ -36,6 +43,10 @@ public final class Trade {
         this.takerOrMaker = TypeHelper.safeString(data, "takerOrMaker");
         Object feeRaw = TypeHelper.safeValue(data, "fee");
         this.fee = feeRaw != null ? new Fee(feeRaw) : null;
+        Object feesRaw = TypeHelper.safeValue(data, "fees");
+        if (feesRaw instanceof List<?> feesList) {
+            this.fees = ((List<Object>) feesList).stream().map(Fee::new).collect(Collectors.toList());
+        }
         this.info = TypeHelper.getInfo(data);
     }
 }
