@@ -429,6 +429,765 @@
                     "ticket"
                 ]
             }
+        ],
+        "watchMyTrades": [
+            {
+                "description": "two fills of one limit buy order, per-fill amount, cost, fee and taker/maker from the fill fields",
+                "input": [
+                    "XRP/SGD"
+                ],
+                "url": "wss://api.upbit.com/websocket/v1/private",
+                "messages": [
+                    {
+                        "type": "myOrder",
+                        "code": "SGD-XRP",
+                        "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                        "ask_bid": "BID",
+                        "order_type": "limit",
+                        "time_in_force": null,
+                        "identifier": null,
+                        "smp_type": null,
+                        "prevented_volume": 0,
+                        "prevented_locked": 0,
+                        "order_timestamp": 1755950400000,
+                        "stream_type": "REALTIME",
+                        "trade_uuid": "75cddcab-2541-4798-95dc-86aedb9af4a3",
+                        "price": 0.8,
+                        "avg_price": 0.8,
+                        "volume": 40,
+                        "remaining_volume": 60,
+                        "executed_volume": 40,
+                        "trades_count": 1,
+                        "reserved_fee": 0.04,
+                        "remaining_fee": 0.024,
+                        "paid_fee": 0.016,
+                        "locked": 48.024,
+                        "executed_funds": 32,
+                        "trade_fee": 0.016,
+                        "is_maker": true,
+                        "trade_timestamp": 1755950401200,
+                        "timestamp": 1755950401210,
+                        "state": "trade"
+                    },
+                    {
+                        "type": "myOrder",
+                        "code": "SGD-XRP",
+                        "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                        "ask_bid": "BID",
+                        "order_type": "limit",
+                        "time_in_force": null,
+                        "identifier": null,
+                        "smp_type": null,
+                        "prevented_volume": 0,
+                        "prevented_locked": 0,
+                        "order_timestamp": 1755950400000,
+                        "stream_type": "REALTIME",
+                        "trade_uuid": "612ef584-1271-4135-a904-a82277e276b9",
+                        "price": 0.8,
+                        "avg_price": 0.8,
+                        "volume": 60,
+                        "remaining_volume": 0,
+                        "executed_volume": 100,
+                        "trades_count": 2,
+                        "reserved_fee": 0.04,
+                        "remaining_fee": 0,
+                        "paid_fee": 0.04,
+                        "locked": 0,
+                        "executed_funds": 80,
+                        "trade_fee": 0.024,
+                        "is_maker": true,
+                        "trade_timestamp": 1755950402500,
+                        "timestamp": 1755950402510,
+                        "state": "trade"
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "id": "75cddcab-2541-4798-95dc-86aedb9af4a3",
+                            "timestamp": 1755950401200,
+                            "datetime": "2025-08-23T12:00:01.200Z",
+                            "symbol": "XRP/SGD",
+                            "side": "buy",
+                            "price": 0.8,
+                            "amount": 40,
+                            "cost": 32,
+                            "order": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                            "takerOrMaker": "maker",
+                            "type": "limit",
+                            "fee": {
+                                "currency": "SGD",
+                                "cost": 0.016
+                            },
+                            "info": {
+                                "type": "myOrder",
+                                "code": "SGD-XRP",
+                                "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                                "ask_bid": "BID",
+                                "order_type": "limit",
+                                "time_in_force": null,
+                                "identifier": null,
+                                "smp_type": null,
+                                "prevented_volume": 0,
+                                "prevented_locked": 0,
+                                "order_timestamp": 1755950400000,
+                                "stream_type": "REALTIME",
+                                "trade_uuid": "75cddcab-2541-4798-95dc-86aedb9af4a3",
+                                "price": 0.8,
+                                "avg_price": 0.8,
+                                "volume": 40,
+                                "remaining_volume": 60,
+                                "executed_volume": 40,
+                                "trades_count": 1,
+                                "reserved_fee": 0.04,
+                                "remaining_fee": 0.024,
+                                "paid_fee": 0.016,
+                                "locked": 48.024,
+                                "executed_funds": 32,
+                                "trade_fee": 0.016,
+                                "is_maker": true,
+                                "trade_timestamp": 1755950401200,
+                                "timestamp": 1755950401210,
+                                "state": "trade"
+                            },
+                            "fees": [
+                                {
+                                    "currency": "SGD",
+                                    "cost": 0.016
+                                }
+                            ]
+                        }
+                    ],
+                    [
+                        {
+                            "id": "612ef584-1271-4135-a904-a82277e276b9",
+                            "timestamp": 1755950402500,
+                            "datetime": "2025-08-23T12:00:02.500Z",
+                            "symbol": "XRP/SGD",
+                            "side": "buy",
+                            "price": 0.8,
+                            "amount": 60,
+                            "cost": 48,
+                            "order": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                            "takerOrMaker": "maker",
+                            "type": "limit",
+                            "fee": {
+                                "currency": "SGD",
+                                "cost": 0.024
+                            },
+                            "info": {
+                                "type": "myOrder",
+                                "code": "SGD-XRP",
+                                "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                                "ask_bid": "BID",
+                                "order_type": "limit",
+                                "time_in_force": null,
+                                "identifier": null,
+                                "smp_type": null,
+                                "prevented_volume": 0,
+                                "prevented_locked": 0,
+                                "order_timestamp": 1755950400000,
+                                "stream_type": "REALTIME",
+                                "trade_uuid": "612ef584-1271-4135-a904-a82277e276b9",
+                                "price": 0.8,
+                                "avg_price": 0.8,
+                                "volume": 60,
+                                "remaining_volume": 0,
+                                "executed_volume": 100,
+                                "trades_count": 2,
+                                "reserved_fee": 0.04,
+                                "remaining_fee": 0,
+                                "paid_fee": 0.04,
+                                "locked": 0,
+                                "executed_funds": 80,
+                                "trade_fee": 0.024,
+                                "is_maker": true,
+                                "trade_timestamp": 1755950402500,
+                                "timestamp": 1755950402510,
+                                "state": "trade"
+                            },
+                            "fees": [
+                                {
+                                    "currency": "SGD",
+                                    "cost": 0.024
+                                }
+                            ]
+                        }
+                    ]
+                ],
+                "sentMessages": [
+                    [
+                        {
+                            "ticket": "00000000-0000-4000-8000-000000000000"
+                        },
+                        {
+                            "type": "myOrder",
+                            "codes": [
+                                "SGD-XRP"
+                            ]
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "ticket"
+                ]
+            }
+        ],
+        "watchOrders": [
+            {
+                "description": "limit buy order placed, filled twice and done, fill frames keep the order price and amount",
+                "input": [
+                    "XRP/SGD"
+                ],
+                "url": "wss://api.upbit.com/websocket/v1/private",
+                "messages": [
+                    {
+                        "type": "myOrder",
+                        "code": "SGD-XRP",
+                        "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                        "ask_bid": "BID",
+                        "order_type": "limit",
+                        "time_in_force": null,
+                        "identifier": null,
+                        "smp_type": null,
+                        "prevented_volume": 0,
+                        "prevented_locked": 0,
+                        "order_timestamp": 1755950400000,
+                        "stream_type": "REALTIME",
+                        "trade_uuid": null,
+                        "price": 0.8,
+                        "avg_price": 0,
+                        "volume": 100,
+                        "remaining_volume": 100,
+                        "executed_volume": 0,
+                        "trades_count": 0,
+                        "reserved_fee": 0.04,
+                        "remaining_fee": 0.04,
+                        "paid_fee": 0,
+                        "locked": 80.04,
+                        "executed_funds": 0,
+                        "trade_fee": null,
+                        "is_maker": null,
+                        "trade_timestamp": null,
+                        "timestamp": 1755950400015,
+                        "state": "wait"
+                    },
+                    {
+                        "type": "myOrder",
+                        "code": "SGD-XRP",
+                        "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                        "ask_bid": "BID",
+                        "order_type": "limit",
+                        "time_in_force": null,
+                        "identifier": null,
+                        "smp_type": null,
+                        "prevented_volume": 0,
+                        "prevented_locked": 0,
+                        "order_timestamp": 1755950400000,
+                        "stream_type": "REALTIME",
+                        "trade_uuid": "75cddcab-2541-4798-95dc-86aedb9af4a3",
+                        "price": 0.8,
+                        "avg_price": 0.8,
+                        "volume": 40,
+                        "remaining_volume": 60,
+                        "executed_volume": 40,
+                        "trades_count": 1,
+                        "reserved_fee": 0.04,
+                        "remaining_fee": 0.024,
+                        "paid_fee": 0.016,
+                        "locked": 48.024,
+                        "executed_funds": 32,
+                        "trade_fee": 0.016,
+                        "is_maker": true,
+                        "trade_timestamp": 1755950401200,
+                        "timestamp": 1755950401210,
+                        "state": "trade"
+                    },
+                    {
+                        "type": "myOrder",
+                        "code": "SGD-XRP",
+                        "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                        "ask_bid": "BID",
+                        "order_type": "limit",
+                        "time_in_force": null,
+                        "identifier": null,
+                        "smp_type": null,
+                        "prevented_volume": 0,
+                        "prevented_locked": 0,
+                        "order_timestamp": 1755950400000,
+                        "stream_type": "REALTIME",
+                        "trade_uuid": "612ef584-1271-4135-a904-a82277e276b9",
+                        "price": 0.8,
+                        "avg_price": 0.8,
+                        "volume": 60,
+                        "remaining_volume": 0,
+                        "executed_volume": 100,
+                        "trades_count": 2,
+                        "reserved_fee": 0.04,
+                        "remaining_fee": 0,
+                        "paid_fee": 0.04,
+                        "locked": 0,
+                        "executed_funds": 80,
+                        "trade_fee": 0.024,
+                        "is_maker": true,
+                        "trade_timestamp": 1755950402500,
+                        "timestamp": 1755950402510,
+                        "state": "trade"
+                    },
+                    {
+                        "type": "myOrder",
+                        "code": "SGD-XRP",
+                        "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                        "ask_bid": "BID",
+                        "order_type": "limit",
+                        "time_in_force": null,
+                        "identifier": null,
+                        "smp_type": null,
+                        "prevented_volume": 0,
+                        "prevented_locked": 0,
+                        "order_timestamp": 1755950400000,
+                        "stream_type": "REALTIME",
+                        "trade_uuid": null,
+                        "price": 0.8,
+                        "avg_price": 0.8,
+                        "volume": 100,
+                        "remaining_volume": 0,
+                        "executed_volume": 100,
+                        "trades_count": 2,
+                        "reserved_fee": 0.04,
+                        "remaining_fee": 0,
+                        "paid_fee": 0.04,
+                        "locked": 0,
+                        "executed_funds": 80,
+                        "trade_fee": null,
+                        "is_maker": null,
+                        "trade_timestamp": null,
+                        "timestamp": 1755950402520,
+                        "state": "done"
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "type": "myOrder",
+                                "code": "SGD-XRP",
+                                "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                                "ask_bid": "BID",
+                                "order_type": "limit",
+                                "time_in_force": null,
+                                "identifier": null,
+                                "smp_type": null,
+                                "prevented_volume": 0,
+                                "prevented_locked": 0,
+                                "order_timestamp": 1755950400000,
+                                "stream_type": "REALTIME",
+                                "trade_uuid": null,
+                                "price": 0.8,
+                                "avg_price": 0,
+                                "volume": 100,
+                                "remaining_volume": 100,
+                                "executed_volume": 0,
+                                "trades_count": 0,
+                                "reserved_fee": 0.04,
+                                "remaining_fee": 0.04,
+                                "paid_fee": 0,
+                                "locked": 80.04,
+                                "executed_funds": 0,
+                                "trade_fee": null,
+                                "is_maker": null,
+                                "trade_timestamp": null,
+                                "timestamp": 1755950400015,
+                                "state": "wait"
+                            },
+                            "id": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                            "clientOrderId": null,
+                            "timestamp": 1755950400000,
+                            "datetime": "2025-08-23T12:00:00.000Z",
+                            "lastTradeTimestamp": null,
+                            "lastUpdateTimestamp": 1755950400015,
+                            "symbol": "XRP/SGD",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "buy",
+                            "price": 0.8,
+                            "stopPrice": null,
+                            "triggerPrice": null,
+                            "cost": 0,
+                            "average": null,
+                            "amount": 100,
+                            "filled": 0,
+                            "remaining": 100,
+                            "status": "open",
+                            "fee": {
+                                "currency": "SGD",
+                                "cost": "0"
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "currency": "SGD",
+                                    "cost": 0
+                                }
+                            ],
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "type": "myOrder",
+                                "code": "SGD-XRP",
+                                "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                                "ask_bid": "BID",
+                                "order_type": "limit",
+                                "time_in_force": null,
+                                "identifier": null,
+                                "smp_type": null,
+                                "prevented_volume": 0,
+                                "prevented_locked": 0,
+                                "order_timestamp": 1755950400000,
+                                "stream_type": "REALTIME",
+                                "trade_uuid": "75cddcab-2541-4798-95dc-86aedb9af4a3",
+                                "price": 0.8,
+                                "avg_price": 0.8,
+                                "volume": 40,
+                                "remaining_volume": 60,
+                                "executed_volume": 40,
+                                "trades_count": 1,
+                                "reserved_fee": 0.04,
+                                "remaining_fee": 0.024,
+                                "paid_fee": 0.016,
+                                "locked": 48.024,
+                                "executed_funds": 32,
+                                "trade_fee": 0.016,
+                                "is_maker": true,
+                                "trade_timestamp": 1755950401200,
+                                "timestamp": 1755950401210,
+                                "state": "trade"
+                            },
+                            "id": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                            "clientOrderId": null,
+                            "timestamp": 1755950400000,
+                            "datetime": "2025-08-23T12:00:00.000Z",
+                            "lastTradeTimestamp": 1755950401200,
+                            "lastUpdateTimestamp": 1755950401210,
+                            "symbol": "XRP/SGD",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "buy",
+                            "price": 0.8,
+                            "stopPrice": null,
+                            "triggerPrice": null,
+                            "cost": 32,
+                            "average": 0.8,
+                            "amount": 100,
+                            "filled": 40,
+                            "remaining": 60,
+                            "status": "open",
+                            "fee": {
+                                "currency": "SGD",
+                                "cost": "0.016"
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "currency": "SGD",
+                                    "cost": 0.016
+                                }
+                            ],
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "type": "myOrder",
+                                "code": "SGD-XRP",
+                                "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                                "ask_bid": "BID",
+                                "order_type": "limit",
+                                "time_in_force": null,
+                                "identifier": null,
+                                "smp_type": null,
+                                "prevented_volume": 0,
+                                "prevented_locked": 0,
+                                "order_timestamp": 1755950400000,
+                                "stream_type": "REALTIME",
+                                "trade_uuid": "612ef584-1271-4135-a904-a82277e276b9",
+                                "price": 0.8,
+                                "avg_price": 0.8,
+                                "volume": 60,
+                                "remaining_volume": 0,
+                                "executed_volume": 100,
+                                "trades_count": 2,
+                                "reserved_fee": 0.04,
+                                "remaining_fee": 0,
+                                "paid_fee": 0.04,
+                                "locked": 0,
+                                "executed_funds": 80,
+                                "trade_fee": 0.024,
+                                "is_maker": true,
+                                "trade_timestamp": 1755950402500,
+                                "timestamp": 1755950402510,
+                                "state": "trade"
+                            },
+                            "id": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                            "clientOrderId": null,
+                            "timestamp": 1755950400000,
+                            "datetime": "2025-08-23T12:00:00.000Z",
+                            "lastTradeTimestamp": 1755950402500,
+                            "lastUpdateTimestamp": 1755950402510,
+                            "symbol": "XRP/SGD",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "buy",
+                            "price": 0.8,
+                            "stopPrice": null,
+                            "triggerPrice": null,
+                            "cost": 80,
+                            "average": 0.8,
+                            "amount": 100,
+                            "filled": 100,
+                            "remaining": 0,
+                            "status": "open",
+                            "fee": {
+                                "currency": "SGD",
+                                "cost": "0.04"
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "currency": "SGD",
+                                    "cost": 0.04
+                                }
+                            ],
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ],
+                    [
+                        {
+                            "info": {
+                                "type": "myOrder",
+                                "code": "SGD-XRP",
+                                "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                                "ask_bid": "BID",
+                                "order_type": "limit",
+                                "time_in_force": null,
+                                "identifier": null,
+                                "smp_type": null,
+                                "prevented_volume": 0,
+                                "prevented_locked": 0,
+                                "order_timestamp": 1755950400000,
+                                "stream_type": "REALTIME",
+                                "trade_uuid": null,
+                                "price": 0.8,
+                                "avg_price": 0.8,
+                                "volume": 100,
+                                "remaining_volume": 0,
+                                "executed_volume": 100,
+                                "trades_count": 2,
+                                "reserved_fee": 0.04,
+                                "remaining_fee": 0,
+                                "paid_fee": 0.04,
+                                "locked": 0,
+                                "executed_funds": 80,
+                                "trade_fee": null,
+                                "is_maker": null,
+                                "trade_timestamp": null,
+                                "timestamp": 1755950402520,
+                                "state": "done"
+                            },
+                            "id": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                            "clientOrderId": null,
+                            "timestamp": 1755950400000,
+                            "datetime": "2025-08-23T12:00:00.000Z",
+                            "lastTradeTimestamp": 1755950402500,
+                            "lastUpdateTimestamp": 1755950402520,
+                            "symbol": "XRP/SGD",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "buy",
+                            "price": 0.8,
+                            "stopPrice": null,
+                            "triggerPrice": null,
+                            "cost": 80,
+                            "average": 0.8,
+                            "amount": 100,
+                            "filled": 100,
+                            "remaining": 0,
+                            "status": "closed",
+                            "fee": {
+                                "currency": "SGD",
+                                "cost": "0.04"
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "currency": "SGD",
+                                    "cost": 0.04
+                                }
+                            ],
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ],
+                "sentMessages": [
+                    [
+                        {
+                            "ticket": "00000000-0000-4000-8000-000000000000"
+                        },
+                        {
+                            "type": "myOrder",
+                            "codes": [
+                                "SGD-XRP"
+                            ]
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "ticket"
+                ]
+            },
+            {
+                "description": "fill frame seen first without a cached order, price falls back to avg_price and amount derives from filled plus remaining",
+                "input": [
+                    "XRP/SGD"
+                ],
+                "url": "wss://api.upbit.com/websocket/v1/private",
+                "messages": [
+                    {
+                        "type": "myOrder",
+                        "code": "SGD-XRP",
+                        "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                        "ask_bid": "BID",
+                        "order_type": "limit",
+                        "time_in_force": null,
+                        "identifier": null,
+                        "smp_type": null,
+                        "prevented_volume": 0,
+                        "prevented_locked": 0,
+                        "order_timestamp": 1755950400000,
+                        "stream_type": "REALTIME",
+                        "trade_uuid": "75cddcab-2541-4798-95dc-86aedb9af4a3",
+                        "price": 0.8,
+                        "avg_price": 0.8,
+                        "volume": 40,
+                        "remaining_volume": 60,
+                        "executed_volume": 40,
+                        "trades_count": 1,
+                        "reserved_fee": 0.04,
+                        "remaining_fee": 0.024,
+                        "paid_fee": 0.016,
+                        "locked": 48.024,
+                        "executed_funds": 32,
+                        "trade_fee": 0.016,
+                        "is_maker": true,
+                        "trade_timestamp": 1755950401200,
+                        "timestamp": 1755950401210,
+                        "state": "trade"
+                    }
+                ],
+                "parsedResponses": [
+                    [
+                        {
+                            "info": {
+                                "type": "myOrder",
+                                "code": "SGD-XRP",
+                                "uuid": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                                "ask_bid": "BID",
+                                "order_type": "limit",
+                                "time_in_force": null,
+                                "identifier": null,
+                                "smp_type": null,
+                                "prevented_volume": 0,
+                                "prevented_locked": 0,
+                                "order_timestamp": 1755950400000,
+                                "stream_type": "REALTIME",
+                                "trade_uuid": "75cddcab-2541-4798-95dc-86aedb9af4a3",
+                                "price": 0.8,
+                                "avg_price": 0.8,
+                                "volume": 40,
+                                "remaining_volume": 60,
+                                "executed_volume": 40,
+                                "trades_count": 1,
+                                "reserved_fee": 0.04,
+                                "remaining_fee": 0.024,
+                                "paid_fee": 0.016,
+                                "locked": 48.024,
+                                "executed_funds": 32,
+                                "trade_fee": 0.016,
+                                "is_maker": true,
+                                "trade_timestamp": 1755950401200,
+                                "timestamp": 1755950401210,
+                                "state": "trade"
+                            },
+                            "id": "2dba2a51-4a82-407a-8d80-946975f3a0e5",
+                            "clientOrderId": null,
+                            "timestamp": 1755950400000,
+                            "datetime": "2025-08-23T12:00:00.000Z",
+                            "lastTradeTimestamp": 1755950401200,
+                            "lastUpdateTimestamp": 1755950401210,
+                            "symbol": "XRP/SGD",
+                            "type": "limit",
+                            "timeInForce": null,
+                            "postOnly": null,
+                            "side": "buy",
+                            "price": 0.8,
+                            "stopPrice": null,
+                            "triggerPrice": null,
+                            "cost": 32,
+                            "average": 0.8,
+                            "amount": 100,
+                            "filled": 40,
+                            "remaining": 60,
+                            "status": "open",
+                            "fee": {
+                                "currency": "SGD",
+                                "cost": "0.016"
+                            },
+                            "trades": [],
+                            "fees": [
+                                {
+                                    "currency": "SGD",
+                                    "cost": 0.016
+                                }
+                            ],
+                            "reduceOnly": null,
+                            "takeProfitPrice": null,
+                            "stopLossPrice": null
+                        }
+                    ]
+                ],
+                "sentMessages": [
+                    [
+                        {
+                            "ticket": "00000000-0000-4000-8000-000000000000"
+                        },
+                        {
+                            "type": "myOrder",
+                            "codes": [
+                                "SGD-XRP"
+                            ]
+                        }
+                    ]
+                ],
+                "sentSkipKeys": [
+                    "ticket"
+                ]
+            }
         ]
     }
 }
