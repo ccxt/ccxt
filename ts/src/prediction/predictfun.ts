@@ -3,6 +3,7 @@ import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/predictfun.js';
 import { ecdsa } from '../base/functions/crypto.js';
 import { Precise } from '../base/Precise.js';
+import { ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { TRUNCATE, DECIMAL_PLACES } from '../base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, OrderNotFound } from '../base/errors.js';
 import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
@@ -64,10 +65,12 @@ export default class predictfun extends Exchange {
                 'fetchTradingFee': false,
                 'fetchWithdrawals': false,
                 'prediction': true,         // Prediction market support
-                'watchMyTrades': false,
+                'unWatchMyTrades': true,
                 'unWatchOrderBook': true,
+                'unWatchOrders': true,
+                'watchMyTrades': true,
                 'watchOrderBook': true,
-                'watchOrders': false,
+                'watchOrders': true,
                 'watchTicker': false,
                 'watchTrades': false,
             },
@@ -3007,6 +3010,174 @@ export default class predictfun extends Exchange {
         if ((subscribeHash !== undefined) && (subscribeHash in client.subscriptions)) {
             delete client.subscriptions[subscribeHash];
         }
+        // cleanCache drops a cache only when the subscription names that one topic, and the wallet
+        // topic backs two of them - so the caches it cannot reach are dropped here by the hashes
+        // the subscription does list. a stale cache left behind would be served to the next watcher
+        // as if it had just arrived
+        for (let i = 0; i < subMessageHashes.length; i++) {
+            const subHash = subMessageHashes[i];
+            if (subHash === 'orders') {
+                this.orders = undefined;
+            } else if (subHash === 'myTrades') {
+                this.myTrades = undefined;
+            }
+        }
+    }
+
+    /**
+     * @method
+     * @name predictfun#watchOrders
+     * @description watches the wallet's own orders as the venue accepts, fills, expires or cancels them
+     * @see https://dev.predict.fun/subscription-topics-1915507m0
+     * @param {string} [outcome] unified outcome handle to narrow the stream to
+     * @param {int} [since] timestamp in ms of the earliest order to return
+     * @param {int} [limit] the maximum number of orders to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    override async watchOrders (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionOrder[]> {
+        let messageHash = 'orders';
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            const outcomeObj = this.outcome (outcome);
+            outcome = this.safeOutcomeSymbol (undefined, outcomeObj);
+            messageHash = 'orders::' + outcome;
+        }
+        const orders = await this.watchWalletEvents (messageHash, params);
+        if (this.newUpdates) {
+            limit = orders.getLimit (outcome, limit);
+        }
+        return this.filterByOutcomeSinceLimit (orders, outcome, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name predictfun#watchMyTrades
+     * @description watches the wallet's own fills as they settle on chain
+     * @see https://dev.predict.fun/subscription-topics-1915507m0
+     * @param {string} [outcome] unified outcome handle to narrow the stream to
+     * @param {int} [since] timestamp in ms of the earliest trade to return
+     * @param {int} [limit] the maximum number of trades to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [prediction trade structures](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    override async watchMyTrades (outcome: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<PredictionTrade[]> {
+        let messageHash = 'myTrades';
+        if (outcome !== undefined) {
+            await this.loadOutcome (outcome);
+            const outcomeObj = this.outcome (outcome);
+            outcome = this.safeOutcomeSymbol (undefined, outcomeObj);
+            messageHash = 'myTrades::' + outcome;
+        }
+        const trades = await this.watchWalletEvents (messageHash, params);
+        if (this.newUpdates) {
+            limit = trades.getLimit (outcome, limit);
+        }
+        return this.filterByOutcomeSinceLimit (trades, outcome, since, limit, true);
+    }
+
+    /**
+     * @method
+     * @name predictfun#unWatchOrders
+     * @description stops watching the wallet's orders. one wallet topic carries orders and fills alike, so both streams are released together
+     * @see https://dev.predict.fun/subscription-topics-1915507m0
+     * @param {string} [outcome] not used by predictfun.unWatchOrders
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the venue's acknowledgement
+     */
+    override async unWatchOrders (outcome: Str = undefined, params = {}): Promise<any> {
+        return await this.unWatchWalletEvents ('orders', params);
+    }
+
+    /**
+     * @method
+     * @name predictfun#unWatchMyTrades
+     * @description stops watching the wallet's fills. one wallet topic carries orders and fills alike, so both streams are released together
+     * @see https://dev.predict.fun/subscription-topics-1915507m0
+     * @param {string} [outcome] not used by predictfun.unWatchMyTrades
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the venue's acknowledgement
+     */
+    override async unWatchMyTrades (outcome: Str = undefined, params = {}): Promise<any> {
+        return await this.unWatchWalletEvents ('myTrades', params);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#walletEventsTopic
+     * @description the wallet topic, which carries the jwt inside the topic string itself
+     * @returns {string} the topic to subscribe to
+     */
+    async walletEventsTopic (): Promise<string> {
+        // authenticate () serves the cached token until it expires, so subscribe and unsubscribe
+        // name the same topic. a re-minted token is a different topic, which is why the socket
+        // subscription is keyed by a stable hash instead of by this string - the token is a secret
+        // and has no business sitting in a subscription key
+        // the local is not called jwt: that is the name of a base method, and the regex transpiler
+        // rewrites such identifiers into self.jwt, which lands as a broken assignment in python
+        const walletToken = await this.authenticate ();
+        return 'predictWalletEvents/' + walletToken;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#watchWalletEvents
+     * @description subscribes to the wallet topic and waits on the hash the caller's method reads
+     * @param {string} messageHash the hash the caller waits on
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} whatever the channel resolves with
+     */
+    async watchWalletEvents (messageHash: string, params = {}): Promise<any> {
+        const topic = await this.walletEventsTopic ();
+        const requestId = this.requestId ();
+        const request: Dict = {
+            'method': 'subscribe',
+            'requestId': requestId,
+            'params': [ topic ], // one topic per request, the venue reads only the first entry
+        };
+        const subscription: Dict = {
+            'id': this.numberToString (requestId),
+            // the topic carries the token, so the registered subscription names the stable hash
+            // instead - a secret has no business sitting in state that gets logged or dumped
+            'topic': 'walletEvents',
+            'subscribeHash': 'walletEvents',
+            'messageHashes': [ 'orders', 'myTrades' ],
+        };
+        const url = this.socketUrl ();
+        return await this.watch (url, messageHash, this.extend (request, params), 'walletEvents', subscription);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#unWatchWalletEvents
+     * @description drops the wallet topic, releasing both the order and the fill stream
+     * @param {string} channel 'orders' or 'myTrades'
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the venue's acknowledgement
+     */
+    async unWatchWalletEvents (channel: string, params = {}): Promise<any> {
+        const topic = await this.walletEventsTopic ();
+        const requestId = this.requestId ();
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'requestId': requestId,
+            'params': [ topic ], // one topic per request, the venue reads only the first entry
+        };
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': this.numberToString (requestId),
+            'topic': 'walletEvents',
+            'symbols': [],
+            'subMessageHashes': [ 'orders', 'myTrades' ],
+            'messageHashes': [ 'unsubscribe::orders', 'unsubscribe::myTrades' ],
+            'subscribeHash': 'walletEvents',
+        };
+        const messageHash = 'unsubscribe::' + channel;
+        const url = this.socketUrl ();
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
     }
 
     /**
@@ -3176,6 +3347,295 @@ export default class predictfun extends Exchange {
     /**
      * @ignore
      * @method
+     * @name predictfun#handleWalletEvent
+     * @description turns one wallet event into the order it describes, and into a trade when it settled
+     * @param {Client} client the websocket client
+     * @param {object} message the raw message
+     */
+    handleWalletEvent (client: Client, message: Dict) {
+        //
+        //     {
+        //         "type": "M",
+        //         "topic": "predictWalletEvents/eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+        //         "data": {
+        //             "type": "orderTransactionSuccess",
+        //             "orderId": "3420472350",
+        //             "orderHash": "0x7d097327cc15754411b7ec3e3e074ff3e974394a75aa5c81fdf90b4e67e59c15",
+        //             "settlementId": "01a08f55-d6f7-77e3-895e-81cf62d8aa09",
+        //             "timestamp": 1789111162000,
+        //             "walletAddress": "0xabababababababababababababababababababab",
+        //             "isMaker": false,
+        //             "fee": { "amountWei": "400000000000000", "type": "COLLATERAL" },
+        //             "fill": {
+        //                 "executedPriceWei": "20000000000000000",
+        //                 "executedSizeWei": "1000000000000000000",
+        //                 "executedValueWei": "20000000000000000"
+        //             },
+        //             "details": {
+        //                 "categorySlug": "will-trump-acquire-greenland-before-2027",
+        //                 "marketId": 2107,
+        //                 "marketQuestion": "Will Trump acquire Greenland before 2027?",
+        //                 "outcome": "YES",
+        //                 "outcomeIndex": 1,
+        //                 "outcomeName": "Yes",
+        //                 "price": "0.010",
+        //                 "quantity": "1.000",
+        //                 "quantityFilled": "1.000",
+        //                 "quoteType": "ASK",
+        //                 "strategyType": "MARKET",
+        //                 "value": "0.01",
+        //                 "valueFilled": "0.01"
+        //             }
+        //         }
+        //     }
+        //
+        // the details block is the same on every variant and is quoted in units, while fill and fee
+        // are quoted in wei. observed live: orderAccepted, orderMarketMatchPlan (which the venue
+        // sends but does not document), orderTransactionSubmitted, orderTransactionSuccess and
+        // orderCancelled - the latter arrives with the same envelope and no fill
+        //
+        const data = this.safeDict (message, 'data', {});
+        const order = this.parseWalletEventOrder (data);
+        this.handleWalletEventOrder (client, order);
+        // only a confirmed on-chain settlement is a trade: a submitted transaction has not landed
+        // yet and a failed one never did, so neither belongs in myTrades
+        const eventType = this.safeString (data, 'type');
+        if (eventType === 'orderTransactionSuccess') {
+            this.handleWalletEventTrade (client, data, order);
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#handleWalletEventOrder
+     * @description stores the order a wallet event describes and wakes whoever waits on it
+     * @param {Client} client the websocket client
+     * @param {object} order the parsed order
+     */
+    handleWalletEventOrder (client: Client, order: PredictionOrder) {
+        if (this.orders === undefined) {
+            const limit = this.safeInteger (this.options, 'ordersLimit', 1000);
+            this.orders = new ArrayCacheByOutcomeById (limit);
+        }
+        const stored = this.orders;
+        stored.append (order);
+        client.resolve (stored, 'orders');
+        const outcomeHandle = this.safeString (order, 'outcome');
+        if (outcomeHandle !== undefined) {
+            client.resolve (stored, 'orders::' + outcomeHandle);
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#handleWalletEventTrade
+     * @description stores the settled fill a wallet event carries and wakes whoever waits on it
+     * @param {Client} client the websocket client
+     * @param {object} event the raw event
+     * @param {object} order the order the same event was parsed into
+     */
+    handleWalletEventTrade (client: Client, event: Dict, order: PredictionOrder) {
+        const trade = this.parseWalletEventTrade (event, order);
+        if (this.myTrades === undefined) {
+            const limit = this.safeInteger (this.options, 'tradesLimit', 1000);
+            this.myTrades = new ArrayCacheByOutcomeById (limit);
+        }
+        const stored = this.myTrades;
+        stored.append (trade);
+        client.resolve (stored, 'myTrades');
+        const outcomeHandle = this.safeString (trade, 'outcome');
+        if (outcomeHandle !== undefined) {
+            client.resolve (stored, 'myTrades::' + outcomeHandle);
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#walletEventOutcome
+     * @description resolves the cached outcome a wallet event refers to, by market and outcome index
+     * @param {object} details the event's details block
+     * @returns {object} the outcome object, or a stub when the market is not cached
+     */
+    walletEventOutcome (details: Dict): any {
+        const marketId = this.safeString (details, 'marketId');
+        const outcomeIndex = this.safeInteger (details, 'outcomeIndex');
+        const outcomes = this.outcomesByMarketId (marketId);
+        const outcomesLength = outcomes.length;
+        for (let i = 0; i < outcomesLength; i++) {
+            const candidate = outcomes[i];
+            const info = this.safeDict (candidate, 'info', {});
+            if (this.safeInteger (info, 'indexSet') === outcomeIndex) {
+                return candidate;
+            }
+        }
+        return this.safeOutcome (undefined, undefined);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#parseWalletEventOrder
+     * @description parses a wallet event into the unified order it describes
+     * @param {object} event the raw event
+     * @returns {object} a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
+     */
+    parseWalletEventOrder (event: Dict): PredictionOrder {
+        //
+        //     {
+        //         "type": "orderTransactionSuccess",
+        //         "orderId": "3420472350",
+        //         "orderHash": "0x7d097327cc15754411b7ec3e3e074ff3e974394a75aa5c81fdf90b4e67e59c15",
+        //         "settlementId": "01a08f55-d6f7-77e3-895e-81cf62d8aa09",
+        //         "timestamp": 1789111162000,
+        //         "walletAddress": "0xabababababababababababababababababababab",
+        //         "isMaker": false,
+        //         "fee": { "amountWei": "400000000000000", "type": "COLLATERAL" },
+        //         "fill": {
+        //             "executedPriceWei": "20000000000000000",
+        //             "executedSizeWei": "1000000000000000000",
+        //             "executedValueWei": "20000000000000000"
+        //         },
+        //         "details": {
+        //             "categorySlug": "will-trump-acquire-greenland-before-2027",
+        //             "marketId": 2107,
+        //             "marketQuestion": "Will Trump acquire Greenland before 2027?",
+        //             "outcome": "YES",
+        //             "outcomeIndex": 1,
+        //             "outcomeName": "Yes",
+        //             "price": "0.010",
+        //             "quantity": "1.000",
+        //             "quantityFilled": "1.000",
+        //             "quoteType": "ASK",
+        //             "strategyType": "MARKET",
+        //             "value": "0.01",
+        //             "valueFilled": "0.01"
+        //         }
+        //     }
+        //
+        const details = this.safeDict (event, 'details', {});
+        const outcomeObj = this.walletEventOutcome (details);
+        const eventType = this.safeString (event, 'type');
+        const amount = this.safeString (details, 'quantity');
+        const filled = this.safeString (details, 'quantityFilled');
+        // every variant names a state of one order, so the event type is the status
+        let status: Str = undefined;
+        if ((eventType === 'orderAccepted') || (eventType === 'orderMarketMatchPlan') || (eventType === 'orderTransactionSubmitted') || (eventType === 'orderTransactionFailed')) {
+            // orderMarketMatchPlan is not in the documented union but the venue does send it: the
+            // order is accepted and being matched, which is the same state the caller sees as open
+            status = 'open';
+        } else if (eventType === 'orderNotAccepted') {
+            status = 'rejected';
+        } else if (eventType === 'orderExpired') {
+            status = 'expired';
+        } else if (eventType === 'orderCancelled') {
+            status = 'canceled';
+        } else if (eventType === 'orderTransactionSuccess') {
+            // a settled fill closes the order only once nothing is left of it
+            status = 'open';
+            if ((amount !== undefined) && (filled !== undefined) && !Precise.stringLt (filled, amount)) {
+                status = 'closed';
+            }
+        }
+        const quoteType = this.safeStringLower (details, 'quoteType');
+        let side: Str = undefined;
+        if (quoteType === 'bid') {
+            side = 'buy';
+        } else if (quoteType === 'ask') {
+            side = 'sell';
+        }
+        let remaining: Str = undefined;
+        if ((amount !== undefined) && (filled !== undefined)) {
+            remaining = Precise.stringSub (amount, filled);
+        }
+        const timestamp = this.safeInteger (event, 'timestamp');
+        return this.safePredictionOrder ({
+            'id': this.safeString2 (event, 'orderHash', 'orderId'),
+            'clientOrderId': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'lastTradeTimestamp': undefined,
+            'lastUpdateTimestamp': timestamp,
+            'status': status,
+            'type': this.safeStringLower (details, 'strategyType'),
+            'timeInForce': undefined,
+            'side': side,
+            'price': this.safeNumber (details, 'price'),
+            'average': undefined,
+            'amount': this.parseNumber (amount),
+            'filled': this.parseNumber (filled),
+            'remaining': this.parseNumber (remaining),
+            'cost': this.safeNumber (details, 'valueFilled'),
+            'fee': undefined,
+            'reduceOnly': undefined,
+            'postOnly': undefined,
+            'trades': [],
+            'outcome': this.safeOutcomeSymbol (undefined, outcomeObj),
+            'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
+            'label': this.safeString (outcomeObj, 'label'),
+            'market': this.safeString (outcomeObj, 'market'),
+            'event': this.safeString (outcomeObj, 'event'),
+            'info': event,
+        });
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#parseWalletEventTrade
+     * @description parses the settled fill a wallet event carries
+     * @param {object} event the raw event
+     * @param {object} order the order the same event was parsed into
+     * @returns {object} a [prediction trade structure](https://docs.ccxt.com/#/?id=prediction-trade-structure)
+     */
+    parseWalletEventTrade (event: Dict, order: PredictionOrder): PredictionTrade {
+        const fill = this.safeDict (event, 'fill', {});
+        // the fill is quoted in wei while the details block is quoted in units, so only these three
+        // fields are scaled down
+        const price = Precise.stringDiv (this.safeString (fill, 'executedPriceWei'), '1000000000000000000');
+        const amount = Precise.stringDiv (this.safeString (fill, 'executedSizeWei'), '1000000000000000000');
+        const cost = Precise.stringDiv (this.safeString (fill, 'executedValueWei'), '1000000000000000000');
+        const isMaker = this.safeBool (event, 'isMaker');
+        let takerOrMaker: Str = undefined;
+        if (isMaker !== undefined) {
+            takerOrMaker = isMaker ? 'maker' : 'taker';
+        }
+        const rawFee = this.safeDict (event, 'fee');
+        let fee: any = undefined;
+        if (rawFee !== undefined) {
+            const feeType = this.safeString (rawFee, 'type');
+            fee = {
+                // a SHARES fee is charged in outcome tokens rather than in collateral
+                'currency': (feeType === 'COLLATERAL') ? 'USDT' : undefined,
+                'cost': this.parseNumber (Precise.stringDiv (this.safeString (rawFee, 'amountWei'), '1000000000000000000')),
+            };
+        }
+        const timestamp = this.safeInteger (event, 'timestamp');
+        return this.safePredictionTrade ({
+            'id': this.safeString (event, 'settlementId'),
+            'order': this.safeString (event, 'orderHash'),
+            'timestamp': timestamp,
+            'datetime': this.iso8601 (timestamp),
+            'outcome': this.safeString (order, 'outcome'),
+            'outcomeId': this.safeString (order, 'outcomeId'),
+            'label': this.safeString (order, 'label'),
+            'market': this.safeString (order, 'market'),
+            'type': this.safeString (order, 'type'),
+            'side': this.safeString (order, 'side'),
+            'takerOrMaker': takerOrMaker,
+            'price': this.parseNumber (price),
+            'amount': this.parseNumber (amount),
+            'cost': this.parseNumber (cost),
+            'fee': fee,
+            'info': event,
+        });
+    }
+
+    /**
+     * @ignore
+     * @method
      * @name predictfun#handleHeartbeat
      * @description echoes the probe timestamp back, which is what keeps the connection open
      * @param {Client} client the websocket client
@@ -3230,6 +3690,8 @@ export default class predictfun extends Exchange {
         const channel = this.safeString (parts, 0);
         if (channel === 'predictOrderbook') {
             this.handleOrderBook (client, message);
+        } else if (channel === 'predictWalletEvents') {
+            this.handleWalletEvent (client, message);
         }
     }
 
