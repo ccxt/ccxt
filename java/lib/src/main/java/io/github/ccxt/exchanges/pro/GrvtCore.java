@@ -136,7 +136,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 put( "params", request );
                 put( "id", GrvtCore.this.requestId() );
             }};
-            Object apiPart = ((Helpers.isTrue(publicOrPrivate))) ? "publicMarket" : "privateTrading";
+            String apiPart = ((Helpers.isTrue(publicOrPrivate))) ? "publicMarket" : "privateTrading";
             return (this.watchMultiple(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), apiPart), messageHashes, payload, rawHashes, null)).join();
         });
 
@@ -589,7 +589,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
         Object parsed = this.parseWsOHLCV(data, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
-        Object resolveData = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, stored));
+        java.util.List<Object> resolveData = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
 
@@ -830,7 +830,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             (this.authenticate()).join();
             Object subAccountId = this.getSubAccountId(parameters);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Object market = this.market(symbol);
@@ -1005,7 +1005,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object position = this.parseWsPosition(data);
         Object symbol = this.safeString(position, "symbol");
         Helpers.callDynamically(this.positions, "append", new Object[]{position});
-        Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         ((java.util.List<Object>)newPositions).add(position);
         client.resolve(newPositions, Helpers.add("positions::", symbol));
         client.resolve(newPositions, "positions");

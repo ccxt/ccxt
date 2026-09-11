@@ -16,7 +16,7 @@ public class TestFetchTradingFees extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchTradingFees";
+        String method = "fetchTradingFees";
         Object fees = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTradingFees", new Object[]{})).join();
         Object symbols = Helpers.objectKeys(fees);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, symbols);

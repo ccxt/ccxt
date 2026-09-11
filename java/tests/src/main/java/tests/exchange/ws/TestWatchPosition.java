@@ -16,7 +16,7 @@ public class TestWatchPosition extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "watchPosition";
+        String method = "watchPosition";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         while (Helpers.isLessThan(now, ends))

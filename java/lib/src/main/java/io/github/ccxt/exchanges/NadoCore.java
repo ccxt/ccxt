@@ -460,7 +460,7 @@ public class NadoCore extends NadoApi
             Object priceString = this.priceToPrecision(symbol, price);
             Object amountString = this.amountToPrecision(symbol, amount);
             String priceX18 = this.convertToX18(priceString);
-            Object amountX18 = this.convertToX18(amountString);
+            String amountX18 = this.convertToX18(amountString);
             if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
             {
                 amountX18 = Precise.stringMul(amountX18, "-1");
@@ -515,7 +515,7 @@ public class NadoCore extends NadoApi
                 var triggerDirectionparametersVariable = this.handleTriggerDirectionAndParams(parameters);
                 triggerDirection = ((java.util.List<Object>) triggerDirectionparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) triggerDirectionparametersVariable).get(1);
-                Object directionSuffix = ((Helpers.isTrue((Helpers.isEqual(triggerDirection, "ascending"))))) ? "above" : "below";
+                String directionSuffix = ((Helpers.isTrue((Helpers.isEqual(triggerDirection, "ascending"))))) ? "above" : "below";
                 String triggerPriceX18 = this.convertToX18(triggerPrice);
                 Object priceRequirement = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(priceRequirement, Helpers.add("oracle_price_", directionSuffix), triggerPriceX18);
@@ -668,7 +668,7 @@ public class NadoCore extends NadoApi
             Object priceString = this.priceToPrecision(symbol, price);
             Object amountString = this.amountToPrecision(symbol, amount);
             String priceX18 = this.convertToX18(priceString);
-            Object amountX18 = this.convertToX18(amountString);
+            String amountX18 = this.convertToX18(amountString);
             if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
             {
                 amountX18 = Precise.stringMul(amountX18, "-1");
@@ -687,7 +687,7 @@ public class NadoCore extends NadoApi
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             String cancelNonce = this.createOrderNonce(recvWindow);
-            Object orderNonce = Precise.stringAdd(cancelNonce, "1");
+            String orderNonce = Precise.stringAdd(cancelNonce, "1");
             Object appendix = this.safeString(parameters, "appendix");
             if (Helpers.isTrue(Helpers.isEqual(appendix, null)))
             {
@@ -816,7 +816,7 @@ public class NadoCore extends NadoApi
             }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object cancelledOrders = this.safeList(data, "cancelled_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cancelledOrders)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
@@ -844,7 +844,7 @@ public class NadoCore extends NadoApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Object market = this.market(symbol);
@@ -932,7 +932,7 @@ public class NadoCore extends NadoApi
             }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object cancelledOrders = this.safeList(data, "cancelled_orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cancelledOrders)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
@@ -968,7 +968,7 @@ public class NadoCore extends NadoApi
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountparametersVariable).get(1);
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
-            Object productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 ((java.util.List<Object>)productIds).add(productId);
@@ -1096,7 +1096,7 @@ public class NadoCore extends NadoApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1345,7 +1345,7 @@ public class NadoCore extends NadoApi
             //         ]
             //     }
             //
-            Object closedOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> closedOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
@@ -1505,7 +1505,7 @@ public class NadoCore extends NadoApi
             Object matches = this.safeList(response, "matches", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object txs = this.safeList(response, "txs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object txsBySubmission = this.indexBy(txs, "submission_idx");
-            Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(matches)); i++)
             {
                 Object match = Helpers.GetValue(matches, i);
@@ -1705,7 +1705,7 @@ public class NadoCore extends NadoApi
             //
             Object events = this.safeList(response, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object txs = this.safeList(response, "txs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object transactions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> transactions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
             {
                 Object eventVar = Helpers.GetValue(events, i);
@@ -1794,7 +1794,7 @@ public class NadoCore extends NadoApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object positions = this.safeList(data, "perp_balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object products = this.safeList(data, "perp_products", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object position = Helpers.GetValue(positions, i);
@@ -1966,7 +1966,7 @@ public class NadoCore extends NadoApi
                     }
                 }
             }
-            Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object market = Helpers.GetValue(symbols, i);
@@ -1990,7 +1990,7 @@ public class NadoCore extends NadoApi
                 String baseId = this.safeString(baseAsset, "product_id", rawBaseId);
                 String quoteId = this.safeString(quoteAsset, "product_id", rawQuoteId);
                 Object settleId = ((Helpers.isTrue(contract))) ? quoteId : null;
-                Object settle = ((Helpers.isTrue(contract))) ? quote : null;
+                String settle = ((Helpers.isTrue(contract))) ? quote : null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 if (Helpers.isTrue(contract))
                 {
@@ -2303,7 +2303,7 @@ public class NadoCore extends NadoApi
             //     }
             //
             Object fundingPayments = this.safeList(response, "funding_payments", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fundingPayments)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parseFundingHistory(Helpers.GetValue(fundingPayments, i), market));
@@ -2358,7 +2358,7 @@ public class NadoCore extends NadoApi
             //     }
             //
             Object tickers = Helpers.objectKeys(response);
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 Object ticker = Helpers.GetValue(tickers, i);
@@ -2466,7 +2466,7 @@ public class NadoCore extends NadoApi
             //     }
             //
             Object tickers = Helpers.objectKeys(response);
-            Object interests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> interests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 Object ticker = Helpers.GetValue(tickers, i);
@@ -2715,7 +2715,7 @@ public class NadoCore extends NadoApi
             Object parsedPrice = this.parseX18(this.safeString(order, "priceX18"));
             price = ((Helpers.isTrue((Helpers.isEqual(parsedPrice, null))))) ? null : this.numberToString(parsedPrice);
         }
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         Object isTaker = this.safeBool(trade, "is_taker");
         if (Helpers.isTrue(!Helpers.isEqual(isTaker, null)))
         {
@@ -2749,7 +2749,7 @@ public class NadoCore extends NadoApi
         Object parsedAmount = null;
         if (Helpers.isTrue(!Helpers.isEqual(amountString, null)))
         {
-            Object absoluteAmount = Precise.stringAbs(amountString);
+            String absoluteAmount = Precise.stringAbs(amountString);
             if (Helpers.isTrue(isArchiveMatch))
             {
                 parsedAmount = this.parseX18(absoluteAmount);
@@ -2761,7 +2761,7 @@ public class NadoCore extends NadoApi
         Object parsedCost = null;
         if (Helpers.isTrue(!Helpers.isEqual(costString, null)))
         {
-            Object absoluteCost = Precise.stringAbs(costString);
+            String absoluteCost = Precise.stringAbs(costString);
             if (Helpers.isTrue(isArchiveMatch))
             {
                 parsedCost = this.parseX18(absoluteCost);
@@ -3012,7 +3012,7 @@ public class NadoCore extends NadoApi
                 }
             }
             Object balance = this.safeDict(rawBalance, "balance", new java.util.HashMap<String, Object>() {{}});
-            Object amount = Precise.stringDiv(this.safeString(balance, "amount"), "1000000000000000000");
+            String amount = Precise.stringDiv(this.safeString(balance, "amount"), "1000000000000000000");
             Object account = this.account();
             Helpers.addElementToObject(account, "total", amount);
             // the subaccount balance carries no locked/reserved breakdown, the whole amount is spendable
@@ -3116,7 +3116,7 @@ public class NadoCore extends NadoApi
         Object risk = this.safeDict(product, "risk", new java.util.HashMap<String, Object>() {{}});
         String markPriceX18 = this.safeString2(risk, "price_x18", "oracle_price_x18");
         String vQuoteBalance = this.safeString(balance, "v_quote_balance");
-        Object side = null;
+        String side = null;
         Object contracts = null;
         Object entryPrice = null;
         Object markPrice = null;
@@ -3130,7 +3130,7 @@ public class NadoCore extends NadoApi
             {
                 side = "short";
             }
-            Object absoluteAmount = Precise.stringAbs(amountString);
+            String absoluteAmount = Precise.stringAbs(amountString);
             contracts = this.parseX18(absoluteAmount);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(vQuoteBalance, null))) && !Helpers.isTrue(Precise.stringEquals(absoluteAmount, "0"))))
             {
@@ -3139,7 +3139,7 @@ public class NadoCore extends NadoApi
             if (Helpers.isTrue(!Helpers.isEqual(markPriceX18, null)))
             {
                 markPrice = this.parseX18(markPriceX18);
-                Object notionalX36 = Precise.stringMul(absoluteAmount, markPriceX18);
+                String notionalX36 = Precise.stringMul(absoluteAmount, markPriceX18);
                 notional = this.parseNumber(Precise.stringDiv(notionalX36, "1000000000000000000000000000000000000"));
             }
         }
@@ -3259,15 +3259,15 @@ public class NadoCore extends NadoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = null;
         Object timestamp = null;
-        Object timeInForce = null;
+        String timeInForce = null;
         Object postOnly = null;
-        Object side = null;
+        String side = null;
         Object price = null;
         Object amount = null;
         Object filled = null;
         Object remaining = null;
         Object cost = null;
-        Object average = null;
+        String average = null;
         Object fee = null;
         Object lastTradeTimestamp = null;
         Object lastUpdateTimestamp = null;
@@ -3455,7 +3455,7 @@ public class NadoCore extends NadoApi
     public String createOrderNonce(Object recvWindow)
     {
         Object expires = this.sum(this.milliseconds(), recvWindow);
-        Object highBits = Precise.stringMul(this.numberToString(expires), "1048576");
+        String highBits = Precise.stringMul(this.numberToString(expires), "1048576");
         // the exchange defines the nonce to be the recv time moved left by 20 bits
         // plus a random value on the low bits, otherwise two orders created
         // during the same millisecond would collide on the same nonce and get rejected
@@ -3486,7 +3486,7 @@ public class NadoCore extends NadoApi
         {
             throw new BadRequest((String)Helpers.add(this.id, " createOrder() only supports timeInForce values GTC, IOC, FOK, or PO")) ;
         }
-        Object appendix = "1"; // version
+        String appendix = "1"; // version
         if (Helpers.isTrue(!Helpers.isEqual(orderType, 0)))
         {
             appendix = Precise.stringAdd(appendix, Precise.stringMul(this.numberToString(orderType), "512"));
@@ -3608,7 +3608,7 @@ public class NadoCore extends NadoApi
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, order);
-        Object hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
         return this.signHash(hash, this.privateKey);
     }
 
@@ -3636,7 +3636,7 @@ public class NadoCore extends NadoApi
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        Object hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
         return this.signHash(hash, this.privateKey);
     }
 
@@ -3661,7 +3661,7 @@ public class NadoCore extends NadoApi
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, cancellation);
-        Object hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
         return this.signHash(hash, this.privateKey);
     }
 
@@ -3683,7 +3683,7 @@ public class NadoCore extends NadoApi
 }})) );
         }};
         Object encoded = this.ethEncodeStructuredData(domain, messageTypes, tx);
-        Object hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
+        String hash = Helpers.add("0x", this.hash(encoded, keccak(), "hex"));
         return this.signHash(hash, this.privateKey);
     }
 

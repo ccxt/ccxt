@@ -16,12 +16,12 @@ public class TestFetchCurrencies extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchCurrencies";
+        String method = "fetchCurrencies";
         Object currencies = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchCurrencies", new Object[]{})).join();
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         Object numInactiveCurrencies = 0;
         Object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
-        Object requiredActiveCurrencies = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC", "ETH", "USDT", "USDC"));
+        java.util.List<Object> requiredActiveCurrencies = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC", "ETH", "USDT", "USDC"));
         Object features = exchange.features;
         Object featuresSpot = exchange.safeDict(features, "spot", new java.util.HashMap<String, Object>() {{}});
         Object fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new java.util.HashMap<String, Object>() {{}});

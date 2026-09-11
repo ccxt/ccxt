@@ -108,7 +108,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
                 symbols = this.getActiveSymbols();
             }
             Object symbolsLength = Helpers.getArrayLength(symbols);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
             {
                 Object parsedSymbols = this.marketSymbols(symbols);
@@ -184,8 +184,8 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             {
                 symbols = this.marketSymbols(symbols);
             }
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(symbols))); i++)
             {
                 Object marketId = this.marketId(Helpers.GetValue((java.util.List<String>)(symbols), i));
@@ -306,7 +306,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
     public Object getActiveSymbols()
     {
         Object symbols = this.symbols;
-        Object output = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> output = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
@@ -863,7 +863,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
     public void handleDelta(Object orderbook, Object delta)
     {
         String rawSide = (String)this.safeStringLower(delta, 0);
-        Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "bids" : "asks";
+        String side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "bids" : "asks";
         Object price = this.safeFloat(delta, 1);
         Object amount = this.safeFloat(delta, 2);
         Object bookside = Helpers.GetValue(orderbook, side);

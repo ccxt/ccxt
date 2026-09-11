@@ -338,11 +338,11 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object method = "market_subscribe";
+            String method = "market_subscribe";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object id = this.nonce();
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object args = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> args = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object market = this.market(Helpers.GetValue(symbols, i));
@@ -615,7 +615,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             }};
         }
         Object rawSide = this.safeInteger(trade, 8);
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(Helpers.isEqual(rawSide, 1)))
         {
             side = "sell";
@@ -624,7 +624,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             side = "buy";
         }
         Object role = this.safeInteger(trade, 9);
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(role, 1)))
         {
             takerOrMaker = "maker";
@@ -794,7 +794,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object lastTradeTimestamp = this.safeTimestamp(order, "mtime");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object rawSide = this.safeInteger(order, "side");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, 1))))) ? "sell" : "buy";
+        String side = ((Helpers.isTrue((Helpers.isEqual(rawSide, 1))))) ? "sell" : "buy";
         Object dealFee = this.safeString(order, "deal_fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(dealFee, null)))
@@ -806,7 +806,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 put( "currency", Helpers.GetValue(finalMarket, "quote") );
             }};
         }
-        Object unifiedStatus = null;
+        String unifiedStatus = null;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(status, 1))) || Helpers.isTrue((Helpers.isEqual(status, 2)))))
         {
             unifiedStatus = "open";
@@ -1091,7 +1091,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object id = this.nonce();
             Client client = (Client)this.safeValue(this.clients, url);
             Object request = null;
-            Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(client, null)))
             {
                 Object subscription = new java.util.HashMap<String, Object>() {{}};
@@ -1202,7 +1202,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             // token fetch, so concurrent cold callers would each burn a private REST call and push
             // their own authorize frame. the flight lives in client.futures of the handshake client
             // under a non-messageHash key and settles only via client.resolve () / client.reject ()
-            Object messageHash = "authenticateFlight";
+            String messageHash = "authenticateFlight";
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
             {
                 // a flight is already in progress - wake when the leader settles

@@ -899,7 +899,7 @@ public class ParadexCore extends ParadexApi
         Object isOptionPerpetual = (Helpers.isEqual(assetKind, "PERP_OPTION"));
         Object isOptionDelivery = (Helpers.isEqual(assetKind, "OPTION"));
         Object isOption = Helpers.isTrue(isOptionPerpetual) || Helpers.isTrue(isOptionDelivery);
-        Object type = ((Helpers.isTrue((isOption)))) ? "option" : "swap";
+        String type = ((Helpers.isTrue((isOption)))) ? "option" : "swap";
         Object isSwap = (Helpers.isEqual(type, "swap"));
         String marketId = this.safeString(market, "symbol");
         String quoteId = this.safeString(market, "quote_currency");
@@ -916,7 +916,7 @@ public class ParadexCore extends ParadexApi
         Object makerFee = this.parseNumber("-0.00005");
         if (Helpers.isTrue(isOption))
         {
-            Object optionTypeSuffix = ((Helpers.isTrue((Helpers.isEqual(optionType, "CALL"))))) ? "C" : "P";
+            String optionTypeSuffix = ((Helpers.isTrue((Helpers.isEqual(optionType, "CALL"))))) ? "C" : "P";
             Object deliveryValue = ((Helpers.isTrue((Helpers.isEqual(expiry, 0))))) ? "" : Helpers.add(this.yymmdd(expiry), "-");
             symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(symbol, "-"), deliveryValue), strikePrice), "-"), optionTypeSuffix);
             makerFee = this.parseNumber("0.0003");
@@ -924,7 +924,7 @@ public class ParadexCore extends ParadexApi
         {
             expiry = null;
         }
-        Object expireDatetime = ((Helpers.isTrue((Helpers.isEqual(expiry, 0))))) ? null : this.iso8601(expiry);
+        String expireDatetime = ((Helpers.isTrue((Helpers.isEqual(expiry, 0))))) ? null : this.iso8601(expiry);
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalType = type;
@@ -1699,7 +1699,7 @@ public class ParadexCore extends ParadexApi
         String side = (String)this.safeStringLower(trade, "side");
         String liability = (String)this.safeStringLower(trade, "liquidity", "taker");
         Object isTaker = Helpers.isEqual(liability, "taker");
-        Object takerOrMaker = ((Helpers.isTrue((isTaker)))) ? "taker" : "maker";
+        String takerOrMaker = ((Helpers.isTrue((isTaker)))) ? "taker" : "maker";
         String currencyId = this.safeString(trade, "fee_currency");
         String code = (String) this.safeCurrencyCode(currencyId);
         final Object finalMarket = market;
@@ -2304,7 +2304,7 @@ public class ParadexCore extends ParadexApi
                 put( "size", ParadexCore.this.scaleNumber(Helpers.GetValue(request, "size")) );
                 put( "price", ((Helpers.isTrue((isMarket)))) ? "0" : ParadexCore.this.scaleNumber(Helpers.GetValue(request, "price")) );
             }};
-            Object orderFields = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
+            java.util.List<Object> orderFields = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "name", "timestamp" );
         put( "type", "felt" );
     }}, new java.util.HashMap<String, Object>() {{
@@ -2524,7 +2524,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -2687,14 +2687,14 @@ public class ParadexCore extends ParadexApi
             // }
             //
             Object results = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object result = Helpers.GetValue(results, i);
                 String marketId = this.safeString(result, "market");
                 Object market = this.safeMarket(marketId);
                 String status = this.safeString(result, "status");
-                Object orderStatus = null;
+                String orderStatus = null;
                 if (Helpers.isTrue(Helpers.isEqual(status, "QUEUED_FOR_CANCELLATION")))
                 {
                     orderStatus = "canceled";
@@ -3443,7 +3443,7 @@ public class ParadexCore extends ParadexApi
             //     }
             //
             Object rows = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object deposits = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> deposits = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object row = Helpers.GetValue(rows, i);
@@ -3527,7 +3527,7 @@ public class ParadexCore extends ParadexApi
             //     }
             //
             Object rows = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object deposits = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> deposits = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object row = Helpers.GetValue(rows, i);
@@ -3643,8 +3643,8 @@ public class ParadexCore extends ParadexApi
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object timestamp = this.safeInteger(transfer, "created_at");
         String kind = this.safeString(transfer, "kind");
-        Object fromAccount = null;
-        Object toAccount = null;
+        String fromAccount = null;
+        String toAccount = null;
         if (Helpers.isTrue(Helpers.isEqual(kind, "DEPOSIT")))
         {
             fromAccount = "external";
@@ -4317,7 +4317,7 @@ public class ParadexCore extends ParadexApi
             // not a settled payment: paradex recomputes it each second and accrues it
             // into funding_index, so the series cannot be summed
             Object results = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object rate = Helpers.GetValue(results, i);

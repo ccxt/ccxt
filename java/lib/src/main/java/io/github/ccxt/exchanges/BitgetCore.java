@@ -3573,7 +3573,7 @@ public class BitgetCore extends BitgetApi
         var subTypeparametersVariable = this.handleSubTypeAndParams("handleProductTypeAndParams", null, parameters);
         subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-        Object defaultProductType = null;
+        String defaultProductType = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) && Helpers.isTrue((Helpers.isEqual(market, null)))))
         {
             // set default only if subType is defined and market is not defined, since there is also USDC productTypes which are also linear
@@ -3735,7 +3735,7 @@ public class BitgetCore extends BitgetApi
 
             Object types = null;
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
-            Object defaultMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap"));
+            java.util.List<Object> defaultMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap"));
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOptions, null)))
             {
                 types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
@@ -3744,14 +3744,14 @@ public class BitgetCore extends BitgetApi
                 // for backward-compatibility
                 types = this.safeList(this.options, "fetchMarkets", defaultMarkets);
             }
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object fetchMargins = false;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(types)); i++)
             {
                 Object type = Helpers.GetValue(types, i);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) || Helpers.isTrue((Helpers.isEqual(type, "future")))))
                 {
-                    Object subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
+                    java.util.List<Object> subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subTypes)); j++)
                     {
     final Object finalJ = j;
@@ -3785,8 +3785,8 @@ public class BitgetCore extends BitgetApi
                     // v2/margin/currencies yet have cross disabled (isCrossBorrowable false,
                     // maxCrossedLeverage "0"), e.g. KAITOUSDT, which makes fetchCrossBorrowRate
                     // fail with bitget error 50001 "coin does not support cross"
-                    Object crossKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                    Object isolatedKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    java.util.List<Object> crossKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    java.util.List<Object> isolatedKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(data)); j++)
                     {
                         Object entry = this.safeDict(data, j, new java.util.HashMap<String, Object>() {{}});
@@ -3867,7 +3867,7 @@ public class BitgetCore extends BitgetApi
             //         "maintainTime": ""
             //     }
             //
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -3900,7 +3900,7 @@ public class BitgetCore extends BitgetApi
                 Object linear = null;
                 Object inverse = null;
                 Object expiry = null;
-                Object expiryDatetime = null;
+                String expiryDatetime = null;
                 String symbolType = this.safeString(market, "symbolType");
                 Object marginModes = null;
                 Object isMarginTradingAllowed = false;
@@ -4056,8 +4056,8 @@ public class BitgetCore extends BitgetApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"));
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"));
+            java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subTypes)); i++)
             {
                 final Object finalI = i;
@@ -4163,7 +4163,7 @@ public class BitgetCore extends BitgetApi
             //         "maintainTime": ""
             //     }
             //
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -4173,7 +4173,7 @@ public class BitgetCore extends BitgetApi
                 String baseId = this.safeString(market, "baseCoin");
                 String quote = (String) this.safeCurrencyCode(quoteId);
                 String base = (String) this.safeCurrencyCode(baseId);
-                Object settleId = null;
+                String settleId = null;
                 Object settle = null;
                 if (Helpers.isTrue(Helpers.isEqual(category, "USDT-FUTURES")))
                 {
@@ -4190,7 +4190,7 @@ public class BitgetCore extends BitgetApi
                     settle = this.safeCurrencyCode(settleId);
                 }
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                Object type = null;
+                String type = null;
                 Object swap = false;
                 Object spot = false;
                 Object future = false;
@@ -4200,7 +4200,7 @@ public class BitgetCore extends BitgetApi
                 Object linear = null;
                 Object inverse = null;
                 Object expiry = null;
-                Object expiryDatetime = null;
+                String expiryDatetime = null;
                 String symbolType = this.safeString(market, "type");
                 Object marginModes = null;
                 Object isMarginTradingAllowed = false;
@@ -4683,7 +4683,7 @@ public class BitgetCore extends BitgetApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object minNotional = 0;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
         {
@@ -5147,7 +5147,7 @@ final Object finalMinNotional = minNotional;
             }
         }
         String feeCostString = this.safeString(transaction, "fee");
-        Object feeCostAbsString = null;
+        String feeCostAbsString = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             feeCostAbsString = Precise.stringAbs(feeCostString);
@@ -5387,8 +5387,8 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object bidsKey = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? "b" : "bids";
-            Object asksKey = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? "a" : "asks";
+            String bidsKey = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? "b" : "bids";
+            String asksKey = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? "a" : "asks";
             Object timestamp = this.safeInteger(data, "ts");
             return this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, bidsKey, asksKey);
         });
@@ -5515,7 +5515,7 @@ final Object finalMinNotional = minNotional;
             marketType = "spot";
         }
         // both fields are ratios, and a ticker reports (change/open) * 100
-        Object percentage = Precise.stringMul(this.safeString2(ticker, "price24hPcnt", "change24h"), "100");
+        String percentage = Precise.stringMul(this.safeString2(ticker, "price24hPcnt", "change24h"), "100");
         final Object finalMarketType = marketType;
         final Object finalMarkPrice = markPrice;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -6584,7 +6584,7 @@ final Object finalMinNotional = minNotional;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object marketType = null;
+            String marketType = null;
             Object timeframes = null;
             Object timeframesOption = this.handleOption("fetchOHLCV", "timeframes");
             Object uta = null;
@@ -6612,7 +6612,7 @@ final Object finalMinNotional = minNotional;
             // retrievable periods listed here:
             // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
             // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
-            Object key = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "spot" : "swap";
+            String key = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "spot" : "swap";
             Object ohlcOptions = this.safeDict(Helpers.GetValue(this.options, "fetchOHLCV"), key, new java.util.HashMap<String, Object>() {{}});
             Object maxLimitPerTimeframe = this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new java.util.HashMap<String, Object>() {{}});
             Object maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, timeframe, limit);
@@ -7808,7 +7808,7 @@ final Object finalMinNotional = minNotional;
         {
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(hedged, true))) || Helpers.isTrue(isStopLossOrTakeProfitTrigger)))
             {
-                Object reduceOnlyPosSide = ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? "long" : "short";
+                String reduceOnlyPosSide = ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? "long" : "short";
                 Helpers.addElementToObject(request, "posSide", reduceOnlyPosSide);
             } else if (!Helpers.isTrue(isStopLossOrTakeProfitTrigger))
             {
@@ -7818,7 +7818,7 @@ final Object finalMinNotional = minNotional;
         {
             if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
             {
-                Object posSide = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "long" : "short";
+                String posSide = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "long" : "short";
                 Helpers.addElementToObject(request, "posSide", posSide);
             }
         }
@@ -8047,7 +8047,7 @@ final Object finalMinNotional = minNotional;
                 {
                     marginMode = "cross";
                 }
-                Object marginModeRequest = ((Helpers.isTrue((Helpers.isEqual(marginMode, "cross"))))) ? "crossed" : "isolated";
+                String marginModeRequest = ((Helpers.isTrue((Helpers.isEqual(marginMode, "cross"))))) ? "crossed" : "isolated";
                 Helpers.addElementToObject(request, "marginMode", marginModeRequest);
                 Object requestSide = side;
                 if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
@@ -8078,7 +8078,7 @@ final Object finalMinNotional = minNotional;
             }
             Helpers.addElementToObject(request, "side", side);
             Object quantity = null;
-            Object planType = null;
+            String planType = null;
             Object createMarketBuyOrderRequiresPrice = true;
             var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
@@ -8100,7 +8100,7 @@ final Object finalMinNotional = minNotional;
                     {
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
-                        Object quoteAmount = Precise.stringMul(amountString, priceString);
+                        String quoteAmount = Precise.stringMul(amountString, priceString);
                         quantity = this.costToPrecision(symbol, quoteAmount);
                     }
                 } else
@@ -8160,7 +8160,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object symbol = null;
             Object marginMode = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
@@ -8253,7 +8253,7 @@ final Object finalMinNotional = minNotional;
             {
                 return (this.createUtaOrders(orders, parameters)).join();
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object symbol = null;
             Object marginMode = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
@@ -8305,7 +8305,7 @@ final Object finalMinNotional = minNotional;
                 {
                     marginMode = "cross";
                 }
-                Object marginModeRequest = ((Helpers.isTrue((Helpers.isEqual(marginMode, "cross"))))) ? "crossed" : "isolated";
+                String marginModeRequest = ((Helpers.isTrue((Helpers.isEqual(marginMode, "cross"))))) ? "crossed" : "isolated";
                 Helpers.addElementToObject(request, "marginMode", marginModeRequest);
                 Helpers.addElementToObject(request, "marginCoin", Helpers.GetValue(market, "settleId"));
                 Object productType = null;
@@ -8705,7 +8705,7 @@ final Object finalMinNotional = minNotional;
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientOid");
             if (Helpers.isTrue(isContractTriggerEndpoint))
             {
-                Object orderIdList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> orderIdList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 Object orderId = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
                 {
@@ -8872,7 +8872,7 @@ final Object finalMinNotional = minNotional;
             var productTypeparametersVariable = this.handleProductTypeAndParams(market, parameters);
             productType = ((java.util.List<Object>) productTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) productTypeparametersVariable).get(1);
-            Object requestList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> requestList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object individualId = Helpers.GetValue(ids, i);
@@ -8952,7 +8952,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            Object orderIdList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orderIdList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object individualId = Helpers.GetValue(ids, i);
@@ -9416,8 +9416,8 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                Object cursorReceived = null;
-                Object cursorSent = null;
+                String cursorReceived = null;
+                String cursorSent = null;
                 if (Helpers.isTrue(Helpers.isEqual(uta, true)))
                 {
                     cursorReceived = "cursor";
@@ -9962,7 +9962,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                Object cursorReceived = null;
+                String cursorReceived = null;
                 if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
@@ -10462,7 +10462,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                Object cursorReceived = null;
+                String cursorReceived = null;
                 if (Helpers.isTrue(!Helpers.isEqual(marketType, "spot")))
                 {
                     cursorReceived = "endId";
@@ -10597,7 +10597,7 @@ final Object finalMinNotional = minNotional;
         Object fee = this.safeNumber2(item, "fees", "fee");
         String amountRaw = this.safeString2(item, "size", "amount", "");
         Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
-        Object direction = "in";
+        String direction = "in";
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountRaw, "-"), 0)))
         {
             direction = "out";
@@ -10734,8 +10734,8 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                Object cursorReceived = null;
-                Object cursorSent = null;
+                String cursorReceived = null;
+                String cursorSent = null;
                 if (Helpers.isTrue(Helpers.isEqual(uta, true)))
                 {
                     cursorReceived = "cursor";
@@ -11282,7 +11282,7 @@ final Object finalMinNotional = minNotional;
             {
                 position = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(position)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(position, i), market));
@@ -11430,7 +11430,7 @@ final Object finalMinNotional = minNotional;
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeIntegerN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("cTime", "ctime", "createdTime")));
         String marginMode = this.safeString(position, "marginMode");
-        Object collateral = null;
+        String collateral = null;
         Object initialMargin = null;
         String unrealizedPnl = this.safeString2(position, "unrealizedPL", "unrealisedPnl");
         String rawCollateral = this.safeString2(position, "marginSize", "positionBalance");
@@ -11458,7 +11458,7 @@ final Object finalMinNotional = minNotional;
         String baseAmount = this.safeString2(position, "total", "openTotalPos");
         String entryPrice = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("openPriceAvg", "openAvgPrice", "avgPrice")));
         String maintenanceMarginPercentage = this.safeString(position, "keepMarginRate");
-        Object openNotional = Precise.stringMul(entryPrice, baseAmount);
+        String openNotional = Precise.stringMul(entryPrice, baseAmount);
         if (Helpers.isTrue(Helpers.isEqual(initialMargin, null)))
         {
             initialMargin = Precise.stringDiv(openNotional, leverage);
@@ -11469,22 +11469,22 @@ final Object finalMinNotional = minNotional;
             contracts = this.safeNumber(position, "closeTotalPos");
         }
         String markPrice = this.safeString(position, "markPrice");
-        Object notional = Precise.stringMul(baseAmount, markPrice);
-        Object initialMarginPercentage = Precise.stringDiv(initialMargin, notional);
+        String notional = Precise.stringMul(baseAmount, markPrice);
+        String initialMarginPercentage = Precise.stringDiv(initialMargin, notional);
         Object liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidationPrice")));
-        Object calcTakerFeeRate = "0.0006";
-        Object calcTakerFeeMult = "0.9994";
+        String calcTakerFeeRate = "0.0006";
+        String calcTakerFeeMult = "0.9994";
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(liquidationPrice, null))) && Helpers.isTrue((Helpers.isEqual(marginMode, "isolated")))) && Helpers.isTrue(Precise.stringGt(baseAmount, "0"))))
         {
-            Object signedMargin = Precise.stringDiv(rawCollateral, baseAmount);
+            String signedMargin = Precise.stringDiv(rawCollateral, baseAmount);
             Object signedMmp = maintenanceMarginPercentage;
             if (Helpers.isTrue(Helpers.isEqual(side, "short")))
             {
                 signedMargin = Precise.stringNeg(signedMargin);
                 signedMmp = Precise.stringNeg(signedMmp);
             }
-            Object mmrMinusOne = Precise.stringSub("1", signedMmp);
-            Object numerator = Precise.stringSub(entryPrice, signedMargin);
+            String mmrMinusOne = Precise.stringSub("1", signedMmp);
+            String numerator = Precise.stringSub(entryPrice, signedMargin);
             if (Helpers.isTrue(Helpers.isEqual(side, "long")))
             {
                 mmrMinusOne = Precise.stringMul(mmrMinusOne, calcTakerFeeMult);
@@ -11494,9 +11494,9 @@ final Object finalMinNotional = minNotional;
             }
             liquidationPrice = this.parseNumber(Precise.stringDiv(numerator, mmrMinusOne));
         }
-        Object feeToClose = Precise.stringMul(notional, calcTakerFeeRate);
-        Object maintenanceMargin = Precise.stringAdd(Precise.stringMul(maintenanceMarginPercentage, notional), feeToClose);
-        Object percentage = Precise.stringMul(Precise.stringDiv(unrealizedPnl, initialMargin, 4), "100");
+        String feeToClose = Precise.stringMul(notional, calcTakerFeeRate);
+        String maintenanceMargin = Precise.stringAdd(Precise.stringMul(maintenanceMarginPercentage, notional), feeToClose);
+        String percentage = Precise.stringMul(Precise.stringDiv(unrealizedPnl, initialMargin, 4), "100");
         final Object finalMarginMode = marginMode;
         final Object finalLiquidationPrice = liquidationPrice;
         final Object finalContracts = contracts;
@@ -11639,7 +11639,7 @@ final Object finalMinNotional = minNotional;
                 //
                 result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object entry = Helpers.GetValue(result, i);
@@ -12088,7 +12088,7 @@ final Object finalMinNotional = minNotional;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(contracts)); i++)
         {
             Object contract = Helpers.GetValue(contracts, i);
@@ -12164,7 +12164,7 @@ final Object finalMinNotional = minNotional;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String errorCode = this.safeString(data, "code");
-        Object status = ((Helpers.isTrue((Helpers.isEqual(errorCode, "00000"))))) ? "ok" : "failed";
+        String status = ((Helpers.isTrue((Helpers.isEqual(errorCode, "00000"))))) ? "ok" : "failed";
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
             put( "symbol", BitgetCore.this.safeString(market, "symbol") );
@@ -12304,8 +12304,8 @@ final Object finalMinNotional = minNotional;
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object isCrossMarginMode = Helpers.isEqual(this.safeString(leverage, "marginMode"), "crossed");
-        Object longLevKey = ((Helpers.isTrue(isCrossMarginMode))) ? "crossedMarginLeverage" : "isolatedLongLever";
-        Object shortLevKey = ((Helpers.isTrue(isCrossMarginMode))) ? "crossedMarginLeverage" : "isolatedShortLever";
+        String longLevKey = ((Helpers.isTrue(isCrossMarginMode))) ? "crossedMarginLeverage" : "isolatedLongLever";
+        String shortLevKey = ((Helpers.isTrue(isCrossMarginMode))) ? "crossedMarginLeverage" : "isolatedShortLever";
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", BitgetCore.this.safeString(market, "symbol") );
@@ -12476,7 +12476,7 @@ final Object finalMinNotional = minNotional;
             {
                 (this.loadMarkets()).join();
             }
-            Object posMode = ((Helpers.isTrue(hedged))) ? "hedge_mode" : "one_way_mode";
+            String posMode = ((Helpers.isTrue(hedged))) ? "hedge_mode" : "one_way_mode";
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -13359,7 +13359,7 @@ final Object finalMinNotional = minNotional;
         Object timestamp = this.safeInteger(liquidation, "liqEndTime");
         String liquidationFee = this.safeString2(liquidation, "LiqFee", "liqFee");
         String totalDebt = this.safeString(liquidation, "totalDebt");
-        Object quoteValueString = Precise.stringAdd(liquidationFee, totalDebt);
+        String quoteValueString = Precise.stringAdd(liquidationFee, totalDebt);
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", BitgetCore.this.safeSymbol(marketId, market) );
@@ -13799,7 +13799,7 @@ final Object finalMinNotional = minNotional;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
-        Object marginMode = ((Helpers.isTrue((!Helpers.isEqual(marketId, null))))) ? "isolated" : "cross";
+        String marginMode = ((Helpers.isTrue((!Helpers.isEqual(marketId, null))))) ? "isolated" : "cross";
         Object timestamp = this.safeInteger(info, "cTime");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
@@ -14592,7 +14592,7 @@ final Object finalMinNotional = minNotional;
         Object signed = Helpers.isEqual(Helpers.GetValue(api, 0), "private");
         Object endpoint = Helpers.GetValue(api, 1);
         Object pathPart = "/api";
-        Object request = Helpers.add("/", this.implodeParams(path, parameters));
+        String request = Helpers.add("/", this.implodeParams(path, parameters));
         Object payload = Helpers.add(pathPart, request);
         Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), endpoint)), payload);
         Object query = this.omit(parameters, this.extractParams(path));

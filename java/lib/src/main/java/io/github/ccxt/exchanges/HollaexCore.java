@@ -425,7 +425,7 @@ public class HollaexCore extends HollaexApi
             //
             Object pairs = this.safeDict(response, "pairs", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(pairs);
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -584,7 +584,7 @@ public class HollaexCore extends HollaexApi
         String code = (String) this.safeCurrencyCode(id);
         Object withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String rawType = this.safeString(rawCurrency, "type");
-        Object type = ((Helpers.isTrue((Helpers.isEqual(rawType, "blockchain"))))) ? "crypto" : "other";
+        String type = ((Helpers.isTrue((Helpers.isEqual(rawType, "blockchain"))))) ? "crypto" : "other";
         Object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new java.util.HashMap<String, Object>() {{}});
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object networkIds = Helpers.objectKeys(rawNetworks);

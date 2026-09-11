@@ -453,9 +453,9 @@ public class ZebpayCore extends ZebpayApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
-            Object defaultMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap"));
+            java.util.List<Object> defaultMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap"));
             Object types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(types)); i++)
             {
@@ -1177,7 +1177,7 @@ public class ZebpayCore extends ZebpayApi
             //         }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList(data));
+            java.util.List<Object> trades = new java.util.ArrayList<Object>(java.util.Arrays.asList(data));
             return this.parseTrades(trades);
         });
 
@@ -2064,7 +2064,7 @@ public class ZebpayCore extends ZebpayApi
             //        }
             //    }
             //
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object markets = this.safeList(data, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
@@ -2152,7 +2152,7 @@ public class ZebpayCore extends ZebpayApi
             //        }
             //    }
             //
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object markets = this.safeList(data, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
@@ -2399,9 +2399,9 @@ public class ZebpayCore extends ZebpayApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         parameters = this.omit(parameters, "defaultType");
         Object isV1 = Helpers.isGreaterThan(Helpers.getIndexOf(path, "v1/"), Helpers.opNeg(1));
-        Object marketType = ((Helpers.isTrue(isV1))) ? "swap" : "spot";
+        String marketType = ((Helpers.isTrue(isV1))) ? "swap" : "spot";
         Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), marketType);
-        Object tail = Helpers.add("/api/", this.implodeParams(path, parameters));
+        String tail = Helpers.add("/api/", this.implodeParams(path, parameters));
         url = Helpers.add(url, tail);
         Object timestamp = String.valueOf(this.milliseconds());
         Object signature = "";

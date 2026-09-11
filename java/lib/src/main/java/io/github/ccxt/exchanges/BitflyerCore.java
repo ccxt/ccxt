@@ -383,7 +383,7 @@ public class BitflyerCore extends BitflyerApi
             //
             Object markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
             markets = this.arrayConcat(markets, this.toArray(eu_markets));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -393,8 +393,8 @@ public class BitflyerCore extends BitflyerApi
                 Object swap = (Helpers.isEqual(marketType, "FX"));
                 Object future = (Helpers.isEqual(marketType, "Futures"));
                 Object spot = !Helpers.isTrue(swap) && !Helpers.isTrue(future);
-                Object type = "spot";
-                Object settle = null;
+                String type = "spot";
+                String settle = null;
                 Object baseId = null;
                 Object quoteId = null;
                 Object expiry = null;
@@ -1441,8 +1441,8 @@ public class BitflyerCore extends BitflyerApi
         Object amount = this.safeNumber(transaction, "amount");
         String txId = this.safeString(transaction, "tx_hash");
         String rawStatus = this.safeString(transaction, "status");
-        Object type = null;
-        Object status = null;
+        String type = null;
+        String status = null;
         Object fee = null;
         if (Helpers.isTrue(Helpers.inOp(transaction, "fee")))
         {

@@ -38,7 +38,7 @@ public class TestFetchTickers extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object argSymbols = argSymbols3;
         Object argParams = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object method = "fetchTickers";
+        String method = "fetchTickers";
         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{argSymbols, argParams})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
         Object values = Helpers.objectValues(response);

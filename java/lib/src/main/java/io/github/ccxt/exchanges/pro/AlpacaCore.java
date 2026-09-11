@@ -488,7 +488,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHash = "orders";
+            String messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Object market = this.market(symbol);
@@ -574,7 +574,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         Object orders = this.orders;
         Object order = this.parseOrder(rawOrder);
         Helpers.callDynamically(orders, "append", new Object[]{order});
-        Object messageHash = "orders";
+        String messageHash = "orders";
         client.resolve(orders, messageHash);
         messageHash = Helpers.add("orders:", Helpers.GetValue(order, "symbol"));
         client.resolve(orders, messageHash);
@@ -729,7 +729,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             Object url = url3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            Object messageHash = "authenticated";
+            String messageHash = "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);

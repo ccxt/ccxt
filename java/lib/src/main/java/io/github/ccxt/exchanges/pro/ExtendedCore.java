@@ -527,7 +527,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object stored = this.positions;
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object rawPositions = this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object first = this.safeDict(rawPositions, 0);
         if (Helpers.isTrue(Helpers.isEqual(first, null)))
         {

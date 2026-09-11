@@ -1021,8 +1021,8 @@ public class CoinspotCore extends CoinspotApi
             String audfeeExGst = this.safeString(trade, "audfeeExGst");
             String audGst = this.safeString(trade, "audGst");
             // The transaction fee which consumers pay is inclusive of GST by default
-            Object feeCost = Precise.stringAdd(audfeeExGst, audGst);
-            Object feeCurrencyId = "AUD";
+            String feeCost = Precise.stringAdd(audfeeExGst, audGst);
+            String feeCurrencyId = "AUD";
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", CoinspotCore.this.parseNumber(feeCost) );
                 put( "currency", CoinspotCore.this.safeCurrencyCode(feeCurrencyId) );
@@ -1182,8 +1182,8 @@ public class CoinspotCore extends CoinspotApi
         Object isVersionedApi = Helpers.isArray(api);
         Object version = ((Helpers.isTrue(isVersionedApi))) ? Helpers.GetValue(api, 0) : null;
         Object accessType = ((Helpers.isTrue(isVersionedApi))) ? Helpers.GetValue(api, 1) : api;
-        Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
-        Object fullPath = ((Helpers.isTrue((!Helpers.isEqual(version, null))))) ? Helpers.add(Helpers.add("/", version), endpoint) : endpoint;
+        String endpoint = Helpers.add("/", this.implodeParams(path, parameters));
+        String fullPath = ((Helpers.isTrue((!Helpers.isEqual(version, null))))) ? Helpers.add(Helpers.add("/", version), endpoint) : endpoint;
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), accessType), fullPath);
         if (Helpers.isTrue(Helpers.isEqual(accessType, "private")))
         {

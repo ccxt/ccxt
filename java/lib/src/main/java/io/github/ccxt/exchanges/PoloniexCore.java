@@ -889,8 +889,8 @@ public class PoloniexCore extends PoloniexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", PoloniexCore.this.safeString(PoloniexCore.this.timeframes, timeframe, timeframe) );
             }};
-            Object keyStart = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "startTime" : "sTime";
-            Object keyEnd = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "endTime" : "eTime";
+            String keyStart = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "startTime" : "sTime";
+            String keyEnd = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "endTime" : "eTime";
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, keyStart, since);
@@ -990,7 +990,7 @@ public class PoloniexCore extends PoloniexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
+            java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapMarkets(parameters)));
             Object results = (Helpers.promiseAll(promises)).join();
             return this.arrayConcat(Helpers.GetValue(results, 0), Helpers.GetValue(results, 1));
         });
@@ -1210,12 +1210,12 @@ public class PoloniexCore extends PoloniexApi
             symbol = Helpers.add(symbol, Helpers.add(":", base));
         }
         String alias = this.safeString(market, "alias");
-        Object type = "swap";
+        String type = "swap";
         if (Helpers.isTrue(!Helpers.isEqual(alias, null)))
         {
             type = "future";
         }
-        Object marketType = ((Helpers.isTrue((Helpers.isEqual(type, "future"))))) ? "future" : "swap";
+        String marketType = ((Helpers.isTrue((Helpers.isEqual(type, "future"))))) ? "future" : "swap";
         final Object finalSymbol = symbol;
         final Object finalBase = base;
         final Object finalType = type;
@@ -1352,7 +1352,7 @@ public class PoloniexCore extends PoloniexApi
             baseVolume = Precise.stringMul(baseVolume, this.numberToString(Helpers.GetValue(market, "contractSize")));
         }
         String relativeChange = this.safeString2(ticker, "dailyChange", "dc");
-        Object percentage = Precise.stringMul(relativeChange, "100");
+        String percentage = Precise.stringMul(relativeChange, "100");
         final Object finalMarket = market;
         final Object finalBaseVolume = baseVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -1889,8 +1889,8 @@ public class PoloniexCore extends PoloniexApi
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             Object isContract = this.inArray(marketType, new java.util.ArrayList<Object>(java.util.Arrays.asList("swap", "future")));
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object startKey = ((Helpers.isTrue(isContract))) ? "sTime" : "startTime";
-            Object endKey = ((Helpers.isTrue(isContract))) ? "eTime" : "endTime";
+            String startKey = ((Helpers.isTrue(isContract))) ? "sTime" : "startTime";
+            String endKey = ((Helpers.isTrue(isContract))) ? "eTime" : "endTime";
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, startKey, since);
@@ -2534,7 +2534,7 @@ public class PoloniexCore extends PoloniexApi
         {
             if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
             {
-                Object quoteAmount = null;
+                String quoteAmount = null;
                 Object createMarketBuyOrderRequiresPrice = true;
                 var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
@@ -2553,7 +2553,7 @@ public class PoloniexCore extends PoloniexApi
                     {
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
-                        Object costRequest = Precise.stringMul(amountString, priceString);
+                        String costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
                 } else
@@ -2571,14 +2571,14 @@ public class PoloniexCore extends PoloniexApi
         {
             Object amountKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "quantity" : "sz";
             Helpers.addElementToObject(request, amountKey, this.amountToPrecision(symbol, amount));
-            Object priceKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "price" : "px";
+            String priceKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "price" : "px";
             Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
         }
         String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId");
         if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
         {
             // the futures v3 api silently ignores the spot key and generates its own id
-            Object clientOrderIdKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "clientOrderId" : "clOrdId";
+            String clientOrderIdKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "clientOrderId" : "clOrdId";
             Helpers.addElementToObject(request, clientOrderIdKey, clientOrderId);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "clOrdId")));
         }
@@ -3195,8 +3195,8 @@ public class PoloniexCore extends PoloniexApi
             Object timestamp = this.safeInteger(response, "time");
             Object asks = this.safeValue(response, "asks");
             Object bids = this.safeValue(response, "bids");
-            Object asksResult = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object bidsResult = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> asksResult = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> bidsResult = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(asks)); i++)
             {
                 if (Helpers.isTrue(Helpers.isLessThan((Helpers.mod(i, 2)), 1)))
@@ -3902,7 +3902,7 @@ public class PoloniexCore extends PoloniexApi
         Object status = this.safeString(transaction, "status", "pending");
         status = ((String)this.parseTransactionStatus(status));
         String txid = this.safeString(transaction, "txid");
-        Object type = ((Helpers.isTrue((Helpers.inOp(transaction, "withdrawalRequestsId"))))) ? "withdrawal" : "deposit";
+        String type = ((Helpers.isTrue((Helpers.inOp(transaction, "withdrawalRequestsId"))))) ? "withdrawal" : "deposit";
         String id = this.safeString2(transaction, "withdrawalRequestsId", "depositNumber");
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "paymentID");
@@ -4167,7 +4167,7 @@ public class PoloniexCore extends PoloniexApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object mode = ((Helpers.isTrue(hedged))) ? "HEDGE" : "ONE_WAY";
+            String mode = ((Helpers.isTrue(hedged))) ? "HEDGE" : "ONE_WAY";
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "posMode", mode );
             }};
@@ -4283,10 +4283,10 @@ public class PoloniexCore extends PoloniexApi
         String marginMode = (String)this.safeStringLower(position, "mgnMode");
         String leverage = this.safeString(position, "lever");
         String initialMargin = this.safeString(position, "im");
-        Object notional = Precise.stringMul(leverage, initialMargin);
+        String notional = Precise.stringMul(leverage, initialMargin);
         String qty = this.safeString(position, "qty");
         String avgPrice = this.safeString(position, "openAvgPx");
-        Object collateral = Precise.stringMul(qty, avgPrice);
+        String collateral = Precise.stringMul(qty, avgPrice);
         // todo: some more fields
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
@@ -4373,7 +4373,7 @@ public class PoloniexCore extends PoloniexApi
         String marketId = this.safeString(data, "symbol");
         market = this.safeMarket(marketId, market);
         String rawType = this.safeString(data, "type");
-        Object type = ((Helpers.isTrue((Helpers.isEqual(rawType, "ADD"))))) ? "add" : "reduce";
+        String type = ((Helpers.isTrue((Helpers.isEqual(rawType, "ADD"))))) ? "add" : "reduce";
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );

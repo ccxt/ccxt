@@ -632,7 +632,7 @@ public class DydxCore extends DydxApi
         //     "defaultFundingRate1H": "0"
         // }
         //
-        Object quoteId = "USDC";
+        String quoteId = "USDC";
         String marketId = this.safeString(market, "ticker");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
@@ -643,7 +643,7 @@ public class DydxCore extends DydxApi
         String baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        Object settleId = "USDC";
+        String settleId = "USDC";
         String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Object contract = true;
@@ -1007,7 +1007,7 @@ public class DydxCore extends DydxApi
             //     ]
             // }
             //
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rows = this.safeList(response, "historicalFunding", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
@@ -1592,7 +1592,7 @@ public class DydxCore extends DydxApi
 
     public Object pow(Object n, Object m)
     {
-        Object r = Precise.stringMul(n, "1");
+        String r = Precise.stringMul(n, "1");
         Object c = this.parseToInt(m);
         // TODO: cap
         for (var i = 1; Helpers.isLessThan(i, c); i++)
@@ -1638,10 +1638,10 @@ public class DydxCore extends DydxApi
         Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
         Object atomicResolution = Helpers.GetValue(marketInfo, "atomicResolution");
         Object quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
-        Object quantums = Precise.stringMul(amountStr, quantumScale);
+        String quantums = Precise.stringMul(amountStr, quantumScale);
         Object quantumConversionExponent = Helpers.GetValue(marketInfo, "quantumConversionExponent");
         Object priceScale = this.pow("10", Precise.stringSub(Precise.stringSub(atomicResolution, quantumConversionExponent), "-6"));
-        Object subticks = Precise.stringMul(priceStr, priceScale);
+        String subticks = Precise.stringMul(priceStr, priceScale);
         Object clientMetadata = 0;
         Object conditionalType = 0;
         Object conditionalOrderTriggerSubticks = "0";
@@ -2186,7 +2186,7 @@ public class DydxCore extends DydxApi
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String type = (String)this.safeStringUpper(item, "type");
-        Object direction = null;
+        String direction = null;
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "TRANSFER_IN")) || Helpers.isTrue(Helpers.isEqual(type, "DEPOSIT"))))
@@ -2924,7 +2924,7 @@ public class DydxCore extends DydxApi
             // }
             //
             Object rows = this.safeList(response, "subaccounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object account = Helpers.GetValue(rows, i);

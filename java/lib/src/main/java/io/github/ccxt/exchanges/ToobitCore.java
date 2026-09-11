@@ -1173,7 +1173,7 @@ public class ToobitCore extends ToobitApi
             Object symbols = this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object contracts = this.safeList(response, "contracts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object all = this.arrayConcat(symbols, contracts);
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(all)); i++)
             {
                 Object market = Helpers.GetValue(all, i);
@@ -1427,7 +1427,7 @@ public class ToobitCore extends ToobitApi
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "q", "qty");
         Object isBuyer = this.safeBool(trade, "isBuyer");
-        Object side = null;
+        String side = null;
         Object isBuyerMaker = this.safeBool(trade, "ibm");
         if (Helpers.isTrue(Helpers.isEqual(isBuyerMaker, null)))
         {
@@ -1468,7 +1468,7 @@ public class ToobitCore extends ToobitApi
             }};
         }
         Object isMaker = this.safeBool(trade, "isMaker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
@@ -1797,7 +1797,7 @@ public class ToobitCore extends ToobitApi
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
         {
             Object parsedTicker = this.parseBidAskCustom(Helpers.GetValue(tickers, i));
@@ -2809,7 +2809,7 @@ public class ToobitCore extends ToobitApi
             {
                 response = (this.privateGetApiV1FuturesHistoryOrders(request)).join();
             }
-            Object ordersList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
@@ -3043,7 +3043,7 @@ public class ToobitCore extends ToobitApi
         Object after = this.safeNumber(item, "total");
         String amountRaw = this.safeString(item, "change", "");
         Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
-        Object direction = "in";
+        String direction = "in";
         if (Helpers.isTrue(((String)amountRaw).startsWith(((String)"-"))))
         {
             direction = "out";
@@ -3314,7 +3314,7 @@ public class ToobitCore extends ToobitApi
         String addressTo = this.safeString(transaction, "address");
         String addressFrom = this.safeString(transaction, "fromAddress");
         Object isWithdraw = (Helpers.inOp(transaction, "arriveQuantity"));
-        Object type = ((Helpers.isTrue(isWithdraw))) ? "withdrawal" : "deposit";
+        String type = ((Helpers.isTrue(isWithdraw))) ? "withdrawal" : "deposit";
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3607,7 +3607,7 @@ public class ToobitCore extends ToobitApi
         String marketId = this.safeString2(leverage, "symbolId", "symbol");
         Object leverageValue = this.safeInteger(leverage, "leverage");
         String marginType = (String)this.safeStringLower(leverage, "marginType");
-        Object marginMode = ((Helpers.isTrue((Helpers.isEqual(marginType, "cross"))))) ? "cross" : "isolated";
+        String marginMode = ((Helpers.isTrue((Helpers.isEqual(marginType, "cross"))))) ? "cross" : "isolated";
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", ToobitCore.this.safeSymbol(marketId, market) );

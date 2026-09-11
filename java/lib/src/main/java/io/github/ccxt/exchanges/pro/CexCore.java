@@ -174,7 +174,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object messageHash = "trades";
+            String messageHash = "trades";
             Object subscriptionHash = Helpers.add("old:", symbol);
             Client client = (Client)this.safeValue(this.clients, url);
             if (Helpers.isTrue(!Helpers.isEqual(client, null)))
@@ -294,7 +294,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object parsed = this.parseWsOldTrade(rawTrade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        Object messageHash = "trades";
+        String messageHash = "trades";
         Helpers.addElementToObject(this.trades, symbol, stored);
         client.resolve(Helpers.GetValue(this.trades, symbol), messageHash);
     }
@@ -328,7 +328,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                 put( "e", "subscribe" );
                 put( "rooms", new java.util.ArrayList<Object>(java.util.Arrays.asList("tickers")) );
             }});
-            Object subscriptionHash = "tickers";
+            String subscriptionHash = "tickers";
             if (Helpers.isTrue(Helpers.isEqual(method, "private")))
             {
                 (this.authenticate()).join();
@@ -367,7 +367,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             }
             symbols = this.marketSymbols(symbols);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object messageHash = "tickers";
+            String messageHash = "tickers";
             Object message = new java.util.HashMap<String, Object>() {{
                 put( "e", "subscribe" );
                 put( "rooms", new java.util.ArrayList<Object>(java.util.Arrays.asList("tickers")) );
@@ -964,7 +964,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object isTransaction = !Helpers.isEqual(this.safeValue(order, "d"), null);
         Object remainsPrecision = this.safeString(order, "remains");
-        Object remaining = null;
+        String remaining = null;
         if (Helpers.isTrue(!Helpers.isEqual(remainsPrecision, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(market, null)))
@@ -1005,7 +1005,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             timestamp = this.parse8601(time);
         }
         Object canceled = this.safeBool(order, "cancel", false);
-        Object status = "open";
+        String status = "open";
         if (Helpers.isTrue(Helpers.isEqual(canceled, true)))
         {
             status = "canceled";
@@ -1386,7 +1386,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object pair = this.safeString(data, "pair");
         Object symbol = this.pairToSymbol(pair);
         Object messageHash = Helpers.add("ohlcv:", symbol);
-        Object ohlcv = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(data, "time"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")));
+        java.util.List<Object> ohlcv = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(data, "time"), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")));
         Object stored = this.safeValue(this.ohlcvs, symbol);
         Helpers.callDynamically(stored, "append", new Object[]{ohlcv});
         client.resolve(stored, messageHash);
@@ -1411,7 +1411,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), "unknown");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object ohlcv = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(Helpers.GetValue(data, i), 0), this.safeNumber(Helpers.GetValue(data, i), 1), this.safeNumber(Helpers.GetValue(data, i), 2), this.safeNumber(Helpers.GetValue(data, i), 3), this.safeNumber(Helpers.GetValue(data, i), 4), this.safeNumber(Helpers.GetValue(data, i), 5)));
+            java.util.List<Object> ohlcv = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(Helpers.GetValue(data, i), 0), this.safeNumber(Helpers.GetValue(data, i), 1), this.safeNumber(Helpers.GetValue(data, i), 2), this.safeNumber(Helpers.GetValue(data, i), 3), this.safeNumber(Helpers.GetValue(data, i), 4), this.safeNumber(Helpers.GetValue(data, i), 5)));
             Helpers.callDynamically(stored, "append", new Object[]{ohlcv});
         }
         Object dataLength = Helpers.getArrayLength(data);
@@ -1841,7 +1841,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            Object messageHash = "authenticated";
+            String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))

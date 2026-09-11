@@ -373,7 +373,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             }};
         }
         Object isMaker = this.safeValue(trade, "isMaker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(isMaker, true)))
@@ -525,7 +525,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHash = "ACCOUNT_BALANCE";
+            String messageHash = "ACCOUNT_BALANCE";
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "ws"), "private"), "/"), "account-balance");
             this.authenticate(url);
             return (this.watch(url, messageHash, null, messageHash, null)).join();

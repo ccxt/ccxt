@@ -16,7 +16,7 @@ public class TestFetchOrderBooks extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchOrderBooks";
+        String method = "fetchOrderBooks";
         Object symbols = exchange.symbols;
         Assert(!Helpers.isEqual(symbols, null), Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " requires exchange.symbols to be loaded"));
         Object symbol = Helpers.GetValue(symbols, 0);

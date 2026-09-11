@@ -22,7 +22,7 @@ public class TestCurrency extends BaseTest {
             put( "code", "BTC" );
         }};
         // todo: remove fee from empty
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("name", "fee"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("name", "fee"));
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
         Object isNative = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), false)))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), "emulated")));
         Object currencyType = exchange.safeString(entry, "type");

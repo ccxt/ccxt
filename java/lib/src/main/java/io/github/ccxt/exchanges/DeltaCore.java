@@ -434,7 +434,7 @@ public class DeltaCore extends DeltaApi
     public Object createExpiredOptionMarket(Object symbol)
     {
         // support expired option contracts
-        Object quote = "USDT";
+        String quote = "USDT";
         Object optionParts = Helpers.split(symbol, "-");
         Object symbolBase = Helpers.split(symbol, "/");
         Object base = null;
@@ -455,11 +455,11 @@ public class DeltaCore extends DeltaApi
         {
             expiry = Helpers.add(Helpers.add(Helpers.slice(expiry, 4, null), Helpers.slice(expiry, 2, 4)), Helpers.slice(expiry, 0, 2));
         }
-        Object settle = quote;
+        String settle = quote;
         String strike = this.safeString(optionParts, 2);
         Object datetime = this.convertExpireDate(expiry);
         Long timestamp = this.parse8601(datetime);
-        Object optionTypeUnified = ((Helpers.isTrue((Helpers.isEqual(optionType, "C"))))) ? "call" : "put";
+        String optionTypeUnified = ((Helpers.isTrue((Helpers.isEqual(optionType, "C"))))) ? "call" : "put";
         final Object finalOptionType = optionType;
         final Object finalBase = base;
         final Object finalExpiry = expiry;
@@ -614,7 +614,7 @@ public class DeltaCore extends DeltaApi
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             String underMaintenance = this.safeString(result, "under_maintenance");
-            Object status = ((Helpers.isTrue((Helpers.isEqual(underMaintenance, "true"))))) ? "maintenance" : "ok";
+            String status = ((Helpers.isTrue((Helpers.isEqual(underMaintenance, "true"))))) ? "maintenance" : "ok";
             Object updated = this.safeIntegerProduct(result, "server_time", 0.001, this.milliseconds());
             return new java.util.HashMap<String, Object>() {{
                 put( "status", status );
@@ -998,7 +998,7 @@ public class DeltaCore extends DeltaApi
             //     }
             //
             Object markets = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -1041,7 +1041,7 @@ public class DeltaCore extends DeltaApi
                     amountPrecision = this.parseNumber("1");
                 }
                 Object linear = (Helpers.isEqual(settle, quote));
-                Object optionType = null;
+                String optionType = null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(swap) || Helpers.isTrue(future)) || Helpers.isTrue(option)))
                 {
@@ -1052,7 +1052,7 @@ public class DeltaCore extends DeltaApi
                         if (Helpers.isTrue(option))
                         {
                             type = "option";
-                            Object letter = "C";
+                            String letter = "C";
                             optionType = "call";
                             if (Helpers.isTrue(putOptions))
                             {
@@ -2103,7 +2103,7 @@ public class DeltaCore extends DeltaApi
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeIntegerProduct(position, "timestamp", 0.001);
         String sizeString = this.safeString(position, "size");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(sizeString, null)))
         {
             if (Helpers.isTrue(Precise.stringGt(sizeString, "0")))
@@ -2913,7 +2913,7 @@ public class DeltaCore extends DeltaApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(item, "uuid");
-        Object direction = null;
+        String direction = null;
         Object account = null;
         Object metaData = this.safeDict(item, "meta_data", new java.util.HashMap<String, Object>() {{}});
         String referenceId = this.safeString(metaData, "transaction_id");
@@ -2934,8 +2934,8 @@ public class DeltaCore extends DeltaApi
         String amount = this.safeString(item, "amount");
         Long timestamp = this.parse8601(this.safeString(item, "created_at"));
         String after = this.safeString(item, "balance");
-        Object before = Precise.stringMax("0", Precise.stringSub(after, amount));
-        Object status = "ok";
+        String before = Precise.stringMax("0", Precise.stringSub(after, amount));
+        String status = "ok";
         final Object finalDirection = direction;
         final Object finalType = type;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
@@ -3237,7 +3237,7 @@ public class DeltaCore extends DeltaApi
         Object timestamp = this.safeIntegerProduct(contract, "timestamp", 0.001);
         String marketId = this.safeString(contract, "symbol");
         String fundingRateString = this.safeString(contract, "funding_rate");
-        Object fundingRate = Precise.stringDiv(fundingRateString, "100");
+        String fundingRate = Precise.stringDiv(fundingRateString, "100");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", DeltaCore.this.safeSymbol(marketId, market) );
@@ -3806,7 +3806,7 @@ public class DeltaCore extends DeltaApi
 
     public Object parseSettlements(Object settlements, Object market)
     {
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
         {
             ((java.util.List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
@@ -4681,7 +4681,7 @@ public class DeltaCore extends DeltaApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object requestPath = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
+        String requestPath = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), requestPath);
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))
@@ -4703,7 +4703,7 @@ public class DeltaCore extends DeltaApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
-                    Object queryString = Helpers.add("?", this.urlencode(query));
+                    String queryString = Helpers.add("?", this.urlencode(query));
                     auth = Helpers.add(auth, queryString);
                     url = Helpers.add(url, queryString);
                 }

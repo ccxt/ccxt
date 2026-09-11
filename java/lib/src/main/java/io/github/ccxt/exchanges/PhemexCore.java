@@ -1362,7 +1362,7 @@ public class PhemexCore extends PhemexApi
             Object riskLimitsById = this.indexBy(riskLimits, "symbol");
             Object v1ProductsById = this.indexBy(v1ProductsData, "symbol");
             Object currenciesByCode = this.indexBy(currencies, "currency");
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(products)); i++)
             {
                 Object market = Helpers.GetValue(products, i);
@@ -1506,11 +1506,11 @@ public class PhemexCore extends PhemexApi
             put( "datetime", PhemexCore.this.iso8601(timestamp) );
             put( "nonce", null );
         }};
-        Object sides = new java.util.ArrayList<Object>(java.util.Arrays.asList(bidsKey, asksKey));
+        java.util.List<Object> sides = new java.util.ArrayList<Object>(java.util.Arrays.asList(bidsKey, asksKey));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sides)); i++)
         {
             Object side = Helpers.GetValue(sides, i);
-            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object bidasks = this.safeValue(orderbook, side);
             for (var k = 0; Helpers.isLessThan(k, Helpers.getArrayLength(bidasks)); k++)
             {
@@ -2300,7 +2300,7 @@ public class PhemexCore extends PhemexApi
         Object id = null;
         Object side = null;
         Object costString = null;
-        Object type = null;
+        String type = null;
         Object fee = null;
         Object feeCostString = null;
         Object feeRateString = null;
@@ -2309,7 +2309,7 @@ public class PhemexCore extends PhemexApi
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object orderId = null;
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isArray(trade)))
         {
             Object tradeLength = Helpers.getArrayLength(trade);
@@ -2490,7 +2490,7 @@ public class PhemexCore extends PhemexApi
             String total = this.fromEn(balanceEv, scale);
             String lockedTradingBalance = this.fromEn(lockedTradingBalanceEv, scale);
             String lockedWithdraw = this.fromEn(lockedWithdrawEv, scale);
-            Object used = Precise.stringAdd(lockedTradingBalance, lockedWithdraw);
+            String used = Precise.stringAdd(lockedTradingBalance, lockedWithdraw);
             Object lastUpdateTimeNs = this.safeIntegerProduct(balance, "lastUpdateTimeNs", 0.000001);
             timestamp = ((Helpers.isTrue((Helpers.isEqual(timestamp, null))))) ? lastUpdateTimeNs : Helpers.mathMax(timestamp, lastUpdateTimeNs);
             Helpers.addElementToObject(account, "total", total);
@@ -3251,7 +3251,7 @@ public class PhemexCore extends PhemexApi
                         {
                             Object amountString = this.numberToString(amount);
                             Object priceString = this.numberToString(price);
-                            Object quoteAmount = Precise.stringMul(amountString, priceString);
+                            String quoteAmount = Precise.stringMul(amountString, priceString);
                             cost = this.parseNumber(quoteAmount);
                         } else if (Helpers.isTrue(Helpers.isEqual(cost, null)))
                         {
@@ -4711,7 +4711,7 @@ public class PhemexCore extends PhemexApi
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object positions = this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object position = Helpers.GetValue(positions, i);
@@ -4893,9 +4893,9 @@ public class PhemexCore extends PhemexApi
         String collateral = this.safeString2(position, "positionMargin", "positionMarginRv");
         String notionalString = this.safeString2(position, "value", "valueRv");
         String maintenanceMarginPercentageString = this.safeString2(position, "maintMarginReq", "maintMarginReqRr");
-        Object maintenanceMarginString = Precise.stringMul(notionalString, maintenanceMarginPercentageString);
+        String maintenanceMarginString = Precise.stringMul(notionalString, maintenanceMarginPercentageString);
         String initialMarginString = this.safeString2(position, "assignedPosBalance", "assignedPosBalanceRv");
-        Object initialMarginPercentageString = Precise.stringDiv(initialMarginString, notionalString);
+        String initialMarginPercentageString = Precise.stringDiv(initialMarginString, notionalString);
         Object liquidationPrice = this.safeNumber2(position, "liquidationPrice", "liquidationPriceRp");
         String markPriceString = this.safeString2(position, "markPrice", "markPriceRp");
         String contracts = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("size", "sizeRq", "closedSizeRq")));
@@ -4904,7 +4904,7 @@ public class PhemexCore extends PhemexApi
         Object leverage = this.parseNumber(Precise.stringAbs((this.safeString2(position, "leverage", "leverageRr"))));
         String entryPriceString = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("avgEntryPrice", "avgEntryPriceRp", "openPrice")));
         String rawSide = this.safeString(position, "side");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(rawSide, null)))
         {
             Object isLong = (Helpers.isTrue(Helpers.isEqual(rawSide, "Buy")) || Helpers.isTrue(Helpers.isEqual(rawSide, "1")));
@@ -4914,7 +4914,7 @@ public class PhemexCore extends PhemexApi
         // Inverse short contract: unRealizedPnl =  (posSize *contractSize) / markPrice - (posSize * contractSize) / avgEntryPrice
         // Linear long contract:  unRealizedPnl = (posSize * contractSize) * markPrice - (posSize * contractSize) * avgEntryPrice
         // Linear short contract:  unRealizedPnl = (posSize * contractSize) * avgEntryPrice - (posSize * contractSize) * markPrice
-        Object priceDiff = null;
+        String priceDiff = null;
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
         {
             if (Helpers.isTrue(Helpers.isEqual(side, "long")))
@@ -4935,10 +4935,10 @@ public class PhemexCore extends PhemexApi
                 priceDiff = Precise.stringSub(Precise.stringDiv("1", markPriceString), Precise.stringDiv("1", entryPriceString));
             }
         }
-        Object unrealizedPnl = Precise.stringMul(Precise.stringMul(priceDiff, contracts), contractSizeString);
+        String unrealizedPnl = Precise.stringMul(Precise.stringMul(priceDiff, contracts), contractSizeString);
         // the unrealizedPnl is only available in a specific endpoint which much higher RL limits
         String apiUnrealizedPnl = this.safeString(position, "unRealisedPnlRv", unrealizedPnl);
-        Object marginRatio = Precise.stringDiv(maintenanceMarginString, collateral);
+        String marginRatio = Precise.stringDiv(maintenanceMarginString, collateral);
         Object isCross = this.safeValue(position, "crossMargin");
         Object timestamp = this.safeInteger(position, "openedTimeNs");
         Object lastUpdateTimestamp = this.safeInteger(position, "updatedTimeNs", this.safeIntegerProduct(position, "transactTimeNs", 0.000001));
@@ -5050,7 +5050,7 @@ public class PhemexCore extends PhemexApi
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object entry = Helpers.GetValue(rows, i);
@@ -5284,7 +5284,7 @@ public class PhemexCore extends PhemexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         market = this.safeMarket(null, market);
         Object inverse = this.safeValue(market, "inverse");
-        Object codeCurrency = ((Helpers.isTrue((Helpers.isEqual(inverse, true))))) ? "base" : "quote";
+        String codeCurrency = ((Helpers.isTrue((Helpers.isEqual(inverse, true))))) ? "base" : "quote";
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
@@ -5541,7 +5541,7 @@ public class PhemexCore extends PhemexApi
         String marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
         Object riskLimits = (Helpers.GetValue(Helpers.GetValue(market, "info"), "riskLimits"));
-        Object tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object minNotional = 0;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(riskLimits)); i++)
         {
@@ -5905,8 +5905,8 @@ final Object finalI = i;
         String currencyId = this.safeString(transfer, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object side = this.safeInteger(transfer, "side");
-        Object fromId = null;
-        Object toId = null;
+        String fromId = null;
+        String toId = null;
         if (Helpers.isTrue(Helpers.isEqual(side, 1)))
         {
             fromId = "swap";
@@ -5987,7 +5987,7 @@ final Object finalI = i;
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100)).join();
             }
-            Object customSymbol = null;
+            String customSymbol = null;
             if (Helpers.isTrue(isUsdtSettled))
             {
                 customSymbol = Helpers.add(Helpers.add(".", Helpers.GetValue(market, "id")), "FR8H"); // phemex requires a custom symbol for funding rate history
@@ -6036,7 +6036,7 @@ final Object finalI = i;
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object rates = this.safeValue(data, "rows");
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rates)); i++)
             {
                 Object item = Helpers.GetValue(rates, i);
@@ -6590,7 +6590,7 @@ final Object finalI = i;
             }
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object ranks = this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ranks)); i++)
             {
                 Object rank = Helpers.GetValue(ranks, i);

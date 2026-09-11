@@ -88,7 +88,7 @@ public class TestMarket extends BaseTest {
         Object isQuanto = Helpers.isTrue((!Helpers.isEqual(quanto, null))) && Helpers.isTrue(quanto);
         Object isInactiveMarket = Helpers.isEqual(Helpers.GetValue(market, "active"), false);
         //
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("margin"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("margin"));
         if (Helpers.isTrue(!Helpers.isEqual(contract, true)))
         {
             ((java.util.List<Object>)emptyAllowedFor).add("contractSize");
@@ -138,13 +138,13 @@ public class TestMarket extends BaseTest {
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "maker", "-100");
         TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "maker", "100");
         // validate type ('prediction' for prediction-market exchanges)
-        Object validTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
+        java.util.List<Object> validTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
-        Object validSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse", "quanto", null));
+        java.util.List<Object> validSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse", "quanto", null));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
-        Object checkedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
+        java.util.List<Object> checkedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedTypes)); i++)
         {
             Object type = Helpers.GetValue(checkedTypes, i);
@@ -156,7 +156,7 @@ public class TestMarket extends BaseTest {
         // check if 'subType' is consistent
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(swap, true))) || Helpers.isTrue((Helpers.isEqual(future, true)))))
         {
-            Object checkedSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
+            java.util.List<Object> checkedSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedSubTypes)); i++)
             {
                 Object subType = Helpers.GetValue(checkedSubTypes, i);

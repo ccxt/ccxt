@@ -474,8 +474,8 @@ public class Bit2cCore extends Bit2cApi
             // uncrosses the book. rows are positional price and amount pairs
             Object rawBids = this.safeList(orderbook, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawAsks = this.safeList(orderbook, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBids)); i++)
             {
                 Object bidRow = Helpers.GetValue(rawBids, i);
@@ -910,7 +910,7 @@ public class Bit2cCore extends Bit2cApi
         // 0 = New
         // 1 = Open
         // 5 = Completed
-        Object status = null;
+        String status = null;
         if (Helpers.isTrue(isNewOrder))
         {
             Object tempStatus = this.safeInteger(orderUnified, "status_type");
@@ -1137,7 +1137,7 @@ public class Bit2cCore extends Bit2cApi
         Object orderId = null;
         Object fee = null;
         Object side = null;
-        Object makerOrTaker = null;
+        String makerOrTaker = null;
         String reference = this.safeString(trade, "reference");
         if (Helpers.isTrue(!Helpers.isEqual(reference, null)))
         {

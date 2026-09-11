@@ -296,7 +296,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         Object amountKey = Helpers.getArg(optionalArgs, 1, "volume");
         Object thirdKey = Helpers.getArg(optionalArgs, 2, 2);
         bidasks = this.toArray(bidasks);
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidasks)); i++)
         {
             ((java.util.List<Object>)result).add(this.customParseBidAsk(Helpers.GetValue(bidasks, i), priceKey, amountKey, thirdKey));
@@ -311,7 +311,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         Object thirdKey = Helpers.getArg(optionalArgs, 2, 2);
         Object price = this.safeNumber(bidask, priceKey);
         Object amount = this.safeNumber(bidask, amountKey);
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount));
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount));
         if (Helpers.isTrue(!Helpers.isEqual(thirdKey, null)))
         {
             Object thirdValue = ((Object)this.safeString(bidask, thirdKey));
@@ -396,7 +396,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             return;
         }
         Object subscriptions = Helpers.objectValues(client.subscriptions);
-        Object handlers = new java.util.ArrayList<Object>(java.util.Arrays.asList("handleOrderBook", "handleTrades"));
+        java.util.List<Object> handlers = new java.util.ArrayList<Object>(java.util.Arrays.asList("handleOrderBook", "handleTrades"));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(handlers)); j++)
         {
             Object handler = Helpers.GetValue(handlers, j);

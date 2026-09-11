@@ -52,7 +52,7 @@ public class TestTicker extends BaseTest {
             put( "quoteVolume", exchange.parseNumber("1.234") );
         }};
         // todo: atm, many exchanges fail, so temporarily decrease stict mode
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "datetime", "open", "high", "low", "close", "last", "baseVolume", "quoteVolume", "previousClose", "bidVolume", "askVolume", "vwap", "change", "percentage", "average"));
         // trick csharp-transpiler for string
         if (!Helpers.isTrue((String.valueOf(method).contains("BidsAsks"))))
         {
@@ -137,12 +137,12 @@ public class TestTicker extends BaseTest {
             Object isInverse = exchange.safeBool(market, "inverse", false);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(baseVolume, null))) && Helpers.isTrue((!Helpers.isEqual(quoteVolume, null)))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue((!Helpers.isEqual(low, null)))) && Helpers.isTrue((!Helpers.isEqual(isInverse, true)))))
             {
-                Object baseLow = Precise.stringMul(baseVolume, low);
-                Object baseHigh = Precise.stringMul(baseVolume, high);
+                String baseLow = Precise.stringMul(baseVolume, low);
+                String baseHigh = Precise.stringMul(baseVolume, high);
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
                 Object mPrecision = exchange.safeDict(market, "precision");
                 Object amountPrecision = exchange.safeString(mPrecision, "amount");
-                Object tolerance = "1.0001";
+                String tolerance = "1.0001";
                 if (Helpers.isTrue(!Helpers.isEqual(amountPrecision, null)))
                 {
                     baseLow = Precise.stringMul(Precise.stringSub(baseVolume, amountPrecision), low);
@@ -216,12 +216,12 @@ public class TestTicker extends BaseTest {
             TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "ask", ((String)exchange.safeString(entry, "bid")));
         }
         // last price should be within 1% of the bid/ask median price, but let's check only targeted fetchTicker (where tests use major pair like BTC/USDT) to ensure the precision
-        Object allowedPercentageVariation = "0.01";
+        String allowedPercentageVariation = "0.01";
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isFetchTickerCalled) && Helpers.isTrue(!Helpers.isEqual(lastString, null))) && Helpers.isTrue(!Helpers.isEqual(bidString, null))) && Helpers.isTrue(!Helpers.isEqual(askString, null))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "lastBetweenBidAsk")))))
         {
-            Object medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
-            Object medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
-            Object medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
+            String medianPrice = Precise.stringDiv(Precise.stringAdd(bidString, askString), "2");
+            String medianLow = Precise.stringMul(medianPrice, Precise.stringSub("1", allowedPercentageVariation));
+            String medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
             Assert(Helpers.isTrue(Precise.stringGe(lastString, medianLow)) && Helpers.isTrue(Precise.stringLe(lastString, medianHigh)), Helpers.add("last price should be within 1% of the bid/ask median price", logText));
         }
         Object percentage = exchange.safeString(entry, "percentage");
@@ -238,7 +238,7 @@ public class TestTicker extends BaseTest {
             //
             // percentage
             //
-            Object maxIncrease = "1000"; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
+            String maxIncrease = "1000"; // if the increase is more than 1000x the implementation is probably wrong - the bound needs to stay above real meme-coin pumps, which routinely exceed the old 100x cap (e.g. a legitimate +50000% daily move observed on poloniex MAME/USDT)
             if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
             {
                 // - should be above -100 and (for non-options) below MAX

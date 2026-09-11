@@ -529,7 +529,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
                 account = Helpers.GetValue(this.balance, code);
             }
             Object second = this.safeString(parts, 1);
-            Object freeOrTotal = ((Helpers.isTrue((Helpers.isEqual(second, "available"))))) ? "free" : "total";
+            String freeOrTotal = ((Helpers.isTrue((Helpers.isEqual(second, "available"))))) ? "free" : "total";
             Helpers.addElementToObject(account, freeOrTotal, this.safeString(data, key));
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {

@@ -16,12 +16,12 @@ public class TestWatchTradesForSymbols extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "watchTradesForSymbols";
+        String method = "watchTradesForSymbols";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         Object maxIdleTime = 5000;
         Object idle = false;
-        Object returnedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> returnedSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         while (Helpers.isTrue((Helpers.isLessThan(now, ends))) && !Helpers.isTrue(idle))
         {
             Object response = null;

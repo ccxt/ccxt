@@ -16,7 +16,7 @@ public class TestWatchBalance extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "watchBalance";
+        String method = "watchBalance";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         while (Helpers.isLessThan(now, ends))

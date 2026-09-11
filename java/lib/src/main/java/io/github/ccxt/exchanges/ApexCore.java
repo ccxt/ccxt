@@ -422,7 +422,7 @@ public class ApexCore extends ApexApi
             put( "timestamp", timestamp );
             put( "datetime", ApexCore.this.iso8601(timestamp) );
         }};
-        Object code = "USDT";
+        String code = "USDT";
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(response, "availableBalance"));
         Helpers.addElementToObject(account, "total", this.safeString(response, "totalEquityValue"));
@@ -1320,7 +1320,7 @@ public class ApexCore extends ApexApi
             //     "totalSize": 11
             // }
             //
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object resultList = this.safeList(data, "historyFunds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
@@ -1784,8 +1784,8 @@ public class ApexCore extends ApexApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fromAccount, null)) && Helpers.isTrue(Helpers.isEqual(((String)fromAccount).toLowerCase(), "contract"))))
             {
-                Object formattedUint32 = "4294967295";
-                Object zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
+                String formattedUint32 = "4294967295";
+                String zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
                 Object expireTime = Helpers.add(timestampSeconds, Helpers.multiply(Helpers.multiply(3600, 24), 28));
                 Object orderToSign = new java.util.HashMap<String, Object>() {{
                     put( "zkAccountId", zkSignAccountId );
@@ -2266,7 +2266,7 @@ public class ApexCore extends ApexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
-        Object code = "USDT";
+        String code = "USDT";
         Object timestamp = this.safeInteger(income, "fundingTime");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
@@ -2308,7 +2308,7 @@ public class ApexCore extends ApexApi
             }
             Object market = this.market(symbol);
             Object leverageString = this.numberToString(leverage);
-            Object initialMarginRate = Precise.stringDiv("1", leverageString, 4);
+            String initialMarginRate = Precise.stringDiv("1", leverageString, 4);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "initialMarginRate", initialMarginRate );

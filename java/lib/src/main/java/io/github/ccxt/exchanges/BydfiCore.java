@@ -629,14 +629,14 @@ public class BydfiCore extends BydfiApi
         Object inverse = this.safeBool(market, "reverse");
         String limitMaxQty = this.safeString(market, "limitMaxQty");
         String marketMaxQty = this.safeString(market, "marketMaxQty");
-        Object maxAmountString = Precise.stringMax(limitMaxQty, marketMaxQty);
+        String maxAmountString = Precise.stringMax(limitMaxQty, marketMaxQty);
         String marketMinQty = this.safeString(market, "marketMinQty");
         String limitMinQty = this.safeString(market, "limitMinQty");
-        Object minAmountString = Precise.stringMin(marketMinQty, limitMinQty);
+        String minAmountString = Precise.stringMin(marketMinQty, limitMinQty);
         String contractSize = this.safeString(market, "contractFactor");
         Object pricePrecision = this.parsePrecision(this.safeString(market, "priceOrderPrecision"));
         Object rawAmountPrecision = this.parsePrecision(this.safeString(market, "volumePrecision"));
-        Object amountPrecision = Precise.stringDiv(rawAmountPrecision, contractSize);
+        String amountPrecision = Precise.stringDiv(rawAmountPrecision, contractSize);
         Object basePrecision = this.parsePrecision(this.safeString(market, "basePrecision"));
         Object taker = this.safeNumber(market, "feeRateTaker");
         Object maker = this.safeNumber(market, "feeRateMaker");
@@ -767,7 +767,7 @@ public class BydfiCore extends BydfiApi
 
     public Object getClosestLimit(Object limit)
     {
-        Object limits = new java.util.ArrayList<Object>(java.util.Arrays.asList(5, 10, 20, 50, 100, 500, 1000));
+        java.util.List<Object> limits = new java.util.ArrayList<Object>(java.util.Arrays.asList(5, 10, 20, 50, 100, 500, 1000));
         Object result = 1000;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(limits)); i++)
         {
@@ -1681,7 +1681,7 @@ public class BydfiCore extends BydfiApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " createOrders() accepts a maximum of 5 orders")) ;
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -1776,7 +1776,7 @@ public class BydfiCore extends BydfiApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " editOrders() accepts a maximum of 5 orders")) ;
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -3005,7 +3005,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object positionType = ((Helpers.isTrue(hedged))) ? "HEDGE" : "ONEWAY";
+            String positionType = ((Helpers.isTrue(hedged))) ? "HEDGE" : "ONEWAY";
             Object wallet = "W001";
             var walletparametersVariable = this.handleOptionAndParams(parameters, "setPositionMode", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
@@ -3495,7 +3495,7 @@ public class BydfiCore extends BydfiApi
             Object code = code3;
             Object limit = limit3;
             Object parameters = parameters3;
-            Object methodName = ((Helpers.isTrue((Helpers.isEqual(type, "deposit"))))) ? "fetchDeposits" : "fetchWithdrawals";
+            String methodName = ((Helpers.isTrue((Helpers.isEqual(type, "deposit"))))) ? "fetchDeposits" : "fetchWithdrawals";
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a code argument")) ;

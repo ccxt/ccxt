@@ -1109,7 +1109,7 @@ public class DeepcoinCore extends DeepcoinApi
 
     public Object getProductGroupFromMarket(Object market)
     {
-        Object productGroup = "Spot";
+        String productGroup = "Spot";
         if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "swap"), true)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "linear"), true)))
@@ -1717,8 +1717,8 @@ public class DeepcoinCore extends DeepcoinApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(item, "ts");
         String change = this.safeString(item, "balChg");
-        Object amount = Precise.stringAbs(change);
-        Object direction = ((Helpers.isTrue(Precise.stringLt(change, "0")))) ? "out" : "in";
+        String amount = Precise.stringAbs(change);
+        String direction = ((Helpers.isTrue(Precise.stringLt(change, "0")))) ? "out" : "in";
         String currencyId = this.safeString(item, "ccy");
         currency = this.safeCurrency(currencyId, currency);
         String type = this.safeString(item, "type");
@@ -2074,7 +2074,7 @@ public class DeepcoinCore extends DeepcoinApi
             mrgPosition = ((java.util.List<Object>) mrgPositionparametersVariable).get(0);
             parameters = ((java.util.List<Object>) mrgPositionparametersVariable).get(1);
             Helpers.addElementToObject(request, "mrgPosition", mrgPosition);
-            Object posSide = null;
+            String posSide = null;
             Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
             if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
@@ -2592,7 +2592,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object methodName = "fetchCanceledOrders";
+            String methodName = "fetchCanceledOrders";
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "methodName", methodName );
             }});
@@ -2625,7 +2625,7 @@ public class DeepcoinCore extends DeepcoinApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object methodName = "fetchClosedOrders";
+            String methodName = "fetchClosedOrders";
             parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "methodName", methodName );
             }});
@@ -3444,7 +3444,7 @@ public class DeepcoinCore extends DeepcoinApi
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchFundingRates", firstMarket, parameters, subType);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object instType = "SwapU";
+            String instType = "SwapU";
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 instType = "Swap";

@@ -16,7 +16,7 @@ public class TestWatchOHLCV extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "watchOHLCV";
+        String method = "watchOHLCV";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);

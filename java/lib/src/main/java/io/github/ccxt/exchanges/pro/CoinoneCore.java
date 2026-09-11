@@ -390,7 +390,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(symbol, market);
         Object isSellerMaker = this.safeValue(trade, "is_seller_maker");
-        Object side = null;
+        String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(isSellerMaker, null)))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(isSellerMaker, true))))) ? "sell" : "buy";

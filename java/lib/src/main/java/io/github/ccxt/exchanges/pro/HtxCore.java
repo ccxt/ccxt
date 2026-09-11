@@ -549,7 +549,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object allowedLimits = new java.util.ArrayList<Object>(java.util.Arrays.asList(5, 20, 150, 400));
+            java.util.List<Object> allowedLimits = new java.util.ArrayList<Object>(java.util.Arrays.asList(5, 20, 150, 400));
             // 2) 5-level/20-level incremental MBP is a tick by tick feed,
             // which means whenever there is an order book change at that level, it pushes an update;
             // 150-levels/400-level incremental MBP feed is based on the gap
@@ -1439,7 +1439,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 Object parsedTrade = this.parseOrderTrade(data, market);
                 // inject trade in existing order by faking an order object
                 Object orderId = this.safeString(parsedTrade, "order");
-                Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList(parsedTrade));
+                java.util.List<Object> trades = new java.util.ArrayList<Object>(java.util.Arrays.asList(parsedTrade));
                 Object status = this.parseOrderStatus(this.safeString2(data, "orderStatus", "status", "closed"));
                 Object filled = this.safeString(data, "execAmt");
                 Object remaining = this.safeString(data, "remainAmt");
@@ -1792,7 +1792,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             type = Helpers.GetValue(typeParts, 1);
         }
         Object aggressor = this.safeValue(trade, "aggressor");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(aggressor, null)))
         {
             takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(aggressor, true))))) ? "taker" : "maker";
@@ -1991,7 +1991,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         //
         Object url = client.url;
         Object topic = this.safeString(message, "topic", "");
-        Object defaultMarginMode = ((Helpers.isTrue((Helpers.isEqual(topic, "positions_cross"))))) ? "cross" : "isolated";
+        String defaultMarginMode = ((Helpers.isTrue((Helpers.isEqual(topic, "positions_cross"))))) ? "cross" : "isolated";
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
             this.positions = new java.util.HashMap<String, Object>() {{}};
@@ -2004,7 +2004,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object rawPositions = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(this.isEmpty(rawPositions)))
         {
-            Object prefixes = new java.util.ArrayList<Object>(java.util.Arrays.asList("cross:positions", "isolated:positions"));
+            java.util.List<Object> prefixes = new java.util.ArrayList<Object>(java.util.Arrays.asList("cross:positions", "isolated:positions"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(prefixes)); i++)
             {
                 Object messageHashes = this.findMessageHashes(client, Helpers.GetValue(prefixes, i));
@@ -2015,7 +2015,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             }
             return;
         }
-        Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object positionsByMarginMode = new java.util.HashMap<String, Object>() {{}};
         Object timestamp = this.safeInteger(message, "ts");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
@@ -3425,7 +3425,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " authenticate requires a url, hostname and type argument")) ;
             }
             this.checkRequiredCredentials();
-            Object messageHash = "auth";
+            String messageHash = "auth";
             Object relativePath = Helpers.replace((String)url, (String)Helpers.add("wss://", hostname), (String)"");
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);

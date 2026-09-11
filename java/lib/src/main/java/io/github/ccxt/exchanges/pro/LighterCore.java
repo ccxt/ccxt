@@ -638,7 +638,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object priceString = this.safeString(trade, "price");
         Object amountString = this.safeString(trade, "size");
         Object isMakerAsk = this.safeBool(trade, "is_maker_ask");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(isMakerAsk, true))))) ? "buy" : "sell";
+        String side = ((Helpers.isTrue((Helpers.isEqual(isMakerAsk, true))))) ? "buy" : "sell";
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", tradeId );
@@ -827,9 +827,9 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object accountIndex = this.safeInteger(trade, "accountIndex");
         Object bidAccountId = this.safeInteger(trade, "bid_account_id");
         Object askAccountId = this.safeInteger(trade, "ask_account_id");
-        Object side = null;
+        String side = null;
         Object order = null;
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(accountIndex, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(bidAccountId, accountIndex)))
@@ -854,8 +854,8 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         if (Helpers.isTrue(!Helpers.isEqual(takerOrMaker, null)))
         {
             Object feeRateRaw = ((Helpers.isTrue((Helpers.isEqual(takerOrMaker, "maker"))))) ? this.safeString(trade, "maker_fee") : this.safeString(trade, "taker_fee");
-            Object feeRate = ((Helpers.isTrue((!Helpers.isEqual(feeRateRaw, null))))) ? Precise.stringDiv(feeRateRaw, "1000000") : "0";
-            Object feeAmount = Precise.stringMul(costString, feeRate);
+            String feeRate = ((Helpers.isTrue((!Helpers.isEqual(feeRateRaw, null))))) ? Precise.stringDiv(feeRateRaw, "1000000") : "0";
+            String feeAmount = Precise.stringMul(costString, feeRate);
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", feeAmount );
                 put( "currency", "USDC" );
@@ -1080,12 +1080,12 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(liquidation, "timestamp");
         Object isMakerAsk = this.safeBool(liquidation, "is_maker_ask");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(isMakerAsk, true))))) ? "buy" : "sell";
+        String side = ((Helpers.isTrue((Helpers.isEqual(isMakerAsk, true))))) ? "buy" : "sell";
         Object contracts = this.safeString(liquidation, "size");
         Object contractSize = this.safeString(market, "contractSize");
         Object price = this.safeString(liquidation, "price");
-        Object baseValue = Precise.stringMul(contracts, contractSize);
-        Object quoteValue = Precise.stringMul(baseValue, price);
+        String baseValue = Precise.stringMul(contracts, contractSize);
+        String quoteValue = Precise.stringMul(baseValue, price);
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
             return null;
@@ -1300,7 +1300,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //    }
         //
         Object channel = this.safeString(message, "channel", "");
-        Object type = "spot";
+        String type = "spot";
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "user_stats:"), 0)))
         {
             type = "swap";

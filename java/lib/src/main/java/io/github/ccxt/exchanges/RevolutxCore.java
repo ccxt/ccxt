@@ -250,7 +250,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 body = this.json(query);
             }
-            Object requestPath = Helpers.add("/api/", implodedPath);
+            String requestPath = Helpers.add("/api/", implodedPath);
             Object bodyString = "";
             if (Helpers.isTrue(!Helpers.isEqual(body, null)))
             {
@@ -412,7 +412,7 @@ public class RevolutxCore extends RevolutxApi
             //
             Object markets = this.safeDict(response, "data", response);
             Object keys = Helpers.objectKeys(markets);
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -447,7 +447,7 @@ public class RevolutxCore extends RevolutxApi
         String status = this.safeString(currency, "status");
         Object active = (Helpers.isEqual(status, "active"));
         String assetType = this.safeString(currency, "asset_type");
-        Object type = ((Helpers.isTrue((Helpers.isEqual(assetType, "crypto"))))) ? "crypto" : "fiat";
+        String type = ((Helpers.isTrue((Helpers.isEqual(assetType, "crypto"))))) ? "crypto" : "fiat";
         Object precision = ((Helpers.isTrue((!Helpers.isEqual(scale, null))))) ? Helpers.mathPow(Double.parseDouble(Helpers.toString(10)), Double.parseDouble(Helpers.toString(Helpers.opNeg(scale)))) : null;
         return new java.util.HashMap<String, Object>() {{
             put( "info", currency );
@@ -551,7 +551,7 @@ public class RevolutxCore extends RevolutxApi
         String priceChange = this.safeString(ticker, "price_change_24h");
         String baseVolume = this.safeString(ticker, "volume_24h");
         Object timestamp = this.safeInteger(ticker, "timestamp");
-        Object open = null;
+        String open = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(last, null)) && Helpers.isTrue(!Helpers.isEqual(priceChange, null))))
         {
             open = Precise.stringSub(last, priceChange);
@@ -559,7 +559,7 @@ public class RevolutxCore extends RevolutxApi
         Object percentage = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(open, null)) && Helpers.isTrue(!Helpers.isEqual(priceChange, null))))
         {
-            Object percentageString = Precise.stringDiv(priceChange, open, 8);
+            String percentageString = Precise.stringDiv(priceChange, open, 8);
             percentage = this.parseNumber(Precise.stringMul(percentageString, "100"));
         }
         final Object finalOpen = open;
@@ -955,7 +955,7 @@ public class RevolutxCore extends RevolutxApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object trade = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
@@ -1414,7 +1414,7 @@ public class RevolutxCore extends RevolutxApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object order = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
@@ -1498,7 +1498,7 @@ public class RevolutxCore extends RevolutxApi
             }
             Object response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types")))))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object order = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
@@ -1557,7 +1557,7 @@ public class RevolutxCore extends RevolutxApi
         String side = (String)this.safeStringLower(trade, "s");
         Long timestamp = (Long) this.safeInteger2(trade, "tdt", "pdt");
         Object isMaker = this.safeBool(trade, "im", false);
-        Object takerOrMaker = ((Helpers.isTrue((isMaker)))) ? "maker" : "taker";
+        String takerOrMaker = ((Helpers.isTrue((isMaker)))) ? "maker" : "taker";
         Object cost = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(price, null)) && Helpers.isTrue(!Helpers.isEqual(amount, null))))
         {
@@ -1658,7 +1658,7 @@ public class RevolutxCore extends RevolutxApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object trade = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});

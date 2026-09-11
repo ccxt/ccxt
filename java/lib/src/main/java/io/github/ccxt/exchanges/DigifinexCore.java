@@ -791,7 +791,7 @@ public class DigifinexCore extends DigifinexApi
             var marginModequeryVariable = this.handleMarginModeAndParams("fetchMarketsV2", parameters);
             var marginMode = ((java.util.List<Object>) marginModequeryVariable).get(0);
             var query = ((java.util.List<Object>) marginModequeryVariable).get(1);
-            Object promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
             {
                 ((java.util.List<Object>)promisesRaw).add(this.publicSpotGetMarginSymbols(query));
@@ -858,7 +858,7 @@ public class DigifinexCore extends DigifinexApi
             Object spotData = this.safeValue(spotMarkets, "symbol_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object swapData = this.safeValue(swapMarkets, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object response = this.arrayConcat(spotData, swapData);
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 Object market = Helpers.GetValue(response, i);
@@ -880,7 +880,7 @@ public class DigifinexCore extends DigifinexApi
                 // const active = (status === 'TRADING');
                 //
                 Object isAllowed = this.safeInteger(market, "is_allow", 1);
-                Object type = ((Helpers.isTrue((Helpers.isEqual(defaultType, "margin"))))) ? "margin" : "spot";
+                String type = ((Helpers.isTrue((Helpers.isEqual(defaultType, "margin"))))) ? "margin" : "spot";
                 Object spot = Helpers.isEqual(settle, null);
                 Object swap = !Helpers.isTrue(spot);
                 Object margin = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? true : null;
@@ -984,7 +984,7 @@ public class DigifinexCore extends DigifinexApi
             //     }
             //
             Object markets = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -1180,7 +1180,7 @@ public class DigifinexCore extends DigifinexApi
             //         ]
             //     }
             //
-            Object balanceRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "data" : "list";
+            String balanceRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "data" : "list";
             Object balances = this.safeValue(response, balanceRequest, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseBalance(balances);
         });
@@ -1534,7 +1534,7 @@ public class DigifinexCore extends DigifinexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object indexPrice = this.safeNumber(ticker, "index_price");
-        Object marketType = ((Helpers.isTrue((!Helpers.isEqual(indexPrice, null))))) ? "contract" : "spot";
+        String marketType = ((Helpers.isTrue((!Helpers.isEqual(indexPrice, null))))) ? "contract" : "spot";
         String marketId = (String)this.safeStringUpper2(ticker, "symbol", "instrument_id");
         String symbol = (String) this.safeSymbol(marketId, market, null, marketType);
         market = this.safeMarket(marketId, market, null, marketType);
@@ -1643,7 +1643,7 @@ public class DigifinexCore extends DigifinexApi
         Object timestamp = this.safeTimestamp2(trade, "date", "timestamp");
         String side = this.safeString2(trade, "type", "side");
         Object type = null;
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")))
         {
             timestamp = this.safeInteger(trade, "trade_time");
@@ -1784,7 +1784,7 @@ public class DigifinexCore extends DigifinexApi
             //     }
             //
             Object code = this.safeInteger(response, "code");
-            Object status = ((Helpers.isTrue((Helpers.isEqual(code, 0))))) ? "ok" : "maintenance";
+            String status = ((Helpers.isTrue((Helpers.isEqual(code, 0))))) ? "ok" : "maintenance";
             return new java.util.HashMap<String, Object>() {{
                 put( "status", status );
                 put( "updated", null );
@@ -2129,7 +2129,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object symbol = null;
             Object marginMode = null;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
@@ -2211,7 +2211,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 data = this.safeValue(response, "order_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -2269,7 +2269,7 @@ public class DigifinexCore extends DigifinexApi
         Object swap = (Helpers.isEqual(marketType, "swap"));
         Object isMarketOrder = (Helpers.isEqual(type, "market"));
         Object isLimitOrder = (Helpers.isEqual(type, "limit"));
-        Object marketIdRequest = ((Helpers.isTrue(swap))) ? "instrument_id" : "symbol";
+        String marketIdRequest = ((Helpers.isTrue(swap))) ? "instrument_id" : "symbol";
         Helpers.addElementToObject(request, marketIdRequest, Helpers.GetValue(market, "id"));
         Object postOnly = this.isPostOnly(isMarketOrder, false, parameters);
         Object postOnlyParsed = null;
@@ -2315,7 +2315,7 @@ public class DigifinexCore extends DigifinexApi
         {
             postOnlyParsed = ((Helpers.isTrue((Helpers.isEqual(postOnly, true))))) ? 1 : 2;
             Helpers.addElementToObject(request, "market", marketType);
-            Object suffix = "";
+            String suffix = "";
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 suffix = "_market";
@@ -2516,7 +2516,7 @@ public class DigifinexCore extends DigifinexApi
     {
         Object success = this.safeList(response, "success", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object error = this.safeList(response, "error", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(success)); i++)
         {
             Object order = Helpers.GetValue(success, i);
@@ -2665,7 +2665,7 @@ public class DigifinexCore extends DigifinexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = null;
         Object lastTradeTimestamp = null;
-        Object timeInForce = null;
+        String timeInForce = null;
         Object type = null;
         Object side = this.safeString(order, "type");
         String marketId = this.safeString2(order, "symbol", "instrument_id");
@@ -2814,7 +2814,7 @@ public class DigifinexCore extends DigifinexApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
-                Object marketIdRequest = ((Helpers.isTrue(swap))) ? "instrument_id" : "symbol";
+                String marketIdRequest = ((Helpers.isTrue(swap))) ? "instrument_id" : "symbol";
                 Helpers.addElementToObject(request, marketIdRequest, Helpers.GetValue(market, "id"));
             }
             Object response = null;
@@ -2943,7 +2943,7 @@ public class DigifinexCore extends DigifinexApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
-                Object marketIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "instrument_id" : "symbol";
+                String marketIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "instrument_id" : "symbol";
                 Helpers.addElementToObject(request, marketIdRequest, Helpers.GetValue(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -3195,7 +3195,7 @@ public class DigifinexCore extends DigifinexApi
                     Helpers.addElementToObject(request, "start_time", this.parseToInt(Helpers.divide(since, 1000))); // default 3 days from now, max 30 days
                 }
             }
-            Object marketIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "instrument_id" : "symbol";
+            String marketIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "instrument_id" : "symbol";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 Helpers.addElementToObject(request, marketIdRequest, this.safeString(market, "id"));
@@ -3264,7 +3264,7 @@ public class DigifinexCore extends DigifinexApi
             //         ]
             //     }
             //
-            Object responseRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "data" : "list";
+            String responseRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "data" : "list";
             Object data = this.safeList(response, responseRequest, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         });
@@ -3378,7 +3378,7 @@ public class DigifinexCore extends DigifinexApi
                     Helpers.addElementToObject(request, "start_time", this.parseToInt(Helpers.divide(since, 1000))); // default 3 days from now, max 30 days
                 }
             }
-            Object currencyIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "currency" : "currency_mark";
+            String currencyIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "currency" : "currency_mark";
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -3760,8 +3760,8 @@ public class DigifinexCore extends DigifinexApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object fromAccount = null;
-        Object toAccount = null;
+        String fromAccount = null;
+        String toAccount = null;
         Object data = this.safeDict(transfer, "data", transfer);
         Object type = this.safeInteger(data, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, 1)))
@@ -3983,8 +3983,8 @@ public class DigifinexCore extends DigifinexApi
         String marketId = this.safeString(info, "symbol");
         String amountString = this.safeString(info, "amount");
         String leverageString = this.safeString(info, "leverage_ratio");
-        Object amountInvested = Precise.stringDiv(amountString, leverageString);
-        Object amountBorrowed = Precise.stringSub(amountString, amountInvested);
+        String amountInvested = Precise.stringDiv(amountString, leverageString);
+        String amountBorrowed = Precise.stringSub(amountString, amountInvested);
         Object currency = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "base");
         String symbol = (String) this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
@@ -4227,7 +4227,7 @@ public class DigifinexCore extends DigifinexApi
         Object nextTimestamp = this.safeInteger(contract, "next_funding_time");
         String fundingTimeString = this.safeString(contract, "funding_time");
         String nextFundingTimeString = this.safeString(contract, "next_funding_time");
-        Object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
+        String millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", DigifinexCore.this.safeSymbol(marketId, market) );
@@ -4324,7 +4324,7 @@ public class DigifinexCore extends DigifinexApi
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object result = this.safeList(data, "funding_rates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object entry = Helpers.GetValue(result, i);
@@ -4465,7 +4465,7 @@ public class DigifinexCore extends DigifinexApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
-                Object marketIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "instrument_id" : "symbol";
+                String marketIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "instrument_id" : "symbol";
                 Helpers.addElementToObject(request, marketIdRequest, Helpers.GetValue(market, "id"));
             }
             Object response = null;
@@ -4532,9 +4532,9 @@ public class DigifinexCore extends DigifinexApi
             //         "unrealized_pnl": "-0.10681600018999979"
             //     }
             //
-            Object positionRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "data" : "positions";
+            String positionRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "data" : "positions";
             Object positions = this.safeList(response, positionRequest, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(positions, i), market));
@@ -4577,7 +4577,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 marketType = "margin";
             }
-            Object marketIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "instrument_id" : "symbol";
+            String marketIdRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "instrument_id" : "symbol";
             Helpers.addElementToObject(request, marketIdRequest, Helpers.GetValue(market, "id"));
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marketType, "spot")) || Helpers.isTrue(Helpers.isEqual(marketType, "margin"))))
@@ -4641,7 +4641,7 @@ public class DigifinexCore extends DigifinexApi
             //         "unrealized_pnl": "-0.10681600018999979"
             //     }
             //
-            Object dataRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "data" : "positions";
+            String dataRequest = ((Helpers.isTrue((Helpers.isEqual(marketType, "swap"))))) ? "data" : "positions";
             Object data = this.safeList(response, dataRequest, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object position = this.parsePosition(Helpers.GetValue(data, 0), market);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
@@ -5026,7 +5026,7 @@ public class DigifinexCore extends DigifinexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object brackets = this.safeValue(info, "open_max_limits", new java.util.HashMap<String, Object>() {{}});
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(brackets)); i++)
         {
@@ -5302,7 +5302,7 @@ final Object finalI = i;
             //     }
             //
             Object code = this.safeInteger(response, "code");
-            Object status = ((Helpers.isTrue((Helpers.isEqual(code, 0))))) ? "ok" : "failed";
+            String status = ((Helpers.isTrue((Helpers.isEqual(code, 0))))) ? "ok" : "failed";
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.extend(this.parseMarginModification(data, market), new java.util.HashMap<String, Object>() {{
                 put( "status", status );
@@ -5478,7 +5478,7 @@ final Object finalI = i;
         Object signed = Helpers.isEqual(Helpers.GetValue(api, 0), "private");
         Object endpoint = Helpers.GetValue(api, 1);
         Object pathPart = ((Helpers.isTrue((Helpers.isEqual(endpoint, "spot"))))) ? "/v3" : "/swap/v2";
-        Object request = Helpers.add("/", this.implodeParams(path, parameters));
+        String request = Helpers.add("/", this.implodeParams(path, parameters));
         Object payload = Helpers.add(pathPart, request);
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), payload);
         Object query = this.omit(parameters, this.extractParams(path));
@@ -5571,7 +5571,7 @@ final Object finalI = i;
         {
             throw new BadResponse((String)feedback) ;
         }
-        Object unknownError = new java.util.ArrayList<Object>(java.util.Arrays.asList(ExchangeError.class, feedback));
+        java.util.List<Object> unknownError = new java.util.ArrayList<Object>(java.util.Arrays.asList(ExchangeError.class, feedback));
         var ExceptionClassmessageVariable = this.safeValue(Helpers.GetValue(this.exceptions, "exact"), code, unknownError);
         var ExceptionClass = ((java.util.List<Object>) ExceptionClassmessageVariable).get(0);
         var message = ((java.util.List<Object>) ExceptionClassmessageVariable).get(1);

@@ -880,8 +880,8 @@ public class OnetradingCore extends OnetradingApi
     public Object parseFeeTiers(Object feeTiers, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object takerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object makerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> takerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> makerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeTiers)); i++)
         {
             Object tier = Helpers.GetValue(feeTiers, i);
@@ -1672,7 +1672,7 @@ public class OnetradingCore extends OnetradingApi
             }
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_id")));
-            Object method = "privateDeleteAccountOrdersOrderId";
+            String method = "privateDeleteAccountOrdersOrderId";
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {

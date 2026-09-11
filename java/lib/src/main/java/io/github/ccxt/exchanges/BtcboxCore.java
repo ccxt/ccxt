@@ -282,7 +282,7 @@ public class BtcboxCore extends BtcboxApi
             //
             Object result2Data = this.safeDict(response2, "data", new java.util.HashMap<String, Object>() {{}});
             Object marketIds = Helpers.objectKeys(response1);
-            Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -795,7 +795,7 @@ public class BtcboxCore extends BtcboxApi
         String remaining = this.safeString(order, "amount_outstanding");
         String price = this.safeString(order, "price");
         // status is set by fetchOrder method only
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
         // fetchOrders do not return status, use heuristic
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
         {

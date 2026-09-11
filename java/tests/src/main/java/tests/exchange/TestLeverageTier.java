@@ -21,7 +21,7 @@ public class TestLeverageTier extends BaseTest {
             put( "maxLeverage", exchange.parseNumber("25") );
             put( "info", new java.util.HashMap<String, Object>() {{}} );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("maintenanceMarginRate"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("maintenanceMarginRate"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         //
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "tier", "0");

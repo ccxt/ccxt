@@ -1198,7 +1198,7 @@ public class BitstampCore extends BitstampApi
             //             "isin": "EZHKD4DNKHY3"
             //         }
             //
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 Object market = Helpers.GetValue(response, i);
@@ -1210,8 +1210,8 @@ public class BitstampCore extends BitstampApi
                 Object settleId = null;
                 String marketTypeRaw = this.safeString(market, "market_type");
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                Object type = null;
-                Object subType = null;
+                String type = null;
+                String subType = null;
                 if (Helpers.isTrue(Helpers.isEqual(marketTypeRaw, "SPOT")))
                 {
                     type = "spot";
@@ -1294,7 +1294,7 @@ public class BitstampCore extends BitstampApi
 
     public Object constructCurrencyObject(Object id, Object code, Object name, Object precision, Object minCost, Object originalPayload)
     {
-        Object currencyType = "crypto";
+        String currencyType = "crypto";
         Object description = this.describe();
         if (Helpers.isTrue(this.isFiat(code)))
         {
@@ -1536,7 +1536,7 @@ public class BitstampCore extends BitstampApi
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
-        Object quoteVolume = Precise.stringMul(baseVolume, vwap);
+        String quoteVolume = Precise.stringMul(baseVolume, vwap);
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -2999,12 +2999,12 @@ public class BitstampCore extends BitstampApi
             // withdrawals have a negative amount
             amount = Precise.stringAbs(amount);
         }
-        Object status = "ok";
+        String status = "ok";
         if (Helpers.isTrue(Helpers.inOp(transaction, "status")))
         {
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         }
-        Object type = null;
+        String type = null;
         if (Helpers.isTrue(Helpers.inOp(transaction, "type")))
         {
             // from fetchDepositsWithdrawals
@@ -3723,8 +3723,8 @@ public class BitstampCore extends BitstampApi
             Object xAuth = Helpers.add("BITSTAMP ", this.apiKey);
             Object xAuthNonce = this.uuid();
             Object xAuthTimestamp = String.valueOf(this.milliseconds());
-            Object xAuthVersion = "v2";
-            Object contentType = "";
+            String xAuthVersion = "v2";
+            String contentType = "";
             final Object finalXAuth = xAuth;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "X-Auth", finalXAuth );

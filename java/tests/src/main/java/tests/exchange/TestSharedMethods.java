@@ -433,7 +433,7 @@ public class TestSharedMethods extends BaseTest {
                 Object nextTs = Helpers.GetValue(Helpers.GetValue(items, i), "timestamp");
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(currentTs, null)) && Helpers.isTrue(!Helpers.isEqual(nextTs, null))))
                 {
-                    Object ascendingOrDescending = ((Helpers.isTrue(ascending))) ? "ascending" : "descending";
+                    String ascendingOrDescending = ((Helpers.isTrue(ascending))) ? "ascending" : "descending";
                     Object comparison = ((Helpers.isTrue(ascending))) ? (Helpers.isLessThanOrEqual(currentTs, nextTs)) : (Helpers.isGreaterThanOrEqual(currentTs, nextTs));
                     Assert(comparison, Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), stringValue(codeOrSymbol)), " must return a "), ascendingOrDescending), " sorted array of items by timestamp, but "), String.valueOf(currentTs)), " is opposite with its next "), String.valueOf(nextTs)), " "), exchange.json(items)));
                 }
@@ -470,7 +470,7 @@ public class TestSharedMethods extends BaseTest {
             // TICK_SIZE should be above zero
             AssertGreater(exchange, skippedProperties, method, entry, key, "0");
             // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw new RuntimeException(e)rror
-            Object decimalNumbers = new java.util.ArrayList<Object>(java.util.Arrays.asList("2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"));
+            java.util.List<Object> decimalNumbers = new java.util.ArrayList<Object>(java.util.Arrays.asList("2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"));
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(key, "amount")) && Helpers.isTrue(Helpers.inOp(skippedProperties, "precisionAmountAbnormal"))))
             {
                 return;
@@ -498,7 +498,7 @@ public class TestSharedMethods extends BaseTest {
         // find out best bid/ask price
         Object bestBid = null;
         Object bestAsk = null;
-        Object usedMethod = null;
+        String usedMethod = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchOrderBook"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchOrderBook"), false)))))
         {
             usedMethod = "fetchOrderBook";
@@ -546,7 +546,7 @@ public class TestSharedMethods extends BaseTest {
         // set 'since' to 5 minute ago for optimal results
         Object sinceTime = Helpers.subtract(exchange.milliseconds(), Helpers.multiply(Helpers.multiply(1000, 60), 5));
         // iterate
-        Object methods_singular = new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"));
+        java.util.List<Object> methods_singular = new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methods_singular)); i++)
         {
             Object singularFetchName = Helpers.GetValue(methods_singular, i);
@@ -565,7 +565,7 @@ public class TestSharedMethods extends BaseTest {
         // search through plural methods
         if (Helpers.isTrue(Helpers.isEqual(fetchedOrder, null)))
         {
-            Object methods_plural = new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"));
+            java.util.List<Object> methods_plural = new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methods_plural)); i++)
             {
                 Object pluralFetchName = Helpers.GetValue(methods_plural, i);
@@ -598,7 +598,7 @@ public class TestSharedMethods extends BaseTest {
     {
         // note, `strictCheck` is `true` only from "fetchOrder" cases
         Object logText = logTemplate(exchange, method, order);
-        Object msg = Helpers.add(Helpers.add(Helpers.add("order should be ", AssertedStatus), ", but it was not Asserted"), logText);
+        String msg = Helpers.add(Helpers.add(Helpers.add("order should be ", AssertedStatus), ", but it was not Asserted"), logText);
         Object filled = exchange.safeString(order, "filled");
         Object amount = exchange.safeString(order, "amount");
         // shorthand variables
@@ -710,7 +710,7 @@ public class TestSharedMethods extends BaseTest {
             return a;
         } else
         {
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(a)); i++)
             {
                 ((java.util.List<Object>)result).add(Helpers.GetValue(a, i));
@@ -734,7 +734,7 @@ public class TestSharedMethods extends BaseTest {
             Object responseLength = Helpers.getArrayLength(response);
             isEmptyArrayResponse = (Helpers.isEqual(responseLength, 0));
         }
-        Object hintText = "";
+        String hintText = "";
         if (Helpers.isTrue(!Helpers.isEqual(hint, null)))
         {
             hintText = Helpers.add(" ", hint);

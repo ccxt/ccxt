@@ -844,7 +844,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             //         }
             //     ]
             //
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rawMarkets = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
             {
@@ -1217,7 +1217,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             //
             Object result = new java.util.HashMap<String, Object>() {{}};
             Object marketIds = Helpers.objectKeys(response);
-            Object delimiter = "-";
+            String delimiter = "-";
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -1321,7 +1321,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         String marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market, "-");
         Object feeRate = null;
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         Object cost = null;
         String feeCurrencyId = (String)this.safeStringLower(market, "quoteId");
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrencyId, null)))
@@ -1344,7 +1344,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             put( "rate", finalFeeRate );
         }};
         String id = this.safeString(trade, "trade_id");
-        Object side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "side"), "buy"))))) ? "sell" : "buy";
+        String side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, "side"), "buy"))))) ? "sell" : "buy";
         String orderId = this.safeString(trade, "order_id");
         // Coinbase Pro returns inverted side to fetchMyTrades vs fetchTrades
         String makerOrderId = this.safeString(trade, "maker_order_id");
@@ -1702,7 +1702,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Long timestamp = this.parse8601(this.safeString(order, "created_at"));
         String marketId = this.safeString(order, "product_id");
         market = this.safeMarket(marketId, market, "-");
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
         String doneReason = this.safeString(order, "done_reason");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(status, "closed"))) && Helpers.isTrue((Helpers.isEqual(doneReason, "canceled")))))
         {
@@ -2257,9 +2257,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(item, "id");
         String amountString = this.safeString(item, "amount");
-        Object direction = null;
+        String direction = null;
         String afterString = this.safeString(item, "balance");
-        Object beforeString = Precise.stringSub(afterString, amountString);
+        String beforeString = Precise.stringSub(afterString, amountString);
         if (Helpers.isTrue(Precise.stringLt(amountString, "0")))
         {
             direction = "out";
@@ -2287,7 +2287,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         {
             referenceId = this.safeString(details, "order_id");
         }
-        Object status = "ok";
+        String status = "ok";
         final Object finalDirection = direction;
         final Object finalAccount = account;
         final Object finalReferenceAccount = referenceAccount;

@@ -16,7 +16,7 @@ public class TestWatchOrderBook extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "watchOrderBook";
+        String method = "watchOrderBook";
         // `watchOrderBook` only resolves when the exchange pushes an update, and a
         // pending subscription can not be cancelled from here, so every extra
         // iteration risks blocking until the test-runner kills the whole exchange.

@@ -828,9 +828,9 @@ public class WhitebitCore extends WhitebitApi
             type = "spot";
         }
         String takerFeeRate = this.safeString(market, "takerFee");
-        Object taker = Precise.stringDiv(takerFeeRate, "100");
+        String taker = Precise.stringDiv(takerFeeRate, "100");
         String makerFeeRate = this.safeString(market, "makerFee");
-        Object maker = Precise.stringDiv(makerFeeRate, "100");
+        String maker = Precise.stringDiv(makerFeeRate, "100");
         Object isSpot = !Helpers.isTrue(swap);
         final Object finalSymbol = symbol;
         final Object finalBase = base;
@@ -2333,7 +2333,7 @@ public class WhitebitCore extends WhitebitApi
         String side = this.safeString2(trade, "type", "side");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object role = this.safeInteger(trade, "role");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(role, null)))
         {
             takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(role, 1))))) ? "maker" : "taker";
@@ -2889,7 +2889,7 @@ public class WhitebitCore extends WhitebitApi
             var typeparametersVariable = this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            Object requestType = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> requestType = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 Object isMargin = null;
@@ -3355,7 +3355,7 @@ public class WhitebitCore extends WhitebitApi
         Object lastTradeTimestamp = this.safeTimestamp(order, "ftime");
         Object postOnly = this.safeBool(order, "postOnly");
         Object ioc = this.safeBool(order, "ioc");
-        Object timeInForce = null;
+        String timeInForce = null;
         if (Helpers.isTrue(Helpers.isEqual(ioc, true)))
         {
             timeInForce = "IOC";
@@ -3798,7 +3798,7 @@ public class WhitebitCore extends WhitebitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object accounts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> accounts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object response = (this.v4PrivatePostSubAccountList(parameters)).join();
             //
             //     {
@@ -4617,7 +4617,7 @@ public class WhitebitCore extends WhitebitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(contracts)); i++)
         {
             Object contract = Helpers.GetValue(contracts, i);
@@ -5308,7 +5308,7 @@ public class WhitebitCore extends WhitebitApi
             headers = new java.util.HashMap<String, Object>() {{}};
         }
         Helpers.addElementToObject(headers, "User-Agent", Helpers.add(Helpers.add(Helpers.add("ccxt/", this.id), "-"), this.version));
-        Object pathWithParams = Helpers.add("/", this.implodeParams(path, parameters));
+        String pathWithParams = Helpers.add("/", this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), version), accessibility), pathWithParams);
         if (Helpers.isTrue(Helpers.isEqual(accessibility, "public")))
         {
@@ -5322,7 +5322,7 @@ public class WhitebitCore extends WhitebitApi
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             Object secret = this.encode(this.secret);
-            Object request = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/", "api"), "/"), version), pathWithParams);
+            String request = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/", "api"), "/"), version), pathWithParams);
             var nonceWindowrequestParamsVariable = this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
             var nonceWindow = ((java.util.List<Object>) nonceWindowrequestParamsVariable).get(0);
             var requestParams = ((java.util.List<Object>) nonceWindowrequestParamsVariable).get(1);

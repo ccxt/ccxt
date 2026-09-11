@@ -33,7 +33,7 @@ public class TestDepositWithdrawal extends BaseTest {
             put( "updated", 1502962946233L );
             put( "fee", new java.util.HashMap<String, Object>() {{}} );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "addressTo", "addressFrom", "tag", "tagTo", "tagFrom")); // below we still do Assertion for to/from
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "addressTo", "addressFrom", "tag", "tagTo", "tagFrom")); // below we still do Assertion for to/from
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "currency"), requestedCode);

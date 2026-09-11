@@ -1048,7 +1048,7 @@ public class CryptocomCore extends CryptocomApi
             //
             Object resultResponse = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(resultResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object market = Helpers.GetValue(data, i);
@@ -1070,7 +1070,7 @@ public class CryptocomCore extends CryptocomApi
                 Object expiryString = this.omitZero(this.safeString(market, "expiry_timestamp_ms"));
                 Object expiry = ((Helpers.isTrue((!Helpers.isEqual(expiryString, null))))) ? Helpers.parseInt(expiryString) : null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                Object type = null;
+                String type = null;
                 Object contract = null;
                 if (Helpers.isTrue(Helpers.isEqual(inst_type, "CCY_PAIR")))
                 {
@@ -1089,7 +1089,7 @@ public class CryptocomCore extends CryptocomApi
                 } else if (Helpers.isTrue(Helpers.isEqual(inst_type, "WARRANT")))
                 {
                     type = "option";
-                    Object symbolOptionType = ((Helpers.isTrue((Helpers.isEqual(optionType, "call"))))) ? "C" : "P";
+                    String symbolOptionType = ((Helpers.isTrue((Helpers.isEqual(optionType, "call"))))) ? "C" : "P";
                     symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(symbol, ":"), quote), "-"), this.yymmdd(expiry)), "-"), strike), "-"), symbolOptionType);
                     contract = true;
                 }
@@ -1963,7 +1963,7 @@ public class CryptocomCore extends CryptocomApi
             {
                 (this.loadMarkets()).join();
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -2028,7 +2028,7 @@ public class CryptocomCore extends CryptocomApi
             if (Helpers.isTrue(!Helpers.isEqual(listId, null)))
             {
                 final Object finalListId = listId;
-                Object ocoOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
+                java.util.List<Object> ocoOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "order_id", finalListId );
     }}));
                 return this.parseOrders(ocoOrders);
@@ -2167,7 +2167,7 @@ public class CryptocomCore extends CryptocomApi
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, "buy"))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uppercaseType, "MARKET"))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "STOP_LOSS")))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "TAKE_PROFIT")))))))
         {
             // use createmarketBuy logic here
-            Object quoteAmount = null;
+            String quoteAmount = null;
             Object createMarketBuyOrderRequiresPrice = true;
             var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
             createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
@@ -2186,7 +2186,7 @@ public class CryptocomCore extends CryptocomApi
                 {
                     Object amountString = this.numberToString(amount);
                     Object priceString = this.numberToString(price);
-                    Object costRequest = Precise.stringMul(amountString, priceString);
+                    String costRequest = Precise.stringMul(amountString, priceString);
                     quoteAmount = this.costToPrecision(symbol, costRequest);
                 }
             } else
@@ -2375,7 +2375,7 @@ public class CryptocomCore extends CryptocomApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object orderRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orderRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -2415,7 +2415,7 @@ public class CryptocomCore extends CryptocomApi
             {
                 (this.loadMarkets()).join();
             }
-            Object orderRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orderRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
@@ -3301,9 +3301,9 @@ public class CryptocomCore extends CryptocomApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object type = null;
+        String type = null;
         String rawStatus = this.safeString(transaction, "status");
-        Object status = null;
+        String status = null;
         if (Helpers.isTrue(Helpers.inOp(transaction, "client_wid")))
         {
             type = "withdrawal";
@@ -3592,7 +3592,7 @@ public class CryptocomCore extends CryptocomApi
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String amount = this.safeString(item, "transaction_qty");
-        Object direction = null;
+        String direction = null;
         if (Helpers.isTrue(Precise.stringLt(amount, "0")))
         {
             direction = "out";
@@ -3850,7 +3850,7 @@ public class CryptocomCore extends CryptocomApi
         //         }
         //     ]
         //
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
         {
             ((java.util.List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
@@ -4032,7 +4032,7 @@ public class CryptocomCore extends CryptocomApi
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String marketId = this.safeString(result, "instrument_name");
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -4170,7 +4170,7 @@ public class CryptocomCore extends CryptocomApi
             //
             Object responseResult = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object positions = this.safeList(responseResult, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object entry = Helpers.GetValue(positions, i);
@@ -4444,8 +4444,8 @@ public class CryptocomCore extends CryptocomApi
             Object symbol = Helpers.GetValue(this.symbols, i);
             Object market = this.market(symbol);
             Object isSwap = Helpers.GetValue(market, "swap");
-            Object takerFeeKey = ((Helpers.isTrue((Helpers.isEqual(isSwap, true))))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
-            Object makerFeeKey = ((Helpers.isTrue((Helpers.isEqual(isSwap, true))))) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
+            String takerFeeKey = ((Helpers.isTrue((Helpers.isEqual(isSwap, true))))) ? "effective_deriv_taker_rate_bps" : "effective_spot_taker_rate_bps";
+            String makerFeeKey = ((Helpers.isTrue((Helpers.isEqual(isSwap, true))))) ? "effective_deriv_maker_rate_bps" : "effective_spot_maker_rate_bps";
             Object tradingFee = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", symbol );
@@ -4524,8 +4524,8 @@ public class CryptocomCore extends CryptocomApi
             // the code below checks and replaces those brackets in empty requests
             if (Helpers.isTrue(Helpers.isEqual(paramsKeysLength, 0)))
             {
-                Object paramsString = "{}";
-                Object arrayString = "[]";
+                String paramsString = "{}";
+                String arrayString = "[]";
                 body = Helpers.replace((String)body, (String)arrayString, (String)paramsString);
             }
             headers = new java.util.HashMap<String, Object>() {{

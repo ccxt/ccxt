@@ -623,7 +623,7 @@ public class LunoCore extends LunoApi
             //         ]
             //     }
             //
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object markets = this.safeList(response, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
@@ -638,12 +638,12 @@ public class LunoCore extends LunoApi
                 // rates below are read from Luno's own Help Centre fee article for the ZAR
                 // market; markets quoted in other fiat currencies are left on the
                 // exchange-wide default until their schedules are verified the same way.
-                Object fiats = new java.util.ArrayList<Object>(java.util.Arrays.asList("ZAR"));
+                java.util.List<Object> fiats = new java.util.ArrayList<Object>(java.util.Arrays.asList("ZAR"));
                 // live-but-unverified counters, kept on the exchange-wide default; the market
                 // list is geo-filtered so this is a superset of any one region's view, and
                 // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
-                Object unverifiedQuotes = new java.util.ArrayList<Object>(java.util.Arrays.asList("MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"));
-                Object stablecoins = new java.util.ArrayList<Object>(java.util.Arrays.asList("USDT", "USDC"));
+                java.util.List<Object> unverifiedQuotes = new java.util.ArrayList<Object>(java.util.Arrays.asList("MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"));
+                java.util.List<Object> stablecoins = new java.util.ArrayList<Object>(java.util.Arrays.asList("USDT", "USDC"));
                 Object taker = null;
                 Object maker = null;
                 if (Helpers.isTrue(this.inArray(quote, fiats)))
@@ -741,7 +741,7 @@ public class LunoCore extends LunoApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object response = (this.privateGetBalance(parameters)).join();
             Object wallets = this.safeList(response, "balance", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(wallets)); i++)
             {
                 Object account = Helpers.GetValue(wallets, i);
@@ -776,8 +776,8 @@ public class LunoCore extends LunoApi
             String reserved = this.safeString(wallet, "reserved");
             String unconfirmed = this.safeString(wallet, "unconfirmed");
             String balance = this.safeString(wallet, "balance");
-            Object reservedUnconfirmed = Precise.stringAdd(reserved, unconfirmed);
-            Object balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
+            String reservedUnconfirmed = Precise.stringAdd(reserved, unconfirmed);
+            String balanceUnconfirmed = Precise.stringAdd(balance, unconfirmed);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(result, code)))))
             {
                 Helpers.addElementToObject(Helpers.GetValue(result, code), "used", Precise.stringAdd(Helpers.GetValue(Helpers.GetValue(result, code), "used"), reservedUnconfirmed));
@@ -898,7 +898,7 @@ public class LunoCore extends LunoApi
         Object timestamp = this.safeInteger(order, "creation_timestamp");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         status = ((Helpers.isTrue((Helpers.isEqual(status, "open"))))) ? status : status;
-        Object side = null;
+        String side = null;
         String orderType = this.safeString(order, "type");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(orderType, "ASK"))) || Helpers.isTrue((Helpers.isEqual(orderType, "SELL")))))
         {
@@ -1253,8 +1253,8 @@ public class LunoCore extends LunoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String orderId = this.safeString(trade, "order_id");
         String id = this.safeString(trade, "sequence");
-        Object takerOrMaker = null;
-        Object side = null;
+        String takerOrMaker = null;
+        String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderId, null)))
         {
             String type = this.safeString(trade, "type");
@@ -1829,12 +1829,12 @@ public class LunoCore extends LunoApi
         String after = this.safeString(entry, "balance");
         String comment = this.safeString(entry, "description");
         Object before = after;
-        Object amount = "0.0";
+        String amount = "0.0";
         Object result = this.parseLedgerComment(comment);
         Object type = Helpers.GetValue(result, "type");
         Object referenceId = Helpers.GetValue(result, "referenceId");
-        Object direction = null;
-        Object status = null;
+        String direction = null;
+        String status = null;
         if (!Helpers.isTrue(Precise.stringEquals(balance_delta, "0.0")))
         {
             before = Precise.stringSub(after, balance_delta);

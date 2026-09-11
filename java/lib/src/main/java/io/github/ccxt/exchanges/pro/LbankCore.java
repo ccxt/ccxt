@@ -651,7 +651,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             }
             Object key = (this.authenticate(parameters)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object messageHash = null;
+            String messageHash = null;
             Object pair = "all";
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
@@ -766,7 +766,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         Object typeParts = Helpers.split(rawType, "_");
         Object side = this.safeString(typeParts, 0);
         Object exchangeType = this.safeString(typeParts, 1);
-        Object type = null;
+        String type = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(rawType, "buy")) && Helpers.isTrue(!Helpers.isEqual(rawType, "sell"))))
         {
             type = ((Helpers.isTrue((Helpers.isEqual(exchangeType, "market"))))) ? "market" : "limit";
@@ -840,7 +840,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             }
             Object key = (this.authenticate(parameters)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object messageHash = "balance";
+            String messageHash = "balance";
             Object message = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "subscribe", "assetUpdate" );
@@ -1139,7 +1139,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
             Object now = this.milliseconds();
-            Object messageHash = "authenticateFlight";
+            String messageHash = "authenticateFlight";
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
             {
                 // a flight is already in progress - wake when the leader settles

@@ -771,7 +771,7 @@ public class BitrueCore extends BitrueApi
             //
             Object keys = Helpers.objectKeys(response);
             Object keysLength = Helpers.getArrayLength(keys);
-            Object formattedStatus = ((Helpers.isTrue((Helpers.isGreaterThan(keysLength, 0))))) ? "maintenance" : "ok";
+            String formattedStatus = ((Helpers.isTrue((Helpers.isGreaterThan(keysLength, 0))))) ? "maintenance" : "ok";
             return new java.util.HashMap<String, Object>() {{
                 put( "status", formattedStatus );
                 put( "updated", null );
@@ -945,9 +945,9 @@ public class BitrueCore extends BitrueApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object types = null;
-            Object defaultTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse"));
+            java.util.List<Object> defaultTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse"));
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOptions, null)))
             {
@@ -1059,7 +1059,7 @@ public class BitrueCore extends BitrueApi
         String id = this.safeString(market, "symbol", "");
         String lowercaseId = (String)this.safeStringLower(market, "symbol");
         Object side = this.safeInteger(market, "side"); // 1 linear, 0 inverse, undefined spot
-        Object type = "spot";
+        String type = "spot";
         Object isLinear = null;
         Object isInverse = null;
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
@@ -1963,7 +1963,7 @@ public class BitrueCore extends BitrueApi
         String symbol = (String) this.safeSymbol(marketId, market);
         String orderId = this.safeString(trade, "orderId");
         String id = this.safeString2(trade, "id", "tradeId");
-        Object side = null;
+        String side = null;
         Object buyerMaker = this.safeBool(trade, "isBuyerMaker"); // ignore "m" until Bitrue fixes api
         Object isBuyer = this.safeBool(trade, "isBuyer");
         if (Helpers.isTrue(!Helpers.isEqual(buyerMaker, null)))
@@ -1982,7 +1982,7 @@ public class BitrueCore extends BitrueApi
                 put( "currency", BitrueCore.this.safeCurrencyCode(BitrueCore.this.safeString(trade, "commissionAssert")) );
             }};
         }
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         Object isMaker = this.safeBool(trade, "isMaker");
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
@@ -2329,7 +2329,7 @@ public class BitrueCore extends BitrueApi
                     {
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
-                        Object quoteAmount = Precise.stringMul(amountString, priceString);
+                        String quoteAmount = Precise.stringMul(amountString, priceString);
                         Object requestAmount = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                         Helpers.addElementToObject(request, "amount", this.costToPrecision(symbol, requestAmount));
                         Helpers.addElementToObject(request, "volume", this.costToPrecision(symbol, requestAmount));
@@ -3220,7 +3220,7 @@ public class BitrueCore extends BitrueApi
         Object updated = this.safeInteger(transaction, "updatedAt");
         Object payAmount = (Helpers.inOp(transaction, "payAmount"));
         Object ctime = (Helpers.inOp(transaction, "ctime"));
-        Object type = ((Helpers.isTrue((Helpers.isTrue(payAmount) || Helpers.isTrue(ctime))))) ? "withdrawal" : "deposit";
+        String type = ((Helpers.isTrue((Helpers.isTrue(payAmount) || Helpers.isTrue(ctime))))) ? "withdrawal" : "deposit";
         Object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         Object amount = this.safeNumber(transaction, "amount");
         Object network = null;

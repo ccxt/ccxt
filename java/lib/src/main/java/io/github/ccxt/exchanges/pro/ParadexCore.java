@@ -67,7 +67,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            Object messageHash = "authenticated";
+            String messageHash = "authenticated";
             Object future = client.reusableFuture("authenticated");
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
@@ -321,7 +321,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object channel = "markets_summary";
+            String channel = "markets_summary";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalChannel = channel;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -358,7 +358,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object channel = "markets_summary";
+            String channel = "markets_summary";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalChannel = channel;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -368,7 +368,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                     put( "channel", finalChannel );
                 }} );
             }};
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbols, null)) && Helpers.isTrue(Helpers.isArray(symbols))))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -487,7 +487,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Helpers.callDynamically(this.orders, "append", new Object[]{parsed});
-        Object messageHash = "orders";
+        String messageHash = "orders";
         client.resolve(this.orders, messageHash);
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
@@ -556,7 +556,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object channel = "funding_data";
+            String channel = "funding_data";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalChannel = channel;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -593,7 +593,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object channel = "funding_data";
+            String channel = "funding_data";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalChannel = channel;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -603,7 +603,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                     put( "channel", finalChannel );
                 }} );
             }};
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object symbolsLength = Helpers.getArrayLength(symbols);

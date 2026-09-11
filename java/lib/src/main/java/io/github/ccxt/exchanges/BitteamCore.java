@@ -1417,7 +1417,7 @@ public class BitteamCore extends BitteamApi
             //     }
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList(result));
+            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList(result));
             return this.parseOrders(orders, market);
         });
 
@@ -1661,7 +1661,7 @@ public class BitteamCore extends BitteamApi
             //         ...
             //     ]
             //
-            Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rawTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
@@ -2724,7 +2724,7 @@ public class BitteamCore extends BitteamApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object request = this.omit(parameters, this.extractParams(path));
-        Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
+        String endpoint = Helpers.add("/", this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), endpoint);
         Object query = this.urlencode(request);
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
@@ -2739,7 +2739,7 @@ public class BitteamCore extends BitteamApi
             }
             Object auth = Helpers.add(Helpers.add(this.apiKey, ":"), this.secret);
             Object auth64 = this.stringToBase64(auth);
-            Object signature = Helpers.add("Basic ", auth64);
+            String signature = Helpers.add("Basic ", auth64);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Authorization", signature );
                 put( "Content-Type", "application/json" );

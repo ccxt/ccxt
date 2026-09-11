@@ -1069,7 +1069,7 @@ public class CryptomusCore extends CryptomusApi
             //     }
             //
             Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object order = Helpers.GetValue(result, i);
@@ -1377,8 +1377,8 @@ public class CryptomusCore extends CryptomusApi
     public Object parseFeeTiers(Object feeTiers, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object takerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object makerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> takerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> makerFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeTiers)); i++)
         {
             Object tier = Helpers.GetValue(feeTiers, i);

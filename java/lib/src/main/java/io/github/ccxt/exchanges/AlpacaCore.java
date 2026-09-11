@@ -1293,7 +1293,7 @@ public class AlpacaCore extends AlpacaApi
             //         }
             //     }
             //
-            Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object snapshots = this.safeDict(response, "snapshots", new java.util.HashMap<String, Object>() {{}});
             Object marketIds = Helpers.objectKeys(snapshots);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
@@ -2282,7 +2282,7 @@ public class AlpacaCore extends AlpacaApi
                 //         }
                 //     ]
                 //
-                Object filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 Object ledger = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 if (Helpers.isTrue(Helpers.isArray(activities)))
                 {
@@ -2294,7 +2294,7 @@ public class AlpacaCore extends AlpacaApi
                     String activityType = this.safeString(entry, "activity_type");
                     String amount = this.safeString(entry, "net_amount");
                     Object isIncoming = Helpers.isTrue((Helpers.isEqual(activityType, "CSD"))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(activityType, "TRANS"))) && !Helpers.isTrue(Precise.stringLt(amount, "0"))));
-                    Object entryDirection = ((Helpers.isTrue(isIncoming))) ? "INCOMING" : "OUTGOING";
+                    String entryDirection = ((Helpers.isTrue(isIncoming))) ? "INCOMING" : "OUTGOING";
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "BOTH"))) || Helpers.isTrue((Helpers.isEqual(entryDirection, type)))))
                     {
                         ((java.util.List<Object>)filtered).add(entry);
@@ -2320,7 +2320,7 @@ public class AlpacaCore extends AlpacaApi
             //         "fees": "0.1"
             //     }
             //
-            Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object transfers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
@@ -2458,10 +2458,10 @@ public class AlpacaCore extends AlpacaApi
         Object address = null;
         Object addressTo = null;
         Object addressFrom = null;
-        Object type = null;
+        String type = null;
         Object amount = null;
         Object code = null;
-        Object status = null;
+        String status = null;
         Object comment = null;
         Object intern = null;
         Object fee = null;
@@ -2506,7 +2506,7 @@ public class AlpacaCore extends AlpacaApi
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
             String fees = this.safeString(transaction, "fees");
             String networkFee = this.safeString(transaction, "network_fee");
-            Object totalFee = Precise.stringAdd(fees, networkFee);
+            String totalFee = Precise.stringAdd(fees, networkFee);
             final Object finalCode = code;
             fee = new java.util.HashMap<String, Object>() {{
                 put( "cost", AlpacaCore.this.parseNumber(totalFee) );

@@ -29,7 +29,7 @@ public class TestWatchBidsAsks extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object argSymbols = argSymbols3;
         Object argParams = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object method = "watchBidsAsks";
+        String method = "watchBidsAsks";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         Object maxIdleTime = 5000;

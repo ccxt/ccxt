@@ -860,7 +860,7 @@ public class BitmexCore extends BitmexApi
         Object currency = this.currency(code);
         String precision = this.safeString(currency, "precision");
         Object amountString = this.numberToString(amount);
-        Object finalAmount = Precise.stringDiv(amountString, precision);
+        String finalAmount = Precise.stringDiv(amountString, precision);
         return this.parseNumber(finalAmount);
     }
 
@@ -1125,7 +1125,7 @@ public class BitmexCore extends BitmexApi
         // 'positionCurrency' may be empty ("", as Bitmex currently returns for ETHUSD)
         // so let's take the settlCurrency first and then adjust if needed
         String typ = this.safeString(market, "typ"); // type definitions at: https://www.bitmex.com/api/explorer/#!/Instrument/Instrument_get
-        Object type = null;
+        String type = null;
         Object swap = false;
         Object spot = false;
         Object future = false;
@@ -1156,7 +1156,7 @@ public class BitmexCore extends BitmexApi
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         Object contract = Helpers.isTrue(swap) || Helpers.isTrue(future);
-        Object contractSize = null;
+        String contractSize = null;
         Object isInverse = this.safeValue(market, "isInverse"); // this is true when BASE and SETTLE are same, i.e. BTC/XXX:BTC
         Object isQuanto = this.safeValue(market, "isQuanto"); // this is true when BASE and SETTLE are different, i.e. AXS/XXX:BTC
         Object linear = ((Helpers.isTrue(contract))) ? (Helpers.isTrue((!Helpers.isEqual(isInverse, true))) && Helpers.isTrue((!Helpers.isEqual(isQuanto, true)))) : null;
@@ -1461,7 +1461,7 @@ public class BitmexCore extends BitmexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
-                Object side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(order, "side"), "Sell"))))) ? "asks" : "bids";
+                String side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(order, "side"), "Sell"))))) ? "asks" : "bids";
                 Object amount = this.convertFromRawQuantity(symbol, this.safeString(order, "size"));
                 Object price = this.safeNumber(order, "price");
                 // https://github.com/ccxt/ccxt/issues/4926
@@ -1852,7 +1852,7 @@ public class BitmexCore extends BitmexApi
             after = this.convertToRealAmount(code, after);
         }
         Object before = this.parseNumber(Precise.stringSub(this.numberToString(after), this.numberToString(amount)));
-        Object direction = null;
+        String direction = null;
         if (Helpers.isTrue(Precise.stringLt(amountString, "0")))
         {
             direction = "out";
@@ -2056,7 +2056,7 @@ public class BitmexCore extends BitmexApi
             addressFrom = this.safeString(transaction, "tx");
         }
         String amountString = this.safeString(transaction, "amount");
-        Object amountStringAbs = Precise.stringAbs(amountString);
+        String amountStringAbs = Precise.stringAbs(amountString);
         Object amount = this.convertToRealAmount(Helpers.GetValue(currency, "code"), amountStringAbs);
         String feeCostString = this.safeString(transaction, "fee");
         Object feeCost = this.convertToRealAmount(Helpers.GetValue(currency, "code"), feeCostString);
@@ -2427,7 +2427,7 @@ public class BitmexCore extends BitmexApi
         }
         // Trade or Funding
         String execType = this.safeString(trade, "execType");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(feeCostString, null)) && Helpers.isTrue(Helpers.isEqual(execType, "Trade"))))
         {
             takerOrMaker = ((Helpers.isTrue(Precise.stringLt(feeCostString, "0")))) ? "maker" : "taker";
@@ -2844,7 +2844,7 @@ public class BitmexCore extends BitmexApi
                 {
                     this.checkRequiredArgument("editOrder", triggerDirection, "triggerDirection", new java.util.ArrayList<Object>(java.util.Arrays.asList("above", "below")));
                 }
-                Object orderType = null;
+                String orderType = null;
                 if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
@@ -3366,14 +3366,14 @@ public class BitmexCore extends BitmexApi
         Object symbol = Helpers.GetValue(market, "symbol");
         String datetime = this.safeString(position, "timestamp");
         Object crossMargin = this.safeValue(position, "crossMargin");
-        Object marginMode = ((Helpers.isTrue((Helpers.isEqual(crossMargin, true))))) ? "cross" : "isolated";
-        Object notionalString = Precise.stringAbs(this.safeString2(position, "foreignNotional", "homeNotional"));
+        String marginMode = ((Helpers.isTrue((Helpers.isEqual(crossMargin, true))))) ? "cross" : "isolated";
+        String notionalString = Precise.stringAbs(this.safeString2(position, "foreignNotional", "homeNotional"));
         String settleCurrencyCode = this.safeString(market, "settle");
         Object maintenanceMargin = this.convertToRealAmount(settleCurrencyCode, this.safeString(position, "maintMargin"));
         Object unrealisedPnl = this.convertToRealAmount(settleCurrencyCode, this.safeString(position, "unrealisedPnl"));
         Object contracts = this.parseNumber(Precise.stringAbs(this.safeString(position, "currentQty")));
         Object contractSize = this.safeNumber(market, "contractSize");
-        Object side = null;
+        String side = null;
         String homeNotional = this.safeString(position, "homeNotional");
         if (Helpers.isTrue(!Helpers.isEqual(homeNotional, null)))
         {
@@ -3506,7 +3506,7 @@ public class BitmexCore extends BitmexApi
             }
             Object response = (this.publicGetInstrumentActiveAndIndices(parameters)).join();
             // same response as under "fetchMarkets"
-            Object filteredResponse = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> filteredResponse = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rawItems = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawItems)); i++)
             {
@@ -3598,7 +3598,7 @@ public class BitmexCore extends BitmexApi
             {
                 Object splitSymbol = Helpers.split(symbol, ":");
                 Object splitSymbolLength = Helpers.getArrayLength(splitSymbol);
-                Object timeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList("nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"));
+                java.util.List<Object> timeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList("nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(splitSymbolLength, 1))) && Helpers.isTrue(this.inArray(Helpers.GetValue(splitSymbol, 1), timeframes))))
                 {
                     Object code = this.currency(Helpers.GetValue(splitSymbol, 0));
@@ -4480,7 +4480,7 @@ public class BitmexCore extends BitmexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlements)); i++)
         {
             ((java.util.List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));

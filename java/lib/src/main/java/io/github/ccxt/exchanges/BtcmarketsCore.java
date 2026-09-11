@@ -558,7 +558,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.parse8601(this.safeString(transaction, "creationTime"));
         Long lastUpdate = this.parse8601(this.safeString(transaction, "lastUpdate"));
-        Object type = this.parseTransactionType(this.safeStringLower(transaction, "type"));
+        String type = this.parseTransactionType(this.safeStringLower(transaction, "type"));
         if (Helpers.isTrue(Helpers.isEqual(type, "withdraw")))
         {
             type = "withdrawal";
@@ -1283,7 +1283,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object numericIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> numericIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 // numericIds[i] = parseInt (ids[i]);
@@ -1379,7 +1379,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             currency = Helpers.GetValue(market, "quote");
             Object amountString = this.numberToString(amount);
             Object priceString = this.numberToString(price);
-            Object otherUnitsAmount = Precise.stringMul(amountString, priceString);
+            String otherUnitsAmount = Precise.stringMul(amountString, priceString);
             cost = this.costToPrecision(symbol, otherUnitsAmount);
         } else
         {
@@ -1387,8 +1387,8 @@ public class BtcmarketsCore extends BtcmarketsApi
             cost = this.amountToPrecision(symbol, amount);
         }
         Object rate = this.safeValue(market, takerOrMaker);
-        Object rateCost = Precise.stringMul(this.numberToString(rate), cost);
-        Object feeCost = this.feeToPrecision(symbol, rateCost);
+        String rateCost = Precise.stringMul(this.numberToString(rate), cost);
+        String feeCost = this.feeToPrecision(symbol, rateCost);
         if (Helpers.isTrue(Helpers.isEqual(feeCost, null)))
         {
             feeCost = "0";

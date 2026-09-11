@@ -20,7 +20,7 @@ public class TestCreateOrder extends BaseTest {
         if (Helpers.isTrue(debugCreateOrder))
         {
             // for c# fix, extra step to convert them to string
-            Object msg = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(" >>>>> testCreateOrder [", String.valueOf((Helpers.GetValue(exchange, "id")))), " : "), symbol), "] "), message);
+            String msg = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(" >>>>> testCreateOrder [", String.valueOf((Helpers.GetValue(exchange, "id")))), " : "), symbol), "] "), message);
             System.out.println(msg);
         }
         return true;
@@ -159,8 +159,8 @@ public class TestCreateOrder extends BaseTest {
         {
             Object isSwapFuture = Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)));
             Object isBuy = (Helpers.isEqual(buyOrSellString, "buy"));
-            Object entrySide = ((Helpers.isTrue(isBuy))) ? "buy" : "sell";
-            Object exitSide = ((Helpers.isTrue(isBuy))) ? "sell" : "buy";
+            String entrySide = ((Helpers.isTrue(isBuy))) ? "buy" : "sell";
+            String exitSide = ((Helpers.isTrue(isBuy))) ? "sell" : "buy";
             Object entryorderPrice = ((Helpers.isTrue(isBuy))) ? Helpers.multiply(bestAsk, limitPriceSafetyMultiplierFromMedian) : Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian);
             Object exitorderPrice = ((Helpers.isTrue(isBuy))) ? Helpers.divide(bestBid, limitPriceSafetyMultiplierFromMedian) : Helpers.multiply(bestAsk, limitPriceSafetyMultiplierFromMedian); // todo revise: (tcoMininumCost (exchange, market) / amountToClose) / limitPriceSafetyMultiplierFromMedian;
             Object symbol = Helpers.GetValue(market, "symbol");
@@ -196,8 +196,8 @@ public class TestCreateOrder extends BaseTest {
         Assert(!Helpers.isEqual(filledString, null), Helpers.add(Helpers.add(logPrefix, " order should be filled, but it is not. "), exchange.json(fetchedOrder)));
         // filled amount should be whithin the expected range i.e. if you buy 100 DOGECOIN and amount-precision is 1,
         // and also considering possible roundings in implementation, then filled amount should be between 99 and 101
-        Object maxExpectedFilledAmount = Precise.stringAdd(entryorderAmountString, precisionAmount);
-        Object minExpectedFilledAmount = Precise.stringSub(entryorderAmountString, precisionAmount);
+        String maxExpectedFilledAmount = Precise.stringAdd(entryorderAmountString, precisionAmount);
+        String minExpectedFilledAmount = Precise.stringSub(entryorderAmountString, precisionAmount);
         Assert(Precise.stringLe(filledString, maxExpectedFilledAmount), Helpers.add(Helpers.add(logPrefix, " filled amount is more than expected, possibly some implementation issue. "), exchange.json(fetchedOrder)));
         Assert(Precise.stringGe(filledString, minExpectedFilledAmount), Helpers.add(Helpers.add(logPrefix, " filled amount is less than expected, possibly some implementation issue. "), exchange.json(fetchedOrder)));
         // order state should be "closed"
@@ -216,7 +216,7 @@ public class TestCreateOrder extends BaseTest {
 
         Object orderId = Helpers.getArg(optionalArgs, 0, null);
         Object logPrefix = TestSharedMethods.logTemplate(exchange, "createOrder", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
-        Object usedMethod = "";
+        String usedMethod = "";
         Object cancelResult = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), false)))) && Helpers.isTrue((!Helpers.isEqual(orderId, null)))))
         {

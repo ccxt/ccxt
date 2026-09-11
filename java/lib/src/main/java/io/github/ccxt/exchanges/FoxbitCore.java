@@ -1237,7 +1237,7 @@ public class FoxbitCore extends FoxbitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = this.safeDict(orders, i);
@@ -2196,7 +2196,7 @@ public class FoxbitCore extends FoxbitApi
         String amount = this.safeString(trade, "volume", this.safeString(trade, "quantity"));
         String privateSideField = (String)this.safeStringLower(trade, "side");
         Object side = this.safeStringLower(trade, "taker_side", privateSideField);
-        Object cost = Precise.stringMul(price, amount);
+        String cost = Precise.stringMul(price, amount);
         Object fee = new java.util.HashMap<String, Object>() {{
             put( "currency", FoxbitCore.this.safeSymbol(FoxbitCore.this.safeString(trade, "fee_currency_symbol")) );
             put( "cost", FoxbitCore.this.safeNumber(trade, "fee") );
@@ -2249,7 +2249,7 @@ public class FoxbitCore extends FoxbitApi
         String filled = this.safeString(order, "quantity_executed");
         String remaining = this.safeString(order, "quantity");
         // TODO: validate logic of amount here, should this be calculated?
-        Object amount = null;
+        String amount = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(remaining, null)) && Helpers.isTrue(!Helpers.isEqual(filled, null))))
         {
             amount = Precise.stringAdd(remaining, filled);
@@ -2348,7 +2348,7 @@ public class FoxbitCore extends FoxbitApi
         Object cryptoDetails = this.safeDict(transaction, "details_crypto");
         String address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
         String sn = this.safeString(transaction, "sn");
-        Object type = "withdrawal";
+        String type = "withdrawal";
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(sn, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(sn, 0), "D"))))
         {
             type = "deposit";
@@ -2367,7 +2367,7 @@ public class FoxbitCore extends FoxbitApi
             // actualAmount = amount - fee;
             actualAmount = Precise.stringSub(amount, fee);
         }
-        Object feeRate = Precise.stringDiv(fee, actualAmount);
+        String feeRate = Precise.stringDiv(fee, actualAmount);
         final Object finalFee = fee;
         Object feeObj = new java.util.HashMap<String, Object>() {{
             put( "cost", FoxbitCore.this.parseNumber(finalFee) );
@@ -2433,7 +2433,7 @@ public class FoxbitCore extends FoxbitApi
         Object type = this.parseLedgerEntryType(reasonType);
         String exchangeSymbol = this.safeString(item, "currency_symbol");
         String currencySymbol = (String) this.safeCurrencyCode(exchangeSymbol);
-        Object direction = "in";
+        String direction = "in";
         Object amount = this.safeNumber(item, "amount");
         Object realAmount = amount;
         Object balance = this.safeNumber(item, "balance");
@@ -2494,7 +2494,7 @@ public class FoxbitCore extends FoxbitApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object version = Helpers.GetValue(api, 0);
         Object urlPath = Helpers.GetValue(api, 1);
-        Object fullPath = Helpers.add(Helpers.add(Helpers.add("/rest/", version), "/"), this.implodeParams(path, parameters));
+        String fullPath = Helpers.add(Helpers.add(Helpers.add("/rest/", version), "/"), this.implodeParams(path, parameters));
         if (Helpers.isTrue(Helpers.isEqual(version, "status")))
         {
             fullPath = "/status";

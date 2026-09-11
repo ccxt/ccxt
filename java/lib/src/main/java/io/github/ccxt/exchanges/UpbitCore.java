@@ -1028,7 +1028,7 @@ public class UpbitCore extends UpbitApi
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
                 // ticker/all returns every market of the requested quote currencies with a single request
-                Object quoteIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> quoteIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 Object marketSymbols = this.symbols;
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketSymbols)); i++)
                 {
@@ -1057,7 +1057,7 @@ public class UpbitCore extends UpbitApi
             } else
             {
                 Object ids = this.marketIds(symbols);
-                Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 Object queries = this.idsQueryStrings(ids, 4000); // the url is limited to about 8000 characters once the commas are percent-encoded
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(queries)); i++)
                 {
@@ -1109,7 +1109,7 @@ public class UpbitCore extends UpbitApi
             return new java.util.ArrayList<Object>(java.util.Arrays.asList());
         }
         Object idsString = "";
-        Object queries = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> queries = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
         {
             Object id = Helpers.GetValue(ids, i);
@@ -1191,7 +1191,7 @@ public class UpbitCore extends UpbitApi
         {
             timestamp = this.parse8601(this.safeString(trade, "created_at"));
         }
-        Object side = null;
+        String side = null;
         String askOrBid = (String)this.safeStringLower2(trade, "ask_bid", "side");
         if (Helpers.isTrue(Helpers.isEqual(askOrBid, "ask")))
         {
@@ -1360,10 +1360,10 @@ public class UpbitCore extends UpbitApi
             //
             String askFee = this.safeString(response, "ask_fee");
             String bidFee = this.safeString(response, "bid_fee");
-            Object taker = Precise.stringMax(askFee, bidFee);
+            String taker = Precise.stringMax(askFee, bidFee);
             String makerAskFee = this.safeString(response, "maker_ask_fee");
             String makerBidFee = this.safeString(response, "maker_bid_fee");
-            Object maker = Precise.stringMax(makerAskFee, makerBidFee);
+            String maker = Precise.stringMax(makerAskFee, makerBidFee);
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", symbol );
@@ -1531,7 +1531,7 @@ public class UpbitCore extends UpbitApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object quoteAmount = null;
+        String quoteAmount = null;
         Object createMarketBuyOrderRequiresPrice = this.safeValue(this.options, "createMarketBuyOrderRequiresPrice");
         String cost = this.safeString(parameters, "cost");
         if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
@@ -1545,7 +1545,7 @@ public class UpbitCore extends UpbitApi
             }
             Object amountString = this.numberToString(amount);
             Object priceString = this.numberToString(price);
-            Object costRequest = Precise.stringMul(amountString, priceString);
+            String costRequest = Precise.stringMul(amountString, priceString);
             quoteAmount = this.costToPrecision(symbol, costRequest);
         } else
         {
@@ -1609,7 +1609,7 @@ public class UpbitCore extends UpbitApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
             }
-            Object orderSide = null;
+            String orderSide = null;
             if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
             {
                 orderSide = "bid";
@@ -2364,7 +2364,7 @@ public class UpbitCore extends UpbitApi
             cost = price;
             price = null;
         }
-        Object average = null;
+        String average = null;
         Object fee = null;
         String feeCost = this.safeString(order, "paid_fee");
         String marketId = this.safeString(order, "market");

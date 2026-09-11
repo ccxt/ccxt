@@ -905,7 +905,7 @@ public class BackpackCore extends BackpackApi
         Object maxQuantity = this.safeNumber(quantityFilter, "maxQuantity");
         Object minQuantity = this.safeNumber(quantityFilter, "minQuantity");
         Object amountPrecision = this.safeNumber(quantityFilter, "stepSize");
-        Object type = null;
+        String type = null;
         String typeOfMarket = this.parseMarketType(this.safeString(market, "marketType"));
         Object linear = null;
         Object inverse = null;
@@ -1082,7 +1082,7 @@ public class BackpackCore extends BackpackApi
         String low = this.safeString(ticker, "low");
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = this.safeString(ticker, "quoteVolume");
-        Object percentage = null;
+        String percentage = null;
         Object percentageNumber = this.safeFloat(ticker, "priceChangePercent");
         // in some cases priceChangePercent is a non-numeric string like "N/A"
         if (Helpers.isTrue(!Helpers.isEqual(percentageNumber, null)))
@@ -1436,7 +1436,7 @@ public class BackpackCore extends BackpackApi
             //         }
             //     ]
             //
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rawRates = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawRates)); i++)
             {
@@ -1600,9 +1600,9 @@ public class BackpackCore extends BackpackApi
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
         Object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
-        Object side = this.parseOrderSide(this.safeString(trade, "side"));
+        String side = this.parseOrderSide(this.safeString(trade, "side"));
         Object isMaker = this.safeBool(trade, "isMaker");
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
@@ -1759,7 +1759,7 @@ public class BackpackCore extends BackpackApi
             Object account = this.account();
             String locked = this.safeString(balance, "locked");
             String staked = this.safeString(balance, "staked");
-            Object used = Precise.stringAdd(locked, staked);
+            String used = Precise.stringAdd(locked, staked);
             Helpers.addElementToObject(account, "free", this.safeString(balance, "available"));
             Helpers.addElementToObject(account, "used", used);
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -2191,7 +2191,7 @@ public class BackpackCore extends BackpackApi
             {
                 (this.loadMarkets()).join();
             }
-            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -2233,7 +2233,7 @@ public class BackpackCore extends BackpackApi
         }};
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         Object isTriggerOrder = !Helpers.isEqual(triggerPrice, null);
-        Object quantityKey = ((Helpers.isTrue(isTriggerOrder))) ? "triggerQuantity" : "quantity";
+        String quantityKey = ((Helpers.isTrue(isTriggerOrder))) ? "triggerQuantity" : "quantity";
         // handle basic limit/market order types
         if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
         {
@@ -2760,7 +2760,7 @@ public class BackpackCore extends BackpackApi
         String markPrice = this.safeString(position, "markPrice");
         String netCost = this.safeString(position, "netCost");
         Object hedged = false;
-        Object side = "long";
+        String side = "long";
         if (Helpers.isTrue(Precise.stringLt(netCost, "0")))
         {
             side = "short";

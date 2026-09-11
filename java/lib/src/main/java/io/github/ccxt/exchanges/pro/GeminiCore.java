@@ -497,7 +497,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             Object delta = Helpers.GetValue(changes, i);
             Object price = this.safeNumber(delta, 1);
             Object size = this.safeNumber(delta, 2);
-            Object side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(delta, 0), "buy"))))) ? "bids" : "asks";
+            String side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(delta, 0), "buy"))))) ? "bids" : "asks";
             Object bookside = Helpers.GetValue(orderbook, side);
             Helpers.callDynamically(bookside, "store", new Object[]{price, size});
             Helpers.addElementToObject(orderbook, side, bookside);
@@ -642,7 +642,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchMultiple supports only spot or linear-swap symbols")) ;
             }
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
@@ -799,7 +799,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 Object market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
-            Object messageHash = "orders";
+            String messageHash = "orders";
             Object orders = (this.watch(url, messageHash, null, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -865,7 +865,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         //         }
         //     ]
         //
-        Object messageHash = "orders";
+        String messageHash = "orders";
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -909,7 +909,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         Object marketId = this.safeString(order, "symbol");
         Object typeId = this.safeString(order, "order_type");
         Object behavior = this.safeString(order, "behavior");
-        Object timeInForce = "GTC";
+        String timeInForce = "GTC";
         Object postOnly = false;
         if (Helpers.isTrue(Helpers.isEqual(behavior, "immediate-or-cancel")))
         {
@@ -1052,9 +1052,9 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             {
                 return;
             }
-            Object orderBookItems = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object bidaskItems = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object collectedEventsOfTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> orderBookItems = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> bidaskItems = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> collectedEventsOfTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object eventsLength = Helpers.getArrayLength(events);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
             {

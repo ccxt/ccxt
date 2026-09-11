@@ -51,7 +51,7 @@ public class TestBalance extends BaseTest {
             Assert(Precise.stringGe(total, "0"), Helpers.add("total is not positive", logText));
             Assert(Precise.stringGe(free, "0"), Helpers.add("free is not positive", logText));
             Assert(Precise.stringGe(used, "0"), Helpers.add("used is not positive", logText));
-            Object sumFreeUsed = Precise.stringAdd(free, used);
+            String sumFreeUsed = Precise.stringAdd(free, used);
             Assert(Precise.stringEq(total, sumFreeUsed), Helpers.add("free and used do not sum to total", logText));
         }
     }

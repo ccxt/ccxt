@@ -29,17 +29,17 @@ public class TestProxies extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "proxyUrl";
-        Object proxyServerIp = "5.75.153.75";
+        String method = "proxyUrl";
+        String proxyServerIp = "5.75.153.75";
         var proxyUrlhttpProxyhttpsProxysocksProxyVariable = TestSharedMethods.removeProxyOptions(exchange, skippedProperties);
         var proxyUrl = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(0);
         var httpProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(1);
         var httpsProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(2);
         var socksProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(3);
         exchange.proxyUrl = Helpers.add(Helpers.add("http://", proxyServerIp), ":8090/proxy_url.php?caller=https://ccxt.com&url=");
-        Object encodedColon = "%3A";
-        Object encodedSlash = "%2F";
-        Object ipCheckUrl = Helpers.add(Helpers.add(Helpers.add(Helpers.add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
+        String encodedColon = "%3A";
+        String encodedSlash = "%2F";
+        String ipCheckUrl = Helpers.add(Helpers.add(Helpers.add(Helpers.add("https", encodedColon), encodedSlash), encodedSlash), "api.ipify.org");
         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
         Assert(Helpers.isEqual(response, proxyServerIp), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
@@ -53,15 +53,15 @@ public class TestProxies extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "httpProxy";
-        Object proxyServerIp = "5.75.153.75";
+        String method = "httpProxy";
+        String proxyServerIp = "5.75.153.75";
         var proxyUrlhttpProxyhttpsProxysocksProxyVariable = TestSharedMethods.removeProxyOptions(exchange, skippedProperties);
         var proxyUrl = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(0);
         var httpProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(1);
         var httpsProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(2);
         var socksProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(3);
         exchange.httpProxy = Helpers.add(Helpers.add("http://", proxyServerIp), ":8911");
-        Object ipCheckUrl = "https://api.ipify.org/";
+        String ipCheckUrl = "https://api.ipify.org/";
         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetch", new Object[]{ipCheckUrl})).join();
         Assert(Helpers.isEqual(response, proxyServerIp), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " test failed. Returned response is "), response), " while it should be \""), proxyServerIp), "\""));
         // reset the instance property
@@ -76,13 +76,13 @@ public class TestProxies extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "testProxyForExceptions";
+        String method = "testProxyForExceptions";
         var proxyUrlhttpProxyhttpsProxysocksProxyVariable = TestSharedMethods.removeProxyOptions(exchange, skippedProperties);
         var proxyUrl = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(0);
         var httpProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(1);
         var httpsProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(2);
         var socksProxy = ((java.util.List<Object>) proxyUrlhttpProxyhttpsProxysocksProxyVariable).get(3);
-        Object possibleOptionsArray = new java.util.ArrayList<Object>(java.util.Arrays.asList("proxyUrl", "proxyUrlCallback", "proxy_url", "proxy_url_callback", "httpProxy", "httpProxyCallback", "http_proxy", "http_proxy_callback", "httpsProxy", "httpsProxyCallback", "https_proxy", "https_proxy_callback", "socksProxy", "socksProxyCallback", "socks_proxy", "socks_proxy_callback"));
+        java.util.List<Object> possibleOptionsArray = new java.util.ArrayList<Object>(java.util.Arrays.asList("proxyUrl", "proxyUrlCallback", "proxy_url", "proxy_url_callback", "httpProxy", "httpProxyCallback", "http_proxy", "http_proxy_callback", "httpsProxy", "httpsProxyCallback", "https_proxy", "https_proxy_callback", "socksProxy", "socksProxyCallback", "socks_proxy", "socks_proxy_callback"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(possibleOptionsArray)); i++)
         {
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(possibleOptionsArray)); j++)

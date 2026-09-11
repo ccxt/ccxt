@@ -815,7 +815,7 @@ public class BittradeCore extends BittradeApi
             {
                 throw new NetworkError((String)Helpers.add(Helpers.add(this.id, " fetchMarkets() returned empty response: "), this.json(markets))) ;
             }
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -1203,7 +1203,7 @@ public class BittradeCore extends BittradeApi
         String takerOrMaker = this.safeString(trade, "role");
         String price = this.safeString(trade, "price");
         String amount = this.safeString2(trade, "filled-amount", "amount");
-        Object cost = Precise.stringMul(price, amount);
+        String cost = Precise.stringMul(price, amount);
         Object fee = null;
         Object feeCost = this.safeString(trade, "filled-fees");
         String feeCurrency = (String) this.safeCurrencyCode(this.safeString(trade, "fee-currency"));
@@ -1974,7 +1974,7 @@ public class BittradeCore extends BittradeApi
         String id = this.safeString(order, "id");
         Object side = null;
         Object type = null;
-        Object status = null;
+        String status = null;
         if (Helpers.isTrue(Helpers.inOp(order, "type")))
         {
             Object orderType = Helpers.split(Helpers.GetValue(order, "type"), "-");
@@ -2325,7 +2325,7 @@ public class BittradeCore extends BittradeApi
             success = this.safeList(orders, "success", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         }
         Object failed = this.safeList2(orders, "errors", "failed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(success)); i++)
         {
             Object order = Helpers.GetValue(success, i);

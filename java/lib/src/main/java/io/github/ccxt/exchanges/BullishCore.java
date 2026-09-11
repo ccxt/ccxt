@@ -1422,7 +1422,7 @@ public class BullishCore extends BullishApi
                 put( "cost", finalFeeCost );
             }};
         }
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(isTaker, true)))
         {
             takerOrMaker = "taker";
@@ -1795,7 +1795,7 @@ public class BullishCore extends BullishApi
             //         }, ...
             //     ]
             //
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object result = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
@@ -2395,7 +2395,7 @@ public class BullishCore extends BullishApi
             //         "requestId": "633900538459062272"
             //     }
             //
-            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
+            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
             return this.parseOrders(orders, market);
         });
 
@@ -2466,7 +2466,7 @@ public class BullishCore extends BullishApi
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "quantity");
         String filled = this.safeString(order, "quantityFilled");
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String status = this.parseOrderStatus(this.safeString(order, "status"));
         if (Helpers.isTrue(Helpers.isEqual(status, "closed")))
         {
             String statusReason = this.safeString(order, "statusReason");
@@ -3617,7 +3617,7 @@ public class BullishCore extends BullishApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object request = this.omit(parameters, this.extractParams(path));
-        Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
+        String endpoint = Helpers.add("/", this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), endpoint);
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {

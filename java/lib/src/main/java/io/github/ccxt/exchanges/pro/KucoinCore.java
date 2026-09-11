@@ -221,7 +221,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object subscription = Helpers.getArg(optionalArgs, 1, null);
             Object requestId = String.valueOf(this.requestId());
             Object market = this.market(symbol);
-            Object urlType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? "futures" : "spot";
+            String urlType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? "futures" : "spot";
             Object tradeType = ((String)urlType).toUpperCase();
             Object action = "subscribe";
             if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
@@ -311,7 +311,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", refreshInterval);
             Object now = this.milliseconds();
             Object expired = Helpers.isGreaterThanOrEqual((Helpers.subtract(now, lastUpdate)), refreshInterval);
-            Object messageHash = "utaToken";
+            String messageHash = "utaToken";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
             Client client = this.client(url);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(utaToken, null))) || Helpers.isTrue(expired)))
@@ -642,7 +642,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object requestId = String.valueOf(this.requestId());
             Object market = this.getMarketFromSymbols(symbols);
             Object isContract = (Helpers.isEqual(Helpers.GetValue(market, "contract"), true));
-            Object urlType = ((Helpers.isTrue(isContract))) ? "futures" : "spot";
+            String urlType = ((Helpers.isTrue(isContract))) ? "futures" : "spot";
             Object tradeType = ((String)urlType).toUpperCase();
             Object action = "subscribe";
             if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
@@ -684,7 +684,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true);
-            Object messageHash = "uta:ticker";
+            String messageHash = "uta:ticker";
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(symbols))); i++)
             {
@@ -983,7 +983,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             {
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() accepts a maximum of 100 symbols")) ;
             }
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(symbols))); i++)
             {
                 Object symbol = Helpers.GetValue((java.util.List<String>)(symbols), i);
@@ -1187,7 +1187,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
             Object period = this.safeString(this.timeframes, timeframe, timeframe);
-            Object symbolAndTimeframe = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe));
+            java.util.List<Object> symbolAndTimeframe = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe));
             final Object finalSymbol = symbol;
             Object subscription = new java.util.HashMap<String, Object>() {{
                 put( "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalSymbol)) );
@@ -1291,7 +1291,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         }
         Object isContractMarket = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)topic), "contractMarket"), 0));
         Object baseVolumeIndex = ((Helpers.isTrue(isContractMarket))) ? 6 : 5; // Note value 5 is incorrect and will be fixed in subsequent versions of kucoin
-        Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(candles, 0), this.safeNumber(candles, 1), this.safeNumber(candles, 3), this.safeNumber(candles, 4), this.safeNumber(candles, 2), this.safeNumber(candles, baseVolumeIndex)));
+        java.util.List<Object> parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(candles, 0), this.safeNumber(candles, 1), this.safeNumber(candles, 3), this.safeNumber(candles, 4), this.safeNumber(candles, 2), this.safeNumber(candles, baseVolumeIndex)));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, messageHash);
     }
@@ -1332,7 +1332,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
         }
-        Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeIntegerProduct(data, "O", 1000), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")));
+        java.util.List<Object> parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeIntegerProduct(data, "O", 1000), this.safeNumber(data, "o"), this.safeNumber(data, "h"), this.safeNumber(data, "l"), this.safeNumber(data, "c"), this.safeNumber(data, "v")));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, messageHash);
     }
@@ -1471,7 +1471,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object isFuturesMethod = (Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true));
             Object url = (this.negotiate(false, isFuturesMethod)).join();
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object subscriptionHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> subscriptionHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object channelName = "/market/match:";
             if (Helpers.isTrue(isFuturesMethod))
             {
@@ -1850,7 +1850,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object isFuturesMethod = (Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true));
             Object url = (this.negotiate(false, isFuturesMethod)).join();
             Object method = ((Helpers.isTrue(isFuturesMethod))) ? "/contractMarket/level2" : "/market/level2";
-            Object optionName = ((Helpers.isTrue(isFuturesMethod))) ? "contractMethod" : "spotMethod";
+            String optionName = ((Helpers.isTrue(isFuturesMethod))) ? "contractMethod" : "spotMethod";
             var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
@@ -1925,7 +1925,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object isFuturesMethod = (Helpers.isEqual(Helpers.GetValue(firstMarket, "contract"), true));
             Object url = (this.negotiate(false, isFuturesMethod)).join();
             Object method = ((Helpers.isTrue(isFuturesMethod))) ? "/contractMarket/level2" : "/market/level2";
-            Object optionName = ((Helpers.isTrue(isFuturesMethod))) ? "contractMethod" : "spotMethod";
+            String optionName = ((Helpers.isTrue(isFuturesMethod))) ? "contractMethod" : "spotMethod";
             var methodparametersVariable = this.handleOptionAndParams2(parameters, "watchOrderBook", optionName, "method", method);
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
@@ -1942,7 +1942,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             }
             Object topic = Helpers.add(Helpers.add(method, ":"), String.join((String)",", (java.util.List<String>)marketIds));
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object subscriptionHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> subscriptionHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -2178,8 +2178,8 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             Object price = this.safeNumber(splitChange, 0);
             Object side = this.safeString(splitChange, 1);
             Object quantity = this.safeNumber(splitChange, 2);
-            Object type = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "bids" : "asks";
-            Object value = new java.util.ArrayList<Object>(java.util.Arrays.asList(price, quantity));
+            String type = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "bids" : "asks";
+            java.util.List<Object> value = new java.util.ArrayList<Object>(java.util.Arrays.asList(price, quantity));
             if (Helpers.isTrue(Helpers.isEqual(type, "bids")))
             {
                 Helpers.callDynamically(storedBids, "storeArray", new Object[]{value});
@@ -2597,7 +2597,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         Object rawTimeInForce = this.safeString(order, "tIF");
         Object remainSize = this.safeString(order, "rS");
         Object canceledSize = this.safeString(order, "cS");
-        Object remaining = Precise.stringAdd(remainSize, canceledSize);
+        String remaining = Precise.stringAdd(remainSize, canceledSize);
         market = this.safeMarket(marketId, market);
         Object fee = new java.util.HashMap<String, Object>() {{
             put( "cost", KucoinCore.this.safeString(order, "f") );
@@ -2705,9 +2705,9 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         Object matchSize = this.safeString(data, "matchSize");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(rawType, "match"))) && Helpers.isTrue((!Helpers.isEqual(matchPrice, null)))) && Helpers.isTrue((!Helpers.isEqual(matchSize, null)))))
         {
-            Object matchCost = Precise.stringMul(matchPrice, matchSize);
+            String matchCost = Precise.stringMul(matchPrice, matchSize);
             Object previousCost = ((Helpers.isTrue((Helpers.isEqual(order, null))))) ? "0" : this.numberToString(this.safeNumber(order, "cost", 0));
-            Object costString = Precise.stringAdd(previousCost, matchCost);
+            String costString = Precise.stringAdd(previousCost, matchCost);
             Helpers.addElementToObject(parsed, "cost", this.parseNumber(costString));
             Object filledString = this.numberToString(Helpers.GetValue(parsed, "filled"));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(filledString, null))) && Helpers.isTrue((Precise.stringGt(filledString, "0")))))
@@ -2783,7 +2783,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         }
         Object cachedOrders = this.orders;
         Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
-        Object messageHash = "uta:orders";
+        String messageHash = "uta:orders";
         Object symbolSpecificMessageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
         client.resolve(cachedOrders, symbolSpecificMessageHash);
         client.resolve(cachedOrders, messageHash);
@@ -2847,7 +2847,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             {
                 Object url = (this.negotiate(true, isFuturesMethod)).join();
                 Object topic = ((Helpers.isTrue(isFuturesMethod))) ? "/contractMarket/tradeOrders" : "/spotMarket/tradeOrders";
-                Object optionName = ((Helpers.isTrue(isFuturesMethod))) ? "contractMethod" : "spotMethod";
+                String optionName = ((Helpers.isTrue(isFuturesMethod))) ? "contractMethod" : "spotMethod";
                 var topicparametersVariable = this.handleOptionAndParams2(parameters, "watchMyTrades", optionName, "method", topic);
                 topic = ((java.util.List<Object>) topicparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) topicparametersVariable).get(1);
@@ -2872,7 +2872,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
 
     public Object getMyTradesMessageHashSuffix(Object topic)
     {
-        Object suffix = "-spot";
+        String suffix = "-spot";
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(topic, "contractMarket"), 0)))
         {
             suffix = "-contract";
@@ -2959,7 +2959,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         }
         Object cache = this.myTrades;
         Helpers.callDynamically(cache, "append", new Object[]{trade});
-        Object messageHash = "uta:myTrades";
+        String messageHash = "uta:myTrades";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
         client.resolve(this.myTrades, messageHash);
         client.resolve(cache, symbolMessageHash);
@@ -3316,7 +3316,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         //         }
         //     }
         //
-        Object type = "unified";
+        String type = "unified";
         Object data = this.safeDict(message, "d", new java.util.HashMap<String, Object>() {{}});
         Object currencyId = this.safeString(data, "c");
         String code = (String) this.safeCurrencyCode(currencyId);
@@ -3416,8 +3416,8 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             var utaparametersVariable = this.handleOptionAndParams(parameters, "watchPositions", "uta", uta);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            Object tradeType = ((Helpers.isTrue(uta))) ? "UNIFIED" : "TRADE";
-            Object messageHash = "positions";
+            String tradeType = ((Helpers.isTrue(uta))) ? "UNIFIED" : "TRADE";
+            String messageHash = "positions";
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             symbols = this.marketSymbols(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
@@ -3477,7 +3477,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
-            Object messageHash = "fetchPositionsSnapshot";
+            String messageHash = "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
                 client.future((String)messageHash);
@@ -3720,7 +3720,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         }
         Object position = this.extend(currentPosition, newPosition);
         Helpers.callDynamically(cache, "append", new Object[]{position});
-        Object messageHash = "positions";
+        String messageHash = "positions";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
         client.resolve(this.positions, messageHash);
         client.resolve(this.positions, symbolMessageHash);
@@ -3755,8 +3755,8 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeIntegerProduct(position, "O", 0.000001);
         Object amountString = this.safeString(position, "q");
-        Object size = Precise.stringAbs(amountString);
-        Object side = ((Helpers.isTrue(Precise.stringGt(amountString, "0")))) ? "long" : "short";
+        String size = Precise.stringAbs(amountString);
+        String side = ((Helpers.isTrue(Precise.stringGt(amountString, "0")))) ? "long" : "short";
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );

@@ -16,7 +16,7 @@ public class TestWatchTrades extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "watchTrades";
+        String method = "watchTrades";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         Object maxIdleTime = 5000;

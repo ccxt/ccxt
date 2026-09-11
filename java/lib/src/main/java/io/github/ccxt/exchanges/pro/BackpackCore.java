@@ -78,7 +78,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 (this.loadMarkets()).join();
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
-            Object method = ((Helpers.isTrue(unwatch))) ? "UNSUBSCRIBE" : "SUBSCRIBE";
+            String method = ((Helpers.isTrue(unwatch))) ? "UNSUBSCRIBE" : "SUBSCRIBE";
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
                 put( "params", topics );
@@ -103,9 +103,9 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             Object unwatch = Helpers.getArg(optionalArgs, 1, false);
             this.checkRequiredCredentials();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
-            Object instruction = "subscribe";
+            String instruction = "subscribe";
             Object ts = String.valueOf(this.nonce());
-            Object method = ((Helpers.isTrue(unwatch))) ? "UNSUBSCRIBE" : "SUBSCRIBE";
+            String method = ((Helpers.isTrue(unwatch))) ? "UNSUBSCRIBE" : "SUBSCRIBE";
             Object recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("instruction=", instruction), "&"), "timestamp="), ts), "&window="), recvWindow);
             Object secretBytes = this.base64ToBinary(this.secret);
@@ -957,8 +957,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
         Object isBuyerMaker = this.safeBool(trade, "m");
-        Object side = null;
-        Object takerOrMaker = null;
+        String side = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
         {
             takerOrMaker = "taker";
@@ -1261,8 +1261,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
-            Object topic = "account.orderUpdate";
-            Object messageHash = "orders";
+            String topic = "account.orderUpdate";
+            String messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 topic = Helpers.add("account.orderUpdate.", Helpers.GetValue(market, "id"));
@@ -1304,8 +1304,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
-            Object topic = "account.orderUpdate";
-            Object messageHash = "unsubscribe:orders";
+            String topic = "account.orderUpdate";
+            String messageHash = "unsubscribe:orders";
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 topic = Helpers.add("account.orderUpdate.", Helpers.GetValue(market, "id"));
@@ -1342,7 +1342,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //         stream: 'account.orderUpdate.ETH_USDC'
         //     }
         //
-        Object messageHash = "orders";
+        String messageHash = "orders";
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
         Object market = this.safeMarket(marketId);
@@ -1582,7 +1582,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //         stream: 'account.positionUpdate'
         //     }
         //
-        Object messageHash = "positions";
+        String messageHash = "positions";
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
@@ -1637,7 +1637,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object markPrice = this.safeString(position, "M");
         Object netQuantity = this.safeNumber(position, "q");
         Object hedged = false;
-        Object side = "long";
+        String side = "long";
         if (Helpers.isTrue(!Helpers.isEqual(netQuantity, null)))
         {
             if (Helpers.isTrue(Helpers.isLessThan(netQuantity, 0)))

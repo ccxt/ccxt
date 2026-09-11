@@ -16,7 +16,7 @@ public class TestLoadMarkets extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "loadMarkets";
+        String method = "loadMarkets";
         Object markets = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "loadMarkets", new Object[]{})).join();
         Assert(exchange.isDictionary(exchange.markets), ".markets is not a dict");
         Assert(Helpers.isArray(exchange.symbols), ".symbols is not an array");
@@ -33,8 +33,8 @@ public class TestLoadMarkets extends BaseTest {
             TestMarket.testMarket(exchange, skippedProperties, method, Helpers.GetValue(marketValues, i));
         }
         // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
-        Object marketTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option", "index"));
-        Object collectedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> marketTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option", "index"));
+        java.util.List<Object> collectedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object allMarkets = Helpers.objectValues(exchange.markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allMarkets)); i++)
         {

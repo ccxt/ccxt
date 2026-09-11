@@ -16,7 +16,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object symbol = symbol3;
-        Object method = "watchOHLCVForSymbols";
+        String method = "watchOHLCVForSymbols";
         Object now = exchange.milliseconds();
         Object ends = Helpers.add(now, 15000);
         Object timeframeKeys = Helpers.objectKeys(exchange.timeframes);

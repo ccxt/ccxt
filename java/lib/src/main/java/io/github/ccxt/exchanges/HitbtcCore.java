@@ -877,7 +877,7 @@ public class HitbtcCore extends HitbtcApi
             //         },
             //     }
             //
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object ids = Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
@@ -905,7 +905,7 @@ public class HitbtcCore extends HitbtcApi
                 Object settleId = null;
                 Object settle = null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                Object type = "spot";
+                String type = "spot";
                 Object contractSize = null;
                 Object linear = null;
                 Object inverse = null;
@@ -3578,7 +3578,7 @@ public class HitbtcCore extends HitbtcApi
             //    }
             //
             Object contracts = Helpers.objectKeys(response);
-            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(contracts)); i++)
             {
                 Object marketId = Helpers.GetValue(contracts, i);
@@ -3691,7 +3691,7 @@ public class HitbtcCore extends HitbtcApi
             //         },
             //     ]
             //
-            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(response, i)));
@@ -3961,7 +3961,7 @@ public class HitbtcCore extends HitbtcApi
             //         }
             //     }
             //
-            Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object markets = Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
@@ -4672,7 +4672,7 @@ public class HitbtcCore extends HitbtcApi
         Object query = this.omit(parameters, this.extractParams(path));
         Object implodedPath = this.implodeParams(path, parameters);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), implodedPath);
-        Object getRequest = null;
+        String getRequest = null;
         Object keys = Helpers.objectKeys(query);
         Object queryLength = Helpers.getArrayLength(keys);
         headers = new java.util.HashMap<String, Object>() {{

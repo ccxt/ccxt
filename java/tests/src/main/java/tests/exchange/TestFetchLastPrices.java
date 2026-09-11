@@ -16,7 +16,7 @@ public class TestFetchLastPrices extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchLastprices";
+        String method = "fetchLastprices";
         // log ('fetching all tickers at once...')
         Object response = new java.util.HashMap<String, Object>() {{}};
         Object checkedSymbol = null;

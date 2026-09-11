@@ -228,11 +228,11 @@ public class PaymiumCore extends PaymiumApi
             Object code = Helpers.GetValue(currencies, i);
             Object currency = this.currency(code);
             Object currencyId = Helpers.GetValue(currency, "id");
-            Object free = Helpers.add("balance_", currencyId);
+            String free = Helpers.add("balance_", currencyId);
             if (Helpers.isTrue(Helpers.inOp(response, free)))
             {
                 Object account = this.account();
-                Object used = Helpers.add("locked_", currencyId);
+                String used = Helpers.add("locked_", currencyId);
                 Helpers.addElementToObject(account, "free", this.safeString(response, free));
                 Helpers.addElementToObject(account, "used", this.safeString(response, used));
                 Helpers.addElementToObject(result, code, account);
@@ -321,7 +321,7 @@ public class PaymiumCore extends PaymiumApi
         Object timestamp = this.safeTimestamp(ticker, "at");
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
-        Object quoteVolume = Precise.stringMul(baseVolume, vwap);
+        String quoteVolume = Precise.stringMul(baseVolume, vwap);
         String last = this.safeString(ticker, "price");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -402,7 +402,7 @@ public class PaymiumCore extends PaymiumApi
         market = this.safeMarket(null, market);
         String side = this.safeString(trade, "side");
         String price = this.safeString(trade, "price");
-        Object amountField = Helpers.add("traded_", ((String)Helpers.GetValue(market, "base")).toLowerCase());
+        String amountField = Helpers.add("traded_", ((String)Helpers.GetValue(market, "base")).toLowerCase());
         String amount = this.safeString(trade, amountField);
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{

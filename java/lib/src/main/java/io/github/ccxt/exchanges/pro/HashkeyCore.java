@@ -529,7 +529,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object parsed = this.parseWsOrder(message);
         Object orders = this.orders;
         Helpers.callDynamically(orders, "append", new Object[]{parsed});
-        Object messageHash = "orders";
+        String messageHash = "orders";
         client.resolve(orders, messageHash);
         Object symbol = Helpers.GetValue(parsed, "symbol");
         Object symbolSpecificMessageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
@@ -665,7 +665,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object parsed = this.parseWsTrade(message);
         Helpers.callDynamically(tradesArray, "append", new Object[]{parsed});
         this.myTrades = tradesArray;
-        Object messageHash = "myTrades";
+        String messageHash = "myTrades";
         client.resolve(tradesArray, messageHash);
         Object symbol = Helpers.GetValue(parsed, "symbol");
         Object symbolSpecificMessageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
@@ -707,7 +707,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object isBuyerMaker = this.safeBool(trade, "m");
         Object isPublicTrade = Helpers.isEqual(this.safeString(trade, "e"), null);
         Object side = null;
-        Object takerOrMaker = null;
+        String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
         {
             if (Helpers.isTrue(isPublicTrade))
@@ -766,8 +766,8 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             }
             Object listenKey = (this.authenticate()).join();
             symbols = this.marketSymbols(symbols);
-            Object messageHash = "positions";
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            String messageHash = "positions";
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
                 ((java.util.List<Object>)messageHashes).add(messageHash);
@@ -820,7 +820,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object positions = this.positions;
         Object parsed = this.parseWsPosition(message);
         Helpers.callDynamically(positions, "append", new Object[]{parsed});
-        Object messageHash = "positions";
+        String messageHash = "positions";
         client.resolve(parsed, messageHash);
         Object symbol = Helpers.GetValue(parsed, "symbol");
         client.resolve(parsed, Helpers.add(Helpers.add(messageHash, ":"), symbol));
@@ -975,7 +975,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object data = this.safeList(message, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object balanceUpdate = this.safeDict(data, 0);
         Object isSpot = Helpers.isEqual(eventVar, "outboundAccountInfo");
-        Object type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
+        String type = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         if (!Helpers.isTrue((Helpers.inOp(this.balance, type))))
         {
             Helpers.addElementToObject(this.balance, type, new java.util.HashMap<String, Object>() {{}});
@@ -1015,7 +1015,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             // client.futures and settled through client.resolve () /
             // client.reject (), so every mutation of the futures map goes through
             // the client's own accessors
-            Object messageHash = "authenticateFlight";
+            String messageHash = "authenticateFlight";
             Client client = this.client("authenticationFlights");
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
             {

@@ -27,7 +27,7 @@ public class TestUnWatchPositions extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "unWatchPositions";
+        String method = "unWatchPositions";
         exchange.setSandboxMode(true);
         // First, we need to subscribe to positions to test the unsubscribe functionality
         Object positionsSubscription = null;

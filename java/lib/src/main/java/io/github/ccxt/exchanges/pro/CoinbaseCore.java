@@ -229,8 +229,8 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             symbols = this.marketSymbols(symbols, null, false);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
@@ -284,9 +284,9 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object watchMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object unWatchMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> watchMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> unWatchMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             symbols = this.marketSymbols(symbols, null, false);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
@@ -570,7 +570,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object events = this.safeList(message, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object datetime = this.safeString(message, "timestamp");
         Long timestamp = this.parse8601(datetime);
-        Object newTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> newTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object tickersObj = Helpers.GetValue(events, i);
@@ -1011,7 +1011,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         {
             return;
         }
-        Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        java.util.List<Object> marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Object limit = this.safeInteger(this.options, "ordersLimit", 1000);

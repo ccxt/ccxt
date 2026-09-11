@@ -1223,6 +1223,69 @@ function dataflowReceiverCallIsSafe (method, javaType) {
     return receiverCallIsSafe (method, javaType);
 }
 
+// the printer's by-name call rewrites cast some ARGUMENTS to a fixed type:
+//   `x.startsWith(y)`    -> `((String)x).startsWith(((String)y))`
+//   `x.endsWith(y)`      -> `((String)x).endsWith(((String)y))`
+//   `x.replace(a, b)` / `x.replaceAll(a, b)` -> `Helpers.replace((String)a, (String)b)`
+//   `x.join(sep)`        -> `String.join((String)sep, (java.util.List<String>)x)`
+//   `x.padEnd(n, c)`     -> `Helpers.padEnd(..., ((Number)n).intValue(), ((String)c).charAt(0))`
+// A `(String)` cast from a List<Object> / Long declaration is `inconvertible types`, and
+// `(Number)` from String/List likewise. An Object-typed argument always compiles, so only
+// a retype can break these. Per-method, per-argument-index required type:
+const DATAFLOW_ARGUMENT_CAST_TYPES = {
+    'startsWith': [ 'String' ],
+    'endsWith': [ 'String' ],
+    'replace': [ 'String', 'String' ],
+    'replaceAll': [ 'String', 'String' ],
+    'join': [ 'String' ],
+    'padEnd': [ 'Number', 'String' ],
+    'padStart': [ 'Number', 'String' ],
+};
+
+// the type the printer casts this argument to, or undefined when the argument prints as-is
+function dataflowArgumentCastType (argument) {
+    const call = argument.parent;
+    if (call === undefined || !ts.isCallExpression (call)) {
+        return undefined;
+    }
+    const index = call.arguments.indexOf (argument);
+    if (index === -1) {
+        return undefined;
+    }
+    const callee = call.expression;
+    if (!ts.isPropertyAccessExpression (callee)) {
+        return undefined;
+    }
+    const casts = DATAFLOW_ARGUMENT_CAST_TYPES[callee.name.escapedText];
+    return casts === undefined ? undefined : casts[index];
+}
+
+// `x as string` prints `((String)x)`, `x as any[]` prints `(java.util.List<Object>)x` and
+// `x as string[]` prints `(java.util.List<String>)x` — every one of them is inconvertible
+// from the wrong declaration (see printAsExpression). `as any` prints `((Object)x)`.
+function dataflowAsExpressionIsSafe (asNode, javaType) {
+    const type = asNode.type;
+    if (type === undefined) {
+        return true;
+    }
+    if (type.kind === ts.SyntaxKind.AnyKeyword) {
+        return true; // `((Object)x)`
+    }
+    if (type.kind === ts.SyntaxKind.StringKeyword) {
+        return javaType === JAVA_DATAFLOW_STRING; // `((String)x)`
+    }
+    if (type.kind === ts.SyntaxKind.ArrayType) {
+        const element = type.elementType;
+        if (element?.kind === ts.SyntaxKind.AnyKeyword) {
+            return javaType === JAVA_ARRAY_TYPE; // `(java.util.List<Object>)x`
+        }
+        if (element?.kind === ts.SyntaxKind.StringKeyword) {
+            return false; // `(java.util.List<String>)x` — inconvertible from every family
+        }
+    }
+    return true; // any other `as` prints the operand unchanged
+}
+
 // is `n` an argument of a `throw new X(<value>)`? that print wraps the argument in
 // a hard `(String)` cast, which only compiles from an Object or String receiver
 function isClassThrowArgument (n) {
@@ -1289,11 +1352,21 @@ function dataflowIsSafeToRetype (printer, declaration, varName, javaType, contex
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
             return false; // `[x, y] = f()` prints element reads into untyped slots
         }
-        if (ts.isVariableDeclaration (parent) && parent.name?.kind === ts.SyntaxKind.ArrayBindingPattern) {
+        if (ts.isVariableDeclaration (parent) && parent.name?.kind === ts.SyntaxKind.ArrayBindingPattern
+            && javaType !== JAVA_ARRAY_TYPE) {
             return false; // `const [a, b] = x` prints a hard List cast of the synthetic holder
         }
         if (ts.isDeleteExpression (parent)) {
             return false; // `delete x[k]` prints `((java.util.Map<String,Object>)x).remove(...)`
+        }
+        if (ts.isAsExpression (parent) && parent.expression === n && !dataflowAsExpressionIsSafe (parent, javaType)) {
+            return false; // `x as string[]` prints `(java.util.List<String>)x`
+        }
+        {
+            const argumentCast = dataflowArgumentCastType (unwrapParensUp (n));
+            if (argumentCast !== undefined && argumentCast !== javaType) {
+                return false; // the printer's by-name rewrite casts this argument
+            }
         }
         if (ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.parent !== undefined
             && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
