@@ -556,7 +556,7 @@ class limitless extends Exchange {
         $response = Async\await($this->limitlessPublicGetMarketsAddressOrSlug($this->extend($request, $params)));
         // a group $response carries its tradeable children in `markets` (each a full market row
         // with tokens) — expandGroupRows unwraps them; a single market has no nested markets
-        // and wraps own one-market $event, which parseEvent's loop then parses
+        // and wraps as its own one-market $event, which parseEvent's loop then parses
         $rows = $this->expand_group_rows(array( $response ));
         $wrapped = $this->extend($response, array( 'markets' => $rows ));
         $event = $this->parse_event($wrapped);
@@ -834,7 +834,7 @@ class limitless extends Exchange {
         for ($i = 0; $i < count($rawMarkets); $i++) {
             $rawMarket = $rawMarkets[$i];
             // an already-parsed ccxt market row carries the unified 'market' handle . outcomes
-            // with 'symbol' kept legacy fallback — don't run it through parseMarket again
+            // with 'symbol' kept as a legacy fallback — don't run it through parseMarket again
             $marketSymbol = $this->safe_string_2($rawMarket, 'market', 'symbol');
             $marketOutcomes = $this->safe_list($rawMarket, 'outcomes');
             if ($marketSymbol !== null && $marketOutcomes !== null) {
@@ -1228,7 +1228,7 @@ class limitless extends Exchange {
             'slug' => $slug,
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 100);
         }
         $response = Async\await($this->limitlessPublicGetMarketsSlugEvents($this->extend($request, $params)));
         //
@@ -1369,7 +1369,7 @@ class limitless extends Exchange {
          * @param {int} [$since] timestamp in $ms of the earliest $candle to fetch
          * @param {int} [$limit] the maximum number of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} a list of $candles ordered as timestamp, open, high, low, close, volume
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
@@ -1544,7 +1544,7 @@ class limitless extends Exchange {
         //         }
         //     )
         //
-        // pass null => parsePredictionOrder sets $outcome to the market $outcome while the $outcome
+        // pass null as market => parsePredictionOrder sets $outcome to the market $outcome while the $outcome
         // lives under 'outcome', so the base $outcome filter would drop every order; the per-slug
         // endpoint already scopes results and parsePredictionOrder resolves the $outcome via outcomes_by_id
         return $this->parse_prediction_orders($this->to_array($response), null, $since, $limit);
@@ -2131,7 +2131,7 @@ class limitless extends Exchange {
             'side' => $sideValue,
             'signatureType' => $signatureType,
         );
-        // the contract expects expiration uint256; non-zero values are rejected by the API (GTC orders use 0)
+        // the contract expects expiration as a uint256; non-zero values are rejected by the API (GTC orders use 0)
         $expirationInt = $this->safe_integer($params, 'expiration');
         if ($expirationInt !== null) {
             $params = $this->omit($params, 'expiration');
@@ -2694,9 +2694,9 @@ class limitless extends Exchange {
         if (mb_strpos($rawSide, 'limit') !== false) {
             $type = 'limit';
             $takerOrMaker = 'maker';
-        if ($rawSide === null) {
-            throw new ExchangeError($this->id . ' method() missing rawSide');
-        }
+            if ($rawSide === null) {
+                throw new ExchangeError($this->id . ' method() missing rawSide');
+            }
         } elseif (mb_strpos($rawSide, 'market') !== false) {
             $type = 'market';
             $takerOrMaker = 'taker';

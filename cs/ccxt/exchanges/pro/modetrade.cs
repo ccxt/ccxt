@@ -68,7 +68,7 @@ public partial class modetrade : ccxt.modetrade
 
     public virtual object requestId(object url)
     {
-        object options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
+        IDictionary<string, object> options = this.safeDict(this.options, "requestId", new Dictionary<string, object>() {});
         Int64? previousValue = this.safeInteger(options, url, 0);
         object newValue = this.sum(previousValue, 1);
         ((IDictionary<string,object>)getValue(this.options, "requestId"))[(string)url] = newValue;
@@ -110,7 +110,7 @@ public partial class modetrade : ccxt.modetrade
             await this.loadMarkets();
         }
         string name = "orderbook";
-        object market = this.market(symbol);
+        Dictionary<string, object> market = this.market(symbol);
         object topic = add(add(getValue(market, "id"), "@"), name);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
@@ -144,16 +144,16 @@ public partial class modetrade : ccxt.modetrade
         //         }
         //     }
         //
-        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
-        object market = this.safeMarket(marketId);
+        Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         string? topic = this.safeString(message, "topic");
         if (!isTrue((inOp(this.orderbooks, symbol))))
         {
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
-        object orderbook = getValue(this.orderbooks, symbol);
+        ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
         Int64? timestamp = this.safeInteger(message, "ts");
         object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         (orderbook as IOrderBook).reset(snapshot);
@@ -178,7 +178,7 @@ public partial class modetrade : ccxt.modetrade
             await this.loadMarkets();
         }
         string name = "ticker";
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object topic = add(add(getValue(market, "id"), "@"), name);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -245,10 +245,10 @@ public partial class modetrade : ccxt.modetrade
         //         }
         //     }
         //
-        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? topic = this.safeString(message, "topic");
         string? marketId = this.safeString(data, "symbol");
-        object market = this.safeMarket(marketId);
+        Dictionary<string, object> market = this.safeMarket(marketId);
         Int64? timestamp = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)data)["date"] = timestamp;
         object ticker = this.parseWsTicker(data, market);
@@ -276,7 +276,7 @@ public partial class modetrade : ccxt.modetrade
         }
         symbols = this.marketSymbols(symbols);
         string name = "tickers";
-        object topic = name;
+        string topic = name;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -308,13 +308,13 @@ public partial class modetrade : ccxt.modetrade
         //     }
         //
         string? topic = this.safeString(message, "topic");
-        object data = this.safeList(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(message, "ts");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             string? marketId = this.safeString(getValue(data, i), "symbol");
-            object market = this.safeMarket(marketId);
+            Dictionary<string, object> market = this.safeMarket(marketId);
             object ticker = this.parseWsTicker(this.extend(getValue(data, i), new Dictionary<string, object>() {
                 { "date", timestamp },
             }), market);
@@ -342,7 +342,7 @@ public partial class modetrade : ccxt.modetrade
         }
         symbols = this.marketSymbols(symbols);
         string name = "bbos";
-        object topic = name;
+        string topic = name;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -370,10 +370,10 @@ public partial class modetrade : ccxt.modetrade
         //     }
         //
         string? topic = this.safeString(message, "topic");
-        object data = this.safeList(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         Int64? timestamp = this.safeInteger(message, "ts");
         List<object> result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object ticker = this.parseWsBidAsk(this.extend(getValue(data, i), new Dictionary<string, object>() {
                 { "ts", timestamp },
@@ -432,8 +432,8 @@ public partial class modetrade : ccxt.modetrade
         {
             throw new NotSupported ((string)add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
         }
-        object market = this.market(symbol);
-        object interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        Dictionary<string, object> market = this.market(symbol);
+        string? interval = this.safeString(this.timeframes, timeframeVar, timeframeVar);
         string name = "kline";
         object topic = add(add(add(add(getValue(market, "id"), "@"), name), "_"), interval);
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -469,10 +469,10 @@ public partial class modetrade : ccxt.modetrade
         //         }
         //     }
         //
-        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? topic = this.safeString(message, "topic");
         string? marketId = this.safeString(data, "symbol");
-        object market = this.safeMarket(marketId);
+        Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         string? interval = this.safeString(data, "type");
         object timeframe = this.findTimeframe(interval);
@@ -514,7 +514,7 @@ public partial class modetrade : ccxt.modetrade
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbolVar);
+        Dictionary<string, object> market = this.market(symbolVar);
         symbolVar = getValue(market, "symbol");
         object topic = add(getValue(market, "id"), "@trade");
         Dictionary<string, object> request = new Dictionary<string, object>() {
@@ -546,9 +546,9 @@ public partial class modetrade : ccxt.modetrade
         //
         string? topic = this.safeString(message, "topic");
         Int64? timestamp = this.safeInteger(message, "ts");
-        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
         string? marketId = this.safeString(data, "symbol");
-        object market = this.safeMarket(marketId);
+        Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object trade = this.parseWsTrade(this.extend(data, new Dictionary<string, object>() {
             { "timestamp", timestamp },
@@ -612,7 +612,7 @@ public partial class modetrade : ccxt.modetrade
         string? side = this.safeStringLower(trade, "side");
         Int64? timestamp = this.safeInteger(trade, "timestamp");
         string? takerOrMaker = null;
-        object maker = this.safeBool(trade, "maker");
+        bool? maker = this.safeBool(trade, "maker");
         if (isTrue(!isEqual(maker, null)))
         {
             takerOrMaker = ((bool) isTrue(maker)) ? "maker" : "taker";
@@ -684,14 +684,14 @@ public partial class modetrade : ccxt.modetrade
         if (isTrue(isEqual(authenticated, null)))
         {
             string ts = ((object)this.nonce()).ToString();
-            object auth = ts;
+            string auth = ts;
             object secret = this.secret;
             if (isTrue(isGreaterThanOrEqual(getIndexOf(secret, "ed25519:"), 0)))
             {
                 List<object> parts = ((string)secret).Split(new [] {((string)"ed25519:")}, StringSplitOptions.None).ToList<object>();
                 secret = getValue(parts, 1);
             }
-            object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
+            string signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519);
             Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "event", eventVar },
                 { "params", new Dictionary<string, object>() {
@@ -754,13 +754,13 @@ public partial class modetrade : ccxt.modetrade
         {
             await this.loadMarkets();
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, new List<object>() {"stop", "trigger"});
-        object messageHash = topic;
+        string messageHash = topic;
         if (isTrue(!isEqual(symbolVar, null)))
         {
-            object market = this.market(symbolVar);
+            Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             messageHash = add(messageHash, add(":", symbolVar));
         }
@@ -799,13 +799,13 @@ public partial class modetrade : ccxt.modetrade
         {
             await this.loadMarkets();
         }
-        object trigger = this.safeBool2(parameters, "stop", "trigger", false);
+        bool? trigger = this.safeBool2(parameters, "stop", "trigger", false);
         string topic = ((bool) isTrue((isEqual(trigger, true)))) ? "algoexecutionreport" : "executionreport";
         parameters = this.omit(parameters, "stop");
-        object messageHash = "myTrades";
+        string messageHash = "myTrades";
         if (isTrue(!isEqual(symbolVar, null)))
         {
-            object market = this.market(symbolVar);
+            Dictionary<string, object> market = this.market(symbolVar);
             symbolVar = getValue(market, "symbol");
             messageHash = add(messageHash, add(":", symbolVar));
         }
@@ -899,8 +899,8 @@ public partial class modetrade : ccxt.modetrade
             { "currency", this.safeString(order, "feeAsset") },
         };
         string? priceString = this.safeString(order, "price");
-        object price = this.safeNumber(order, "price");
-        object avgPrice = this.safeNumber(order, "avgPrice");
+        double? price = this.safeNumber(order, "price");
+        double? avgPrice = this.safeNumber(order, "avgPrice");
         if (isTrue(isTrue(Precise.stringEq(priceString, "0")) && isTrue((!isEqual(avgPrice, null)))))
         {
             price = avgPrice;
@@ -908,18 +908,18 @@ public partial class modetrade : ccxt.modetrade
         string? amount = this.safeString(order, "quantity");
         string? side = this.safeStringLower(order, "side");
         string? type = this.safeStringLower(order, "type");
-        object filled = this.safeNumber(order, "totalExecutedQuantity");
+        double? filled = this.safeNumber(order, "totalExecutedQuantity");
         string? totalExecQuantity = this.safeString(order, "totalExecutedQuantity");
-        object remaining = amount;
+        string? remaining = amount;
         if (isTrue(Precise.stringGe(amount, totalExecQuantity)))
         {
             remaining = Precise.stringSub(remaining, totalExecQuantity);
         }
         string? rawStatus = this.safeString(order, "status");
-        object status = this.parseOrderStatus(rawStatus);
+        string? status = this.parseOrderStatus(rawStatus);
         object trades = null;
         string? clientOrderId = this.safeString(order, "clientOrderId");
-        object triggerPrice = this.safeNumber(order, "triggerPrice");
+        double? triggerPrice = this.safeNumber(order, "triggerPrice");
         return this.safeOrder(new Dictionary<string, object>() {
             { "info", order },
             { "symbol", symbol },
@@ -981,7 +981,7 @@ public partial class modetrade : ccxt.modetrade
         if (isTrue(((data is IList<object>) || (data.GetType().IsGenericType && data.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             // algoexecutionreport
-            for (object i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
             {
                 object order = getValue(data, i);
                 string? tradeIdStr = this.safeString(data, "tradeId");
@@ -1008,7 +1008,7 @@ public partial class modetrade : ccxt.modetrade
     public virtual void handleOrder(WebSocketClient client, object message, object topic)
     {
         object parsed = this.parseWsOrder(message);
-        object symbol = this.safeString(parsed, "symbol");
+        string? symbol = this.safeString(parsed, "symbol");
         string? orderId = this.safeString(parsed, "id");
         if (isTrue(!isEqual(symbol, null)))
         {
@@ -1018,8 +1018,8 @@ public partial class modetrade : ccxt.modetrade
                 this.orders = new ArrayCacheBySymbolById(limit);
             }
             object cachedOrders = this.orders;
-            object orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
-            object order = ((bool) isTrue((isEqual(orderId, null)))) ? null : this.safeDict(orders, orderId);
+            IDictionary<string, object> orders = this.safeDict((cachedOrders as ArrayCache).hashmap, symbol, new Dictionary<string, object>() {});
+            IDictionary<string, object> order = ((bool) isTrue((isEqual(orderId, null)))) ? null : this.safeDict(orders, orderId);
             if (isTrue(!isEqual(order, null)))
             {
                 object fee = this.safeValue(order, "fee");
@@ -1027,7 +1027,7 @@ public partial class modetrade : ccxt.modetrade
                 {
                     ((IDictionary<string,object>)parsed)["fee"] = fee;
                 }
-                object fees = this.safeList(order, "fees");
+                List<object> fees = this.safeList(order, "fees");
                 if (isTrue(!isEqual(fees, null)))
                 {
                     ((IDictionary<string,object>)parsed)["fees"] = fees;
@@ -1075,7 +1075,7 @@ public partial class modetrade : ccxt.modetrade
         //
         string messageHash = "myTrades";
         string? marketId = this.safeString(message, "symbol");
-        object market = this.safeMarket(marketId);
+        Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
         object trade = this.parseWsTrade(message, market);
         object trades = this.myTrades;
@@ -1113,7 +1113,7 @@ public partial class modetrade : ccxt.modetrade
         symbols = this.marketSymbols(symbols);
         if (isTrue(isTrue((!isEqual(symbols, null))) && !isTrue(this.isEmpty(symbols))))
         {
-            for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
             {
                 object symbol = getValue(symbols, i);
                 ((IList<object>)messageHashes).Add(add("positions::", symbol));
@@ -1166,7 +1166,7 @@ public partial class modetrade : ccxt.modetrade
         object positions = ccxt.BaseExchange.FromPositionList(await this.FetchPositions());
         this.positions = new ArrayCacheBySymbolBySide();
         object cache = this.positions;
-        for (object i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(positions)); postFixIncrement(ref i))
         {
             object position = getValue(positions, i);
             string? contracts = this.safeString(position, "contracts", "0");
@@ -1218,23 +1218,23 @@ public partial class modetrade : ccxt.modetrade
         //        }
         //    }
         //
-        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object rawPositions = this.safeList(data, "positions", new List<object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        List<object> rawPositions = this.safeList(data, "positions", new List<object>() {});
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new ArrayCacheBySymbolBySide();
         }
         object cache = this.positions;
         List<object> newPositions = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(rawPositions)); postFixIncrement(ref i))
         {
             object rawPosition = getValue(rawPositions, i);
             string? marketId = this.safeString(rawPosition, "symbol");
-            object market = this.safeMarket(marketId);
+            Dictionary<string, object> market = this.safeMarket(marketId);
             object position = this.parseWsPosition(rawPosition, market);
             ((IList<object>)newPositions).Add(position);
             callDynamically(cache, "append", new object[] {position});
-            object messageHash = add("positions::", getValue(market, "symbol"));
+            string messageHash = add("positions::", getValue(market, "symbol"));
             callDynamically(client as WebSocketClient, "resolve", new object[] {position, messageHash});
         }
         callDynamically(client as WebSocketClient, "resolve", new object[] {newPositions, "positions"});
@@ -1332,7 +1332,7 @@ public partial class modetrade : ccxt.modetrade
             await this.loadMarkets();
         }
         string topic = "balance";
-        object messageHash = topic;
+        string messageHash = topic;
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "event", "subscribe" },
             { "topic", topic },
@@ -1370,18 +1370,18 @@ public partial class modetrade : ccxt.modetrade
         //         }
         //     }
         //
-        object data = this.safeDict(message, "data", new Dictionary<string, object>() {});
-        object balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> balances = this.safeDict(data, "balances", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)balances).Keys);
         Int64? ts = this.safeInteger(message, "ts");
         ((IDictionary<string,object>)this.balance)["info"] = data;
         ((IDictionary<string,object>)this.balance)["timestamp"] = ts;
         ((IDictionary<string,object>)this.balance)["datetime"] = this.iso8601(ts);
-        for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
         {
-            object key = getValue(keys, i);
+            string? key = ((string)getValue(keys, i));
             object value = getValue(balances, key);
-            object code = this.safeCurrencyCode(key);
+            string? code = this.safeCurrencyCode(key);
             object account = this.account();
             if (isTrue(isTrue((!isEqual(code, null))) && isTrue((inOp(this.balance, code)))))
             {
@@ -1401,29 +1401,29 @@ public partial class modetrade : ccxt.modetrade
         callDynamically(client as WebSocketClient, "resolve", new object[] {this.balance, "balance"});
     }
 
-    public virtual object handleErrorMessage(WebSocketClient client, object message)
+    public virtual bool? handleErrorMessage(WebSocketClient client, object message)
     {
         //
         // {"id":"1","event":"subscribe","success":false,"ts":1710780997216,"errorMsg":"Auth is needed."}
         //
         if (!isTrue((inOp(message, "success"))))
         {
-            return false;
+            return ((bool?)((object)(false)));
         }
-        object success = this.safeBool(message, "success");
+        bool? success = this.safeBool(message, "success");
         if (isTrue(isEqual(success, true)))
         {
-            return false;
+            return ((bool?)((object)(false)));
         }
         string? errorMessage = this.safeString(message, "errorMsg");
         try
         {
             if (isTrue(!isEqual(errorMessage, null)))
             {
-                object feedback = add(add(this.id, " "), this.json(message));
+                string feedback = add(add(this.id, " "), this.json(message));
                 this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), errorMessage, feedback);
             }
-            return false;
+            return ((bool?)((object)(false)));
         } catch(Exception error)
         {
             if (isTrue(error is AuthenticationError))
@@ -1438,7 +1438,7 @@ public partial class modetrade : ccxt.modetrade
             {
                 ((WebSocketClient)client).reject(error);
             }
-            return true;
+            return ((bool?)((object)(true)));
         }
     }
 

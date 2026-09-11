@@ -1337,7 +1337,7 @@ class BaseExchange(SyncExchange):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns float[][]: A list of candles ordered, open, high, low, close, None
+        :returns float[][]: A list of candles ordered as timestamp, open, high, low, close, None
         """
         if self.has['fetchMarkOHLCV'] is not None and self.has['fetchMarkOHLCV'] is not False:
             request = {
@@ -1355,7 +1355,7 @@ class BaseExchange(SyncExchange):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
- @returns {} A list of candles ordered, open, high, low, close, None
+ @returns {} A list of candles ordered as timestamp, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV'] is not None and self.has['fetchIndexOHLCV'] is not False:
             request = {
@@ -1373,7 +1373,7 @@ class BaseExchange(SyncExchange):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns float[][]: A list of candles ordered, open, high, low, close, None
+        :returns float[][]: A list of candles ordered as timestamp, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV'] is not None and self.has['fetchPremiumIndexOHLCV'] is not False:
             request = {
@@ -1672,7 +1672,7 @@ class BaseExchange(SyncExchange):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         raise NotSupported(self.id + ' unWatchOHLCV() is not supported yet')
 

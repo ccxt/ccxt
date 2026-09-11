@@ -112,9 +112,104 @@ func (this *GeminiCore) PublicGetV1RiskstatsSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV1RiskstatsSymbol", args...)
 }
 
+// PublicGetV1PredictionMarketsEvents returns a channel that yields a JSON object.
+func (this *GeminiCore) PublicGetV1PredictionMarketsEvents(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsEvents", args...)
+}
+
+// PublicGetV1PredictionMarketsEventsEventTicker returns a channel that yields a JSON object.
+func (this *GeminiCore) PublicGetV1PredictionMarketsEventsEventTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsEventsEventTicker", args...)
+}
+
+// PublicGetV1PredictionMarketsEventsEventTickerStrike returns a channel that yields a JSON object.
+func (this *GeminiCore) PublicGetV1PredictionMarketsEventsEventTickerStrike(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsEventsEventTickerStrike", args...)
+}
+
+// PublicGetV1PredictionMarketsEventsNewlyListed returns a channel that yields a JSON object.
+func (this *GeminiCore) PublicGetV1PredictionMarketsEventsNewlyListed(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsEventsNewlyListed", args...)
+}
+
+// PublicGetV1PredictionMarketsEventsRecentlySettled returns a channel that yields a JSON object.
+func (this *GeminiCore) PublicGetV1PredictionMarketsEventsRecentlySettled(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsEventsRecentlySettled", args...)
+}
+
+// PublicGetV1PredictionMarketsEventsUpcoming returns a channel that yields a JSON object.
+func (this *GeminiCore) PublicGetV1PredictionMarketsEventsUpcoming(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsEventsUpcoming", args...)
+}
+
+// PublicGetV1PredictionMarketsCategories returns a channel that yields a JSON object.
+func (this *GeminiCore) PublicGetV1PredictionMarketsCategories(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsCategories", args...)
+}
+
+// PublicGetV1PredictionMarketsVolumeDate returns a channel that yields a JSON array.
+func (this *GeminiCore) PublicGetV1PredictionMarketsVolumeDate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsVolumeDate", args...)
+}
+
+// PublicGetV1PredictionMarketsVolumeDateHourly returns a channel that yields a JSON array.
+func (this *GeminiCore) PublicGetV1PredictionMarketsVolumeDateHourly(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsVolumeDateHourly", args...)
+}
+
+// PublicGetV1PredictionMarketsTerms returns a channel that yields a JSON object.
+func (this *GeminiCore) PublicGetV1PredictionMarketsTerms(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsTerms", args...)
+}
+
+// PublicGetV1PredictionMarketsMakerRebateRates returns a channel that yields a JSON object.
+func (this *GeminiCore) PublicGetV1PredictionMarketsMakerRebateRates(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsMakerRebateRates", args...)
+}
+
+// PublicGetV1PredictionMarketsLiquidityRewardsConfig returns a channel that yields a JSON object.
+func (this *GeminiCore) PublicGetV1PredictionMarketsLiquidityRewardsConfig(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsLiquidityRewardsConfig", args...)
+}
+
+// PublicGetV1PredictionMarketsLiquidityRewardsEvents returns a channel that yields a JSON object.
+func (this *GeminiCore) PublicGetV1PredictionMarketsLiquidityRewardsEvents(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV1PredictionMarketsLiquidityRewardsEvents", args...)
+}
+
 // PrivateGetV1PerpetualsFundingpaymentreportRecordsXlsx returns a channel that yields a JSON scalar.
 func (this *GeminiCore) PrivateGetV1PerpetualsFundingpaymentreportRecordsXlsx(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1PerpetualsFundingpaymentreportRecordsXlsx", args...)
+}
+
+// PrivateGetV1PredictionMarketsTermsStatus returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivateGetV1PredictionMarketsTermsStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1PredictionMarketsTermsStatus", args...)
+}
+
+// PrivateGetV1PredictionMarketsMakerRebateSummaryTotal returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivateGetV1PredictionMarketsMakerRebateSummaryTotal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1PredictionMarketsMakerRebateSummaryTotal", args...)
+}
+
+// PrivateGetV1PredictionMarketsLiquidityRewardsSummaryDaily returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivateGetV1PredictionMarketsLiquidityRewardsSummaryDaily(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1PredictionMarketsLiquidityRewardsSummaryDaily", args...)
+}
+
+// PrivateGetV1PredictionMarketsLiquidityRewardsSummaryTotal returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivateGetV1PredictionMarketsLiquidityRewardsSummaryTotal(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV1PredictionMarketsLiquidityRewardsSummaryTotal", args...)
+}
+
+// PrivateGetV2NetworkToken returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivateGetV2NetworkToken(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2NetworkToken", args...)
+}
+
+// PrivateGetV2NetworksNetworkAssets returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivateGetV2NetworksNetworkAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2NetworksNetworkAssets", args...)
 }
 
 // PrivatePostV1StakingUnstake returns a channel that yields a JSON object.
@@ -415,4 +510,74 @@ func (this *GeminiCore) PrivatePostV1PerpetualsFundingpaymentreportRecordsJson(a
 // PrivatePostV1Positions returns a channel that yields a JSON object.
 func (this *GeminiCore) PrivatePostV1Positions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV1Positions", args...)
+}
+
+// PrivatePostV1PredictionMarketsOrder returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV1PredictionMarketsOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1PredictionMarketsOrder", args...)
+}
+
+// PrivatePostV1PredictionMarketsOrderBatch returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV1PredictionMarketsOrderBatch(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1PredictionMarketsOrderBatch", args...)
+}
+
+// PrivatePostV1PredictionMarketsOrderCancel returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV1PredictionMarketsOrderCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1PredictionMarketsOrderCancel", args...)
+}
+
+// PrivatePostV1PredictionMarketsOrderBatchCancel returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV1PredictionMarketsOrderBatchCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1PredictionMarketsOrderBatchCancel", args...)
+}
+
+// PrivatePostV1PredictionMarketsOrdersActive returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV1PredictionMarketsOrdersActive(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1PredictionMarketsOrdersActive", args...)
+}
+
+// PrivatePostV1PredictionMarketsOrdersHistory returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV1PredictionMarketsOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1PredictionMarketsOrdersHistory", args...)
+}
+
+// PrivatePostV1PredictionMarketsPositions returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV1PredictionMarketsPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1PredictionMarketsPositions", args...)
+}
+
+// PrivatePostV1PredictionMarketsPositionsSettled returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV1PredictionMarketsPositionsSettled(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1PredictionMarketsPositionsSettled", args...)
+}
+
+// PrivatePostV1PredictionMarketsMetricsVolume returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV1PredictionMarketsMetricsVolume(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1PredictionMarketsMetricsVolume", args...)
+}
+
+// PrivatePostV1PredictionMarketsTermsAccept returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV1PredictionMarketsTermsAccept(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1PredictionMarketsTermsAccept", args...)
+}
+
+// PrivatePostV1PredictionMarketsMakerRebatePayouts returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV1PredictionMarketsMakerRebatePayouts(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV1PredictionMarketsMakerRebatePayouts", args...)
+}
+
+// PrivatePostV2Transfers returns a channel that yields a JSON array.
+func (this *GeminiCore) PrivatePostV2Transfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2Transfers", args...)
+}
+
+// PrivatePostV2WithdrawNetworkTicker returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV2WithdrawNetworkTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2WithdrawNetworkTicker", args...)
+}
+
+// PrivatePostV2WithdrawNetworkTickerFeeEstimate returns a channel that yields a JSON object.
+func (this *GeminiCore) PrivatePostV2WithdrawNetworkTickerFeeEstimate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2WithdrawNetworkTickerFeeEstimate", args...)
 }

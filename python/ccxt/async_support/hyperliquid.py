@@ -1245,7 +1245,7 @@ class hyperliquid(Exchange, ImplicitAPI):
             response = await self.fetch_swap_markets(params)
         else:
             response = await self.fetch_markets(params)
-        # same response "fetchMarkets"
+        # same response as under "fetchMarkets"
         result = {}
         for i in range(0, len(response)):
             market = response[i]
@@ -1424,7 +1424,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1792,7 +1792,7 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     async def initialize_client(self):
         try:
-            await asyncio.gather(*[self.handle_builder_fee_approval(), self.set_ref(), self.is_unified_enabled('fetchBalance', None, False, {})])  # for now only fetchBalance requires the unified knowledge, but we can self.extend self to other methods
+            await asyncio.gather(*[self.handle_builder_fee_approval(), self.set_ref(), self.is_unified_enabled('fetchBalance', None, False, {})])  # for now only fetchBalance requires the unified knowledge, but we can self.extend self to other methods as needed
         except Exception as e:
             return False
         return True
@@ -2003,7 +2003,7 @@ class hyperliquid(Exchange, ImplicitAPI):
 
     async def create_twap_order(self, symbol: str, side: OrderSide, amount: float, duration: float, params={}) -> Order:
         """
-        create a trade order that is executed TWAP order over a specified duration.
+        create a trade order that is executed as a TWAP order over a specified duration.
         :param str symbol: unified symbol of the market to create an order in
         :param str side: 'buy' or 'sell'
         :param float amount: how much of currency you want to trade in units of base currency
@@ -3257,7 +3257,7 @@ class hyperliquid(Exchange, ImplicitAPI):
         isTrigger = (self.safe_bool(entry, 'isTrigger') is True)
         triggerPx = self.safe_number(entry, 'triggerPx') if isTrigger else None
         # standalone stop / take-profit orders carry their trigger in triggerPx - surface it
-        # through the unified stopLossPrice / takeProfitPrice fields, see  #24318
+        # through the unified stopLossPrice / takeProfitPrice fields as well, see  #24318
         orderTypeRaw = self.safe_string_lower(entry, 'orderType', '')
         stopLossPrice = None
         takeProfitPrice = None

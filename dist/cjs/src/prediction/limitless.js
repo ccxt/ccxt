@@ -12,6 +12,7 @@ require('../base/functions/platform.js');
 require('../base/functions/encode.js');
 var crypto = require('../base/functions/crypto.js');
 require('../base/functions/time.js');
+require('../base/functions/throttle.js');
 require('../base/functions/io.js');
 
 // ----------------------------------------------------------------------------
@@ -1211,7 +1212,7 @@ class limitless extends limitless$1["default"] {
             'slug': slug,
         };
         if (limit !== undefined) {
-            request['limit'] = limit;
+            request['limit'] = Math.min(limit, 100);
         }
         const response = await this.limitlessPublicGetMarketsSlugEvents(this.extend(request, params));
         //

@@ -67,6 +67,11 @@ func (this *RevolutxCore) PrivateGet10TradesPrivateSymbol(args ...any) <-chan an
 	return this.callEndpointAsync("privateGet10TradesPrivateSymbol", args...)
 }
 
+// PrivateGet10Transactions returns a channel that yields a JSON object or a JSON array.
+func (this *RevolutxCore) PrivateGet10Transactions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGet10Transactions", args...)
+}
+
 // PrivatePost10Orders returns a channel that yields a JSON object or a JSON array.
 func (this *RevolutxCore) PrivatePost10Orders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePost10Orders", args...)

@@ -137,6 +137,7 @@ public class MercadoCore extends MercadoApi
                     put( "private", "https://www.mercadobitcoin.net/tapi" );
                     put( "v4Public", "https://www.mercadobitcoin.com.br/v4" );
                     put( "v4PublicNet", "https://api.mercadobitcoin.net/api/v4" );
+                    put( "v4Private", "https://api.mercadobitcoin.net/api/v4" );
                 }} );
                 put( "www", "https://www.mercadobitcoin.com.br" );
                 put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://www.mercadobitcoin.com.br/api-doc", "https://www.mercadobitcoin.com.br/trade-api")) );
@@ -217,6 +218,24 @@ public class MercadoCore extends MercadoApi
                 put( "v4PublicNet", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
                         put( "candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                }} );
+                put( "v4Private", new java.util.HashMap<String, Object>() {{
+                    put( "post", new java.util.HashMap<String, Object>() {{
+                        put( "accounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "accounts/{accountId}/{symbol}/transfers/internal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "oauth2/token", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "patch", new java.util.HashMap<String, Object>() {{
+                        put( "accounts/{accountId}/wallet/{symbol}/deposits/{depositId}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );

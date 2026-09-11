@@ -189,6 +189,7 @@ export default class modetrade extends Exchange {
                             'tv/config': { 'cost': 1 },
                             'tv/history': { 'cost': 1 },
                             'tv/symbol_info': { 'cost': 1 },
+                            'tv/kline_history': { 'cost': 20 },
                             'public/funding_rate_history': { 'cost': 1 },
                             'public/funding_rate/{symbol}': { 'cost': 0.33 },
                             'public/funding_rates': { 'cost': 1 },
@@ -201,6 +202,7 @@ export default class modetrade extends Exchange {
                         },
                         'post': {
                             'register_account': { 'cost': 1 },
+                            'public/query': { 'cost': 1 },
                         },
                     },
                     'private': {
@@ -223,6 +225,7 @@ export default class modetrade extends Exchange {
                             'withdraw_nonce': { 'cost': 1 },
                             'settle_nonce': { 'cost': 1 },
                             'pnl_settlement/history': { 'cost': 1 },
+                            'internal_transfer_history': { 'cost': 1 },
                             'volume/user/daily': { 'cost': 60 },
                             'volume/user/stats': { 'cost': 60 },
                             'client/statistics': { 'cost': 60 },
@@ -236,8 +239,20 @@ export default class modetrade extends Exchange {
                             'volume/broker/daily': { 'cost': 60 },
                             'broker/fee_rate/default': { 'cost': 10 },
                             'broker/user_info': { 'cost': 10 },
+                            'broker/daily_fee_revenue': { 'cost': 1 },
                             'orderbook/{symbol}': { 'cost': 1 },
                             'kline': { 'cost': 1 },
+                            'client/leverages': { 'cost': 1 },
+                            'client/margin_modes': { 'cost': 1 },
+                            'referral/multi_level/admin': { 'cost': 10 },
+                            'referral/multi_level/admin/info': { 'cost': 1 },
+                            'referral/multi_level/admin/referee_list': { 'cost': 1 },
+                            'referral/multi_level/admin/summary': { 'cost': 1 },
+                            'referral/multi_level/max_rebate_rate': { 'cost': 10 },
+                            'referral/multi_level/rebate_info': { 'cost': 10 },
+                            'referral/multi_level/referee_list': { 'cost': 1 },
+                            'referral/multi_level/statistics': { 'cost': 1 },
+                            'referral/multi_level/volume_prerequisite': { 'cost': 1 },
                         },
                         'post': {
                             'orderly_key': { 'cost': 1 },
@@ -250,9 +265,13 @@ export default class modetrade extends Exchange {
                             'claim_insurance_fund': { 'cost': 1 },
                             'withdraw_request': { 'cost': 1 },
                             'settle_pnl': { 'cost': 1 },
+                            'internal_transfer': { 'cost': 1 },
                             'notification/inbox/mark_read': { 'cost': 60 },
                             'notification/inbox/mark_read_all': { 'cost': 60 },
                             'client/leverage': { 'cost': 120 },
+                            'client/leverages': { 'cost': 120 },
+                            'client/margin_mode': { 'cost': 1 },
+                            'position_margin': { 'cost': 1 },
                             'client/maintenance_config': { 'cost': 60 },
                             'delegate_signer': { 'cost': 10 },
                             'delegate_orderly_key': { 'cost': 10 },
@@ -265,6 +284,15 @@ export default class modetrade extends Exchange {
                             'referral/update': { 'cost': 10 },
                             'referral/bind': { 'cost': 10 },
                             'referral/edit_split': { 'cost': 10 },
+                            'referral/edit_referee_description': { 'cost': 1 },
+                            'referral/multi_level/admin': { 'cost': 10 },
+                            'referral/multi_level/admin/update': { 'cost': 10 },
+                            'referral/multi_level/admin/create/affiliate': { 'cost': 1 },
+                            'referral/multi_level/admin/reset/affiliate': { 'cost': 10 },
+                            'referral/multi_level/admin/update/affiliate': { 'cost': 10 },
+                            'referral/multi_level/claim_code': { 'cost': 10 },
+                            'referral/multi_level/rebate_rate/set_default': { 'cost': 10 },
+                            'referral/multi_level/rebate_rate/update': { 'cost': 10 },
                         },
                         'put': {
                             'order': { 'cost': 1 },
@@ -320,12 +348,12 @@ export default class modetrade extends Exchange {
                             'GTD': false,
                         },
                         'hedged': false,
-                        'trailing': true,
-                        'leverage': true, // todo implement
+                        'trailing': false,
+                        'leverage': false,
                         'marketBuyByCost': false,
                         'marketBuyRequiresPrice': false,
                         'selfTradePrevention': false,
-                        'iceberg': true, // todo implement
+                        'iceberg': false,
                     },
                     'createOrders': {
                         'max': 10,
@@ -350,7 +378,15 @@ export default class modetrade extends Exchange {
                         'trailing': false,
                         'symbolRequired': false,
                     },
-                    'fetchOrders': undefined,
+                    'fetchOrders': {
+                        'marginMode': false,
+                        'limit': 500,
+                        'daysBack': undefined,
+                        'untilDays': 100000,
+                        'trigger': true,
+                        'trailing': false,
+                        'symbolRequired': false,
+                    },
                     'fetchClosedOrders': {
                         'marginMode': false,
                         'limit': 500,
@@ -365,9 +401,7 @@ export default class modetrade extends Exchange {
                         'limit': 1000,
                     },
                 },
-                'spot': {
-                    'extends': 'default',
-                },
+                'spot': undefined,
                 'forDerivatives': {
                     'extends': 'default',
                     'createOrder': {
@@ -1451,7 +1485,7 @@ export default class modetrade extends Exchange {
             }
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrderType(type) {
         const types = {
@@ -1594,8 +1628,11 @@ export default class modetrade extends Exchange {
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {string} [params.timeInForce] 'IOC', 'FOK' or 'PO'
+     * @param {object[]} [params.childOrders] *algo order only* a list of child orders passed through to the exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2058,7 +2095,7 @@ export default class modetrade extends Exchange {
      * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2089,7 +2126,7 @@ export default class modetrade extends Exchange {
             request['start_t'] = since;
         }
         if (limit !== undefined) {
-            request['size'] = limit;
+            request['size'] = Math.min(limit, maxLimit);
         }
         else {
             request['size'] = maxLimit;
@@ -2151,7 +2188,7 @@ export default class modetrade extends Exchange {
      * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2175,7 +2212,7 @@ export default class modetrade extends Exchange {
      * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)

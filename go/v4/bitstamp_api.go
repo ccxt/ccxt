@@ -72,6 +72,16 @@ func (this *BitstampCore) PublicGetFundingRateHistoryPair(args ...any) <-chan an
 	return this.callEndpointAsync("publicGetFundingRateHistoryPair", args...)
 }
 
+// PublicGetDerivativesMarketHours returns a channel that yields a JSON array.
+func (this *BitstampCore) PublicGetDerivativesMarketHours(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesMarketHours", args...)
+}
+
+// PublicGetDerivativesMarketHoursMarketSymbol returns a channel that yields a JSON object.
+func (this *BitstampCore) PublicGetDerivativesMarketHoursMarketSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDerivativesMarketHoursMarketSymbol", args...)
+}
+
 // PrivateGetTravelRuleContacts returns a channel that yields a JSON array.
 func (this *BitstampCore) PrivateGetTravelRuleContacts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetTravelRuleContacts", args...)
@@ -80,6 +90,26 @@ func (this *BitstampCore) PrivateGetTravelRuleContacts(args ...any) <-chan any {
 // PrivateGetContactsContactUuid returns a channel that yields a JSON object.
 func (this *BitstampCore) PrivateGetContactsContactUuid(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetContactsContactUuid", args...)
+}
+
+// PrivateGetTravelRuleUtxoXpubRegistrations returns a channel that yields a JSON array.
+func (this *BitstampCore) PrivateGetTravelRuleUtxoXpubRegistrations(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTravelRuleUtxoXpubRegistrations", args...)
+}
+
+// PrivateGetTravelRuleUtxoXpubRegistrationsRegistrationId returns a channel that yields a JSON object.
+func (this *BitstampCore) PrivateGetTravelRuleUtxoXpubRegistrationsRegistrationId(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTravelRuleUtxoXpubRegistrationsRegistrationId", args...)
+}
+
+// PrivateGetTravelRuleAddressVerification returns a channel that yields a JSON object.
+func (this *BitstampCore) PrivateGetTravelRuleAddressVerification(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetTravelRuleAddressVerification", args...)
+}
+
+// PrivateGetCryptoTransactionsDeposits returns a channel that yields a JSON array.
+func (this *BitstampCore) PrivateGetCryptoTransactionsDeposits(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetCryptoTransactionsDeposits", args...)
 }
 
 // PrivateGetEarnSubscriptions returns a channel that yields a JSON array.
@@ -145,6 +175,11 @@ func (this *BitstampCore) PrivatePostUserTransactionsPair(args ...any) <-chan an
 // PrivatePostCryptoTransactions returns a channel that yields a JSON object.
 func (this *BitstampCore) PrivatePostCryptoTransactions(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCryptoTransactions", args...)
+}
+
+// PrivatePostCryptoTransactionsDepositsDepositIdReject returns a channel that yields a JSON object.
+func (this *BitstampCore) PrivatePostCryptoTransactionsDepositsDepositIdReject(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCryptoTransactionsDepositsDepositIdReject", args...)
 }
 
 // PrivatePostOpenOrder returns a channel that yields a JSON object.
@@ -300,6 +335,16 @@ func (this *BitstampCore) PrivatePostRevokeAllApiKeys(args ...any) <-chan any {
 // PrivatePostGetMaxOrderAmount returns a channel that yields a JSON object.
 func (this *BitstampCore) PrivatePostGetMaxOrderAmount(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetMaxOrderAmount", args...)
+}
+
+// PrivatePostOrderData returns a channel that yields a JSON array.
+func (this *BitstampCore) PrivatePostOrderData(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderData", args...)
+}
+
+// PrivatePostAccountOrderData returns a channel that yields a JSON array.
+func (this *BitstampCore) PrivatePostAccountOrderData(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAccountOrderData", args...)
 }
 
 // PrivatePostBtcWithdrawal returns a channel that yields a JSON object.
@@ -1115,6 +1160,16 @@ func (this *BitstampCore) PrivatePostLdoAddress(args ...any) <-chan any {
 // PrivatePostTravelRuleContacts returns a channel that yields a JSON object.
 func (this *BitstampCore) PrivatePostTravelRuleContacts(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTravelRuleContacts", args...)
+}
+
+// PrivatePostTravelRuleUtxoXpubRegistrations returns a channel that yields a JSON object.
+func (this *BitstampCore) PrivatePostTravelRuleUtxoXpubRegistrations(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTravelRuleUtxoXpubRegistrations", args...)
+}
+
+// PrivatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke returns a channel that yields a JSON object.
+func (this *BitstampCore) PrivatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke", args...)
 }
 
 // PrivatePostEarnSubscribe returns a channel that yields a JSON object.

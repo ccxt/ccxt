@@ -1377,7 +1377,7 @@ class BaseExchange(object):
     _PARSE8601_ISO8601_PATTERN = re.compile(
         r'([0-9]{4})-?([0-9]{2})-?([0-9]{2})(?:T|[\s])?'
         r'([0-9]{2}):?([0-9]{2}):?([0-9]{2})'
-        r'(\.[0-9]{1,3})?'
+        r'(\.[0-9]+)?'
         r'(?:(\+|\-)([0-9]{2})\:?([0-9]{2})|Z)?',
         re.IGNORECASE
     )
@@ -1393,9 +1393,9 @@ class BaseExchange(object):
             yyyy, mm, dd, h, m, s, ms, sign, hours, minutes = match.groups()
             # Parse milliseconds
             if ms:
-                ms = ms[1:]  # Remove leading dot
-                ms = ms + '0' * (3 - len(ms))  # Pad to 3 digits
-                msint = int(ms)
+                # a fraction may carry more digits than milliseconds, and the offset
+                # group only matches when all of them are consumed
+                msint = int((ms[1:] + '00')[:3])
             else:
                 msint = 0
             # Parse timezone offset
@@ -3724,8 +3724,8 @@ class BaseExchange(object):
 
     def parse_to_int(self, number: object):
         # Solve Common intmisuse ex: int((since / str(1000)))
-        # using a number which is not valid in ts
-        # numberToString is typed under strictNullChecks; cast to string
+        # using a number as parameter which is not valid in ts
+        # numberToString is typed as nullable under strictNullChecks; cast to string
         # the cast is erased at transpile-time, so output matches every target language, rather than
         # branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         stringifiedNumber = self.number_to_string(number)
@@ -3934,10 +3934,10 @@ class BaseExchange(object):
             return defaultValue  # unsupported paramName, check "exchange.features" for details')
         dictionary = self.safe_dict(methodDict, parentKey)
         if dictionary is None:
-            # if the value is not dictionary but a scalar value(or None), return
+            # if the value is not dictionary but a scalar value(or None), return as is
             return methodDict[parentKey]
         else:
-            # return, when calling without subKey eg: featureValueByType('spot', None, 'createOrder', 'stopLoss')
+            # return as is, when calling without subKey eg: featureValueByType('spot', None, 'createOrder', 'stopLoss')
             if subKey is None:
                 return methodDict[parentKey]
             # raise an exception for unsupported subKey
@@ -4337,8 +4337,8 @@ class BaseExchange(object):
         return balance
 
     def safe_order(self, order: dict, market: Market = None):
-        # parses numbers
-        # * it is important pass the trades rawTrades
+        # parses numbers as strings
+        # * it is important pass the trades as unparsed rawTrades
         if order is None:
             order = {}
         amount = self.omit_zero(self.safe_string(order, 'amount'))
@@ -4366,7 +4366,7 @@ class BaseExchange(object):
         if parseFilled or parseCost or shouldParseFees:
             rawTrades = self.safe_value(order, 'trades', trades)
             # oldNumber = self.number
-            # we parse trades here!
+            # we parse trades as strings here!
             # i don't think self is needed anymore
             # self.number = str
             firstTrade = self.safe_value(rawTrades, 0)
@@ -4376,7 +4376,7 @@ class BaseExchange(object):
                 trades = self.parse_trades(rawTrades, market)
             else:
                 trades = rawTrades
-            # self.number = oldNumber; why parse trades if you read the value using `safeString` ?
+            # self.number = oldNumber; why parse trades as strings if you read the value using `safeString` ?
             tradesLength = 0
             isArray = isinstance(trades, list)
             if isArray:
@@ -4740,7 +4740,7 @@ class BaseExchange(object):
                 fee = reducedFees[0]
             elif reducedLength == 0:
                 fee = None
-        # in case `fee & fees` are None, set `fees` array
+        # in case `fee & fees` are None, set `fees` as empty array
         if fee is None:
             fee = {
                 'cost': None,
@@ -4846,7 +4846,7 @@ class BaseExchange(object):
                 rate = self.safe_string(fee, 'rate')
                 cost = self.safe_string(fee, 'cost')
                 if cost is None:
-                    # omit None cost, does not make sense, however, don't omit '0' costs, still make sense
+                    # omit None cost, as it does not make sense, however, don't omit '0' costs, as they still make sense
                     continue
                 if not (feeCurrencyCode in reduced):
                     reduced[feeCurrencyCode] = {}
@@ -5358,7 +5358,7 @@ class BaseExchange(object):
             if responseNetworksLength == 0:
                 raise NotSupported(self.id + ' - ' + networkCode + ' network did not return any result for ' + currencyCode)
             else:
-                # if networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
+                # if networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
                 networkIdOrCode = networkCode if isIndexedByUnifiedNetworkCode else self.network_code_to_id(networkCode, currencyCode)
                 if networkIdOrCode in indexedNetworkEntries:
                     chosenNetworkId = networkIdOrCode
@@ -5457,7 +5457,7 @@ class BaseExchange(object):
         #
         percentage = self.safe_value(position, 'percentage')
         if (percentage is None) and (unrealizedPnlString is not None) and (initialMarginString is not None):
-            # was done in all implementations( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            # as it was done in all implementations( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             percentageString = Precise.string_mul(Precise.string_div(unrealizedPnlString, initialMarginString, 4), '100')
             position['percentage'] = self.parse_number(percentageString)
         # if contractSize is None get from market
@@ -6053,7 +6053,7 @@ class BaseExchange(object):
         :param Market market:
         :param dict params:
         :param str [params.type]: type assigned by user
-        :param str [params.defaultType]: same.type
+        :param str [params.defaultType]: same as params.type
         :param str [defaultValue]: assigned programatically in the method calling handleMarketTypeAndParams
         :returns [str, dict]: the market type and params with type and defaultType omitted
         """
@@ -6105,7 +6105,7 @@ class BaseExchange(object):
         """
  @ignore
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns Array: the marginMode in lowercase by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
+        :returns Array: the marginMode in lowercase as specified by params["marginMode"], params["defaultMarginMode"] self.options["marginMode"] or self.options["defaultMarginMode"]
         """
         return self.handle_option_and_params(params, methodName, 'marginMode', defaultValue)
 
@@ -6915,7 +6915,7 @@ class BaseExchange(object):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns float[][]: A list of candles ordered, open, high, low, close, None
+        :returns float[][]: A list of candles ordered as timestamp, open, high, low, close, None
         """
         if self.has['fetchMarkOHLCV'] is not None and self.has['fetchMarkOHLCV'] is not False:
             request = {
@@ -6933,7 +6933,7 @@ class BaseExchange(object):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
- @returns {} A list of candles ordered, open, high, low, close, None
+ @returns {} A list of candles ordered as timestamp, open, high, low, close, None
         """
         if self.has['fetchIndexOHLCV'] is not None and self.has['fetchIndexOHLCV'] is not False:
             request = {
@@ -6951,7 +6951,7 @@ class BaseExchange(object):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns float[][]: A list of candles ordered, open, high, low, close, None
+        :returns float[][]: A list of candles ordered as timestamp, open, high, low, close, None
         """
         if self.has['fetchPremiumIndexOHLCV'] is not None and self.has['fetchPremiumIndexOHLCV'] is not False:
             request = {
@@ -7630,7 +7630,9 @@ class BaseExchange(object):
         year = date[0:2]
         month = date[2:4]
         day = date[4:6]
-        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z'
+        # the milliseconds are spelled out because every caller writes the result into
+        # expiryDatetime, which types.ts documents in the ISO 8601 form with them
+        reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00.000Z'
         return reconstructedDate
 
     def convert_expire_date_to_market_id_date(self, date: Str):
@@ -7743,7 +7745,7 @@ class BaseExchange(object):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         raise NotSupported(self.id + ' unWatchOHLCV() is not supported yet')
 

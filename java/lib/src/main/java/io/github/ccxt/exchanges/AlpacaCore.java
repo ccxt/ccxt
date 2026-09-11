@@ -157,7 +157,61 @@ public class AlpacaCore extends AlpacaApi
                 put( "withdraw", true );
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
-                put( "broker", new java.util.HashMap<String, Object>() {{}} );
+                put( "broker", new java.util.HashMap<String, Object>() {{
+                    put( "private", new java.util.HashMap<String, Object>() {{
+                        put( "get", new java.util.HashMap<String, Object>() {{
+                            put( "v1/accounts/{account_id}/tokenization/requests", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/accounts/{account_id}/tokenization/requests:by_client_request_id", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/fpsl/analytics/{account_id}/loans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/ipos", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/ipos/{offering_reference}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/wallets/travel-rule/vasps", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/acats", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/acats/contrabrokers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/acats/{account_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/acats/{account_id}/{acats_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/acats/{account_id}/{acats_id}/assets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "post", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/acats/{account_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "patch", new java.util.HashMap<String, Object>() {{
+                            put( "v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                    }} );
+                }} );
                 put( "trader", new java.util.HashMap<String, Object>() {{
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
@@ -221,6 +275,27 @@ public class AlpacaCore extends AlpacaApi
                             put( "v2/wallets/transfers", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "v1/locates", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/locates/{locate_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/locates/quotes", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/tokenization/requests", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/tokenization/requests/{tokenization_request_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/tokenization/requests:by_client_request_id", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/wallets/travel-rule/vasps", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "v2/orders", new java.util.HashMap<String, Object>() {{
@@ -236,6 +311,9 @@ public class AlpacaCore extends AlpacaApi
                                 put( "cost", 1 );
                             }} );
                             put( "v2/wallets/transfers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/locates", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -255,6 +333,9 @@ public class AlpacaCore extends AlpacaApi
                                 put( "cost", 1 );
                             }} );
                             put( "v2/account/configurations", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -315,6 +396,12 @@ public class AlpacaCore extends AlpacaApi
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
                             put( "v1beta1/corporate-actions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/fixed_income/latest/prices", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/fixed_income/latest/quotes", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "v1beta1/forex/latest/rates", new java.util.HashMap<String, Object>() {{

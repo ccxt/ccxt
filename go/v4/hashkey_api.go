@@ -232,6 +232,11 @@ func (this *HashkeyCore) PrivateGetApiV1AccountWithdrawOrders(args ...any) <-cha
 	return this.callEndpointAsync("privateGetApiV1AccountWithdrawOrders", args...)
 }
 
+// PrivateGetApiV1AffiliateInviteeInfo returns a channel that yields a JSON array.
+func (this *HashkeyCore) PrivateGetApiV1AffiliateInviteeInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV1AffiliateInviteeInfo", args...)
+}
+
 // PrivatePostApiV1UserDataStream returns a channel that yields a JSON object.
 func (this *HashkeyCore) PrivatePostApiV1UserDataStream(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1UserDataStream", args...)
@@ -322,6 +327,11 @@ func (this *HashkeyCore) PrivateDeleteApiV1SpotCancelOrderByIds(args ...any) <-c
 	return this.callEndpointAsync("privateDeleteApiV1SpotCancelOrderByIds", args...)
 }
 
+// PrivateDeleteApiV1SpotCancelAllOpenOrders returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateDeleteApiV1SpotCancelAllOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteApiV1SpotCancelAllOpenOrders", args...)
+}
+
 // PrivateDeleteApiV1FuturesOrder returns a channel that yields a JSON object.
 func (this *HashkeyCore) PrivateDeleteApiV1FuturesOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1FuturesOrder", args...)
@@ -335,6 +345,11 @@ func (this *HashkeyCore) PrivateDeleteApiV1FuturesBatchOrders(args ...any) <-cha
 // PrivateDeleteApiV1FuturesCancelOrderByIds returns a channel that yields a JSON object.
 func (this *HashkeyCore) PrivateDeleteApiV1FuturesCancelOrderByIds(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1FuturesCancelOrderByIds", args...)
+}
+
+// PrivateDeleteApiV1FuturesCancelAllOpenOrders returns a channel that yields a JSON object.
+func (this *HashkeyCore) PrivateDeleteApiV1FuturesCancelAllOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteApiV1FuturesCancelAllOpenOrders", args...)
 }
 
 // PrivateDeleteApiV1UserDataStream returns a channel that yields a JSON object.

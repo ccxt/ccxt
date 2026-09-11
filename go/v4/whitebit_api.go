@@ -212,6 +212,11 @@ func (this *WhitebitCore) V4PrivatePostCollateralAccountPositionsOpen(args ...an
 	return this.callEndpointAsync("v4PrivatePostCollateralAccountPositionsOpen", args...)
 }
 
+// V4PrivatePostCollateralAccountPositionsClosedPnl returns a channel that yields a JSON array.
+func (this *WhitebitCore) V4PrivatePostCollateralAccountPositionsClosedPnl(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostCollateralAccountPositionsClosedPnl", args...)
+}
+
 // V4PrivatePostCollateralAccountSummary returns a channel that yields a JSON object.
 func (this *WhitebitCore) V4PrivatePostCollateralAccountSummary(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostCollateralAccountSummary", args...)
@@ -277,6 +282,11 @@ func (this *WhitebitCore) V4PrivatePostMainAccountWithdrawPay(args ...any) <-cha
 	return this.callEndpointAsync("v4PrivatePostMainAccountWithdrawPay", args...)
 }
 
+// V4PrivatePostMainAccountExpressWithdrawToken returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMainAccountExpressWithdrawToken(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMainAccountExpressWithdrawToken", args...)
+}
+
 // V4PrivatePostMainAccountTransfer returns a channel that yields a JSON array.
 func (this *WhitebitCore) V4PrivatePostMainAccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostMainAccountTransfer", args...)
@@ -312,6 +322,46 @@ func (this *WhitebitCore) V4PrivatePostMainAccountSmartInterestPaymentHistory(ar
 	return this.callEndpointAsync("v4PrivatePostMainAccountSmartInterestPaymentHistory", args...)
 }
 
+// V4PrivatePostMainAccountSmartFlexPlans returns a channel that yields a JSON array.
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartFlexPlans(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMainAccountSmartFlexPlans", args...)
+}
+
+// V4PrivatePostMainAccountSmartFlexInvestments returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartFlexInvestments(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMainAccountSmartFlexInvestments", args...)
+}
+
+// V4PrivatePostMainAccountSmartFlexInvestmentsHistory returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartFlexInvestmentsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMainAccountSmartFlexInvestmentsHistory", args...)
+}
+
+// V4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMainAccountSmartFlexInvestmentsPaymentHistory", args...)
+}
+
+// V4PrivatePostMainAccountSmartFlexInvestmentsInvest returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartFlexInvestmentsInvest(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMainAccountSmartFlexInvestmentsInvest", args...)
+}
+
+// V4PrivatePostMainAccountSmartFlexInvestmentsWithdraw returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartFlexInvestmentsWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMainAccountSmartFlexInvestmentsWithdraw", args...)
+}
+
+// V4PrivatePostMainAccountSmartFlexInvestmentsClose returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartFlexInvestmentsClose(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMainAccountSmartFlexInvestmentsClose", args...)
+}
+
+// V4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMainAccountSmartFlexInvestmentsAutoInvest", args...)
+}
+
 // V4PrivatePostTradeAccountBalance returns a channel that yields a JSON object.
 func (this *WhitebitCore) V4PrivatePostTradeAccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostTradeAccountBalance", args...)
@@ -325,6 +375,11 @@ func (this *WhitebitCore) V4PrivatePostTradeAccountExecutedHistory(args ...any) 
 // V4PrivatePostTradeAccountOrderHistory returns a channel that yields a JSON object.
 func (this *WhitebitCore) V4PrivatePostTradeAccountOrderHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostTradeAccountOrderHistory", args...)
+}
+
+// V4PrivatePostTradeAccountOrderHistoryQuery returns a channel that yields a JSON array.
+func (this *WhitebitCore) V4PrivatePostTradeAccountOrderHistoryQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostTradeAccountOrderHistoryQuery", args...)
 }
 
 // V4PrivatePostTradeAccountOrder returns a channel that yields a JSON object.
@@ -390,6 +445,11 @@ func (this *WhitebitCore) V4PrivatePostOrderCancel(args ...any) <-chan any {
 // V4PrivatePostOrderCancelAll returns a channel that yields a JSON array.
 func (this *WhitebitCore) V4PrivatePostOrderCancelAll(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostOrderCancelAll", args...)
+}
+
+// V4PrivatePostOrderCancelBulk returns a channel that yields a JSON array.
+func (this *WhitebitCore) V4PrivatePostOrderCancelBulk(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostOrderCancelBulk", args...)
 }
 
 // V4PrivatePostOrderKillSwitch returns a channel that yields a JSON object.
@@ -552,12 +612,82 @@ func (this *WhitebitCore) V4PrivatePostMiningRewards(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostMiningRewards", args...)
 }
 
+// V4PrivatePostMiningHashrate returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMiningHashrate(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMiningHashrate", args...)
+}
+
+// V4PrivatePostMiningPayoutDestination returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMiningPayoutDestination(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMiningPayoutDestination", args...)
+}
+
+// V4PrivatePostMiningPayoutDestinationEdit returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMiningPayoutDestinationEdit(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMiningPayoutDestinationEdit", args...)
+}
+
+// V4PrivatePostMiningMinersInfo returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMiningMinersInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMiningMinersInfo", args...)
+}
+
+// V4PrivatePostMiningWorkersNames returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMiningWorkersNames(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMiningWorkersNames", args...)
+}
+
+// V4PrivatePostMiningWorkersHashrate returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMiningWorkersHashrate(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMiningWorkersHashrate", args...)
+}
+
+// V4PrivatePostMiningWatcherLinksCreate returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMiningWatcherLinksCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMiningWatcherLinksCreate", args...)
+}
+
+// V4PrivatePostMiningWatcherLinksList returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMiningWatcherLinksList(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMiningWatcherLinksList", args...)
+}
+
+// V4PrivatePostMiningAccountsCreate returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMiningAccountsCreate(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMiningAccountsCreate", args...)
+}
+
+// V4PrivatePostMiningAccounts returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMiningAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMiningAccounts", args...)
+}
+
 // V4PrivatePostMarketFee returns a channel that yields a JSON object.
 func (this *WhitebitCore) V4PrivatePostMarketFee(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostMarketFee", args...)
 }
 
+// V4PrivatePostMarketFeeSingle returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostMarketFeeSingle(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostMarketFeeSingle", args...)
+}
+
 // V4PrivatePostConditionalOrders returns a channel that yields a JSON object.
 func (this *WhitebitCore) V4PrivatePostConditionalOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PrivatePostConditionalOrders", args...)
+}
+
+// V4PrivatePostTravelRuleVasps returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostTravelRuleVasps(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostTravelRuleVasps", args...)
+}
+
+// V4PrivatePostTravelRuleDepositVerification returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostTravelRuleDepositVerification(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostTravelRuleDepositVerification", args...)
+}
+
+// V4PrivatePostJwt returns a channel that yields a JSON object.
+func (this *WhitebitCore) V4PrivatePostJwt(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostJwt", args...)
 }

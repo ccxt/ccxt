@@ -291,6 +291,27 @@ public class WeexCore extends WeexApi
                         put( "api/v3/agency/getDealData", new java.util.HashMap<String, Object>() {{
                             put( "cost", 20 );
                         }} );
+                        put( "api/v3/apiReferral/checkUserEligibility", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v3/apiReferral/rebate/recentRecord", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v3/apiReferral/rebateRatio", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v3/content/articles/detail", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v3/content/articles/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v3/content/articles/listByCoin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "api/v3/content/banners/latest", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "api/v3/account/bills", new java.util.HashMap<String, Object>() {{
@@ -307,6 +328,9 @@ public class WeexCore extends WeexApi
                         }} );
                         put( "api/v3/rebate/affiliate/internalWithdrawal", new java.util.HashMap<String, Object>() {{
                             put( "cost", 100 );
+                        }} );
+                        put( "api/v3/tax/income", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
                         }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
@@ -417,6 +441,33 @@ public class WeexCore extends WeexApi
                         put( "capi/v3/sim/order/history", new java.util.HashMap<String, Object>() {{
                             put( "cost", 10 );
                         }} );
+                        put( "capi/v3/copy/follower/historyOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "capi/v3/copy/follower/myTraders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "capi/v3/copy/follower/openOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "capi/v3/copy/follower/settings", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "capi/v3/copy/trader/historyOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "capi/v3/copy/trader/openOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "capi/v3/copy/trader/pairs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "capi/v3/trailing/openOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 2 );
+                        }} );
+                        put( "capi/v3/trailing/historyOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "capi/v3/account/income", new java.util.HashMap<String, Object>() {{
@@ -454,6 +505,15 @@ public class WeexCore extends WeexApi
                         }} );
                         put( "capi/v3/sim/order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
+                        }} );
+                        put( "capi/v3/copy/follower/closePos", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 50 );
+                        }} );
+                        put( "capi/v3/copy/follower/settings", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
+                        }} );
+                        put( "capi/v3/copy/follower/stopCopy", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 10 );
                         }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{

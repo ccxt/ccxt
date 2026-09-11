@@ -326,6 +326,12 @@ func (this *CoinmateCore) Describe() any {
 					"bankWireWithdrawal": map[string]any{
 						"cost": 1,
 					},
+					"lightningDeposit": map[string]any{
+						"cost": 1,
+					},
+					"lightningWithdraw": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -615,8 +621,8 @@ func (this *CoinmateCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47512 := (<-this.LoadMarkets())
-		PanicOnError(retRes47512)
+		retRes47712 := (<-this.LoadMarkets())
+		PanicOnError(retRes47712)
 	}
 
 	response := (<-this.PrivatePostBalances(params))
@@ -650,8 +656,8 @@ func (this *CoinmateCore) fetchOrderBookBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes49312 := (<-this.LoadMarkets())
-		PanicOnError(retRes49312)
+		retRes49512 := (<-this.LoadMarkets())
+		PanicOnError(retRes49512)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -689,8 +695,8 @@ func (this *CoinmateCore) fetchTickerBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes51712 := (<-this.LoadMarkets())
-		PanicOnError(retRes51712)
+		retRes51912 := (<-this.LoadMarkets())
+		PanicOnError(retRes51912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -745,8 +751,8 @@ func (this *CoinmateCore) fetchTickersBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes55612 := (<-this.LoadMarkets())
-		PanicOnError(retRes55612)
+		retRes55812 := (<-this.LoadMarkets())
+		PanicOnError(retRes55812)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -854,8 +860,8 @@ func (this *CoinmateCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes64312 := (<-this.LoadMarkets())
-		PanicOnError(retRes64312)
+		retRes64512 := (<-this.LoadMarkets())
+		PanicOnError(retRes64512)
 	}
 	var request map[string]any = map[string]any{
 		"limit": 1000,
@@ -999,8 +1005,8 @@ func (this *CoinmateCore) withdrawBody(ch chan any, code any, amount any, addres
 	this.CheckAddress(address)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes76912 := (<-this.LoadMarkets())
-		PanicOnError(retRes76912)
+		retRes77112 := (<-this.LoadMarkets())
+		PanicOnError(retRes77112)
 	}
 	var currency any = this.Currency(code)
 	var withdrawOptions any = this.SafeValue(this.Options, "withdraw", map[string]any{})
@@ -1112,8 +1118,8 @@ func (this *CoinmateCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes84512 := (<-this.LoadMarkets())
-		PanicOnError(retRes84512)
+		retRes84712 := (<-this.LoadMarkets())
+		PanicOnError(retRes84712)
 	}
 	if IsTrue(IsEqual(limit, nil)) {
 		limit = 1000
@@ -1229,8 +1235,8 @@ func (this *CoinmateCore) fetchTradesBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes94212 := (<-this.LoadMarkets())
-		PanicOnError(retRes94212)
+		retRes94412 := (<-this.LoadMarkets())
+		PanicOnError(retRes94412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1283,8 +1289,8 @@ func (this *CoinmateCore) fetchTradingFeeBody(ch chan any, symbol any, optionalA
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes98112 := (<-this.LoadMarkets())
-		PanicOnError(retRes98112)
+		retRes98312 := (<-this.LoadMarkets())
+		PanicOnError(retRes98312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1388,8 +1394,8 @@ func (this *CoinmateCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any 
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes104412 := (<-this.LoadMarkets())
-		PanicOnError(retRes104412)
+		retRes104612 := (<-this.LoadMarkets())
+		PanicOnError(retRes104612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1542,8 +1548,8 @@ func (this *CoinmateCore) createOrderBody(ch chan any, symbol any, typeVar any, 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes118212 := (<-this.LoadMarkets())
-		PanicOnError(retRes118212)
+		retRes118412 := (<-this.LoadMarkets())
+		PanicOnError(retRes118412)
 	}
 	var method any = Add("privatePost", this.Capitalize(side))
 	var market any = this.Market(symbol)
@@ -1617,8 +1623,8 @@ func (this *CoinmateCore) fetchOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes123412 := (<-this.LoadMarkets())
-		PanicOnError(retRes123412)
+		retRes123612 := (<-this.LoadMarkets())
+		PanicOnError(retRes123612)
 	}
 	var request map[string]any = map[string]any{
 		"orderId": id,

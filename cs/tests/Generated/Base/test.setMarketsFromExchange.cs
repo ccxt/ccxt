@@ -64,7 +64,7 @@ public partial class BaseTest
             exchange2.setMarketsFromExchange(exchange1);
             // Verify shared markets work
             List<object> neededProps = new List<object>() {"symbols", "currencies", "codes", "markets", "ids", "markets_by_id", "currencies_by_id", "baseCurrencies", "quoteCurrencies"};
-            for (object i = 0; isLessThan(i, getArrayLength(neededProps)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(neededProps)); postFixIncrement(ref i))
             {
                 AssertDeepEqual(emptyExchange, new Dictionary<string, object>() {}, methodName, emptyExchange.getProperty(exchange1, getValue(neededProps, i)), emptyExchange.getProperty(exchange2, getValue(neededProps, i)));
             }

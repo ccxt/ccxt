@@ -64,6 +64,17 @@ public class KrakenApi extends Exchange
     }
 
     /**
+     * Calls the publicGetMaintenanceSchedule endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetMaintenanceSchedule (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetMaintenanceSchedule", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetAssets endpoint.
      *
      * @param optionalArgs the request parameters
@@ -391,6 +402,17 @@ public class KrakenApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetApiKeyInfo (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetApiKeyInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostListWalletAccounts endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostListWalletAccounts (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostListWalletAccounts", optionalArgs);
     }
 
     /**

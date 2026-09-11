@@ -166,6 +166,7 @@ class cex extends Exchange {
                         'do_cancel_my_order' => array( 'cost' => 1 ),
                         'do_cancel_all_orders' => array( 'cost' => 5 ),
                         'get_order_book' => array( 'cost' => 1 ),
+                        'get_ticker' => array( 'cost' => 1 ),
                         'get_candles' => array( 'cost' => 1 ),
                         'get_trade_history' => array( 'cost' => 1 ),
                         'get_my_transaction_history' => array( 'cost' => 1 ),
@@ -813,7 +814,7 @@ class cex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest entry
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $dataType = null;
         list($dataType, $params) = $this->handle_option_and_params($params, 'fetchOHLCV', 'dataType');

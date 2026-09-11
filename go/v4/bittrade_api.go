@@ -337,6 +337,11 @@ func (this *BittradeCore) PublicGetSettingsCurrencys(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetSettingsCurrencys", args...)
 }
 
+// PublicGetRetailMaintainTime returns a channel that yields a JSON object.
+func (this *BittradeCore) PublicGetRetailMaintainTime(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetRetailMaintainTime", args...)
+}
+
 // PrivateGetAccountAccounts returns a channel that yields a JSON object.
 func (this *BittradeCore) PrivateGetAccountAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountAccounts", args...)
@@ -457,6 +462,11 @@ func (this *BittradeCore) PrivateGetStableCoinQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetStableCoinQuote", args...)
 }
 
+// PrivateGetRetailOrderList returns a channel that yields a JSON object.
+func (this *BittradeCore) PrivateGetRetailOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRetailOrderList", args...)
+}
+
 // PrivatePostAccountTransfer returns a channel that yields a JSON object.
 func (this *BittradeCore) PrivatePostAccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountTransfer", args...)
@@ -555,4 +565,9 @@ func (this *BittradeCore) PrivatePostStableCoinExchange(args ...any) <-chan any 
 // PrivatePostSubuserTransfer returns a channel that yields a JSON object.
 func (this *BittradeCore) PrivatePostSubuserTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSubuserTransfer", args...)
+}
+
+// PrivatePostRetailOrderPlace returns a channel that yields a JSON object.
+func (this *BittradeCore) PrivatePostRetailOrderPlace(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostRetailOrderPlace", args...)
 }

@@ -460,6 +460,12 @@ abstract class bitfinex extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
+    public function private_post_auth_r_orders_otc_symbol_hist($params = array()) {
+        return $this->request('auth/r/orders/otc/{symbol}/hist', 'private', 'POST', $params, null, null, array("cost" => 2.7));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
     public function private_post_auth_r_order_symbol_id_trades($params = array()) {
         return $this->request('auth/r/order/{symbol}:{id}/trades', 'private', 'POST', $params, null, null, array("cost" => 2.7));
     }
@@ -546,6 +552,12 @@ abstract class bitfinex extends \ccxt\async\Exchange {
      */
     public function private_post_auth_r_positions_snap($params = array()) {
         return $this->request('auth/r/positions/snap', 'private', 'POST', $params, null, null, array("cost" => 2.7));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_auth_w_position_update_funding_type($params = array()) {
+        return $this->request('auth/w/position/update/funding/type', 'private', 'POST', $params, null, null, array("cost" => 2.7));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -736,8 +748,20 @@ abstract class bitfinex extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
+    public function private_post_auth_r_deposit_address_all($params = array()) {
+        return $this->request('auth/r/deposit/address/all', 'private', 'POST', $params, null, null, array("cost" => 24));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
     public function private_post_auth_w_deposit_invoice($params = array()) {
         return $this->request('auth/w/deposit/invoice', 'private', 'POST', $params, null, null, array("cost" => 24));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_auth_r_ext_invoice_payments($params = array()) {
+        return $this->request('auth/r/ext/invoice/payments', 'private', 'POST', $params, null, null, array("cost" => 2.7));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -756,6 +780,12 @@ abstract class bitfinex extends \ccxt\async\Exchange {
      */
     public function private_post_auth_r_movements_hist($params = array()) {
         return $this->request('auth/r/movements/hist', 'private', 'POST', $params, null, null, array("cost" => 2.7));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_auth_r_movements_info($params = array()) {
+        return $this->request('auth/r/movements/info', 'private', 'POST', $params, null, null, array("cost" => 2.7));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -822,6 +852,24 @@ abstract class bitfinex extends \ccxt\async\Exchange {
      */
     public function private_post_auth_w_pulse_del($params = array()) {
         return $this->request('auth/w/pulse/del', 'private', 'POST', $params, null, null, array("cost" => 2.7));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_auth_w_ext_wallets_deposits_request($params = array()) {
+        return $this->request('auth/w/ext/wallets/deposits/request', 'private', 'POST', $params, null, null, array("cost" => 2.7));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_auth_w_ext_wallets_withdrawals_request($params = array()) {
+        return $this->request('auth/w/ext/wallets/withdrawals/request', 'private', 'POST', $params, null, null, array("cost" => 2.7));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_auth_r_ext_wallets_transfers_free_count($params = array()) {
+        return $this->request('auth/r/ext/wallets/transfers/free/count', 'private', 'POST', $params, null, null, array("cost" => 2.7));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -1276,6 +1324,12 @@ abstract class bitfinex extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
+    public function privatePostAuthROrdersOtcSymbolHist($params = array()) {
+        return $this->request('auth/r/orders/otc/{symbol}/hist', 'private', 'POST', $params, null, null, array("cost" => 2.7));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
     public function privatePostAuthROrderSymbolIdTrades($params = array()) {
         return $this->request('auth/r/order/{symbol}:{id}/trades', 'private', 'POST', $params, null, null, array("cost" => 2.7));
     }
@@ -1362,6 +1416,12 @@ abstract class bitfinex extends \ccxt\async\Exchange {
      */
     public function privatePostAuthRPositionsSnap($params = array()) {
         return $this->request('auth/r/positions/snap', 'private', 'POST', $params, null, null, array("cost" => 2.7));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostAuthWPositionUpdateFundingType($params = array()) {
+        return $this->request('auth/w/position/update/funding/type', 'private', 'POST', $params, null, null, array("cost" => 2.7));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -1552,8 +1612,20 @@ abstract class bitfinex extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
      */
+    public function privatePostAuthRDepositAddressAll($params = array()) {
+        return $this->request('auth/r/deposit/address/all', 'private', 'POST', $params, null, null, array("cost" => 24));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
     public function privatePostAuthWDepositInvoice($params = array()) {
         return $this->request('auth/w/deposit/invoice', 'private', 'POST', $params, null, null, array("cost" => 24));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostAuthRExtInvoicePayments($params = array()) {
+        return $this->request('auth/r/ext/invoice/payments', 'private', 'POST', $params, null, null, array("cost" => 2.7));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -1572,6 +1644,12 @@ abstract class bitfinex extends \ccxt\async\Exchange {
      */
     public function privatePostAuthRMovementsHist($params = array()) {
         return $this->request('auth/r/movements/hist', 'private', 'POST', $params, null, null, array("cost" => 2.7));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostAuthRMovementsInfo($params = array()) {
+        return $this->request('auth/r/movements/info', 'private', 'POST', $params, null, null, array("cost" => 2.7));
     }
     /**
      * @return \React\Promise\PromiseInterface<list<mixed>>
@@ -1638,5 +1716,23 @@ abstract class bitfinex extends \ccxt\async\Exchange {
      */
     public function privatePostAuthWPulseDel($params = array()) {
         return $this->request('auth/w/pulse/del', 'private', 'POST', $params, null, null, array("cost" => 2.7));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostAuthWExtWalletsDepositsRequest($params = array()) {
+        return $this->request('auth/w/ext/wallets/deposits/request', 'private', 'POST', $params, null, null, array("cost" => 2.7));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostAuthWExtWalletsWithdrawalsRequest($params = array()) {
+        return $this->request('auth/w/ext/wallets/withdrawals/request', 'private', 'POST', $params, null, null, array("cost" => 2.7));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostAuthRExtWalletsTransfersFreeCount($params = array()) {
+        return $this->request('auth/r/ext/wallets/transfers/free/count', 'private', 'POST', $params, null, null, array("cost" => 2.7));
     }
 }

@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official hollaex API documentation:** [apidocs.hollaex.com](https://apidocs.hollaex.com)
 
-> 29 implicit endpoints across 2 access groups.
+> 31 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -88,10 +88,12 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetUserDeposits` | GET | `user/deposits` | 1 |
 | `privateGetUserWithdrawals` | GET | `user/withdrawals` | 1 |
 | `privateGetUserWithdrawalFee` | GET | `user/withdrawal/fee` | 1 |
+| `privateGetSubaccounts` | GET | `subaccounts` | 1 |
 | `privateGetUserTrades` | GET | `user/trades` | 1 |
 | `privateGetOrders` | GET | `orders` | 1 |
 | `privateGetOrder` | GET | `order` | 1 |
 | `privatePostUserWithdrawal` | POST | `user/withdrawal` | 1 |
+| `privatePostSubaccountTransfer` | POST | `subaccount/transfer` | 1 |
 | `privatePostOrder` | POST | `order` | 1 |
 | `privateDeleteOrderAll` | DELETE | `order/all` | 1 |
 | `privateDeleteOrder` | DELETE | `order` | 1 |

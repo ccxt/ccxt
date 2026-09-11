@@ -288,6 +288,26 @@ public class DydxCore extends DydxApi
                         put( "historical-pnl/parentSubaccount", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "pnl", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "pnl/parentSubaccountNumber", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tradeHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tradeHistory/parentSubaccountNumber", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "post", new java.util.HashMap<String, Object>() {{
+                        put( "turnkey/signin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "turnkey/uploadAddress", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "nodeRpc", new java.util.HashMap<String, Object>() {{

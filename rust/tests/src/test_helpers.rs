@@ -540,6 +540,7 @@ pub trait ExchangeOps {
     /// the receiver and first arg are the same Value, hence the
     /// `_redundant_exchange` slot. Mutates the Value-map keyed by `key`.
     fn set_property(&mut self, redundant_exchange: Value, key: Value, value: Value);
+    fn get_fetch_cache(&mut self) -> Value;
     fn parse_timeframe(&self, tf: Value) -> Value;
     fn iso8601(&self, ts: Value) -> Value;
     fn milliseconds(&self) -> Value;
@@ -620,6 +621,7 @@ impl ExchangeOps for Value {
     fn set_property(&mut self, _redundant_exchange: Value, key: Value, value: Value) {
         ccxt::set_value(self, &key, value);
     }
+    fn get_fetch_cache(&mut self) -> Value { with_base(|e| e.get_fetch_cache()) }
     /// camelCase alias — some test files slip through the snake-case rewrite.
     fn safeString(&self, d: Value, key: Value, o: &[Value]) -> Value {
         with_base(|e| e.safe_string(d, key, o))

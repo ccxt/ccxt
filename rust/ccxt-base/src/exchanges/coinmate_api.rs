@@ -332,4 +332,14 @@ impl CoinmateCore {
         self.call_method(Value::Str("private_post_bank_wire_withdrawal".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privatePostLightningDeposit` implicit endpoint.
+    pub async fn private_post_lightning_deposit(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lightning_deposit".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostLightningWithdraw` implicit endpoint.
+    pub async fn private_post_lightning_withdraw(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_lightning_withdraw".to_string()), optional_args).await
+    }
+
 }

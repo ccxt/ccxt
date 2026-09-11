@@ -182,6 +182,9 @@ public class BlofinCore extends BlofinApi
                         put( "market/instruments", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "market/instruments-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "market/tickers", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -212,6 +215,21 @@ public class BlofinCore extends BlofinApi
                         put( "market/position-tiers", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "spot/market/instruments", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "spot/market/tickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "spot/market/books", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "spot/market/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "spot/market/candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
@@ -228,6 +246,9 @@ public class BlofinCore extends BlofinApi
                         put( "asset/deposit-history", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "asset/deposit-address", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "account/config", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -241,6 +262,9 @@ public class BlofinCore extends BlofinApi
                             put( "cost", 1 );
                         }} );
                         put( "account/positions-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "account/funding-fees", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "account/margin-mode", new java.util.HashMap<String, Object>() {{
@@ -348,12 +372,33 @@ public class BlofinCore extends BlofinApi
                         put( "spot/trade/fills-history", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "spot/trade/orders-pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "spot/trade/order-detail", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "spot/trade/orders-algo-pending", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "spot/trade/orders-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "spot/trade/orders-algo-history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "spot/trade/order/price-range", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "asset/transfer", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "asset/demo-apply-money", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "asset/withdrawal-apply", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "account/set-margin-mode", new java.util.HashMap<String, Object>() {{
@@ -389,7 +434,37 @@ public class BlofinCore extends BlofinApi
                         put( "trade/cancel-algo", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1.67 );
                         }} );
+                        put( "trade/amend-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "trade/amend-batch-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "trade/amend-tpsl", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "trade/amend-algo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
                         put( "trade/close-position", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "spot/trade/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "spot/trade/batch-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "spot/trade/order-algo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "spot/trade/cancel-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "spot/trade/cancel-batch-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1.67 );
+                        }} );
+                        put( "spot/trade/cancel-algo", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1.67 );
                         }} );
                         put( "copytrading/account/set-position-mode", new java.util.HashMap<String, Object>() {{

@@ -302,6 +302,51 @@ func (this *ToobitCore) PrivateGetApiV1AgentExportUrl(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AgentExportUrl", args...)
 }
 
+// PrivateGetApiV2AccountBalanceFlow returns a channel that yields a JSON array.
+func (this *ToobitCore) PrivateGetApiV2AccountBalanceFlow(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV2AccountBalanceFlow", args...)
+}
+
+// PrivateGetApiV2FuturesOrder returns a channel that yields a JSON object.
+func (this *ToobitCore) PrivateGetApiV2FuturesOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV2FuturesOrder", args...)
+}
+
+// PrivateGetApiV2FuturesOpenOrders returns a channel that yields a JSON array.
+func (this *ToobitCore) PrivateGetApiV2FuturesOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV2FuturesOpenOrders", args...)
+}
+
+// PrivateGetApiV2FuturesHistoryOrders returns a channel that yields a JSON array.
+func (this *ToobitCore) PrivateGetApiV2FuturesHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV2FuturesHistoryOrders", args...)
+}
+
+// PrivateGetApiV2FuturesUserTrades returns a channel that yields a JSON array.
+func (this *ToobitCore) PrivateGetApiV2FuturesUserTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV2FuturesUserTrades", args...)
+}
+
+// PrivateGetApiV2FuturesAlgoOrder returns a channel that yields a JSON object.
+func (this *ToobitCore) PrivateGetApiV2FuturesAlgoOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV2FuturesAlgoOrder", args...)
+}
+
+// PrivateGetApiV2FuturesOpenAlgoOrders returns a channel that yields a JSON array.
+func (this *ToobitCore) PrivateGetApiV2FuturesOpenAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV2FuturesOpenAlgoOrders", args...)
+}
+
+// PrivateGetApiV2FuturesHistoryAlgoOrders returns a channel that yields a JSON array.
+func (this *ToobitCore) PrivateGetApiV2FuturesHistoryAlgoOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV2FuturesHistoryAlgoOrders", args...)
+}
+
+// PrivateGetApiV2FuturesVoucherList returns a channel that yields a JSON object.
+func (this *ToobitCore) PrivateGetApiV2FuturesVoucherList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV2FuturesVoucherList", args...)
+}
+
 // PrivatePostApiV1SpotOrderTest returns a channel that yields a JSON object.
 func (this *ToobitCore) PrivatePostApiV1SpotOrderTest(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1SpotOrderTest", args...)

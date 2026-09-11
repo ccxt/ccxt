@@ -5,20 +5,10 @@
 // EDIT THE CORRESPONDENT .ts FILE INSTEAD
 
 /// <reference lib="es2015" />
-// ---------------------------------------------------------------------------
-//
-// Myriad Protocol CCXT Exchange adapter  (https://myriad.markets)
-//
-// Hierarchy:  Questions (events) → Markets (multi-chain, multi-outcome)
-//
-// Each market becomes one CCXT market with an outcomes list:
-//   market.id:     {networkId}:{marketId}
-//   market.symbol: SLUG_SHORT
-//   outcomes[i].symbol: SLUG_SHORT:OUTCOME_LABEL
-//
+// Myriad Protocol (https://myriad.markets): Questions (events) → Markets (multi-chain, multi-outcome).
+// Each market is one CCXT market with an outcomes list:
+//   market.id {networkId}:{marketId}, market.symbol SLUG_SHORT, outcomes[i].symbol SLUG_SHORT:OUTCOME_LABEL
 // Supports Abstract (2741), Linea (59144), BNB Chain (56).
-//
-// ---------------------------------------------------------------------------
 import { keccak_256 as keccak } from '@noble/hashes/sha3.js';
 import { secp256k1 } from '@noble/curves/secp256k1.js';
 import Exchange from '../abstract/prediction/myriad.js';

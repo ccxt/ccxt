@@ -136,6 +136,9 @@ public class Bit2cCore extends Bit2cApi
                         put( "Exchanges/{pair}/orderbook", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "Exchanges/{pair}/orderbook-top", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "Exchanges/{pair}/trades", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -150,6 +153,9 @@ public class Bit2cCore extends Bit2cApi
                             put( "cost", 1 );
                         }} );
                         put( "Funds/AddCoinFundsRequest", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Funds/WithdrawCoin", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "Order/AddFund", new java.util.HashMap<String, Object>() {{
@@ -203,6 +209,9 @@ public class Bit2cCore extends Bit2cApi
                             put( "cost", 1 );
                         }} );
                         put( "Order/OrderHistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "Order/HistoryByOrderId", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );

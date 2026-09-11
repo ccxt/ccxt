@@ -166,6 +166,7 @@ class paradex(Exchange, ImplicitAPI):
                         'jwks.json': {'cost': 1},
                         'onboarding': {'cost': 1},
                         'referrals/config': {'cost': 1},
+                        'staking/balance/history/global': {'cost': 1},
                         'staking/config': {'cost': 1},
                         'system/announcements': {'cost': 1},
                         'system/config': {'cost': 1},
@@ -175,6 +176,7 @@ class paradex(Exchange, ImplicitAPI):
                         'system/volume-tiers': {'cost': 1},
                         'trades': {'cost': 1},
                         'vaults': {'cost': 1},
+                        'vaults/analytics': {'cost': 1},
                         'vaults/balance': {'cost': 1},
                         'vaults/config': {'cost': 1},
                         'vaults/history': {'cost': 1},
@@ -220,6 +222,11 @@ class paradex(Exchange, ImplicitAPI):
                         'orders/{order_id}': {'cost': 1},
                         'referrals/qr-code': {'cost': 1},
                         'referrals/summary': {'cost': 1},
+                        'rfqs': {'cost': 1},
+                        'rfqs/drafts': {'cost': 1},
+                        'rfqs/markets': {'cost': 1},
+                        'rfqs/{rfq_id}/bbo': {'cost': 1},
+                        'staking/balance/history': {'cost': 1},
                         'staking/history': {'cost': 1},
                         'staking/summary': {'cost': 1},
                         'transfers': {'cost': 1},
@@ -241,6 +248,8 @@ class paradex(Exchange, ImplicitAPI):
                         'account/profile/username': {'cost': 1},
                         'account/referrer': {'cost': 1},
                         'account/settings/trading_value_display': {'cost': 1},
+                        'account/paradigm/enable': {'cost': 1},
+                        'account/terminal-token': {'cost': 1},
                         'account/keys/subkeys/activate': {'cost': 1},
                         'account/keys/subkeys': {'cost': 1},
                         'account/tokens': {'cost': 1},
@@ -253,6 +262,9 @@ class paradex(Exchange, ImplicitAPI):
                         'onboarding': {'cost': 1},
                         'orders': {'cost': 1},
                         'orders/batch': {'cost': 1},
+                        'rfqs': {'cost': 1},
+                        'rfqs/drafts': {'cost': 1},
+                        'rfqs/{rfq_id}/execute': {'cost': 1},
                         'v2/auth': {'cost': 1},
                         'v2/onboarding': {'cost': 1},
                         'vaults': {'cost': 1},
@@ -262,6 +274,8 @@ class paradex(Exchange, ImplicitAPI):
                     'put': {
                         'account/profile': {'cost': 1},
                         'account/keys/subkeys/{public_key}': {'cost': 1},
+                        'account/keys/subkeys/{public_key}/allowed-cidrs': {'cost': 1},
+                        'account/tokens/{lookup_id}/allowed-cidrs': {'cost': 1},
                         'orders/{order_id}': {'cost': 1},
                     },
                     'delete': {
@@ -274,6 +288,8 @@ class paradex(Exchange, ImplicitAPI):
                         'orders/batch': {'cost': 1},
                         'orders/by_client_id/{client_id}': {'cost': 1},
                         'orders/{order_id}': {'cost': 1},
+                        'rfqs/drafts/{draft_id}': {'cost': 1},
+                        'rfqs/{rfq_id}': {'cost': 1},
                     },
                 },
             },
@@ -811,7 +827,7 @@ class paradex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param str [params.price]: "last", "mark", "index", default is "last"
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1602,7 +1618,7 @@ class paradex(Exchange, ImplicitAPI):
                 'CLOSED': 'closed',
             }
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
     def parse_order_type(self, type: Str):
         types = {

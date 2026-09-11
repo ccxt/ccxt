@@ -137,6 +137,41 @@ impl WeexCore {
         self.call_method(Value::Str("private_get_api_v3_agency_get_deal_data".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetApiV3ApiReferralCheckUserEligibility` implicit endpoint.
+    pub async fn private_get_api_v3_api_referral_check_user_eligibility(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v3_api_referral_check_user_eligibility".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV3ApiReferralRebateRecentRecord` implicit endpoint.
+    pub async fn private_get_api_v3_api_referral_rebate_recent_record(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v3_api_referral_rebate_recent_record".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV3ApiReferralRebateRatio` implicit endpoint.
+    pub async fn private_get_api_v3_api_referral_rebate_ratio(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v3_api_referral_rebate_ratio".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV3ContentArticlesDetail` implicit endpoint.
+    pub async fn private_get_api_v3_content_articles_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v3_content_articles_detail".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV3ContentArticlesList` implicit endpoint.
+    pub async fn private_get_api_v3_content_articles_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v3_content_articles_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV3ContentArticlesListByCoin` implicit endpoint.
+    pub async fn private_get_api_v3_content_articles_list_by_coin(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v3_content_articles_list_by_coin".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetApiV3ContentBannersLatest` implicit endpoint.
+    pub async fn private_get_api_v3_content_banners_latest(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_api_v3_content_banners_latest".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privatePostApiV3AccountBills` implicit endpoint.
     pub async fn private_post_api_v3_account_bills(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_api_v3_account_bills".to_string()), optional_args).await
@@ -160,6 +195,11 @@ impl WeexCore {
     /// Auto-generated wrapper for the `privatePostApiV3RebateAffiliateInternalWithdrawal` implicit endpoint.
     pub async fn private_post_api_v3_rebate_affiliate_internal_withdrawal(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_api_v3_rebate_affiliate_internal_withdrawal".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostApiV3TaxIncome` implicit endpoint.
+    pub async fn private_post_api_v3_tax_income(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_api_v3_tax_income".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteApiV3Order` implicit endpoint.
@@ -327,6 +367,51 @@ impl WeexCore {
         self.call_method(Value::Str("contract_private_get_capi_v3_sim_order_history".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyFollowerHistoryOrders` implicit endpoint.
+    pub async fn contract_private_get_capi_v3_copy_follower_history_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_capi_v3_copy_follower_history_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyFollowerMyTraders` implicit endpoint.
+    pub async fn contract_private_get_capi_v3_copy_follower_my_traders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_capi_v3_copy_follower_my_traders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyFollowerOpenOrders` implicit endpoint.
+    pub async fn contract_private_get_capi_v3_copy_follower_open_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_capi_v3_copy_follower_open_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyFollowerSettings` implicit endpoint.
+    pub async fn contract_private_get_capi_v3_copy_follower_settings(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_capi_v3_copy_follower_settings".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyTraderHistoryOrders` implicit endpoint.
+    pub async fn contract_private_get_capi_v3_copy_trader_history_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_capi_v3_copy_trader_history_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyTraderOpenOrders` implicit endpoint.
+    pub async fn contract_private_get_capi_v3_copy_trader_open_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_capi_v3_copy_trader_open_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetCapiV3CopyTraderPairs` implicit endpoint.
+    pub async fn contract_private_get_capi_v3_copy_trader_pairs(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_capi_v3_copy_trader_pairs".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetCapiV3TrailingOpenOrders` implicit endpoint.
+    pub async fn contract_private_get_capi_v3_trailing_open_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_capi_v3_trailing_open_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetCapiV3TrailingHistoryOrders` implicit endpoint.
+    pub async fn contract_private_get_capi_v3_trailing_history_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_capi_v3_trailing_history_orders".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `contractPrivatePostCapiV3AccountIncome` implicit endpoint.
     pub async fn contract_private_post_capi_v3_account_income(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_private_post_capi_v3_account_income".to_string()), optional_args).await
@@ -385,6 +470,21 @@ impl WeexCore {
     /// Auto-generated wrapper for the `contractPrivatePostCapiV3SimOrder` implicit endpoint.
     pub async fn contract_private_post_capi_v3_sim_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_private_post_capi_v3_sim_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivatePostCapiV3CopyFollowerClosePos` implicit endpoint.
+    pub async fn contract_private_post_capi_v3_copy_follower_close_pos(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_capi_v3_copy_follower_close_pos".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivatePostCapiV3CopyFollowerSettings` implicit endpoint.
+    pub async fn contract_private_post_capi_v3_copy_follower_settings(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_capi_v3_copy_follower_settings".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivatePostCapiV3CopyFollowerStopCopy` implicit endpoint.
+    pub async fn contract_private_post_capi_v3_copy_follower_stop_copy(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_capi_v3_copy_follower_stop_copy".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `contractPrivateDeleteCapiV3Order` implicit endpoint.

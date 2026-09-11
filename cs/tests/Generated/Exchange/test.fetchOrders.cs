@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
         assert(((orders is IList<object>) || (orders.GetType().IsGenericType && orders.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(exchange.id, " "), method), " must return an array, returned "), exchange.json(orders)));
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol);
         object now = exchange.milliseconds();
-        for (object i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
         {
             testOrder(exchange, skippedProperties, method, getValue(orders, i), symbol, now);
         }

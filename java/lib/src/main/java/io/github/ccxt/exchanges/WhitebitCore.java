@@ -299,6 +299,9 @@ public class WhitebitCore extends WhitebitApi
                             put( "collateral-account/positions/open", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "collateral-account/positions/closed-pnl", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "collateral-account/summary", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -338,6 +341,9 @@ public class WhitebitCore extends WhitebitApi
                             put( "main-account/withdraw-pay", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "main-account/express-withdraw/token", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "main-account/transfer", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -359,6 +365,30 @@ public class WhitebitCore extends WhitebitApi
                             put( "main-account/smart/interest-payment-history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "main-account/smart-flex/plans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments/history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments/payment-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments/invest", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments/withdraw", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments/close", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "main-account/smart-flex/investments/auto-invest", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "trade-account/balance", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -366,6 +396,9 @@ public class WhitebitCore extends WhitebitApi
                                 put( "cost", 1 );
                             }} );
                             put( "trade-account/order/history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "trade-account/order/history/query", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "trade-account/order", new java.util.HashMap<String, Object>() {{
@@ -405,6 +438,9 @@ public class WhitebitCore extends WhitebitApi
                                 put( "cost", 1 );
                             }} );
                             put( "order/cancel/all", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "order/cancel/bulk", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "order/kill-switch", new java.util.HashMap<String, Object>() {{
@@ -503,10 +539,52 @@ public class WhitebitCore extends WhitebitApi
                             put( "mining/rewards", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "mining/hashrate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/payout-destination", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/payout-destination/edit", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/miners/info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/workers/names", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/workers/hashrate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/watcher-links/create", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/watcher-links/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/accounts/create", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "mining/accounts", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "market/fee", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "market/fee/single", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "conditional-orders", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "travel-rule/vasps", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "travel-rule/deposit/verification", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "jwt", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );

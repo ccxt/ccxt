@@ -117,6 +117,11 @@ func (this *HollaexCore) PrivateGetUserWithdrawalFee(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserWithdrawalFee", args...)
 }
 
+// PrivateGetSubaccounts returns a channel that yields a JSON object.
+func (this *HollaexCore) PrivateGetSubaccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSubaccounts", args...)
+}
+
 // PrivateGetUserTrades returns a channel that yields a JSON object.
 func (this *HollaexCore) PrivateGetUserTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserTrades", args...)
@@ -135,6 +140,11 @@ func (this *HollaexCore) PrivateGetOrder(args ...any) <-chan any {
 // PrivatePostUserWithdrawal returns a channel that yields a JSON object.
 func (this *HollaexCore) PrivatePostUserWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostUserWithdrawal", args...)
+}
+
+// PrivatePostSubaccountTransfer returns a channel that yields a JSON object.
+func (this *HollaexCore) PrivatePostSubaccountTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubaccountTransfer", args...)
 }
 
 // PrivatePostOrder returns a channel that yields a JSON object.

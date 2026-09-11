@@ -3,6 +3,7 @@
 Object.defineProperty(exports, '__esModule', { value: true });
 
 var Precise = require('../base/Precise.js');
+var errors = require('../base/errors.js');
 var Cache = require('../base/ws/Cache.js');
 var lighter$1 = require('../lighter.js');
 
@@ -1308,14 +1309,19 @@ class lighter extends lighter$1["default"] {
         try {
             if (error !== undefined) {
                 const code = this.safeString(error, 'code');
-                if (code !== undefined) {
-                    const feedback = this.id + ' ' + this.json(message);
-                    this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
-                }
+                const errorMessage = this.safeString(error, 'message');
+                const feedback = this.id + ' ' + this.json(message);
+                this.throwExactlyMatchedException(this.exceptions['exact'], code, feedback);
+                this.throwBroadlyMatchedException(this.exceptions['broad'], errorMessage, feedback);
+                // the rest handler ends with the same unconditional throw. without it an
+                // unmapped code raises nothing and is dropped by the routing below,
+                // leaving the request that caused it awaiting a response that never comes
+                throw new errors.ExchangeError(feedback);
             }
         }
         catch (e) {
             const id = this.safeString(message, 'id');
+            let handled = false;
             if (id !== undefined) {
                 const subscriptionKeys = Object.keys(client.subscriptions);
                 for (let i = 0; i < subscriptionKeys.length; i++) {
@@ -1324,13 +1330,16 @@ class lighter extends lighter$1["default"] {
                     const subscription = this.safeString(client.subscriptions[subscriptionHash], 'subscription');
                     if (id === subscriptionId) {
                         client.reject(e, subscriptionHash);
+                        handled = true;
                         if (subscription !== undefined) {
                             delete client.subscriptions[subscription];
                         }
                     }
                 }
             }
-            client.reject(e);
+            if (!handled) {
+                client.reject(e);
+            }
         }
         return true;
     }

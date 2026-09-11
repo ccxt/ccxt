@@ -432,6 +432,11 @@ impl ApexCore {
         m.insert("cost".to_string(), Value::Int(1));
     m
 }));
+        m.insert("v3/stock/account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
     m
 }));
         m.insert("post".to_string(), Value::Map({
@@ -467,6 +472,26 @@ impl ApexCore {
     m
 }));
         m.insert("v3/contract-transfer-out".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/contract-transfer-to".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/submit-withdraw-claim".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/stock/register-account".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("v3/stock/generate-api".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -1744,7 +1769,7 @@ impl ApexCore {
             });
             return self.safe_string(statuses.clone(), status.clone(), &[status.clone()]);
         }
-        return status;
+        return Value::Null;
 
     Value::Null
 }

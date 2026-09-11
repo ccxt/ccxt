@@ -779,6 +779,72 @@ public class AsterApi extends Exchange
     }
 
     /**
+     * Calls the fapiPrivateGetV3BuilderUserTrades endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetV3BuilderUserTrades (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivateGetV3BuilderUserTrades", optionalArgs);
+    }
+
+    /**
+     * Calls the fapiPrivateGetV3BuilderApprovedUserList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetV3BuilderApprovedUserList (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivateGetV3BuilderApprovedUserList", optionalArgs);
+    }
+
+    /**
+     * Calls the fapiPrivateGetV3StpMode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetV3StpMode (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivateGetV3StpMode", optionalArgs);
+    }
+
+    /**
+     * Calls the fapiPrivateGetV3AssetMigrateUserHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetV3AssetMigrateUserHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivateGetV3AssetMigrateUserHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the fapiPrivateGetV3StrategyOpenOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetV3StrategyOpenOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivateGetV3StrategyOpenOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the fapiPrivateGetV3StrategyHistoryOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateGetV3StrategyHistoryOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivateGetV3StrategyHistoryOrder", optionalArgs);
+    }
+
+    /**
      * Calls the fapiPrivatePostV1PositionSideDual endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1098,6 +1164,72 @@ public class AsterApi extends Exchange
     }
 
     /**
+     * Calls the fapiPrivatePostV3RegisterAndApproveAgent endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostV3RegisterAndApproveAgent (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivatePostV3RegisterAndApproveAgent", optionalArgs);
+    }
+
+    /**
+     * Calls the fapiPrivatePostV3AssetMigrateUser endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostV3AssetMigrateUser (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivatePostV3AssetMigrateUser", optionalArgs);
+    }
+
+    /**
+     * Calls the fapiPrivatePostV3Chase endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostV3Chase (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivatePostV3Chase", optionalArgs);
+    }
+
+    /**
+     * Calls the fapiPrivatePostV3StpMode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostV3StpMode (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivatePostV3StpMode", optionalArgs);
+    }
+
+    /**
+     * Calls the fapiPrivatePostV3PlaceStrategyOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivatePostV3PlaceStrategyOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivatePostV3PlaceStrategyOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the fapiPrivatePostV3UpdateStrategyOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivatePostV3UpdateStrategyOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivatePostV3UpdateStrategyOrder", optionalArgs);
+    }
+
+    /**
      * Calls the fapiPrivatePutV1ListenKey endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1183,6 +1315,28 @@ public class AsterApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateDeleteV3BatchOrders (Object... optionalArgs)
     {
         return this.callAsync ("fapiPrivateDeleteV3BatchOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the fapiPrivateDeleteV3GuardedCancelOrder endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  fapiPrivateDeleteV3GuardedCancelOrder (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivateDeleteV3GuardedCancelOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the fapiPrivateDeleteV3GuardedBatchOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  fapiPrivateDeleteV3GuardedBatchOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("fapiPrivateDeleteV3GuardedBatchOrders", optionalArgs);
     }
 
     /**

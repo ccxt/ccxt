@@ -559,6 +559,17 @@ public class DeltaApi extends Exchange
     }
 
     /**
+     * Calls the privatePutUsersTradingPreferences endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePutUsersTradingPreferences (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePutUsersTradingPreferences", optionalArgs);
+    }
+
+    /**
      * Calls the privateDeleteOrders endpoint.
      *
      * @param optionalArgs the request parameters

@@ -982,7 +982,7 @@ class cex extends \ccxt\async\cex {
         //         "ok" => "ok"
         //     }
         //
-        $symbol = $this->safe_string($message, 'oid'); // $symbol is set in watchOrders
+        $symbol = $this->safe_string($message, 'oid'); // $symbol is set as requestId in watchOrders
         $rawOrders = $this->safe_value($message, 'data', array());
         $myOrders = $this->orders;
         if ($myOrders === null) {
@@ -1158,7 +1158,7 @@ class cex extends \ccxt\async\cex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

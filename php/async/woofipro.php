@@ -204,6 +204,8 @@ class woofipro extends Exchange {
                             'client/points' => array( 'cost' => 1 ),
                             'public/points/epoch' => array( 'cost' => 1 ),
                             'public/points/epoch_dates' => array( 'cost' => 1 ),
+                            'public/points/rankings' => array( 'cost' => 1 ),
+                            'public/points/stages' => array( 'cost' => 1 ),
                             'public/referral/check_ref_code' => array( 'cost' => 1 ),
                             'public/referral/verify_ref_code' => array( 'cost' => 1 ),
                             'referral/admin_info' => array( 'cost' => 1 ),
@@ -217,6 +219,7 @@ class woofipro extends Exchange {
                             'tv/config' => array( 'cost' => 1 ),
                             'tv/history' => array( 'cost' => 1 ),
                             'tv/symbol_info' => array( 'cost' => 1 ),
+                            'tv/kline_history' => array( 'cost' => 1 ),
                             'public/funding_rate_history' => array( 'cost' => 1 ),
                             'public/funding_rate/{symbol}' => array( 'cost' => 0.33 ),
                             'public/funding_rates' => array( 'cost' => 1 ),
@@ -226,6 +229,9 @@ class woofipro extends Exchange {
                             'public/token' => array( 'cost' => 1 ),
                             'public/futures' => array( 'cost' => 1 ),
                             'public/futures/{symbol}' => array( 'cost' => 1 ),
+                            'staking/valor2/batch_info' => array( 'cost' => 1 ),
+                            'staking/valor2/pool_info' => array( 'cost' => 1 ),
+                            'staking/valor2/revenue_buyback' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'register_account' => array( 'cost' => 1 ),
@@ -250,6 +256,7 @@ class woofipro extends Exchange {
                             'client/holding' => array( 'cost' => 1 ),
                             'withdraw_nonce' => array( 'cost' => 1 ),
                             'settle_nonce' => array( 'cost' => 1 ),
+                            'transfer_nonce' => array( 'cost' => 1 ),
                             'pnl_settlement/history' => array( 'cost' => 1 ),
                             'volume/user/daily' => array( 'cost' => 60 ),
                             'volume/user/stats' => array( 'cost' => 60 ),
@@ -264,9 +271,22 @@ class woofipro extends Exchange {
                             'volume/broker/daily' => array( 'cost' => 60 ),
                             'broker/fee_rate/default' => array( 'cost' => 10 ),
                             'broker/user_info' => array( 'cost' => 10 ),
+                            'broker/daily_fee_revenue' => array( 'cost' => 10 ),
                             'orderbook/{symbol}' => array( 'cost' => 1 ),
                             'kline' => array( 'cost' => 1 ),
                             'client/margin_modes' => array( 'cost' => 1 ),
+                            'client/leverages' => array( 'cost' => 1 ),
+                            'client/points/user_statistics' => array( 'cost' => 1 ),
+                            'staking/valor2/redeem' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin/info' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin/referee_list' => array( 'cost' => 1 ),
+                            'referral/multi_level/admin/summary' => array( 'cost' => 1 ),
+                            'referral/multi_level/max_rebate_rate' => array( 'cost' => 1 ),
+                            'referral/multi_level/rebate_info' => array( 'cost' => 1 ),
+                            'referral/multi_level/referee_list' => array( 'cost' => 1 ),
+                            'referral/multi_level/statistics' => array( 'cost' => 1 ),
+                            'referral/multi_level/volume_prerequisite' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'orderly_key' => array( 'cost' => 1 ),
@@ -282,6 +302,7 @@ class woofipro extends Exchange {
                             'notification/inbox/mark_read' => array( 'cost' => 60 ),
                             'notification/inbox/mark_read_all' => array( 'cost' => 60 ),
                             'client/leverage' => array( 'cost' => 120 ),
+                            'client/leverages' => array( 'cost' => 120 ),
                             'client/margin_mode' => array( 'cost' => 1 ),
                             'position_margin' => array( 'cost' => 1 ),
                             'client/maintenance_config' => array( 'cost' => 60 ),
@@ -296,6 +317,15 @@ class woofipro extends Exchange {
                             'referral/update' => array( 'cost' => 10 ),
                             'referral/bind' => array( 'cost' => 10 ),
                             'referral/edit_split' => array( 'cost' => 10 ),
+                            'referral/edit_referee_description' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/create/affiliate' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/reset/affiliate' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/update' => array( 'cost' => 10 ),
+                            'referral/multi_level/admin/update/affiliate' => array( 'cost' => 10 ),
+                            'referral/multi_level/claim_code' => array( 'cost' => 10 ),
+                            'referral/multi_level/rebate_rate/set_default' => array( 'cost' => 10 ),
+                            'referral/multi_level/rebate_rate/update' => array( 'cost' => 10 ),
                         ),
                         'put' => array(
                             'order' => array( 'cost' => 1 ),
@@ -310,6 +340,13 @@ class woofipro extends Exchange {
                             'orders' => array( 'cost' => 1 ),
                             'batch-order' => array( 'cost' => 1 ),
                             'client/batch-order' => array( 'cost' => 1 ),
+                        ),
+                    ),
+                ),
+                'v2' => array(
+                    'private' => array(
+                        'post' => array(
+                            'internal_transfer' => array( 'cost' => 1 ),
                         ),
                     ),
                 ),
@@ -1666,7 +1703,7 @@ class woofipro extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] max=1000, max=100 when $since is defined and is less than (now - (999 * (is_array(ms) && array_key_exists($timeframe ?? '', ms))))
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1845,7 +1882,7 @@ class woofipro extends Exchange {
             );
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function parse_order_type(?string $type) {
@@ -1988,7 +2025,7 @@ class woofipro extends Exchange {
          * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the $triggerPrice at which the attached stop loss $order will be triggered (perpetual swap markets only)
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
          * @param {float} [$params->algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          * @param {string} [$params->clientOrderId] a unique id for the $order
          * @return {array} an ~@link https://docs.ccxt.com/?id=$order-structure $order structure~
          */

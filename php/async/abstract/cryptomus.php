@@ -22,6 +22,12 @@ abstract class cryptomus extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_v2_user_api_exchange_markets_price($params = array()) {
+        return $this->request('v2/user-api/exchange/markets/price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_get_v1_exchange_market_assets($params = array()) {
         return $this->request('v1/exchange/market/assets', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -88,6 +94,54 @@ abstract class cryptomus extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_v2_user_api_balance($params = array()) {
+        return $this->request('v2/user-api/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_user_api_convert_direction_list($params = array()) {
+        return $this->request('v2/user-api/convert/direction-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_user_api_convert_order_list($params = array()) {
+        return $this->request('v2/user-api/convert/order-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_user_api_aml_check_balance($params = array()) {
+        return $this->request('v2/user-api/aml/check/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_user_api_aml_check_currencies($params = array()) {
+        return $this->request('v2/user-api/aml/check/currencies', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_user_api_aml_check_packages($params = array()) {
+        return $this->request('v2/user-api/aml/check/packages', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_user_api_aml_check_request($params = array()) {
+        return $this->request('v2/user-api/aml/check/request', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_user_api_aml_check_request_id($params = array()) {
+        return $this->request('v2/user-api/aml/check/request/{id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_post_v2_user_api_exchange_orders($params = array()) {
         return $this->request('v2/user-api/exchange/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -100,8 +154,44 @@ abstract class cryptomus extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_post_v2_user_api_convert($params = array()) {
+        return $this->request('v2/user-api/convert', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_user_api_convert_calculate($params = array()) {
+        return $this->request('v2/user-api/convert/calculate', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_user_api_convert_limit($params = array()) {
+        return $this->request('v2/user-api/convert/limit', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_user_api_aml_check_request($params = array()) {
+        return $this->request('v2/user-api/aml/check/request', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_post_v2_user_api_aml_check_request_id_report_send($params = array()) {
+        return $this->request('v2/user-api/aml/check/request/{id}/report/send', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_delete_v2_user_api_exchange_orders_orderid($params = array()) {
         return $this->request('v2/user-api/exchange/orders/{orderId}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_delete_v2_user_api_convert_orderuuid($params = array()) {
+        return $this->request('v2/user-api/convert/{orderUuid}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -114,6 +204,12 @@ abstract class cryptomus extends \ccxt\async\Exchange {
      */
     public function publicGetV2UserApiExchangeMarketPrice($params = array()) {
         return $this->request('v2/user-api/exchange/market/price', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetV2UserApiExchangeMarketsPrice($params = array()) {
+        return $this->request('v2/user-api/exchange/markets/price', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -184,6 +280,54 @@ abstract class cryptomus extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetV2UserApiBalance($params = array()) {
+        return $this->request('v2/user-api/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2UserApiConvertDirectionList($params = array()) {
+        return $this->request('v2/user-api/convert/direction-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2UserApiConvertOrderList($params = array()) {
+        return $this->request('v2/user-api/convert/order-list', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2UserApiAmlCheckBalance($params = array()) {
+        return $this->request('v2/user-api/aml/check/balance', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2UserApiAmlCheckCurrencies($params = array()) {
+        return $this->request('v2/user-api/aml/check/currencies', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2UserApiAmlCheckPackages($params = array()) {
+        return $this->request('v2/user-api/aml/check/packages', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2UserApiAmlCheckRequest($params = array()) {
+        return $this->request('v2/user-api/aml/check/request', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2UserApiAmlCheckRequestId($params = array()) {
+        return $this->request('v2/user-api/aml/check/request/{id}', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privatePostV2UserApiExchangeOrders($params = array()) {
         return $this->request('v2/user-api/exchange/orders', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
@@ -196,7 +340,43 @@ abstract class cryptomus extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privatePostV2UserApiConvert($params = array()) {
+        return $this->request('v2/user-api/convert', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2UserApiConvertCalculate($params = array()) {
+        return $this->request('v2/user-api/convert/calculate', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2UserApiConvertLimit($params = array()) {
+        return $this->request('v2/user-api/convert/limit', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2UserApiAmlCheckRequest($params = array()) {
+        return $this->request('v2/user-api/aml/check/request', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privatePostV2UserApiAmlCheckRequestIdReportSend($params = array()) {
+        return $this->request('v2/user-api/aml/check/request/{id}/report/send', 'private', 'POST', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateDeleteV2UserApiExchangeOrdersOrderId($params = array()) {
         return $this->request('v2/user-api/exchange/orders/{orderId}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateDeleteV2UserApiConvertOrderUuid($params = array()) {
+        return $this->request('v2/user-api/convert/{orderUuid}', 'private', 'DELETE', $params, null, null, array("cost" => 1));
     }
 }

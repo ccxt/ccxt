@@ -97,6 +97,11 @@ func (this *MexcCore) SpotPrivateGetUid(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetUid", args...)
 }
 
+// SpotPrivateGetApiKeyInfo returns a channel that yields a JSON object.
+func (this *MexcCore) SpotPrivateGetApiKeyInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivateGetApiKeyInfo", args...)
+}
+
 // SpotPrivateGetOrder returns a channel that yields a JSON object.
 func (this *MexcCore) SpotPrivateGetOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivateGetOrder", args...)
@@ -395,6 +400,11 @@ func (this *MexcCore) SpotPrivatePostBatchOrders(args ...any) <-chan any {
 // SpotPrivatePostStrategyGroup returns a channel that yields a JSON object.
 func (this *MexcCore) SpotPrivatePostStrategyGroup(args ...any) <-chan any {
 	return this.callEndpointAsync("spotPrivatePostStrategyGroup", args...)
+}
+
+// SpotPrivatePostStrategyGroupUid returns a channel that yields a JSON object.
+func (this *MexcCore) SpotPrivatePostStrategyGroupUid(args ...any) <-chan any {
+	return this.callEndpointAsync("spotPrivatePostStrategyGroupUid", args...)
 }
 
 // SpotPrivatePostCapitalWithdrawApply returns a channel that yields a JSON object.

@@ -61,32 +61,8 @@ class okx extends \ccxt\async\okx {
             'options' => array(
                 'watchOrderBook' => array(
                     //
-                    // bbo-tbt
-                    // 1. Newly added channel that sends tick-by-tick Level 1 data
-                    // 2. All API users can subscribe
-                    // 3. Public depth channel, verification not required
-                    //
-                    // books-l2-tbt
-                    // 1. Only users who're VIP5 and above can subscribe
-                    // 2. Identity verification required before subscription
-                    //
-                    // books50-l2-tbt
-                    // 1. Only users who're VIP4 and above can subscribe
-                    // 2. Identity verification required before subscription
-                    //
-                    // books
-                    // 1. All API users can subscribe
-                    // 2. Public depth channel, verification not required
-                    //
-                    // books5
-                    // 1. All API users can subscribe
-                    // 2. Public depth channel, verification not required
-                    // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
-                    //
-                    // books-rpi
-                    // 1. All API users can subscribe
-                    // 2. Public depth channel, verification not required
-                    // 3. 400 depth levels, data feeds will be delivered every 100ms
+                    // channel tiers => bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
+                    // books-l2-tbt needs VIP5 and books50-l2-tbt needs VIP4, both with identity verification
                     //
                     'depth' => 'books',
                 ),
@@ -1101,7 +1077,7 @@ class okx extends \ccxt\async\okx {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1125,7 +1101,7 @@ class okx extends \ccxt\async\okx {
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         return $this->un_watch_ohlcv_for_symbols(array( array( $symbol, $timeframe ) ), $params);
     }
@@ -1144,7 +1120,7 @@ class okx extends \ccxt\async\okx {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         $symbolsLength = count($symbolsAndTimeframes);
         if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
@@ -1194,7 +1170,7 @@ class okx extends \ccxt\async\okx {
          *
          * @param {string[][]} $symbolsAndTimeframes array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         $symbolsLength = count($symbolsAndTimeframes);
         if ($symbolsLength === 0 || (gettype($symbolsAndTimeframes[0]) !== 'array' || array_keys($symbolsAndTimeframes[0]) !== array_keys(array_keys($symbolsAndTimeframes[0])))) {
@@ -1270,7 +1246,7 @@ class okx extends \ccxt\async\okx {
             $stored->append($parsed);
             $messageHash = $channel . ':' . $market['id'];
             $client->resolve($stored, $messageHash);
-            // for multiOHLCV we need special object, to other "multi"
+            // for multiOHLCV we need special object, as opposed to other "multi"
             // methods, because OHLCV response item does not contain $symbol
             // or $timeframe, thus otherwise it would be unrecognizable
             $messageHashForMulti = 'multi:' . $channel . ':' . $symbol;
@@ -1291,32 +1267,8 @@ class okx extends \ccxt\async\okx {
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         //
-        // bbo-tbt
-        // 1. Newly added channel that sends tick-by-tick Level 1 data
-        // 2. All API users can subscribe
-        // 3. Public depth channel, verification not required
-        //
-        // books-l2-tbt
-        // 1. Only users who're VIP5 and above can subscribe
-        // 2. Identity verification required before subscription
-        //
-        // books50-l2-tbt
-        // 1. Only users who're VIP4 and above can subscribe
-        // 2. Identity verification required before subscription
-        //
-        // books
-        // 1. All API users can subscribe
-        // 2. Public depth channel, verification not required
-        //
-        // books5
-        // 1. All API users can subscribe
-        // 2. Public depth channel, verification not required
-        // 3. Data feeds will be delivered every 100ms (vs. every 200ms now)
-        //
-        // books-rpi
-        // 1. All API users can subscribe
-        // 2. Public depth channel, verification not required
-        // 3. 400 depth levels, data feeds will be delivered every 100ms
+        // channel tiers => bbo-tbt (L1 tick-by-tick), books, books5 (100ms) and books-rpi (400 levels, 100ms) are public;
+        // books-l2-tbt needs VIP5 and books50-l2-tbt needs VIP4, both with identity verification
         //
         return $this->watch_order_book_for_symbols(array( $symbol ), $limit, $params);
     }
@@ -1689,7 +1641,7 @@ class okx extends \ccxt\async\okx {
                     ),
                 ),
             );
-            // Only add $params['access'] to prevent sending custom parameters, such.
+            // Only add $params['access'] to prevent sending custom parameters, such as extraParams.
             if (is_array($params) && array_key_exists('access' ?? '', $params)) {
                 $request['access'] = $params['access'];
             }

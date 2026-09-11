@@ -208,6 +208,8 @@ class coinmate(Exchange, ImplicitAPI):
                         'solDepositAddresses': {'cost': 1},
                         'unconfirmedSolDeposits': {'cost': 1},
                         'bankWireWithdrawal': {'cost': 1},
+                        'lightningDeposit': {'cost': 1},
+                        'lightningWithdraw': {'cost': 1},
                     },
                 },
             },

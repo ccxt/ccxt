@@ -471,6 +471,17 @@ public class LbankApi extends Exchange
     }
 
     /**
+     * Calls the spotPrivatePostSupplementAddDepositAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementAddDepositAddress (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivatePostSupplementAddDepositAddress", optionalArgs);
+    }
+
+    /**
      * Calls the spotPrivatePostSupplementAssetDetail endpoint.
      *
      * @param optionalArgs the request parameters
@@ -611,6 +622,61 @@ public class LbankApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSupplementTransactionHistory (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostSupplementTransactionHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the spotPrivatePostSpotWalletWithdraw endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSpotWalletWithdraw (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivatePostSpotWalletWithdraw", optionalArgs);
+    }
+
+    /**
+     * Calls the spotPrivatePostSpotWalletDepositHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSpotWalletDepositHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivatePostSpotWalletDepositHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the spotPrivatePostSpotWalletWithdraws endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSpotWalletWithdraws (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivatePostSpotWalletWithdraws", optionalArgs);
+    }
+
+    /**
+     * Calls the spotPrivatePostSpotTradeOrdersInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSpotTradeOrdersInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivatePostSpotTradeOrdersInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the spotPrivatePostSpotTradeOrdersInfoHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostSpotTradeOrdersInfoHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivatePostSpotTradeOrdersInfoHistory", optionalArgs);
     }
 
     /**

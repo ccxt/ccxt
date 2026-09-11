@@ -230,6 +230,15 @@ public class PacificaCore extends PacificaApi
                         put( "orders/history_by_id", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "orders/twap", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/twap/history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 12 );
+                        }} );
+                        put( "orders/twap/history_by_id", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "spot_assets", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -243,6 +252,15 @@ public class PacificaCore extends PacificaApi
                             put( "cost", 1 );
                         }} );
                         put( "account/builder_codes/approvals", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "builder/overview", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "builder/trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "leaderboard/builder_code", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
@@ -309,13 +327,46 @@ public class PacificaCore extends PacificaApi
                         put( "orders/batch", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "orders/twap/create", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "orders/twap/cancel", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 0.5 );
+                        }} );
                         put( "account/builder_codes/approve", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "account/builder_codes/revoke", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "builder/update_fee_rate", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "referral/user/code/claim", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "agent/bind", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "agent/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "agent/revoke", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "agent/revoke_all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "agent/ip_whitelist/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "agent/ip_whitelist/add", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "agent/ip_whitelist/remove", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "agent/ip_whitelist/toggle", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "account/api_keys/create", new java.util.HashMap<String, Object>() {{
@@ -1742,7 +1793,9 @@ public class PacificaCore extends PacificaApi
         Object timestamp = this.safeInteger(trade, "created_at");
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "amount");
-        Object symbol = this.safeSymbol(null, market);
+        String marketId = this.safeString(trade, "symbol");
+        market = this.safeMarket(marketId, market);
+        Object symbol = Helpers.GetValue(market, "symbol");
         String id = this.safeString(trade, "history_id");
         String side = this.safeString(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, "open_long")))

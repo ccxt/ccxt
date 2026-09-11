@@ -200,6 +200,9 @@ public class HollaexCore extends HollaexApi
                         put( "user/withdrawal/fee", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "subaccounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "user/trades", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -212,6 +215,9 @@ public class HollaexCore extends HollaexApi
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "user/withdrawal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "subaccount/transfer", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "order", new java.util.HashMap<String, Object>() {{

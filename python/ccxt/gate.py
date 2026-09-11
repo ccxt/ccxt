@@ -262,6 +262,10 @@ class gate(Exchange, ImplicitAPI):
                             '{settle}/index_constituents/{index}': {'cost': 1},
                             '{settle}/liq_orders': {'cost': 1},
                             '{settle}/risk_limit_tiers': {'cost': 1},
+                            '{settle}/adl_risk_states': {'cost': 1},
+                        },
+                        'post': {
+                            '{settle}/funding_rates': {'cost': 1},
                         },
                     },
                     'delivery': {
@@ -298,6 +302,9 @@ class gate(Exchange, ImplicitAPI):
                             'uni/currencies/{currency}': {'cost': 1},
                             'dual/investment_plan': {'cost': 1},
                             'structured/products': {'cost': 1},
+                            'dual/project-recommend': {'cost': 1},
+                            'fixed-term/product': {'cost': 1},
+                            'fixed-term/product/{asset}/list': {'cost': 1},
                         },
                     },
                     'loan': {
@@ -340,6 +347,7 @@ class gate(Exchange, ImplicitAPI):
                             'small_balance_history': {'cost': 1},
                             'push': {'cost': 1},
                             'getLowCapExchangeList': {'cost': 1},
+                            'transfers': {'cost': 1},
                         },
                         'post': {
                             'transfers': {'cost': 2.5},  # 8r/s cost = 20 / 8 = 2.5
@@ -385,6 +393,8 @@ class gate(Exchange, ImplicitAPI):
                             'loan_margin_tiers': {'cost': 20 / 15},
                             'leverage/user_currency_config': {'cost': 20 / 15},
                             'leverage/user_currency_setting': {'cost': 20 / 15},
+                            'delta_neutral': {'cost': 20 / 15},
+                            'estimated_quick_repayment': {'cost': 20 / 15},
                             'account_mode': {'cost': 20 / 15},  # deprecated
                         },
                         'post': {
@@ -392,6 +402,9 @@ class gate(Exchange, ImplicitAPI):
                             'portfolio_calculator': {'cost': 20 / 15},
                             'leverage/user_currency_setting': {'cost': 20 / 15},
                             'collateral_currencies': {'cost': 20 / 15},
+                            'delta_neutral': {'cost': 20 / 15},
+                            'leverage/user_setting': {'cost': 20 / 15},
+                            'quick_repayment': {'cost': 20 / 15},
                             'account_mode': {'cost': 20 / 15},  # deprecated
                         },
                         'put': {
@@ -411,6 +424,8 @@ class gate(Exchange, ImplicitAPI):
                             'my_trades': {'cost': 1},
                             'price_orders': {'cost': 1},
                             'price_orders/{order_id}': {'cost': 1},
+                            'pov_orders': {'cost': 1},
+                            'pov_orders/{order_id}': {'cost': 1},
                         },
                         'post': {
                             'batch_orders': {'cost': 0.4},
@@ -420,12 +435,15 @@ class gate(Exchange, ImplicitAPI):
                             'countdown_cancel_all': {'cost': 20 / 75},
                             'amend_batch_orders': {'cost': 0.4},
                             'price_orders': {'cost': 0.4},
+                            'pov_orders': {'cost': 0.4},
                         },
                         'delete': {
                             'orders': {'cost': 20 / 75},
                             'orders/{order_id}': {'cost': 20 / 75},
                             'price_orders': {'cost': 20 / 75},
                             'price_orders/{order_id}': {'cost': 20 / 75},
+                            'pov_orders': {'cost': 20 / 75},
+                            'pov_orders/{order_id}': {'cost': 20 / 75},
                         },
                         'patch': {
                             'orders/{order_id}': {'cost': 0.4},
@@ -509,6 +527,11 @@ class gate(Exchange, ImplicitAPI):
                             '{settle}/risk_limit_table': {'cost': 1},
                             '{settle}/price_orders': {'cost': 1},
                             '{settle}/price_orders/{order_id}': {'cost': 1},
+                            '{settle}/autoorder/v1/trail/list': {'cost': 1},
+                            '{settle}/autoorder/v1/trail/detail': {'cost': 1},
+                            '{settle}/autoorder/v1/trail/change_log': {'cost': 1},
+                            '{settle}/autoorder/v1/chase/list': {'cost': 1},
+                            '{settle}/autoorder/v1/chase/detail': {'cost': 1},
                         },
                         'post': {
                             '{settle}/positions/{contract}/margin': {'cost': 1},
@@ -529,6 +552,13 @@ class gate(Exchange, ImplicitAPI):
                             '{settle}/batch_amend_orders': {'cost': 0.4},
                             '{settle}/bbo_orders': {'cost': 0.4},
                             '{settle}/price_orders': {'cost': 0.4},
+                            '{settle}/autoorder/v1/trail/create': {'cost': 0.4},
+                            '{settle}/autoorder/v1/trail/stop': {'cost': 0.4},
+                            '{settle}/autoorder/v1/trail/stop_all': {'cost': 0.4},
+                            '{settle}/autoorder/v1/trail/update': {'cost': 0.4},
+                            '{settle}/autoorder/v1/chase/create': {'cost': 0.4},
+                            '{settle}/autoorder/v1/chase/stop': {'cost': 0.4},
+                            '{settle}/autoorder/v1/chase/stop_all': {'cost': 0.4},
                         },
                         'put': {
                             '{settle}/orders/{order_id}': {'cost': 1},
@@ -589,6 +619,9 @@ class gate(Exchange, ImplicitAPI):
                             'mmp': {'cost': 20 / 15},
                             'mmp/reset': {'cost': 20 / 15},
                         },
+                        'put': {
+                            'orders/{order_id}': {'cost': 20 / 15},
+                        },
                         'delete': {
                             'orders': {'cost': 20 / 15},
                             'orders/{order_id}': {'cost': 20 / 15},
@@ -611,6 +644,15 @@ class gate(Exchange, ImplicitAPI):
                             'staking/order_list': {'cost': 20 / 15},
                             'staking/award_list': {'cost': 20 / 15},
                             'staking/assets': {'cost': 20 / 15},
+                            'dual/order-refund-preview': {'cost': 20 / 15},
+                            'fixed-term/user/lend': {'cost': 20 / 15},
+                            'fixed-term/user/history': {'cost': 20 / 15},
+                            'autoinvest/coins': {'cost': 20 / 15},
+                            'autoinvest/config': {'cost': 20 / 15},
+                            'autoinvest/orders': {'cost': 20 / 15},
+                            'autoinvest/plans/detail': {'cost': 20 / 15},
+                            'autoinvest/plans/list_info': {'cost': 20 / 15},
+                            'autoinvest/plans/records': {'cost': 20 / 15},
                             'uni/currencies': {'cost': 20 / 15},  # deprecated
                             'uni/currencies/{currency}': {'cost': 20 / 15},  # deprecated
                         },
@@ -620,6 +662,15 @@ class gate(Exchange, ImplicitAPI):
                             'dual/orders': {'cost': 20 / 15},
                             'structured/orders': {'cost': 20 / 15},
                             'staking/swap': {'cost': 20 / 15},
+                            'dual/order-refund': {'cost': 20 / 15},
+                            'dual/modify-order-reinvest': {'cost': 20 / 15},
+                            'fixed-term/user/lend': {'cost': 20 / 15},
+                            'fixed-term/user/pre-redeem': {'cost': 20 / 15},
+                            'autoinvest/min_invest_amount': {'cost': 20 / 15},
+                            'autoinvest/plans/add_position': {'cost': 20 / 15},
+                            'autoinvest/plans/create': {'cost': 20 / 15},
+                            'autoinvest/plans/stop': {'cost': 20 / 15},
+                            'autoinvest/plans/update': {'cost': 20 / 15},
                         },
                         'put': {
                             'uni/interest_reinvest': {'cost': 20 / 15},  # deprecated
@@ -686,6 +737,7 @@ class gate(Exchange, ImplicitAPI):
                             'broker/transaction_history': {'cost': 20 / 15},
                             'user/info': {'cost': 20 / 15},
                             'user/sub_relation': {'cost': 20 / 15},
+                            'partner/data/aggregated': {'cost': 20 / 15},
                         },
                     },
                     'otc': {
@@ -694,6 +746,8 @@ class gate(Exchange, ImplicitAPI):
                             'order/list': {'cost': 1},
                             'stable_coin/order/list': {'cost': 1},
                             'order/detail': {'cost': 1},
+                            'bank/list': {'cost': 1},
+                            'bank/bank_supplement_checklist': {'cost': 1},
                         },
                         'post': {
                             'quote': {'cost': 1},
@@ -701,6 +755,12 @@ class gate(Exchange, ImplicitAPI):
                             'stable_coin/order/create': {'cost': 1},
                             'order/paid': {'cost': 1},
                             'order/cancel': {'cost': 1},
+                            'bank/create': {'cost': 1},
+                            'bank/delete': {'cost': 1},
+                            'bank/set_default': {'cost': 1},
+                            'bank/personal/bank_supplement': {'cost': 1},
+                            'bank/enterprise/bank_supplement': {'cost': 1},
+                            'upload/pre_upload': {'cost': 1},
                         },
                     },
                 },
@@ -3282,7 +3342,7 @@ class gate(Exchange, ImplicitAPI):
         :param str [params.price]: "mark" or "index" for mark price and index price candles
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume(units in quote currency)
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume(units in quote currency)
         """
         if self.markets is None:
             self.load_markets()
@@ -4162,10 +4222,10 @@ class gate(Exchange, ImplicitAPI):
         :param bool [params.auto_borrow]: *margin only* Used in margin or cross margin trading to allow automatic loan of insufficient amount if balance is not enough
         :param str [params.settle]: *contract only* Unified Currency Code for settle currency
         :param bool [params.reduceOnly]: *contract only* Indicates if self order is to reduce the size of a position
-        :param bool [params.close]: *contract only* Set to close the position, with size set to 0
+        :param bool [params.close]: *contract only* Set as True to close the position, with size set to 0
         :param bool [params.auto_size]: *contract only* Set side to close dual-mode position, close_long closes the long side, while close_short the short one, size also needs to be set to 0
         :param int [params.price_type]: *contract only* 0 latest deal price, 1 mark price, 2 index price
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param float [params.cost]: *spot market buy only* the quote quantity that can be used as an alternative for the amount
         :param bool [params.unifiedAccount]: set to True for creating an order in the unified account
         :param str [params.clientOrderId]: the clientOrderId of the order
         :returns dict|None: `An order structure <https://docs.ccxt.com/?id=order-structure>`
@@ -4380,7 +4440,7 @@ class gate(Exchange, ImplicitAPI):
                     'size': amount,  # int64, positive = bid, negative = ask
                     # 'iceberg': 0,  # int64, display size for iceberg order, 0 for non-iceberg, note that you will have to pay the taker fee for the hidden size
                     # 'close': False,  # True to close the position, with size set to 0
-                    # 'reduce_only': False,  # St to be reduce-only order
+                    # 'reduce_only': False,  # St as True to be reduce-only order
                     # 'tif': 'gtc',  # gtc, ioc, poc PendingOrCancelled == postOnly order
                     # 'text': clientOrderId,  # 't-abcdef1234567890',
                     # 'auto_size': '',  # close_long, close_short, note size also needs to be set to 0
@@ -4961,7 +5021,7 @@ class gate(Exchange, ImplicitAPI):
             average = self.parse_number(averageString)
             if (type == 'market') and (side == 'buy'):
                 remaining = Precise.string_div(remainingString, averageString)
-                price = None  # arrives
+                price = None  # arrives as 0
                 cost = amount
                 amount = Precise.string_div(amount, averageString)
         timestamp = None
@@ -6829,7 +6889,7 @@ class gate(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: "5m", "15m", "30m", "1h", "4h", "1d"
-        :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
+        :param int [since]: the time(ms) of the earliest record to retrieve as a unix timestamp
         :param int [limit]: default 30
         :param dict [params]: exchange specific parameters
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)

@@ -132,6 +132,41 @@ func (this *WeexCore) PrivateGetApiV3AgencyGetDealData(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV3AgencyGetDealData", args...)
 }
 
+// PrivateGetApiV3ApiReferralCheckUserEligibility returns a channel that yields a JSON object.
+func (this *WeexCore) PrivateGetApiV3ApiReferralCheckUserEligibility(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV3ApiReferralCheckUserEligibility", args...)
+}
+
+// PrivateGetApiV3ApiReferralRebateRecentRecord returns a channel that yields a JSON object.
+func (this *WeexCore) PrivateGetApiV3ApiReferralRebateRecentRecord(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV3ApiReferralRebateRecentRecord", args...)
+}
+
+// PrivateGetApiV3ApiReferralRebateRatio returns a channel that yields a JSON object.
+func (this *WeexCore) PrivateGetApiV3ApiReferralRebateRatio(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV3ApiReferralRebateRatio", args...)
+}
+
+// PrivateGetApiV3ContentArticlesDetail returns a channel that yields a JSON object.
+func (this *WeexCore) PrivateGetApiV3ContentArticlesDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV3ContentArticlesDetail", args...)
+}
+
+// PrivateGetApiV3ContentArticlesList returns a channel that yields a JSON object.
+func (this *WeexCore) PrivateGetApiV3ContentArticlesList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV3ContentArticlesList", args...)
+}
+
+// PrivateGetApiV3ContentArticlesListByCoin returns a channel that yields a JSON object.
+func (this *WeexCore) PrivateGetApiV3ContentArticlesListByCoin(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV3ContentArticlesListByCoin", args...)
+}
+
+// PrivateGetApiV3ContentBannersLatest returns a channel that yields a JSON object.
+func (this *WeexCore) PrivateGetApiV3ContentBannersLatest(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetApiV3ContentBannersLatest", args...)
+}
+
 // PrivatePostApiV3AccountBills returns a channel that yields a JSON array.
 func (this *WeexCore) PrivatePostApiV3AccountBills(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV3AccountBills", args...)
@@ -155,6 +190,11 @@ func (this *WeexCore) PrivatePostApiV3OrderBatch(args ...any) <-chan any {
 // PrivatePostApiV3RebateAffiliateInternalWithdrawal returns a channel that yields a JSON scalar.
 func (this *WeexCore) PrivatePostApiV3RebateAffiliateInternalWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV3RebateAffiliateInternalWithdrawal", args...)
+}
+
+// PrivatePostApiV3TaxIncome returns a channel that yields a JSON array.
+func (this *WeexCore) PrivatePostApiV3TaxIncome(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostApiV3TaxIncome", args...)
 }
 
 // PrivateDeleteApiV3Order returns a channel that yields a JSON object.
@@ -322,6 +362,51 @@ func (this *WeexCore) ContractPrivateGetCapiV3SimOrderHistory(args ...any) <-cha
 	return this.callEndpointAsync("contractPrivateGetCapiV3SimOrderHistory", args...)
 }
 
+// ContractPrivateGetCapiV3CopyFollowerHistoryOrders returns a channel that yields a JSON object.
+func (this *WeexCore) ContractPrivateGetCapiV3CopyFollowerHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetCapiV3CopyFollowerHistoryOrders", args...)
+}
+
+// ContractPrivateGetCapiV3CopyFollowerMyTraders returns a channel that yields a JSON object.
+func (this *WeexCore) ContractPrivateGetCapiV3CopyFollowerMyTraders(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetCapiV3CopyFollowerMyTraders", args...)
+}
+
+// ContractPrivateGetCapiV3CopyFollowerOpenOrders returns a channel that yields a JSON array.
+func (this *WeexCore) ContractPrivateGetCapiV3CopyFollowerOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetCapiV3CopyFollowerOpenOrders", args...)
+}
+
+// ContractPrivateGetCapiV3CopyFollowerSettings returns a channel that yields a JSON array.
+func (this *WeexCore) ContractPrivateGetCapiV3CopyFollowerSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetCapiV3CopyFollowerSettings", args...)
+}
+
+// ContractPrivateGetCapiV3CopyTraderHistoryOrders returns a channel that yields a JSON object.
+func (this *WeexCore) ContractPrivateGetCapiV3CopyTraderHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetCapiV3CopyTraderHistoryOrders", args...)
+}
+
+// ContractPrivateGetCapiV3CopyTraderOpenOrders returns a channel that yields a JSON array.
+func (this *WeexCore) ContractPrivateGetCapiV3CopyTraderOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetCapiV3CopyTraderOpenOrders", args...)
+}
+
+// ContractPrivateGetCapiV3CopyTraderPairs returns a channel that yields a JSON array.
+func (this *WeexCore) ContractPrivateGetCapiV3CopyTraderPairs(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetCapiV3CopyTraderPairs", args...)
+}
+
+// ContractPrivateGetCapiV3TrailingOpenOrders returns a channel that yields a JSON array.
+func (this *WeexCore) ContractPrivateGetCapiV3TrailingOpenOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetCapiV3TrailingOpenOrders", args...)
+}
+
+// ContractPrivateGetCapiV3TrailingHistoryOrders returns a channel that yields a JSON array.
+func (this *WeexCore) ContractPrivateGetCapiV3TrailingHistoryOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivateGetCapiV3TrailingHistoryOrders", args...)
+}
+
 // ContractPrivatePostCapiV3AccountIncome returns a channel that yields a JSON object.
 func (this *WeexCore) ContractPrivatePostCapiV3AccountIncome(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostCapiV3AccountIncome", args...)
@@ -380,6 +465,21 @@ func (this *WeexCore) ContractPrivatePostCapiV3ModifyTpSlOrder(args ...any) <-ch
 // ContractPrivatePostCapiV3SimOrder returns a channel that yields a JSON object.
 func (this *WeexCore) ContractPrivatePostCapiV3SimOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("contractPrivatePostCapiV3SimOrder", args...)
+}
+
+// ContractPrivatePostCapiV3CopyFollowerClosePos returns a channel that yields a JSON object.
+func (this *WeexCore) ContractPrivatePostCapiV3CopyFollowerClosePos(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivatePostCapiV3CopyFollowerClosePos", args...)
+}
+
+// ContractPrivatePostCapiV3CopyFollowerSettings returns a channel that yields a JSON object.
+func (this *WeexCore) ContractPrivatePostCapiV3CopyFollowerSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivatePostCapiV3CopyFollowerSettings", args...)
+}
+
+// ContractPrivatePostCapiV3CopyFollowerStopCopy returns a channel that yields a JSON object.
+func (this *WeexCore) ContractPrivatePostCapiV3CopyFollowerStopCopy(args ...any) <-chan any {
+	return this.callEndpointAsync("contractPrivatePostCapiV3CopyFollowerStopCopy", args...)
 }
 
 // ContractPrivateDeleteCapiV3Order returns a channel that yields a JSON object.

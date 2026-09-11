@@ -153,6 +153,11 @@ class upbit extends upbit$1["default"] {
                         'travel_rule/vasps': { 'cost': 0.67 },
                         'status/wallet': { 'cost': 0.67 },
                         'api_keys': { 'cost': 0.67 }, // Upbit KR only
+                        'pockets': { 'cost': 0.67 },
+                        'pockets/api_keys': { 'cost': 0.67 },
+                        'pockets/assets': { 'cost': 0.67 },
+                        'pockets/universal_transfers': { 'cost': 0.67 },
+                        'pockets/transfers': { 'cost': 0.67 },
                     },
                     'post': {
                         'orders': { 'cost': 2.5 }, // RPS: 8
@@ -164,6 +169,8 @@ class upbit extends upbit$1["default"] {
                         'deposits/generate_coin_address': { 'cost': 0.67 },
                         'travel_rule/deposit/uuid': { 'cost': 0.67 }, // RPS: 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid': { 'cost': 0.67 }, // RPS: 30, but each deposit can only be queried once every 10 minutes
+                        'pockets/universal_transfers': { 'cost': 0.67 },
+                        'pockets/transfers': { 'cost': 0.67 },
                     },
                     'delete': {
                         'order': { 'cost': 0.67 },

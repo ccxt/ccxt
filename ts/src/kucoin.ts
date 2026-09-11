@@ -183,6 +183,7 @@ export default class kucoin extends Exchange {
                         'margin/config': { 'cost': 25 } as Endpoint<Dict>,
                         'announcements': { 'cost': 20 } as Endpoint<Dict>,
                         'margin/collateralRatio': { 'cost': 10 } as Endpoint<Dict>,
+                        'margin/available-inventory': { 'cost': 10 } as Endpoint<Dict>,
                         // convert
                         'convert/symbol': { 'cost': 5 } as Endpoint<Dict>,
                         'convert/currencies': { 'cost': 5 } as Endpoint<Dict>,
@@ -269,6 +270,7 @@ export default class kucoin extends Exchange {
                         'margin/borrow': { 'cost': 15 } as Endpoint<Dict>,
                         'margin/repay': { 'cost': 15 } as Endpoint<Dict>,
                         'margin/interest': { 'cost': 20 } as Endpoint<Dict>,
+                        'margin/borrowRate': { 'cost': 20 } as Endpoint<Dict>,
                         'project/list': { 'cost': 10 } as Endpoint<Dict>,
                         'project/marketInterestRate': { 'cost': 5 } as Endpoint<Dict>,
                         'redeem/orders': { 'cost': 10 } as Endpoint<Dict>,
@@ -288,6 +290,11 @@ export default class kucoin extends Exchange {
                         'convert/limit/orders': { 'cost': 5 } as Endpoint<Dict>,
                         // affiliate
                         'affiliate/inviter/statistics': { 'cost': 30 } as Endpoint<Dict>,
+                        'affiliate/queryInvitees': { 'cost': 30 } as Endpoint<Dict>,
+                        'affiliate/queryMyCommission': { 'cost': 30 } as Endpoint<Dict>,
+                        'affiliate/queryTransactionByUid': { 'cost': 30 } as Endpoint<Dict>,
+                        'affiliate/queryTransactionByTime': { 'cost': 30 } as Endpoint<Dict>,
+                        'affiliate/queryKumining': { 'cost': 30 } as Endpoint<Dict>,
                     },
                     'post': {
                         // account
@@ -497,6 +504,7 @@ export default class kucoin extends Exchange {
                         'broker/nd/account': { 'cost': 4 } as Endpoint<Dict>,
                         'broker/nd/account/apikey': { 'cost': 4 } as Endpoint<Dict>,
                         'broker/nd/rebase/download': { 'cost': 4 } as Endpoint<Dict>,
+                        'broker/nd/mark-up': { 'cost': 4 } as Endpoint<Dict>,
                         'asset/ndbroker/deposit/list': { 'cost': 2 } as Endpoint<Dict>,
                         'broker/nd/transfer/detail': { 'cost': 2 } as Endpoint<Dict>,
                         'broker/nd/deposit/detail': { 'cost': 2 } as Endpoint<Dict>,
@@ -507,6 +515,7 @@ export default class kucoin extends Exchange {
                         'broker/nd/account': { 'cost': 6 } as Endpoint<Dict>,
                         'broker/nd/account/apikey': { 'cost': 6 } as Endpoint<Dict>,
                         'broker/nd/account/update-apikey': { 'cost': 6 } as Endpoint<Dict>,
+                        'broker/nd/mark-up': { 'cost': 6 } as Endpoint<Dict>,
                     },
                     'delete': {
                         'broker/nd/account/apikey': { 'cost': 6 } as Endpoint<Dict>,
@@ -953,6 +962,7 @@ export default class kucoin extends Exchange {
                             'symbols': 'v2',
                             'mark-price/all-symbols': 'v3',
                             'announcements': 'v3',
+                            'margin/available-inventory': 'v3',
                         },
                     },
                     'private': {
@@ -994,6 +1004,7 @@ export default class kucoin extends Exchange {
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
                             'margin/interest': 'v3',
+                            'margin/borrowRate': 'v3',
                             'project/list': 'v3',
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
@@ -1001,6 +1012,11 @@ export default class kucoin extends Exchange {
                             'migrate/user/account/status': 'v3',
                             'margin/symbols': 'v3',
                             'affiliate/inviter/statistics': 'v2',
+                            'affiliate/queryInvitees': 'v2',
+                            'affiliate/queryMyCommission': 'v2',
+                            'affiliate/queryTransactionByUid': 'v2',
+                            'affiliate/queryTransactionByTime': 'v2',
+                            'affiliate/queryKumining': 'v2',
                             'asset/ndbroker/deposit/list': 'v1',
                         },
                         'POST': {

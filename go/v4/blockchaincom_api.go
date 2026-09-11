@@ -42,6 +42,11 @@ func (this *BlockchaincomCore) PrivateGetFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetFees", args...)
 }
 
+// PrivateGetInternalOrders returns a channel that yields a JSON object.
+func (this *BlockchaincomCore) PrivateGetInternalOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetInternalOrders", args...)
+}
+
 // PrivateGetOrders returns a channel that yields a JSON array.
 func (this *BlockchaincomCore) PrivateGetOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetOrders", args...)

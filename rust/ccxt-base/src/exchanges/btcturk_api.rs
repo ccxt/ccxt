@@ -22,6 +22,11 @@ impl BtcturkCore {
         self.call_method(Value::Str("public_get_ticker".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `publicGetTickerCurrency` implicit endpoint.
+    pub async fn public_get_ticker_currency(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("public_get_ticker_currency".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `publicGetTrades` implicit endpoint.
     pub async fn public_get_trades(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("public_get_trades".to_string()), optional_args).await
@@ -52,9 +57,29 @@ impl BtcturkCore {
         self.call_method(Value::Str("private_get_all_orders".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `privateGetOrderOrderId` implicit endpoint.
+    pub async fn private_get_order_order_id(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_order_order_id".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `privateGetUsersTransactionsTrade` implicit endpoint.
     pub async fn private_get_users_transactions_trade(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_get_users_transactions_trade".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUsersTransactionsCrypto` implicit endpoint.
+    pub async fn private_get_users_transactions_crypto(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_users_transactions_crypto".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetUsersTransactionsFiat` implicit endpoint.
+    pub async fn private_get_users_transactions_fiat(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_users_transactions_fiat".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privateGetCryptoDepositDeclarations` implicit endpoint.
+    pub async fn private_get_crypto_deposit_declarations(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_get_crypto_deposit_declarations".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privatePostUsersTransactionsCrypto` implicit endpoint.
@@ -75,6 +100,11 @@ impl BtcturkCore {
     /// Auto-generated wrapper for the `privatePostCancelOrder` implicit endpoint.
     pub async fn private_post_cancel_order(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("private_post_cancel_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `privatePostCryptoDepositDeclarationsConfirm` implicit endpoint.
+    pub async fn private_post_crypto_deposit_declarations_confirm(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("private_post_crypto_deposit_declarations_confirm".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `privateDeleteOrder` implicit endpoint.

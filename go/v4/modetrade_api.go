@@ -192,6 +192,11 @@ func (this *ModetradeCore) V1PublicGetTvSymbolInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetTvSymbolInfo", args...)
 }
 
+// V1PublicGetTvKlineHistory returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PublicGetTvKlineHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetTvKlineHistory", args...)
+}
+
 // V1PublicGetPublicFundingRateHistory returns a channel that yields a JSON object.
 func (this *ModetradeCore) V1PublicGetPublicFundingRateHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicGetPublicFundingRateHistory", args...)
@@ -240,6 +245,11 @@ func (this *ModetradeCore) V1PublicGetPublicFuturesSymbol(args ...any) <-chan an
 // V1PublicPostRegisterAccount returns a channel that yields a JSON object.
 func (this *ModetradeCore) V1PublicPostRegisterAccount(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PublicPostRegisterAccount", args...)
+}
+
+// V1PublicPostPublicQuery returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PublicPostPublicQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicPostPublicQuery", args...)
 }
 
 // V1PrivateGetClientKeyInfo returns a channel that yields a JSON object.
@@ -332,6 +342,11 @@ func (this *ModetradeCore) V1PrivateGetPnlSettlementHistory(args ...any) <-chan 
 	return this.callEndpointAsync("v1PrivateGetPnlSettlementHistory", args...)
 }
 
+// V1PrivateGetInternalTransferHistory returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetInternalTransferHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetInternalTransferHistory", args...)
+}
+
 // V1PrivateGetVolumeUserDaily returns a channel that yields a JSON object.
 func (this *ModetradeCore) V1PrivateGetVolumeUserDaily(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetVolumeUserDaily", args...)
@@ -397,6 +412,11 @@ func (this *ModetradeCore) V1PrivateGetBrokerUserInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetBrokerUserInfo", args...)
 }
 
+// V1PrivateGetBrokerDailyFeeRevenue returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetBrokerDailyFeeRevenue(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetBrokerDailyFeeRevenue", args...)
+}
+
 // V1PrivateGetOrderbookSymbol returns a channel that yields a JSON object.
 func (this *ModetradeCore) V1PrivateGetOrderbookSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetOrderbookSymbol", args...)
@@ -405,6 +425,61 @@ func (this *ModetradeCore) V1PrivateGetOrderbookSymbol(args ...any) <-chan any {
 // V1PrivateGetKline returns a channel that yields a JSON object.
 func (this *ModetradeCore) V1PrivateGetKline(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetKline", args...)
+}
+
+// V1PrivateGetClientLeverages returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetClientLeverages(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetClientLeverages", args...)
+}
+
+// V1PrivateGetClientMarginModes returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetClientMarginModes(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetClientMarginModes", args...)
+}
+
+// V1PrivateGetReferralMultiLevelAdmin returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetReferralMultiLevelAdmin(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelAdmin", args...)
+}
+
+// V1PrivateGetReferralMultiLevelAdminInfo returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetReferralMultiLevelAdminInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelAdminInfo", args...)
+}
+
+// V1PrivateGetReferralMultiLevelAdminRefereeList returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetReferralMultiLevelAdminRefereeList(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelAdminRefereeList", args...)
+}
+
+// V1PrivateGetReferralMultiLevelAdminSummary returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetReferralMultiLevelAdminSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelAdminSummary", args...)
+}
+
+// V1PrivateGetReferralMultiLevelMaxRebateRate returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetReferralMultiLevelMaxRebateRate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelMaxRebateRate", args...)
+}
+
+// V1PrivateGetReferralMultiLevelRebateInfo returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetReferralMultiLevelRebateInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelRebateInfo", args...)
+}
+
+// V1PrivateGetReferralMultiLevelRefereeList returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetReferralMultiLevelRefereeList(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelRefereeList", args...)
+}
+
+// V1PrivateGetReferralMultiLevelStatistics returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetReferralMultiLevelStatistics(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelStatistics", args...)
+}
+
+// V1PrivateGetReferralMultiLevelVolumePrerequisite returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivateGetReferralMultiLevelVolumePrerequisite(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetReferralMultiLevelVolumePrerequisite", args...)
 }
 
 // V1PrivatePostOrderlyKey returns a channel that yields a JSON object.
@@ -457,6 +532,11 @@ func (this *ModetradeCore) V1PrivatePostSettlePnl(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostSettlePnl", args...)
 }
 
+// V1PrivatePostInternalTransfer returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostInternalTransfer(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostInternalTransfer", args...)
+}
+
 // V1PrivatePostNotificationInboxMarkRead returns a channel that yields a JSON object.
 func (this *ModetradeCore) V1PrivatePostNotificationInboxMarkRead(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostNotificationInboxMarkRead", args...)
@@ -470,6 +550,21 @@ func (this *ModetradeCore) V1PrivatePostNotificationInboxMarkReadAll(args ...any
 // V1PrivatePostClientLeverage returns a channel that yields a JSON object.
 func (this *ModetradeCore) V1PrivatePostClientLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostClientLeverage", args...)
+}
+
+// V1PrivatePostClientLeverages returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostClientLeverages(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostClientLeverages", args...)
+}
+
+// V1PrivatePostClientMarginMode returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostClientMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostClientMarginMode", args...)
+}
+
+// V1PrivatePostPositionMargin returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostPositionMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostPositionMargin", args...)
 }
 
 // V1PrivatePostClientMaintenanceConfig returns a channel that yields a JSON object.
@@ -530,6 +625,51 @@ func (this *ModetradeCore) V1PrivatePostReferralBind(args ...any) <-chan any {
 // V1PrivatePostReferralEditSplit returns a channel that yields a JSON object.
 func (this *ModetradeCore) V1PrivatePostReferralEditSplit(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostReferralEditSplit", args...)
+}
+
+// V1PrivatePostReferralEditRefereeDescription returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostReferralEditRefereeDescription(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralEditRefereeDescription", args...)
+}
+
+// V1PrivatePostReferralMultiLevelAdmin returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostReferralMultiLevelAdmin(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdmin", args...)
+}
+
+// V1PrivatePostReferralMultiLevelAdminUpdate returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostReferralMultiLevelAdminUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdminUpdate", args...)
+}
+
+// V1PrivatePostReferralMultiLevelAdminCreateAffiliate returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostReferralMultiLevelAdminCreateAffiliate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdminCreateAffiliate", args...)
+}
+
+// V1PrivatePostReferralMultiLevelAdminResetAffiliate returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostReferralMultiLevelAdminResetAffiliate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdminResetAffiliate", args...)
+}
+
+// V1PrivatePostReferralMultiLevelAdminUpdateAffiliate returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostReferralMultiLevelAdminUpdateAffiliate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelAdminUpdateAffiliate", args...)
+}
+
+// V1PrivatePostReferralMultiLevelClaimCode returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostReferralMultiLevelClaimCode(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelClaimCode", args...)
+}
+
+// V1PrivatePostReferralMultiLevelRebateRateSetDefault returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostReferralMultiLevelRebateRateSetDefault(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelRebateRateSetDefault", args...)
+}
+
+// V1PrivatePostReferralMultiLevelRebateRateUpdate returns a channel that yields a JSON object.
+func (this *ModetradeCore) V1PrivatePostReferralMultiLevelRebateRateUpdate(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostReferralMultiLevelRebateRateUpdate", args...)
 }
 
 // V1PrivatePutOrder returns a channel that yields a JSON object.

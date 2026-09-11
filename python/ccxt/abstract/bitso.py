@@ -43,3 +43,5 @@ class ImplicitAPI:
     private_delete_orders = privateDeleteOrders = Entry[_Dict]('orders', 'private', 'DELETE', {'cost': 1})
     private_delete_orders_oid = privateDeleteOrdersOid = Entry[_Dict]('orders/{oid}', 'private', 'DELETE', {'cost': 1})
     private_delete_orders_all = privateDeleteOrdersAll = Entry[_Dict]('orders/all', 'private', 'DELETE', {'cost': 1})
+    private_patch_orders = privatePatchOrders = Entry[_Dict]('orders', 'private', 'PATCH', {'cost': 1})
+    private_patch_orders_oid = privatePatchOrdersOid = Entry[_Dict]('orders/{oid}', 'private', 'PATCH', {'cost': 1})

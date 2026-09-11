@@ -200,7 +200,13 @@ func (this *IndodaxCore) Describe() any {
 					"getOrder": map[string]any{
 						"cost": 4,
 					},
+					"getOrderByClientOrderId": map[string]any{
+						"cost": 4,
+					},
 					"cancelOrder": map[string]any{
+						"cost": 4,
+					},
+					"cancelByClientOrderId": map[string]any{
 						"cost": 4,
 					},
 					"withdrawFee": map[string]any{
@@ -532,8 +538,8 @@ func (this *IndodaxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47212 := (<-this.LoadMarkets())
-		PanicOnError(retRes47212)
+		retRes47412 := (<-this.LoadMarkets())
+		PanicOnError(retRes47412)
 	}
 
 	response := (<-this.PrivatePostGetInfo(params))
@@ -597,8 +603,8 @@ func (this *IndodaxCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes52012 := (<-this.LoadMarkets())
-		PanicOnError(retRes52012)
+		retRes52212 := (<-this.LoadMarkets())
+		PanicOnError(retRes52212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -676,8 +682,8 @@ func (this *IndodaxCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes58312 := (<-this.LoadMarkets())
-		PanicOnError(retRes58312)
+		retRes58512 := (<-this.LoadMarkets())
+		PanicOnError(retRes58512)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -729,8 +735,8 @@ func (this *IndodaxCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes61912 := (<-this.LoadMarkets())
-		PanicOnError(retRes61912)
+		retRes62112 := (<-this.LoadMarkets())
+		PanicOnError(retRes62112)
 	}
 	//
 	// {
@@ -814,8 +820,8 @@ func (this *IndodaxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes68412 := (<-this.LoadMarkets())
-		PanicOnError(retRes68412)
+		retRes68612 := (<-this.LoadMarkets())
+		PanicOnError(retRes68612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -874,8 +880,8 @@ func (this *IndodaxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes72912 := (<-this.LoadMarkets())
-		PanicOnError(retRes72912)
+		retRes73112 := (<-this.LoadMarkets())
+		PanicOnError(retRes73112)
 	}
 	var market any = this.Market(symbol)
 	var selectedTimeframe any = this.SafeString(this.Timeframes, timeframe, timeframe)
@@ -1052,8 +1058,8 @@ func (this *IndodaxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes89012 := (<-this.LoadMarkets())
-		PanicOnError(retRes89012)
+		retRes89212 := (<-this.LoadMarkets())
+		PanicOnError(retRes89212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1102,8 +1108,8 @@ func (this *IndodaxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes91712 := (<-this.LoadMarkets())
-		PanicOnError(retRes91712)
+		retRes91912 := (<-this.LoadMarkets())
+		PanicOnError(retRes91912)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -1175,8 +1181,8 @@ func (this *IndodaxCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any)
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes96512 := (<-this.LoadMarkets())
-		PanicOnError(retRes96512)
+		retRes96712 := (<-this.LoadMarkets())
+		PanicOnError(retRes96712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1220,8 +1226,8 @@ func (this *IndodaxCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes99312 := (<-this.LoadMarkets())
-		PanicOnError(retRes99312)
+		retRes99512 := (<-this.LoadMarkets())
+		PanicOnError(retRes99512)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1311,8 +1317,8 @@ func (this *IndodaxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes106712 := (<-this.LoadMarkets())
-		PanicOnError(retRes106712)
+		retRes106912 := (<-this.LoadMarkets())
+		PanicOnError(retRes106912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1369,8 +1375,8 @@ func (this *IndodaxCore) fetchTransactionFeeBody(ch chan any, code any, optional
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes111012 := (<-this.LoadMarkets())
-		PanicOnError(retRes111012)
+		retRes111212 := (<-this.LoadMarkets())
+		PanicOnError(retRes111212)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -1420,8 +1426,8 @@ func (this *IndodaxCore) fetchDepositWithdrawFeeBody(ch chan any, code any, opti
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes11468 := (<-this.LoadMarkets())
-	PanicOnError(retRes11468)
+	retRes11488 := (<-this.LoadMarkets())
+	PanicOnError(retRes11488)
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
 		"currency": GetValue(currency, "id"),
@@ -1479,8 +1485,8 @@ func (this *IndodaxCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes118412 := (<-this.LoadMarkets())
-		PanicOnError(retRes118412)
+		retRes118612 := (<-this.LoadMarkets())
+		PanicOnError(retRes118612)
 	}
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(since, nil)) {
@@ -1605,8 +1611,8 @@ func (this *IndodaxCore) withdrawBody(ch chan any, code any, amount any, address
 	this.CheckAddress(address)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes129112 := (<-this.LoadMarkets())
-		PanicOnError(retRes129112)
+		retRes129312 := (<-this.LoadMarkets())
+		PanicOnError(retRes129312)
 	}
 	var currency any = this.Currency(code)
 	// Custom string you need to provide to identify each withdrawal.
@@ -1756,8 +1762,8 @@ func (this *IndodaxCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes142512 := (<-this.LoadMarkets())
-		PanicOnError(retRes142512)
+		retRes142712 := (<-this.LoadMarkets())
+		PanicOnError(retRes142712)
 	}
 
 	response := (<-this.PrivatePostGetInfo(params))

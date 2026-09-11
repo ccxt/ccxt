@@ -112,9 +112,19 @@ impl BitbnsCore {
         self.call_method(Value::Str("v1_post_deposit_history_all_symbol".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PostUserHistoryNew` implicit endpoint.
+    pub async fn v1_post_user_history_new(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_post_user_history_new".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PostListOpenOrdersSymbol` implicit endpoint.
     pub async fn v1_post_list_open_orders_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_list_open_orders_symbol".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PostListOpenOrdersOtherSymbol` implicit endpoint.
+    pub async fn v1_post_list_open_orders_other_symbol(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_post_list_open_orders_other_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostListOpenStopOrdersSymbol` implicit endpoint.
@@ -132,9 +142,19 @@ impl BitbnsCore {
         self.call_method(Value::Str("v1_post_place_sell_order_symbol".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PostPlaceSellOrderOtherSymbol` implicit endpoint.
+    pub async fn v1_post_place_sell_order_other_symbol(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_post_place_sell_order_other_symbol".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PostPlaceBuyOrderSymbol` implicit endpoint.
     pub async fn v1_post_place_buy_order_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_place_buy_order_symbol".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PostPlaceBuyOrderOtherSymbol` implicit endpoint.
+    pub async fn v1_post_place_buy_order_other_symbol(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_post_place_buy_order_other_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostBuyStopLossSymbol` implicit endpoint.
@@ -150,6 +170,11 @@ impl BitbnsCore {
     /// Auto-generated wrapper for the `v1PostCancelOrderSymbol` implicit endpoint.
     pub async fn v1_post_cancel_order_symbol(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_post_cancel_order_symbol".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PostCancelOrderOtherSymbol` implicit endpoint.
+    pub async fn v1_post_cancel_order_other_symbol(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_post_cancel_order_other_symbol".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v1PostCancelStopLossOrderSymbol` implicit endpoint.

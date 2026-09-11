@@ -169,7 +169,7 @@ class opinion(PredictionExchange, ImplicitAPI):
     async def fetch_markets(self, params={}) -> list[Market]:
         """
         fetches every kind of opinion market
- categorical parents double unified "events" and are cached into self.events side effect
+ categorical parents double as our unified "events" and are cached into self.events as a side effect
 
         https://docs.opinion.trade/developer-guide/opinion-open-api/market
 
@@ -767,7 +767,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum number of candles to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
         if not (timeframe in self.timeframes):
             supportedKeys = list(self.timeframes.keys())
@@ -808,7 +808,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         parses a single opinion price-history point into a unified OHLCV candle
         :param dict ohlcv: the raw {p, t} point
         :param dict [market]: the outcome object the candle belongs to
-        :returns int[]: a candle ordered, open, high, low, close, volume
+        :returns int[]: a candle ordered as timestamp, open, high, low, close, volume
         """
         # Unused: fetchOHLCV maps {p, t} points directly.
         #
@@ -932,7 +932,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         :param str type: 'market' or 'limit'
         :param str side: 'buy' or 'sell'
         :param float amount: for limit orders, the number of outcome shares to trade; for market orders, the quote(USDT) to spend on a BUY or the shares to sell on a SELL
-        :param float [price]: the price per outcome token between 0 and 1; required for limit orders and market SELL orders(where it acts reference / worst acceptable price for the taker amount); ignored for market BUY orders(amount is already the quote to spend)
+        :param float [price]: the price per outcome token between 0 and 1; required for limit orders and market SELL orders(where it acts as the reference / worst acceptable price for the taker amount); ignored for market BUY orders(amount is already the quote to spend)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param bool [params.postOnly]: limit orders only - reject the order if it would cross the spread
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
@@ -1477,7 +1477,7 @@ class opinion(PredictionExchange, ImplicitAPI):
         # sign() prefers self.apiKey over options['apiKey'] - clear it too, or a directly-set
         # exchange.apiKey would keep being used for private calls after the key is revoked.
         # an empty string, not None: the strict base types the credential, and
-        # sign() treats an empty key
+        # sign() treats an empty key as absent
         self.apiKey = ''
         return response
 
@@ -1516,14 +1516,14 @@ class opinion(PredictionExchange, ImplicitAPI):
         }
         self.options['apiKey'] = creds['apiKey']
         # checkRequiredCredentials()(called by createOrder()) checks self.apiKey, not
-        # options['apiKey'] - keep both in sync, same() clearing both
+        # options['apiKey'] - keep both in sync, same as deleteApiKey() clearing both
         self.apiKey = creds['apiKey']
         return creds
 
     def opinion_ws_url(self) -> str:
         """
  @ignore
-        builds the websocket url - the venue authenticates the whole connection with the apiKey passed query parameter, for public and private channels alike
+        builds the websocket url - the venue authenticates the whole connection with the apiKey passed as a query parameter, for public and private channels alike
         :returns str: the websocket url
         """
         hasDirectApiKey = not self.is_empty_string(self.apiKey)
@@ -2009,7 +2009,7 @@ class opinion(PredictionExchange, ImplicitAPI):
                 headers['OPINION_SIGNATURE'] = self.sign_api_key_auth(self.walletAddress, action, timestamp)
                 headers['OPINION_TIMESTAMP'] = timestamp
             else:
-                # an empty self.apiKey counts - deleteApiKey clears it to ''(the
+                # an empty self.apiKey counts as absent - deleteApiKey clears it to ''(the
                 # strict base types the credential, None can not be assigned)
                 hasDirectApiKey = not self.is_empty_string(self.apiKey)
                 apiKey = self.apiKey if (hasDirectApiKey) else self.safe_string(self.options, 'apiKey')

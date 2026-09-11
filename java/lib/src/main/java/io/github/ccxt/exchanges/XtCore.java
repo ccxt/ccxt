@@ -391,6 +391,15 @@ public class XtCore extends XtApi
                     }} );
                     put( "linear", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
+                            put( "future/copytrade/user/v1/copy-trade/current-following-v2", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/copytrade/user/v1/copy-trade/follower-balance-bill", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/copytrade/user/v1/copy-trade/follower-position", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/trade/v1/entrust/plan-detail", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -406,6 +415,15 @@ public class XtCore extends XtApi
                             put( "future/trade/v1/entrust/profit-list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/trade/v1/entrust/profit-list-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/entrust/reverse-plan-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/entrust/reverse-plan-list-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/trade/v1/entrust/track-detail", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -413,6 +431,9 @@ public class XtCore extends XtApi
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/entrust/track-list-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/order-entrust/list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/order/detail", new java.util.HashMap<String, Object>() {{
@@ -424,13 +445,31 @@ public class XtCore extends XtApi
                             put( "future/trade/v1/order/list-history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/trade/v1/order/trade-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/trade/v1/position/list-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/position/cross-margin/{symbol}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/position/leverage/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/position/list/active", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/order/trade-list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/trade/v1/order/trade-list-all", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/user/v1/account/info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/user/v1/auto-deleverage/history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/user/v1/balance/bills", new java.util.HashMap<String, Object>() {{
@@ -445,6 +484,9 @@ public class XtCore extends XtApi
                             put( "future/user/v1/balance/list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/user/v1/compat/balance/{coin}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/user/v1/position/adl", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -452,6 +494,9 @@ public class XtCore extends XtApi
                                 put( "cost", 1 );
                             }} );
                             put( "future/user/v1/position/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/user/v1/taker-over/list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/user/v1/user/step-rate", new java.util.HashMap<String, Object>() {{
@@ -553,6 +598,15 @@ public class XtCore extends XtApi
                             put( "future/trade/v1/entrust/profit-list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/trade/v1/entrust/profit-list-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/entrust/reverse-plan-list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/entrust/reverse-plan-list-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/trade/v1/entrust/track-detail", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -560,6 +614,9 @@ public class XtCore extends XtApi
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/entrust/track-list-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/order-entrust/list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/order/detail", new java.util.HashMap<String, Object>() {{
@@ -571,13 +628,31 @@ public class XtCore extends XtApi
                             put( "future/trade/v1/order/list-history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/trade/v1/order/trade-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/trade/v1/position/list-history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/position/cross-margin/{symbol}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/position/leverage/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/trade/v1/position/list/active", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/trade/v1/order/trade-list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/trade/v1/order/trade-list-all", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/user/v1/account/info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/user/v1/auto-deleverage/history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/user/v1/balance/bills", new java.util.HashMap<String, Object>() {{
@@ -592,6 +667,9 @@ public class XtCore extends XtApi
                             put( "future/user/v1/balance/list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "future/user/v1/compat/balance/{coin}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "future/user/v1/position/adl", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -599,6 +677,9 @@ public class XtCore extends XtApi
                                 put( "cost", 1 );
                             }} );
                             put( "future/user/v1/position/list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "future/user/v1/taker-over/list", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "future/user/v1/user/step-rate", new java.util.HashMap<String, Object>() {{

@@ -161,6 +161,12 @@ public class FoxbitCore extends FoxbitApi
                             put( "markets/{market}/ticker/24hr", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 15 );
                             }} );
+                            put( "markets/sparkline/{window}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
+                            put( "travel_rule/operation_reasons", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 30 );
+                            }} );
                         }} );
                     }} );
                     put( "private", new java.util.HashMap<String, Object>() {{
@@ -192,6 +198,9 @@ public class FoxbitCore extends FoxbitApi
                             put( "me/fees/trading", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
+                            put( "prime_desk/executions/{quote_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "orders", new java.util.HashMap<String, Object>() {{
@@ -205,6 +214,9 @@ public class FoxbitCore extends FoxbitApi
                             }} );
                             put( "withdrawals", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
+                            }} );
+                            put( "deposits/{deposit_sn}/travel_rule", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 30 );
                             }} );
                         }} );
                         put( "put", new java.util.HashMap<String, Object>() {{

@@ -228,6 +228,9 @@ public class ApexCore extends ApexApi
                         put( "v3/transfer", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "v3/stock/account", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "v3/delete-open-orders", new java.util.HashMap<String, Object>() {{
@@ -249,6 +252,18 @@ public class ApexCore extends ApexApi
                             put( "cost", 1 );
                         }} );
                         put( "v3/contract-transfer-out", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/contract-transfer-to", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/submit-withdraw-claim", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/stock/register-account", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v3/stock/generate-api", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
@@ -1456,7 +1471,7 @@ public class ApexCore extends ApexApi
             }};
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return null;
     }
 
     public Object parseOrderType(Object type)

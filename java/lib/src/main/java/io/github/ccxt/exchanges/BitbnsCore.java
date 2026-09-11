@@ -154,7 +154,13 @@ public class BitbnsCore extends BitbnsApi
                         put( "depositHistoryAll/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "userHistoryNew", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "listOpenOrders/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "listOpenOrdersOther/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "listOpenStopOrders/{symbol}", new java.util.HashMap<String, Object>() {{
@@ -166,7 +172,13 @@ public class BitbnsCore extends BitbnsApi
                         put( "placeSellOrder/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "placeSellOrderOther/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "placeBuyOrder/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "placeBuyOrderOther/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "buyStopLoss/{symbol}", new java.util.HashMap<String, Object>() {{
@@ -176,6 +188,9 @@ public class BitbnsCore extends BitbnsApi
                             put( "cost", 1 );
                         }} );
                         put( "cancelOrder/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "cancelOrderOther/{symbol}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "cancelStopLossOrder/{symbol}", new java.util.HashMap<String, Object>() {{

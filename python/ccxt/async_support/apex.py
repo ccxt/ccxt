@@ -190,6 +190,7 @@ class apex(Exchange, ImplicitAPI):
                         'v3/open-orders': {'cost': 1},
                         'v3/transfers': {'cost': 1},
                         'v3/transfer': {'cost': 1},
+                        'v3/stock/account': {'cost': 1},
                     },
                     'post': {
                         'v3/delete-open-orders': {'cost': 1},
@@ -199,6 +200,10 @@ class apex(Exchange, ImplicitAPI):
                         'v3/set-initial-margin-rate': {'cost': 1},
                         'v3/transfer-out': {'cost': 1},
                         'v3/contract-transfer-out': {'cost': 1},
+                        'v3/contract-transfer-to': {'cost': 1},
+                        'v3/submit-withdraw-claim': {'cost': 1},
+                        'v3/stock/register-account': {'cost': 1},
+                        'v3/stock/generate-api': {'cost': 1},
                     },
                 },
             },
@@ -811,7 +816,7 @@ class apex(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1228,7 +1233,7 @@ class apex(Exchange, ImplicitAPI):
                 'UNTRIGGERED': 'open',
             }
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
     def parse_order_type(self, type: Str):
         types = {
@@ -1275,7 +1280,7 @@ class apex(Exchange, ImplicitAPI):
     def get_seeds(self):
         seeds = self.safe_string(self.options, 'seeds')
         if seeds is None:
-            raise ArgumentsRequired(self.id + ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it.options["seeds"] = XXXX')
+            raise ArgumentsRequired(self.id + ' the "seeds" key is required in the options to access private endpoints. You can find it in API Management > Omni Key, and then set it as exchange.options["seeds"] = XXXX')
         return seeds
 
     async def get_account_id(self):

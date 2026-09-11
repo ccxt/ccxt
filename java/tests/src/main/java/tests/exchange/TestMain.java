@@ -121,6 +121,7 @@ public class TestMain extends BaseTest
                 put( "timeout", 30000 );
             }};
             BaseExchange exchange = initExchange(exchangeId, exchangeArgs, this.wsTests);
+            setExchangeProp(exchange, "fetchHistoryCacheSize", 5);
             if (Helpers.isTrue(exchange.alias))
             {
                 dump(this.addPadding("[INFO] skipping alias", 25));
@@ -465,7 +466,7 @@ public class TestMain extends BaseTest
                     Object isAuthError = (Helpers.isInstance(e, AuthenticationError.class));
                     Object isNotSupported = (Helpers.isInstance(e, NotSupported.class));
                     Object isOperationFailed = (Helpers.isInstance(e, OperationFailed.class)); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                    Object lastUrlMsg = ((Helpers.isTrue(this.wsTests))) ? "" : Helpers.add(Helpers.add(" (Last url: ", exchange.last_request_url), " )");
+                    Object lastUrlMsg = ((Helpers.isTrue(this.wsTests))) ? "" : Helpers.add(Helpers.add(" (Last url: ", this.getLastRequestUrl(exchange)), " )");
                     if (Helpers.isTrue(isOperationFailed))
                     {
                         // if last retry was gone with same `tempFailure` error, then let's eventually return false
@@ -550,6 +551,22 @@ public class TestMain extends BaseTest
             return true;
         });
 
+    }
+
+    public Object getLastRequestUrl(BaseExchange exchange)
+    {
+        Object fetchCache = exchange.getFetchCache();
+        Object url = "";
+        if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(fetchCache), 0)))
+        {
+            Object lastEntry = Helpers.GetValue(fetchCache, Helpers.subtract(Helpers.getArrayLength(fetchCache), 1));
+            Object lastRequest = Helpers.GetValue(lastEntry, "request");
+            if (Helpers.isTrue(!Helpers.isEqual(lastRequest, null)))
+            {
+                url = exchange.safeString(lastRequest, "url", "");
+            }
+        }
+        return url;
     }
 
     public java.util.concurrent.CompletableFuture<Object> runPublicTests(BaseExchange exchange, Object symbols)

@@ -260,6 +260,9 @@ public class ModetradeCore extends ModetradeApi
                             put( "tv/symbol_info", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "tv/kline_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 20 );
+                            }} );
                             put( "public/funding_rate_history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
@@ -290,6 +293,9 @@ public class ModetradeCore extends ModetradeApi
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "register_account", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "public/query", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -350,6 +356,9 @@ public class ModetradeCore extends ModetradeApi
                             put( "pnl_settlement/history", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "internal_transfer_history", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "volume/user/daily", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
@@ -389,10 +398,46 @@ public class ModetradeCore extends ModetradeApi
                             put( "broker/user_info", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
+                            put( "broker/daily_fee_revenue", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "orderbook/{symbol}", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "kline", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "client/leverages", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "client/margin_modes", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin/referee_list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin/summary", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/max_rebate_rate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/rebate_info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/referee_list", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/statistics", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/volume_prerequisite", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -427,6 +472,9 @@ public class ModetradeCore extends ModetradeApi
                             put( "settle_pnl", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "internal_transfer", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                             put( "notification/inbox/mark_read", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
                             }} );
@@ -435,6 +483,15 @@ public class ModetradeCore extends ModetradeApi
                             }} );
                             put( "client/leverage", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 120 );
+                            }} );
+                            put( "client/leverages", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 120 );
+                            }} );
+                            put( "client/margin_mode", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "position_margin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
                             }} );
                             put( "client/maintenance_config", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 60 );
@@ -470,6 +527,33 @@ public class ModetradeCore extends ModetradeApi
                                 put( "cost", 10 );
                             }} );
                             put( "referral/edit_split", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/edit_referee_description", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/update", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/create/affiliate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "referral/multi_level/admin/reset/affiliate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/admin/update/affiliate", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/claim_code", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/rebate_rate/set_default", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 10 );
+                            }} );
+                            put( "referral/multi_level/rebate_rate/update", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 10 );
                             }} );
                         }} );
@@ -547,12 +631,12 @@ public class ModetradeCore extends ModetradeApi
                             put( "GTD", false );
                         }} );
                         put( "hedged", false );
-                        put( "trailing", true );
-                        put( "leverage", true );
+                        put( "trailing", false );
+                        put( "leverage", false );
                         put( "marketBuyByCost", false );
                         put( "marketBuyRequiresPrice", false );
                         put( "selfTradePrevention", false );
-                        put( "iceberg", true );
+                        put( "iceberg", false );
                     }} );
                     put( "createOrders", new java.util.HashMap<String, Object>() {{
                         put( "max", 10 );
@@ -577,7 +661,15 @@ public class ModetradeCore extends ModetradeApi
                         put( "trailing", false );
                         put( "symbolRequired", false );
                     }} );
-                    put( "fetchOrders", null );
+                    put( "fetchOrders", new java.util.HashMap<String, Object>() {{
+                        put( "marginMode", false );
+                        put( "limit", 500 );
+                        put( "daysBack", null );
+                        put( "untilDays", 100000 );
+                        put( "trigger", true );
+                        put( "trailing", false );
+                        put( "symbolRequired", false );
+                    }} );
                     put( "fetchClosedOrders", new java.util.HashMap<String, Object>() {{
                         put( "marginMode", false );
                         put( "limit", 500 );
@@ -592,9 +684,7 @@ public class ModetradeCore extends ModetradeApi
                         put( "limit", 1000 );
                     }} );
                 }} );
-                put( "spot", new java.util.HashMap<String, Object>() {{
-                    put( "extends", "default" );
-                }} );
+                put( "spot", null );
                 put( "forDerivatives", new java.util.HashMap<String, Object>() {{
                     put( "extends", "default" );
                     put( "createOrder", new java.util.HashMap<String, Object>() {{
@@ -1866,7 +1956,7 @@ public class ModetradeCore extends ModetradeApi
             }
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return null;
     }
 
     public Object parseOrderType(Object type)
@@ -2030,8 +2120,11 @@ public class ModetradeCore extends ModetradeApi
      * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
      * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
      * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
-     * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-     * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+     * @param {string} [params.algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+     * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+     * @param {bool} [params.postOnly] true or false whether the order is post-only
+     * @param {string} [params.timeInForce] 'IOC', 'FOK' or 'PO'
+     * @param {object[]} [params.childOrders] *algo order only* a list of child orders passed through to the exchange
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
@@ -2566,7 +2659,7 @@ public class ModetradeCore extends ModetradeApi
      * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2612,7 +2705,7 @@ public class ModetradeCore extends ModetradeApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "size", limit);
+                Helpers.addElementToObject(request, "size", Helpers.mathMin(limit, maxLimit));
             } else
             {
                 Helpers.addElementToObject(request, "size", maxLimit);
@@ -2681,7 +2774,7 @@ public class ModetradeCore extends ModetradeApi
      * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2719,7 +2812,7 @@ public class ModetradeCore extends ModetradeApi
      * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
      * @param {string} symbol unified market symbol of the market orders were made in
      * @param {int} [since] the earliest time in ms to fetch orders for
-     * @param {int} [limit] the maximum number of order structures to retrieve
+     * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {boolean} [params.trigger] whether the order is a stop/algo order
      * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)

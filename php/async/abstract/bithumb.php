@@ -178,6 +178,18 @@ abstract class bithumb extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_v2_orders_pending($params = array()) {
+        return $this->request('v2/orders/pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_v2_orders_history($params = array()) {
+        return $this->request('v2/orders/history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_v1_twap($params = array()) {
         return $this->request('v1/twap', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -360,6 +372,12 @@ abstract class bithumb extends \ccxt\async\Exchange {
      */
     public function private_post_v2_orders_cancel($params = array()) {
         return $this->request('v2/orders/cancel', 'private', 'POST', $params, null, null, array("cost" => 6));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function private_post_v2_orders_search($params = array()) {
+        return $this->request('v2/orders/search', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -580,6 +598,18 @@ abstract class bithumb extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetV2OrdersPending($params = array()) {
+        return $this->request('v2/orders/pending', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetV2OrdersHistory($params = array()) {
+        return $this->request('v2/orders/history', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetV1Twap($params = array()) {
         return $this->request('v1/twap', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -762,6 +792,12 @@ abstract class bithumb extends \ccxt\async\Exchange {
      */
     public function privatePostV2OrdersCancel($params = array()) {
         return $this->request('v2/orders/cancel', 'private', 'POST', $params, null, null, array("cost" => 6));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<list<mixed>>
+     */
+    public function privatePostV2OrdersSearch($params = array()) {
+        return $this->request('v2/orders/search', 'private', 'POST', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

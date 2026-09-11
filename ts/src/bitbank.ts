@@ -157,6 +157,7 @@ export default class bitbank extends Exchange {
                         'user/assets': { 'cost': 1 } as Endpoint<Dict>,
                         'user/spot/order': { 'cost': 1 } as Endpoint<Dict>,
                         'user/spot/active_orders': { 'cost': 1 } as Endpoint<Dict>,
+                        'user/margin/status': { 'cost': 1 } as Endpoint<Dict>,
                         'user/margin/positions': { 'cost': 1 } as Endpoint<Dict>,
                         'user/spot/trade_history': { 'cost': 1 } as Endpoint<Dict>,
                         'user/deposit_history': { 'cost': 1 } as Endpoint<Dict>,

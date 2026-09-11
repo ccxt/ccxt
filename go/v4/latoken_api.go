@@ -97,9 +97,19 @@ func (this *LatokenCore) PrivateGetAuthAccountCurrencyCurrencyType(args ...any) 
 	return this.callEndpointAsync("privateGetAuthAccountCurrencyCurrencyType", args...)
 }
 
+// PrivateGetAuthAccountFiltered returns a channel that yields a JSON array.
+func (this *LatokenCore) PrivateGetAuthAccountFiltered(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAuthAccountFiltered", args...)
+}
+
 // PrivateGetAuthOrder returns a channel that yields a JSON array.
 func (this *LatokenCore) PrivateGetAuthOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAuthOrder", args...)
+}
+
+// PrivateGetAuthOrderActive returns a channel that yields a JSON array.
+func (this *LatokenCore) PrivateGetAuthOrderActive(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAuthOrderActive", args...)
 }
 
 // PrivateGetAuthOrderGetOrderId returns a channel that yields a JSON object.
@@ -192,9 +202,19 @@ func (this *LatokenCore) PrivatePostAuthOrderCancelAllCurrencyQuote(args ...any)
 	return this.callEndpointAsync("privatePostAuthOrderCancelAllCurrencyQuote", args...)
 }
 
+// PrivatePostAuthOrderCancelBulk returns a channel that yields a JSON object.
+func (this *LatokenCore) PrivatePostAuthOrderCancelBulk(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAuthOrderCancelBulk", args...)
+}
+
 // PrivatePostAuthOrderPlace returns a channel that yields a JSON object.
 func (this *LatokenCore) PrivatePostAuthOrderPlace(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAuthOrderPlace", args...)
+}
+
+// PrivatePostAuthOrderPlaceBulk returns a channel that yields a JSON object.
+func (this *LatokenCore) PrivatePostAuthOrderPlaceBulk(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAuthOrderPlaceBulk", args...)
 }
 
 // PrivatePostAuthSpotDeposit returns a channel that yields a JSON object.

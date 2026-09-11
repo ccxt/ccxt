@@ -47,6 +47,21 @@ func (this *ZaifCore) PublicGetTradesPair(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTradesPair", args...)
 }
 
+// PublicGetVaspInfoVaspMasterId returns a channel that yields a JSON array.
+func (this *ZaifCore) PublicGetVaspInfoVaspMasterId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetVaspInfoVaspMasterId", args...)
+}
+
+// PublicGetCountryInfoCode returns a channel that yields a JSON array.
+func (this *ZaifCore) PublicGetCountryInfoCode(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCountryInfoCode", args...)
+}
+
+// PublicGetCorpTypeIdInfoId returns a channel that yields a JSON array.
+func (this *ZaifCore) PublicGetCorpTypeIdInfoId(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetCorpTypeIdInfoId", args...)
+}
+
 // PrivatePostActiveOrders returns a channel that yields a JSON object.
 func (this *ZaifCore) PrivatePostActiveOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostActiveOrders", args...)

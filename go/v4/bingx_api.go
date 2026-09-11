@@ -157,6 +157,46 @@ func (this *BingxCore) SpotV2PublicGetTickerPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("spotV2PublicGetTickerPrice", args...)
 }
 
+// SpotV2PublicGetQuoteBookTicker returns a channel that yields a JSON object.
+func (this *BingxCore) SpotV2PublicGetQuoteBookTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("spotV2PublicGetQuoteBookTicker", args...)
+}
+
+// SpotV2PublicGetQuoteDepth returns a channel that yields a JSON object.
+func (this *BingxCore) SpotV2PublicGetQuoteDepth(args ...any) <-chan any {
+	return this.callEndpointAsync("spotV2PublicGetQuoteDepth", args...)
+}
+
+// SpotV2PublicGetQuoteHistoricalKlines returns a channel that yields a JSON object.
+func (this *BingxCore) SpotV2PublicGetQuoteHistoricalKlines(args ...any) <-chan any {
+	return this.callEndpointAsync("spotV2PublicGetQuoteHistoricalKlines", args...)
+}
+
+// SpotV2PublicGetQuoteHistoricalTrades returns a channel that yields a JSON object.
+func (this *BingxCore) SpotV2PublicGetQuoteHistoricalTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("spotV2PublicGetQuoteHistoricalTrades", args...)
+}
+
+// SpotV2PublicGetQuoteKlines returns a channel that yields a JSON object.
+func (this *BingxCore) SpotV2PublicGetQuoteKlines(args ...any) <-chan any {
+	return this.callEndpointAsync("spotV2PublicGetQuoteKlines", args...)
+}
+
+// SpotV2PublicGetQuotePrice returns a channel that yields a JSON object.
+func (this *BingxCore) SpotV2PublicGetQuotePrice(args ...any) <-chan any {
+	return this.callEndpointAsync("spotV2PublicGetQuotePrice", args...)
+}
+
+// SpotV2PublicGetQuoteTicker returns a channel that yields a JSON object.
+func (this *BingxCore) SpotV2PublicGetQuoteTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("spotV2PublicGetQuoteTicker", args...)
+}
+
+// SpotV2PublicGetQuoteTrades returns a channel that yields a JSON object.
+func (this *BingxCore) SpotV2PublicGetQuoteTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("spotV2PublicGetQuoteTrades", args...)
+}
+
 // SpotV3PrivateGetGetAssetTransfer returns a channel that yields a JSON object.
 func (this *BingxCore) SpotV3PrivateGetGetAssetTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("spotV3PrivateGetGetAssetTransfer", args...)
@@ -432,6 +472,11 @@ func (this *BingxCore) SwapV2PrivateGetTradeFillHistory(args ...any) <-chan any 
 	return this.callEndpointAsync("swapV2PrivateGetTradeFillHistory", args...)
 }
 
+// SwapV2PrivateGetTradePositionHistory returns a channel that yields a JSON object.
+func (this *BingxCore) SwapV2PrivateGetTradePositionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("swapV2PrivateGetTradePositionHistory", args...)
+}
+
 // SwapV2PrivateGetUserIncomeExport returns a channel that yields a JSON object.
 func (this *BingxCore) SwapV2PrivateGetUserIncomeExport(args ...any) <-chan any {
 	return this.callEndpointAsync("swapV2PrivateGetUserIncomeExport", args...)
@@ -635,6 +680,11 @@ func (this *BingxCore) CswapV1PrivateDeleteTradeAllOpenOrders(args ...any) <-cha
 // CswapV1PrivateDeleteTradeCancelOrder returns a channel that yields a JSON object.
 func (this *BingxCore) CswapV1PrivateDeleteTradeCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("cswapV1PrivateDeleteTradeCancelOrder", args...)
+}
+
+// CswapV2PrivatePostTradeOrder returns a channel that yields a JSON object.
+func (this *BingxCore) CswapV2PrivatePostTradeOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("cswapV2PrivatePostTradeOrder", args...)
 }
 
 // ContractV1PrivateGetAllPosition returns a channel that yields a JSON object.
@@ -945,4 +995,29 @@ func (this *BingxCore) AgentV1PrivateGetCommissionDataListReferralCode(args ...a
 // AgentV1PrivateGetAccountSuperiorCheck returns a channel that yields a JSON object.
 func (this *BingxCore) AgentV1PrivateGetAccountSuperiorCheck(args ...any) <-chan any {
 	return this.callEndpointAsync("agentV1PrivateGetAccountSuperiorCheck", args...)
+}
+
+// WealthV1PrivateGetProductDualCurrencyPreOrder returns a channel that yields a JSON object.
+func (this *BingxCore) WealthV1PrivateGetProductDualCurrencyPreOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("wealthV1PrivateGetProductDualCurrencyPreOrder", args...)
+}
+
+// WealthV1PrivateGetProductDualCurrencyPosition returns a channel that yields a JSON object.
+func (this *BingxCore) WealthV1PrivateGetProductDualCurrencyPosition(args ...any) <-chan any {
+	return this.callEndpointAsync("wealthV1PrivateGetProductDualCurrencyPosition", args...)
+}
+
+// WealthV1PrivateGetProductDualCurrencyOrderRecords returns a channel that yields a JSON object.
+func (this *BingxCore) WealthV1PrivateGetProductDualCurrencyOrderRecords(args ...any) <-chan any {
+	return this.callEndpointAsync("wealthV1PrivateGetProductDualCurrencyOrderRecords", args...)
+}
+
+// WealthV1PrivatePostProductDualCurrencyInvestAssetList returns a channel that yields a JSON object.
+func (this *BingxCore) WealthV1PrivatePostProductDualCurrencyInvestAssetList(args ...any) <-chan any {
+	return this.callEndpointAsync("wealthV1PrivatePostProductDualCurrencyInvestAssetList", args...)
+}
+
+// WealthV1PrivatePostProductDualCurrencyOrder returns a channel that yields a JSON object.
+func (this *BingxCore) WealthV1PrivatePostProductDualCurrencyOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("wealthV1PrivatePostProductDualCurrencyOrder", args...)
 }

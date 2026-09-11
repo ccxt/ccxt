@@ -1111,14 +1111,8 @@ func (this *LbankCore) handlePingBody(ch chan any, client any, message any) any 
 	//
 	//  { ping: 'a13a939c-5f25-4e06-9981-93cb3b890707', action: 'ping' }
 	//
-	// lbank drives liveness from its side: the server sends this
-	// application-level ping and closes the socket if it is not answered
-	// within a minute, but it does not reliably answer the RFC 6455 ping
-	// frames the base client sends from onPingInterval. an inbound ping is
-	// proof the connection is alive, so record it as the last pong -
-	// otherwise lastPong never advances past the first onPingInterval and
-	// the keepAlive * maxPingPongMisses check tears down a healthy,
-	// streaming socket every 60 seconds
+	// lbank closes the socket if this app-level ping is unanswered within a minute, but does not
+	// reliably answer RFC 6455 ping frames; treat the inbound ping as a pong so keepAlive doesn't tear down a healthy socket
 	client.(ccxt.ClientInterface).SetLastPong(this.Milliseconds())
 	var pingId any = this.SafeString(message, "ping")
 
@@ -1138,11 +1132,11 @@ func (this *LbankCore) handlePingBody(ch chan any, client any, message any) any 
 			}()
 			// try block:
 
-			retRes94612 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
+			retRes94012 := (<-client.(ccxt.ClientInterface).Send(map[string]any{
 				"action": "pong",
 				"pong":   pingId,
 			}))
-			ccxt.PanicOnError(retRes94612)
+			ccxt.PanicOnError(retRes94012)
 			return nil
 		}(this)
 
@@ -1181,18 +1175,11 @@ func (this *LbankCore) Authenticate(optionalArgs ...any) <-chan any {
 func (this *LbankCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	defer close(ch)
 	defer ccxt.ReturnPanicError(ch)
-	// single-flight leader election, see
-	// https://github.com/ccxt/ccxt/issues/29393: both branches below read
-	// the cache, then fetch, then write it back, so concurrent
-	// watchOrders/watchBalance calls on a cold instance each POST
-	// subscribe/get_key, and concurrent callers past the expiry each POST
-	// subscribe/refresh_key - every loser burns rate limit on a
-	// subscribeKey that is immediately overwritten. the flight is parked
-	// on this exchange's own ws client - the same one that carries
-	// subscriptions['authenticated'] - under a key that is not one of its
-	// messageHashes, registered in client.futures before the first fetch
-	// and settled through client.resolve / client.reject so that every
-	// write to the futures map goes through the client itself
+	// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+	// concurrent watchOrders/watchBalance callers would each POST subscribe/get_key or
+	// subscribe/refresh_key and burn rate limit on a subscribeKey that is immediately
+	// overwritten. the flight lives in client.futures of this exchange's own ws client under
+	// a key that is not a messageHash, and settles via client.resolve / client.reject only
 	params := ccxt.GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 	this.CheckRequiredCredentials()
@@ -1204,8 +1191,8 @@ func (this *LbankCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 		// a flight is already in progress - wake when the leader settles
 		// it: the subscribeKey is then in the bucket
 
-		retRes100112 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-		ccxt.PanicOnError(retRes100112)
+		retRes98812 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+		ccxt.PanicOnError(retRes98812)
 
 		ch <- ccxt.GetValue(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key")
 		return nil
@@ -1274,8 +1261,8 @@ func (this *LbankCore) authenticateBody(ch chan any, optionalArgs ...any) any {
 	// rethrows a rejected flight to the leader and attaches the handler
 	// that keeps an alone leader from crashing on an unhandled rejection
 
-	retRes10478 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes10478)
+	retRes10348 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes10348)
 
 	ch <- ccxt.GetValue(ccxt.GetValue(client.(ccxt.ClientInterface).GetSubscriptions(), "authenticated"), "key")
 	return nil

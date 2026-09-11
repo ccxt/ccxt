@@ -515,6 +515,17 @@ public class HashkeyApi extends Exchange
     }
 
     /**
+     * Calls the privateGetApiV1AffiliateInviteeInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1AffiliateInviteeInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1AffiliateInviteeInfo", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostApiV1UserDataStream endpoint.
      *
      * @param optionalArgs the request parameters
@@ -713,6 +724,17 @@ public class HashkeyApi extends Exchange
     }
 
     /**
+     * Calls the privateDeleteApiV1SpotCancelAllOpenOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1SpotCancelAllOpenOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteApiV1SpotCancelAllOpenOrders", optionalArgs);
+    }
+
+    /**
      * Calls the privateDeleteApiV1FuturesOrder endpoint.
      *
      * @param optionalArgs the request parameters
@@ -743,6 +765,17 @@ public class HashkeyApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1FuturesCancelOrderByIds (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1FuturesCancelOrderByIds", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteApiV1FuturesCancelAllOpenOrders endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1FuturesCancelAllOpenOrders (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteApiV1FuturesCancelAllOpenOrders", optionalArgs);
     }
 
     /**

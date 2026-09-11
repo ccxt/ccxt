@@ -140,9 +140,9 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
         List<object> checkedTypes = new List<object>() {"spot", "swap", "future", "option"};
-        for (object i = 0; isLessThan(i, getArrayLength(checkedTypes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(checkedTypes)); postFixIncrement(ref i))
         {
-            object type = getValue(checkedTypes, i);
+            string? type = ((string)getValue(checkedTypes, i));
             if (isTrue(isEqual(getValue(market, type), true)))
             {
                 assert(isEqual(type, getValue(market, "type")), add(add(add(add(add("market.type (", getValue(market, "type")), ") not equal to \""), type), "\""), logText));
@@ -152,9 +152,9 @@ public partial class testMainClass : BaseTest
         if (isTrue(isTrue((isEqual(swap, true))) || isTrue((isEqual(future, true)))))
         {
             List<object> checkedSubTypes = new List<object>() {"linear", "inverse"};
-            for (object i = 0; isLessThan(i, getArrayLength(checkedSubTypes)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(checkedSubTypes)); postFixIncrement(ref i))
             {
-                object subType = getValue(checkedSubTypes, i);
+                string? subType = ((string)getValue(checkedSubTypes, i));
                 if (isTrue(isEqual(getValue(market, subType), true)))
                 {
                     assert(isEqual(subType, getValue(market, "subType")), add(add(add(add(add("market.subType (", getValue(market, "subType")), ") not equal to \""), subType), "\""), logText));
@@ -259,9 +259,9 @@ public partial class testMainClass : BaseTest
         List<object> precisionKeys = new List<object>(((IDictionary<string,object>)getValue(market, "precision")).Keys);
         int precisionKeysLen = getArrayLength(precisionKeys);
         assert(isGreaterThanOrEqual(precisionKeysLen, 2), add("precision should have \"amount\" and \"price\" keys at least", logText));
-        for (object i = 0; isLessThan(i, getArrayLength(precisionKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(precisionKeys)); postFixIncrement(ref i))
         {
-            object priceOrAmountKey = getValue(precisionKeys, i);
+            string? priceOrAmountKey = ((string)getValue(precisionKeys, i));
             // only allow very high priced markets (wher coin costs around 100k) to have a 5$ price tickSize
             bool isExclusivePair = isEqual(getValue(market, "baseId"), "BTC");
             bool isNonSpot = !isEqual(spot, true); // such high precision is only allowed in contract markets
@@ -280,9 +280,9 @@ public partial class testMainClass : BaseTest
         List<object> limitsKeys = new List<object>(((IDictionary<string,object>)getValue(market, "limits")).Keys);
         int limitsKeysLength = getArrayLength(limitsKeys);
         assert(isGreaterThanOrEqual(limitsKeysLength, 3), add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText));
-        for (object i = 0; isLessThan(i, getArrayLength(limitsKeys)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(limitsKeys)); postFixIncrement(ref i))
         {
-            object key = getValue(limitsKeys, i);
+            string? key = ((string)getValue(limitsKeys, i));
             object limitEntry = getValue(getValue(market, "limits"), key);
             if (isTrue(isInactiveMarket))
             {

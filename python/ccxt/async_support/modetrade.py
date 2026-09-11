@@ -191,6 +191,7 @@ class modetrade(Exchange, ImplicitAPI):
                             'tv/config': {'cost': 1},
                             'tv/history': {'cost': 1},
                             'tv/symbol_info': {'cost': 1},
+                            'tv/kline_history': {'cost': 20},
                             'public/funding_rate_history': {'cost': 1},
                             'public/funding_rate/{symbol}': {'cost': 0.33},
                             'public/funding_rates': {'cost': 1},
@@ -203,6 +204,7 @@ class modetrade(Exchange, ImplicitAPI):
                         },
                         'post': {
                             'register_account': {'cost': 1},
+                            'public/query': {'cost': 1},
                         },
                     },
                     'private': {
@@ -225,6 +227,7 @@ class modetrade(Exchange, ImplicitAPI):
                             'withdraw_nonce': {'cost': 1},
                             'settle_nonce': {'cost': 1},
                             'pnl_settlement/history': {'cost': 1},
+                            'internal_transfer_history': {'cost': 1},
                             'volume/user/daily': {'cost': 60},
                             'volume/user/stats': {'cost': 60},
                             'client/statistics': {'cost': 60},
@@ -238,8 +241,20 @@ class modetrade(Exchange, ImplicitAPI):
                             'volume/broker/daily': {'cost': 60},
                             'broker/fee_rate/default': {'cost': 10},
                             'broker/user_info': {'cost': 10},
+                            'broker/daily_fee_revenue': {'cost': 1},
                             'orderbook/{symbol}': {'cost': 1},
                             'kline': {'cost': 1},
+                            'client/leverages': {'cost': 1},
+                            'client/margin_modes': {'cost': 1},
+                            'referral/multi_level/admin': {'cost': 10},
+                            'referral/multi_level/admin/info': {'cost': 1},
+                            'referral/multi_level/admin/referee_list': {'cost': 1},
+                            'referral/multi_level/admin/summary': {'cost': 1},
+                            'referral/multi_level/max_rebate_rate': {'cost': 10},
+                            'referral/multi_level/rebate_info': {'cost': 10},
+                            'referral/multi_level/referee_list': {'cost': 1},
+                            'referral/multi_level/statistics': {'cost': 1},
+                            'referral/multi_level/volume_prerequisite': {'cost': 1},
                         },
                         'post': {
                             'orderly_key': {'cost': 1},
@@ -252,9 +267,13 @@ class modetrade(Exchange, ImplicitAPI):
                             'claim_insurance_fund': {'cost': 1},
                             'withdraw_request': {'cost': 1},
                             'settle_pnl': {'cost': 1},
+                            'internal_transfer': {'cost': 1},
                             'notification/inbox/mark_read': {'cost': 60},
                             'notification/inbox/mark_read_all': {'cost': 60},
                             'client/leverage': {'cost': 120},
+                            'client/leverages': {'cost': 120},
+                            'client/margin_mode': {'cost': 1},
+                            'position_margin': {'cost': 1},
                             'client/maintenance_config': {'cost': 60},
                             'delegate_signer': {'cost': 10},
                             'delegate_orderly_key': {'cost': 10},
@@ -267,6 +286,15 @@ class modetrade(Exchange, ImplicitAPI):
                             'referral/update': {'cost': 10},
                             'referral/bind': {'cost': 10},
                             'referral/edit_split': {'cost': 10},
+                            'referral/edit_referee_description': {'cost': 1},
+                            'referral/multi_level/admin': {'cost': 10},
+                            'referral/multi_level/admin/update': {'cost': 10},
+                            'referral/multi_level/admin/create/affiliate': {'cost': 1},
+                            'referral/multi_level/admin/reset/affiliate': {'cost': 10},
+                            'referral/multi_level/admin/update/affiliate': {'cost': 10},
+                            'referral/multi_level/claim_code': {'cost': 10},
+                            'referral/multi_level/rebate_rate/set_default': {'cost': 10},
+                            'referral/multi_level/rebate_rate/update': {'cost': 10},
                         },
                         'put': {
                             'order': {'cost': 1},
@@ -322,12 +350,12 @@ class modetrade(Exchange, ImplicitAPI):
                             'GTD': False,
                         },
                         'hedged': False,
-                        'trailing': True,
-                        'leverage': True,  # todo implement
+                        'trailing': False,
+                        'leverage': False,
                         'marketBuyByCost': False,
                         'marketBuyRequiresPrice': False,
                         'selfTradePrevention': False,
-                        'iceberg': True,  # todo implement
+                        'iceberg': False,
                     },
                     'createOrders': {
                         'max': 10,
@@ -352,7 +380,15 @@ class modetrade(Exchange, ImplicitAPI):
                         'trailing': False,
                         'symbolRequired': False,
                     },
-                    'fetchOrders': None,
+                    'fetchOrders': {
+                        'marginMode': False,
+                        'limit': 500,
+                        'daysBack': None,
+                        'untilDays': 100000,
+                        'trigger': True,
+                        'trailing': False,
+                        'symbolRequired': False,
+                    },
                     'fetchClosedOrders': {
                         'marginMode': False,
                         'limit': 500,
@@ -367,9 +403,7 @@ class modetrade(Exchange, ImplicitAPI):
                         'limit': 1000,
                     },
                 },
-                'spot': {
-                    'extends': 'default',
-                },
+                'spot': None,
                 'forDerivatives': {
                     'extends': 'default',
                     'createOrder': {
@@ -1244,7 +1278,7 @@ class modetrade(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: max=1000, max=100 when since is defined and is less than(now - (999 * (timeframe in ms)))
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1418,7 +1452,7 @@ class modetrade(Exchange, ImplicitAPI):
             if status is None:
                 return None
             return self.safe_string(statuses, status, status)
-        return status
+        return None
 
     def parse_order_type(self, type: Str):
         types = {
@@ -1543,8 +1577,11 @@ class modetrade(Exchange, ImplicitAPI):
         :param float [params.takeProfit.triggerPrice]: take profit trigger price
         :param dict [params.stopLoss]: *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered(perpetual swap markets only)
         :param float [params.stopLoss.triggerPrice]: stop loss trigger price
-        :param float [params.algoType]: 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
-        :param float [params.cost]: *spot market buy only* the quote quantity that can be used alternative for the amount
+        :param str [params.algoType]: 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+        :param bool [params.reduceOnly]: True or False whether the order is reduce-only
+        :param bool [params.postOnly]: True or False whether the order is post-only
+        :param str [params.timeInForce]: 'IOC', 'FOK' or 'PO'
+        :param dict[] [params.childOrders]: *algo order only* a list of child orders passed through to the exchange
         :param str [params.clientOrderId]: a unique id for the order
         :returns dict: an `order structure <https://docs.ccxt.com/?id=order-structure>`
         """
@@ -1961,7 +1998,7 @@ class modetrade(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger(or the legacy params.stop) is True
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :param boolean [params.is_triggered]: whether the order has been triggered(False by default)
@@ -1987,7 +2024,7 @@ class modetrade(Exchange, ImplicitAPI):
         if since is not None:
             request['start_t'] = since
         if limit is not None:
-            request['size'] = limit
+            request['size'] = min(limit, maxLimit)
         else:
             request['size'] = maxLimit
         if isTrigger is True:
@@ -2045,7 +2082,7 @@ class modetrade(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger(or the legacy params.stop) is True
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :param boolean [params.is_triggered]: whether the order has been triggered(False by default)
@@ -2068,7 +2105,7 @@ class modetrade(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger(or the legacy params.stop) is True
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: whether the order is a stop/algo order
         :param boolean [params.is_triggered]: whether the order has been triggered(False by default)

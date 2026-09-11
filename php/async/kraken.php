@@ -172,6 +172,7 @@ class kraken extends Exchange {
                         // rate-limits explained in comment in the top of this file
                         'Time' => array( 'cost' => 1 ),
                         'SystemStatus' => array( 'cost' => 1 ),
+                        'MaintenanceSchedule' => array( 'cost' => 1 ),
                         'Assets' => array( 'cost' => 1 ),
                         'AssetPairs' => array( 'cost' => 1 ),
                         'Ticker' => array( 'cost' => 1 ),
@@ -207,6 +208,7 @@ class kraken extends Exchange {
                         'RetrieveExport' => array( 'cost' => 3 ),
                         'RemoveExport' => array( 'cost' => 3 ),
                         'GetApiKeyInfo' => array( 'cost' => 3 ),
+                        'ListWalletAccounts' => array( 'cost' => 3 ),
                         // trading
                         'AddOrder' => array( 'cost' => 0 ),
                         'AmendOrder' => array( 'cost' => 0 ),
@@ -1246,7 +1248,7 @@ class kraken extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1544,7 +1546,7 @@ class kraken extends Exchange {
             $amount = $this->safe_string($trade, 1);
             $tradeLength = count($trade);
             if ($tradeLength > 6) {
-                $id = $this->safe_string($trade, 6); // artificially added #1794
+                $id = $this->safe_string($trade, 6); // artificially added as per #1794
             }
         } elseif (gettype($trade) === 'string') {
             $id = $trade;
@@ -2189,7 +2191,7 @@ class kraken extends Exchange {
                 $trades[] = $rawTrade;
             }
         }
-        // in #24192 PR, this field is not something consistent/actual
+        // as mentioned in #24192 PR, this field is not something consistent/actual
         // $triggerPrice = $this->omit_zero($this->safe_string($order, 'stopprice', $triggerPrice));
         $stopLossPrice = null;
         $takeProfitPrice = null;
@@ -3495,7 +3497,7 @@ class kraken extends Exchange {
         $defaultDepositMethod = $this->safe_string($defaultDepositMethods, $code);
         $depositMethod = $this->safe_string($params, 'method', $defaultDepositMethod);
         // if the user has specified an exchange-specific method in $params
-        // we pass it, otherwise we take the 'network' unified param
+        // we pass it as is, otherwise we take the 'network' unified param
         if ($depositMethod === null) {
             $depositMethods = Async\await($this->fetch_deposit_methods($code));
             if ($network !== null) {
@@ -3601,7 +3603,7 @@ class kraken extends Exchange {
             $result = $this->safe_dict($response, 'result', array());
             return $this->parse_transaction($result, $currency);
         }
-        throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, up on your account)");
+        throw new ExchangeError($this->id . " withdraw() requires a 'key' parameter (withdrawal key name, as set up on your account)");
     }
 
     public function fetch_positions(?array $symbols = null, $params = array()): PromiseInterface {

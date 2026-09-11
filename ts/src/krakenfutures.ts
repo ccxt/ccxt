@@ -144,6 +144,7 @@ export default class krakenfutures extends Exchange {
                         'self-trade-strategy': { 'cost': 1 } as Endpoint<Dict>,
                         'subaccounts': { 'cost': 1 } as Endpoint<Dict>,
                         'subaccount/{uid}/trading-enabled': { 'cost': 1 } as Endpoint<Dict>,
+                        'rfq-assignment/max-leverage': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'post': {
                         'sendorder': { 'cost': 1 } as Endpoint<Dict>,
@@ -163,6 +164,10 @@ export default class krakenfutures extends Exchange {
                         'pnlpreferences': { 'cost': 1 } as Endpoint<Dict>,
                         'self-trade-strategy': { 'cost': 1 } as Endpoint<Dict>,
                         'subaccount/{uid}/trading-enabled': { 'cost': 1 } as Endpoint<Dict>,
+                        'rfq-assignment/max-leverage': { 'cost': 1 } as Endpoint<Dict>,
+                    },
+                    'delete': {
+                        'rfq-assignment/max-leverage': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'charts': {

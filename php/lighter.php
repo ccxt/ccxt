@@ -192,6 +192,7 @@ class lighter extends Exchange {
                         'currentHeight' => array( 'cost' => 1 ),
                         // candlestick
                         'candles' => array( 'cost' => 1 ),
+                        'markPriceCandles' => array( 'cost' => 1 ),
                         'fundings' => array( 'cost' => 1 ),
                         // bridge
                         'fastbridge/info' => array( 'cost' => 1 ),
@@ -199,6 +200,9 @@ class lighter extends Exchange {
                         'funding-rates' => array( 'cost' => 1 ),
                         // info
                         'withdrawalDelay' => array( 'cost' => 1 ),
+                        'partnerStats' => array( 'cost' => 1 ),
+                        'syntheticSpotInfo' => array( 'cost' => 1 ),
+                        'tokenlist' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         // transaction
@@ -216,10 +220,13 @@ class lighter extends Exchange {
                         'liquidations' => array( 'cost' => 1 ),
                         'positionFunding' => array( 'cost' => 1 ),
                         'publicPoolsMetadata' => array( 'cost' => 1 ),
+                        'getMakerOnlyApiKeys' => array( 'cost' => 1 ),
                         // order
                         'accountActiveOrders' => array( 'cost' => 1 ),
                         'accountInactiveOrders' => array( 'cost' => 1 ),
+                        'accountOrders' => array( 'cost' => 1 ),
                         'export' => array( 'cost' => 1 ),
+                        'export/historicalTrades' => array( 'cost' => 1 ),
                         'trades' => array( 'cost' => 1 ),
                         // transaction
                         'accountTxs' => array( 'cost' => 1 ),
@@ -230,12 +237,20 @@ class lighter extends Exchange {
                         'referral/points' => array( 'cost' => 1 ),
                         // info
                         'transferFeeInfo' => array( 'cost' => 1 ),
+                        // rfq
+                        'rfq/get' => array( 'cost' => 1 ),
+                        'rfq/list' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         // account
                         'changeAccountTier' => array( 'cost' => 1 ),
+                        'setMakerOnlyApiKeys' => array( 'cost' => 1 ),
                         // notification
                         'notification/ack' => array( 'cost' => 1 ),
+                        // rfq
+                        'rfq/create' => array( 'cost' => 1 ),
+                        'rfq/respond' => array( 'cost' => 1 ),
+                        'rfq/update' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -301,7 +316,7 @@ class lighter extends Exchange {
                     '21730' => '\\ccxt\\InvalidOrder', // order status is not pending
                     '21731' => '\\ccxt\\InvalidOrder', // order can not be triggered
                     '21732' => '\\ccxt\\InvalidOrder', // reduce only increases position
-                    '21733' => '\\ccxt\\InvalidOrder', // order price flagged accidental price
+                    '21733' => '\\ccxt\\InvalidOrder', // order price flagged as an accidental price
                     '21734' => '\\ccxt\\InvalidOrder', // limit order price is too far from the mark price
                     '21735' => '\\ccxt\\InvalidOrder', // SL/TP order price is too far from the trigger price
                     '21736' => '\\ccxt\\InvalidOrder', // invalid order trigger status
@@ -1617,7 +1632,7 @@ class lighter extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $symbol argument');

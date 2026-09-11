@@ -359,6 +359,12 @@ impl TokocryptoCore {
         m.insert("cost".to_string(), Value::Int(10));
     m
 }));
+        m.insert("executionRules".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(2));
+        m.insert("noSymbol".to_string(), Value::Int(40));
+    m
+}));
     m
 }));
         m.insert("put".to_string(), Value::Map({
@@ -497,6 +503,11 @@ impl TokocryptoCore {
     m
 }));
         m.insert("open/v1/user-data-stream".to_string(), Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("cost".to_string(), Value::Int(1));
+    m
+}));
+        m.insert("open/v1/user-listen-token".to_string(), Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("cost".to_string(), Value::Int(1));
     m
@@ -1121,8 +1132,8 @@ impl TokocryptoCore {
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1077: bool = true;
-            while { if !__for_first_1077 { i = add(&i, &Value::Int(1)); } __for_first_1077 = false; is_less_than(&i, &get_array_length(&list)) } {
+            let mut __for_first_1082: bool = true;
+            while { if !__for_first_1082 { i = add(&i, &Value::Int(1)); } __for_first_1082 = false; is_less_than(&i, &get_array_length(&list)) } {
             let mut market: Value = get_value(&list, &i);
             let mut market: Value = get_value(&list, &i);
             let mut baseId: Value = self.safe_string_k(market.clone(), "baseAsset", &[]);
@@ -1141,8 +1152,8 @@ impl TokocryptoCore {
             let mut permissions: Value = self.safe_value_k(market.clone(), "permissions", &[Value::List(vec![])]);
             {
                                 let mut j: Value = Value::Int(0);
-                let mut __for_first_1076: bool = true;
-                while { if !__for_first_1076 { j = add(&j, &Value::Int(1)); } __for_first_1076 = false; is_less_than(&j, &get_array_length(&permissions)) } {
+                let mut __for_first_1081: bool = true;
+                while { if !__for_first_1081 { j = add(&j, &Value::Int(1)); } __for_first_1081 = false; is_less_than(&j, &get_array_length(&permissions)) } {
                 if is_equal(&get_value(&permissions, &j), &Value::Str("TRD_GRP_003".to_string())) {
                     active = Value::Bool(false);
                     break;
@@ -2020,8 +2031,8 @@ impl TokocryptoCore {
         let mut balances: Value = self.safe_value_k(data.clone(), "accountAssets", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
-            let mut __for_first_1078: bool = true;
-            while { if !__for_first_1078 { i = add(&i, &Value::Int(1)); } __for_first_1078 = false; is_less_than(&i, &get_array_length(&balances)) } {
+            let mut __for_first_1083: bool = true;
+            while { if !__for_first_1083 { i = add(&i, &Value::Int(1)); } __for_first_1083 = false; is_less_than(&i, &get_array_length(&balances)) } {
             let mut balance: Value = get_value(&balances, &i);
             let mut balance: Value = get_value(&balances, &i);
             let mut currencyId: Value = self.safe_string_k(balance.clone(), "asset", &[]);
@@ -3392,8 +3403,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut byLimit: Value = self.safe_list_k(config.clone(), "byLimit", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
-                let mut __for_first_1079: bool = true;
-                while { if !__for_first_1079 { i = add(&i, &Value::Int(1)); } __for_first_1079 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
+                let mut __for_first_1084: bool = true;
+                while { if !__for_first_1084 { i = add(&i, &Value::Int(1)); } __for_first_1084 = false; is_less_than(&i, &get_array_length(&byLimit)) } {
                 let mut entry: Value = get_value(&byLimit, &i);
                 let mut entry: Value = get_value(&byLimit, &i);
                 if is_less_than_or_equal(&limit, &get_value(&entry, &Value::Int(0))) {

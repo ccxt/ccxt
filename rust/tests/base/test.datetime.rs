@@ -92,6 +92,9 @@ pub fn testParse8601() {
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse8601(Value::Str("1986-04-26T01:23:47.062Z".to_string())), &Value::Int(514862627062))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse8601(Value::Str("1986-04-26T01:23:47.06Z".to_string())), &Value::Int(514862627060))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse8601(Value::Str("1986-04-26T01:23:47.6Z".to_string())), &Value::Int(514862627600))))));
+    // a negative offset is a zone like any other
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse8601(Value::Str("1986-04-26T01:23:47.559-04:00".to_string())), &Value::Int(514877027559))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse8601(Value::Str("1986-04-26T01:23:47.559+00:00".to_string())), &Value::Int(514862627559))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse8601(Value::Str("1977-13-13T00:00:00.000Z".to_string())), &Value::Null)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse8601(Value::Str("1986-04-26T25:71:47.000Z".to_string())), &Value::Null)))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse8601(Value::Str("3333".to_string())), &Value::Null)))));
@@ -148,6 +151,23 @@ pub fn testSeconds() {
     let mut valueString: Value = to_string_val(&value);
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_greater_than(&value, &Value::Int(0))))));
     assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&get_array_length(&valueString), &Value::Int(10))))));
+}
+pub fn testConvertExpireDate() {
+    let mut exchange = crate::tests_support::make_exchange(Value::Map({
+        let mut m = indexmap::IndexMap::new();
+            m.insert("id".to_string(), Value::Str("sampleexchange".to_string()));
+        m
+    }));
+    // callers write this into expiryDatetime, which types.ts documents with milliseconds
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.convert_expire_date(Value::Str("260503".to_string())), &Value::Str("2026-05-03T00:00:00.000Z".to_string()))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.convert_expire_date(Value::Str("240426".to_string())), &Value::Str("2024-04-26T00:00:00.000Z".to_string()))))));
+    // both spellings of midnight parse to the same instant
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse8601(exchange.convert_expire_date(Value::Str("260503".to_string()))), &Value::Int(1777766400000))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.parse8601(Value::Str("2026-05-03T00:00:00Z".to_string())), &exchange.parse8601(exchange.convert_expire_date(Value::Str("260503".to_string()))))))));
+    // the notation is now a fixed point of iso8601 (parse8601 (x)) - this is the
+    // invariant the change exists to establish, and it fails on the old spelling
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.convert_expire_date(Value::Str("260503".to_string())), &exchange.iso8601(exchange.parse8601(exchange.convert_expire_date(Value::Str("260503".to_string())))))))));
+    assert!(ccxt::runtime::is_true(&(Value::Bool(is_equal(&exchange.convert_expire_date(Value::Null), &Value::Null)))));
 }
 pub fn testYymmdd() {
     let mut exchange = crate::tests_support::make_exchange(Value::Map({
@@ -210,4 +230,5 @@ pub fn testDatetime() {
     testSeconds();
     testYymmdd();
     testYyyymmdd();
+    testConvertExpireDate();
 }

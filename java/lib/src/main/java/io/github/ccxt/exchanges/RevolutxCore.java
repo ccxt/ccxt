@@ -94,6 +94,7 @@ public class RevolutxCore extends RevolutxApi
                         put( "1.0/orders/{venue_order_id}", 1 );
                         put( "1.0/orders/fills/{venue_order_id}", 1 );
                         put( "1.0/trades/private/{symbol}", 1 );
+                        put( "1.0/transactions", 1 );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "1.0/orders", 1 );
@@ -936,7 +937,7 @@ public class RevolutxCore extends RevolutxApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1900));
             }
             String cursor = this.safeString(parameters, "cursor");
             if (Helpers.isTrue(!Helpers.isEqual(cursor, null)))

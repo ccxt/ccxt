@@ -872,6 +872,31 @@ impl HtxCore {
         self.call_method(Value::Str("spot_private_get_v2_etp_limit".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `spotPrivateGetV2InviteeRebateReferrals` implicit endpoint.
+    pub async fn spot_private_get_v2_invitee_rebate_referrals(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_get_v2_invitee_rebate_referrals".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivateGetV2InviteeRebateDetail` implicit endpoint.
+    pub async fn spot_private_get_v2_invitee_rebate_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_get_v2_invitee_rebate_detail".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivateGetV2InviteeRebateHistory` implicit endpoint.
+    pub async fn spot_private_get_v2_invitee_rebate_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_get_v2_invitee_rebate_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivateGetV2InviteeRebateAllRebateDetail` implicit endpoint.
+    pub async fn spot_private_get_v2_invitee_rebate_all_rebate_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_get_v2_invitee_rebate_all_rebate_detail".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivateGetV2InviteeRebateBatcherRebateDetail` implicit endpoint.
+    pub async fn spot_private_get_v2_invitee_rebate_batcher_rebate_detail(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_get_v2_invitee_rebate_batcher_rebate_detail".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `spotPrivatePostV1AccountTransfer` implicit endpoint.
     pub async fn spot_private_post_v1_account_transfer(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_private_post_v1_account_transfer".to_string()), optional_args).await
@@ -1070,6 +1095,11 @@ impl HtxCore {
     /// Auto-generated wrapper for the `spotPrivatePostV2EtpBatchCancel` implicit endpoint.
     pub async fn spot_private_post_v2_etp_batch_cancel(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("spot_private_post_v2_etp_batch_cancel".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `spotPrivatePostV5AccountUniversalTransfer` implicit endpoint.
+    pub async fn spot_private_post_v5_account_universal_transfer(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("spot_private_post_v5_account_universal_transfer".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `contractPublicGetApiV1Timestamp` implicit endpoint.
@@ -1685,6 +1715,36 @@ impl HtxCore {
     /// Auto-generated wrapper for the `contractPrivateGetV5AlgoOrderHistory` implicit endpoint.
     pub async fn contract_private_get_v5_algo_order_history(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_private_get_v5_algo_order_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetApiV6CopyTradingTraderInstruments` implicit endpoint.
+    pub async fn contract_private_get_api_v6_copy_trading_trader_instruments(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_api_v6_copy_trading_trader_instruments".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetApiV6CopyTradingTraderStatistics` implicit endpoint.
+    pub async fn contract_private_get_api_v6_copy_trading_trader_statistics(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_api_v6_copy_trading_trader_statistics".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetApiV6CopyTradingTraderProfitSharingHistory` implicit endpoint.
+    pub async fn contract_private_get_api_v6_copy_trading_trader_profit_sharing_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_api_v6_copy_trading_trader_profit_sharing_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetApiV6CopyTradingTraderProfitSharingHistorySummary` implicit endpoint.
+    pub async fn contract_private_get_api_v6_copy_trading_trader_profit_sharing_history_summary(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_api_v6_copy_trading_trader_profit_sharing_history_summary".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetApiV6CopyTradingTraderUnrealizedProfitSharingSummary` implicit endpoint.
+    pub async fn contract_private_get_api_v6_copy_trading_trader_unrealized_profit_sharing_summary(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_api_v6_copy_trading_trader_unrealized_profit_sharing_summary".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivateGetApiV6CopyTradingTraderFollowers` implicit endpoint.
+    pub async fn contract_private_get_api_v6_copy_trading_trader_followers(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_get_api_v6_copy_trading_trader_followers".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `contractPrivatePostApiV1ContractBalanceValuation` implicit endpoint.
@@ -2310,6 +2370,31 @@ impl HtxCore {
     /// Auto-generated wrapper for the `contractPrivatePostV5AlgoCancelOrders` implicit endpoint.
     pub async fn contract_private_post_v5_algo_cancel_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("contract_private_post_v5_algo_cancel_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivatePostApiV6CopyTradingTraderFollower` implicit endpoint.
+    pub async fn contract_private_post_api_v6_copy_trading_trader_follower(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_api_v6_copy_trading_trader_follower".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivatePostApiV6CopyTradingTraderTransfer` implicit endpoint.
+    pub async fn contract_private_post_api_v6_copy_trading_trader_transfer(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_api_v6_copy_trading_trader_transfer".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivatePostApiV6CopyTradingTraderFollowerSettings` implicit endpoint.
+    pub async fn contract_private_post_api_v6_copy_trading_trader_follower_settings(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_api_v6_copy_trading_trader_follower_settings".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivatePostApiV6CopyTradingTraderConfig` implicit endpoint.
+    pub async fn contract_private_post_api_v6_copy_trading_trader_config(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_api_v6_copy_trading_trader_config".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `contractPrivatePostApiV6CopyTradingTraderApikey` implicit endpoint.
+    pub async fn contract_private_post_api_v6_copy_trading_trader_apikey(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("contract_private_post_api_v6_copy_trading_trader_apikey".to_string()), optional_args).await
     }
 
 }

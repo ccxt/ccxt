@@ -177,6 +177,9 @@ public class DeribitCore extends DeribitApi
                         put( "get_announcements", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_apr_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "get_book_summary_by_currency", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -192,6 +195,9 @@ public class DeribitCore extends DeribitApi
                         put( "get_delivery_prices", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_expirations", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "get_funding_chart_data", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -205,6 +211,9 @@ public class DeribitCore extends DeribitApi
                             put( "cost", 1 );
                         }} );
                         put( "get_index", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_index_chart_data", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "get_index_price", new java.util.HashMap<String, Object>() {{
@@ -241,6 +250,9 @@ public class DeribitCore extends DeribitApi
                             put( "cost", 1 );
                         }} );
                         put( "get_order_book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_supported_index_names", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "get_trade_volumes", new java.util.HashMap<String, Object>() {{
@@ -319,6 +331,9 @@ public class DeribitCore extends DeribitApi
                         put( "get_affiliate_program_info", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_currencies", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "get_email_language", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -361,6 +376,9 @@ public class DeribitCore extends DeribitApi
                         put( "set_api_key_as_default", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "set_disabled_trading_products", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "set_email_for_subaccount", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -370,10 +388,16 @@ public class DeribitCore extends DeribitApi
                         put( "set_password_for_subaccount", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "simulate_portfolio", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "toggle_notifications_from_subaccount", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "toggle_subaccount_login", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "approve_block_trade", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "execute_block_trade", new java.util.HashMap<String, Object>() {{
@@ -382,11 +406,23 @@ public class DeribitCore extends DeribitApi
                         put( "get_block_trade", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_block_trade_requests", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_block_trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "get_last_block_trades_by_currency", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "invalidate_block_trade_signature", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
+                        }} );
+                        put( "reject_block_trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "simulate_block_trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
                         }} );
                         put( "verify_block_trade", new java.util.HashMap<String, Object>() {{
                             put( "cost", 4 );
@@ -418,6 +454,9 @@ public class DeribitCore extends DeribitApi
                         put( "cancel_by_label", new java.util.HashMap<String, Object>() {{
                             put( "cost", 4 );
                         }} );
+                        put( "cancel_quotes", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
                         put( "close_position", new java.util.HashMap<String, Object>() {{
                             put( "cost", 4 );
                         }} );
@@ -427,10 +466,19 @@ public class DeribitCore extends DeribitApi
                         put( "get_mmp_config", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_mmp_status", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_open_orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "get_open_orders_by_currency", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "get_open_orders_by_instrument", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_open_orders_by_label", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "get_order_history_by_currency", new java.util.HashMap<String, Object>() {{
@@ -443,6 +491,9 @@ public class DeribitCore extends DeribitApi
                             put( "cost", 1 );
                         }} );
                         put( "get_order_state", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_order_state_by_label", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "get_stop_order_history", new java.util.HashMap<String, Object>() {{
@@ -466,6 +517,12 @@ public class DeribitCore extends DeribitApi
                         put( "get_user_trades_by_order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "mass_quote", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
+                        put( "move_positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 4 );
+                        }} );
                         put( "reset_mmp", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -478,6 +535,9 @@ public class DeribitCore extends DeribitApi
                         put( "get_settlement_history_by_currency", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "add_to_address_book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "cancel_transfer_by_id", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -487,10 +547,16 @@ public class DeribitCore extends DeribitApi
                         put( "create_deposit_address", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "get_address_book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "get_current_deposit_address", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "get_deposits", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "get_reward_eligibility", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "get_transfers", new java.util.HashMap<String, Object>() {{
@@ -499,10 +565,19 @@ public class DeribitCore extends DeribitApi
                         put( "get_withdrawals", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "remove_from_address_book", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "set_clearance_originator", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "submit_transfer_to_subaccount", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "submit_transfer_to_user", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "update_in_address_book", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "withdraw", new java.util.HashMap<String, Object>() {{

@@ -170,7 +170,7 @@ class deepcoin extends \ccxt\async\deepcoin {
             throw new BadRequest($this->id . ' no $subscription for ' . $messageHash);
         }
         $subId = $this->safe_integer($existingSubscription, 'id');
-        $request = $this->create_public_request($market, $subId, $topicID, $suffix, true); // unsubscribe message uses the same id original subscribe message
+        $request = $this->create_public_request($market, $subId, $topicID, $suffix, true); // unsubscribe message uses the same id as the original subscribe message
         $unsubHash = 'unsubscribe::' . $messageHash;
         $subscription = $this->extend($subscription, array(
             'subHash' => $messageHash,
@@ -199,16 +199,10 @@ class deepcoin extends \ccxt\async\deepcoin {
         $this->check_required_credentials();
         $time = $this->milliseconds();
         // single-flight leader election on a never-dialed $client, see
-        // https://github.com/ccxt/ccxt/issues/29393 => the key rides the private
-        // ws url query string, so racing acquires mint several keys, the last
-        // write wins the cache and every loser dials a stream keyed to an
-        // orphaned credential that never delivers.
-        // the whole check-then-fetch is the critical section here => the
-        // acquire-vs-extend branch reads the very key and expiry the leader
-        // rewrites. the flight IS the entry in $client->futures - registered
-        // before the first fetch and settled through $client->resolve /
-        // $client->reject, so every mutation of that registry happens inside the
-        // $client, which is what keeps the go port's map access under one lock
+        // https://github.com/ccxt/ccxt/issues/29393 => the key rides the private ws url query string, so racing
+        // acquires would mint several keys and losers dial streams keyed to orphaned credentials. the whole
+        // check-then-fetch (acquire vs extend) is the critical section; the flight IS the $client->futures entry,
+        // settled through $client->resolve / $client->reject so the registry is only mutated inside the $client (one lock in go)
         $messageHash = 'authenticate';
         $client = $this->client('authenticationFlights');
         if (is_array($client->futures) && array_key_exists($messageHash ?? '', $client->futures)) {
@@ -606,7 +600,7 @@ class deepcoin extends \ccxt\async\deepcoin {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -637,7 +631,7 @@ class deepcoin extends \ccxt\async\deepcoin {
          * @param {string} $symbol unified $symbol of the $market to fetch OHLCV data for
          * @param {string} [$timeframe] the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

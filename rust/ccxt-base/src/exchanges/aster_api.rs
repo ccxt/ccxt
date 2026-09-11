@@ -357,6 +357,36 @@ impl AsterCore {
         self.call_method(Value::Str("fapi_private_get_v3_builder".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `fapiPrivateGetV3BuilderUserTrades` implicit endpoint.
+    pub async fn fapi_private_get_v3_builder_user_trades(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_get_v3_builder_user_trades".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `fapiPrivateGetV3BuilderApprovedUserList` implicit endpoint.
+    pub async fn fapi_private_get_v3_builder_approved_user_list(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_get_v3_builder_approved_user_list".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `fapiPrivateGetV3StpMode` implicit endpoint.
+    pub async fn fapi_private_get_v3_stp_mode(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_get_v3_stp_mode".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `fapiPrivateGetV3AssetMigrateUserHistory` implicit endpoint.
+    pub async fn fapi_private_get_v3_asset_migrate_user_history(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_get_v3_asset_migrate_user_history".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `fapiPrivateGetV3StrategyOpenOrder` implicit endpoint.
+    pub async fn fapi_private_get_v3_strategy_open_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_get_v3_strategy_open_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `fapiPrivateGetV3StrategyHistoryOrder` implicit endpoint.
+    pub async fn fapi_private_get_v3_strategy_history_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_get_v3_strategy_history_order".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `fapiPrivatePostV1PositionSideDual` implicit endpoint.
     pub async fn fapi_private_post_v1_position_side_dual(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_post_v1_position_side_dual".to_string()), optional_args).await
@@ -502,6 +532,36 @@ impl AsterCore {
         self.call_method(Value::Str("fapi_private_post_v3_update_builder".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `fapiPrivatePostV3RegisterAndApproveAgent` implicit endpoint.
+    pub async fn fapi_private_post_v3_register_and_approve_agent(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_post_v3_register_and_approve_agent".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `fapiPrivatePostV3AssetMigrateUser` implicit endpoint.
+    pub async fn fapi_private_post_v3_asset_migrate_user(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_post_v3_asset_migrate_user".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `fapiPrivatePostV3Chase` implicit endpoint.
+    pub async fn fapi_private_post_v3_chase(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_post_v3_chase".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `fapiPrivatePostV3StpMode` implicit endpoint.
+    pub async fn fapi_private_post_v3_stp_mode(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_post_v3_stp_mode".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `fapiPrivatePostV3PlaceStrategyOrder` implicit endpoint.
+    pub async fn fapi_private_post_v3_place_strategy_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_post_v3_place_strategy_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `fapiPrivatePostV3UpdateStrategyOrder` implicit endpoint.
+    pub async fn fapi_private_post_v3_update_strategy_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_post_v3_update_strategy_order".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `fapiPrivatePutV1ListenKey` implicit endpoint.
     pub async fn fapi_private_put_v1_listen_key(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_put_v1_listen_key".to_string()), optional_args).await
@@ -540,6 +600,16 @@ impl AsterCore {
     /// Auto-generated wrapper for the `fapiPrivateDeleteV3BatchOrders` implicit endpoint.
     pub async fn fapi_private_delete_v3_batch_orders(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("fapi_private_delete_v3_batch_orders".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `fapiPrivateDeleteV3GuardedCancelOrder` implicit endpoint.
+    pub async fn fapi_private_delete_v3_guarded_cancel_order(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_delete_v3_guarded_cancel_order".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `fapiPrivateDeleteV3GuardedBatchOrders` implicit endpoint.
+    pub async fn fapi_private_delete_v3_guarded_batch_orders(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("fapi_private_delete_v3_guarded_batch_orders".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `fapiPrivateDeleteV3Mmp` implicit endpoint.

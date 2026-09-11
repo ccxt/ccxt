@@ -139,6 +139,7 @@ class btcturk extends btcturk$1["default"] {
                     'get': {
                         'orderbook': { 'cost': 1 },
                         'ticker': { 'cost': 0.1 },
+                        'ticker/currency': { 'cost': 0.1 },
                         'trades': { 'cost': 1 }, // ?last=COUNT (max 50)
                         'ohlc': { 'cost': 1 },
                         'server/exchangeinfo': { 'cost': 1 },
@@ -149,13 +150,18 @@ class btcturk extends btcturk$1["default"] {
                         'users/balances': { 'cost': 1 },
                         'openOrders': { 'cost': 1 },
                         'allOrders': { 'cost': 1 },
+                        'order/{orderId}': { 'cost': 1 },
                         'users/transactions/trade': { 'cost': 1 },
+                        'users/transactions/crypto': { 'cost': 1 },
+                        'users/transactions/fiat': { 'cost': 1 },
+                        'crypto-deposit-declarations': { 'cost': 1 },
                     },
                     'post': {
                         'users/transactions/crypto': { 'cost': 1 },
                         'users/transactions/fiat': { 'cost': 1 },
                         'order': { 'cost': 1 },
                         'cancelOrder': { 'cost': 1 },
+                        'crypto-deposit-declarations/confirm': { 'cost': 1 },
                     },
                     'delete': {
                         'order': { 'cost': 1 },

@@ -124,6 +124,9 @@ public class BlockchaincomCore extends BlockchaincomApi
                         put( "fees", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "internal/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "orders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );

@@ -102,6 +102,11 @@ func (this *CexCore) PrivatePostGetOrderBook(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetOrderBook", args...)
 }
 
+// PrivatePostGetTicker returns a channel that yields a JSON object.
+func (this *CexCore) PrivatePostGetTicker(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetTicker", args...)
+}
+
 // PrivatePostGetCandles returns a channel that yields a JSON object.
 func (this *CexCore) PrivatePostGetCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetCandles", args...)

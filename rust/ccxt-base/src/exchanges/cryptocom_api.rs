@@ -222,6 +222,11 @@ impl CryptocomCore {
         self.call_method(Value::Str("v1_private_post_private_get_instrument_fee_rate".to_string()), optional_args).await
     }
 
+    /// Auto-generated wrapper for the `v1PrivatePostPrivateGetFeeCreditBalances` implicit endpoint.
+    pub async fn v1_private_post_private_get_fee_credit_balances(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_private_get_fee_credit_balances".to_string()), optional_args).await
+    }
+
     /// Auto-generated wrapper for the `v1PrivatePostPrivateFiatFiatDepositInfo` implicit endpoint.
     pub async fn v1_private_post_private_fiat_fiat_deposit_info(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_post_private_fiat_fiat_deposit_info".to_string()), optional_args).await
@@ -315,6 +320,41 @@ impl CryptocomCore {
     /// Auto-generated wrapper for the `v1PrivatePostPrivateChangeIsolatedMarginLeverage` implicit endpoint.
     pub async fn v1_private_post_private_change_isolated_margin_leverage(&mut self, optional_args: &[Value]) -> Value {
         self.call_method(Value::Str("v1_private_post_private_change_isolated_margin_leverage".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPrivateBotCreateTradingBot` implicit endpoint.
+    pub async fn v1_private_post_private_bot_create_trading_bot(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_private_bot_create_trading_bot".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPrivateBotUpdateTradingBot` implicit endpoint.
+    pub async fn v1_private_post_private_bot_update_trading_bot(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_private_bot_update_trading_bot".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPrivateBotTerminateTradingBot` implicit endpoint.
+    pub async fn v1_private_post_private_bot_terminate_trading_bot(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_private_bot_terminate_trading_bot".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPrivateBotPauseTradingBot` implicit endpoint.
+    pub async fn v1_private_post_private_bot_pause_trading_bot(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_private_bot_pause_trading_bot".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPrivateBotResumeTradingBot` implicit endpoint.
+    pub async fn v1_private_post_private_bot_resume_trading_bot(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_private_bot_resume_trading_bot".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPrivateBotGetTradingBots` implicit endpoint.
+    pub async fn v1_private_post_private_bot_get_trading_bots(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_private_bot_get_trading_bots".to_string()), optional_args).await
+    }
+
+    /// Auto-generated wrapper for the `v1PrivatePostPrivateBotGetTradingBotExecutions` implicit endpoint.
+    pub async fn v1_private_post_private_bot_get_trading_bot_executions(&mut self, optional_args: &[Value]) -> Value {
+        self.call_method(Value::Str("v1_private_post_private_bot_get_trading_bot_executions".to_string()), optional_args).await
     }
 
     /// Auto-generated wrapper for the `v2PublicGetPublicAuth` implicit endpoint.

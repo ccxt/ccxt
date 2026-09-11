@@ -198,6 +198,8 @@ class extended(Exchange, ImplicitAPI):
                             'info/{market}/funding': {'cost': 1},
                             'info/{market}/open-interests': {'cost': 1},
                             'info/builder/dashboard': {'cost': 1},
+                            'interest/info/rate-curves': {'cost': 1},
+                            'interest/info/latest-rate-curves': {'cost': 1},
                         },
                     },
                     'private': {
@@ -228,12 +230,28 @@ class extended(Exchange, ImplicitAPI):
                             'user/rewards/leaderboard/stats': {'cost': 1},
                             'portfolio/charts/equities': {'cost': 1},
                             'portfolio/charts/pnl': {'cost': 1},
+                            'portfolio/charts/pnl/percentage': {'cost': 1},
+                            'portfolio/charts/pnl/cumulative': {'cost': 1},
+                            'portfolio/charts/pnl/cumulative/percentage': {'cost': 1},
+                            'portfolio/charts/vault-equities': {'cost': 1},
+                            'portfolio/charts/max-drawdown': {'cost': 1},
+                            'portfolio/charts/funding': {'cost': 1},
+                            'portfolio/accounts/summary': {'cost': 1},
+                            'portfolio/accounts/health': {'cost': 1},
+                            'portfolio/accounts/performance': {'cost': 1},
+                            'portfolio/funding/stats': {'cost': 1},
+                            'portfolio/funding/history': {'cost': 1},
                             'vault/public/performance': {'cost': 1},
                             'vault/public/summary': {'cost': 1},
                             'builder/trades': {'cost': 1},
+                            'interest/key-metrics': {'cost': 1},
+                            'interest/daily-metrics': {'cost': 1},
+                            'interest/payment-chart': {'cost': 1},
+                            'interest/payments': {'cost': 1},
                         },
                         'post': {
                             'user/order': {'cost': 1},
+                            'user/order/rfq': {'cost': 1},
                             'user/order/massCancel': {'cost': 1},
                             'user/deadmanswitch': {'cost': 1},
                             'user/bridge/quote': {'cost': 1},
@@ -306,7 +324,7 @@ class extended(Exchange, ImplicitAPI):
                     '1135': InvalidOrder,  # Order expiration date must be within 90 days for the Mainnet, 28 days for the Testnet.
                     '1136': InvalidOrder,  # Reduce-only order size exceeds open position size.
                     '1137': InvalidOrder,  # Position is missing for a reduce-only order.
-                    '1138': InvalidOrder,  # Position is the same side reduce-only order.
+                    '1138': InvalidOrder,  # Position is the same side as a reduce-only order.
                     '1139': InvalidOrder,  # Market order must have time in force IOC.
                     '1140': InsufficientFunds,  # New order cost exceeds available balance.
                     '1141': InvalidOrder,  # Invalid price value.
@@ -1184,7 +1202,7 @@ class extended(Exchange, ImplicitAPI):
         :param str [params.candleType]: candle type: 'trades'(default), 'mark-prices', or 'index-prices'
         :param str [params.price]: *ignored if params.candleType is set* 'mark' or 'index' for mark price and index price candles
         :param int [params.until]: end timestamp in ms for the requested period
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -1341,7 +1359,7 @@ class extended(Exchange, ImplicitAPI):
 
         :param str symbol: unified CCXT market symbol
         :param str timeframe: '1h' or '1d'
-        :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
+        :param int [since]: the time(ms) of the earliest record to retrieve as a unix timestamp
         :param int [limit]: the maximum amount of open interest structures to retrieve
         :param dict [params]: exchange specific parameters
         :param int [params.until]: timestamp in ms of the latest open interest record to fetch
@@ -2658,7 +2676,7 @@ class extended(Exchange, ImplicitAPI):
         :param float amount: how much of currency you want to trade in units of base currency
         :param float [price]: the price at which the order is to be fulfilled, in units of the quote currency, required for all order types
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.clientOrderId]: client order id, sent exchange order id
+        :param str [params.clientOrderId]: client order id, sent as the exchange order id
         :param str [params.cancelId]: previous external order id to replace
         :param str [params.timeInForce]: 'GTT' or 'IOC'
         :param boolean [params.postOnly]: True if the order should only make liquidity

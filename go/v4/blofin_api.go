@@ -12,6 +12,11 @@ func (this *BlofinCore) PublicGetMarketInstruments(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketInstruments", args...)
 }
 
+// PublicGetMarketInstrumentsHistory returns a channel that yields a JSON object.
+func (this *BlofinCore) PublicGetMarketInstrumentsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarketInstrumentsHistory", args...)
+}
+
 // PublicGetMarketTickers returns a channel that yields a JSON object.
 func (this *BlofinCore) PublicGetMarketTickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketTickers", args...)
@@ -62,6 +67,31 @@ func (this *BlofinCore) PublicGetMarketPositionTiers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarketPositionTiers", args...)
 }
 
+// PublicGetSpotMarketInstruments returns a channel that yields a JSON object.
+func (this *BlofinCore) PublicGetSpotMarketInstruments(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotMarketInstruments", args...)
+}
+
+// PublicGetSpotMarketTickers returns a channel that yields a JSON object.
+func (this *BlofinCore) PublicGetSpotMarketTickers(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotMarketTickers", args...)
+}
+
+// PublicGetSpotMarketBooks returns a channel that yields a JSON object.
+func (this *BlofinCore) PublicGetSpotMarketBooks(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotMarketBooks", args...)
+}
+
+// PublicGetSpotMarketTrades returns a channel that yields a JSON object.
+func (this *BlofinCore) PublicGetSpotMarketTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotMarketTrades", args...)
+}
+
+// PublicGetSpotMarketCandles returns a channel that yields a JSON object.
+func (this *BlofinCore) PublicGetSpotMarketCandles(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetSpotMarketCandles", args...)
+}
+
 // PrivateGetAssetBalances returns a channel that yields a JSON object.
 func (this *BlofinCore) PrivateGetAssetBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetBalances", args...)
@@ -80,6 +110,11 @@ func (this *BlofinCore) PrivateGetAssetWithdrawalHistory(args ...any) <-chan any
 // PrivateGetAssetDepositHistory returns a channel that yields a JSON object.
 func (this *BlofinCore) PrivateGetAssetDepositHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAssetDepositHistory", args...)
+}
+
+// PrivateGetAssetDepositAddress returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivateGetAssetDepositAddress(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAssetDepositAddress", args...)
 }
 
 // PrivateGetAccountConfig returns a channel that yields a JSON object.
@@ -105,6 +140,11 @@ func (this *BlofinCore) PrivateGetAccountPositions(args ...any) <-chan any {
 // PrivateGetAccountPositionsHistory returns a channel that yields a JSON object.
 func (this *BlofinCore) PrivateGetAccountPositionsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountPositionsHistory", args...)
+}
+
+// PrivateGetAccountFundingFees returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivateGetAccountFundingFees(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountFundingFees", args...)
 }
 
 // PrivateGetAccountMarginMode returns a channel that yields a JSON object.
@@ -282,6 +322,36 @@ func (this *BlofinCore) PrivateGetSpotTradeFillsHistory(args ...any) <-chan any 
 	return this.callEndpointAsync("privateGetSpotTradeFillsHistory", args...)
 }
 
+// PrivateGetSpotTradeOrdersPending returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivateGetSpotTradeOrdersPending(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotTradeOrdersPending", args...)
+}
+
+// PrivateGetSpotTradeOrderDetail returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivateGetSpotTradeOrderDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotTradeOrderDetail", args...)
+}
+
+// PrivateGetSpotTradeOrdersAlgoPending returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivateGetSpotTradeOrdersAlgoPending(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotTradeOrdersAlgoPending", args...)
+}
+
+// PrivateGetSpotTradeOrdersHistory returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivateGetSpotTradeOrdersHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotTradeOrdersHistory", args...)
+}
+
+// PrivateGetSpotTradeOrdersAlgoHistory returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivateGetSpotTradeOrdersAlgoHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotTradeOrdersAlgoHistory", args...)
+}
+
+// PrivateGetSpotTradeOrderPriceRange returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivateGetSpotTradeOrderPriceRange(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetSpotTradeOrderPriceRange", args...)
+}
+
 // PrivatePostAssetTransfer returns a channel that yields a JSON object.
 func (this *BlofinCore) PrivatePostAssetTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetTransfer", args...)
@@ -290,6 +360,11 @@ func (this *BlofinCore) PrivatePostAssetTransfer(args ...any) <-chan any {
 // PrivatePostAssetDemoApplyMoney returns a channel that yields a JSON object.
 func (this *BlofinCore) PrivatePostAssetDemoApplyMoney(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAssetDemoApplyMoney", args...)
+}
+
+// PrivatePostAssetWithdrawalApply returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivatePostAssetWithdrawalApply(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostAssetWithdrawalApply", args...)
 }
 
 // PrivatePostAccountSetMarginMode returns a channel that yields a JSON object.
@@ -347,9 +422,59 @@ func (this *BlofinCore) PrivatePostTradeCancelAlgo(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeCancelAlgo", args...)
 }
 
+// PrivatePostTradeAmendOrder returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivatePostTradeAmendOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeAmendOrder", args...)
+}
+
+// PrivatePostTradeAmendBatchOrders returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivatePostTradeAmendBatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeAmendBatchOrders", args...)
+}
+
+// PrivatePostTradeAmendTpsl returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivatePostTradeAmendTpsl(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeAmendTpsl", args...)
+}
+
+// PrivatePostTradeAmendAlgo returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivatePostTradeAmendAlgo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostTradeAmendAlgo", args...)
+}
+
 // PrivatePostTradeClosePosition returns a channel that yields a JSON object.
 func (this *BlofinCore) PrivatePostTradeClosePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeClosePosition", args...)
+}
+
+// PrivatePostSpotTradeOrder returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivatePostSpotTradeOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotTradeOrder", args...)
+}
+
+// PrivatePostSpotTradeBatchOrders returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivatePostSpotTradeBatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotTradeBatchOrders", args...)
+}
+
+// PrivatePostSpotTradeOrderAlgo returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivatePostSpotTradeOrderAlgo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotTradeOrderAlgo", args...)
+}
+
+// PrivatePostSpotTradeCancelOrder returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivatePostSpotTradeCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotTradeCancelOrder", args...)
+}
+
+// PrivatePostSpotTradeCancelBatchOrders returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivatePostSpotTradeCancelBatchOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotTradeCancelBatchOrders", args...)
+}
+
+// PrivatePostSpotTradeCancelAlgo returns a channel that yields a JSON object.
+func (this *BlofinCore) PrivatePostSpotTradeCancelAlgo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSpotTradeCancelAlgo", args...)
 }
 
 // PrivatePostCopytradingAccountSetPositionMode returns a channel that yields a JSON object.

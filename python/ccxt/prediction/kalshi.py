@@ -312,7 +312,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :returns dict: the resolved outcome object
         """
         # a kalshi ticker never contains ':', so only id-form inputs can be fetched by ticker —
-        # sending a unified handle(EVENT_MARKET:LABEL) ticker is a guaranteed 404.
+        # sending a unified handle(EVENT_MARKET:LABEL) as a ticker is a guaranteed 404.
         # the indexOf comparison must stay INLINE and `< 0` — the php transpiler only rewrites the
         # inline form to mb_strpos's `is False`; assigned to a variable first, absence(False)
         # never satisfies `< 0` and id-form inputs take the wrong branch
@@ -1059,7 +1059,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum number of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_outcome(outcome)
         outcomeObj = self.outcome(outcome)
@@ -1150,7 +1150,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         parses a single kalshi candlestick object into a CCXT OHLCV tuple, converting cent prices to decimals
         :param dict ohlcv: the raw candlestick object
         :param dict [market]: the outcome object the candle belongs to
-        :returns int[]: a candle ordered, open, high, low, close, volume
+        :returns int[]: a candle ordered as timestamp, open, high, low, close, volume
         """
         #
         #     {
@@ -1217,7 +1217,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         ticker = self.safe_string(outcomeObj['info'], 'ticker')
         request = {'ticker': ticker}
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1000)
         response = await self.kalshiPublicGetMarketsTrades(self.extend(request, params))
         trades = self.safe_list(response, 'trades', [])
         filteredTrades = []
@@ -1514,7 +1514,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         # which leg won; market_result is yes or no
         marketResult = self.safe_string_upper(settlement, 'market_result')
         won = (marketResult == heldLabel)
-        # kalshi reports money keys on V2, else cents
+        # kalshi reports money as dollar keys on V2, else cents
         payout = self.safe_number(settlement, 'revenue_dollars')
         if payout is None:
             revenueCents = self.safe_number(settlement, 'revenue')
@@ -1839,7 +1839,7 @@ class kalshi(PredictionExchange, ImplicitAPI):
         order['side'] = side
         order['amount'] = amount
         order['price'] = price
-        # the minimal create response reports fills/remaining_count(not the *_fp keys
+        # the minimal create response reports fills as fill_count/remaining_count(not the *_fp keys
         # parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
         # otherwise a fully-filled order would return status 'closed' with filled 0
         remainingCount = self.safe_number(response, 'remaining_count')

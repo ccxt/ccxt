@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official weex API documentation:** [weex.com](https://www.weex.com/api-doc)
 
-> 80 implicit endpoints across 4 access groups.
+> 100 implicit endpoints across 4 access groups.
 
 ## public
 
@@ -95,11 +95,19 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetApiV3AgencyVerifyReferrals` | GET | `api/v3/agency/verifyReferrals` | 20 |
 | `privateGetApiV3AgencyGetAssert` | GET | `api/v3/agency/getAssert` | 20 |
 | `privateGetApiV3AgencyGetDealData` | GET | `api/v3/agency/getDealData` | 20 |
+| `privateGetApiV3ApiReferralCheckUserEligibility` | GET | `api/v3/apiReferral/checkUserEligibility` | 5 |
+| `privateGetApiV3ApiReferralRebateRecentRecord` | GET | `api/v3/apiReferral/rebate/recentRecord` | 5 |
+| `privateGetApiV3ApiReferralRebateRatio` | GET | `api/v3/apiReferral/rebateRatio` | 5 |
+| `privateGetApiV3ContentArticlesDetail` | GET | `api/v3/content/articles/detail` | 1 |
+| `privateGetApiV3ContentArticlesList` | GET | `api/v3/content/articles/list` | 1 |
+| `privateGetApiV3ContentArticlesListByCoin` | GET | `api/v3/content/articles/listByCoin` | 1 |
+| `privateGetApiV3ContentBannersLatest` | GET | `api/v3/content/banners/latest` | 1 |
 | `privatePostApiV3AccountBills` | POST | `api/v3/account/bills` | 5 |
 | `privatePostApiV3AccountFundingBills` | POST | `api/v3/account/fundingBills` | 5 |
 | `privatePostApiV3Order` | POST | `api/v3/order` | 5 |
 | `privatePostApiV3OrderBatch` | POST | `api/v3/order/batch` | 50 |
 | `privatePostApiV3RebateAffiliateInternalWithdrawal` | POST | `api/v3/rebate/affiliate/internalWithdrawal` | 100 |
+| `privatePostApiV3TaxIncome` | POST | `api/v3/tax/income` | 5 |
 | `privateDeleteApiV3Order` | DELETE | `api/v3/order` | 1 |
 | `privateDeleteApiV3OpenOrders` | DELETE | `api/v3/openOrders` | 1 |
 | `privateDeleteApiV3OrderBatch` | DELETE | `api/v3/order/batch` | 10 |
@@ -147,6 +155,15 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `contractPrivateGetCapiV3SimBalance` | GET | `capi/v3/sim/balance` | 10 |
 | `contractPrivateGetCapiV3SimPositionAllPosition` | GET | `capi/v3/sim/position/allPosition` | 15 |
 | `contractPrivateGetCapiV3SimOrderHistory` | GET | `capi/v3/sim/order/history` | 10 |
+| `contractPrivateGetCapiV3CopyFollowerHistoryOrders` | GET | `capi/v3/copy/follower/historyOrders` | 10 |
+| `contractPrivateGetCapiV3CopyFollowerMyTraders` | GET | `capi/v3/copy/follower/myTraders` | 10 |
+| `contractPrivateGetCapiV3CopyFollowerOpenOrders` | GET | `capi/v3/copy/follower/openOrders` | 10 |
+| `contractPrivateGetCapiV3CopyFollowerSettings` | GET | `capi/v3/copy/follower/settings` | 10 |
+| `contractPrivateGetCapiV3CopyTraderHistoryOrders` | GET | `capi/v3/copy/trader/historyOrders` | 10 |
+| `contractPrivateGetCapiV3CopyTraderOpenOrders` | GET | `capi/v3/copy/trader/openOrders` | 10 |
+| `contractPrivateGetCapiV3CopyTraderPairs` | GET | `capi/v3/copy/trader/pairs` | 1 |
+| `contractPrivateGetCapiV3TrailingOpenOrders` | GET | `capi/v3/trailing/openOrders` | 2 |
+| `contractPrivateGetCapiV3TrailingHistoryOrders` | GET | `capi/v3/trailing/historyOrders` | 10 |
 | `contractPrivatePostCapiV3AccountIncome` | POST | `capi/v3/account/income` | 5 |
 | `contractPrivatePostCapiV3AccountMarginType` | POST | `capi/v3/account/marginType` | 50 |
 | `contractPrivatePostCapiV3AccountLeverage` | POST | `capi/v3/account/leverage` | 20 |
@@ -159,6 +176,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `contractPrivatePostCapiV3PlaceTpSlOrder` | POST | `capi/v3/placeTpSlOrder` | 5 |
 | `contractPrivatePostCapiV3ModifyTpSlOrder` | POST | `capi/v3/modifyTpSlOrder` | 5 |
 | `contractPrivatePostCapiV3SimOrder` | POST | `capi/v3/sim/order` | 5 |
+| `contractPrivatePostCapiV3CopyFollowerClosePos` | POST | `capi/v3/copy/follower/closePos` | 50 |
+| `contractPrivatePostCapiV3CopyFollowerSettings` | POST | `capi/v3/copy/follower/settings` | 10 |
+| `contractPrivatePostCapiV3CopyFollowerStopCopy` | POST | `capi/v3/copy/follower/stopCopy` | 10 |
 | `contractPrivateDeleteCapiV3Order` | DELETE | `capi/v3/order` | 3 |
 | `contractPrivateDeleteCapiV3BatchOrders` | DELETE | `capi/v3/batchOrders` | 10 |
 | `contractPrivateDeleteCapiV3AllOpenOrders` | DELETE | `capi/v3/allOpenOrders` | 10 |

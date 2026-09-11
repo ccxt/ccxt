@@ -209,6 +209,9 @@ public class BitteamCore extends BitteamApi
                         put( "trade/api/rates", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "trade/api/stats", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "trade/api/trade/{id}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );

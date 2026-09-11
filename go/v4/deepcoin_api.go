@@ -42,6 +42,26 @@ func (this *DeepcoinCore) PublicGetDeepcoinMarketMarkPriceCandles(args ...any) <
 	return this.callEndpointAsync("publicGetDeepcoinMarketMarkPriceCandles", args...)
 }
 
+// PublicGetDeepcoinMarketMarkPrice returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PublicGetDeepcoinMarketMarkPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDeepcoinMarketMarkPrice", args...)
+}
+
+// PublicGetDeepcoinMarketOpenInterestVolume returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PublicGetDeepcoinMarketOpenInterestVolume(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDeepcoinMarketOpenInterestVolume", args...)
+}
+
+// PublicGetDeepcoinMarketLongShortRatio returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PublicGetDeepcoinMarketLongShortRatio(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDeepcoinMarketLongShortRatio", args...)
+}
+
+// PublicGetDeepcoinMarketTakerVolume returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PublicGetDeepcoinMarketTakerVolume(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetDeepcoinMarketTakerVolume", args...)
+}
+
 // PublicGetDeepcoinMarketStepMargin returns a channel that yields a JSON object.
 func (this *DeepcoinCore) PublicGetDeepcoinMarketStepMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetDeepcoinMarketStepMargin", args...)
@@ -67,6 +87,11 @@ func (this *DeepcoinCore) PrivateGetDeepcoinAccountBalances(args ...any) <-chan 
 	return this.callEndpointAsync("privateGetDeepcoinAccountBalances", args...)
 }
 
+// PrivateGetDeepcoinAccountAllBalances returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PrivateGetDeepcoinAccountAllBalances(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetDeepcoinAccountAllBalances", args...)
+}
+
 // PrivateGetDeepcoinAccountBills returns a channel that yields a JSON object.
 func (this *DeepcoinCore) PrivateGetDeepcoinAccountBills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDeepcoinAccountBills", args...)
@@ -77,6 +102,21 @@ func (this *DeepcoinCore) PrivateGetDeepcoinAccountPositions(args ...any) <-chan
 	return this.callEndpointAsync("privateGetDeepcoinAccountPositions", args...)
 }
 
+// PrivateGetDeepcoinAccountTradeFee returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PrivateGetDeepcoinAccountTradeFee(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetDeepcoinAccountTradeFee", args...)
+}
+
+// PrivateGetDeepcoinAccountLeverageInfo returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PrivateGetDeepcoinAccountLeverageInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetDeepcoinAccountLeverageInfo", args...)
+}
+
+// PrivateGetDeepcoinAccountPositionsHistory returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PrivateGetDeepcoinAccountPositionsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetDeepcoinAccountPositionsHistory", args...)
+}
+
 // PrivateGetDeepcoinTradeFills returns a channel that yields a JSON object.
 func (this *DeepcoinCore) PrivateGetDeepcoinTradeFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDeepcoinTradeFills", args...)
@@ -85,6 +125,11 @@ func (this *DeepcoinCore) PrivateGetDeepcoinTradeFills(args ...any) <-chan any {
 // PrivateGetDeepcoinTradeOrderByID returns a channel that yields a JSON object.
 func (this *DeepcoinCore) PrivateGetDeepcoinTradeOrderByID(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetDeepcoinTradeOrderByID", args...)
+}
+
+// PrivateGetDeepcoinTradeOrder returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PrivateGetDeepcoinTradeOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetDeepcoinTradeOrder", args...)
 }
 
 // PrivateGetDeepcoinTradeFinishOrderByID returns a channel that yields a JSON object.
@@ -192,6 +237,11 @@ func (this *DeepcoinCore) PrivateGetDeepcoinListenkeyExtend(args ...any) <-chan 
 	return this.callEndpointAsync("privateGetDeepcoinListenkeyExtend", args...)
 }
 
+// PrivateGetDeepcoinSubAccountSubAccountApikey returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PrivateGetDeepcoinSubAccountSubAccountApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetDeepcoinSubAccountSubAccountApikey", args...)
+}
+
 // PrivatePostDeepcoinAccountSetLeverage returns a channel that yields a JSON object.
 func (this *DeepcoinCore) PrivatePostDeepcoinAccountSetLeverage(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDeepcoinAccountSetLeverage", args...)
@@ -232,6 +282,11 @@ func (this *DeepcoinCore) PrivatePostDeepcoinTradeTriggerOrder(args ...any) <-ch
 	return this.callEndpointAsync("privatePostDeepcoinTradeTriggerOrder", args...)
 }
 
+// PrivatePostDeepcoinTradeAmendTriggerOrder returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeAmendTriggerOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDeepcoinTradeAmendTriggerOrder", args...)
+}
+
 // PrivatePostDeepcoinTradeBatchClosePosition returns a channel that yields a JSON object.
 func (this *DeepcoinCore) PrivatePostDeepcoinTradeBatchClosePosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDeepcoinTradeBatchClosePosition", args...)
@@ -245,6 +300,16 @@ func (this *DeepcoinCore) PrivatePostDeepcoinTradeReplaceOrderSltp(args ...any) 
 // PrivatePostDeepcoinTradeClosePositionByIds returns a channel that yields a JSON object.
 func (this *DeepcoinCore) PrivatePostDeepcoinTradeClosePositionByIds(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDeepcoinTradeClosePositionByIds", args...)
+}
+
+// PrivatePostDeepcoinTradeIncreasePosition returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeIncreasePosition(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDeepcoinTradeIncreasePosition", args...)
+}
+
+// PrivatePostDeepcoinTradeMergePositions returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PrivatePostDeepcoinTradeMergePositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDeepcoinTradeMergePositions", args...)
 }
 
 // PrivatePostDeepcoinCopytradingLeaderSettings returns a channel that yields a JSON object.
@@ -270,4 +335,19 @@ func (this *DeepcoinCore) PrivatePostDeepcoinRebateConfig(args ...any) <-chan an
 // PrivatePostDeepcoinAssetTransfer returns a channel that yields a JSON object.
 func (this *DeepcoinCore) PrivatePostDeepcoinAssetTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostDeepcoinAssetTransfer", args...)
+}
+
+// PrivatePostDeepcoinSubAccountCreateSubAccount returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PrivatePostDeepcoinSubAccountCreateSubAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDeepcoinSubAccountCreateSubAccount", args...)
+}
+
+// PrivatePostDeepcoinSubAccountSubAccountApikey returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PrivatePostDeepcoinSubAccountSubAccountApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDeepcoinSubAccountSubAccountApikey", args...)
+}
+
+// PrivatePostDeepcoinSubAccountDeleteSubAccountApikey returns a channel that yields a JSON object.
+func (this *DeepcoinCore) PrivatePostDeepcoinSubAccountDeleteSubAccountApikey(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostDeepcoinSubAccountDeleteSubAccountApikey", args...)
 }

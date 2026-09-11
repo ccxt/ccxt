@@ -123,6 +123,9 @@ public class BitflyerCore extends BitflyerApi
                         put( "getfundingrate", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "getfundingratehistory", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{

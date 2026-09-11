@@ -27,6 +27,11 @@ func (this *NadoCore) GatewayPublicPostQuery(args ...any) <-chan any {
 	return this.callEndpointAsync("gatewayPublicPostQuery", args...)
 }
 
+// GatewayPublicPostEdgeQuery returns a channel that yields a JSON object.
+func (this *NadoCore) GatewayPublicPostEdgeQuery(args ...any) <-chan any {
+	return this.callEndpointAsync("gatewayPublicPostEdgeQuery", args...)
+}
+
 // GatewayPrivatePostExecute returns a channel that yields a JSON object.
 func (this *NadoCore) GatewayPrivatePostExecute(args ...any) <-chan any {
 	return this.callEndpointAsync("gatewayPrivatePostExecute", args...)
@@ -65,6 +70,11 @@ func (this *NadoCore) ArchiveV2PublicGetContracts(args ...any) <-chan any {
 // ArchiveV2PublicGetTrades returns a channel that yields a JSON array.
 func (this *NadoCore) ArchiveV2PublicGetTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("archiveV2PublicGetTrades", args...)
+}
+
+// ArchiveV2PublicGetSymbols returns a channel that yields a JSON object.
+func (this *NadoCore) ArchiveV2PublicGetSymbols(args ...any) <-chan any {
+	return this.callEndpointAsync("archiveV2PublicGetSymbols", args...)
 }
 
 // TriggerPrivatePostExecute returns a channel that yields a JSON object.

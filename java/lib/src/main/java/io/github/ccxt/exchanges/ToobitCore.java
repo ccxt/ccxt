@@ -287,6 +287,33 @@ public class ToobitCore extends ToobitApi
                         put( "api/v1/agent/export-url", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "api/v2/account/balance-flow", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "api/v2/futures/order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v2/futures/open-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v2/futures/history-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v2/futures/user-trades", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v2/futures/algo-order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v2/futures/open-algo-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(1, 1.67) );
+                        }} );
+                        put( "api/v2/futures/history-algo-orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", Helpers.multiply(5, 1.67) );
+                        }} );
+                        put( "api/v2/futures/voucher/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "api/v1/spot/orderTest", new java.util.HashMap<String, Object>() {{

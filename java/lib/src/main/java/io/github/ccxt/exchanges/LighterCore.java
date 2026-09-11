@@ -236,6 +236,9 @@ public class LighterCore extends LighterApi
                         put( "candles", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "markPriceCandles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "fundings", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -246,6 +249,15 @@ public class LighterCore extends LighterApi
                             put( "cost", 1 );
                         }} );
                         put( "withdrawalDelay", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "partnerStats", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "syntheticSpotInfo", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "tokenlist", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
@@ -281,13 +293,22 @@ public class LighterCore extends LighterApi
                         put( "publicPoolsMetadata", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "getMakerOnlyApiKeys", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "accountActiveOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "accountInactiveOrders", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "accountOrders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "export", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "export/historicalTrades", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "trades", new java.util.HashMap<String, Object>() {{
@@ -311,12 +332,30 @@ public class LighterCore extends LighterApi
                         put( "transferFeeInfo", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "rfq/get", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfq/list", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "changeAccountTier", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "setMakerOnlyApiKeys", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "notification/ack", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfq/create", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfq/respond", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "rfq/update", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );

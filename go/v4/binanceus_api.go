@@ -266,3 +266,8 @@ func (this *BinanceusCore) SapiV3GetSubAccountTransferHistory(args ...any) <-cha
 func (this *BinanceusCore) SapiV3PostSubAccountTransfer(args ...any) <-chan any {
 	return this.callEndpointAsync("sapiV3PostSubAccountTransfer", args...)
 }
+
+// PrivateGetMyFilters returns a channel that yields a JSON object.
+func (this *BinanceusCore) PrivateGetMyFilters(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMyFilters", args...)
+}

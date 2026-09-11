@@ -182,11 +182,15 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'time': {'cost': 1},
                         'products/spark-lines': {'cost': 1},
                         'products/volume-summary': {'cost': 1},
+                        'wrapped-assets': {'cost': 1},
+                        'wrapped-assets/{wrapped_asset_id}': {'cost': 1},
+                        'wrapped-assets/{wrapped_asset_id}/conversion-rate': {'cost': 1},
                     },
                 },
                 'private': {
                     'get': {
                         'address-book': {'cost': 1},
+                        'address-book/counterparty': {'cost': 1},
                         'accounts': {'cost': 1},
                         'accounts/{id}': {'cost': 1},
                         'accounts/{id}/holds': {'cost': 1},
@@ -216,9 +220,11 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'reports/{report_id}': {'cost': 1},
                         'transfers': {'cost': 1},
                         'transfers/{transfer_id}': {'cost': 1},
+                        'travel-rules': {'cost': 1},
                         'users/self/exchange-limits': {'cost': 1},
                         'users/self/hold-balances': {'cost': 1},
                         'users/self/trailing-volume': {'cost': 1},
+                        'users/{user_id}/trading-volumes': {'cost': 1},
                         'withdrawals/fee-estimate': {'cost': 1},
                         'conversions/{conversion_id}': {'cost': 1},
                         'conversions': {'cost': 1},
@@ -234,12 +240,18 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'loans/interest': {'cost': 1},
                         'loans/assets': {'cost': 1},
                         'loans': {'cost': 1},
+                        'loans/options': {'cost': 1},
+                        'wrapped-assets/redeem': {'cost': 1},
+                        'wrapped-assets/redeem/{redeem_id}': {'cost': 1},
+                        'wrapped-assets/stake-wrap': {'cost': 1},
+                        'wrapped-assets/stake-wrap/{stake_wrap_id}': {'cost': 1},
                     },
                     'post': {
                         'conversions': {'cost': 1},
                         'deposits/coinbase-account': {'cost': 1},
                         'deposits/payment-method': {'cost': 1},
                         'coinbase-accounts/{id}/addresses': {'cost': 1},
+                        'address-book': {'cost': 1},
                         'funding/repay': {'cost': 1},
                         'orders': {'cost': 1},
                         'position/close': {'cost': 1},
@@ -249,8 +261,14 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'reports': {'cost': 1},
                         'withdrawals/coinbase': {'cost': 1},
                         'withdrawals/coinbase-account': {'cost': 1},
+                        'withdrawals/counterparty': {'cost': 1},
                         'withdrawals/crypto': {'cost': 1},
                         'withdrawals/payment-method': {'cost': 1},
+                        'transfers/{transfer_id}/travel-rules': {'cost': 1},
+                        'travel-rules': {'cost': 1},
+                        'users/{user_id}/settlement-preferences': {'cost': 1},
+                        'wrapped-assets/redeem': {'cost': 1},
+                        'wrapped-assets/stake-wrap': {'cost': 1},
                         'loans/open': {'cost': 1},
                         'loans/repay-interest': {'cost': 1},
                         'loans/repay-principal': {'cost': 1},
@@ -259,10 +277,13 @@ class coinbaseexchange(Exchange, ImplicitAPI):
                         'orders': {'cost': 1},
                         'orders/client:{client_oid}': {'cost': 1},
                         'orders/{id}': {'cost': 1},
+                        'address-book/{id}': {'cost': 1},
+                        'travel-rules/{id}': {'cost': 1},
                     },
                     'put': {
                         'profiles/{id}/deactivate': {'cost': 1},
                         'profiles/{id}': {'cost': 1},
+                        'address-book/{id}': {'cost': 1},
                     },
                 },
             },
@@ -1206,7 +1227,7 @@ class coinbaseexchange(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch trades for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1648,8 +1669,8 @@ class coinbaseexchange(Exchange, ImplicitAPI):
     def parse_ledger_entry_type(self, type: object):
         types = {
             'transfer': 'transfer',  # Funds moved between portfolios
-            'match': 'trade',       # Funds moved result of a trade
-            'fee': 'fee',           # Fee result of a trade
+            'match': 'trade',       # Funds moved as a result of a trade
+            'fee': 'fee',           # Fee as a result of a trade
             'rebate': 'rebate',     # Fee rebate
             'conversion': 'trade',  # Funds converted between fiat currency and a stablecoin
         }

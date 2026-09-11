@@ -255,6 +255,9 @@ func (this *ModetradeCore) Describe() any {
 						"tv/symbol_info": map[string]any{
 							"cost": 1,
 						},
+						"tv/kline_history": map[string]any{
+							"cost": 20,
+						},
 						"public/funding_rate_history": map[string]any{
 							"cost": 1,
 						},
@@ -285,6 +288,9 @@ func (this *ModetradeCore) Describe() any {
 					},
 					"post": map[string]any{
 						"register_account": map[string]any{
+							"cost": 1,
+						},
+						"public/query": map[string]any{
 							"cost": 1,
 						},
 					},
@@ -345,6 +351,9 @@ func (this *ModetradeCore) Describe() any {
 						"pnl_settlement/history": map[string]any{
 							"cost": 1,
 						},
+						"internal_transfer_history": map[string]any{
+							"cost": 1,
+						},
 						"volume/user/daily": map[string]any{
 							"cost": 60,
 						},
@@ -384,10 +393,46 @@ func (this *ModetradeCore) Describe() any {
 						"broker/user_info": map[string]any{
 							"cost": 10,
 						},
+						"broker/daily_fee_revenue": map[string]any{
+							"cost": 1,
+						},
 						"orderbook/{symbol}": map[string]any{
 							"cost": 1,
 						},
 						"kline": map[string]any{
+							"cost": 1,
+						},
+						"client/leverages": map[string]any{
+							"cost": 1,
+						},
+						"client/margin_modes": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/admin": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/admin/info": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/admin/referee_list": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/admin/summary": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/max_rebate_rate": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/rebate_info": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/referee_list": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/statistics": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/volume_prerequisite": map[string]any{
 							"cost": 1,
 						},
 					},
@@ -422,6 +467,9 @@ func (this *ModetradeCore) Describe() any {
 						"settle_pnl": map[string]any{
 							"cost": 1,
 						},
+						"internal_transfer": map[string]any{
+							"cost": 1,
+						},
 						"notification/inbox/mark_read": map[string]any{
 							"cost": 60,
 						},
@@ -430,6 +478,15 @@ func (this *ModetradeCore) Describe() any {
 						},
 						"client/leverage": map[string]any{
 							"cost": 120,
+						},
+						"client/leverages": map[string]any{
+							"cost": 120,
+						},
+						"client/margin_mode": map[string]any{
+							"cost": 1,
+						},
+						"position_margin": map[string]any{
+							"cost": 1,
 						},
 						"client/maintenance_config": map[string]any{
 							"cost": 60,
@@ -465,6 +522,33 @@ func (this *ModetradeCore) Describe() any {
 							"cost": 10,
 						},
 						"referral/edit_split": map[string]any{
+							"cost": 10,
+						},
+						"referral/edit_referee_description": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/admin": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/admin/update": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/admin/create/affiliate": map[string]any{
+							"cost": 1,
+						},
+						"referral/multi_level/admin/reset/affiliate": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/admin/update/affiliate": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/claim_code": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/rebate_rate/set_default": map[string]any{
+							"cost": 10,
+						},
+						"referral/multi_level/rebate_rate/update": map[string]any{
 							"cost": 10,
 						},
 					},
@@ -542,12 +626,12 @@ func (this *ModetradeCore) Describe() any {
 						"GTD": false,
 					},
 					"hedged":                 false,
-					"trailing":               true,
-					"leverage":               true,
+					"trailing":               false,
+					"leverage":               false,
 					"marketBuyByCost":        false,
 					"marketBuyRequiresPrice": false,
 					"selfTradePrevention":    false,
-					"iceberg":                true,
+					"iceberg":                false,
 				},
 				"createOrders": map[string]any{
 					"max": 10,
@@ -572,7 +656,15 @@ func (this *ModetradeCore) Describe() any {
 					"trailing":       false,
 					"symbolRequired": false,
 				},
-				"fetchOrders": nil,
+				"fetchOrders": map[string]any{
+					"marginMode":     false,
+					"limit":          500,
+					"daysBack":       nil,
+					"untilDays":      100000,
+					"trigger":        true,
+					"trailing":       false,
+					"symbolRequired": false,
+				},
 				"fetchClosedOrders": map[string]any{
 					"marginMode":       false,
 					"limit":            500,
@@ -587,9 +679,7 @@ func (this *ModetradeCore) Describe() any {
 					"limit": 1000,
 				},
 			},
-			"spot": map[string]any{
-				"extends": "default",
-			},
+			"spot": nil,
 			"forDerivatives": map[string]any{
 				"extends": "default",
 				"createOrder": map[string]any{
@@ -1102,8 +1192,8 @@ func (this *ModetradeCore) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes82112 := (<-this.LoadMarkets())
-		PanicOnError(retRes82112)
+		retRes85512 := (<-this.LoadMarkets())
+		PanicOnError(retRes85512)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1211,9 +1301,9 @@ func (this *ModetradeCore) fetchFundingIntervalBody(ch chan any, symbol any, opt
 	params := GetArg(optionalArgs, 0, map[string]any{})
 	_ = params
 
-	retRes91515 := (<-this.FetchFundingRate(symbol, params))
-	PanicOnError(retRes91515)
-	ch <- retRes91515
+	retRes94915 := (<-this.FetchFundingRate(symbol, params))
+	PanicOnError(retRes94915)
+	ch <- retRes94915
 	return nil
 }
 
@@ -1238,8 +1328,8 @@ func (this *ModetradeCore) fetchFundingRateBody(ch chan any, symbol any, optiona
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes92912 := (<-this.LoadMarkets())
-		PanicOnError(retRes92912)
+		retRes96312 := (<-this.LoadMarkets())
+		PanicOnError(retRes96312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1292,8 +1382,8 @@ func (this *ModetradeCore) fetchFundingRatesBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes96612 := (<-this.LoadMarkets())
-		PanicOnError(retRes96612)
+		retRes100012 := (<-this.LoadMarkets())
+		PanicOnError(retRes100012)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -1354,8 +1444,8 @@ func (this *ModetradeCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes100712 := (<-this.LoadMarkets())
-		PanicOnError(retRes100712)
+		retRes104112 := (<-this.LoadMarkets())
+		PanicOnError(retRes104112)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -1363,9 +1453,9 @@ func (this *ModetradeCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes101219 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
-		PanicOnError(retRes101219)
-		ch <- retRes101219
+		retRes104619 := (<-this.FetchPaginatedCallIncremental("fetchFundingRateHistory", symbol, since, limit, params, "page", 25))
+		PanicOnError(retRes104619)
+		ch <- retRes104619
 		return nil
 	}
 	var request any = map[string]any{}
@@ -1487,8 +1577,8 @@ func (this *ModetradeCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes111012 := (<-this.LoadMarkets())
-		PanicOnError(retRes111012)
+		retRes114412 := (<-this.LoadMarkets())
+		PanicOnError(retRes114412)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
@@ -1496,9 +1586,9 @@ func (this *ModetradeCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes111519 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes111519)
-		ch <- retRes111519
+		retRes114919 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes114919)
+		ch <- retRes114919
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -1571,8 +1661,8 @@ func (this *ModetradeCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes117312 := (<-this.LoadMarkets())
-		PanicOnError(retRes117312)
+		retRes120712 := (<-this.LoadMarkets())
+		PanicOnError(retRes120712)
 	}
 
 	response := (<-this.V1PrivateGetClientInfo(params))
@@ -1651,8 +1741,8 @@ func (this *ModetradeCore) fetchOrderBookBody(ch chan any, symbol any, optionalA
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes123612 := (<-this.LoadMarkets())
-		PanicOnError(retRes123612)
+		retRes127012 := (<-this.LoadMarkets())
+		PanicOnError(retRes127012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1724,8 +1814,8 @@ func (this *ModetradeCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes129412 := (<-this.LoadMarkets())
-		PanicOnError(retRes129412)
+		retRes132812 := (<-this.LoadMarkets())
+		PanicOnError(retRes132812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1910,7 +2000,7 @@ func (this *ModetradeCore) ParseOrderStatus(status any) any {
 		}
 		return this.SafeString(statuses, status, status)
 	}
-	return status
+	return nil
 }
 func (this *ModetradeCore) ParseOrderType(typeVar any) any {
 	var types map[string]any = map[string]any{
@@ -2054,8 +2144,11 @@ func (this *ModetradeCore) CreateOrderRequest(symbol any, typeVar any, side any,
  * @param {float} [params.takeProfit.triggerPrice] take profit trigger price
  * @param {object} [params.stopLoss] *stopLoss object in params* containing the triggerPrice at which the attached stop loss order will be triggered (perpetual swap markets only)
  * @param {float} [params.stopLoss.triggerPrice] stop loss trigger price
- * @param {float} [params.algoType] 'STOP'or 'TP_SL' or 'POSITIONAL_TP_SL'
- * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
+ * @param {string} [params.algoType] 'STOP' or 'TP_SL' or 'POSITIONAL_TP_SL'
+ * @param {bool} [params.reduceOnly] true or false whether the order is reduce-only
+ * @param {bool} [params.postOnly] true or false whether the order is post-only
+ * @param {string} [params.timeInForce] 'IOC', 'FOK' or 'PO'
+ * @param {object[]} [params.childOrders] *algo order only* a list of child orders passed through to the exchange
  * @param {string} [params.clientOrderId] a unique id for the order
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
@@ -2073,8 +2166,8 @@ func (this *ModetradeCore) createOrderBody(ch chan any, symbol any, typeVar any,
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes162512 := (<-this.LoadMarkets())
-		PanicOnError(retRes162512)
+		retRes166212 := (<-this.LoadMarkets())
+		PanicOnError(retRes166212)
 	}
 	var market any = this.Market(symbol)
 	var request any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -2122,8 +2215,8 @@ func (this *ModetradeCore) createOrdersBody(ch chan any, orders any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes168412 := (<-this.LoadMarkets())
-		PanicOnError(retRes168412)
+		retRes172112 := (<-this.LoadMarkets())
+		PanicOnError(retRes172112)
 	}
 	var ordersRequests any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -2211,8 +2304,8 @@ func (this *ModetradeCore) editOrderBody(ch chan any, id any, symbol any, typeVa
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes175412 := (<-this.LoadMarkets())
-		PanicOnError(retRes175412)
+		retRes179112 := (<-this.LoadMarkets())
+		PanicOnError(retRes179112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2316,8 +2409,8 @@ func (this *ModetradeCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes184012 := (<-this.LoadMarkets())
-		PanicOnError(retRes184012)
+		retRes187712 := (<-this.LoadMarkets())
+		PanicOnError(retRes187712)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2417,8 +2510,8 @@ func (this *ModetradeCore) cancelOrdersBody(ch chan any, ids any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes191412 := (<-this.LoadMarkets())
-		PanicOnError(retRes191412)
+		retRes195112 := (<-this.LoadMarkets())
+		PanicOnError(retRes195112)
 	}
 	var clientOrderIds any = this.SafeListN(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
 	params = this.Omit(params, []any{"clOrdIDs", "clientOrderIds", "client_order_ids"})
@@ -2476,8 +2569,8 @@ func (this *ModetradeCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes195412 := (<-this.LoadMarkets())
-		PanicOnError(retRes195412)
+		retRes199112 := (<-this.LoadMarkets())
+		PanicOnError(retRes199112)
 	}
 	var trigger any = this.SafeBool2(params, "stop", "trigger")
 	params = this.Omit(params, []any{"stop", "trigger"})
@@ -2547,8 +2640,8 @@ func (this *ModetradeCore) fetchOrderBody(ch chan any, id any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes200812 := (<-this.LoadMarkets())
-		PanicOnError(retRes200812)
+		retRes204512 := (<-this.LoadMarkets())
+		PanicOnError(retRes204512)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2625,7 +2718,7 @@ func (this *ModetradeCore) fetchOrderBody(ch chan any, id any, optionalArgs ...a
  * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2652,8 +2745,8 @@ func (this *ModetradeCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes208612 := (<-this.LoadMarkets())
-		PanicOnError(retRes208612)
+		retRes212312 := (<-this.LoadMarkets())
+		PanicOnError(retRes212312)
 	}
 	var paginate any = false
 	var isTrigger any = this.SafeBool2(params, "stop", "trigger", false)
@@ -2663,9 +2756,9 @@ func (this *ModetradeCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes209319 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
-		PanicOnError(retRes209319)
-		ch <- retRes209319
+		retRes213019 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", maxLimit))
+		PanicOnError(retRes213019)
+		ch <- retRes213019
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2679,7 +2772,7 @@ func (this *ModetradeCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any
 		AddElementToObject(request, "start_t", since)
 	}
 	if IsTrue(!IsEqual(limit, nil)) {
-		AddElementToObject(request, "size", limit)
+		AddElementToObject(request, "size", mathMin(limit, maxLimit))
 	} else {
 		AddElementToObject(request, "size", maxLimit)
 	}
@@ -2748,7 +2841,7 @@ func (this *ModetradeCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any
  * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2775,16 +2868,16 @@ func (this *ModetradeCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes217812 := (<-this.LoadMarkets())
-		PanicOnError(retRes217812)
+		retRes221512 := (<-this.LoadMarkets())
+		PanicOnError(retRes221512)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "INCOMPLETE",
 	})
 
-	retRes218115 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-	PanicOnError(retRes218115)
-	ch <- retRes218115
+	retRes221815 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes221815)
+	ch <- retRes221815
 	return nil
 }
 
@@ -2796,7 +2889,7 @@ func (this *ModetradeCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any)
  * @see https://orderly.network/docs/build-on-omnichain/restful-api/private/get-algo-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500, or max 100 when params.trigger (or the legacy params.stop) is true
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] whether the order is a stop/algo order
  * @param {boolean} [params.is_triggered] whether the order has been triggered (false by default)
@@ -2823,16 +2916,16 @@ func (this *ModetradeCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes220312 := (<-this.LoadMarkets())
-		PanicOnError(retRes220312)
+		retRes224012 := (<-this.LoadMarkets())
+		PanicOnError(retRes224012)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "COMPLETED",
 	})
 
-	retRes220615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-	PanicOnError(retRes220615)
-	ch <- retRes220615
+	retRes224315 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes224315)
+	ch <- retRes224315
 	return nil
 }
 
@@ -2866,8 +2959,8 @@ func (this *ModetradeCore) fetchOrderTradesBody(ch chan any, id any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes222312 := (<-this.LoadMarkets())
-		PanicOnError(retRes222312)
+		retRes226012 := (<-this.LoadMarkets())
+		PanicOnError(retRes226012)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2938,8 +3031,8 @@ func (this *ModetradeCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes227412 := (<-this.LoadMarkets())
-		PanicOnError(retRes227412)
+		retRes231112 := (<-this.LoadMarkets())
+		PanicOnError(retRes231112)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2947,9 +3040,9 @@ func (this *ModetradeCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes227919 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes227919)
-		ch <- retRes227919
+		retRes231619 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes231619)
+		ch <- retRes231619
 		return nil
 	}
 	var request any = map[string]any{}
@@ -3042,8 +3135,8 @@ func (this *ModetradeCore) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes235612 := (<-this.LoadMarkets())
-		PanicOnError(retRes235612)
+		retRes239312 := (<-this.LoadMarkets())
+		PanicOnError(retRes239312)
 	}
 
 	response := (<-this.V1PrivateGetClientHolding(params))
@@ -3086,8 +3179,8 @@ func (this *ModetradeCore) getAssetHistoryRowsBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes238012 := (<-this.LoadMarkets())
-		PanicOnError(retRes238012)
+		retRes241712 := (<-this.LoadMarkets())
+		PanicOnError(retRes241712)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -3293,9 +3386,9 @@ func (this *ModetradeCore) fetchDepositsBody(ch chan any, optionalArgs ...any) a
 		"side": "DEPOSIT",
 	}
 
-	retRes254715 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes254715)
-	ch <- retRes254715
+	retRes258415 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes258415)
+	ch <- retRes258415
 	return nil
 }
 
@@ -3330,9 +3423,9 @@ func (this *ModetradeCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any
 		"side": "WITHDRAW",
 	}
 
-	retRes256515 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes256515)
-	ch <- retRes256515
+	retRes260215 := (<-this.FetchDepositsWithdrawals(code, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes260215)
+	ch <- retRes260215
 	return nil
 }
 
@@ -3451,8 +3544,8 @@ func (this *ModetradeCore) withdrawBody(ch chan any, code any, amount any, addre
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes264312 := (<-this.LoadMarkets())
-		PanicOnError(retRes264312)
+		retRes268012 := (<-this.LoadMarkets())
+		PanicOnError(retRes268012)
 	}
 	this.CheckAddress(address)
 	if IsTrue(!IsEqual(code, nil)) {
@@ -3573,8 +3666,8 @@ func (this *ModetradeCore) fetchLeverageBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes273412 := (<-this.LoadMarkets())
-		PanicOnError(retRes273412)
+		retRes277112 := (<-this.LoadMarkets())
+		PanicOnError(retRes277112)
 	}
 	var market any = this.Market(symbol)
 
@@ -3637,8 +3730,8 @@ func (this *ModetradeCore) setLeverageBody(ch chan any, leverage any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes278112 := (<-this.LoadMarkets())
-		PanicOnError(retRes278112)
+		retRes281812 := (<-this.LoadMarkets())
+		PanicOnError(retRes281812)
 	}
 	var isMinLeverage bool = IsLessThan(leverage, 1)
 	var isMaxLeverage bool = IsGreaterThan(leverage, 50)
@@ -3649,9 +3742,9 @@ func (this *ModetradeCore) setLeverageBody(ch chan any, leverage any, optionalAr
 		"leverage": leverage,
 	}
 
-	retRes279115 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
-	PanicOnError(retRes279115)
-	ch <- retRes279115
+	retRes282815 := (<-this.V1PrivatePostClientLeverage(this.Extend(request, params)))
+	PanicOnError(retRes282815)
+	ch <- retRes282815
 	return nil
 }
 func (this *ModetradeCore) ParsePosition(position any, optionalArgs ...any) any {
@@ -3748,8 +3841,8 @@ func (this *ModetradeCore) fetchPositionBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes287612 := (<-this.LoadMarkets())
-		PanicOnError(retRes287612)
+		retRes291312 := (<-this.LoadMarkets())
+		PanicOnError(retRes291312)
 	}
 	if IsTrue(IsEqual(symbol, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchPosition() requires a symbol argument")))
@@ -3816,8 +3909,8 @@ func (this *ModetradeCore) fetchPositionsBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes292712 := (<-this.LoadMarkets())
-		PanicOnError(retRes292712)
+		retRes296412 := (<-this.LoadMarkets())
+		PanicOnError(retRes296412)
 	}
 
 	response := (<-this.V1PrivateGetPositions(params))

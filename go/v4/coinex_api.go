@@ -737,6 +737,11 @@ func (this *CoinexCore) V2PublicGetAssetsAllDepositWithdrawConfig(args ...any) <
 	return this.callEndpointAsync("v2PublicGetAssetsAllDepositWithdrawConfig", args...)
 }
 
+// V2PublicGetAssetsInfo returns a channel that yields a JSON object.
+func (this *CoinexCore) V2PublicGetAssetsInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PublicGetAssetsInfo", args...)
+}
+
 // V2PrivateGetAccountSubs returns a channel that yields a JSON object.
 func (this *CoinexCore) V2PrivateGetAccountSubs(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetAccountSubs", args...)
@@ -1260,4 +1265,14 @@ func (this *CoinexCore) V2PrivatePostFuturesSetPositionStopLoss(args ...any) <-c
 // V2PrivatePostFuturesSetPositionTakeProfit returns a channel that yields a JSON object.
 func (this *CoinexCore) V2PrivatePostFuturesSetPositionTakeProfit(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostFuturesSetPositionTakeProfit", args...)
+}
+
+// V2PrivatePostFuturesModifyPositionStopLoss returns a channel that yields a JSON object.
+func (this *CoinexCore) V2PrivatePostFuturesModifyPositionStopLoss(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesModifyPositionStopLoss", args...)
+}
+
+// V2PrivatePostFuturesModifyPositionTakeProfit returns a channel that yields a JSON object.
+func (this *CoinexCore) V2PrivatePostFuturesModifyPositionTakeProfit(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivatePostFuturesModifyPositionTakeProfit", args...)
 }

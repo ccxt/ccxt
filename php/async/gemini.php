@@ -134,7 +134,7 @@ class gemini extends Exchange {
                     'get' => array(
                         // fetchMarkets passes this through fetchWebEndpoint with
                         // returnAsJson=false and a startRegex, i.e. it splits the
-                        // body => this endpoint answers with the docs page
+                        // body as text => this endpoint answers with the docs page
                         // markup, not with JSON
                         'rest-api' => array( 'cost' => 1 ),
                     ),
@@ -160,11 +160,30 @@ class gemini extends Exchange {
                         'v2/derivatives/candles/{symbol}/{time_frame}' => array( 'cost' => 5 ),
                         'v2/fxrate/{symbol}/{timestamp}' => array( 'cost' => 5 ),
                         'v1/riskstats/{symbol}' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/events' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/events/{eventTicker}' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/events/{eventTicker}/strike' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/events/newly-listed' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/events/recently-settled' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/events/upcoming' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/categories' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/volume/{date}' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/volume/{date}/hourly' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/terms' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/maker-rebate/rates' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/liquidity-rewards/config' => array( 'cost' => 5 ),
+                        'v1/prediction-markets/liquidity-rewards/events' => array( 'cost' => 5 ),
                     ),
                 ),
                 'private' => array(
                     'get' => array(
                         'v1/perpetuals/fundingpaymentreport/records.xlsx' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/terms/status' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/maker-rebate/summary/total' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/liquidity-rewards/summary/daily' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/liquidity-rewards/summary/total' => array( 'cost' => 1 ),
+                        'v2/network/{token}' => array( 'cost' => 1 ),
+                        'v2/networks/{network}/assets' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'v1/staking/unstake' => array( 'cost' => 1 ),
@@ -227,6 +246,20 @@ class gemini extends Exchange {
                         'v1/perpetuals/fundingPayment' => array( 'cost' => 1 ),
                         'v1/perpetuals/fundingpaymentreport/records.json' => array( 'cost' => 1 ),
                         'v1/positions' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/order' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/order/batch' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/order/cancel' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/order/batch/cancel' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/orders/active' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/orders/history' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/positions' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/positions/settled' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/metrics/volume' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/terms/accept' => array( 'cost' => 1 ),
+                        'v1/prediction-markets/maker-rebate/payouts' => array( 'cost' => 1 ),
+                        'v2/transfers' => array( 'cost' => 1 ),
+                        'v2/withdraw/{network}/{ticker}' => array( 'cost' => 1 ),
+                        'v2/withdraw/{network}/{ticker}/feeEstimate' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -439,7 +472,7 @@ class gemini extends Exchange {
         //    {
         //        "tradingPairs" => array( array( 'BTCUSD', 2, 8, '0.00001', 10, true ),  ... ),
         //        "currencies" => array(
-        //            array( "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ), //, precisions seem to be the 5th index
+        //            array( "ORCA", "Orca", 204, 6, 0, 6, 8, false, null, "solana" ), // as confirmed, precisions seem to be the 5th index
         //            array( "ATOM", "Cosmos", 44, 6, 0, 6, 8, false, null, "cosmos" ),
         //            array( "ETH", "Ether", 2, 6, 0, 18, 8, false, null, "ethereum" ),
         //            array( "GBP", "Pound Sterling", 22, 2, 2, 2, 2, true, "£", null ),
@@ -655,7 +688,7 @@ class gemini extends Exchange {
             'limit_only' => true,
         );
         if ($status === null) {
-            return true; // below
+            return true; // as defaulted below
         }
         return $this->safe_bool($statuses, $status, true);
     }
@@ -2082,7 +2115,7 @@ class gemini extends Exchange {
         $response = Async\await($this->privatePostV1AddressesNetwork($this->extend($request, $params)));
         $results = $this->parse_deposit_addresses($response, array( $code ), false, array( 'network' => $networkCode, 'currency' => $code ));
         // one address structure per network, like every other venue (the endpoint is scoped to a
-        // single network, so the last address the venue lists for it wins — same)
+        // single network, so the last address the venue lists for it wins — same as before)
         return $this->index_by($results, 'network');
     }
 
@@ -2198,7 +2231,7 @@ class gemini extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

@@ -37,13 +37,13 @@ public partial class binancecoinm : binance
     {
         // transfer from spot wallet to coinm futures wallet
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransferEntry(await this.futuresTransfer(code, amount, 3, parameters));
+        return ccxt.BaseExchange.ToTransferEntry(await this.futuresTransfer(((string)code), amount, 3, parameters));
     }
 
     public async virtual Task<ccxt.TransferEntry> TransferOut(string code, object amount, object parameters = null)
     {
         // transfer from coinm futures wallet to spot wallet
         parameters ??= new Dictionary<string, object>();
-        return ccxt.BaseExchange.ToTransferEntry(await this.futuresTransfer(code, amount, 4, parameters));
+        return ccxt.BaseExchange.ToTransferEntry(await this.futuresTransfer(((string)code), amount, 4, parameters));
     }
 }

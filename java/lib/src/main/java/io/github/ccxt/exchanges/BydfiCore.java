@@ -272,6 +272,24 @@ public class BydfiCore extends BydfiApi
                         put( "v1/fapi/trade/positions", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
+                        put( "v2/fapi/trade/open_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fapi/trade/plan_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fapi/trade/history_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fapi/trade/history_trade", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fapi/trade/position_history", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fapi/trade/positions", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "v1/fapi/account/balance", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
@@ -332,6 +350,27 @@ public class BydfiCore extends BydfiApi
                             put( "cost", 1 );
                         }} );
                         put( "v1/fapi/trade/batch_leverage_margin", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fapi/trade/place_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fapi/trade/batch_place_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fapi/trade/edit_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fapi/trade/batch_edit_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fapi/trade/cancel_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fapi/trade/batch_cancel_order", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "v2/fapi/trade/cancel_all_order", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                         put( "v1/fapi/user_data/margin_type", new java.util.HashMap<String, Object>() {{

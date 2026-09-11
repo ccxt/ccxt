@@ -89,7 +89,7 @@ public partial class testMainClass : BaseTest
         }
         // only check "above zero" values if exchange is not supposed to have exotic index markets
         bool isStandardMarket = (isTrue(!isEqual(market, null)) && isTrue(exchange.inArray(getValue(market, "type"), new List<object>() {"spot", "swap", "future", "option"})));
-        object valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
+        bool valuesShouldBePositive = isStandardMarket; // || (market === undefined) atm, no check for index markets
         if (isTrue(isTrue(valuesShouldBePositive) && !isTrue((inOp(skippedProperties, "positiveValues")))))
         {
             testSharedMethods.assertGreater(exchange, skippedProperties, method, entry, "open", "0");

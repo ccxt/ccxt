@@ -236,6 +236,9 @@ public class PhemexCore extends PhemexApi
                         put( "public/products-plus", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "public/index-sources", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                         put( "md/v2/orderbook", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
@@ -414,6 +417,30 @@ public class PhemexCore extends PhemexApi
                         put( "assets/quote", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
+                        put( "phemex-lb/public/api/trader/performance-info", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "uta-api/risk/risk-mode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "uta-api/risk/risk-units", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "uta-biz/assets", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "uta-funds/contract/borrow", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "uta-funds/contract/payback", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "uta-funds/contract/borrow/interests", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "uta-exchanger/assets/convert", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
                         put( "spot/orders", new java.util.HashMap<String, Object>() {{
@@ -465,6 +492,12 @@ public class PhemexCore extends PhemexApi
                             put( "cost", 5 );
                         }} );
                         put( "phemex-withdraw/wallets/api/cancelWithdraw", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "uta-account/switch-mode", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 5 );
+                        }} );
+                        put( "uta-funds/contract/payback", new java.util.HashMap<String, Object>() {{
                             put( "cost", 5 );
                         }} );
                     }} );

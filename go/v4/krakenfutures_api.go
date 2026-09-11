@@ -137,6 +137,11 @@ func (this *KrakenfuturesCore) PrivateGetSubaccountUidTradingEnabled(args ...any
 	return this.callEndpointAsync("privateGetSubaccountUidTradingEnabled", args...)
 }
 
+// PrivateGetRfqAssignmentMaxLeverage returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PrivateGetRfqAssignmentMaxLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetRfqAssignmentMaxLeverage", args...)
+}
+
 // PrivatePostSendorder returns a channel that yields a JSON object.
 func (this *KrakenfuturesCore) PrivatePostSendorder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostSendorder", args...)
@@ -210,6 +215,16 @@ func (this *KrakenfuturesCore) PrivatePutSelfTradeStrategy(args ...any) <-chan a
 // PrivatePutSubaccountUidTradingEnabled returns a channel that yields a JSON object.
 func (this *KrakenfuturesCore) PrivatePutSubaccountUidTradingEnabled(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePutSubaccountUidTradingEnabled", args...)
+}
+
+// PrivatePutRfqAssignmentMaxLeverage returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PrivatePutRfqAssignmentMaxLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePutRfqAssignmentMaxLeverage", args...)
+}
+
+// PrivateDeleteRfqAssignmentMaxLeverage returns a channel that yields a JSON object.
+func (this *KrakenfuturesCore) PrivateDeleteRfqAssignmentMaxLeverage(args ...any) <-chan any {
+	return this.callEndpointAsync("privateDeleteRfqAssignmentMaxLeverage", args...)
 }
 
 // ChartsGetPriceTypeSymbolInterval returns a channel that yields a JSON object.

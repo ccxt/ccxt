@@ -57,6 +57,16 @@ func (this *ExtendedCore) V1PublicGetInfoBuilderDashboard(args ...any) <-chan an
 	return this.callEndpointAsync("v1PublicGetInfoBuilderDashboard", args...)
 }
 
+// V1PublicGetInterestInfoRateCurves returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PublicGetInterestInfoRateCurves(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetInterestInfoRateCurves", args...)
+}
+
+// V1PublicGetInterestInfoLatestRateCurves returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PublicGetInterestInfoLatestRateCurves(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PublicGetInterestInfoLatestRateCurves", args...)
+}
+
 // V1PrivateGetUserAccounts returns a channel that yields a JSON object.
 func (this *ExtendedCore) V1PrivateGetUserAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetUserAccounts", args...)
@@ -187,6 +197,61 @@ func (this *ExtendedCore) V1PrivateGetPortfolioChartsPnl(args ...any) <-chan any
 	return this.callEndpointAsync("v1PrivateGetPortfolioChartsPnl", args...)
 }
 
+// V1PrivateGetPortfolioChartsPnlPercentage returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetPortfolioChartsPnlPercentage(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfolioChartsPnlPercentage", args...)
+}
+
+// V1PrivateGetPortfolioChartsPnlCumulative returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetPortfolioChartsPnlCumulative(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfolioChartsPnlCumulative", args...)
+}
+
+// V1PrivateGetPortfolioChartsPnlCumulativePercentage returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetPortfolioChartsPnlCumulativePercentage(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfolioChartsPnlCumulativePercentage", args...)
+}
+
+// V1PrivateGetPortfolioChartsVaultEquities returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetPortfolioChartsVaultEquities(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfolioChartsVaultEquities", args...)
+}
+
+// V1PrivateGetPortfolioChartsMaxDrawdown returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetPortfolioChartsMaxDrawdown(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfolioChartsMaxDrawdown", args...)
+}
+
+// V1PrivateGetPortfolioChartsFunding returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetPortfolioChartsFunding(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfolioChartsFunding", args...)
+}
+
+// V1PrivateGetPortfolioAccountsSummary returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetPortfolioAccountsSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfolioAccountsSummary", args...)
+}
+
+// V1PrivateGetPortfolioAccountsHealth returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetPortfolioAccountsHealth(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfolioAccountsHealth", args...)
+}
+
+// V1PrivateGetPortfolioAccountsPerformance returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetPortfolioAccountsPerformance(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfolioAccountsPerformance", args...)
+}
+
+// V1PrivateGetPortfolioFundingStats returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetPortfolioFundingStats(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfolioFundingStats", args...)
+}
+
+// V1PrivateGetPortfolioFundingHistory returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetPortfolioFundingHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetPortfolioFundingHistory", args...)
+}
+
 // V1PrivateGetVaultPublicPerformance returns a channel that yields a JSON object.
 func (this *ExtendedCore) V1PrivateGetVaultPublicPerformance(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetVaultPublicPerformance", args...)
@@ -202,9 +267,34 @@ func (this *ExtendedCore) V1PrivateGetBuilderTrades(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivateGetBuilderTrades", args...)
 }
 
+// V1PrivateGetInterestKeyMetrics returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetInterestKeyMetrics(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetInterestKeyMetrics", args...)
+}
+
+// V1PrivateGetInterestDailyMetrics returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetInterestDailyMetrics(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetInterestDailyMetrics", args...)
+}
+
+// V1PrivateGetInterestPaymentChart returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetInterestPaymentChart(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetInterestPaymentChart", args...)
+}
+
+// V1PrivateGetInterestPayments returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivateGetInterestPayments(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivateGetInterestPayments", args...)
+}
+
 // V1PrivatePostUserOrder returns a channel that yields a JSON object.
 func (this *ExtendedCore) V1PrivatePostUserOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PrivatePostUserOrder", args...)
+}
+
+// V1PrivatePostUserOrderRfq returns a channel that yields a JSON object.
+func (this *ExtendedCore) V1PrivatePostUserOrderRfq(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PrivatePostUserOrderRfq", args...)
 }
 
 // V1PrivatePostUserOrderMassCancel returns a channel that yields a JSON object.

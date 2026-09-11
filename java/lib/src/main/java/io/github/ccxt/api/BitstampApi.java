@@ -163,6 +163,28 @@ public class BitstampApi extends Exchange
     }
 
     /**
+     * Calls the publicGetDerivativesMarketHours endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetDerivativesMarketHours (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetDerivativesMarketHours", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetDerivativesMarketHoursMarketSymbol endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetDerivativesMarketHoursMarketSymbol (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetDerivativesMarketHoursMarketSymbol", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetTravelRuleContacts endpoint.
      *
      * @param optionalArgs the request parameters
@@ -182,6 +204,50 @@ public class BitstampApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetContactsContactUuid (Object... optionalArgs)
     {
         return this.callAsync ("privateGetContactsContactUuid", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetTravelRuleUtxoXpubRegistrations endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetTravelRuleUtxoXpubRegistrations (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetTravelRuleUtxoXpubRegistrations", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetTravelRuleUtxoXpubRegistrationsRegistrationId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetTravelRuleUtxoXpubRegistrationsRegistrationId (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetTravelRuleUtxoXpubRegistrationsRegistrationId", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetTravelRuleAddressVerification endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetTravelRuleAddressVerification (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetTravelRuleAddressVerification", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetCryptoTransactionsDeposits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetCryptoTransactionsDeposits (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetCryptoTransactionsDeposits", optionalArgs);
     }
 
     /**
@@ -325,6 +391,17 @@ public class BitstampApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCryptoTransactions (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCryptoTransactions", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostCryptoTransactionsDepositsDepositIdReject endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCryptoTransactionsDepositsDepositIdReject (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostCryptoTransactionsDepositsDepositIdReject", optionalArgs);
     }
 
     /**
@@ -666,6 +743,28 @@ public class BitstampApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetMaxOrderAmount (Object... optionalArgs)
     {
         return this.callAsync ("privatePostGetMaxOrderAmount", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostOrderData endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostOrderData (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostOrderData", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostAccountOrderData endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostAccountOrderData (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostAccountOrderData", optionalArgs);
     }
 
     /**
@@ -2459,6 +2558,28 @@ public class BitstampApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTravelRuleContacts (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTravelRuleContacts", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostTravelRuleUtxoXpubRegistrations endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTravelRuleUtxoXpubRegistrations (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostTravelRuleUtxoXpubRegistrations", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostTravelRuleUtxoXpubRegistrationsRegistrationIdRevoke", optionalArgs);
     }
 
     /**

@@ -11,10 +11,12 @@ import { Exchange as _Exchange } from '../base/Exchange.js';
 interface Exchange {
     publicGetExchangesPairTicker (params?: {}): Promise<Dict>;
     publicGetExchangesPairOrderbook (params?: {}): Promise<Dict>;
+    publicGetExchangesPairOrderbookTop (params?: {}): Promise<Dict>;
     publicGetExchangesPairTrades (params?: {}): Promise<List>;
     publicGetExchangesPairLasttrades (params?: {}): Promise<List>;
     privatePostMerchantCreateCheckout (params?: {}): Promise<Dict>;
     privatePostFundsAddCoinFundsRequest (params?: {}): Promise<Dict>;
+    privatePostFundsWithdrawCoin (params?: {}): Promise<Dict>;
     privatePostOrderAddFund (params?: {}): Promise<Dict>;
     privatePostOrderAddOrder (params?: {}): Promise<Dict>;
     privatePostOrderGetById (params?: {}): Promise<Dict>;
@@ -32,6 +34,7 @@ interface Exchange {
     privateGetOrderGetById (params?: {}): Promise<Dict>;
     privateGetOrderAccountHistory (params?: {}): Promise<List>;
     privateGetOrderOrderHistory (params?: {}): Promise<List>;
+    privateGetOrderHistoryByOrderId (params?: {}): Promise<List>;
 }
 abstract class Exchange extends _Exchange {}
 

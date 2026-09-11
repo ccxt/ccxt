@@ -64,6 +64,17 @@ public class BackpackApi extends Exchange
     }
 
     /**
+     * Calls the publicGetApiV1BorrowLendApy endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetApiV1BorrowLendApy (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetApiV1BorrowLendApy", optionalArgs);
+    }
+
+    /**
      * Calls the publicGetApiV1Markets endpoint.
      *
      * @param optionalArgs the request parameters
@@ -116,6 +127,61 @@ public class BackpackApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  publicGetApiV1Depth (Object... optionalArgs)
     {
         return this.callAsync ("publicGetApiV1Depth", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetApiV1Prediction endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV1Prediction (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetApiV1Prediction", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetApiV1PredictionTags endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV1PredictionTags (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetApiV1PredictionTags", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetApiV1MarketSessions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV1MarketSessions (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetApiV1MarketSessions", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetApiV1MarketHolidays endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV1MarketHolidays (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetApiV1MarketHolidays", optionalArgs);
+    }
+
+    /**
+     * Calls the publicGetApiV1Securities endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  publicGetApiV1Securities (Object... optionalArgs)
+    {
+        return this.callAsync ("publicGetApiV1Securities", optionalArgs);
     }
 
     /**
@@ -284,6 +350,17 @@ public class BackpackApi extends Exchange
     }
 
     /**
+     * Calls the privateGetApiV1BorrowLendPositionLiquidationPrice endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1BorrowLendPositionLiquidationPrice (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1BorrowLendPositionLiquidationPrice", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetApiV1Capital endpoint.
      *
      * @param optionalArgs the request parameters
@@ -416,6 +493,17 @@ public class BackpackApi extends Exchange
     }
 
     /**
+     * Calls the privateGetWapiV1HistoryPosition endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWapiV1HistoryPosition (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetWapiV1HistoryPosition", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetWapiV1HistoryOrders endpoint.
      *
      * @param optionalArgs the request parameters
@@ -424,6 +512,17 @@ public class BackpackApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWapiV1HistoryOrders (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWapiV1HistoryOrders", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV1Rfqs endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1Rfqs (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1Rfqs", optionalArgs);
     }
 
     /**
@@ -449,6 +548,28 @@ public class BackpackApi extends Exchange
     }
 
     /**
+     * Calls the privateGetWapiV1HistoryRfqFill endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWapiV1HistoryRfqFill (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetWapiV1HistoryRfqFill", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetWapiV1HistoryQuoteFill endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWapiV1HistoryQuoteFill (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetWapiV1HistoryQuoteFill", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetWapiV1HistorySettlement endpoint.
      *
      * @param optionalArgs the request parameters
@@ -468,6 +589,28 @@ public class BackpackApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetWapiV1HistoryStrategies (Object... optionalArgs)
     {
         return this.callAsync ("privateGetWapiV1HistoryStrategies", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV1Strategy endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetApiV1Strategy (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1Strategy", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetApiV1Strategies endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetApiV1Strategies (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetApiV1Strategies", optionalArgs);
     }
 
     /**
@@ -603,6 +746,17 @@ public class BackpackApi extends Exchange
     }
 
     /**
+     * Calls the privatePostApiV1Strategy endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostApiV1Strategy (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostApiV1Strategy", optionalArgs);
+    }
+
+    /**
      * Calls the privateDeleteApiV1Order endpoint.
      *
      * @param optionalArgs the request parameters
@@ -622,6 +776,28 @@ public class BackpackApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteApiV1Orders (Object... optionalArgs)
     {
         return this.callAsync ("privateDeleteApiV1Orders", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteApiV1Strategy endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateDeleteApiV1Strategy (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteApiV1Strategy", optionalArgs);
+    }
+
+    /**
+     * Calls the privateDeleteApiV1Strategies endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateDeleteApiV1Strategies (Object... optionalArgs)
+    {
+        return this.callAsync ("privateDeleteApiV1Strategies", optionalArgs);
     }
 
     /**

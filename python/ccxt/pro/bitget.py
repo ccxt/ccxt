@@ -492,7 +492,7 @@ class bitget(ccxt.async_support.bitget):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -926,7 +926,7 @@ class bitget(ccxt.async_support.bitget):
     def handle_delta(self, bookside: object, delta: object):
         bidAsk = self.parse_order_book_bid_ask(delta, 0, 1)
         # we store the string representations in the orderbook for checksum calculation
-        # self simplifies the code for generating checksums do not need to do any complex number transformations
+        # self simplifies the code for generating checksums as we do not need to do any complex number transformations
         bidAsk.append(delta)
         bookside.storeArray(bidAsk)
 
@@ -1714,7 +1714,7 @@ class bitget(ccxt.async_support.bitget):
         #         enterPointSource: 'API'
         #                   #### trigger order has these additional fields:  ####
         #         "triggerPrice": "35100",
-        #         "price": "35100",  # self is same price
+        #         "price": "35100",  # self is same as trigger price
         #         "executePrice": "35123",  # self is limit price
         #         "triggerType": "fill_price",
         #         "planType": "amount",
@@ -1770,7 +1770,7 @@ class bitget(ccxt.async_support.bitget):
         #         tradeScope: 'T',
         #                   #### trigger order has these additional fields:
         #         "triggerPrice": "0.800000000",
-        #         "price": "0.800000000",  # <-- self is same price, actual limit-price is not present in initial response
+        #         "price": "0.800000000",  # <-- self is same as trigger price, actual limit-price is not present in initial response
         #         "triggerType": "mark_price",
         #         "triggerTime": "1715082796679",
         #         "planType": "pl",
