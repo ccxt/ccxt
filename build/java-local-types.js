@@ -1373,7 +1373,13 @@ function literalLocalTypeCore (printer, declaration) {
 }
 
 function literalFamilyOf (declaration) {
-    const initializer = declaration.initializer;
+    let initializer = declaration.initializer;
+    // `('a')` / `x!` classify as their inner value's family
+    while (initializer !== undefined
+        && (initializer.kind === ts.SyntaxKind.ParenthesizedExpression
+            || initializer.kind === ts.SyntaxKind.NonNullExpression)) {
+        initializer = initializer.expression;
+    }
     switch (initializer.kind) {
         case ts.SyntaxKind.StringLiteral:
         case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
