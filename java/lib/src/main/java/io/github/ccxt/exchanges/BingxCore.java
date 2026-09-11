@@ -7491,7 +7491,7 @@ public class BingxCore extends BingxApi
         // const sortedParams = this.keysort (params);
         Object rawKeys = Helpers.objectKeys(parameters);
         Object keys = this.sort(rawKeys);
-        Object adjustedValue = null;
+        String adjustedValue = null;
         Object result = null;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {

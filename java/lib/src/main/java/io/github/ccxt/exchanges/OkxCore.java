@@ -8475,7 +8475,7 @@ public class OkxCore extends OkxApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object isArray = Helpers.isArray(parameters);
-        Object request = Helpers.add(Helpers.add(Helpers.add("/api/", this.version), "/"), this.implodeParams(path, parameters));
+        String request = Helpers.add(Helpers.add(Helpers.add("/api/", this.version), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest")), request);
         // const type = this.getPathAuthenticationType (path);
@@ -8515,7 +8515,7 @@ public class OkxCore extends OkxApi
                     }
                 }
             }
-            String timestamp = this.iso8601(this.nonce());
+            Object timestamp = this.iso8601(this.nonce());
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "OK-ACCESS-KEY", OkxCore.this.apiKey );

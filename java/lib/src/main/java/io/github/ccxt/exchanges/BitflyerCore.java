@@ -1574,7 +1574,7 @@ public class BitflyerCore extends BitflyerApi
                 request = Helpers.add(request, Helpers.add("?", this.urlencode(parameters)));
             }
         }
-        String baseUrl = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"));
+        Object baseUrl = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"));
         Object url = Helpers.add(baseUrl, request);
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {

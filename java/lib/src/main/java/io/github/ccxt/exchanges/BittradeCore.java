@@ -819,7 +819,7 @@ public class BittradeCore extends BittradeApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
-                String baseId = this.safeString(market, "base-currency");
+                Object baseId = this.safeString(market, "base-currency");
                 String quoteId = this.safeString(market, "quote-currency");
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);

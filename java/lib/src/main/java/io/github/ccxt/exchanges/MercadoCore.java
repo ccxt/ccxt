@@ -373,7 +373,7 @@ public class MercadoCore extends MercadoApi
                 Object baseId = coin;
                 String quoteId = "BRL";
                 String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                Object quote = this.safeCurrencyCode(quoteId);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
                 {
                     continue;
@@ -1287,7 +1287,7 @@ public class MercadoCore extends MercadoApi
                 put( "tapi_method", path );
                 put( "tapi_nonce", nonce );
             }}, parameters));
-            Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/tapi/", this.version), "/"), "?"), body);
+            String auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/tapi/", this.version), "/"), "?"), body);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "TAPI-ID", MercadoCore.this.apiKey );

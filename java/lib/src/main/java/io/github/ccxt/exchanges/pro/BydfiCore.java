@@ -118,7 +118,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             java.util.Map<String, Object> subscriptionParams = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Boolean unsubscribe = (Boolean) this.safeBool(parameters, "unsubscribe", false);
+            Object unsubscribe = this.safeBool(parameters, "unsubscribe", false);
             String method = "SUBSCRIBE";
             if (Helpers.isTrue(Helpers.isEqual(unsubscribe, true)))
             {
@@ -153,7 +153,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             if (Helpers.isTrue(Helpers.isEqual(privateSubscription, null)))
             {
                 Object id = this.requestId();
-                String timestamp = String.valueOf(this.milliseconds());
+                Object timestamp = String.valueOf(this.milliseconds());
                 Object payload = Helpers.add(this.apiKey, timestamp);
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -300,11 +300,11 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                 Helpers.addElementToObject(subscription, "subHashIsPrefix", true);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subHashes)); i++)
                 {
-                    Object subHash = this.safeString(subHashes, i);
+                    String subHash = this.safeString(subHashes, i);
                     if (Helpers.isTrue(!Helpers.isEqual(subHash, null)))
                     {
-                        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(subHash, "::");
-                        Object symbol = this.safeString(parts, 1);
+                        Object parts = Helpers.split(subHash, "::");
+                        String symbol = this.safeString(parts, 1);
                         if (Helpers.isTrue(Helpers.isEqual(symbol, "all")))
                         {
                             continue;
@@ -442,7 +442,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Integer symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
+            Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
@@ -453,11 +453,11 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
-                Object marketId = this.safeString(symbolAndTimeframe, 0);
+                String marketId = this.safeString(symbolAndTimeframe, 0);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
-                Object tf = this.safeString(symbolAndTimeframe, 1);
-                java.util.Map<String, Object> timeframes = (java.util.Map<String, Object>) this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
-                Object interval = this.safeString(timeframes, tf, tf);
+                String tf = this.safeString(symbolAndTimeframe, 1);
+                Object timeframes = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
+                String interval = this.safeString(timeframes, tf, tf);
                 ((java.util.List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), interval));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("ohlcv::", Helpers.GetValue(market, "symbol")), "::"), interval));
             }
@@ -490,7 +490,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Integer symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
+            Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
@@ -501,10 +501,10 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
-                Object marketId = this.safeString(symbolAndTimeframe, 0);
+                String marketId = this.safeString(symbolAndTimeframe, 0);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
-                Object tf = this.safeString(symbolAndTimeframe, 1);
-                Object interval = this.safeString(this.timeframes, tf, tf);
+                String tf = this.safeString(symbolAndTimeframe, 1);
+                String interval = this.safeString(this.timeframes, tf, tf);
                 ((java.util.List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), interval));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add("unsubscribe::ohlcv::", Helpers.GetValue(market, "symbol")), "::"), interval));
             }
@@ -536,11 +536,11 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //         "o": 2956.05
         //     }
         //
-        Object marketId = this.safeString(message, "s");
+        String marketId = this.safeString(message, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object interval = this.safeString(message, "i");
-        java.util.Map<String, Object> timeframes = (java.util.Map<String, Object>) this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
+        String interval = this.safeString(message, "i");
+        Object timeframes = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(interval, timeframes);
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
         {
@@ -718,7 +718,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //         "E": 1766577624512
         //     }
         //
-        Object marketId = this.safeString(message, "s");
+        String marketId = this.safeString(message, "s");
         String symbol = (String) this.safeSymbol(marketId);
         Long timestamp = this.safeInteger(message, "E");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -803,7 +803,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeValue(orders, 0);
-                Object tradeSymbol = this.safeString(first, "symbol");
+                String tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(orders, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(orders, since, limit, "timestamp", true);
@@ -841,11 +841,11 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //         }
         //     }
         //
-        java.util.Map<String, Object> rawOrder = (java.util.Map<String, Object>) this.safeDict(message, "o", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(rawOrder, "s");
+        Object rawOrder = this.safeDict(message, "o", new java.util.HashMap<String, Object>() {{}});
+        String marketId = this.safeString(rawOrder, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = "orders";
+        String messageHash = (String) "orders";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -887,12 +887,12 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(order, "s");
+        String marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
-        Object rawStatus = this.safeString(order, "st");
-        Object rawType = this.safeString(order, "t");
+        String rawStatus = this.safeString(order, "st");
+        String rawType = this.safeString(order, "t");
         Object fee = null;
-        Object feeCost = this.safeString(order, "fee");
+        String feeCost = this.safeString(order, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;
@@ -959,7 +959,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             }
             symbols = this.marketSymbols(symbols, null, true);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            String messageHash = "positions";
+            String messageHash = (String) "positions";
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
                 ((java.util.List<Object>)messageHashes).add(messageHash);
@@ -1023,13 +1023,13 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //         "e": "ACCOUNT_UPDATE"
         //     }
         //
-        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> positionsData = (java.util.List<Object>) this.safeList(data, "p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.Map<String, Object> rawPosition = (java.util.Map<String, Object>) this.safeDict(positionsData, 0, new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(rawPosition, "s");
+        Object data = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
+        Object positionsData = this.safeList(data, "p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawPosition = this.safeDict(positionsData, 0, new java.util.HashMap<String, Object>() {{}});
+        String marketId = this.safeString(rawPosition, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String messageHash = "positions";
+        String messageHash = (String) "positions";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
@@ -1068,10 +1068,10 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(position, "s");
+        String marketId = this.safeString(position, "s");
         market = this.safeMarket(marketId, market);
-        Object rawPositionSide = this.safeString(position, "S");
-        Object positionMode = this.safeString(position, "pt");
+        String rawPositionSide = this.safeString(position, "S");
+        String positionMode = this.safeString(position, "pt");
         final Object finalMarket = market;
         final Object finalPositionMode = positionMode;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
@@ -1134,9 +1134,9 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
             this.fetchBalanceSnapshot(client);
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "watchBalance");
-            Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
-            Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
+            Object options = this.safeDict(this.options, "watchBalance");
+            Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+            Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchBalanceSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitBalanceSnapshot, true)))))
             {
                 client.future("fetchBalanceSnapshot").getFuture().join();
@@ -1150,7 +1150,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
     public void fetchBalanceSnapshot(Client client)
     {
         Object options = this.safeValue(this.options, "watchBalance");
-        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+        Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
         if (Helpers.isTrue(Helpers.isEqual(fetchBalanceSnapshot, true)))
         {
             String messageHash = (String) "fetchBalanceSnapshot";
@@ -1226,8 +1226,8 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         String messageHash = (String) "balance";
         if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
         {
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> balances = (java.util.List<Object>) this.safeList(data, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
+            Object balances = this.safeList(data, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Long timestamp = this.safeInteger(message, "T");
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", message );
@@ -1237,7 +1237,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
             {
                 Object balance = Helpers.GetValue(balances, i);
-                Object currencyId = this.safeString(balance, "a");
+                String currencyId = this.safeString(balance, "a");
                 String code = (String) this.safeCurrencyCode(currencyId);
                 Object account = this.account();
                 Helpers.addElementToObject(account, "total", this.safeString(balance, "wb"));
@@ -1261,10 +1261,10 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //         "id": 1
         //     }
         //
-        Object id = this.safeString(message, "id");
+        String id = this.safeString(message, "id");
         java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        java.util.Map<String, Object> subscription = (java.util.Map<String, Object>) this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
-        Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
+        Object subscription = this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
+        Object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (Helpers.isTrue(Helpers.isEqual(isUnSubMessage, true)))
         {
             this.handleUnSubscription(client, subscription);
@@ -1274,8 +1274,8 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
 
     public void handleUnSubscription(Client client, Object subscription)
     {
-        java.util.List<Object> messageHashes = (java.util.List<Object>) this.safeList(subscription, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Boolean subHashIsPrefix = (Boolean) this.safeBool(subscription, "subHashIsPrefix", false);
+        Object messageHashes = this.safeList(subscription, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object unsubHash = Helpers.GetValue(messageHashes, i);
@@ -1305,8 +1305,8 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //         "code": "-1"
         //     }
         //
-        Object code = this.safeString(message, "code");
-        Object msg = this.safeString(message, "msg");
+        String code = this.safeString(message, "code");
+        String msg = this.safeString(message, "msg");
         Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(message));
         this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), msg, feedback);
         this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), msg, feedback);
@@ -1316,12 +1316,12 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
 
     public void handleMessage(Client client, Object message)
     {
-        Object code = this.safeString(message, "code");
+        String code = this.safeString(message, "code");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue((!Helpers.isEqual(code, "0")))))
         {
             this.handleErrorMessage(client, message);
         }
-        Object result = this.safeString(message, "result");
+        String result = this.safeString(message, "result");
         if (Helpers.isTrue(Helpers.isEqual(result, "pong")))
         {
             this.handlePong(client, message);
@@ -1330,7 +1330,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             this.handleSubscriptionStatus(client, message);
         } else
         {
-            Object eventVar = this.safeString(message, "e");
+            String eventVar = this.safeString(message, "e");
             if (Helpers.isTrue(Helpers.isEqual(eventVar, "24hrTicker")))
             {
                 this.handleTicker(client, message);
@@ -1345,15 +1345,15 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                 this.handleOrder(client, message);
             } else if (Helpers.isTrue(Helpers.isEqual(eventVar, "ACCOUNT_UPDATE")))
             {
-                java.util.Map<String, Object> account = (java.util.Map<String, Object>) this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
-                java.util.List<Object> balances = (java.util.List<Object>) this.safeList(account, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Integer balancesLength = Helpers.getArrayLength(balances);
+                Object account = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
+                Object balances = this.safeList(account, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object balancesLength = Helpers.getArrayLength(balances);
                 if (Helpers.isTrue(Helpers.isGreaterThan(balancesLength, 0)))
                 {
                     this.handleBalance(client, message);
                 }
-                java.util.List<Object> positions = (java.util.List<Object>) this.safeList(account, "p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Integer positionsLength = Helpers.getArrayLength(positions);
+                Object positions = this.safeList(account, "p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object positionsLength = Helpers.getArrayLength(positions);
                 if (Helpers.isTrue(Helpers.isGreaterThan(positionsLength, 0)))
                 {
                     this.handlePositions(client, message);

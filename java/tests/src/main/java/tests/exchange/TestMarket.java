@@ -147,7 +147,7 @@ public class TestMarket extends BaseTest {
         java.util.List<Object> checkedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedTypes)); i++)
         {
-            Object type = Helpers.GetValue(checkedTypes, i);
+            String type = (String) Helpers.GetValue(checkedTypes, i);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, type), true)))
             {
                 Assert(Helpers.isEqual(type, Helpers.GetValue(market, "type")), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("market.type (", Helpers.GetValue(market, "type")), ") not equal to \""), type), "\""), logText));
@@ -159,7 +159,7 @@ public class TestMarket extends BaseTest {
             java.util.List<Object> checkedSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedSubTypes)); i++)
             {
-                Object subType = Helpers.GetValue(checkedSubTypes, i);
+                String subType = (String) Helpers.GetValue(checkedSubTypes, i);
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, subType), true)))
                 {
                     Assert(Helpers.isEqual(subType, Helpers.GetValue(market, "subType")), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("market.subType (", Helpers.GetValue(market, "subType")), ") not equal to \""), subType), "\""), logText));

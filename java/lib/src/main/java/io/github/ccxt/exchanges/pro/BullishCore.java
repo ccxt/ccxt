@@ -70,7 +70,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
     {
         // bullish does not support built-in ws protocol-level ping-pong
         // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
-        String id = String.valueOf(this.requestId());
+        Object id = String.valueOf(this.requestId());
         return new java.util.HashMap<String, Object>() {{
             put( "jsonrpc", "2.0" );
             put( "type", "command" );
@@ -104,7 +104,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
 
             Object request = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            String id = String.valueOf(this.requestId());
+            Object id = String.valueOf(this.requestId());
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "type", "command" );
@@ -131,7 +131,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                 put( "JWT_COOKIE", token );
             }};
             Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "cookies", cookies);
-            String id = String.valueOf(this.requestId());
+            Object id = String.valueOf(this.requestId());
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "type", "command" );
@@ -211,11 +211,11 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         //         }
         //     }
         //
-        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(data, "symbol");
+        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        String marketId = this.safeString(data, "symbol");
         String symbol = (String) this.safeSymbol(marketId);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        java.util.List<Object> rawTrades = (java.util.List<Object>) this.safeList(data, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawTrades = this.safeList(data, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> trades = this.parseTrades(rawTrades, market);
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
@@ -307,16 +307,16 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         //         }
         //     }
         //
-        Object updateType = this.safeString(message, "type", "");
-        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(data, "symbol");
+        String updateType = this.safeString(message, "type", "");
+        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        String marketId = this.safeString(data, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object parsed = this.parseTicker(data, market);
         if (Helpers.isTrue(Helpers.isEqual(updateType, "update")))
         {
-            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.safeDict(this.tickers, symbol, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> rawTicker = (java.util.Map<String, Object>) this.safeDict(ticker, "info", new java.util.HashMap<String, Object>() {{}});
+            Object ticker = this.safeDict(this.tickers, symbol, new java.util.HashMap<String, Object>() {{}});
+            Object rawTicker = this.safeDict(ticker, "info", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged, market);
         }
@@ -383,8 +383,8 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         //     }
         //
         // current channel is 'l2Orderbook' which returns only snapshots
-        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(data, "symbol");
+        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        String marketId = this.safeString(data, "symbol");
         String symbol = (String) this.safeSymbol(marketId);
         String messageHash = (String) Helpers.add("orderbook::", symbol);
         Long timestamp = this.safeInteger(data, "timestamp");
@@ -400,7 +400,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             put( "asks", asks );
         }};
         Object parsed = this.parseOrderBook(snapshot, symbol, timestamp);
-        java.util.List<Object> sequenceNumberRange = (java.util.List<Object>) this.safeList(data, "sequenceNumberRange", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object sequenceNumberRange = this.safeList(data, "sequenceNumberRange", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(sequenceNumberRange), 0)))
         {
             Object lastIndex = Helpers.subtract(Helpers.getArrayLength(sequenceNumberRange), 1);
@@ -423,8 +423,8 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             {
                 continue;
             }
-            Object price = this.safeString(entry, i);
-            Object amount = this.safeString(entry, Helpers.add(i, 1));
+            String price = this.safeString(entry, i);
+            String amount = this.safeString(entry, Helpers.add(i, 1));
             ((java.util.List<Object>)result).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount)));
         }
         return result;
@@ -465,7 +465,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "topic", "orders" );
             }};
-            Object tradingAccountId = this.safeString(parameters, "tradingAccountId");
+            String tradingAccountId = this.safeString(parameters, "tradingAccountId");
             if (Helpers.isTrue(!Helpers.isEqual(tradingAccountId, null)))
             {
                 Helpers.addElementToObject(request, "tradingAccountId", tradingAccountId);
@@ -527,17 +527,17 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         //         }
         //     }
         //
-        Object type = this.safeString(message, "type");
+        String type = this.safeString(message, "type");
         Object rawOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(type, "update")))
         {
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
             ((java.util.List<Object>)rawOrders).add(data); // update is a single order
         } else
         {
             rawOrders = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())); // snapshot is a list of orders
         }
-        Integer numRawOrders = Helpers.getArrayLength(rawOrders); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        Object numRawOrders = Helpers.getArrayLength(rawOrders); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if (Helpers.isTrue(Helpers.isGreaterThan(numRawOrders, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
@@ -552,13 +552,13 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                 Object rawOrder = Helpers.GetValue(rawOrders, i);
                 Object parsedOrder = this.parseOrder(rawOrder);
                 Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
-                Object symbol = this.safeString(parsedOrder, "symbol");
+                String symbol = this.safeString(parsedOrder, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
                     Helpers.addElementToObject(symbols, symbol, true);
                 }
             }
-            String messageHash = "orders";
+            String messageHash = (String) "orders";
             client.resolve(orders, messageHash);
             Object keys = Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -605,7 +605,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "topic", "trades" );
             }};
-            Object tradingAccountId = this.safeString(parameters, "tradingAccountId");
+            String tradingAccountId = this.safeString(parameters, "tradingAccountId");
             if (Helpers.isTrue(!Helpers.isEqual(tradingAccountId, null)))
             {
                 Helpers.addElementToObject(request, "tradingAccountId", tradingAccountId);
@@ -660,17 +660,17 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         //         }
         //     }
         //
-        Object type = this.safeString(message, "type");
+        String type = this.safeString(message, "type");
         Object rawTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(type, "update")))
         {
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
             ((java.util.List<Object>)rawTrades).add(data); // update is a single trade
         } else
         {
             rawTrades = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())); // snapshot is a list of trades
         }
-        Integer numRawTrades = Helpers.getArrayLength(rawTrades); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        Object numRawTrades = Helpers.getArrayLength(rawTrades); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if (Helpers.isTrue(Helpers.isGreaterThan(numRawTrades, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
@@ -685,13 +685,13 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                 Object rawTrade = Helpers.GetValue(rawTrades, i);
                 Object parsedTrade = this.parseTrade(rawTrade);
                 Helpers.callDynamically(trades, "append", new Object[]{parsedTrade});
-                Object symbol = this.safeString(parsedTrade, "symbol");
+                String symbol = this.safeString(parsedTrade, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
                     Helpers.addElementToObject(symbols, symbol, true);
                 }
             }
-            String messageHash = "myTrades";
+            String messageHash = (String) "myTrades";
             client.resolve(trades, messageHash);
             Object keys = Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -726,7 +726,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                 put( "topic", "assetAccounts" );
             }};
             String messageHash = (String) "balance";
-            Object tradingAccountId = this.safeString(parameters, "tradingAccountId");
+            String tradingAccountId = this.safeString(parameters, "tradingAccountId");
             if (Helpers.isTrue(!Helpers.isEqual(tradingAccountId, null)))
             {
                 parameters = this.omit(parameters, "tradingAccountId");
@@ -781,7 +781,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         //         }
         //     }
         //
-        Object tradingAccountId = this.safeString(message, "tradingAccountId");
+        String tradingAccountId = this.safeString(message, "tradingAccountId");
         if (Helpers.isTrue(Helpers.isEqual(tradingAccountId, null)))
         {
             return;
@@ -790,15 +790,15 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         {
             Helpers.addElementToObject(this.balance, tradingAccountId, new java.util.HashMap<String, Object>() {{}});
         }
-        Object messageType = this.safeString(message, "type");
+        String messageType = this.safeString(message, "type");
         if (Helpers.isTrue(Helpers.isEqual(messageType, "snapshot")))
         {
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Helpers.addElementToObject(this.balance, tradingAccountId, this.parseBalance(data));
         } else
         {
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-            Object assetId = this.safeString(data, "assetSymbol");
+            Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+            String assetId = this.safeString(data, "assetSymbol");
             Object account = this.account();
             Helpers.addElementToObject(account, "total", this.safeString(data, "availableQuantity"));
             Helpers.addElementToObject(account, "used", this.safeString(data, "lockedQuantity"));
@@ -865,11 +865,11 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         // exchange does not return messages for sandbox mode
         // current method is implemented blindly
         // todo: check if this works with not-sandbox mode
-        Object messageType = this.safeString(message, "type");
+        String messageType = this.safeString(message, "type");
         Object rawPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(messageType, "update")))
         {
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
             ((java.util.List<Object>)rawPositions).add(data);
         } else
         {
@@ -892,9 +892,9 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
+            Object parts = Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
+            Object symbols = Helpers.split(symbolsString, ",");
             Object symbolPositions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(symbolPositions)))
             {
@@ -917,12 +917,12 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         //         "type": "error"
         //     }
         //
-        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(data));
         try
         {
-            Object errorCode = this.safeString(data, "errorCode");
-            Object errorCodeName = this.safeString(data, "errorCodeName");
+            String errorCode = this.safeString(data, "errorCode");
+            String errorCodeName = this.safeString(data, "errorCodeName");
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), errorCodeName, feedback);
             throw new ExchangeError((String)feedback) ;
@@ -934,11 +934,11 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
 
     public void handleMessage(Client client, Object message)
     {
-        Object dataType = this.safeString(message, "dataType");
-        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(message, "result");
+        String dataType = this.safeString(message, "dataType");
+        Object result = this.safeDict(message, "result");
         if (Helpers.isTrue(!Helpers.isEqual(result, null)))
         {
-            Object response = this.safeString(result, "message");
+            String response = this.safeString(result, "message");
             if (Helpers.isTrue(Helpers.isEqual(response, "Keep alive pong")))
             {
                 this.handlePong(client, message);

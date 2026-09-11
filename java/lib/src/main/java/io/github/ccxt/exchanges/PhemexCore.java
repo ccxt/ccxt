@@ -5987,7 +5987,7 @@ final Object finalI = i;
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100)).join();
             }
-            Object customSymbol = null;
+            String customSymbol = null;
             if (Helpers.isTrue(isUsdtSettled))
             {
                 customSymbol = Helpers.add(Helpers.add(".", Helpers.GetValue(market, "id")), "FR8H"); // phemex requires a custom symbol for funding rate history

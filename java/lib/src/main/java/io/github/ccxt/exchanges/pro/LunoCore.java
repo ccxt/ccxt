@@ -110,8 +110,8 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         //         "timestamp": 1660598775360
         //     }
         //
-        java.util.List<Object> rawTrades = (java.util.List<Object>) this.safeList(message, "trade_updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Integer length = Helpers.getArrayLength(rawTrades);
+        Object rawTrades = this.safeList(message, "trade_updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object length = Helpers.getArrayLength(rawTrades);
         if (Helpers.isTrue(Helpers.isEqual(length, 0)))
         {
             return;
@@ -129,7 +129,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
         {
             Object rawTrade = Helpers.GetValue(rawTrades, i);
-            java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.parseTrade(rawTrade, market);
+            Object trade = this.parseTrade(rawTrade, market);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
@@ -371,7 +371,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         if (Helpers.isTrue(!Helpers.isEqual(createUpdate, null)))
         {
             Object bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
-            String type = (String) this.safeString(createUpdate, "type");
+            String type = this.safeString(createUpdate, "type");
             if (Helpers.isTrue(Helpers.isEqual(type, "ASK")))
             {
                 Helpers.callDynamically(asksOrderSide, "storeArray", new Object[]{bidAskArray});
@@ -383,7 +383,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         Object deleteUpdate = this.safeValue(message, "delete_update");
         if (Helpers.isTrue(!Helpers.isEqual(deleteUpdate, null)))
         {
-            String orderId = (String) this.safeString(deleteUpdate, "order_id");
+            String orderId = this.safeString(deleteUpdate, "order_id");
             Helpers.callDynamically(asksOrderSide, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(0, 0, orderId))});
             Helpers.callDynamically(bidsOrderSide, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(0, 0, orderId))});
         }

@@ -1169,7 +1169,7 @@ public class OnetradingCore extends OnetradingApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object granularity = this.safeValue(ohlcv, "granularity");
         String unit = this.safeString(granularity, "unit");
-        String period = this.safeString(granularity, "period");
+        Object period = this.safeString(granularity, "period");
         java.util.Map<String, Object> units = new java.util.HashMap<String, Object>() {{
             put( "MINUTES", "m" );
             put( "HOURS", "h" );

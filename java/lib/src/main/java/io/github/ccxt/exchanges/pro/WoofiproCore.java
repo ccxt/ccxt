@@ -79,7 +79,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
 
     public Object requestId(Object url)
     {
-        java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "requestId", new java.util.HashMap<String, Object>() {{}});
+        Object options = this.safeDict(this.options, "requestId", new java.util.HashMap<String, Object>() {{}});
         Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
         Helpers.addElementToObject(Helpers.GetValue(this.options, "requestId"), url, newValue);
@@ -166,11 +166,11 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //         }
         //     }
         //
-        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(data, "symbol");
+        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        String marketId = this.safeString(data, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object topic = this.safeString(message, "topic");
+        String topic = this.safeString(message, "topic");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -272,9 +272,9 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //         }
         //     }
         //
-        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object topic = this.safeString(message, "topic");
-        Object marketId = this.safeString(data, "symbol");
+        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        String topic = this.safeString(message, "topic");
+        String marketId = this.safeString(data, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(data, "date", timestamp);
@@ -340,13 +340,13 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //         ]
         //     }
         //
-        Object topic = this.safeString(message, "topic");
-        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        String topic = this.safeString(message, "topic");
+        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
+            String marketId = this.safeString(Helpers.GetValue(data, i), "symbol");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object ticker = this.parseWsTicker(this.extend(Helpers.GetValue(data, i), new java.util.HashMap<String, Object>() {{
                 put( "date", timestamp );
@@ -408,8 +408,8 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //       ]
         //     }
         //
-        Object topic = this.safeString(message, "topic");
-        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        String topic = this.safeString(message, "topic");
+        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Long timestamp = this.safeInteger(message, "ts");
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -429,9 +429,9 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
     public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(ticker, "symbol");
+        String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        Object symbol = this.safeString(market, "symbol");
+        String symbol = this.safeString(market, "symbol");
         Long timestamp = this.safeInteger(ticker, "ts");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -475,7 +475,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                 throw new NotSupported((String)Helpers.add(this.id, " watchOHLCV timeframe argument must be 1m, 5m, 15m, 30m, 1h, 1d, 1w, 1M")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object interval = this.safeString(this.timeframes, timeframe, timeframe);
+            String interval = this.safeString(this.timeframes, timeframe, timeframe);
             String name = "kline";
             Object topic = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name), "_"), interval);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -513,12 +513,12 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //         }
         //     }
         //
-        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object topic = this.safeString(message, "topic");
-        Object marketId = this.safeString(data, "symbol");
+        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        String topic = this.safeString(message, "topic");
+        String marketId = this.safeString(data, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object interval = this.safeString(data, "type");
+        String interval = this.safeString(data, "type");
         Object timeframe = this.findTimeframe(interval);
         java.util.List<Object> parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(data, "startTime"), this.safeNumber(data, "open"), this.safeNumber(data, "high"), this.safeNumber(data, "low"), this.safeNumber(data, "close"), this.safeNumber(data, "volume")));
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
@@ -591,10 +591,10 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //     }
         // }
         //
-        Object topic = this.safeString(message, "topic");
+        String topic = this.safeString(message, "topic");
         Long timestamp = this.safeInteger(message, "ts");
-        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(data, "symbol");
+        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        String marketId = this.safeString(data, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object trade = this.parseWsTrade(this.extend(data, new java.util.HashMap<String, Object>() {{
@@ -651,22 +651,22 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(trade, "symbol");
+        String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object price = this.safeString2(trade, "executedPrice", "price");
-        Object amount = this.safeString2(trade, "executedQuantity", "size");
+        String price = this.safeString2(trade, "executedPrice", "price");
+        String amount = this.safeString2(trade, "executedQuantity", "size");
         String cost = Precise.stringMul(price, amount);
         String side = (String)this.safeStringLower(trade, "side");
         Long timestamp = this.safeInteger(trade, "timestamp");
         String takerOrMaker = null;
-        Boolean maker = (Boolean) this.safeBool(trade, "maker");
+        Object maker = this.safeBool(trade, "maker");
         if (Helpers.isTrue(!Helpers.isEqual(maker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(maker))) ? "maker" : "taker";
         }
         Object fee = null;
-        Object feeValue = this.safeString(trade, "fee");
+        String feeValue = this.safeString(trade, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeValue, null)))
         {
             final Object finalFeeValue = feeValue;
@@ -737,12 +737,12 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
-                String ts = String.valueOf(this.nonce());
-                String auth = ts;
+                Object ts = String.valueOf(this.nonce());
+                Object auth = ts;
                 Object secret = this.secret;
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secret, "ed25519:"), 0)))
                 {
-                    java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(secret, "ed25519:");
+                    Object parts = Helpers.split(secret, "ed25519:");
                     secret = Helpers.GetValue(parts, 1);
                 }
                 Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
@@ -824,7 +824,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             {
                 (this.loadMarkets()).join();
             }
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+            Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
             String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreport" : "executionreport";
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object messageHash = topic;
@@ -875,7 +875,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             {
                 (this.loadMarkets()).join();
             }
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger", false);
+            Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
             String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreport" : "executionreport";
             parameters = this.omit(parameters, "stop");
             String messageHash = (String) "myTrades";
@@ -968,8 +968,8 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object orderId = this.safeString(order, "orderId");
-        Object marketId = this.safeString(order, "symbol");
+        String orderId = this.safeString(order, "orderId");
+        String marketId = this.safeString(order, "symbol");
         market = this.market(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Long timestamp = this.safeInteger(order, "timestamp");
@@ -977,27 +977,27 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             put( "cost", WoofiproCore.this.safeString(order, "totalFee") );
             put( "currency", WoofiproCore.this.safeString(order, "feeAsset") );
         }};
-        Object priceString = this.safeString(order, "price");
+        String priceString = this.safeString(order, "price");
         Object price = this.safeNumber(order, "price");
         Double avgPrice = this.safeNumber(order, "avgPrice");
         if (Helpers.isTrue(Helpers.isTrue(Precise.stringEq(priceString, "0")) && Helpers.isTrue((!Helpers.isEqual(avgPrice, null)))))
         {
             price = avgPrice;
         }
-        Object amount = this.safeString(order, "quantity");
+        String amount = this.safeString(order, "quantity");
         String side = (String)this.safeStringLower(order, "side");
         String type = (String)this.safeStringLower(order, "type");
         Double filled = this.safeNumber(order, "totalExecutedQuantity");
-        Object totalExecQuantity = this.safeString(order, "totalExecutedQuantity");
+        String totalExecQuantity = this.safeString(order, "totalExecutedQuantity");
         Object remaining = amount;
         if (Helpers.isTrue(Precise.stringGe(amount, totalExecQuantity)))
         {
             remaining = Precise.stringSub(remaining, totalExecQuantity);
         }
-        Object rawStatus = this.safeString(order, "status");
-        Object status = this.parseOrderStatus(rawStatus);
+        String rawStatus = this.safeString(order, "status");
+        String status = this.parseOrderStatus(rawStatus);
         Object trades = null;
-        Object clientOrderId = this.safeString(order, "clientOrderId");
+        String clientOrderId = this.safeString(order, "clientOrderId");
         Double triggerPrice = this.safeNumber(order, "triggerPrice");
         final Object finalPrice = price;
         final Object finalRemaining = remaining;
@@ -1057,7 +1057,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //         }
         //     }
         //
-        Object topic = this.safeString(message, "topic");
+        String topic = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data");
         if (Helpers.isTrue(Helpers.isArray(data)))
         {
@@ -1087,8 +1087,8 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
     public void handleOrder(Client client, Object message, Object topic)
     {
         Object parsed = this.parseWsOrder(message);
-        Object symbol = this.safeString(parsed, "symbol");
-        Object orderId = this.safeString(parsed, "id");
+        String symbol = this.safeString(parsed, "symbol");
+        String orderId = this.safeString(parsed, "id");
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
@@ -1097,8 +1097,8 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object cachedOrders = this.orders;
-            java.util.Map<String, Object> orders = (java.util.Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(orders, orderId);
+            Object orders = this.safeDict(((io.github.ccxt.ws.ArrayCache)cachedOrders).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
+            Object order = this.safeDict(orders, orderId);
             if (Helpers.isTrue(!Helpers.isEqual(order, null)))
             {
                 Object fee = this.safeValue(order, "fee");
@@ -1106,7 +1106,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                 {
                     Helpers.addElementToObject(parsed, "fee", fee);
                 }
-                java.util.List<Object> fees = (java.util.List<Object>) this.safeList(order, "fees");
+                Object fees = this.safeList(order, "fees");
                 if (Helpers.isTrue(!Helpers.isEqual(fees, null)))
                 {
                     Helpers.addElementToObject(parsed, "fees", fees);
@@ -1152,8 +1152,8 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //     maker: false
         // }
         //
-        String messageHash = "myTrades";
-        Object marketId = this.safeString(message, "symbol");
+        String messageHash = (String) "myTrades";
+        String marketId = this.safeString(message, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object trade = this.parseWsTrade(message, market);
@@ -1268,7 +1268,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object position = Helpers.GetValue(positions, i);
-                Object contracts = this.safeString(position, "contracts", "0");
+                String contracts = this.safeString(position, "contracts", "0");
                 if (Helpers.isTrue(Precise.stringGt(contracts, "0")))
                 {
                     Helpers.callDynamically(cache, "append", new Object[]{position});
@@ -1320,8 +1320,8 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //        }
         //    }
         //
-        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> rawPositions = (java.util.List<Object>) this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object rawPositions = this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
@@ -1331,7 +1331,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
-            Object marketId = this.safeString(rawPosition, "symbol");
+            String marketId = this.safeString(rawPosition, "symbol");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object position = this.parseWsPosition(rawPosition, market);
             ((java.util.List<Object>)newPositions).add(position);
@@ -1369,9 +1369,9 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object contract = this.safeString(position, "symbol");
+        String contract = this.safeString(position, "symbol");
         market = this.safeMarket(contract, market);
-        Object size = this.safeString(position, "positionQty");
+        String size = this.safeString(position, "positionQty");
         String side = null;
         if (Helpers.isTrue(Precise.stringGt(size, "0")))
         {
@@ -1380,11 +1380,11 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         {
             side = "short";
         }
-        Object contractSize = this.safeString(market, "contractSize");
-        Object markPrice = this.safeString(position, "markPrice");
+        String contractSize = this.safeString(market, "contractSize");
+        String markPrice = this.safeString(position, "markPrice");
         Long timestamp = this.safeInteger(position, "timestamp");
-        Object entryPrice = this.safeString(position, "averageOpenPrice");
-        Object unrealisedPnl = this.safeString(position, "unsettledPnl");
+        String entryPrice = this.safeString(position, "averageOpenPrice");
+        String unrealisedPnl = this.safeString(position, "unsettledPnl");
         size = Precise.stringAbs(size);
         String notional = Precise.stringMul(size, markPrice);
         final Object finalMarket = market;
@@ -1481,8 +1481,8 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //         }
         //     }
         //
-        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> balances = (java.util.Map<String, Object>) this.safeDict(data, "balances", new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        Object balances = this.safeDict(data, "balances", new java.util.HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(balances);
         Long ts = this.safeInteger(message, "ts");
         Helpers.addElementToObject(this.balance, "info", data);
@@ -1498,8 +1498,8 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             {
                 account = Helpers.GetValue(this.balance, code);
             }
-            Object total = this.safeString(value, "holding");
-            Object used = this.safeString(value, "frozen");
+            String total = this.safeString(value, "holding");
+            String used = this.safeString(value, "frozen");
             Helpers.addElementToObject(account, "total", total);
             Helpers.addElementToObject(account, "used", used);
             Helpers.addElementToObject(account, "free", Precise.stringSub(total, used));
@@ -1521,12 +1521,12 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         {
             return false;
         }
-        Boolean success = (Boolean) this.safeBool(message, "success");
+        Object success = this.safeBool(message, "success");
         if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
             return false;
         }
-        Object errorMessage = this.safeString(message, "errorMsg");
+        String errorMessage = this.safeString(message, "errorMsg");
         try
         {
             if (Helpers.isTrue(!Helpers.isEqual(errorMessage, null)))
@@ -1575,14 +1575,14 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             put( "balance", "handleBalance");
             put( "bbos", "handleBidAsk");
         }};
-        Object eventVar = this.safeString(message, "event");
+        String eventVar = this.safeString(message, "event");
         Object method = this.safeValue(methods, eventVar);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {
             Helpers.callDynamically(this, method, new Object[] {client, message});
             return;
         }
-        Object topic = this.safeString(message, "topic");
+        String topic = this.safeString(message, "topic");
         if (Helpers.isTrue(!Helpers.isEqual(topic, null)))
         {
             method = this.safeValue(methods, topic);
@@ -1591,11 +1591,11 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                 Helpers.callDynamically(this, method, new Object[] {client, message});
                 return;
             }
-            java.util.List<Object> splitTopic = (java.util.List<Object>) Helpers.split(topic, "@");
-            Integer splitLength = Helpers.getArrayLength(splitTopic);
+            Object splitTopic = Helpers.split(topic, "@");
+            Object splitLength = Helpers.getArrayLength(splitTopic);
             if (Helpers.isTrue(Helpers.isEqual(splitLength, 2)))
             {
-                Object name = this.safeString(splitTopic, 1);
+                String name = this.safeString(splitTopic, 1);
                 if (Helpers.isTrue(Helpers.isEqual(name, null)))
                 {
                     return;
@@ -1606,8 +1606,8 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                     Helpers.callDynamically(this, method, new Object[] {client, message});
                     return;
                 }
-                java.util.List<Object> splitName = (java.util.List<Object>) Helpers.split(name, "_");
-                Integer splitNameLength = Helpers.getArrayLength(splitTopic);
+                Object splitName = Helpers.split(name, "_");
+                Object splitNameLength = Helpers.getArrayLength(splitTopic);
                 if (Helpers.isTrue(Helpers.isEqual(splitNameLength, 2)))
                 {
                     method = this.safeValue(methods, this.safeString(splitName, 0));

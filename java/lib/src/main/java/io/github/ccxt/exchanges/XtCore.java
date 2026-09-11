@@ -6392,7 +6392,7 @@ final Object finalMarket = market;
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            Object key = Helpers.add(Helpers.add(this.safeString(breakEntry, "symbol"), "_"), this.safeString(breakEntry, "positionSide"));
+            String key = Helpers.add(Helpers.add(this.safeString(breakEntry, "symbol"), "_"), this.safeString(breakEntry, "positionSide"));
             Helpers.addElementToObject(breakBySymbolSide, key, breakEntry);
         }
         return breakBySymbolSide;
@@ -7140,7 +7140,7 @@ final Object finalMarket = market;
         Boolean signed = Helpers.isEqual(Helpers.GetValue(api, 0), "private");
         Object endpoint = Helpers.GetValue(api, 1);
         String request = Helpers.add("/", this.implodeParams(path, parameters));
-        Object payload = null;
+        String payload = null;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(endpoint, "spot"))) || Helpers.isTrue((Helpers.isEqual(endpoint, "user")))))
         {
             if (Helpers.isTrue(signed))

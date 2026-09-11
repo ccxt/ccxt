@@ -46,7 +46,7 @@ public class TestLoadMarkets extends BaseTest {
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketTypes)); i++)
         {
-            Object mType = Helpers.GetValue(marketTypes, i);
+            String mType = (String) Helpers.GetValue(marketTypes, i);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, mType), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, mType), false))))
             {
                 Boolean skipMarketTypes = Helpers.isTrue((Helpers.inOp(skippedProperties, "optionsNotLoadedByDefault"))) && Helpers.isTrue(Helpers.isEqual(mType, "option"));

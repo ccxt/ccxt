@@ -1765,7 +1765,7 @@ public class MudrexCore extends MudrexApi
             {
                 Object entry = Helpers.GetValue(allRows, i);
                 String feeType = this.safeString(entry, "fee_type");
-                Object pairKey = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.safeString(entry, "symbol", ""), ":"), this.safeString(entry, "created_at", "")), ":"), this.safeString(entry, "transaction_amount", ""));
+                String pairKey = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.safeString(entry, "symbol", ""), ":"), this.safeString(entry, "created_at", "")), ":"), this.safeString(entry, "transaction_amount", ""));
                 if (Helpers.isTrue(Helpers.isEqual(feeType, "TRANSACTION")))
                 {
                     ((java.util.List<Object>)transactions).add(entry);

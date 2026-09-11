@@ -352,7 +352,7 @@ public class TestMain extends BaseTest
                 }
                 return true;
             }
-            Object argsStringified = Helpers.add(Helpers.add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
+            String argsStringified = Helpers.add(Helpers.add("(", exchange.json(args)), ")"); // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
             dump(this.addPadding("[INFO] TESTING", 25), name, methodName, argsStringified);
             if (Helpers.isTrue(isSync()))
             {
@@ -466,7 +466,7 @@ public class TestMain extends BaseTest
                     Boolean isAuthError = (Helpers.isInstance(e, AuthenticationError.class));
                     Boolean isNotSupported = (Helpers.isInstance(e, NotSupported.class));
                     Boolean isOperationFailed = (Helpers.isInstance(e, OperationFailed.class)); // includes "DDoSProtection", "RateLimitExceeded", "RequestTimeout", "ExchangeNotAvailable", "OperationFailed", "InvalidNonce", ...
-                    Object lastUrlMsg = ((Helpers.isTrue(this.wsTests))) ? "" : Helpers.add(Helpers.add(" (Last url: ", this.getLastRequestUrl(exchange)), " )");
+                    String lastUrlMsg = ((Helpers.isTrue(this.wsTests))) ? "" : Helpers.add(Helpers.add(" (Last url: ", this.getLastRequestUrl(exchange)), " )");
                     if (Helpers.isTrue(isOperationFailed))
                     {
                         // if last retry was gone with same `tempFailure` error, then let's eventually return false
@@ -1573,7 +1573,7 @@ public class TestMain extends BaseTest
             // if exception was set, then throw it
             if (Helpers.isTrue(!Helpers.isEqual(exceptionMessageString, null)))
             {
-                Object errorMessage = Helpers.add(Helpers.add(Helpers.add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessageString);
+                String errorMessage = Helpers.add(Helpers.add(Helpers.add("[TEST_FAILURE] Failed ", proxyTestName), " : "), exceptionMessageString);
                 // temporary comment the below, because c# transpilation failure
                 // throw new Exchange Error (errorMessage.toString ());
                 dump(Helpers.add("[TEST_WARNING]", errorMessage));
@@ -2007,7 +2007,7 @@ public class TestMain extends BaseTest
             // cost arrives as 0.0 rather than as a string). Test for undefined instead.
             Object newOutputString = ((Helpers.isTrue((!Helpers.isEqual(sanitizedNewOutput, null))))) ? String.valueOf(sanitizedNewOutput) : "undefined";
             Object storedOutputString = ((Helpers.isTrue((!Helpers.isEqual(sanitizedStoredOutput, null))))) ? String.valueOf(sanitizedStoredOutput) : "undefined";
-            Object messageError = Helpers.add(Helpers.add(Helpers.add("output value mismatch:", newOutputString), " != "), storedOutputString);
+            String messageError = Helpers.add(Helpers.add(Helpers.add("output value mismatch:", newOutputString), " != "), storedOutputString);
             if (Helpers.isTrue(Helpers.isTrue(strictTypeCheck) && Helpers.isTrue((!Helpers.isEqual(this.lang, "C#")))))
             {
                 // upon building the request we want strict type check to make sure all the types are correct
@@ -2271,7 +2271,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 this.requestTestsFailed = true;
-                Object errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
+                String errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_REQUEST]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
                 dump(Helpers.add("[TEST_FAILURE]", errorMessage));
             }
             return true;
@@ -2304,7 +2304,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 this.responseTestsFailed = true;
-                Object errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_RESPONSE]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
+                String errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_RESPONSE]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
                 dump(Helpers.add("[TEST_FAILURE]", errorMessage));
             }
             setFetchResponse(exchange, null); // reset state
@@ -2470,7 +2470,7 @@ public class TestMain extends BaseTest
             } catch(Exception e)
             {
                 this.staticWsTestsFailed = true;
-                Object errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_WS]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
+                String errorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_WS]"), "["), exchange.id), "]"), "["), method), "]"), "["), Helpers.GetValue(data, "description")), "]"), exceptionMessage(e));
                 dump(Helpers.add("[TEST_FAILURE]", errorMessage));
             }
             setFetchResponse(exchange, null); // reset state
@@ -3041,7 +3041,7 @@ public class TestMain extends BaseTest
                 {
                     this.responseTestsFailed = true;
                 }
-                Object errorMessage = Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_REQUEST]"), exceptionMessage(e));
+                String errorMessage = Helpers.add(Helpers.add(Helpers.add("[", this.lang), "][STATIC_REQUEST]"), exceptionMessage(e));
                 dump(Helpers.add("[TEST_FAILURE]", errorMessage));
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(this.requestTestsFailed) || Helpers.isTrue(this.responseTestsFailed)) || Helpers.isTrue(this.staticWsTestsFailed)))
@@ -3050,7 +3050,7 @@ public class TestMain extends BaseTest
             } else
             {
                 String prefix = ((Helpers.isTrue((isSync())))) ? "[SYNC]" : "";
-                Object successMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "]"), prefix), "[TEST_SUCCESS] "), String.valueOf(sum)), " static "), type), " tests passed.");
+                String successMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("[", this.lang), "]"), prefix), "[TEST_SUCCESS] "), String.valueOf(sum)), " static "), type), " tests passed.");
                 dump(Helpers.add("[INFO]", successMessage));
             }
             return true;  // required in c#
@@ -3106,7 +3106,7 @@ public class TestMain extends BaseTest
             //  -----------------------------------------------------------------------------
             java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.testBinance(), this.testOkx(), this.testCryptocom(), this.testBybit(), this.testKucoin(), this.testKucoinfutures(), this.testBitget(), this.testMexc(), this.testHtx(), this.testWoo(), this.testCoinex(), this.testBingx(), this.testPhemex(), this.testBlofin(), this.testCoinbaseinternational(), this.testCoinbaseAdvanced(), this.testWoofiPro(), this.testXT(), this.testParadex(), this.testHashkey(), this.testCryptomus(), this.testDerive(), this.testModeTrade(), this.testBackpack(), this.testToobit(), this.testWeex(), this.testFoxbit()));
             (Helpers.promiseAll(promises)).join();
-            Object successMessage = Helpers.add(Helpers.add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
+            String successMessage = Helpers.add(Helpers.add("[", this.lang), "][TEST_SUCCESS] brokerId tests passed.");
             dump(Helpers.add("[INFO]", successMessage));
             exitScript(0);
             return true;
