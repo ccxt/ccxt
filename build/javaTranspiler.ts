@@ -18,7 +18,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, survivesWsStringRevert } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
 ansi.nice
@@ -543,7 +543,13 @@ export function patchJavaLocalTypes (transpiler: any): void {
         while (ts.isParenthesizedExpression (initializer)) {
             initializer = initializer.expression;
         }
-        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ${accessorCast (initializer)}${value}`;
+        // JN-10: WS/prediction files run postProcessWsJava, whose legacy "String type
+        // fixes" revert de-types `String x = this.<m>(...)` back to Object. A proven
+        // declaration carries a redundant `(String)` checkcast so it survives (free on
+        // a String/null box; see survivesWsStringRevert in build/java-local-types.js).
+        const accessor = accessorCast (initializer);
+        const cast = (accessor === '' && survivesWsStringRevert (declaration, value)) ? '(String) ' : accessor;
+        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ${cast}${value}`;
     };
     // `x = this.safeStringUpper(...)` on a narrowed local: the case family is
     // declared `Object` in Java, so the reassignment needs the same cast the

@@ -2947,6 +2947,29 @@ export function patchJavaCollectionLocalTypes (transpiler) {
 
 // ===== install =====
 
+// JN-10: the files build/javaTranspiler.ts#createJavaClass runs postProcessWsJava over
+// (ts/src/pro and ts/src/prediction) also get a legacy "String type fixes" text pass
+//     content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;')
+// which predates this module (it shipped in the original "Add Java" commit) and cannot
+// see which declarations were PROVEN String. Measured at the 853ab685540 integration
+// base: it silently de-typed 562 proven String locals in the prediction tree and 2105
+// in the pro tree (regenerating both trees with just that regex disabled compiles 4/4
+// and changes nothing else). A proven String declaration whose value would be matched
+// by that regex therefore carries the same redundant `(String)` checkcast the cast
+// families already emit — the checkcast defeats the match (the regex requires the value
+// to START with `this.<m>(` / `Helpers.`) and is free on a String/null box.
+const WS_REVERT_SOURCE_FILE = /[\\/](pro|prediction)[\\/]/;
+const WS_REVERT_VALUE = /^(?:this|Helpers)\.\w+\(/;
+
+// true when `declaration`'s final printed line in a pro/prediction file would be
+// matched (and de-typed) by postProcessWsJava's legacy revert — callers emit a
+// redundant `(String)` checkcast so the proven type survives. `value` is the
+// printed initializer text (everything after `<name> = `).
+export function survivesWsStringRevert (declaration, value) {
+    return WS_REVERT_SOURCE_FILE.test (declaration.getSourceFile ().fileName)
+        && WS_REVERT_VALUE.test (value);
+}
+
 export function installJavaLocalTypes (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printFunctionType !== 'function' || printer._javaLocalTypesPatched) {
@@ -3015,12 +3038,17 @@ export function installJavaLocalTypes (transpiler) {
             }
         }
         narrowed.set (declaration, info.type);
+        // JN-10: a proven String local in a pro/prediction file must survive
+        // postProcessWsJava's "String type fixes" revert — see WS_REVERT_SOURCE_FILE.
+        const wsRevertGuard = info.cast === undefined && info.type === 'String'
+            && survivesWsStringRevert (declaration, value);
         // a ternary value must be wrapped before the cast: `(String) c ? a : b` binds the
         // cast to the condition, not to the conditional expression (javac then rejects it)
-        const needsParens = info.cast !== undefined && /^\(.*\)\s*\?/.test (value);
+        const castPrefix = wsRevertGuard ? '(String) '
+            : (info.cast === undefined ? '' : info.cast + ' ');
+        const needsParens = castPrefix !== '' && /^\(.*\)\s*\?/.test (value);
         const castValue = needsParens ? '(' + value + ')' : value;
-        const cast = info.cast === undefined ? '' : info.cast + ' ';
-        return printed.slice (0, at) + `${iden}${info.type} ${printer.printNode (declaration.name)} = ${cast}${castValue}`;
+        return printed.slice (0, at) + `${iden}${info.type} ${printer.printNode (declaration.name)} = ${castPrefix}${castValue}`;
     };
     // `x = this.safeSymbol(...)` etc. on a narrowed local: an Object-declared accessor
     // needs the same cast the declaration got; a call to a retyped signature needs none.
