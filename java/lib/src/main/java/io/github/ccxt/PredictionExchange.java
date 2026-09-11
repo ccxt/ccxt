@@ -13,10 +13,14 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class PredictionExchange extends BaseExchange {
-    public volatile Object outcomes = null;
-    public volatile Object outcomes_by_id = null;
-    public volatile Object events = null;
-    public volatile Object events_by_slug = null;
+    // keyed caches of the parsed prediction rows — the tier's distinguishing structures.
+    // Values are row maps (the parse helpers mutate them in place), so the value type is
+    // Object; the same spelling BaseExchange uses for markets_by_id. The TS side declares
+    // them `Dictionary<any>` (ts/src/base/PredictionExchange.ts).
+    public volatile Map<String, Object> outcomes = null;
+    public volatile Map<String, Object> outcomes_by_id = null;
+    public volatile Map<String, Object> events = null;
+    public volatile Map<String, Object> events_by_slug = null;
     public volatile boolean reloadingEvents = false;
     public volatile java.util.concurrent.CompletableFuture<Object> eventsLoading = null;
 
