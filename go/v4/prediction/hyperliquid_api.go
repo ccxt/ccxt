@@ -8,11 +8,11 @@
 package ccxtprediction
 
 // PublicPostInfo returns a channel that yields a JSON object, a JSON array or a JSON scalar.
-func (this *HyperliquidCore) PublicPostInfo(args ...any) <-chan any {
+func (this *Hyperliquid) PublicPostInfo(args ...any) <-chan any {
 	return this.CallEndpointAsync("publicPostInfo", args...)
 }
 
 // PrivatePostExchange returns a channel that yields a JSON object.
-func (this *HyperliquidCore) PrivatePostExchange(args ...any) <-chan any {
+func (this *Hyperliquid) PrivatePostExchange(args ...any) <-chan any {
 	return this.CallEndpointAsync("privatePostExchange", args...)
 }
