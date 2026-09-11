@@ -467,7 +467,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Object position = this.parseWsPosition(rawPosition);
-            Object timestamp = this.safeInteger(message, "timestamp");
+            Long timestamp = this.safeInteger(message, "timestamp");
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
             ((java.util.List<Object>)newPositions).add(position);
@@ -737,7 +737,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             Object messageHash = this.getMessageHash("trade", null, symbol);
             if (Helpers.isTrue(Helpers.isEqual(this.safeList(this.trades, symbol), null)))
             {
-                Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)tradesLimit).intValue()));
             }
             Object tradesArray = Helpers.GetValue(this.trades, symbol);
@@ -794,7 +794,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(trade, "time");
+        Long timestamp = this.safeInteger(trade, "time");
         final Object finalMarket = market;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -848,7 +848,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "tradeTime");
+        Long timestamp = this.safeInteger(trade, "tradeTime");
         Object marketId = this.safeString(trade, "symbol");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -944,7 +944,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         Object orders = this.orders;
         if (Helpers.isTrue(Helpers.isEqual(orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit");
+            Long limit = this.safeInteger(this.options, "ordersLimit");
             orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = orders;
         }
@@ -1114,7 +1114,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         //        ]
         //    }
         Object orders = this.safeList(message, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object limit = this.safeInteger(this.options, "ordersLimit");
+        Long limit = this.safeInteger(this.options, "ordersLimit");
         this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         Object feed = this.safeString(message, "feed");
         Object messageHash = "orders";
@@ -1203,7 +1203,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         }
         Object marketId = this.safeString(unparsedOrder, "instrument");
         Object timestamp = this.safeString(unparsedOrder, "time");
-        Object direction = this.safeInteger(unparsedOrder, "direction");
+        Long direction = this.safeInteger(unparsedOrder, "direction");
         final Object finalUnparsedOrder = unparsedOrder;
         final Object finalDirection = direction;
         final Object finalStatus = status;
@@ -1435,8 +1435,8 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = this.getMessageHash("orderbook", null, symbol);
         Object subscription = this.safeDict(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
-        Object limit = this.safeInteger(subscription, "limit");
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Long limit = this.safeInteger(subscription, "limit");
+        Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Object bids = this.safeList(message, "bids");
@@ -1452,16 +1452,16 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bids)); i++)
         {
             Object bid = Helpers.GetValue(bids, i);
-            Object price = this.safeNumber(bid, "price");
-            Object qty = this.safeNumber(bid, "qty");
+            Double price = this.safeNumber(bid, "price");
+            Double qty = this.safeNumber(bid, "qty");
             Object bidsSide = Helpers.GetValue(orderbook, "bids");
             Helpers.callDynamically(bidsSide, "store", new Object[]{price, qty});
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(asks)); i++)
         {
             Object ask = Helpers.GetValue(asks, i);
-            Object price = this.safeNumber(ask, "price");
-            Object qty = this.safeNumber(ask, "qty");
+            Double price = this.safeNumber(ask, "price");
+            Double qty = this.safeNumber(ask, "qty");
             Object asksSide = Helpers.GetValue(orderbook, "asks");
             Helpers.callDynamically(asksSide, "store", new Object[]{price, qty});
         }
@@ -1490,9 +1490,9 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         Object messageHash = this.getMessageHash("orderbook", null, symbol);
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Object side = this.safeString(message, "side");
-        Object price = this.safeNumber(message, "price");
-        Object qty = this.safeNumber(message, "qty");
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Double price = this.safeNumber(message, "price");
+        Double qty = this.safeNumber(message, "qty");
+        Long timestamp = this.safeInteger(message, "timestamp");
         if (Helpers.isTrue(Helpers.isEqual(side, "sell")))
         {
             Object asks = Helpers.GetValue(orderbook, "asks");
@@ -1658,7 +1658,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         Object futures = this.safeValue(message, "futures");
         Object flexFutures = this.safeValue(message, "flex_futures");
         Object messageHash = "balances";
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Long timestamp = this.safeInteger(message, "timestamp");
         if (Helpers.isTrue(!Helpers.isEqual(holding, null)))
         {
             Object holdingKeys = Helpers.objectKeys(holding); // cashAccount
@@ -1772,7 +1772,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         Object stored = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = stored;
         }
@@ -1818,7 +1818,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "time");
+        Long timestamp = this.safeInteger(trade, "time");
         Object marketId = this.safeString(trade, "instrument");
         market = this.safeMarket(marketId, market);
         Object isBuy = this.safeValue(trade, "buy");

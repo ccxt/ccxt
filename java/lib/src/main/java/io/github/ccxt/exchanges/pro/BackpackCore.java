@@ -387,8 +387,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object microseconds = this.safeInteger(ticker, "E", 0);
-        Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+        Long microseconds = this.safeInteger(ticker, "E", 0);
+        Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Object marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
         String symbol = (String) this.safeSymbol(marketId, market);
@@ -534,8 +534,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
         Object symbol = this.safeString(market, "symbol");
-        Object microseconds = this.safeInteger(ticker, "E", 0);
-        Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+        Long microseconds = this.safeInteger(ticker, "E", 0);
+        Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Object ask = this.safeString(ticker, "a");
         Object askVolume = this.safeString(ticker, "A");
         Object bid = this.safeString(ticker, "b");
@@ -730,7 +730,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         }
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), timeframe))))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
         }
@@ -922,7 +922,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -951,8 +951,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object microseconds = this.safeInteger(trade, "E", 0);
-        Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+        Long microseconds = this.safeInteger(trade, "E", 0);
+        Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Object id = this.safeString(trade, "t");
         Object marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
@@ -1149,8 +1149,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         Object storedOrderBook = Helpers.GetValue(this.orderbooks, symbol);
-        Object nonce = this.safeInteger(storedOrderBook, "nonce");
-        Object deltaNonce = this.safeInteger(data, "u");
+        Long nonce = this.safeInteger(storedOrderBook, "nonce");
+        Long deltaNonce = this.safeInteger(data, "u");
         Object messageHash = Helpers.add("orderbook:", symbol);
         if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
         {
@@ -1174,7 +1174,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
 
     public void handleDelta(Object orderbook, Object delta)
     {
-        Object timestamp = this.parseToInt(Helpers.divide(this.safeInteger(delta, "T", 0), 1000));
+        Long timestamp = this.parseToInt(Helpers.divide(this.safeInteger(delta, "T", 0), 1000));
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "u"));
@@ -1200,8 +1200,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //
         // {"E":"1759338824897386","T":"1759338824895616","U":1662976171,"a":[],"b":[["117357.0","0.00000"]],"e":"depth","s":"BTC_USDC_PERP","u":1662976171}
         Object firstDelta = this.safeDict(cache, 0);
-        Object nonce = this.safeInteger(orderbook, "nonce");
-        Object firstDeltaStart = this.safeInteger(firstDelta, "U");
+        Long nonce = this.safeInteger(orderbook, "nonce");
+        Long firstDeltaStart = this.safeInteger(firstDelta, "U");
         if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
         {
             return Helpers.getArrayLength(cache);
@@ -1217,8 +1217,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cache)); i++)
         {
             Object delta = Helpers.GetValue(cache, i);
-            Object deltaStart = this.safeInteger(delta, "U");
-            Object deltaEnd = this.safeInteger(delta, "u");
+            Long deltaStart = this.safeInteger(delta, "U");
+            Long deltaEnd = this.safeInteger(delta, "u");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(deltaStart, null))) || Helpers.isTrue((Helpers.isEqual(deltaEnd, null)))))
             {
                 return Helpers.getArrayLength(cache);
@@ -1351,7 +1351,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object orders = this.orders;
         if (Helpers.isTrue(Helpers.isEqual(orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = orders;
         }
@@ -1392,8 +1392,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(order, "i");
         Object clientOrderId = this.safeString(order, "c");
-        Object microseconds = this.safeInteger(order, "E", 0);
-        Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+        Long microseconds = this.safeInteger(order, "E", 0);
+        Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Object status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
         Object marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
@@ -1402,7 +1402,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object timeInForce = this.safeString(order, "f");
         Object side = this.parseWsOrderSide(this.safeString(order, "S"));
         Object price = this.safeString(order, "p");
-        Object triggerPrice = this.safeNumber(order, "P");
+        Double triggerPrice = this.safeNumber(order, "P");
         Object amount = this.safeString(order, "q");
         Object cost = this.safeString(order, "Z");
         Object filled = this.safeString(order, "l");
@@ -1590,8 +1590,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         }
         Object cache = this.positions;
         Object parsedPosition = this.parseWsPosition(data);
-        Object microseconds = this.safeInteger(data, "E", 0);
-        Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+        Long microseconds = this.safeInteger(data, "E", 0);
+        Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
         Helpers.callDynamically(cache, "append", new Object[]{parsedPosition});
@@ -1635,7 +1635,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object unrealisedPnl = this.safeString(position, "P");
         Object contracts = this.safeString(position, "Q");
         Object markPrice = this.safeString(position, "M");
-        Object netQuantity = this.safeNumber(position, "q");
+        Double netQuantity = this.safeNumber(position, "q");
         Object hedged = false;
         Object side = "long";
         if (Helpers.isTrue(!Helpers.isEqual(netQuantity, null)))
@@ -1649,10 +1649,10 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             hedged = null;
             side = null;
         }
-        Object microseconds = this.safeInteger(position, "E", 0);
-        Object timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
-        Object maintenanceMarginPercentage = this.safeNumber(position, "m");
-        Object initialMarginPercentage = this.safeNumber(position, "f");
+        Long microseconds = this.safeInteger(position, "E", 0);
+        Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
+        Double maintenanceMarginPercentage = this.safeNumber(position, "m");
+        Double initialMarginPercentage = this.safeNumber(position, "f");
         final Object finalSide = side;
         final Object finalHedged = hedged;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
@@ -1727,7 +1727,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         //     }
         //
         Object error = this.safeDict(message, "error", new java.util.HashMap<String, Object>() {{}});
-        Object code = this.safeInteger(error, "code");
+        Long code = this.safeInteger(error, "code");
         try
         {
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))

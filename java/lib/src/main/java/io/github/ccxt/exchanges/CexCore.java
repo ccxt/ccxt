@@ -624,7 +624,7 @@ public class CexCore extends CexApi
             //    }
             //
             Object data = this.safeDict(response, "data");
-            Object timestamp = this.safeInteger(data, "timestamp");
+            Long timestamp = this.safeInteger(data, "timestamp");
             return timestamp;
         });
 
@@ -888,7 +888,7 @@ public class CexCore extends CexApi
             //                ...
             //
             Object orderBook = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(orderBook, "timestamp");
+            Long timestamp = this.safeInteger(orderBook, "timestamp");
             return this.parseOrderBook(orderBook, Helpers.GetValue(market, "symbol"), timestamp);
         });
 
@@ -1487,7 +1487,7 @@ public class CexCore extends CexApi
         Object symbol = Helpers.GetValue(market, "symbol");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         Object fee = new java.util.HashMap<String, Object>() {{}};
-        Object feeAmount = this.safeNumber(order, "feeAmount");
+        Double feeAmount = this.safeNumber(order, "feeAmount");
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
             String currencyId = this.safeString(order, "feeCurrency");
@@ -1495,11 +1495,11 @@ public class CexCore extends CexApi
             Helpers.addElementToObject(fee, "currency", feeCode);
             Helpers.addElementToObject(fee, "cost", feeAmount);
         }
-        Object timestamp = this.safeInteger(order, "serverCreateTimestamp");
-        Object requestedBase = this.safeNumber(order, "requestedAmountCcy1");
-        Object executedBase = this.safeNumber(order, "executedAmountCcy1");
+        Long timestamp = this.safeInteger(order, "serverCreateTimestamp");
+        Double requestedBase = this.safeNumber(order, "requestedAmountCcy1");
+        Double executedBase = this.safeNumber(order, "executedAmountCcy1");
         // const requestedQuote = this.safeNumber (order, 'requestedAmountCcy2');
-        Object executedQuote = this.safeNumber(order, "executedAmountCcy2");
+        Double executedQuote = this.safeNumber(order, "executedAmountCcy2");
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", CexCore.this.safeString(order, "orderId") );
             put( "clientOrderId", CexCore.this.safeString(order, "clientOrderId") );

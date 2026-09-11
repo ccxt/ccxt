@@ -240,7 +240,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object firstSymbol = this.safeString(symbols, 0);
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(firstSymbol, null)))
@@ -341,13 +341,13 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object channel = this.safeString(message, "c", "");
         Object marketId = this.safeString(message, "s");
         Object market = this.safeMarket(marketId);
-        Boolean channelStartsWithSpot = ((String)channel).startsWith(((String)"spot"));
+        Object channelStartsWithSpot = ((String)channel).startsWith(((String)"spot"));
         Object marketIdIsUndefined = Helpers.isEqual(marketId, null);
         Object isSpot = ((Helpers.isTrue(marketIdIsUndefined))) ? channelStartsWithSpot : Helpers.GetValue(market, "spot");
-        String spotPrefix = "spot:";
-        String messageHashPrefix = ((Helpers.isTrue((Helpers.isEqual(isSpot, true))))) ? spotPrefix : "";
+        Object spotPrefix = "spot:";
+        Object messageHashPrefix = ((Helpers.isTrue((Helpers.isEqual(isSpot, true))))) ? spotPrefix : "";
         Object topic = Helpers.add(messageHashPrefix, "ticker");
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object entry = Helpers.GetValue(data, i);
@@ -407,7 +407,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(ticker, "s");
-        Object timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = this.safeInteger(ticker, "t");
         Object price = this.safeString(ticker, "p");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
@@ -468,8 +468,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchBidsAsks only support spot market")) ;
             }
-            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 if (Helpers.isTrue(isSpot))
@@ -529,7 +529,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
         Object symbol = this.safeString(market, "symbol");
-        Object timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = this.safeInteger(ticker, "t");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -551,7 +551,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object unsubscribed = this.safeBool(parameters, "unsubscribed", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("unsubscribed")));
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
-            String method = ((Helpers.isTrue((Helpers.isEqual(unsubscribed, true))))) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
+            Object method = ((Helpers.isTrue((Helpers.isEqual(unsubscribed, true))))) ? "UNSUBSCRIPTION" : "SUBSCRIPTION";
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(channel)) );
@@ -590,7 +590,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 put( "method", channel );
                 put( "param", requestParams );
             }};
-            java.util.Map<String, Object> message = this.extend(request, parameters);
+            Object message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -603,11 +603,11 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            String channel = "login";
+            Object channel = "login";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
-            String timestamp = String.valueOf(this.milliseconds());
+            Object timestamp = String.valueOf(this.milliseconds());
             Object payload = Helpers.add(this.apiKey, timestamp);
-            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
+            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", channel );
                 put( "param", new java.util.HashMap<String, Object>() {{
@@ -616,7 +616,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                     put( "reqTime", timestamp );
                 }} );
             }};
-            java.util.Map<String, Object> message = this.extend(request, parameters);
+            Object message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, channel, null)).join();
         });
 
@@ -771,7 +771,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object stored = this.safeValue(symbolOhlcvs, timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (Helpers.isTrue(!Helpers.isEqual(timeframe, null)))
             {
@@ -828,7 +828,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         //       "windowEnd":"1754737980"
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object volume = this.safeNumber2(ohlcv, "v", "volume");
+        Double volume = this.safeNumber2(ohlcv, "v", "volume");
         // MEXC swap websocket klines publish contracts volume in `q`,
         // while spot/protobuf uses `v`/`volume`.
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(market, null))) && Helpers.isTrue((!Helpers.isEqual(this.safeBool(market, "spot"), true)))) && Helpers.isTrue((Helpers.isEqual(volume, null)))))
@@ -893,7 +893,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         Object msg = this.safeString(message, "msg", "");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(msg, "@");
+        Object parts = Helpers.split(msg, "@");
         Object marketId = this.safeString(parts, 2);
         String symbol = (String) this.safeSymbol(marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}));
@@ -902,9 +902,9 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
     public Object getCacheIndex(Object orderbook, Object cache)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
-        Object nonce = this.safeInteger(orderbook, "nonce");
+        Long nonce = this.safeInteger(orderbook, "nonce");
         Object firstDelta = this.safeValue(cache, 0);
-        Object firstDeltaNonce = this.safeIntegerN(firstDelta, new java.util.ArrayList<Object>(java.util.Arrays.asList("r", "version", "fromVersion")));
+        Long firstDeltaNonce = this.safeIntegerN(firstDelta, new java.util.ArrayList<Object>(java.util.Arrays.asList("r", "version", "fromVersion")));
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(nonce, null))) || Helpers.isTrue((Helpers.isEqual(firstDeltaNonce, null)))))
         {
             return Helpers.opNeg(1);
@@ -916,7 +916,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cache)); i++)
         {
             Object delta = Helpers.GetValue(cache, i);
-            Object deltaNonce = this.safeIntegerN(delta, new java.util.ArrayList<Object>(java.util.Arrays.asList("r", "version", "fromVersion")));
+            Long deltaNonce = this.safeIntegerN(delta, new java.util.ArrayList<Object>(java.util.Arrays.asList("r", "version", "fromVersion")));
             if (Helpers.isTrue(Helpers.isEqual(deltaNonce, null)))
             {
                 continue;
@@ -1002,17 +1002,17 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         String symbol = (String) this.safeSymbol(marketId);
         Object messageHash = Helpers.add("orderbook:", symbol);
         Object subscription = this.safeValue(client.subscriptions, messageHash);
-        Object limit = this.safeInteger(subscription, "limit");
+        Long limit = this.safeInteger(subscription, "limit");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         Object storedOrderBook = Helpers.GetValue(this.orderbooks, symbol);
-        Object nonce = this.safeInteger(storedOrderBook, "nonce");
+        Long nonce = this.safeInteger(storedOrderBook, "nonce");
         Object shouldReturn = false;
         if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
         {
-            Integer cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(storedOrderBook, "cache")));
+            Object cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(storedOrderBook, "cache")));
             Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
             if (Helpers.isTrue(Helpers.isEqual(cacheLength, snapshotDelay)))
             {
@@ -1024,7 +1024,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         try
         {
             this.handleDelta(storedOrderBook, data);
-            Object timestamp = this.safeIntegerN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "ts", "sendTime")));
+            Long timestamp = this.safeIntegerN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "ts", "sendTime")));
             Helpers.addElementToObject(storedOrderBook, "timestamp", timestamp);
             Helpers.addElementToObject(storedOrderBook, "datetime", this.iso8601(timestamp));
         } catch(Exception e)
@@ -1057,8 +1057,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 Helpers.callDynamically(bookside, "storeArray", new Object[]{bidask});
             } else
             {
-                Object price = this.safeFloat2(bidask, "p", "price");
-                Object amount = this.safeFloat2(bidask, "v", "quantity");
+                Double price = this.safeFloat2(bidask, "p", "price");
+                Double amount = this.safeFloat2(bidask, "v", "quantity");
                 Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
             }
         }
@@ -1066,8 +1066,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
 
     public void handleDelta(Object orderbook, Object delta)
     {
-        Object existingNonce = this.safeInteger(orderbook, "nonce");
-        Object deltaNonce = this.safeIntegerN(delta, new java.util.ArrayList<Object>(java.util.Arrays.asList("r", "version", "fromVersion")));
+        Long existingNonce = this.safeInteger(orderbook, "nonce");
+        Long deltaNonce = this.safeIntegerN(delta, new java.util.ArrayList<Object>(java.util.Arrays.asList("r", "version", "fromVersion")));
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(deltaNonce, null))) && Helpers.isTrue((!Helpers.isEqual(existingNonce, null)))) && Helpers.isTrue((Helpers.isLessThan(deltaNonce, existingNonce)))))
         {
             // even when doing < comparison, this happens: https://app.travis-ci.com/github/ccxt/ccxt/builds/269234741#L1809
@@ -1192,7 +1192,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -1310,7 +1310,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         // }
         //
         Object subscription = Helpers.getArg(optionalArgs, 0, null);
-        String messageHash = "myTrades";
+        Object messageHash = "myTrades";
         Object data = this.safeDictN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("d", "data", "privateDeals")));
         Object futuresMarketId = this.safeString(data, "symbol");
         Object marketId = this.safeString2(message, "s", "symbol", futuresMarketId);
@@ -1330,7 +1330,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object trades = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(trades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             trades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = trades;
         }
@@ -1402,8 +1402,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object priceString = this.safeString2(trade, "p", "price");
         Object amountString = this.safeString2(trade, "v", "quantity");
         Object rawSide = this.safeString2(trade, "S", "tradeType");
-        String side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "1"))))) ? "buy" : "sell";
-        Object isMaker = this.safeInteger(trade, "m");
+        Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "1"))))) ? "buy" : "sell";
+        Long isMaker = this.safeInteger(trade, "m");
         Object feeAmount = this.safeString2(trade, "n", "feeAmount");
         Object feeCurrencyId = this.safeString2(trade, "N", "feeCurrency");
         final Object finalTradeId = tradeId;
@@ -1560,7 +1560,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         //      privateOrders {}
         //   }
         //
-        String messageHash = "orders";
+        Object messageHash = "orders";
         Object data = this.safeDictN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("d", "data", "privateOrders")));
         Object futuresMarketId = this.safeString(data, "symbol");
         Object marketId = this.safeString2(message, "s", "symbol", futuresMarketId);
@@ -1570,7 +1570,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
         {
             parsed = this.parseWsOrder(data, market);
-            Object sendTime = this.safeInteger(message, "sendTime");
+            Long sendTime = this.safeInteger(message, "sendTime");
             if (Helpers.isTrue(!Helpers.isEqual(sendTime, null)))
             {
                 Helpers.addElementToObject(parsed, "lastTradeTimestamp", sendTime);
@@ -1585,7 +1585,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object orders = this.orders;
         if (Helpers.isTrue(Helpers.isEqual(orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = orders;
         }
@@ -1665,7 +1665,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(order, "createTime");
+        Long timestamp = this.safeInteger(order, "createTime");
         Object side = this.safeString(order, "tradeType");
         Object status = this.safeString2(order, "status", "state");
         Object type = this.safeString(order, "orderType");
@@ -1827,7 +1827,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        String type = ((Helpers.isTrue((Helpers.isEqual(channel, "spot@private.account.v3.api.pb"))))) ? "spot" : "swap";
+        Object type = ((Helpers.isTrue((Helpers.isEqual(channel, "spot@private.account.v3.api.pb"))))) ? "spot" : "swap";
         Object messageHash = Helpers.add("balance:", type);
         Object data = this.safeDictN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("data", "privateAccount")));
         Long futuresTimestamp = (Long) this.safeInteger2(message, "ts", "createTime");
@@ -1904,7 +1904,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("unsubscribe:fundingRate:", Helpers.GetValue(market, "symbol"));
             Object url = null;
-            String channel = "unsub.funding.rate";
+            Object channel = "unsub.funding.rate";
             Object requestParams = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1963,7 +1963,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object market = this.market(symbol);
             Object messageHash = Helpers.add("unsubscribe:ticker:", Helpers.GetValue(market, "symbol"));
             Object url = null;
-            String channel = null;
+            Object channel = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 channel = Helpers.add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", Helpers.GetValue(market, "id"));
@@ -2008,7 +2008,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object firstSymbol = this.safeString(symbols, 0);
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(firstSymbol, null)))
@@ -2073,8 +2073,8 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchBidsAsks only support spot market")) ;
             }
-            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 if (Helpers.isTrue(isSpot))
@@ -2274,9 +2274,9 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 }
             } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "candles"), 0)))
             {
-                java.util.List<Object> splitHashes = (java.util.List<Object>) Helpers.split(messageHash, ":");
+                Object splitHashes = Helpers.split(messageHash, ":");
                 Object symbol = this.safeString(splitHashes, 2);
-                Integer splitHashesLength = Helpers.getArrayLength(splitHashes); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+                Object splitHashesLength = Helpers.getArrayLength(splitHashes); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if (Helpers.isTrue(Helpers.isGreaterThan(splitHashesLength, 4)))
                 {
                     symbol = Helpers.add(symbol, Helpers.add(":", this.safeString(splitHashes, 3)));
@@ -2327,7 +2327,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             // callers wait on the future and resume when the listenKey is ready,
             // otherwise the user-data subscriptions would be split across two connections
             Client client = this.client(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot"));
-            String messageHash = "authenticate:listenKey";
+            Object messageHash = "authenticate:listenKey";
             Object isFetching = this.safeBool(this.options, "listenKeyFetching", false);
             if (Helpers.isTrue(Helpers.isEqual(isFetching, true)))
             {
@@ -2355,7 +2355,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             listenKey = this.safeString(response, "listenKey");
             Helpers.addElementToObject(this.options, "listenKey", listenKey);
             client.resolve(listenKey, messageHash);
-            Object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
+            Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", listenKey, parameters);
             return listenKey;
         });
@@ -2379,7 +2379,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             try
             {
                 (this.spotPrivatePutUserDataStream(this.extend(request, parameters))).join();
-                Object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
+                Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
                 this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", listenKey, parameters);
             } catch(Exception error)
             {
@@ -2415,7 +2415,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             this.handlePong(client, message);
         } else if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(msg, "@"), Helpers.opNeg(1))))
         {
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(msg, "@");
+            Object parts = Helpers.split(msg, "@");
             Object channel = this.safeString(parts, 1);
             Object methods = new java.util.HashMap<String, Object>() {{
                 put( "public.increase.depth.v3.api", "handleOrderBookSubscription");
@@ -2450,7 +2450,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         //    }
         // }
         Object channel = this.safeString(message, "channel", "");
-        java.util.List<Object> channelParts = (java.util.List<Object>) Helpers.split(channel, "@");
+        Object channelParts = Helpers.split(channel, "@");
         Object channelId = this.safeString(channelParts, 1);
         if (Helpers.isTrue(Helpers.isEqual(channelId, "public.kline.v3.api.pb")))
         {
@@ -2506,7 +2506,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             channel = this.safeString(message, "channel");
         } else
         {
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(c, "@");
+            Object parts = Helpers.split(c, "@");
             channel = this.safeString(parts, 1, "");
         }
         Object methods = new java.util.HashMap<String, Object>() {{

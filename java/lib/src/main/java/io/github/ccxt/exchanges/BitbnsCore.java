@@ -507,7 +507,7 @@ public class BitbnsCore extends BitbnsApi
             //         "nonce":""
             //     }
             //
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
         });
 
@@ -546,7 +546,7 @@ public class BitbnsCore extends BitbnsApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         String marketId = this.safeString(ticker, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market);
         String last = this.safeString(ticker, "last");
@@ -1467,8 +1467,8 @@ public class BitbnsCore extends BitbnsApi
             }
         }
         // const status = this.parseTransactionStatusByType (this.safeString (transaction, 'status'), type);
-        Object amount = this.safeNumber(transaction, "amount");
-        Object feeCost = this.safeNumber(transaction, "fee");
+        Double amount = this.safeNumber(transaction, "amount");
+        Double feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {

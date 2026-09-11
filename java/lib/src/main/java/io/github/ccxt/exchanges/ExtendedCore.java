@@ -714,12 +714,12 @@ public class ExtendedCore extends ExtendedApi
         }
         String status = this.safeString(market, "status");
         Object active = (Helpers.isEqual(status, "ACTIVE"));
-        Object amountPrecision = this.safeNumber(tradingConfig, "minOrderSizeChange");
-        Object pricePrecision = this.safeNumber(tradingConfig, "minPriceChange");
-        Object maxLeverage = this.safeNumber(tradingConfig, "maxLeverage");
-        Object minAmount = this.safeNumber(tradingConfig, "minOrderSize");
-        Object maxCost = this.safeNumber(tradingConfig, "maxLimitOrderValue");
-        Object created = this.safeInteger(market, "createdAt");
+        Double amountPrecision = this.safeNumber(tradingConfig, "minOrderSizeChange");
+        Double pricePrecision = this.safeNumber(tradingConfig, "minPriceChange");
+        Double maxLeverage = this.safeNumber(tradingConfig, "maxLeverage");
+        Double minAmount = this.safeNumber(tradingConfig, "minOrderSize");
+        Double maxCost = this.safeNumber(tradingConfig, "maxLimitOrderValue");
+        Long created = this.safeInteger(market, "createdAt");
         Object settleId = null;
         Object settle = null;
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -887,7 +887,7 @@ public class ExtendedCore extends ExtendedApi
             code = "USDC";
         }
         String name = this.safeString(currency, "name");
-        Object precision = this.safeInteger(currency, "precision", 0);
+        Long precision = this.safeInteger(currency, "precision", 0);
         Object isActive = this.safeBool(currency, "isActive");
         final Object finalCurrencyId = currencyId;
         final Object finalCode = code;
@@ -1074,7 +1074,7 @@ public class ExtendedCore extends ExtendedApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = (String) this.safeSymbol(null, market);
-        Object last = this.safeNumber(ticker, "lastPrice");
+        Double last = this.safeNumber(ticker, "lastPrice");
         String percentageRaw = this.safeString(ticker, "dailyPriceChangePercentage");
         Object percentage = ((Helpers.isTrue((!Helpers.isEqual(percentageRaw, null))))) ? Precise.stringMul(percentageRaw, "100") : null;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -1147,7 +1147,7 @@ public class ExtendedCore extends ExtendedApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.milliseconds();
+            Long timestamp = this.milliseconds();
             Object orderbook = this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bid", "ask", "price", "qty");
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -1278,7 +1278,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Integer dataLength = Helpers.getArrayLength(data);
+            Object dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -1370,7 +1370,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Integer dataLength = Helpers.getArrayLength(data);
+            Object dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -1408,7 +1408,7 @@ public class ExtendedCore extends ExtendedApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(history, "market");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(history, "paidTime");
+        Long timestamp = this.safeInteger(history, "paidTime");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", history );
@@ -1549,7 +1549,7 @@ public class ExtendedCore extends ExtendedApi
                     candleType = "trades";
                 }
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("candleType", "price", "until")));
             final Object finalCandleType = candleType;
             final Object finalLimit = limit;
@@ -1644,8 +1644,8 @@ public class ExtendedCore extends ExtendedApi
             {
                 limit = 100;
             }
-            Object until = this.safeInteger(parameters, "until", this.milliseconds());
-            Object endTime = this.safeInteger(parameters, "endTime", until);
+            Long until = this.safeInteger(parameters, "until", this.milliseconds());
+            Long endTime = this.safeInteger(parameters, "endTime", until);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "until")));
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
@@ -1681,7 +1681,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Integer dataLength = Helpers.getArrayLength(data);
+            Object dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -1694,7 +1694,7 @@ public class ExtendedCore extends ExtendedApi
                 }
                 ((java.util.List<Object>)result).add(this.parseFundingRateHistory(entry, market));
             }
-            java.util.List<Object> sorted = this.sortBy(result, "timestamp");
+            Object sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -1712,7 +1712,7 @@ public class ExtendedCore extends ExtendedApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "m");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(info, "T");
+        Long timestamp = this.safeInteger(info, "T");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
@@ -1756,8 +1756,8 @@ public class ExtendedCore extends ExtendedApi
             {
                 limit = 100;
             }
-            Object until = this.safeInteger(parameters, "until", this.milliseconds());
-            Object endTime = this.safeInteger(parameters, "endTime", until);
+            Long until = this.safeInteger(parameters, "until", this.milliseconds());
+            Long endTime = this.safeInteger(parameters, "endTime", until);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "until")));
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
@@ -1802,7 +1802,7 @@ public class ExtendedCore extends ExtendedApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(interest, "t");
+        Long timestamp = this.safeInteger(interest, "t");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", ExtendedCore.this.safeString(market, "symbol") );
             put( "openInterestAmount", ExtendedCore.this.safeNumber(interest, "I") );
@@ -1973,7 +1973,7 @@ public class ExtendedCore extends ExtendedApi
 
     public Object parseAccount(Object account)
     {
-        Object accountIndex = this.safeInteger(account, "accountIndex");
+        Long accountIndex = this.safeInteger(account, "accountIndex");
         Object type = null;
         if (Helpers.isTrue(!Helpers.isEqual(accountIndex, null)))
         {
@@ -2033,7 +2033,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Integer dataLength = Helpers.getArrayLength(data);
+            Object dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -2067,7 +2067,7 @@ public class ExtendedCore extends ExtendedApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(item, "time");
+        Long timestamp = this.safeInteger(item, "time");
         String assetId = this.safeString(item, "asset");
         Object code = this.getExtendedCurrencyCodeById(assetId, currency);
         Object ledgerCurrency = this.safeCurrency(code, currency);
@@ -2176,7 +2176,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Integer dataLength = Helpers.getArrayLength(data);
+            Object dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -2303,7 +2303,7 @@ public class ExtendedCore extends ExtendedApi
             //         "data": 1820796462590083072
             //     }
             //
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", ExtendedCore.this.safeString(response, "data") );
@@ -2377,7 +2377,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Integer dataLength = Helpers.getArrayLength(data);
+            Object dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -2460,7 +2460,7 @@ public class ExtendedCore extends ExtendedApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object validSignature = this.safeBool(data, "validSignature");
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             Object status = "pending";
             if (Helpers.isTrue(!Helpers.isEqual(validSignature, null)))
             {
@@ -2485,7 +2485,7 @@ public class ExtendedCore extends ExtendedApi
     public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(transfer, "time");
+        Long timestamp = this.safeInteger(transfer, "time");
         String assetId = this.safeString(transfer, "asset");
         Object code = this.getExtendedCurrencyCodeById(assetId, currency);
         String amountString = this.safeString(transfer, "amount");
@@ -2587,7 +2587,7 @@ public class ExtendedCore extends ExtendedApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(transaction, "time");
+        Long timestamp = this.safeInteger(transaction, "time");
         String assetId = this.safeString(transaction, "asset");
         Object code = this.getExtendedCurrencyCodeById(assetId, currency);
         String amountString = this.safeString(transaction, "amount");
@@ -2833,7 +2833,7 @@ public class ExtendedCore extends ExtendedApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "market");
         market = this.safeMarket(marketId, market);
-        Object leverageValue = this.safeNumber(leverage, "leverage");
+        Double leverageValue = this.safeNumber(leverage, "leverage");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
@@ -2996,7 +2996,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Integer dataLength = Helpers.getArrayLength(data);
+            Object dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -3087,7 +3087,7 @@ public class ExtendedCore extends ExtendedApi
     public Object getExtendedStarkAmount(Object amount, Object resolution, Object... optionalArgs)
     {
         Object roundUp = Helpers.getArg(optionalArgs, 0, false);
-        String resolutionString = this.numberToString(resolution);
+        Object resolutionString = this.numberToString(resolution);
         Object precise = Precise.stringMul(amount, resolutionString);
         Object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (Helpers.isTrue(Helpers.isTrue(roundUp) && Helpers.isTrue(Precise.stringGt(precise, result))))
@@ -3120,14 +3120,14 @@ public class ExtendedCore extends ExtendedApi
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         String totalFee = this.safeString(parameters, "totalFee");
-        Object settlementExpiration = this.safeInteger(parameters, "settlementExpiration");
-        Object nonce = this.safeInteger(parameters, "nonce");
+        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration");
+        Long nonce = this.safeInteger(parameters, "nonce");
         String starkKey = this.safeString(parameters, "starkKey");
         String collateralPosition = this.safeString(parameters, "collateralPosition");
         String syntheticId = this.safeString(parameters, "syntheticId");
         String collateralId = this.safeString(parameters, "collateralId");
-        Object syntheticResolution = this.safeInteger(parameters, "syntheticResolution");
-        Object collateralResolution = this.safeInteger(parameters, "collateralResolution");
+        Long syntheticResolution = this.safeInteger(parameters, "syntheticResolution");
+        Long collateralResolution = this.safeInteger(parameters, "collateralResolution");
         Object quoteAmount = Precise.stringMul(amountString, priceString);
         Object baseRoundUp = isBuy;
         Object quoteRoundUp = isBuy;
@@ -3167,14 +3167,14 @@ public class ExtendedCore extends ExtendedApi
     public Object createWithdrawalSettlementData(Object address, Object amountString, Object currency, Object account, Object... optionalArgs)
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object now = this.milliseconds();
-        Object settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(Helpers.add(this.parseToInt(Helpers.divide((Helpers.add(now, 999)), 1000)), 1209600), 60));
-        Object nonce = this.safeInteger(parameters, "nonce", this.nonce());
+        Long now = this.milliseconds();
+        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(Helpers.add(this.parseToInt(Helpers.divide((Helpers.add(now, 999)), 1000)), 1209600), 60));
+        Long nonce = this.safeInteger(parameters, "nonce", this.nonce());
         String positionId = this.safeString2(parameters, "positionId", "l2Vault", this.safeString(account, "l2Vault"));
         String recipient = this.safeString(parameters, "recipient", address);
         Object currencyInfo = this.safeDict(currency, "info", new java.util.HashMap<String, Object>() {{}});
         String collateralId = this.safeString(parameters, "collateralId", this.safeString2(currencyInfo, "starkexId", "l1Id"));
-        Object resolution = this.safeInteger(parameters, "resolution", this.safeValue2(currencyInfo, "starkexResolution", "l1Resolution"));
+        Long resolution = this.safeInteger(parameters, "resolution", this.safeValue2(currencyInfo, "starkexResolution", "l1Resolution"));
         String starkKey = this.safeString(account, "l2Key");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(positionId, null))) || Helpers.isTrue((Helpers.isEqual(collateralId, null)))) || Helpers.isTrue((Helpers.isEqual(resolution, null)))) || Helpers.isTrue((Helpers.isEqual(starkKey, null)))))
         {
@@ -3205,14 +3205,14 @@ public class ExtendedCore extends ExtendedApi
     public Object createTransferSettlementData(Object amountString, Object currency, Object account, Object toVault, Object toL2Key, Object... optionalArgs)
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object now = this.milliseconds();
-        Object settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(this.parseToInt(Helpers.divide((Helpers.add(now, 999)), 1000)), 1814400));
-        Object nonce = this.safeInteger(parameters, "nonce", this.nonce());
+        Long now = this.milliseconds();
+        Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(this.parseToInt(Helpers.divide((Helpers.add(now, 999)), 1000)), 1814400));
+        Long nonce = this.safeInteger(parameters, "nonce", this.nonce());
         String fromVault = this.safeString2(parameters, "fromVault", "senderPositionId", this.safeString(account, "l2Vault"));
         String fromL2Key = this.safeString2(parameters, "fromL2Key", "senderPublicKey", this.safeString(account, "l2Key"));
         Object currencyInfo = this.safeDict(currency, "info", new java.util.HashMap<String, Object>() {{}});
         String collateralId = this.safeString2(parameters, "assetId", "collateralId", this.safeString2(currencyInfo, "starkexId", "l1Id"));
-        Object resolution = this.safeInteger(parameters, "resolution", this.safeValue2(currencyInfo, "starkexResolution", "l1Resolution"));
+        Long resolution = this.safeInteger(parameters, "resolution", this.safeValue2(currencyInfo, "starkexResolution", "l1Resolution"));
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fromVault, null))) || Helpers.isTrue((Helpers.isEqual(fromL2Key, null)))) || Helpers.isTrue((Helpers.isEqual(collateralId, null)))) || Helpers.isTrue((Helpers.isEqual(resolution, null)))))
         {
             throw new BadRequest((String)Helpers.add(this.id, " transfer() requires currency starkexId/starkexResolution, account l2Vault and account l2Key")) ;
@@ -3259,8 +3259,8 @@ public class ExtendedCore extends ExtendedApi
             }
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            String uppercaseType = ((String)type).toUpperCase();
-            String uppercaseSide = ((String)((String)side)).toUpperCase();
+            Object uppercaseType = ((String)type).toUpperCase();
+            Object uppercaseSide = ((String)((String)side)).toUpperCase();
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue(!Helpers.isEqual(uppercaseType, "LIMIT"))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " createOrder() supports limit orders for spot markets only")) ;
@@ -3304,10 +3304,10 @@ public class ExtendedCore extends ExtendedApi
             {
                 totalFee = ((String)Precise.stringAdd(fee, builderFeeRate));
             }
-            Object now = this.milliseconds();
-            Object expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis", Helpers.add(now, 3600000));
-            Object settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(this.parseToInt(Helpers.divide((Helpers.add(expiryEpochMillis, 999)), 1000)), 1209600));
-            String nonce = this.numberToString(this.nonce());
+            Long now = this.milliseconds();
+            Long expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis", Helpers.add(now, 3600000));
+            Long settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(this.parseToInt(Helpers.divide((Helpers.add(expiryEpochMillis, 999)), 1000)), 1209600));
+            Object nonce = this.numberToString(this.nonce());
             Object account = (this.fetchExtendedAccount()).join();
             String starkKey = this.safeString(account, "l2Key");
             String collateralPosition = this.safeString(account, "l2Vault");
@@ -3315,8 +3315,8 @@ public class ExtendedCore extends ExtendedApi
             Object l2Config = this.safeDict(info, "l2Config", new java.util.HashMap<String, Object>() {{}});
             String syntheticId = this.safeString(l2Config, "syntheticId");
             String collateralId = this.safeString(l2Config, "collateralId");
-            Object syntheticResolution = this.safeInteger(l2Config, "syntheticResolution");
-            Object collateralResolution = this.safeInteger(l2Config, "collateralResolution");
+            Long syntheticResolution = this.safeInteger(l2Config, "syntheticResolution");
+            Long collateralResolution = this.safeInteger(l2Config, "collateralResolution");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(syntheticId, null))) || Helpers.isTrue((Helpers.isEqual(collateralId, null)))) || Helpers.isTrue((Helpers.isEqual(syntheticResolution, null)))) || Helpers.isTrue((Helpers.isEqual(collateralResolution, null)))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " createOrder() requires l2Config in market info")) ;
@@ -3552,7 +3552,7 @@ public class ExtendedCore extends ExtendedApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object market = Helpers.GetValue(extendedOrderRequest, "market");
-            Object now = this.safeInteger(extendedOrderRequest, "timestamp");
+            Long now = this.safeInteger(extendedOrderRequest, "timestamp");
             Helpers.addElementToObject(data, "timestamp", now);
             Helpers.addElementToObject(data, "status", "NEW");
             return this.parseOrder(this.extend(request, data), market);
@@ -3586,7 +3586,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an id argument")) ;
             }
-            Object expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis");
+            Long expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis");
             Object postOnly = this.safeBool(parameters, "postOnly");
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
             String cancelId = this.safeString2(parameters, "cancelId", "previousOrderId");
@@ -3638,7 +3638,7 @@ public class ExtendedCore extends ExtendedApi
             }}, parameters);
             final Object finalCancelId = cancelId;
             final Object finalExpiryEpochMillis = expiryEpochMillis;
-            java.util.Map<String, Object> requestParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            Object requestParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "cancelId", finalCancelId );
                 put( "expiryEpochMillis", finalExpiryEpochMillis );
             }});
@@ -3656,7 +3656,7 @@ public class ExtendedCore extends ExtendedApi
             //
             Object responseData = this.safeDict(editResponse, "data", new java.util.HashMap<String, Object>() {{}});
             Object market = Helpers.GetValue(extendedOrderRequest, "market");
-            Object now = this.safeInteger(extendedOrderRequest, "timestamp");
+            Long now = this.safeInteger(extendedOrderRequest, "timestamp");
             Helpers.addElementToObject(responseData, "timestamp", now);
             Helpers.addElementToObject(responseData, "status", "NEW");
             return this.parseOrder(this.extend(request, responseData), market);
@@ -3760,7 +3760,7 @@ public class ExtendedCore extends ExtendedApi
             Object hasOrderIds = !Helpers.isEqual(ids, null);
             if (Helpers.isTrue(hasOrderIds))
             {
-                Integer idsLength = Helpers.getArrayLength(ids);
+                Object idsLength = Helpers.getArrayLength(ids);
                 if (Helpers.isTrue(Helpers.isGreaterThan(idsLength, 0)))
                 {
                     Helpers.addElementToObject(request, "orderIds", ids);
@@ -3773,7 +3773,7 @@ public class ExtendedCore extends ExtendedApi
             Object hasClientOrderIds = !Helpers.isEqual(clientOrderIds, null);
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderIds, null)))
             {
-                Integer clientOrderIdsLength = Helpers.getArrayLength(clientOrderIds);
+                Object clientOrderIdsLength = Helpers.getArrayLength(clientOrderIds);
                 if (Helpers.isTrue(Helpers.isGreaterThan(clientOrderIdsLength, 0)))
                 {
                     Helpers.addElementToObject(request, "externalOrderIds", clientOrderIds);
@@ -3850,7 +3850,7 @@ public class ExtendedCore extends ExtendedApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "countdownTime", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ExtendedCore.this.parseToInt(Helpers.divide(timeout, 1000)) : 0 );
+                put( "countdownTime", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ((Object) ExtendedCore.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
             }};
             Object response = (this.v1PrivatePostUserDeadmanswitch(this.extend(request, parameters))).join();
             //
@@ -4059,7 +4059,7 @@ public class ExtendedCore extends ExtendedApi
             Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "cursor");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Integer dataLength = Helpers.getArrayLength(data);
+            Object dataLength = Helpers.getArrayLength(data);
             for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -4195,7 +4195,7 @@ public class ExtendedCore extends ExtendedApi
         String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         Long timestamp = (Long) this.safeInteger2(order, "createdTime", "timestamp");
-        Object lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
+        Long lastUpdateTimestamp = this.safeInteger(order, "updatedTime");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String side = (String)this.safeStringLower(order, "side");
         String type = (String)this.safeStringLower(order, "type");
@@ -4248,7 +4248,7 @@ public class ExtendedCore extends ExtendedApi
     {
         // Cairo prime offset for i64 negative encoding.
         Object prime = "3618502788666131213697322783095070105623107215331596699973092056135872020481";
-        String valueString = this.numberToString(value);
+        Object valueString = this.numberToString(value);
         if (Helpers.isTrue(Precise.stringLt(valueString, "0")))
         {
             return Precise.stringAdd(prime, valueString);
@@ -4270,7 +4270,7 @@ public class ExtendedCore extends ExtendedApi
         Object result = "";
         while (Precise.stringGt(decimalString, "0"))
         {
-            Object remainder = this.parseToInt(Precise.stringMod(decimalString, "16"));
+            Long remainder = this.parseToInt(Precise.stringMod(decimalString, "16"));
             result = Helpers.add(Helpers.GetValue(hexChars, remainder), result);
             decimalString = ((String)Precise.stringDiv(decimalString, "16", 0));
         }
@@ -4381,7 +4381,7 @@ public class ExtendedCore extends ExtendedApi
         Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object queryPost = (Helpers.isEqual(path, "user/deadmanswitch"));
-        String url = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"));
+        Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"));
         if (Helpers.isTrue(Helpers.isEqual(accessibility, "private")))
         {
             // this.checkRequiredCredentials ();

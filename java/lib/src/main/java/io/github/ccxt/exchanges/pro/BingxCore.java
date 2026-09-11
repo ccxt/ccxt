@@ -347,7 +347,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(message, "C");
+        Long timestamp = this.safeInteger(message, "C");
         Object marketId = this.safeString(message, "s");
         market = this.safeMarket(marketId, market);
         Object close = this.safeString(message, "c");
@@ -624,7 +624,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -676,7 +676,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 url = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), marketType);
             }
             Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
-            Object depth = this.safeInteger(options, "depth", 100);
+            Long depth = this.safeInteger(options, "depth", 100);
             Object subscriptionHash = Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), "depth"), this.numberToString(depth));
             Object messageHash = this.getMessageHash("orderbook", Helpers.GetValue(market, "symbol"));
             Object uuid = this.uuid();
@@ -737,7 +737,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             }
             Object market = this.market(symbol);
             Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
-            Object depth = this.safeInteger(options, "depth", 100);
+            Long depth = this.safeInteger(options, "depth", 100);
             Object subMessageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), "depth"), this.numberToString(depth));
             Object messageHash = Helpers.add("unsubscribe::", subMessageHash);
             Object topic = "orderbook";
@@ -749,8 +749,8 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = this.safeFloat2(delta, 0, "p");
-        Object amount = this.safeFloat2(delta, 1, "a");
+        Double price = this.safeFloat2(delta, 0, "p");
+        Double amount = this.safeFloat2(delta, 1, "a");
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
@@ -841,7 +841,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object subscription = Helpers.GetValue(client.subscriptions, subscriptionHash);
             // see handleOHLCV — subscription.limit may be missing for non-orderbook callers;
             // default to a reasonable depth instead of throwing NPE in the Java port.
-            Object limit = this.safeInteger(subscription, "limit", 100);
+            Long limit = this.safeInteger(subscription, "limit", 100);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
         orderbook = Helpers.GetValue(this.orderbooks, symbol);
@@ -855,7 +855,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         {
             snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", 0, 1);
         }
-        Object nonce = this.safeInteger(data, "lastUpdateId");
+        Long nonce = this.safeInteger(data, "lastUpdateId");
         Helpers.addElementToObject(snapshot, "nonce", nonce);
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         Object messageHash = this.getMessageHash("orderbook", symbol);
@@ -996,7 +996,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             // subscription.limit is only set when watchOHLCV registers the subscription;
             // when handleMessage routes a non-OHLCV-originated subscription here (or the
             // subscription dict was reset on reconnect), fall back to the OHLCVLimit option.
-            Object limit = this.safeInteger(subscription, "limit", this.safeInteger(this.options, "OHLCVLimit", 1000));
+            Long limit = this.safeInteger(subscription, "limit", this.safeInteger(this.options, "OHLCVLimit", 1000));
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe));
@@ -1682,7 +1682,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 continue;
             }
-            Object timestamp = this.safeInteger(message, "E");
+            Long timestamp = this.safeInteger(message, "E");
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
             ((java.util.List<Object>)newPositions).add(position);
@@ -1772,7 +1772,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 return null;
             }
             // whether or not to schedule another listenKey keepAlive request
-            Object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
+            Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
             return null;
         });
@@ -1785,9 +1785,9 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object time = this.milliseconds();
-            Object lastAuthenticatedTime = this.safeInteger(this.options, "lastAuthenticatedTime", 0);
-            Object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000); // 1 hour
+            Long time = this.milliseconds();
+            Long lastAuthenticatedTime = this.safeInteger(this.options, "lastAuthenticatedTime", 0);
+            Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000); // 1 hour
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
             {
                 // single-flight leader election on a never-dialed client, see
@@ -1956,7 +1956,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object data = this.safeValue2(message, "data", "o", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.orders;
@@ -2033,7 +2033,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object cachedTrades = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(cachedTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             cachedTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = cachedTrades;
         }

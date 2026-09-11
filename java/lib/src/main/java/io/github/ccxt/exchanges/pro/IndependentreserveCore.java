@@ -107,7 +107,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -230,7 +230,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         Object messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), depth);
         Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
         Object receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
-        Object timestamp = this.safeInteger(message, "Time");
+        Long timestamp = this.safeInteger(message, "Time");
         // let orderbook = this.safeValue (this.orderbooks, symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -278,7 +278,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
                 }
             }
             Object calculatedChecksum = this.crc32(payload, false);
-            Object responseChecksum = this.safeInteger(orderBook, "Crc32");
+            Long responseChecksum = this.safeInteger(orderBook, "Crc32");
             if (Helpers.isTrue(!Helpers.isEqual(calculatedChecksum, responseChecksum)))
             {
                 var error = new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol)));

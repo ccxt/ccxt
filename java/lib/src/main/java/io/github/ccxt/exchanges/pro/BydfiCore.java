@@ -548,7 +548,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         }
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
         }
@@ -720,7 +720,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //
         Object marketId = this.safeString(message, "s");
         String symbol = (String) this.safeSymbol(marketId);
-        Object timestamp = this.safeInteger(message, "E");
+        Long timestamp = this.safeInteger(message, "E");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -849,12 +849,12 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
         Object order = this.parseWsOrder(rawOrder, market);
-        Object lastUpdateTimestamp = this.safeInteger(message, "T");
+        Long lastUpdateTimestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(order, "lastUpdateTimestamp", lastUpdateTimestamp);
         Helpers.callDynamically(orders, "append", new Object[]{order});
         client.resolve(orders, messageHash);
@@ -1037,7 +1037,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         }
         Object cache = this.positions;
         Object parsedPosition = this.parseWsPosition(rawPosition, market);
-        Object timestamp = this.safeInteger(message, "T");
+        Long timestamp = this.safeInteger(message, "T");
         Helpers.addElementToObject(parsedPosition, "timestamp", timestamp);
         Helpers.addElementToObject(parsedPosition, "datetime", this.iso8601(timestamp));
         Helpers.callDynamically(cache, "append", new Object[]{parsedPosition});
@@ -1228,7 +1228,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         {
             Object data = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
             Object balances = this.safeList(data, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object timestamp = this.safeInteger(message, "T");
+            Long timestamp = this.safeInteger(message, "T");
             Object result = new java.util.HashMap<String, Object>() {{
                 put( "info", message );
                 put( "timestamp", timestamp );

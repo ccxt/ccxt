@@ -531,7 +531,7 @@ public class P2bCore extends P2bApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
@@ -556,7 +556,7 @@ public class P2bCore extends P2bApi
             //    }
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeIntegerProduct(response, "cache_time", 1000);
+            Long timestamp = this.safeIntegerProduct(response, "cache_time", 1000);
             return this.extend(new java.util.HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
                 put( "datetime", P2bCore.this.iso8601(timestamp) );
@@ -599,7 +599,7 @@ public class P2bCore extends P2bApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerProduct(ticker, "at", 1000);
+        Long timestamp = this.safeIntegerProduct(ticker, "at", 1000);
         if (Helpers.isTrue(Helpers.inOp(ticker, "ticker")))
         {
             ticker = this.safeValue(ticker, "ticker");
@@ -655,7 +655,7 @@ public class P2bCore extends P2bApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -689,7 +689,7 @@ public class P2bCore extends P2bApi
             //    }
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeIntegerProduct(response, "current_time", 1000);
+            Long timestamp = this.safeIntegerProduct(response, "current_time", 1000);
             return this.parseOrderBook(result, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
         });
 
@@ -719,14 +719,14 @@ public class P2bCore extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Object lastId = this.safeInteger(parameters, "lastId");
+            Long lastId = this.safeInteger(parameters, "lastId");
             if (Helpers.isTrue(Helpers.isEqual(lastId, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTrades () requires an extra parameter params[\"lastId\"]")) ;
             }
             Object market = this.market(symbol);
             final Object finalLastId = lastId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "lastId", finalLastId );
             }};
@@ -860,7 +860,7 @@ public class P2bCore extends P2bApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "interval", timeframe );
             }};
@@ -971,7 +971,7 @@ public class P2bCore extends P2bApi
         //        }
         //    }
         //
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object keys = Helpers.objectKeys(response);
@@ -982,7 +982,7 @@ public class P2bCore extends P2bApi
             String code = (String) this.safeCurrencyCode(currencyId);
             String used = this.safeString(balance, "freeze");
             String available = this.safeString(balance, "available");
-            java.util.Map<String, Object> account = new java.util.HashMap<String, Object>() {{
+            Object account = new java.util.HashMap<String, Object>() {{
                 put( "free", available );
                 put( "used", used );
             }};
@@ -1020,7 +1020,7 @@ public class P2bCore extends P2bApi
                 throw new BadRequest((String)Helpers.add(this.id, " createOrder () can only accept orders with type \"limit\"")) ;
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "side", side );
                 put( "amount", P2bCore.this.amountToPrecision(symbol, amount) );
@@ -1081,7 +1081,7 @@ public class P2bCore extends P2bApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "orderId", id );
             }};
@@ -1146,7 +1146,7 @@ public class P2bCore extends P2bApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1214,7 +1214,7 @@ public class P2bCore extends P2bApi
                 (this.loadMarkets()).join();
             }
             Object market = this.safeMarket(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1305,9 +1305,9 @@ public class P2bCore extends P2bApi
                 throw new BadRequest((String)Helpers.add(this.id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
             }
             Object market = this.market(symbol);
-            Object sinceSec = this.parseToInt(Helpers.divide(since, 1000));
-            Object untilSec = this.parseToInt(Helpers.divide(until, 1000));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Long sinceSec = this.parseToInt(Helpers.divide(since, 1000));
+            Long untilSec = this.parseToInt(Helpers.divide(until, 1000));
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "startTime", sinceSec );
                 put( "endTime", untilSec );
@@ -1403,9 +1403,9 @@ public class P2bCore extends P2bApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchClosedOrders () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
             }
-            Object sinceSec = this.parseToInt(Helpers.divide(since, 1000));
-            Object untilSec = this.parseToInt(Helpers.divide(until, 1000));
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Long sinceSec = this.parseToInt(Helpers.divide(since, 1000));
+            Long untilSec = this.parseToInt(Helpers.divide(until, 1000));
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "startTime", sinceSec );
                 put( "endTime", untilSec );
             }};
@@ -1551,7 +1551,7 @@ public class P2bCore extends P2bApi
         {
             Helpers.addElementToObject(parameters, "request", Helpers.add("/api/v2/", path));
             Helpers.addElementToObject(parameters, "nonce", String.valueOf(this.nonce()));
-            String payload = this.stringToBase64(this.json(parameters)); // Body json encoded in base64
+            Object payload = this.stringToBase64(this.json(parameters)); // Body json encoded in base64
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "X-TXC-APIKEY", P2bCore.this.apiKey );

@@ -2185,7 +2185,7 @@ public class HtxCore extends HtxApi
                 //     }
                 //
                 Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                Object marketStatus = this.safeInteger(data, "marketStatus");
+                Long marketStatus = this.safeInteger(data, "marketStatus");
                 status = ((Helpers.isTrue((Helpers.isEqual(marketStatus, 1))))) ? "ok" : "maintenance";
                 eta = this.safeInteger(data, "haltEndTime");
             } else
@@ -2223,7 +2223,7 @@ public class HtxCore extends HtxApi
                     heartbeatKey = "swap_heartbeat";
                     etaKey = "swap_estimated_recovery_time";
                 }
-                Object heartbeat = this.safeInteger(data, heartbeatKey);
+                Long heartbeat = this.safeInteger(data, heartbeatKey);
                 status = ((Helpers.isTrue((Helpers.isEqual(heartbeat, 1))))) ? "ok" : "maintenance";
                 eta = this.safeInteger(data, etaKey);
             }
@@ -2749,9 +2749,9 @@ public class HtxCore extends HtxApi
                         symbol = Helpers.add(symbol, Helpers.add("-", this.yymmdd(expiry)));
                     }
                 }
-                Object contractSize = this.safeNumber(market, "contract_size");
+                Double contractSize = this.safeNumber(market, "contract_size");
                 Object minCost = this.safeNumber(market, "min-order-value");
-                Object maxAmount = this.safeNumber(market, "max-order-amt");
+                Double maxAmount = this.safeNumber(market, "max-order-amt");
                 Object minAmount = this.safeNumber(market, "min-order-amt");
                 if (Helpers.isTrue(contract))
                 {
@@ -2784,7 +2784,7 @@ public class HtxCore extends HtxApi
                     amountPrecision = this.parseNumber("1"); // other markets have step size of 1 contract
                     maker = this.parseNumber("0.0002");
                     taker = this.parseNumber("0.0005");
-                    Object contractStatus = this.safeInteger(market, "contract_status");
+                    Long contractStatus = this.safeInteger(market, "contract_status");
                     active = (Helpers.isEqual(contractStatus, 1));
                 }
                 String leverageRatio = this.safeString(market, "leverage-ratio", "1");
@@ -3140,7 +3140,7 @@ public class HtxCore extends HtxApi
             //
             Object tick = this.safeValue(response, "tick", new java.util.HashMap<String, Object>() {{}});
             Object ticker = this.parseTicker(tick, market);
-            Object timestamp = this.safeInteger(response, "ts");
+            Long timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
             return ticker;
@@ -3346,7 +3346,7 @@ public class HtxCore extends HtxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(entry, "symbol", "contract_code");
         market = this.safeMarket(marketId, market);
-        Object price = this.safeNumber(entry, "price");
+        Double price = this.safeNumber(entry, "price");
         String direction = this.safeString(entry, "direction"); // "buy" or "sell"
         // group timestamp should not be assigned to the individual trades' times
         final Object finalMarket = market;
@@ -3461,7 +3461,7 @@ public class HtxCore extends HtxApi
                     throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned empty response: "), this.json(response))) ;
                 }
                 Object tick = this.safeValue(response, "tick");
-                Object timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
+                Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
                 Object result = this.parseOrderBook(tick, symbol, timestamp);
                 Helpers.addElementToObject(result, "nonce", this.safeInteger(tick, "version"));
                 return result;
@@ -3581,7 +3581,7 @@ public class HtxCore extends HtxApi
         String marketId = this.safeString2(trade, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("ts", "created-at", "created_at", "create_date", "created_time")));
+        Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("ts", "created-at", "created_at", "create_date", "created_time")));
         String order = this.safeString2(trade, "order-id", "order_id");
         Object side = this.safeString2(trade, "direction", "side");
         Object type = this.safeString(trade, "type");
@@ -4129,16 +4129,16 @@ public class HtxCore extends HtxApi
                 }
                 if (Helpers.isTrue(Helpers.isEqual(priceType, null)))
                 {
-                    Object duration = this.parseTimeframe(timeframe);
+                    int duration = this.parseTimeframe(timeframe);
                     Object calcualtedEnd = null;
                     if (Helpers.isTrue(Helpers.isEqual(since, null)))
                     {
-                        Object now = this.seconds();
+                        Long now = this.seconds();
                         Helpers.addElementToObject(request, "from", Helpers.subtract(now, Helpers.multiply(duration, (Helpers.subtract(limit, 1)))));
                         calcualtedEnd = now;
                     } else
                     {
-                        Object start = this.parseToInt(Helpers.divide(since, 1000));
+                        Long start = this.parseToInt(Helpers.divide(since, 1000));
                         Helpers.addElementToObject(request, "from", start);
                         calcualtedEnd = this.sum(start, Helpers.multiply(duration, (Helpers.subtract(limit, 1))));
                     }
@@ -6350,7 +6350,7 @@ public class HtxCore extends HtxApi
                 }
             }
         }
-        Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("created_at", "created-at", "create_date", "created_time")));
+        Long timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("created_at", "created-at", "create_date", "created_time")));
         String clientOrderId = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", Helpers.add("client-or", "der-id"), "algo_client_order_id"))); // transpiler regex trick for php issue
         Object cost = null;
         Object amount = null;
@@ -6393,7 +6393,7 @@ public class HtxCore extends HtxApi
             reduceOnly = this.safeBool(order, "reduce_only");
         } else
         {
-            Object reduceOnlyInteger = this.safeInteger(order, "reduce_only");
+            Long reduceOnlyInteger = this.safeInteger(order, "reduce_only");
             if (Helpers.isTrue(!Helpers.isEqual(reduceOnlyInteger, null)))
             {
                 reduceOnly = ((Helpers.isTrue((Helpers.isEqual(reduceOnlyInteger, 0))))) ? false : true;
@@ -6620,7 +6620,7 @@ public class HtxCore extends HtxApi
                 var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-                Object cost = this.safeNumber(parameters, "cost");
+                Double cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                 {
@@ -6638,8 +6638,8 @@ public class HtxCore extends HtxApi
                         // https://github.com/ccxt/ccxt/pull/4395
                         // https://github.com/ccxt/ccxt/issues/7611
                         // we use amountToPrecision here because the exchange requires cost in base precision
-                        String amountString = this.numberToString(amount);
-                        String priceString = this.numberToString(price);
+                        Object amountString = this.numberToString(amount);
+                        Object priceString = this.numberToString(price);
                         quoteAmount = this.amountToPrecision(symbol, Precise.stringMul(amountString, priceString));
                     }
                 } else
@@ -6733,11 +6733,11 @@ public class HtxCore extends HtxApi
             }
             Object stopLoss = this.safeDict(parameters, "stopLoss");
             Object takeProfit = this.safeDict(parameters, "takeProfit");
-            Object stopLossTriggerPriceAttached = this.safeNumber(stopLoss, "triggerPrice");
-            Object stopLossOrderPrice = this.safeNumber(stopLoss, "price");
+            Double stopLossTriggerPriceAttached = this.safeNumber(stopLoss, "triggerPrice");
+            Double stopLossOrderPrice = this.safeNumber(stopLoss, "price");
             String stopLossType = this.safeString(stopLoss, "type");
-            Object takeProfitTriggerPriceAttached = this.safeNumber(takeProfit, "triggerPrice");
-            Object takeProfitOrderPrice = this.safeNumber(takeProfit, "price");
+            Double takeProfitTriggerPriceAttached = this.safeNumber(takeProfit, "triggerPrice");
+            Double takeProfitOrderPrice = this.safeNumber(takeProfit, "price");
             String takeProfitType = this.safeString(takeProfit, "type");
             // on htx for attached tpsl orders sl_order_price or tp_order_price need to be filled and the sl_trigger_price or tp_trigger_price are optional
             if (Helpers.isTrue(!Helpers.isEqual(stopLoss, null)))
@@ -6793,16 +6793,16 @@ public class HtxCore extends HtxApi
             }
             Helpers.addElementToObject(request, "direction", side);
         }
-        Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "trigger_price")));
-        Object stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
-        Object takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price");
+        Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "trigger_price")));
+        Double stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
+        Double takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price");
         String trailingPercent = this.safeString2(parameters, "trailingPercent", "callback_rate");
-        Object trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice", price);
+        Double trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice", price);
         Object isTrailingPercentOrder = !Helpers.isEqual(trailingPercent, null);
         Object isTrigger = !Helpers.isEqual(triggerPrice, null);
         Object isStopLossTriggerOrder = !Helpers.isEqual(stopLossTriggerPrice, null);
         Object isTakeProfitTriggerOrder = !Helpers.isEqual(takeProfitTriggerPrice, null);
-        Object clientOrderId = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
+        Long clientOrderId = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
         if (Helpers.isTrue(Helpers.isTrue(isLinear) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isTrailingPercentOrder) || Helpers.isTrue(isTrigger)) || Helpers.isTrue(isStopLossTriggerOrder)) || Helpers.isTrue(isTakeProfitTriggerOrder)))))
         {
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -6970,10 +6970,10 @@ public class HtxCore extends HtxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "trigger_price")));
-            Object stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
-            Object takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price");
-            Object trailingPercent = this.safeNumber(parameters, "trailingPercent");
+            Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "trigger_price")));
+            Double stopLossTriggerPrice = this.safeNumber2(parameters, "stopLossPrice", "sl_trigger_price");
+            Double takeProfitTriggerPrice = this.safeNumber2(parameters, "takeProfitPrice", "tp_trigger_price");
+            Double trailingPercent = this.safeNumber(parameters, "trailingPercent");
             Object isTrailingPercentOrder = !Helpers.isEqual(trailingPercent, null);
             Object isTrigger = !Helpers.isEqual(triggerPrice, null);
             Object isStopLossTriggerOrder = !Helpers.isEqual(stopLossTriggerPrice, null);
@@ -8033,7 +8033,7 @@ public class HtxCore extends HtxApi
             }
             final Object finalTimeout = timeout;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? HtxCore.this.parseToInt(Helpers.divide(finalTimeout, 1000)) : 0 );
+                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? ((Object) HtxCore.this.parseToInt(Helpers.divide(finalTimeout, 1000))) : 0 );
             }};
             Object response = (this.v2PrivatePostAlgoOrdersCancelAllAfter(this.extend(request, parameters))).join();
             //
@@ -8412,7 +8412,7 @@ public class HtxCore extends HtxApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(transaction, "created-at");
+        Long timestamp = this.safeInteger(transaction, "created-at");
         String code = (String) this.safeCurrencyCode(this.safeString(transaction, "currency"));
         String type = this.safeString(transaction, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "withdraw")))
@@ -8544,7 +8544,7 @@ public class HtxCore extends HtxApi
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(this.safeBool(withdrawOptions, "includeFee", false)))
             {
-                Object fee = this.safeNumber(parameters, "fee");
+                Double fee = this.safeNumber(parameters, "fee");
                 if (Helpers.isTrue(Helpers.isEqual(fee, null)))
                 {
                     Object currencies = (this.fetchCurrenciesAsync()).join();
@@ -8559,7 +8559,7 @@ public class HtxCore extends HtxApi
                 // fee needs to be deducted from whole amount
                 Object feeString = this.currencyToPrecision(code, fee, networkCode);
                 parameters = this.omit(parameters, "fee");
-                String amountString = this.numberToString(amount);
+                Object amountString = this.numberToString(amount);
                 Object amountSubtractedString = Precise.stringSub(amountString, feeString);
                 Object amountSubtractedParsed = amountSubtractedString;
                 if (Helpers.isTrue(Helpers.isEqual(amountSubtractedParsed, null)))
@@ -8623,8 +8623,8 @@ public class HtxCore extends HtxApi
         String id = this.safeString2(transfer, "transfer_id", "data");
         String currencyId = this.safeString(transfer, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object amount = this.safeNumber(transfer, "amount");
-        Object timestamp = this.safeInteger(transfer, "transfer_time");
+        Double amount = this.safeNumber(transfer, "amount");
+        Long timestamp = this.safeInteger(transfer, "transfer_time");
         String fromAccountRaw = this.safeString(transfer, "from_account_type");
         String toAccountRaw = this.safeString(transfer, "to_account_type");
         String fromAccount = this.safeString(accountsById, fromAccountRaw, fromAccountRaw);
@@ -8818,7 +8818,7 @@ public class HtxCore extends HtxApi
             {
                 Helpers.addElementToObject(request, "start_time", since);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -9038,7 +9038,7 @@ public class HtxCore extends HtxApi
                     Object entry = Helpers.GetValue(data, i);
                     String marketId = this.safeString(entry, "contract_code");
                     String symbolInner = (String) this.safeSymbol(marketId, market);
-                    Object timestamp = this.safeInteger(entry, "funding_time");
+                    Long timestamp = this.safeInteger(entry, "funding_time");
                     ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                         put( "info", entry );
                         put( "symbol", symbolInner );
@@ -9057,7 +9057,7 @@ public class HtxCore extends HtxApi
                     Helpers.addElementToObject(entry, "current_page", cursor);
                     String marketId = this.safeString(entry, "contract_code");
                     String symbolInner = (String) this.safeSymbol(marketId);
-                    Object timestamp = this.safeInteger(entry, "funding_time");
+                    Long timestamp = this.safeInteger(entry, "funding_time");
                     ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                         put( "info", entry );
                         put( "symbol", symbolInner );
@@ -9100,9 +9100,9 @@ public class HtxCore extends HtxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object nextFundingRate = this.safeNumber(contract, "estimated_rate");
-        Object fundingTimestamp = this.safeInteger(contract, "funding_time");
-        Object nextFundingTimestamp = this.safeInteger(contract, "next_funding_time");
+        Double nextFundingRate = this.safeNumber(contract, "estimated_rate");
+        Long fundingTimestamp = this.safeInteger(contract, "funding_time");
+        Long nextFundingTimestamp = this.safeInteger(contract, "next_funding_time");
         String fundingTimeString = this.safeString(contract, "funding_time");
         String nextFundingTimeString = this.safeString(contract, "next_funding_time");
         Object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
@@ -9397,7 +9397,7 @@ public class HtxCore extends HtxApi
         Object marginMode = ((Helpers.isTrue((Helpers.isEqual(marketId, null))))) ? "cross" : "isolated";
         market = this.safeMarket(marketId);
         String symbol = this.safeString(market, "symbol");
-        Object timestamp = this.safeInteger(info, "accrued-at");
+        Long timestamp = this.safeInteger(info, "accrued-at");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", symbol );
@@ -9460,11 +9460,11 @@ public class HtxCore extends HtxApi
                     request = this.extend(request, query);
                 }
                 Object sortedRequest = this.keysort(request);
-                String auth = this.urlencode(sortedRequest, true); // true is a go only requirement
+                Object auth = this.urlencode(sortedRequest, true); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(method, this.hostname, url, auth));
                 Object payload = String.join((String)"\n", (java.util.List<String>)content); // eslint-disable-line quotes
-                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 auth = Helpers.add(auth, Helpers.add("&", this.urlencode(new java.util.HashMap<String, Object>() {{
     put( "Signature", signature );
 }})));
@@ -9571,7 +9571,7 @@ public class HtxCore extends HtxApi
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content2 = new java.util.ArrayList<Object>(java.util.Arrays.asList(method, hostname, url, auth));
                 Object payload = String.join((String)"\n", (java.util.List<String>)content2); // eslint-disable-line quotes
-                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 auth = Helpers.add(auth, Helpers.add("&", this.urlencode(new java.util.HashMap<String, Object>() {{
     put( "Signature", signature );
 }})));
@@ -9865,7 +9865,7 @@ public class HtxCore extends HtxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "contract_code");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object amount = this.safeNumber(income, "amount");
+        Double amount = this.safeNumber(income, "amount");
         Long timestamp = (Long) this.safeInteger2(income, "ts", "created_time");
         String id = this.safeString(income, "id");
         String currencyId = this.safeStringN(income, new java.util.ArrayList<Object>(java.util.Arrays.asList("symbol", "asset", "currency")));
@@ -9946,8 +9946,8 @@ public class HtxCore extends HtxApi
         Object symbol = Helpers.GetValue(market, "symbol");
         String contracts = this.safeString(position, "volume");
         Object contractSize = this.safeValue(market, "contractSize");
-        String contractSizeString = this.numberToString(contractSize);
-        Object entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price");
+        Object contractSizeString = this.numberToString(contractSize);
+        Double entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price");
         String initialMargin = this.safeString2(position, "position_margin", "initial_margin");
         String rawSide = this.safeString(position, "direction");
         Object directionSide = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "long" : "short";
@@ -9959,7 +9959,7 @@ public class HtxCore extends HtxApi
         {
             side = rawPositionSide;
         }
-        Object unrealizedProfit = this.safeNumber(position, "profit_unreal");
+        Double unrealizedProfit = this.safeNumber(position, "profit_unreal");
         String marginMode = this.safeString(position, "margin_mode");
         String leverage = this.safeString(position, "lever_rate");
         Object percentage = Precise.stringMul(this.safeString(position, "profit_rate"), "100");
@@ -9999,7 +9999,7 @@ public class HtxCore extends HtxApi
         {
             marginRatio = marginRatioLinear;
         }
-        Object timestamp = this.safeInteger(position, "created_time");
+        Long timestamp = this.safeInteger(position, "created_time");
         final Object finalSide = side;
         final Object finalMarginMode = marginMode;
         final Object finalNotional = notional;
@@ -10103,7 +10103,7 @@ public class HtxCore extends HtxApi
                 }
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object timestamp = this.safeInteger(response, "ts");
+            Long timestamp = this.safeInteger(response, "ts");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -10210,7 +10210,7 @@ public class HtxCore extends HtxApi
             {
                 position = this.safeValue(positions, 0);
             }
-            Object timestamp = this.safeInteger(response, "ts");
+            Long timestamp = this.safeInteger(response, "ts");
             Object parsed = this.parsePosition(this.extend(position, omitted), market);
             Helpers.addElementToObject(parsed, "timestamp", timestamp);
             Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
@@ -10261,7 +10261,7 @@ public class HtxCore extends HtxApi
         currency = this.safeCurrency(currencyId, currency);
         String id = this.safeString(item, "transactId");
         String transferType = this.safeString(item, "transferType");
-        Object timestamp = this.safeInteger(item, "transactTime");
+        Long timestamp = this.safeInteger(item, "transactTime");
         String account = this.safeString(item, "accountId");
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
@@ -10761,7 +10761,7 @@ public class HtxCore extends HtxApi
             //         "ts": 1664337928805
             //     }
             //
-            Object timestamp = this.safeInteger(response, "ts");
+            Long timestamp = this.safeInteger(response, "ts");
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 Object result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
@@ -10829,9 +10829,9 @@ public class HtxCore extends HtxApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(interest, "ts");
-        Object amount = this.safeNumber(interest, "volume");
-        Object value = this.safeNumber(interest, "value");
+        Long timestamp = this.safeInteger(interest, "ts");
+        Double amount = this.safeNumber(interest, "volume");
+        Double value = this.safeNumber(interest, "value");
         String marketId = this.safeString(interest, "contract_code");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", HtxCore.this.safeSymbol(marketId, market) );
@@ -11058,7 +11058,7 @@ public class HtxCore extends HtxApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(info, "repayTime");
+        Long timestamp = this.safeInteger(info, "repayTime");
         return new java.util.HashMap<String, Object>() {{
             put( "id", HtxCore.this.safeString2(info, "repayId", "data") );
             put( "currency", HtxCore.this.safeCurrencyCode(null, currency) );
@@ -11424,7 +11424,7 @@ public class HtxCore extends HtxApi
                 ((java.util.List<Object>)result).add(parsedSettlement);
             } else if (Helpers.isTrue(!Helpers.isEqual(list, null)))
             {
-                Object timestamp = this.safeInteger(settlement, "settlement_time");
+                Long timestamp = this.safeInteger(settlement, "settlement_time");
                 Object timestampDetails = new java.util.HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                     put( "datetime", HtxCore.this.iso8601(timestamp) );
@@ -11478,7 +11478,7 @@ public class HtxCore extends HtxApi
         //         "settlement_price": "62933.747161774209291325"
         //     }
         //
-        Object timestamp = this.safeInteger(settlement, "settlement_time");
+        Long timestamp = this.safeInteger(settlement, "settlement_time");
         String marketId = this.safeString(settlement, "contract_code");
         return new java.util.HashMap<String, Object>() {{
             put( "info", settlement );
@@ -11893,7 +11893,7 @@ public class HtxCore extends HtxApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "contract_code");
-        Object timestamp = this.safeInteger(info, "created_time");
+        Long timestamp = this.safeInteger(info, "created_time");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", HtxCore.this.safeSymbol(marketId, market, null, "contract") );

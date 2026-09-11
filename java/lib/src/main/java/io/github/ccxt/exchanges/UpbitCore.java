@@ -900,7 +900,7 @@ public class UpbitCore extends UpbitApi
                 Object orderbook = Helpers.GetValue(orderbooks, i);
                 String marketId = this.safeString(orderbook, "market");
                 String symbol = (String) this.safeSymbol(marketId, null, "-");
-                Object timestamp = this.safeInteger(orderbook, "timestamp");
+                Long timestamp = this.safeInteger(orderbook, "timestamp");
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "symbol", symbol );
         put( "bids", UpbitCore.this.sortBy(UpbitCore.this.parseOrderBookBidsAsks(Helpers.GetValue(orderbook, "orderbook_units"), "bid_price", "bid_size"), 0, true) );
@@ -970,7 +970,7 @@ public class UpbitCore extends UpbitApi
         //                     "timestamp":  1542883543813  }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "trade_timestamp");
+        Long timestamp = this.safeInteger(ticker, "trade_timestamp");
         String marketId = this.safeString2(ticker, "market", "code");
         market = this.safeMarket(marketId, market, "-");
         String last = this.safeString(ticker, "trade_price");
@@ -1186,7 +1186,7 @@ public class UpbitCore extends UpbitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(trade, "sequential_id", "uuid");
         Object orderId = null;
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             timestamp = this.parse8601(this.safeString(trade, "created_at"));
@@ -1463,7 +1463,7 @@ public class UpbitCore extends UpbitApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object timeframePeriod = this.parseTimeframe(timeframe);
+            int timeframePeriod = this.parseTimeframe(timeframe);
             String timeframeValue = this.safeString(this.timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {

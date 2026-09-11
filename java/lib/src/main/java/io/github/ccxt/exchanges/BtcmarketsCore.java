@@ -667,8 +667,8 @@ public class BtcmarketsCore extends BtcmarketsApi
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object fees = this.safeValue(this.safeDict(this.options, "fees", new java.util.HashMap<String, Object>() {{}}), quote, this.fees);
         Object pricePrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "priceDecimals")));
-        Object minAmount = this.safeNumber(market, "minOrderAmount");
-        Object maxAmount = this.safeNumber(market, "maxOrderAmount");
+        Double minAmount = this.safeNumber(market, "minOrderAmount");
+        Double maxAmount = this.safeNumber(market, "maxOrderAmount");
         String status = this.safeString(market, "status");
         Object minPrice = null;
         if (Helpers.isTrue(Helpers.isEqual(quote, "AUD")))
@@ -911,7 +911,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             //         ]
             //     }
             //
-            Object timestamp = this.safeIntegerProduct(response, "snapshotId", 0.001);
+            Long timestamp = this.safeIntegerProduct(response, "snapshotId", 0.001);
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "snapshotId"));
             return orderbook;
@@ -1221,7 +1221,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             }
             if (Helpers.isTrue(triggerPriceIsRequired))
             {
-                Object triggerPrice = this.safeNumber(parameters, "triggerPrice");
+                Double triggerPrice = this.safeNumber(parameters, "triggerPrice");
                 parameters = this.omit(parameters, "triggerPrice");
                 if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
                 {

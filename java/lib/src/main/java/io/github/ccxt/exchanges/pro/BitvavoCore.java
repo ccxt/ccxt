@@ -282,7 +282,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object marketId = this.safeString(ticker, "market");
         market = this.safeMarket(marketId, null, "-");
         Object symbol = this.safeString(market, "symbol");
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -350,7 +350,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(((Number)limit).intValue());
         }
         Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
@@ -575,7 +575,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
         }
@@ -914,8 +914,8 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = this.safeFloat(delta, 0);
-        Object amount = this.safeFloat(delta, 1);
+        Double price = this.safeFloat(delta, 0);
+        Double amount = this.safeFloat(delta, 1);
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
@@ -989,7 +989,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 Helpers.addElementToObject(subscription, flagKey, true);
                 Helpers.addElementToObject(client.subscriptions, messageHash, subscription);
                 Object options = this.safeValue(this.options, "watchOrderBookSnapshot", new java.util.HashMap<String, Object>() {{}});
-                Object delay = this.safeInteger(options, "delay", this.rateLimit);
+                Long delay = this.safeInteger(options, "delay", this.rateLimit);
                 // fetch the snapshot in a separate async call after a warmup delay
                 this.scheduleCallback(delay, "watchOrderBookSnapshot", client, message, subscription);
             }
@@ -1092,7 +1092,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
     public void handleOrderBookSubscription(Client client, Object message, Object subscription)
     {
         Object symbol = this.safeString(subscription, "symbol");
-        Object limit = this.safeInteger(subscription, "limit");
+        Long limit = this.safeInteger(subscription, "limit");
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, ((String)symbol))))
         {
             ((java.util.Map<String,Object>)this.orderbooks).remove((String)((String)symbol));
@@ -1119,7 +1119,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 {
                     // multi-symbol watches share one subscription object without a
                     // per-market method - initialize the order book directly
-                    Object limit = this.safeInteger(subscription, "limit");
+                    Long limit = this.safeInteger(subscription, "limit");
                     Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
                 }
             }
@@ -2152,7 +2152,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object order = this.parseOrder(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
@@ -2184,7 +2184,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object trade = this.parseTrade(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
         Object tradesArray = this.myTrades;
@@ -2232,7 +2232,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object future = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {
-                Object timestamp = this.milliseconds();
+                Long timestamp = this.milliseconds();
                 Object stringTimestamp = String.valueOf(timestamp);
                 Object auth = Helpers.add(Helpers.add(Helpers.add(stringTimestamp, "GET/"), this.version), "/websocket");
                 String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());

@@ -432,7 +432,7 @@ public class ZebpayCore extends ZebpayApi
             //     "customMessage": ["OK"]
             // }
             //
-            Object time = this.safeInteger(data, "timestamp");
+            Long time = this.safeInteger(data, "timestamp");
             return time;
         });
 
@@ -1706,7 +1706,7 @@ public class ZebpayCore extends ZebpayApi
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         String type = this.safeString(order, "type");
-        Object timestamp = this.safeNumber(order, "timestamp");
+        Double timestamp = this.safeNumber(order, "timestamp");
         String datetime = this.iso8601(timestamp);
         String price = this.safeString(order, "price");
         String side = this.safeString(order, "side");
@@ -2245,7 +2245,7 @@ public class ZebpayCore extends ZebpayApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object leverage = this.safeNumber(position, "leverage");
+        Double leverage = this.safeNumber(position, "leverage");
         String datetime = this.safeString(position, "datetime");
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
@@ -2280,8 +2280,8 @@ public class ZebpayCore extends ZebpayApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "symbol");
         Object info = this.safeDict(leverage, "info");
-        Object leverageValue = this.safeInteger(leverage, "longLeverage");
-        Object leverageValueShort = this.safeInteger(leverage, "shortLeverage");
+        Long leverageValue = this.safeInteger(leverage, "longLeverage");
+        Long leverageValueShort = this.safeInteger(leverage, "shortLeverage");
         String marginMode = this.safeString(leverage, "marginMode");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
@@ -2375,7 +2375,7 @@ public class ZebpayCore extends ZebpayApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.milliseconds();
+        Long timestamp = this.milliseconds();
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", ZebpayCore.this.safeString(market, "id") );

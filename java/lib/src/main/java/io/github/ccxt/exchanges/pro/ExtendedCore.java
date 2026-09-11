@@ -118,14 +118,14 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add("orderbook:", symbol);
-        Object timestamp = this.safeInteger(message, "ts");
-        Object nonce = this.safeInteger(message, "seq");
+        Long timestamp = this.safeInteger(message, "ts");
+        Long nonce = this.safeInteger(message, "seq");
         Object type = this.safeString(message, "type", this.safeString(data, "t"));
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
-            Object defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
+            Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             Object subscription = this.safeDict(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
-            Object limit = this.safeInteger(subscription, "limit", defaultLimit);
+            Long limit = this.safeInteger(subscription, "limit", defaultLimit);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
@@ -137,7 +137,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             client.resolve(orderbook, messageHash);
             return;
         }
-        Object previousNonce = this.safeInteger(orderbook, "nonce");
+        Long previousNonce = this.safeInteger(orderbook, "nonce");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(previousNonce, null))) && Helpers.isTrue((!Helpers.isEqual(nonce, Helpers.add(previousNonce, 1))))))
         {
             ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
@@ -156,8 +156,8 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = this.safeFloat(delta, "p");
-        Object amount = this.safeFloat2(delta, "c", "q");
+        Double price = this.safeFloat(delta, "p");
+        Double amount = this.safeFloat2(delta, "c", "q");
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
@@ -331,7 +331,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
                 Helpers.addElementToObject(result, code, account);
             }
         }
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(result, "timestamp", timestamp);
         Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp));
         this.balance = this.safeBalance(this.deepExtend(this.balance, result));
@@ -414,7 +414,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         //
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
@@ -595,7 +595,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         //
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
@@ -696,8 +696,8 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object message = Helpers.getArg(optionalArgs, 1, null);
         Object marketId = this.safeString(fundingRate, "m");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(message, "ts");
-        Object fundingTimestamp = this.safeInteger(fundingRate, "T");
+        Long timestamp = this.safeInteger(message, "ts");
+        Long fundingTimestamp = this.safeInteger(fundingRate, "T");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", fundingRate );
@@ -777,7 +777,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object marketId = this.safeString(data, "m");
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(data, "ts");
+        Long timestamp = this.safeInteger(data, "ts");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(timestamp, null))) || Helpers.isTrue((Helpers.isEqual(timestamp, 0)))))
         {
             timestamp = this.safeInteger(message, "ts");
@@ -875,13 +875,13 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object defaultLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-            Object limit = this.safeInteger(subscription, "limit", defaultLimit);
+            Long defaultLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(subscription, "limit", defaultLimit);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object previousNonce = this.safeInteger(subscription, "nonce");
-        Object nonce = this.safeInteger(message, "seq");
+        Long previousNonce = this.safeInteger(subscription, "nonce");
+        Long nonce = this.safeInteger(message, "seq");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(previousNonce, null))) && Helpers.isTrue((!Helpers.isEqual(nonce, null)))) && Helpers.isTrue((Helpers.isLessThanOrEqual(nonce, previousNonce)))))
         {
             return;
@@ -998,13 +998,13 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, ((String)symbol)), cacheKey);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object defaultLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
-            Object limit = this.safeInteger(subscription, "limit", defaultLimit);
+            Long defaultLimit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(subscription, "limit", defaultLimit);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, ((String)symbol)), ((String)cacheKey), stored);
         }
-        Object previousNonce = this.safeInteger(subscription, "nonce");
-        Object nonce = this.safeInteger(message, "seq");
+        Long previousNonce = this.safeInteger(subscription, "nonce");
+        Long nonce = this.safeInteger(message, "seq");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(previousNonce, null))) && Helpers.isTrue((!Helpers.isEqual(nonce, null)))) && Helpers.isTrue((Helpers.isLessThanOrEqual(nonce, previousNonce)))))
         {
             return;

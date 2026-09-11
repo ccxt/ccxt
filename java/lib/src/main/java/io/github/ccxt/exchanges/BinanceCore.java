@@ -4300,7 +4300,7 @@ public class BinanceCore extends BinanceApi
             base = this.safeString(optionParts, 0);
         }
         String expiry = this.safeString(optionParts, 1);
-        Object strike = this.safeInteger(optionParts, 2);
+        Long strike = this.safeInteger(optionParts, 2);
         String strikeAsString = this.safeString(optionParts, 2);
         String optionType = this.safeString(optionParts, 3);
         Object datetime = this.convertExpireDate(expiry);
@@ -4882,7 +4882,7 @@ public class BinanceCore extends BinanceApi
             Object networkCode = this.networkIdToCode(network, code);
             isETF = (Helpers.isEqual(network, "ETF")); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
             // const name = this.safeString (networkItem, 'name');
-            Object withdrawFee = this.safeNumber(networkItem, "withdrawFee");
+            Double withdrawFee = this.safeNumber(networkItem, "withdrawFee");
             Object depositEnable = this.safeBool(networkItem, "depositEnable");
             Object withdrawEnable = this.safeBool(networkItem, "withdrawEnable");
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
@@ -5532,7 +5532,7 @@ public class BinanceCore extends BinanceApi
             put( "info", market );
             put( "created", BinanceCore.this.safeInteger2(market, "onboardDate", "listingTime") );
         }};
-        Object stepSize = this.safeNumber(market, "stepSize");
+        Double stepSize = this.safeNumber(market, "stepSize");
         if (Helpers.isTrue(!Helpers.isEqual(stepSize, null)))
         {
             Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "amount", stepSize);
@@ -5723,7 +5723,7 @@ public class BinanceCore extends BinanceApi
             {
                 Object balance = Helpers.GetValue(balances, i);
                 // skip stale/uninitialized assets, whose updateTime is 0, their balances are not valid (see https://github.com/ccxt/ccxt/issues/27997)
-                Object updateTime = this.safeInteger(balance, "updateTime");
+                Long updateTime = this.safeInteger(balance, "updateTime");
                 if (Helpers.isTrue(Helpers.isEqual(updateTime, 0)))
                 {
                     continue;
@@ -6145,7 +6145,7 @@ public class BinanceCore extends BinanceApi
             //         "u": 1015939
             //     }
             //
-            Object timestamp = this.safeInteger(response, "T");
+            Long timestamp = this.safeInteger(response, "T");
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(response, "lastUpdateId", "u"));
             return orderbook;
@@ -6639,7 +6639,7 @@ public class BinanceCore extends BinanceApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(entry, "time");
+        Long timestamp = this.safeInteger(entry, "time");
         Object type = ((Helpers.isTrue((Helpers.isEqual(timestamp, null))))) ? "spot" : "swap";
         String marketId = this.safeString(entry, "symbol");
         market = this.safeMarket(marketId, market, null, type);
@@ -6970,7 +6970,7 @@ public class BinanceCore extends BinanceApi
             Object defaultLimit = 500;
             Object maxLimit = 1000;
             String price = this.safeString(parameters, "price");
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "until")));
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(since, null)) && Helpers.isTrue(!Helpers.isEqual(until, null))) && Helpers.isTrue(Helpers.isEqual(limit, null))))
             {
@@ -7008,9 +7008,9 @@ public class BinanceCore extends BinanceApi
                 {
                     if (Helpers.isTrue(Helpers.isGreaterThan(since, 0)))
                     {
-                        Object duration = this.parseTimeframe(timeframe);
+                        int duration = this.parseTimeframe(timeframe);
                         Object endTime = this.sum(since, Helpers.subtract(Helpers.multiply(Helpers.multiply(limit, duration), 1000), 1));
-                        Object now = this.milliseconds();
+                        Long now = this.milliseconds();
                         Helpers.addElementToObject(request, "endTime", Helpers.mathMin(now, endTime));
                     }
                 }
@@ -7311,7 +7311,7 @@ public class BinanceCore extends BinanceApi
         //         "updatedAt": 1785936601012
         //     }
         //
-        Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("T", "time", "executionAt")));
+        Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("T", "time", "executionAt")));
         String amount = this.safeString2(trade, "q", "qty");
         amount = this.safeString(trade, "quantity", amount);
         String marketId = this.safeString(trade, "symbol");
@@ -7457,7 +7457,7 @@ public class BinanceCore extends BinanceApi
                     // https://github.com/binance-exchange/binance-official-api-docs/blob/master/rest-api.md#compressedaggregate-trades-list
                     Helpers.addElementToObject(request, "endTime", this.sum(since, 3600000));
                 }
-                Object until = this.safeInteger(parameters, "until");
+                Long until = this.safeInteger(parameters, "until");
                 if (Helpers.isTrue(!Helpers.isEqual(until, null)))
                 {
                     Helpers.addElementToObject(request, "endTime", until);
@@ -7727,7 +7727,7 @@ public class BinanceCore extends BinanceApi
         {
             uppercaseType = "LIMIT_MAKER";
         }
-        Object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
+        Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "MARKET")))
@@ -8799,11 +8799,11 @@ public class BinanceCore extends BinanceApi
         Object marketType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
         String symbol = (String) this.safeSymbol(marketId, market, null, marketType);
         String filled = this.safeString2(order, "executedQty", "filledQty", "0");
-        Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"))); // order of the keys matters here
+        Long timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "createTime", "workingTime", "transactTime", "updateTime", "createdAt"))); // order of the keys matters here
         Object lastTradeTimestamp = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(order, "transactTime"))) || Helpers.isTrue((Helpers.inOp(order, "updateTime")))) || Helpers.isTrue((Helpers.inOp(order, "updatedAt")))))
         {
-            Object timestampValue = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("updateTime", "transactTime", "updatedAt")));
+            Long timestampValue = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("updateTime", "transactTime", "updatedAt")));
             if (Helpers.isTrue(Helpers.isEqual(status, "open")))
             {
                 if (Helpers.isTrue(Precise.stringGt(filled, "0")))
@@ -8815,7 +8815,7 @@ public class BinanceCore extends BinanceApi
                 lastTradeTimestamp = timestampValue;
             }
         }
-        Object lastUpdateTimestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("transactTime", "updateTime", "updatedAt")));
+        Long lastUpdateTimestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("transactTime", "updateTime", "updatedAt")));
         String average = this.safeString2(order, "avgPrice", "avgFilledPrice");
         String price = this.safeString2(order, "price", "limitPrice");
         String amount = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("origQty", "quantity", "qty")));
@@ -8836,7 +8836,7 @@ public class BinanceCore extends BinanceApi
         Object postOnly = Helpers.isTrue((Helpers.isEqual(type, "limit_maker"))) || Helpers.isTrue((Helpers.isEqual(timeInForce, "PO")));
         String stopPriceString = this.safeString2(order, "stopPrice", "triggerPrice");
         Object triggerPrice = this.parseNumber(this.omitZero(stopPriceString));
-        Object feeCost = this.safeNumber(order, "fee");
+        Double feeCost = this.safeNumber(order, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -9619,7 +9619,7 @@ public class BinanceCore extends BinanceApi
             Helpers.addElementToObject(request, "selfTradePreventionMode", ((String)selfTradePrevention).toUpperCase()); // binance enums exactly match the unified ccxt enums (but needs uppercase)
         }
         // unified iceberg
-        Object icebergAmount = this.safeNumber(parameters, "icebergAmount");
+        Double icebergAmount = this.safeNumber(parameters, "icebergAmount");
         if (Helpers.isTrue(!Helpers.isEqual(icebergAmount, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
@@ -9962,7 +9962,7 @@ public class BinanceCore extends BinanceApi
             Object isOptionType = Helpers.isEqual(type, "option");
             Object isLinearType = this.isLinear(type, subType);
             Object isInverseType = this.isInverse(type, subType);
-            Object until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till", "endTime")));
+            Long until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "till", "endTime")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "conditional", "until", "till", "endTime")));
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -11401,7 +11401,7 @@ public class BinanceCore extends BinanceApi
                 // If startTime and endTime are both not sent, then the last 7 days' data will be returned.
                 // The time between startTime and endTime cannot be longer than 7 days.
                 // The parameter fromId cannot be sent with startTime or endTime.
-                Object currentTimestamp = this.milliseconds();
+                Long currentTimestamp = this.milliseconds();
                 Object oneWeek = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000);
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual((Helpers.subtract(currentTimestamp, startTime)), oneWeek)))
                 {
@@ -11737,7 +11737,7 @@ public class BinanceCore extends BinanceApi
             //       ]
             //     }
             Object results = this.safeList(response, "userAssetDribblets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rows = this.safeInteger(response, "total", 0);
+            Long rows = this.safeInteger(response, "total", 0);
             Object data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, rows); i++)
             {
@@ -11769,7 +11769,7 @@ public class BinanceCore extends BinanceApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String orderId = this.safeString(trade, "transId");
-        Object timestamp = this.safeInteger(trade, "operateTime");
+        Long timestamp = this.safeInteger(trade, "operateTime");
         String currencyId = this.safeString(trade, "fromAsset");
         String tradedCurrency = (String) this.safeCurrencyCode(currencyId);
         Object bnb = this.currency("BNB");
@@ -11878,7 +11878,7 @@ public class BinanceCore extends BinanceApi
             Object legalMoney = this.safeDict(this.options, "legalMoney", new java.util.HashMap<String, Object>() {{}});
             Object fiatOnly = this.safeBool(parameters, "fiat", false);
             parameters = this.omit(parameters, "fiatOnly");
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fiatOnly, true))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(legalMoney, code)))))))
             {
@@ -11979,7 +11979,7 @@ public class BinanceCore extends BinanceApi
             Object fiatOnly = this.safeBool(parameters, "fiat", false);
             parameters = this.omit(parameters, "fiatOnly");
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -12183,8 +12183,8 @@ public class BinanceCore extends BinanceApi
             code = this.safeString(legalMoneyCurrenciesById, code, code);
         }
         Object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
-        Object amount = this.safeNumber(transaction, "amount");
-        Object feeCost = this.safeNumber2(transaction, "transactionFee", "totalFee");
+        Double amount = this.safeNumber(transaction, "amount");
+        Double feeCost = this.safeNumber2(transaction, "transactionFee", "totalFee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -12195,7 +12195,7 @@ public class BinanceCore extends BinanceApi
                 put( "cost", finalFeeCost );
             }};
         }
-        Object internalInteger = this.safeInteger(transaction, "transferType");
+        Long internalInteger = this.safeInteger(transaction, "transferType");
         Object intern = null;
         if (Helpers.isTrue(!Helpers.isEqual(internalInteger, null)))
         {
@@ -12314,7 +12314,7 @@ public class BinanceCore extends BinanceApi
         String id = this.safeString2(transfer, "tranId", "transactionId");
         String currencyId = this.safeString2(transfer, "asset", "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object amount = this.safeNumber(transfer, "amount");
+        Double amount = this.safeNumber(transfer, "amount");
         String type = this.safeString(transfer, "type");
         Object fromAccount = null;
         Object toAccount = null;
@@ -12327,7 +12327,7 @@ public class BinanceCore extends BinanceApi
             fromAccount = this.safeString(accountsById, fromAccount, fromAccount);
             toAccount = this.safeString(accountsById, toAccount, toAccount);
         }
-        Object walletType = this.safeInteger(transfer, "walletType");
+        Long walletType = this.safeInteger(transfer, "walletType");
         if (Helpers.isTrue(!Helpers.isEqual(walletType, null)))
         {
             Object payer = this.safeDict(transfer, "payerInfo", new java.util.HashMap<String, Object>() {{}});
@@ -12369,7 +12369,7 @@ public class BinanceCore extends BinanceApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "symbol");
         String currencyId = this.safeString(income, "asset");
-        Object timestamp = this.safeInteger(income, "time");
+        Long timestamp = this.safeInteger(income, "time");
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
             put( "symbol", BinanceCore.this.safeSymbol(marketId, market, null, "swap") );
@@ -12591,7 +12591,7 @@ public class BinanceCore extends BinanceApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -12818,7 +12818,7 @@ public class BinanceCore extends BinanceApi
                     Object networkEntry = Helpers.GetValue(networkList, j);
                     String networkId = this.safeString(networkEntry, "network");
                     String networkCode = (String) this.safeCurrencyCode(networkId);
-                    Object fee = this.safeNumber(networkEntry, "withdrawFee");
+                    Double fee = this.safeNumber(networkEntry, "withdrawFee");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((!Helpers.isEqual(networkCode, null)))))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(withdrawFees, code), networkCode, fee);
@@ -12953,7 +12953,7 @@ public class BinanceCore extends BinanceApi
             Object networkEntry = Helpers.GetValue(networkList, j);
             String networkId = this.safeString(networkEntry, "network");
             Object networkCode = this.networkIdToCode(networkId, code);
-            Object withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
+            Double withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             Object isDefault = this.safeBool(networkEntry, "isDefault");
             if (Helpers.isTrue(Helpers.isEqual(isDefault, true)))
             {
@@ -13541,8 +13541,8 @@ public class BinanceCore extends BinanceApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
-            Object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
+            Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
+            Long endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "until")));
             if (Helpers.isTrue(!Helpers.isEqual(endTime, null)))
             {
@@ -13585,7 +13585,7 @@ public class BinanceCore extends BinanceApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(contract, "fundingTime");
+        Long timestamp = this.safeInteger(contract, "fundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", BinanceCore.this.safeSymbol(BinanceCore.this.safeString(contract, "symbol"), null, null, "swap") );
@@ -13669,15 +13669,15 @@ public class BinanceCore extends BinanceApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(contract, "time");
+        Long timestamp = this.safeInteger(contract, "time");
         String marketId = this.safeString(contract, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market, null, "contract");
-        Object markPrice = this.safeNumber(contract, "markPrice");
-        Object indexPrice = this.safeNumber(contract, "indexPrice");
-        Object interestRate = this.safeNumber(contract, "interestRate");
-        Object estimatedSettlePrice = this.safeNumber(contract, "estimatedSettlePrice");
-        Object fundingRate = this.safeNumber(contract, "lastFundingRate");
-        Object fundingTime = this.safeInteger(contract, "nextFundingTime");
+        Double markPrice = this.safeNumber(contract, "markPrice");
+        Double indexPrice = this.safeNumber(contract, "indexPrice");
+        Double interestRate = this.safeNumber(contract, "interestRate");
+        Double estimatedSettlePrice = this.safeNumber(contract, "estimatedSettlePrice");
+        Double fundingRate = this.safeNumber(contract, "lastFundingRate");
+        Long fundingTime = this.safeInteger(contract, "nextFundingTime");
         String interval = this.safeString(contract, "fundingIntervalHours");
         Object intervalString = null;
         if (Helpers.isTrue(!Helpers.isEqual(interval, null)))
@@ -13900,7 +13900,7 @@ public class BinanceCore extends BinanceApi
         Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         String unrealizedPnlString = this.safeString(position, "unrealizedProfit");
         Object unrealizedPnl = this.parseNumber(unrealizedPnlString);
-        Object timestamp = this.safeInteger(position, "updateTime");
+        Long timestamp = this.safeInteger(position, "updateTime");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, 0)))
         {
             timestamp = null;
@@ -14229,7 +14229,7 @@ public class BinanceCore extends BinanceApi
         collateralString = ((Helpers.isTrue((Helpers.isEqual(collateralString, null))))) ? "0" : collateralString;
         Object collateral = this.parseNumber(collateralString);
         Object markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
-        Object timestamp = this.safeInteger(position, "updateTime");
+        Long timestamp = this.safeInteger(position, "updateTime");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, 0)))
         {
             timestamp = null;
@@ -14702,7 +14702,7 @@ final Object finalMarket = market;
         {
             quantity = Precise.stringMul("-1", quantity);
         }
-        Object timestamp = this.safeInteger(position, "time");
+        Long timestamp = this.safeInteger(position, "time");
         final Object finalSide = side;
         final Object finalQuantity = quantity;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
@@ -15510,7 +15510,7 @@ final Object finalMarket = market;
         String side = (String)this.safeStringLower(leverage, "positionSide");
         Object longLeverage = null;
         Object shortLeverage = null;
-        Object leverageValue = this.safeInteger(leverage, "leverage");
+        Long leverageValue = this.safeInteger(leverage, "leverage");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, null))) || Helpers.isTrue((Helpers.isEqual(side, "both")))))
         {
             longLeverage = leverageValue;
@@ -15877,7 +15877,7 @@ final Object finalMarket = market;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -16181,7 +16181,7 @@ final Object finalMarket = market;
                 Object queryBatch = (this.json(checkedBatchOrders));
                 Helpers.addElementToObject(parameters, "batchOrders", queryBatch);
             }
-            Object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
+            Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Object extendedParams = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "timestamp", BinanceCore.this.nonce() );
             }}, parameters);
@@ -16189,7 +16189,7 @@ final Object finalMarket = market;
             {
                 Helpers.addElementToObject(extendedParams, "recvWindow", defaultRecvWindow);
             }
-            Object recvWindow = this.safeInteger(parameters, "recvWindow");
+            Long recvWindow = this.safeInteger(parameters, "recvWindow");
             if (Helpers.isTrue(!Helpers.isEqual(recvWindow, null)))
             {
                 Helpers.addElementToObject(extendedParams, "recvWindow", recvWindow);
@@ -16553,10 +16553,10 @@ final Object finalMarket = market;
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object rawType = this.safeInteger(data, "type");
+        Long rawType = this.safeInteger(data, "type");
         String errorCode = this.safeString(data, "code");
         String marketId = this.safeString(data, "symbol");
-        Object timestamp = this.safeInteger(data, "time");
+        Long timestamp = this.safeInteger(data, "time");
         market = this.safeMarket(marketId, market, null, "swap");
         Object noErrorCode = Helpers.isEqual(errorCode, null);
         Object success = Helpers.isEqual(errorCode, "200");
@@ -16785,7 +16785,7 @@ final Object finalMarket = market;
             {
                 Helpers.addElementToObject(request, "startTime", since);
                 Object endTime = Helpers.subtract(this.sum(since, Helpers.multiply(limit, 86400000)), 1); // required when startTime is further than 93 days in the past
-                Object now = this.milliseconds();
+                Long now = this.milliseconds();
                 Helpers.addElementToObject(request, "endTime", Helpers.mathMin(endTime, now)); // cannot have an endTime later than current time
             }
             Object response = (this.sapiGetMarginInterestRateHistory(this.extend(request, parameters))).join();
@@ -16815,7 +16815,7 @@ final Object finalMarket = market;
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(info, "timestamp");
+        Long timestamp = this.safeInteger(info, "timestamp");
         String currencyId = this.safeString(info, "asset");
         return new java.util.HashMap<String, Object>() {{
             put( "currency", BinanceCore.this.safeCurrencyCode(currencyId, currency) );
@@ -17094,7 +17094,7 @@ final Object finalMarket = market;
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = this.safeString(info, "isolatedSymbol");
-        Object timestamp = this.safeInteger(info, "interestAccuredTime");
+        Long timestamp = this.safeInteger(info, "interestAccuredTime");
         Object marginMode = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? "cross" : "isolated";
         final Object finalSymbol = symbol;
         return new java.util.HashMap<String, Object>() {{
@@ -17325,7 +17325,7 @@ final Object finalMarket = market;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(info, "asset");
-        Object timestamp = this.safeInteger(info, "updateTime");
+        Long timestamp = this.safeInteger(info, "updateTime");
         return new java.util.HashMap<String, Object>() {{
             put( "id", BinanceCore.this.safeString(info, "tranId") );
             put( "currency", BinanceCore.this.safeCurrencyCode(currencyId, currency) );
@@ -17396,8 +17396,8 @@ final Object finalMarket = market;
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
-            Object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
+            Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
+            Long endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "until")));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(endTime, null))) && Helpers.isTrue((!Helpers.isEqual(endTime, 0)))))
             {
@@ -17408,7 +17408,7 @@ final Object finalMarket = market;
                 {
                     limit = 30; // Exchange default
                 }
-                Object duration = this.parseTimeframe(timeframe);
+                int duration = this.parseTimeframe(timeframe);
                 Helpers.addElementToObject(request, "endTime", this.sum(since, Helpers.multiply(Helpers.multiply(duration, limit), 1000)));
             }
             Object response = null;
@@ -17538,7 +17538,7 @@ final Object finalMarket = market;
         Long timestamp = (Long) this.safeInteger2(interest, "timestamp", "time");
         String id = this.safeString(interest, "symbol");
         Object amount = this.safeNumber2(interest, "sumOpenInterest", "openInterest");
-        Object value = this.safeNumber2(interest, "sumOpenInterestValue", "sumOpenInterestUsd");
+        Double value = this.safeNumber2(interest, "sumOpenInterestValue", "sumOpenInterestUsd");
         // Inverse returns the number of contracts different from the base or quote volume in this case
         // compared with https://www.binance.com/en/futures/funding-history/quarterly/4
         Object isInverse = (Helpers.isEqual(this.safeBool(market, "inverse"), true));
@@ -18347,7 +18347,7 @@ final Object finalMarket = market;
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
             }
             Object market = this.market(symbol);
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -18611,7 +18611,7 @@ final Object finalMarket = market;
             if (Helpers.isTrue(Helpers.isEqual(code, "BUSD")))
             {
                 Object msInDay = 86400000;
-                Object now = this.milliseconds();
+                Long now = this.milliseconds();
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     Object currency = this.currency(code);
@@ -18680,7 +18680,7 @@ final Object finalMarket = market;
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object msInThirtyDays = 2592000000L;
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "startTime", since);
@@ -18808,7 +18808,7 @@ final Object finalMarket = market;
         //
         Object fromCurrency = Helpers.getArg(optionalArgs, 0, null);
         Object toCurrency = Helpers.getArg(optionalArgs, 1, null);
-        Object timestamp = this.safeIntegerN(conversion, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "validTimestamp", "createTime")));
+        Long timestamp = this.safeIntegerN(conversion, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "validTimestamp", "createTime")));
         String fromCur = this.safeString2(conversion, "deductedAsset", "fromAsset");
         String fromCode = (String) this.safeCurrencyCode(fromCur, fromCurrency);
         String to = this.safeString2(conversion, "targetAsset", "toAsset");
@@ -19140,9 +19140,9 @@ final Object finalMarket = market;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object adlQuantile = this.safeDict(info, "adlQuantile", new java.util.HashMap<String, Object>() {{}});
-        Object longNum = this.safeNumber(adlQuantile, "LONG");
-        Object shortNum = this.safeNumber(adlQuantile, "SHORT");
-        Object both = this.safeNumber(adlQuantile, "BOTH");
+        Double longNum = this.safeNumber(adlQuantile, "LONG");
+        Double shortNum = this.safeNumber(adlQuantile, "SHORT");
+        Double both = this.safeNumber(adlQuantile, "BOTH");
         Object rank = null;
         if (Helpers.isTrue(!Helpers.isEqual(both, null)))
         {

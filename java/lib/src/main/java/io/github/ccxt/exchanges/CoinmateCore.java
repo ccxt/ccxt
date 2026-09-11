@@ -776,7 +776,7 @@ public class CoinmateCore extends CoinmateApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp(ticker, "timestamp");
-        Object last = this.safeNumber(ticker, "last");
+        Double last = this.safeNumber(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", CoinmateCore.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
@@ -905,7 +905,7 @@ public class CoinmateCore extends CoinmateApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(transaction, "timestamp");
+        Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "amountCurrency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         return new java.util.HashMap<String, Object>() {{
@@ -1410,7 +1410,7 @@ public class CoinmateCore extends CoinmateApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "id");
-        Object timestamp = this.safeInteger(order, "timestamp");
+        Long timestamp = this.safeInteger(order, "timestamp");
         String side = (String)this.safeStringLower(order, "type");
         String priceString = this.safeString(order, "price");
         String amountString = this.safeString(order, "originalAmount");

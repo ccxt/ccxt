@@ -453,7 +453,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             {
                 Object baseId = Helpers.GetValue(baseCurrencyIds, i);
                 String base = (String) this.safeCurrencyCode(baseId);
-                Object minAmount = this.safeNumber(limits, baseId);
+                Double minAmount = this.safeNumber(limits, baseId);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(quoteCurrencyIds)); j++)
                 {
                     Object quoteId = Helpers.GetValue(quoteCurrencyIds, j);
@@ -987,7 +987,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             {
                 (this.loadMarkets()).join();
             }
-            Object pageIndex = this.safeInteger(parameters, "pageIndex", 1);
+            Long pageIndex = this.safeInteger(parameters, "pageIndex", 1);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 50;
@@ -1126,7 +1126,7 @@ public class IndependentreserveCore extends IndependentreserveApi
                 Object fee = Helpers.GetValue(rows, i);
                 String currencyId = this.safeString(fee, "CurrencyCode");
                 String code = (String) this.safeCurrencyCode(currencyId);
-                Object tradingFee = this.safeNumber(fee, "Fee");
+                Double tradingFee = this.safeNumber(fee, "Fee");
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     Helpers.addElementToObject(fees, code, new java.util.HashMap<String, Object>() {{

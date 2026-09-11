@@ -193,8 +193,8 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             Object account = this.account();
             Object free = this.safeString(balance, "F");
             Object used = this.safeString(balance, "L");
-            Object balanceUpdateTime = this.safeInteger(balance, "T", 0);
-            Object lockBalanceUpdateTime = this.safeInteger(balance, "t", 0);
+            Long balanceUpdateTime = this.safeInteger(balance, "T", 0);
+            Long lockBalanceUpdateTime = this.safeInteger(balance, "t", 0);
             Object updateFree = !Helpers.isEqual(balanceUpdateTime, 0);
             Object updateUsed = !Helpers.isEqual(lockBalanceUpdateTime, 0);
             if (Helpers.isTrue(Helpers.isTrue(updateFree) || Helpers.isTrue(updateUsed)))
@@ -292,7 +292,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         Object parsed = this.parseWsOrder(message);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
@@ -327,10 +327,10 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(order, "E");
+        Long timestamp = this.safeInteger(order, "E");
         String marketId = (String)this.safeStringUpper(order, "s");
         Object typeId = this.safeString(order, "o");
-        Object sideId = this.safeInteger(order, "S");
+        Long sideId = this.safeInteger(order, "S");
         // 1: buy
         // 2: sell
         String side = ((Helpers.isTrue((Helpers.isEqual(sideId, 1))))) ? "buy" : "sell";
@@ -459,7 +459,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             market = this.safeMarket(marketId);
         }
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         Object tick = this.safeValue(message, "tick", new java.util.HashMap<String, Object>() {{}});
         Object parseable = tick;
         if (Helpers.isTrue(isFutures))
@@ -514,8 +514,8 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidsAsks)); i++)
         {
             Object level = Helpers.GetValue(bidsAsks, i);
-            Object price = this.safeNumber(level, 0);
-            Object rawAmount = this.safeNumber(level, 1);
+            Double price = this.safeNumber(level, 0);
+            Double rawAmount = this.safeNumber(level, 1);
             Object amount = this.convertFromRawQuantity(symbol, rawAmount);
             ((java.util.List<Object>)result).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount)));
         }
@@ -629,7 +629,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         {
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 stored = new ArrayCache(((Number)limit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
@@ -648,10 +648,10 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(trade, "ts");
+        Long timestamp = this.safeInteger(trade, "ts");
         String sideLower = (String)this.safeStringLower(trade, "side");
         Object priceString = this.safeString(trade, "price");
-        Object rawVol = this.safeNumber(trade, "vol");
+        Double rawVol = this.safeNumber(trade, "vol");
         Object baseAmount = this.convertFromRawQuantity(symbol, rawVol);
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -775,7 +775,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         }
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
@@ -788,13 +788,13 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object idSeconds = this.safeInteger(tick, "id");
+        Long idSeconds = this.safeInteger(tick, "id");
         Object timestamp = ((Helpers.isTrue((Helpers.isEqual(idSeconds, null))))) ? null : Helpers.multiply(idSeconds, 1000);
-        Object open = this.safeNumber(tick, "open");
-        Object high = this.safeNumber(tick, "high");
-        Object low = this.safeNumber(tick, "low");
-        Object close = this.safeNumber(tick, "close");
-        Object rawVol = this.safeNumber(tick, "vol");
+        Double open = this.safeNumber(tick, "open");
+        Double high = this.safeNumber(tick, "high");
+        Double low = this.safeNumber(tick, "low");
+        Double close = this.safeNumber(tick, "close");
+        Double rawVol = this.safeNumber(tick, "vol");
         Object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, open, high, low, close, baseVolume));
     }
@@ -875,7 +875,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         {
             return;
         }
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         Object parsed = this.parseWsTicker(tick, market, timestamp);
         Helpers.addElementToObject(this.tickers, symbol, parsed);
         Object messageHash = Helpers.add("ticker:", symbol);
@@ -886,12 +886,12 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
     {
         Object timestamp = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object rawVol = this.safeNumber(tick, "vol");
-        Object rawAmount = this.safeNumber(tick, "amount");
+        Double rawVol = this.safeNumber(tick, "vol");
+        Double rawAmount = this.safeNumber(tick, "amount");
         Object baseVolume = this.convertFromRawQuantity(symbol, rawVol);
         Object quoteVolume = this.convertFromRawQuantity(symbol, rawAmount);
-        Object close = this.safeNumber(tick, "close");
-        Object rose = this.safeNumber(tick, "rose");
+        Double close = this.safeNumber(tick, "close");
+        Double rose = this.safeNumber(tick, "rose");
         Object percentage = ((Helpers.isTrue((Helpers.isEqual(rose, null))))) ? null : Helpers.multiply(rose, 100);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", tick );
@@ -955,7 +955,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             //         "ping": 1670057540627
             //     }
             //
-            Object time = this.safeInteger(message, "ping");
+            Long time = this.safeInteger(message, "ping");
             Object pong = new java.util.HashMap<String, Object>() {{
                 put( "pong", time );
             }};
@@ -1068,7 +1068,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                 // /this\.delay\(([^,]+),([^,]+),(.+)\)/ whose [^,] spans newlines,
                 // so any following statement carrying a comma gets swallowed into
                 // a bogus `new object[] {...}` argument
-                Object refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);
+                Long refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);
                 this.scheduleCallback(refreshTimeout, "keepAliveListenKey");
             }
             return Helpers.GetValue(this.options, "listenKeyUrl");
@@ -1095,7 +1095,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                 Helpers.addElementToObject(this.options, "listenKeyUrl", null);
                 return null;
             }
-            Object refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);
+            Long refreshTimeout = this.safeInteger(this.options, "listenKeyRefreshRate", 1800000);
             this.scheduleCallback(refreshTimeout, "keepAliveListenKey");
             return null;
         });

@@ -904,7 +904,7 @@ public class Bit2cCore extends Bit2cApi
         }
         String id = this.safeString(orderUnified, "id");
         String symbol = (String) this.safeSymbol(null, market);
-        Object timestamp = this.safeIntegerProduct(orderUnified, "created", 1000);
+        Long timestamp = this.safeIntegerProduct(orderUnified, "created", 1000);
         // status field vary between responses
         // bit2c status type:
         // 0 = New
@@ -913,7 +913,7 @@ public class Bit2cCore extends Bit2cApi
         String status = null;
         if (Helpers.isTrue(isNewOrder))
         {
-            Object tempStatus = this.safeInteger(orderUnified, "status_type");
+            Long tempStatus = this.safeInteger(orderUnified, "status_type");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(tempStatus, 0)) || Helpers.isTrue(Helpers.isEqual(tempStatus, 1))))
             {
                 status = "open";
@@ -1153,7 +1153,7 @@ public class Bit2cCore extends Bit2cApi
             Object isMaker = this.safeValue(trade, "isMaker");
             makerOrTaker = ((Helpers.isTrue((Helpers.isEqual(isMaker, true))))) ? "maker" : "taker";
             orderId = ((Helpers.isTrue((Helpers.isEqual(isMaker, true))))) ? Helpers.GetValue(reference_parts, 2) : Helpers.GetValue(reference_parts, 1);
-            Object action = this.safeInteger(trade, "action");
+            Long action = this.safeInteger(trade, "action");
             if (Helpers.isTrue(Helpers.isEqual(action, 0)))
             {
                 side = "buy";

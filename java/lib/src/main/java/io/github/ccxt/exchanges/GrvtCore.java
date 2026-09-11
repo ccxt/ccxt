@@ -779,9 +779,9 @@ public class GrvtCore extends GrvtApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             // expires in 24 hours as CS suggested
-            Object expires = this.safeInteger(this.options, "signInExpiration", 0);
+            Long expires = this.safeInteger(this.options, "signInExpiration", 0);
             // if previous sign-in not expired (give 10 seconds margin)
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(expires, null)) && Helpers.isTrue(Helpers.isGreaterThan(expires, Helpers.add(now, 10000)))))
             {
@@ -810,9 +810,9 @@ public class GrvtCore extends GrvtApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             // expires in 24 hours as CS suggested
-            Object expires = this.safeInteger(this.options, "signInExpiration", 0);
+            Long expires = this.safeInteger(this.options, "signInExpiration", 0);
             // if previous sign-in not expired (give 10 seconds margin)
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(expires, null)) && Helpers.isTrue(Helpers.isGreaterThan(expires, Helpers.add(now, 10000)))))
             {
@@ -865,7 +865,7 @@ public class GrvtCore extends GrvtApi
             //
             Object currentBuilders = Helpers.GetValue(results, 0);
             Object approvedBuilder = this.safeList(currentBuilders, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Integer length = Helpers.getArrayLength(approvedBuilder);
+            Object length = Helpers.getArrayLength(approvedBuilder);
             Object found = false;
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
@@ -960,7 +960,7 @@ public class GrvtCore extends GrvtApi
             //            },
             //            ...
             //
-            java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketsPromise));
+            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketsPromise));
             if (Helpers.isTrue(!Helpers.isTrue(this.isEmptyString(this.apiKey)) || !Helpers.isTrue(this.isEmptyString(this.privateKey))))
             {
                 ((java.util.List<Object>)promises).add(this.signIn());
@@ -1007,7 +1007,7 @@ public class GrvtCore extends GrvtApi
         String quote = (String) this.safeCurrencyCode(quoteId);
         String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
-        String type = null;
+        Object type = null;
         String typeRaw = this.safeString(market, "kind");
         if (Helpers.isTrue(Helpers.isEqual(typeRaw, "PERPETUAL")))
         {
@@ -1246,7 +1246,7 @@ public class GrvtCore extends GrvtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "instrument");
-        Object timestamp = this.safeIntegerProduct(ticker, "event_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(ticker, "event_time", 0.000001);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
             put( "symbol", GrvtCore.this.safeSymbol(marketId, market) );
@@ -1445,10 +1445,10 @@ public class GrvtCore extends GrvtApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "instrument");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
-        String takerOrMaker = null;
+        Long timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
+        Object takerOrMaker = null;
         Object isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
-        String side = null;
+        Object side = null;
         if (Helpers.isTrue(!Helpers.isEqual(isTakerBuyer, null)))
         {
             side = ((Helpers.isTrue(isTakerBuyer))) ? "buy" : "sell";
@@ -1687,7 +1687,7 @@ public class GrvtCore extends GrvtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(rawItem, "instrument");
-        Object ts = this.safeIntegerProduct(rawItem, "funding_time", 0.000001);
+        Long ts = this.safeIntegerProduct(rawItem, "funding_time", 0.000001);
         // the api documents funding_rate in percentage points, and a unified
         // fundingRate is a fraction, with the Manual's examples reading 0.000072
         String rate = this.safeString(rawItem, "funding_rate");
@@ -1794,7 +1794,7 @@ public class GrvtCore extends GrvtApi
         //            "cross_unrealized_pnl": "0.0"
         //        }
         //
-        Object timestamp = this.safeIntegerProduct(response, "event_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(response, "event_time", 0.000001);
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
@@ -2233,8 +2233,8 @@ public class GrvtCore extends GrvtApi
     public Object filterTransfersByType(Object transfers, Object transferType, Object... optionalArgs)
     {
         Object onlyMainAccount = Helpers.getArg(optionalArgs, 0, true);
-        java.util.List<Object> matchedResults = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        java.util.List<Object> nonMatchedResults = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object matchedResults = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object nonMatchedResults = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transfers)); i++)
         {
             Object transfer = Helpers.GetValue(transfers, i);
@@ -2375,7 +2375,7 @@ public class GrvtCore extends GrvtApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeIntegerProduct(transfer, "event_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(transfer, "event_time", 0.000001);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", GrvtCore.this.safeString(transfer, "tx_id") );
@@ -2398,7 +2398,7 @@ public class GrvtCore extends GrvtApi
             {
                 return false;
             }
-            java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             ((java.util.List<Object>)promises).add(this.privateTradingPostFullV1AggregatedAccountSummary());
             //
             //     {
@@ -2441,7 +2441,7 @@ public class GrvtCore extends GrvtApi
             if (Helpers.isTrue(accountIsUndefined))
             {
                 Object subAccountIds = this.safeList(Helpers.GetValue(responses, 1), "sub_account_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Integer length = Helpers.getArrayLength(subAccountIds);
+                Object length = Helpers.getArrayLength(subAccountIds);
                 if (Helpers.isTrue(Helpers.isLessThan(length, 1)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")) ;
@@ -2641,7 +2641,7 @@ public class GrvtCore extends GrvtApi
                     selectedPrice = takeProfitPrice;
                 }
                 // trigger type
-                String selectedType = null;
+                Object selectedType = null;
                 Object isBuy = (Helpers.isEqual(side, "buy"));
                 if (Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)))
                 {
@@ -2682,7 +2682,7 @@ public class GrvtCore extends GrvtApi
     }});
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerDirection", "triggerPriceType", "closePosition")));
             }
-            String eipType = "EIP712_ORDER_TYPE";
+            Object eipType = "EIP712_ORDER_TYPE";
             Object builderFee = this.safeBool(parameters, "builderFee", this.safeBool(this.options, "builderFee", true));
             if (Helpers.isTrue(Helpers.isEqual(builderFee, true)))
             {
@@ -2769,22 +2769,22 @@ public class GrvtCore extends GrvtApi
 
     public Object eipMessageForOrder(Object order, Object structureType)
     {
-        String priceMultiplier = "1000000000";
+        Object priceMultiplier = "1000000000";
         Object orderLegs = this.safeList(order, "legs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> legs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object legs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderLegs)); i++)
         {
             Object leg = Helpers.GetValue(orderLegs, i);
             Object market = this.market(Helpers.GetValue(leg, "instrument"));
             Object bigInt10 = this.convertToBigIntCustom("10");
             Object precisionValue = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "base"));
-            String precisionValueStr = String.valueOf(precisionValue);
-            Double sizeMultiplier = Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(precisionValueStr))));
+            Object precisionValueStr = String.valueOf(precisionValue);
+            Object sizeMultiplier = Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(precisionValueStr))));
             Object size = Helpers.GetValue(leg, "size");
-            java.util.List<Object> sizeParts = (java.util.List<Object>) Helpers.split(size, ".");
+            Object sizeParts = Helpers.split(size, ".");
             String sizeDec = this.safeString(sizeParts, 1, "");
             Object sizeDecLength = Helpers.add(((String)sizeDec).length(), 0); // php tr
-            String sizeDecLengthStr = String.valueOf(sizeDecLength);
+            Object sizeDecLengthStr = String.valueOf(sizeDecLength);
             Object sizeInteger = Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)size, (String)".", (String)"")), sizeMultiplier), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(sizeDecLengthStr))))));
             Object legOrder = new java.util.HashMap<String, Object>() {{
                 put( "assetID", Helpers.GetValue(Helpers.GetValue(market, "info"), "instrument_hash") );
@@ -2795,10 +2795,10 @@ public class GrvtCore extends GrvtApi
             if (Helpers.isTrue(!Helpers.isEqual(this.omitZero(limitPrice), null)))
             {
                 Object price = Helpers.GetValue(leg, "limit_price");
-                java.util.List<Object> limitParts = (java.util.List<Object>) Helpers.split(price, ".");
+                Object limitParts = Helpers.split(price, ".");
                 String limitDec = this.safeString(limitParts, 1, "");
                 Object limitDecLength = Helpers.add(((String)limitDec).length(), 0); // php tr
-                String limitDecLengthStr = String.valueOf(limitDecLength);
+                Object limitDecLengthStr = String.valueOf(limitDecLength);
                 Object powerNum = ((Helpers.isTrue((Helpers.isEqual(limitDecLengthStr, "0"))))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 Object priceInteger = (Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)price, (String)".", (String)"")), this.convertToBigIntCustom(priceMultiplier)), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(powerNum))))));
                 Helpers.addElementToObject(legOrder, "limitPrice", this.parseToInt(priceInteger));
@@ -3013,10 +3013,10 @@ public class GrvtCore extends GrvtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "instrument");
-        Object timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
         String sizeRaw = this.safeString(position, "size");
         Object isLong = (Precise.stringGe(sizeRaw, "0"));
-        String side = ((Helpers.isTrue(isLong))) ? "long" : "short";
+        Object side = ((Helpers.isTrue(isLong))) ? "long" : "short";
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -3146,7 +3146,7 @@ public class GrvtCore extends GrvtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "instrument");
-        Object leverageValue = this.safeNumber(leverage, "leverage");
+        Double leverageValue = this.safeNumber(leverage, "leverage");
         String marginType = (String)this.safeStringLower(leverage, "margin_type");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
@@ -3310,7 +3310,7 @@ public class GrvtCore extends GrvtApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "instrument");
         String currencyId = this.safeString(income, "currency");
-        Object timestamp = this.safeIntegerProduct(income, "event_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(income, "event_time", 0.000001);
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
             put( "symbol", GrvtCore.this.safeSymbol(marketId, market) );
@@ -3702,13 +3702,13 @@ public class GrvtCore extends GrvtApi
             }});
         }
         Object isMarket = this.safeBool(order, "is_market");
-        String orderType = ((Helpers.isTrue((Helpers.isEqual(isMarket, true))))) ? "market" : "limit";
+        Object orderType = ((Helpers.isTrue((Helpers.isEqual(isMarket, true))))) ? "market" : "limit";
         Object isPostOnly = this.safeBool(order, "post_only");
         Object isReduceOnly = this.safeBool(order, "reduce_only");
         String timeInForceRaw = this.safeString(order, "time_in_force");
-        String timeInForce = ((Helpers.isTrue((Helpers.isEqual(isPostOnly, true))))) ? "PO" : this.parseTimeInForce(timeInForceRaw);
+        Object timeInForce = ((Helpers.isTrue((Helpers.isEqual(isPostOnly, true))))) ? "PO" : this.parseTimeInForce(timeInForceRaw);
         Object size = null;
-        String side = null;
+        Object side = null;
         Object price = null;
         Object filled = null;
         Object avgPrice = null;
@@ -3730,9 +3730,9 @@ public class GrvtCore extends GrvtApi
             filled = this.safeString(filledAmounts, primaryOrderIndex);
             avgPrice = this.safeString(avgPrices, primaryOrderIndex);
         }
-        Object timestamp = this.safeIntegerProduct(metadata, "create_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(metadata, "create_time", 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        Integer legsLength = Helpers.getArrayLength(legs);
+        Object legsLength = Helpers.getArrayLength(legs);
         final Object finalLegsLength = legsLength;
         final Object finalMarket = market;
         final Object finalIsPostOnly = isPostOnly;
@@ -3976,7 +3976,7 @@ public class GrvtCore extends GrvtApi
         Object domainData = this.eipDomainData();
         Object definitions = this.eipDefinitions();
         Object ethEncodedMessage = this.ethEncodeStructuredData(domainData, Helpers.GetValue(definitions, structureType), messageData);
-        String ethEncodedMessageHashed = Helpers.add("0x", this.hash(ethEncodedMessage, keccak(), "hex"));
+        Object ethEncodedMessageHashed = Helpers.add("0x", this.hash(ethEncodedMessage, keccak(), "hex"));
         Object usesPrivKey = this.usesPrivateKey(); // py transpiler needs this line separated
         Object secretOrPrivkey = ((Helpers.isTrue(usesPrivKey))) ? this.privateKey : this.secret;
         Object privateKeyWithoutZero = this.remove0xPrefix(secretOrPrivkey);
@@ -3990,7 +3990,7 @@ public class GrvtCore extends GrvtApi
 
     public Object formatSignatureRS(Object value)
     {
-        String padded = Helpers.padStart((String)value, ((Number)64).intValue(), ((String)"0").charAt(0));
+        Object padded = Helpers.padStart((String)value, ((Number)64).intValue(), ((String)"0").charAt(0));
         if (Helpers.isTrue(((String)padded).startsWith(((String)"0x"))))
         {
             return padded;
@@ -4060,7 +4060,7 @@ public class GrvtCore extends GrvtApi
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
             Object paramsKeys = Helpers.objectKeys(parameters);
-            Integer paramsKeysLength = Helpers.getArrayLength(paramsKeys);
+            Object paramsKeysLength = Helpers.getArrayLength(paramsKeys);
             if (Helpers.isTrue(Helpers.isEqual(paramsKeysLength, 0)))
             {
                 body = "{}";
@@ -4069,7 +4069,7 @@ public class GrvtCore extends GrvtApi
                 body = this.json(parameters);
             }
         }
-        Boolean isPrivate = ((String)api).startsWith(((String)"private"));
+        Object isPrivate = ((String)api).startsWith(((String)"private"));
         if (Helpers.isTrue(Helpers.isEqual(isPrivate, true)))
         {
             this.checkRequiredCredentials();

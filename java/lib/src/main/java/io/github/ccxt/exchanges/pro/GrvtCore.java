@@ -393,7 +393,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 Object symbol = Helpers.GetValue(symbols, i);
                 Object market = this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
-                Object limitRaw = this.safeInteger(parameters, "limit", 50); // 50, 200, 500, 1000
+                Long limitRaw = this.safeInteger(parameters, "limit", 50); // 50, 200, 500, 1000
                 ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(marketId, "@"), String.valueOf(limitRaw)));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("trade::", Helpers.GetValue(market, "symbol")));
             }
@@ -445,7 +445,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Object parsed = this.parseWsTrade(data);
@@ -727,13 +727,13 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object marketId = this.safeString(parts, 0);
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-        Object sequenceNumber = this.safeInteger(message, "sequence_number", 0);
+        Long sequenceNumber = this.safeInteger(message, "sequence_number", 0);
         Object stream = this.safeString(message, "stream");
         Object isSnapshotChannel = Helpers.isEqual(stream, "v1.book.s");
         Object isSnapshotMessage = Helpers.isLessThanOrEqual(sequenceNumber, 0);
@@ -895,7 +895,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trade = this.parseWsMyTrade(data);
@@ -1139,7 +1139,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object data = this.safeDict(message, "feed");
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object order = this.parseWsOrder(data);

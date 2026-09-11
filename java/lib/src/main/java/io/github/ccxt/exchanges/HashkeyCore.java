@@ -1453,7 +1453,7 @@ public class HashkeyCore extends HashkeyApi
             //         ]
             //     }
             //
-            Object timestamp = this.safeInteger(response, "t");
+            Long timestamp = this.safeInteger(response, "t");
             return this.parseOrderBook(response, symbol, timestamp, "b", "a");
         });
 
@@ -1918,7 +1918,7 @@ public class HashkeyCore extends HashkeyApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = this.safeInteger(ticker, "t");
         String marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -2507,9 +2507,9 @@ public class HashkeyCore extends HashkeyApi
         String txid = this.safeString(transaction, "txId");
         String coin = this.safeString(transaction, "coin");
         String code = (String) this.safeCurrencyCode(coin, currency);
-        Object timestamp = this.safeInteger(transaction, "time");
-        Object amount = this.safeNumber(transaction, "quantity");
-        Object feeCost = this.safeNumber(transaction, "fee");
+        Long timestamp = this.safeInteger(transaction, "time");
+        Double amount = this.safeNumber(transaction, "quantity");
+        Double feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -2612,7 +2612,7 @@ public class HashkeyCore extends HashkeyApi
     public Object parseTransfer(Object transfer, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(transfer, "timestamp");
+        Long timestamp = this.safeInteger(transfer, "timestamp");
         String currencyId = this.safeString(currency, "id");
         Object status = null;
         Object success = this.safeBool(transfer, "success", false);
@@ -2843,7 +2843,7 @@ public class HashkeyCore extends HashkeyApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(item, "id");
         String account = this.safeString(item, "accountId");
-        Object timestamp = this.safeInteger(item, "created");
+        Long timestamp = this.safeInteger(item, "created");
         Object type = this.parseLedgerEntryType(this.safeString(item, "flowTypeValue"));
         String currencyId = this.safeString(item, "coin");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
@@ -3284,8 +3284,8 @@ public class HashkeyCore extends HashkeyApi
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeNumber(rawOrder, "amount");
-                Object price = this.safeNumber(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 String clientOrderId = this.safeString(orderRequest, "clientOrderId");
@@ -4252,8 +4252,8 @@ public class HashkeyCore extends HashkeyApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         market = this.safeMarket(marketId, market, null, "swap");
-        Object fundingRate = this.safeNumber(contract, "rate");
-        Object fundingTimestamp = this.safeInteger(contract, "nextSettleTime");
+        Double fundingRate = this.safeNumber(contract, "rate");
+        Long fundingTimestamp = this.safeInteger(contract, "nextSettleTime");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
@@ -4332,7 +4332,7 @@ public class HashkeyCore extends HashkeyApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object entry = Helpers.GetValue(rows, i);
-                Object timestamp = this.safeInteger(entry, "settleTime");
+                Long timestamp = this.safeInteger(entry, "settleTime");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", HashkeyCore.this.safeSymbol(HashkeyCore.this.safeString(entry, "symbol"), market, null, "swap") );
@@ -4529,7 +4529,7 @@ public class HashkeyCore extends HashkeyApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marginMode = (String)this.safeStringLower(leverage, "marginType");
-        Object leverageValue = this.safeNumber(leverage, "leverage");
+        Double leverageValue = this.safeNumber(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", HashkeyCore.this.safeString(market, "symbol") );
@@ -4738,7 +4738,7 @@ public class HashkeyCore extends HashkeyApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(data, "symbol");
         market = this.safeMarket(marketId, market, null, "swap");
-        Object timestamp = this.safeInteger(data, "timestamp");
+        Long timestamp = this.safeInteger(data, "timestamp");
         String errorCode = this.safeString(data, "code");
         Object success = Helpers.isEqual(errorCode, "0000");
         final Object finalMarket = market;
@@ -5033,11 +5033,11 @@ final Object finalI = i;
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object timestamp = this.milliseconds();
+            Long timestamp = this.milliseconds();
             Object additionalParams = new java.util.HashMap<String, Object>() {{
                 put( "timestamp", timestamp );
             }};
-            Object recvWindow = this.safeInteger(this.options, "recvWindow");
+            Long recvWindow = this.safeInteger(this.options, "recvWindow");
             if (Helpers.isTrue(!Helpers.isEqual(recvWindow, null)))
             {
                 Helpers.addElementToObject(additionalParams, "recvWindow", recvWindow);
@@ -5109,14 +5109,14 @@ final Object finalI = i;
         }
         Object errorInArray = false;
         String responseCodeString = this.safeString(response, "code");
-        Object responseCodeInteger = this.safeInteger(response, "code"); // some codes in response are returned as '0000' others as 0
+        Long responseCodeInteger = this.safeInteger(response, "code"); // some codes in response are returned as '0000' others as 0
         if (Helpers.isTrue(Helpers.isEqual(responseCodeInteger, 0)))
         {
             Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())); // for batch methods
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object entry = this.safeDict(result, i);
-                Object entryCodeInteger = this.safeInteger(entry, "code");
+                Long entryCodeInteger = this.safeInteger(entry, "code");
                 if (Helpers.isTrue(!Helpers.isEqual(entryCodeInteger, 0)))
                 {
                     errorInArray = true;

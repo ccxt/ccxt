@@ -1188,7 +1188,7 @@ public class LbankCore extends LbankApi
             //     }
             //
             Object orderbook = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.milliseconds();
+            Long timestamp = this.milliseconds();
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
@@ -1449,10 +1449,10 @@ public class LbankCore extends LbankApi
             }
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
-                Object duration = this.parseTimeframe(timeframe);
+                int duration = this.parseTimeframe(timeframe);
                 since = Helpers.subtract(this.milliseconds(), (Helpers.multiply(Helpers.multiply(duration, 1000), limit)));
             }
-            Object parsedSince = this.parseToInt(Helpers.divide(since, 1000));
+            Long parsedSince = this.parseToInt(Helpers.divide(since, 1000));
             Object parsedLimit = Helpers.mathMin(Helpers.add(limit, 1), 2000); // max 2000;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1567,7 +1567,7 @@ public class LbankCore extends LbankApi
         //          }, ...
         //      ]
         //
-        Object timestamp = this.safeInteger(response, "ts");
+        Long timestamp = this.safeInteger(response, "ts");
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
@@ -1656,15 +1656,15 @@ public class LbankCore extends LbankApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object markPrice = this.safeNumber(ticker, "markedPrice");
-        Object indexPrice = this.safeNumber(ticker, "underlyingPrice");
-        Object fundingRate = this.safeNumber(ticker, "fundingRate");
-        Object fundingTime = this.safeInteger(ticker, "nextFeeTime");
-        Object positionFeeTime = this.safeInteger(ticker, "positionFeeTime");
+        Double markPrice = this.safeNumber(ticker, "markedPrice");
+        Double indexPrice = this.safeNumber(ticker, "underlyingPrice");
+        Double fundingRate = this.safeNumber(ticker, "fundingRate");
+        Long fundingTime = this.safeInteger(ticker, "nextFeeTime");
+        Long positionFeeTime = this.safeInteger(ticker, "positionFeeTime");
         Object intervalString = null;
         if (Helpers.isTrue(!Helpers.isEqual(positionFeeTime, null)))
         {
-            Object interval = this.parseToInt(Helpers.divide(Helpers.divide(positionFeeTime, 60), 60));
+            Long interval = this.parseToInt(Helpers.divide(Helpers.divide(positionFeeTime, 60), 60));
             intervalString = Helpers.add(String.valueOf(interval), "h");
         }
         final Object finalIntervalString = intervalString;
@@ -2025,7 +2025,7 @@ public class LbankCore extends LbankApi
                     var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-                    Object cost = this.safeNumber(parameters, "cost");
+                    Double cost = this.safeNumber(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
                     if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                     {
@@ -3014,12 +3014,12 @@ public class LbankCore extends LbankApi
         {
             addressTo = address;
         }
-        Object amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount");
         String currencyId = this.safeString2(transaction, "coin", "coid");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"), type);
         Object fee = null;
-        Object feeCost = this.safeNumber(transaction, "fee");
+        Double feeCost = this.safeNumber(transaction, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;
@@ -3297,7 +3297,7 @@ public class LbankCore extends LbankApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
                 {
                     Object networkEntry = Helpers.GetValue(networkList, j);
-                    Object fee = this.safeNumber(networkEntry, "withdrawFee");
+                    Double fee = this.safeNumber(networkEntry, "withdrawFee");
                     if (Helpers.isTrue(!Helpers.isEqual(fee, null)))
                     {
                         Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
@@ -3567,7 +3567,7 @@ public class LbankCore extends LbankApi
                 String code = (String) this.safeCurrencyCode(currencyId);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(codes, null)) || Helpers.isTrue(this.inArray(code, codes))))))
                 {
-                    Object withdrawFee = this.safeNumber(fee, "fee");
+                    Double withdrawFee = this.safeNumber(fee, "fee");
                     if (Helpers.isTrue(!Helpers.isEqual(withdrawFee, null)))
                     {
                         Object resultValue = this.safeValue(result, code);
@@ -3644,7 +3644,7 @@ public class LbankCore extends LbankApi
         {
             Object networkEntry = Helpers.GetValue(networkList, j);
             Object networkCode = this.networkIdToCode(this.safeString(networkEntry, "name"), code);
-            Object withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
+            Double withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
             Object isDefault = this.safeValue(networkEntry, "isDefault");
             if (Helpers.isTrue(!Helpers.isEqual(withdrawFee, null)))
             {

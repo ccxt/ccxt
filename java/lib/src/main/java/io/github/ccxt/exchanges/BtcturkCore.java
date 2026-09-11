@@ -555,7 +555,7 @@ public class BtcturkCore extends BtcturkApi
             //       }
             //     }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(data, "timestamp");
+            Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", 0, 1);
         });
 
@@ -587,7 +587,7 @@ public class BtcturkCore extends BtcturkApi
         String marketId = this.safeString(ticker, "pair");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -842,7 +842,7 @@ public class BtcturkCore extends BtcturkApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "resolution", BtcturkCore.this.safeValue(BtcturkCore.this.timeframes, finalTimeframe, finalTimeframe) );
             }};
-            Object until = this.safeInteger(parameters, "until", this.milliseconds());
+            Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Helpers.addElementToObject(request, "to", this.parseToInt((Helpers.divide(until, 1000))));
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -858,7 +858,7 @@ public class BtcturkCore extends BtcturkApi
                 {
                     throw new BadRequest((String)Helpers.add(this.id, " fetchOHLCV () does not accept a limit parameter when timeframe == \"1y\"")) ;
                 }
-                Object seconds = this.parseTimeframe(timeframe);
+                int seconds = this.parseTimeframe(timeframe);
                 Object limitSeconds = Helpers.multiply(seconds, (Helpers.subtract(limit, 1)));
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {

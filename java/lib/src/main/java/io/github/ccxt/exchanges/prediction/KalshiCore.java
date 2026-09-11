@@ -401,12 +401,12 @@ public class KalshiCore extends KalshiApi
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries", "limit")));
             // no query: page the markets listing directly. Cap the total collected so an unscoped
             // loadMarkets cannot run away through every kalshi market via the cursor.
-            Object maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 1000));
+            Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 1000));
             Object flatMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object eventsDict = new java.util.HashMap<String, Object>() {{}};
             Object cursor = null;
             // don't request a full 1000-market page (3+ MB) when the caller wants fewer
-            Object pageLimit = this.safeInteger(this.options, "marketsPageLimit", 1000);
+            Long pageLimit = this.safeInteger(this.options, "marketsPageLimit", 1000);
             Object limit = Helpers.mathMin(maxMarkets, pageLimit);
             // default to tradeable (open) markets; kalshi has thousands of closed/settled markets and
             // an unfiltered cursor pages through those, so loadMarkets would otherwise return mostly
@@ -509,7 +509,7 @@ public class KalshiCore extends KalshiApi
                 // parseToInt-wrapped .length: the bare `const n = str.length;` statement is the php
                 // transpiler's ARRAY hint (count()), and `.length` inline inside slice() args breaks
                 // the python transpiler — this form emits strlen()/len() correctly in both
-                Object symbolLength = this.parseToInt(((String)outcomeSymbol).length());
+                Long symbolLength = this.parseToInt(((String)outcomeSymbol).length());
                 Object suffix = Helpers.slice(outcomeSymbol, Helpers.subtract(symbolLength, 3), null);
                 Object isNo = (Helpers.isEqual(suffix, "-NO"));
                 Object baseTicker = ((Helpers.isTrue(isNo))) ? Helpers.slice(outcomeSymbol, 0, Helpers.subtract(symbolLength, 3)) : outcomeSymbol;
@@ -611,7 +611,7 @@ public class KalshiCore extends KalshiApi
                     continue;
                 }
                 // parseToInt-wrapped .length — see the fetchOutcome comment (php count()/python slice traps)
-                Object symbolLength = this.parseToInt(((String)outcomeSymbol).length());
+                Long symbolLength = this.parseToInt(((String)outcomeSymbol).length());
                 Object suffix = Helpers.slice(outcomeSymbol, Helpers.subtract(symbolLength, 3), null);
                 Object baseTicker = ((Helpers.isTrue((Helpers.isEqual(suffix, "-NO"))))) ? Helpers.slice(outcomeSymbol, 0, Helpers.subtract(symbolLength, 3)) : outcomeSymbol;
                 if (!Helpers.isTrue((Helpers.inOp(seen, baseTicker))))
@@ -624,7 +624,7 @@ public class KalshiCore extends KalshiApi
             {
                 this.markets = this.createSafeDictionary();
             }
-            Object chunkSize = this.safeInteger(this.options, "fetchOutcomesBatchSize", 100);
+            Long chunkSize = this.safeInteger(this.options, "fetchOutcomesBatchSize", 100);
             Object tickersLength = Helpers.getArrayLength(tickers);
             Object startIndex = 0;
             while (Helpers.isLessThan(startIndex, tickersLength))
@@ -781,9 +781,9 @@ public class KalshiCore extends KalshiApi
         String result = (String)this.safeStringLower(raw, "result");
         Object resolved = Helpers.isTrue((Helpers.isEqual(status, "settled"))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(result, null))) && Helpers.isTrue((!Helpers.isEqual(result, "")))));
         Object endDate = this.safeString(raw, "expiration_time");
-        Object volume = this.safeNumber2(raw, "volume_fp", "volume");
-        Object liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity");
-        Object openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest");
+        Double volume = this.safeNumber2(raw, "volume_fp", "volume");
+        Double liquidity = this.safeNumber2(raw, "liquidity_dollars", "liquidity");
+        Double openInt = this.safeNumber2(raw, "open_interest_fp", "open_interest");
         // Derive series ticker: drop last hyphen-segment from event_ticker
         Object eventParts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventTicker, null))) && Helpers.isTrue((!Helpers.isEqual(eventTicker, "")))))
@@ -1090,7 +1090,7 @@ final Object finalOi = oi;
         //     { "ticker": "...", "open_interest_fp": "60802.01", ... }   // open interest in contracts
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.milliseconds();
+        Long timestamp = this.milliseconds();
         Object openInterest = this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", KalshiCore.this.safeSymbol(null, market) );
             put( "openInterestAmount", KalshiCore.this.safeNumber2(interest, "open_interest_fp", "open_interest") );
@@ -1178,13 +1178,13 @@ final Object finalOi = oi;
         Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
         Object outcomeLabel = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(market, null)) && Helpers.isTrue(!Helpers.isEqual(market, null)))))) ? this.safeString(market, "label", this.safeString(Helpers.GetValue(market, "info"), "outcomeLabel", "YES")) : "YES";
         Object isNo = Helpers.isEqual(((String)outcomeLabel).toUpperCase(), "NO");
-        Object now = this.milliseconds();
+        Long now = this.milliseconds();
         Object outcome = this.safeString(outcomeObj, "outcome");
-        Object yesAsk = this.safeNumber(raw, "yes_ask_dollars");
-        Object yesBid = this.safeNumber(raw, "yes_bid_dollars");
-        Object noAsk = this.safeNumber(raw, "no_ask_dollars");
-        Object noBid = this.safeNumber(raw, "no_bid_dollars");
-        Object last = this.safeNumber(raw, "last_price_dollars");
+        Double yesAsk = this.safeNumber(raw, "yes_ask_dollars");
+        Double yesBid = this.safeNumber(raw, "yes_bid_dollars");
+        Double noAsk = this.safeNumber(raw, "no_ask_dollars");
+        Double noBid = this.safeNumber(raw, "no_bid_dollars");
+        Double last = this.safeNumber(raw, "last_price_dollars");
         Object bid = null;
         Object ask = null;
         Object close = null;
@@ -1300,7 +1300,7 @@ final Object finalOi = oi;
                 ((java.util.List<Object>)grouped).add(outcomeObj);
                 Helpers.addElementToObject(outcomesByTicker, ticker, grouped);
             }
-            Object chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 100);
+            Long chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 100);
             Object result = new java.util.HashMap<String, Object>() {{}};
             Object tickersLength = Helpers.getArrayLength(tickers);
             Object startIndex = 0;
@@ -1386,7 +1386,7 @@ final Object finalOi = oi;
             //     }
             //
             Object book = this.safeValue(response, "orderbook_fp", response);
-            Object timestamp = this.milliseconds();
+            Long timestamp = this.milliseconds();
             // Kalshi uses YES-side perspective: `yes` = bids, `no` = asks (inverted)
             Object rawYes = this.safeList(book, "yes_dollars", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawNo = this.safeList(book, "no_dollars", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1398,12 +1398,12 @@ final Object finalOi = oi;
                 // NO perspective: NO bids come from rawNo, NO asks invert rawYes (NO ask = 1 - YES bid)
                 for (var bi = 0; Helpers.isLessThan(bi, Helpers.getArrayLength(rawNo)); bi++)
                 {
-                    Object price = this.safeNumber(Helpers.GetValue(rawNo, bi), 0);
+                    Double price = this.safeNumber(Helpers.GetValue(rawNo, bi), 0);
                     ((java.util.List<Object>)bids).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, this.safeNumber(Helpers.GetValue(rawNo, bi), 1))));
                 }
                 for (var ai = 0; Helpers.isLessThan(ai, Helpers.getArrayLength(rawYes)); ai++)
                 {
-                    Object yesPrice = this.safeNumber(Helpers.GetValue(rawYes, ai), 0);
+                    Double yesPrice = this.safeNumber(Helpers.GetValue(rawYes, ai), 0);
                     Object price = ((Helpers.isTrue((!Helpers.isEqual(yesPrice, null))))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(yesPrice))) : null;
                     ((java.util.List<Object>)asks).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, this.safeNumber(Helpers.GetValue(rawYes, ai), 1))));
                 }
@@ -1412,12 +1412,12 @@ final Object finalOi = oi;
                 // YES perspective: YES bids from rawYes, YES asks invert rawNo (YES ask = 1 - NO bid)
                 for (var bi = 0; Helpers.isLessThan(bi, Helpers.getArrayLength(rawYes)); bi++)
                 {
-                    Object price = this.safeNumber(Helpers.GetValue(rawYes, bi), 0);
+                    Double price = this.safeNumber(Helpers.GetValue(rawYes, bi), 0);
                     ((java.util.List<Object>)bids).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, this.safeNumber(Helpers.GetValue(rawYes, bi), 1))));
                 }
                 for (var ai = 0; Helpers.isLessThan(ai, Helpers.getArrayLength(rawNo)); ai++)
                 {
-                    Object noPrice = this.safeNumber(Helpers.GetValue(rawNo, ai), 0);
+                    Double noPrice = this.safeNumber(Helpers.GetValue(rawNo, ai), 0);
                     Object price = ((Helpers.isTrue((!Helpers.isEqual(noPrice, null))))) ? this.parseNumber(Precise.stringSub("1", this.numberToString(noPrice))) : null;
                     ((java.util.List<Object>)asks).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, this.safeNumber(Helpers.GetValue(rawNo, ai), 1))));
                 }
@@ -1480,7 +1480,7 @@ final Object finalOi = oi;
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object seriesTicker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "seriesTicker", ticker);
-            Object periodMin = this.safeInteger(this.timeframes, timeframe);
+            Long periodMin = this.safeInteger(this.timeframes, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(periodMin, null)))
             {
                 // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
@@ -1499,7 +1499,7 @@ final Object finalOi = oi;
             Object tf = this.parseTimeframe(timeframe);
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object sinceS = this.parseToInt(Helpers.divide(since, 1000));
+                Long sinceS = this.parseToInt(Helpers.divide(since, 1000));
                 Helpers.addElementToObject(request, "start_ts", sinceS);
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
@@ -1558,8 +1558,8 @@ final Object finalOi = oi;
             {
                 Object candle = Helpers.GetValue(candles, i);
                 Object priceObj = this.safeDict(candle, "price", new java.util.HashMap<String, Object>() {{}});
-                Object openPrice = this.safeNumber(priceObj, "open_dollars");
-                Object previousPrice = this.safeNumber(priceObj, "previous_dollars");
+                Double openPrice = this.safeNumber(priceObj, "open_dollars");
+                Double previousPrice = this.safeNumber(priceObj, "previous_dollars");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(openPrice, null))) || Helpers.isTrue((!Helpers.isEqual(previousPrice, null)))))
                 {
                     ((java.util.List<Object>)usableCandles).add(candle);
@@ -1616,11 +1616,11 @@ final Object finalOi = oi;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object price = this.safeDict(ohlcv, "price", new java.util.HashMap<String, Object>() {{}});
         // no-trade periods carry only previous_dollars (last trade price) → flat candle
-        Object previous = this.safeNumber(price, "previous_dollars");
+        Double previous = this.safeNumber(price, "previous_dollars");
         // the raw candle exposes only the period END (`end_period_ts`); subtract the candle duration
         // threaded in from fetchOHLCV to stamp the candle at its OPEN (CCXT convention)
         Object endTimestamp = this.safeTimestamp(ohlcv, "end_period_ts");
-        Object durationSeconds = this.safeInteger(this.options, "ohlcvCandleDurationSeconds", 0);
+        Long durationSeconds = this.safeInteger(this.options, "ohlcvCandleDurationSeconds", 0);
         Object timestamp = endTimestamp;
         if (Helpers.isTrue(!Helpers.isEqual(endTimestamp, null)))
         {
@@ -1689,8 +1689,8 @@ final Object finalOi = oi;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeString(trade, "trade_id");
         Long ts = this.parse8601(this.safeString(trade, "created_time"));
-        Object priceDollars = this.safeNumber2(trade, "yes_price_dollars", "price_dollars");
-        Object priceCents = this.safeNumber2(trade, "yes_price", "price");
+        Double priceDollars = this.safeNumber2(trade, "yes_price_dollars", "price_dollars");
+        Double priceCents = this.safeNumber2(trade, "yes_price", "price");
         Object price = null;
         if (Helpers.isTrue(!Helpers.isEqual(priceDollars, null)))
         {
@@ -1699,8 +1699,8 @@ final Object finalOi = oi;
         {
             price = Helpers.divide(priceCents, 100);
         }
-        Object amountFp = this.safeNumber2(trade, "count_fp", "size_fp");
-        Object amount = this.safeNumber(trade, "count", amountFp);
+        Double amountFp = this.safeNumber2(trade, "count_fp", "size_fp");
+        Double amount = this.safeNumber(trade, "count", amountFp);
         String rawSide = (String)this.safeStringLower(trade, "taker_side");
         Object marketAny = market;
         Object outcomeObj = this.safeOutcome(this.safeString(marketAny, "outcome"), marketAny);
@@ -1850,7 +1850,7 @@ final Object finalOi = oi;
             price = this.safeNumber(fill, "no_price_dollars");
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                Object noCents = this.safeNumber(fill, "no_price");
+                Double noCents = this.safeNumber(fill, "no_price");
                 if (Helpers.isTrue(!Helpers.isEqual(noCents, null)))
                 {
                     price = Helpers.divide(noCents, 100);
@@ -1861,14 +1861,14 @@ final Object finalOi = oi;
             price = this.safeNumber(fill, "yes_price_dollars");
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
-                Object yesCents = this.safeNumber(fill, "yes_price");
+                Double yesCents = this.safeNumber(fill, "yes_price");
                 if (Helpers.isTrue(!Helpers.isEqual(yesCents, null)))
                 {
                     price = Helpers.divide(yesCents, 100);
                 }
             }
         }
-        Object amount = this.safeNumber2(fill, "count_fp", "count");
+        Double amount = this.safeNumber2(fill, "count_fp", "count");
         Object cost = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) && Helpers.isTrue((!Helpers.isEqual(amount, null)))))
         {
@@ -1876,7 +1876,7 @@ final Object finalOi = oi;
         }
         Object isTaker = this.safeBool(fill, "is_taker", true);
         Object takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(isTaker, true))))) ? "taker" : "maker";
-        Object feeCost = this.safeNumber(fill, "fee_cost");
+        Double feeCost = this.safeNumber(fill, "fee_cost");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -1945,7 +1945,7 @@ final Object finalOi = oi;
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object balanceCents = this.safeNumber(response, "balance");
+        Double balanceCents = this.safeNumber(response, "balance");
         Object total = null;
         if (Helpers.isTrue(!Helpers.isEqual(balanceCents, null)))
         {
@@ -2112,7 +2112,7 @@ final Object finalOi = oi;
         Object payout = this.safeNumber(settlement, "revenue_dollars");
         if (Helpers.isTrue(Helpers.isEqual(payout, null)))
         {
-            Object revenueCents = this.safeNumber(settlement, "revenue");
+            Double revenueCents = this.safeNumber(settlement, "revenue");
             if (Helpers.isTrue(!Helpers.isEqual(revenueCents, null)))
             {
                 payout = Helpers.divide(revenueCents, 100);
@@ -2123,7 +2123,7 @@ final Object finalOi = oi;
         Object cost = this.safeNumber(settlement, costDollarsKey);
         if (Helpers.isTrue(Helpers.isEqual(cost, null)))
         {
-            Object costCents = this.safeNumber(settlement, costKey);
+            Double costCents = this.safeNumber(settlement, costKey);
             if (Helpers.isTrue(!Helpers.isEqual(costCents, null)))
             {
                 cost = Helpers.divide(costCents, 100);
@@ -2175,7 +2175,7 @@ final Object finalOi = oi;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object ticker = this.safeString(position, "ticker");
         Object outcomeObj = this.safeOutcome(ticker, market);
-        Object yesContracts = this.safeNumber(position, "position"); // positive = long YES
+        Double yesContracts = this.safeNumber(position, "position"); // positive = long YES
         Object positionSide = null;
         Object contractsValue = null;
         if (Helpers.isTrue(!Helpers.isEqual(yesContracts, null)))
@@ -2416,15 +2416,15 @@ final Object finalOi = oi;
         Object price = this.safeNumber(order, dollarsKey);
         if (Helpers.isTrue(Helpers.isEqual(price, null)))
         {
-            Object priceCents = this.safeNumber(order, centsKey);
+            Double priceCents = this.safeNumber(order, centsKey);
             if (Helpers.isTrue(!Helpers.isEqual(priceCents, null)))
             {
                 price = Helpers.divide(priceCents, 100);
             }
         }
         // V2 counts are fixed-point (*_count_fp); legacy used count / filled_count
-        Object amount = this.safeNumber2(order, "initial_count_fp", "count");
-        Object filled = this.safeNumber2(order, "fill_count_fp", "filled_count", 0);
+        Double amount = this.safeNumber2(order, "initial_count_fp", "count");
+        Double filled = this.safeNumber2(order, "fill_count_fp", "filled_count", 0);
         Object remaining = this.safeNumber(order, "remaining_count_fp");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(remaining, null))) && Helpers.isTrue((!Helpers.isEqual(amount, null)))) && Helpers.isTrue((!Helpers.isEqual(filled, null)))))
         {
@@ -2582,8 +2582,8 @@ final Object finalOi = oi;
             // the minimal create response reports fills as fill_count/remaining_count (not the *_fp keys
             // parsePredictionOrder reads on the fetch path), so backfill filled/remaining from them here —
             // otherwise a fully-filled order would return status 'closed' with filled 0
-            Object remainingCount = this.safeNumber(response, "remaining_count");
-            Object filledCount = this.safeNumber(response, "fill_count");
+            Double remainingCount = this.safeNumber(response, "remaining_count");
+            Double filledCount = this.safeNumber(response, "fill_count");
             if (Helpers.isTrue(!Helpers.isEqual(filledCount, null)))
             {
                 Helpers.addElementToObject(order, "filled", filledCount);
@@ -2777,7 +2777,7 @@ final Object finalOi = oi;
             }
             Object queriesLength = Helpers.getArrayLength(queries);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries")));
-            Object userLimit = this.safeInteger(parameters, "limit");
+            Long userLimit = this.safeInteger(parameters, "limit");
             // bound how many events are actually FETCHED (not just returned) so a broad scope like
             // category='Crypto' (hundreds of series) doesn't page every one of them
             Object fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
@@ -3058,8 +3058,8 @@ final Object finalOi = oi;
             Object rest = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object rawEvents = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object seriesTickersLength = Helpers.getArrayLength(seriesTickers);
-            Object pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 200);
-            Object maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
+            Long pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 200);
+            Long maxPages = this.safeInteger(this.options, "maxEventPagesPerSeries", 20);
             for (var si = 0; Helpers.isLessThan(si, seriesTickersLength); si++)
             {
                 Object collectedLength = Helpers.getArrayLength(rawEvents);

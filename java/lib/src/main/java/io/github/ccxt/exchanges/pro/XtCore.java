@@ -167,7 +167,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
     public Object getCacheIndex(Object orderbook, Object cache)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
-        Object nonce = this.safeInteger(orderbook, "nonce");
+        Long nonce = this.safeInteger(orderbook, "nonce");
         Object firstDelta = this.safeValue(cache, 0);
         Long firstDeltaNonce = (Long) this.safeInteger2(firstDelta, "i", "u");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(nonce, null))) && Helpers.isTrue((!Helpers.isEqual(firstDeltaNonce, null)))) && Helpers.isTrue((Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaNonce, 1))))))
@@ -196,15 +196,15 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(obBids)); i++)
         {
             Object bid = Helpers.GetValue(obBids, i);
-            Object price = this.safeNumber(bid, 0);
-            Object quantity = this.safeNumber(bid, 1);
+            Double price = this.safeNumber(bid, 0);
+            Double quantity = this.safeNumber(bid, 1);
             Helpers.callDynamically(bids, "store", new Object[]{price, quantity});
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(obAsks)); i++)
         {
             Object ask = Helpers.GetValue(obAsks, i);
-            Object price = this.safeNumber(ask, 0);
-            Object quantity = this.safeNumber(ask, 1);
+            Double price = this.safeNumber(ask, 0);
+            Double quantity = this.safeNumber(ask, 1);
             Helpers.callDynamically(asks, "store", new Object[]{price, quantity});
         }
     }
@@ -955,7 +955,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 put( "fundingRate", XtCore.this.safeString(data, "r") );
             }};
             Object fundingRate = this.parseFundingRate(raw);
-            Object timestamp = this.safeInteger(data, "t");
+            Long timestamp = this.safeInteger(data, "t");
             Helpers.addElementToObject(fundingRate, "timestamp", timestamp);
             Helpers.addElementToObject(fundingRate, "datetime", this.iso8601(timestamp));
             Object symbol = Helpers.GetValue(fundingRate, "symbol");
@@ -996,7 +996,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object position = Helpers.GetValue(positions, i);
-                Object contracts = this.safeNumber(position, "contracts", 0);
+                Double contracts = this.safeNumber(position, "contracts", 0);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contracts, null))) && Helpers.isTrue((Helpers.isGreaterThan(contracts, 0)))))
                 {
                     Helpers.callDynamically(cache, "append", new Object[]{position});
@@ -1309,7 +1309,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
             }
@@ -1366,7 +1366,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object tradesArray = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
             {
-                Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(((Number)tradesLimit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, tradesArray);
             }
@@ -1458,11 +1458,11 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
             {
                 Object subscription = this.safeDict(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
-                Object limit = this.safeInteger(subscription, "limit");
+                Long limit = this.safeInteger(subscription, "limit");
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             }
             Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-            Object nonce = this.safeInteger(orderbook, "nonce");
+            Long nonce = this.safeInteger(orderbook, "nonce");
             if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
             {
                 Integer cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(orderbook, "cache")));
@@ -1480,8 +1480,8 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(obAsks)); i++)
                 {
                     Object ask = Helpers.GetValue(obAsks, i);
-                    Object price = this.safeNumber(ask, 0);
-                    Object quantity = this.safeNumber(ask, 1);
+                    Double price = this.safeNumber(ask, 0);
+                    Double quantity = this.safeNumber(ask, 1);
                     Helpers.callDynamically(asks, "store", new Object[]{price, quantity});
                 }
             }
@@ -1491,12 +1491,12 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(obBids)); i++)
                 {
                     Object bid = Helpers.GetValue(obBids, i);
-                    Object price = this.safeNumber(bid, 0);
-                    Object quantity = this.safeNumber(bid, 1);
+                    Double price = this.safeNumber(bid, 0);
+                    Double quantity = this.safeNumber(bid, 1);
                     Helpers.callDynamically(bids, "store", new Object[]{price, quantity});
                 }
             }
-            Object timestamp = this.safeInteger(data, "t");
+            Long timestamp = this.safeInteger(data, "t");
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(data, "i", "u"));
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
@@ -1693,7 +1693,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         Object orders = this.orders;
         if (Helpers.isTrue(Helpers.isEqual(orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit");
+            Long limit = this.safeInteger(this.options, "ordersLimit");
             orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = orders;
         }
@@ -1802,7 +1802,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         Object stored = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = stored;
         }

@@ -612,7 +612,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe), null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
@@ -705,7 +705,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         Object channel = this.safeString(message, "channel");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, ((String)symbol)))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var tradesArrayCache = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, ((String)symbol), tradesArrayCache);
         }
@@ -839,7 +839,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         Object channel = this.safeString(message, "channel");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
+            Long limit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
@@ -864,8 +864,8 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
     {
         String rawSide = (String)this.safeStringLower(delta, 0);
         Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "buy"))))) ? "bids" : "asks";
-        Object price = this.safeFloat(delta, 1);
-        Object amount = this.safeFloat(delta, 2);
+        Double price = this.safeFloat(delta, 1);
+        Double amount = this.safeFloat(delta, 2);
         Object bookside = Helpers.GetValue(orderbook, side);
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }

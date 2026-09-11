@@ -431,7 +431,7 @@ public class IndodaxCore extends IndodaxApi
                 String quoteId = this.safeString(market, "base_currency");
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
-                Object isMaintenance = this.safeInteger(market, "is_maintenance");
+                Long isMaintenance = this.safeInteger(market, "is_maintenance");
                 Object inMaintenance = Helpers.isTrue((!Helpers.isEqual(isMaintenance, null))) && Helpers.isTrue((!Helpers.isEqual(isMaintenance, 0)));
     final Object finalBase = base;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -843,8 +843,8 @@ public class IndodaxCore extends IndodaxApi
             }
             Object market = this.market(symbol);
             String selectedTimeframe = this.safeString(this.timeframes, timeframe, timeframe);
-            Object now = this.seconds();
-            Object until = this.safeInteger(parameters, "until", now);
+            Long now = this.seconds();
+            Long until = this.safeInteger(parameters, "until", now);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "to", until );
@@ -860,7 +860,7 @@ public class IndodaxCore extends IndodaxApi
                 Helpers.addElementToObject(request, "from", (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))))));
             } else
             {
-                Object duration = this.parseTimeframe(timeframe);
+                int duration = this.parseTimeframe(timeframe);
                 Helpers.addElementToObject(request, "from", Helpers.subtract(Helpers.subtract(now, Helpers.multiply(limit, duration)), 1));
             }
             Object response = (this.publicGetTradingviewHistoryV2(this.extend(request, parameters))).join();
@@ -969,7 +969,7 @@ public class IndodaxCore extends IndodaxApi
             // only in a dynamic receive_{base} field, https://github.com/ccxt/ccxt/issues/26413
             filled = this.safeString(order, Helpers.add("receive_", baseId));
         }
-        Object timestamp = this.safeInteger(order, "submit_time");
+        Long timestamp = this.safeInteger(order, "submit_time");
         Object fee = null;
         String id = this.safeString(order, "order_id");
         final Object finalSymbol = symbol;
@@ -1186,7 +1186,7 @@ public class IndodaxCore extends IndodaxApi
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
                     Object quoteAmount = null;
-                    Object cost = this.safeNumber(parameters, "cost");
+                    Double cost = this.safeNumber(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
                     if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                     {
@@ -1541,7 +1541,7 @@ public class IndodaxCore extends IndodaxApi
             // Will be passed to callback URL (assigned via website to the API key)
             // so your system can identify the request and confirm it.
             // Alphanumeric, max length 255.
-            Object requestId = this.milliseconds();
+            Long requestId = this.milliseconds();
             // Alternatively:
             // let requestId = this.uuid ();
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1622,7 +1622,7 @@ public class IndodaxCore extends IndodaxApi
         String status = this.safeString(transaction, "status");
         Object timestamp = this.safeTimestamp2(transaction, "success_time", "submit_time");
         String depositId = this.safeString(transaction, "deposit_id");
-        Object feeCost = this.safeNumber(transaction, "fee");
+        Double feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {

@@ -394,7 +394,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             put( "bids", HyperliquidCore.this.safeList(rawData, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
             put( "asks", HyperliquidCore.this.safeList(rawData, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
         }};
-        Object timestamp = this.safeInteger(entry, "time");
+        Long timestamp = this.safeInteger(entry, "time");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "px", "sz");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -801,7 +801,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object entry = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
@@ -944,7 +944,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -995,7 +995,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "time");
+        Long timestamp = this.safeInteger(trade, "time");
         Object price = this.safeString(trade, "px");
         Object amount = this.safeString(trade, "sz");
         Object coin = this.safeString(trade, "coin");
@@ -1148,7 +1148,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         }
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
         }
@@ -1751,7 +1751,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Integer dataLength = Helpers.getArrayLength(data);

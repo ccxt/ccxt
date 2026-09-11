@@ -1761,7 +1761,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object trades = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(trades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             trades = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, trades);
         }
@@ -1775,7 +1775,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object trade = this.parseWsMyTrade(message);
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
@@ -1803,7 +1803,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object marketId = this.safeString(message, "product_id");
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object granularity = this.safeInteger(message, "granularity");
+        Long granularity = this.safeInteger(message, "granularity");
         Object timeframe = this.findTimeframe(granularity);
         if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
         {
@@ -1816,7 +1816,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
         }
@@ -1906,7 +1906,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object order = this.parseWsOrder(message);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
@@ -2078,7 +2078,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         //         }
         //     }
         //
-        Object timestamp = this.safeInteger(message, "time");
+        Long timestamp = this.safeInteger(message, "time");
         Object bbos = this.safeDict(message, "bbos", new java.util.HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(bbos);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};

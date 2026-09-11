@@ -664,7 +664,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
     public void handleOrderBookSubscription(Client client, Object message, Object subscription)
     {
         Object symbol = this.safeString(subscription, "symbol");
-        Object limit = this.safeInteger(subscription, "limit");
+        Long limit = this.safeInteger(subscription, "limit");
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
@@ -721,8 +721,8 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshopt});
         } else
         {
-            Object nonce = this.safeInteger(orderbook, "nonce");
-            Object deltaStart = this.safeInteger(result, "u");
+            Long nonce = this.safeInteger(orderbook, "nonce");
+            Long deltaStart = this.safeInteger(result, "u");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(nonce, null))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(deltaStart, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(nonce, deltaStart)))))))
             {
                 return;
@@ -798,13 +798,13 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         Object isSpot = Helpers.isEqual(rawMarketType, "spot");
         Object marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         Object delta = this.safeValue(message, "result");
-        Object deltaStart = this.safeInteger(delta, "U");
-        Object deltaEnd = this.safeInteger(delta, "u");
+        Long deltaStart = this.safeInteger(delta, "U");
+        Long deltaEnd = this.safeInteger(delta, "u");
         Object marketId = this.safeString(delta, "s");
         String symbol = (String) this.safeSymbol(marketId, null, "_", marketType);
         Object messageHash = Helpers.add("orderbook:", symbol);
         Object storedOrderBook = this.safeValue(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}));
-        Object nonce = this.safeInteger(storedOrderBook, "nonce");
+        Long nonce = this.safeInteger(storedOrderBook, "nonce");
         if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
         {
             Object cacheLength = 0;
@@ -818,7 +818,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             {
                 // max limit is 100
                 Object subscription = Helpers.GetValue(client.subscriptions, messageHash);
-                Object limit = this.safeInteger(subscription, "limit");
+                Long limit = this.safeInteger(subscription, "limit");
                 this.spawn(() -> { try { this.loadOrderBook(client, messageHash, symbol, limit, new java.util.HashMap<String, Object>() {{}}); } catch(Exception _e) { throw new RuntimeException(_e); } }); // needed for c#, number of args needs to match
             }
             ((java.util.List<Object>)((java.util.List<Object>)Helpers.GetValue(storedOrderBook, "cache"))).add(delta);
@@ -845,9 +845,9 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
 
     public Object getCacheIndex(Object orderBook, Object cache)
     {
-        Object nonce = this.safeInteger(orderBook, "nonce");
+        Long nonce = this.safeInteger(orderBook, "nonce");
         Object firstDelta = Helpers.GetValue(cache, 0);
-        Object firstDeltaStart = this.safeInteger(firstDelta, "U");
+        Long firstDeltaStart = this.safeInteger(firstDelta, "U");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(nonce, null))) && Helpers.isTrue((!Helpers.isEqual(firstDeltaStart, null)))) && Helpers.isTrue((Helpers.isLessThan(nonce, firstDeltaStart)))))
         {
             return Helpers.opNeg(1);
@@ -855,8 +855,8 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cache)); i++)
         {
             Object delta = Helpers.GetValue(cache, i);
-            Object deltaStart = this.safeInteger(delta, "U");
-            Object deltaEnd = this.safeInteger(delta, "u");
+            Long deltaStart = this.safeInteger(delta, "U");
+            Long deltaEnd = this.safeInteger(delta, "u");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(nonce, null))) && Helpers.isTrue((!Helpers.isEqual(deltaStart, null)))) && Helpers.isTrue((!Helpers.isEqual(deltaEnd, null)))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(nonce, Helpers.subtract(deltaStart, 1))))) && Helpers.isTrue((Helpers.isLessThan(nonce, deltaEnd)))))
             {
                 return i;
@@ -875,8 +875,8 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 Helpers.callDynamically(bookSide, "storeArray", new Object[]{this.parseOrderBookBidAsk(bidAsk)});
             } else
             {
-                Object price = this.safeFloat(bidAsk, "p");
-                Object amount = this.safeFloat(bidAsk, "s");
+                Double price = this.safeFloat(bidAsk, "p");
+                Double amount = this.safeFloat(bidAsk, "s");
                 Helpers.callDynamically(bookSide, "store", new Object[]{price, amount});
             }
         }
@@ -884,7 +884,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
 
     public void handleDelta(Object orderbook, Object delta)
     {
-        Object timestamp = this.safeInteger(delta, "t");
+        Long timestamp = this.safeInteger(delta, "t");
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(delta, "u"));
@@ -1277,7 +1277,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object cachedTrades = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(cachedTrades, null)))
             {
-                Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 cachedTrades = new ArrayCache(((Number)limit).intValue());
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -1380,7 +1380,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbol, null)) && Helpers.isTrue(!Helpers.isEqual(timeframe, null))))
                 {
@@ -1503,7 +1503,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         Object cachedTrades = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(cachedTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             cachedTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = cachedTrades;
         }
@@ -1798,7 +1798,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object position = Helpers.GetValue(positions, i);
-                Object contracts = this.safeNumber(position, "contracts", 0);
+                Double contracts = this.safeNumber(position, "contracts", 0);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contracts, null))) && Helpers.isTrue((Helpers.isGreaterThan(contracts, 0)))))
                 {
                     Helpers.callDynamically(cache, "append", new Object[]{position});
@@ -2047,7 +2047,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         Object channel = this.safeString(message, "channel", "");
         Object isTrigger = Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "autoorders"), 0))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(channel, "priceorders"), 0)));
         Object hashPrefix = ((Helpers.isTrue(isTrigger))) ? "triggerOrders" : "orders";
-        Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+        Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
@@ -2070,7 +2070,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 Object status = this.safeString(parsed, "status");
                 if (Helpers.isTrue(Helpers.isEqual(status, null)))
                 {
-                    Object left = this.safeInteger(info, "left");
+                    Long left = this.safeInteger(info, "left");
                     Helpers.addElementToObject(parsed, "status", ((Helpers.isTrue((Helpers.isEqual(left, 0))))) ? "closed" : "canceled");
                 }
             }
@@ -2240,7 +2240,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         Object newLiquidations = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(this.liquidations, null)))
         {
-            Object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+            Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(((Number)limit).intValue());
         }
         Object cache = this.liquidations;
@@ -2289,7 +2289,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(liquidation, "contract");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(liquidation, "time_ms");
+        Long timestamp = this.safeInteger(liquidation, "time_ms");
         Object originalSize = this.safeString(liquidation, "size");
         Object left = this.safeString(liquidation, "left");
         Object amount = Precise.stringAbs(Precise.stringSub(originalSize, left));
@@ -2731,7 +2731,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object subscription = Helpers.getArg(optionalArgs, 1, null);
             Object requestId = this.requestId();
-            Object time = this.seconds();
+            Long time = this.seconds();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "time", time );
@@ -2761,7 +2761,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object requestId = this.requestId();
-            Object time = this.seconds();
+            Long time = this.seconds();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "time", time );
@@ -2782,7 +2782,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object requestId = this.requestId();
-            Object time = this.seconds();
+            Long time = this.seconds();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "time", time );
@@ -2845,7 +2845,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 requestId = String.valueOf(reqId);
             }
             Object messageHash = requestId;
-            Object time = this.seconds();
+            Long time = this.seconds();
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             Object signatureString = String.join((String)"\n", (java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>(java.util.Arrays.asList(eventVar, channel, this.json(reqParams), String.valueOf(time)))); // eslint-disable-line quotes
             String signature = (String) this.hmac(this.encode(signatureString), this.encode(this.secret), sha512(), "hex");
@@ -2901,7 +2901,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                     payload = this.arrayConcat(idArray, payload);
                 }
             }
-            Object time = this.seconds();
+            Long time = this.seconds();
             Object eventVar = "subscribe";
             Object signaturePayload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("channel=", channel), "&"), "event="), eventVar), "&"), "time="), String.valueOf(time));
             String signature = (String) this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512(), "hex");

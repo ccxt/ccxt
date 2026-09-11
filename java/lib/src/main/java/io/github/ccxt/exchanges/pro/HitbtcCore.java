@@ -110,7 +110,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
-                Object timestamp = this.milliseconds();
+                Long timestamp = this.milliseconds();
                 Object timestampString = this.numberToString(timestamp);
                 Object timestampEncoded = ((Helpers.isTrue((Helpers.isEqual(timestampString, null))))) ? "" : timestampString;
                 String signature = (String) this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256(), "hex");
@@ -326,12 +326,12 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
             {
                 Object subscription = this.safeDict(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
-                Object limit = this.safeInteger(subscription, "limit");
+                Long limit = this.safeInteger(subscription, "limit");
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             }
             Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-            Object timestamp = this.safeInteger(item, "t");
-            Object nonce = this.safeInteger(item, "s");
+            Long timestamp = this.safeInteger(item, "t");
+            Long nonce = this.safeInteger(item, "s");
             if (Helpers.isTrue(Helpers.isEqual(type, "snapshot")))
             {
                 Object parsedSnapshot = this.parseOrderBook(item, symbol, timestamp, "b", "a");
@@ -354,8 +354,8 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = this.safeNumber(delta, 0);
-        Object amount = this.safeNumber(delta, 1);
+        Double price = this.safeNumber(delta, 0);
+        Double amount = this.safeNumber(delta, 1);
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
@@ -547,7 +547,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = this.safeInteger(ticker, "t");
         String symbol = (String) this.safeSymbol(null, market);
         Object last = this.safeString(ticker, "c");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -663,7 +663,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
     public Object parseWsBidAsk(Object ticker, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = this.safeInteger(ticker, "t");
         Object bidAskSymbol = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "symbol") : null;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", bidAskSymbol );
@@ -768,7 +768,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         {
             Object marketId = Helpers.GetValue(marketIds, i);
             Object market = this.safeMarket(marketId);
-            Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object stored = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -817,7 +817,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "t");
+        Long timestamp = this.safeInteger(trade, "t");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", HitbtcCore.this.safeString(trade, "i") );
@@ -932,7 +932,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
             }
@@ -1080,7 +1080,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit");
+            Long limit = this.safeInteger(this.options, "ordersLimit");
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object data = this.safeValue(message, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1145,7 +1145,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "created_at");
+        Long timestamp = this.safeInteger(trade, "created_at");
         Object marketId = this.safeString(trade, "symbol");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );

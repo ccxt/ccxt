@@ -2231,8 +2231,8 @@ public class GateCore extends GateApi
                 String makerPercent = this.safeString(market, "maker_fee_rate", takerPercent);
                 Object amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(market, "amount_precision")));
                 String tradeStatus = this.safeString(market, "trade_status");
-                Object marginStatus = this.safeInteger(market, "status", 1); // 0 disabled, 1 enabled
-                Object leverage = this.safeNumber(market, "leverage");
+                Long marginStatus = this.safeInteger(market, "status", 1); // 0 disabled, 1 enabled
+                Double leverage = this.safeNumber(market, "leverage");
                 Object margin = !Helpers.isEqual(leverage, null);
                 Object buyStart = this.safeIntegerProduct(spotMarket, "buy_start", 1000); // buy_start is the trading start time, while sell_start is offline orders start time
                 Object createdTs = ((Helpers.isTrue((!Helpers.isEqual(buyStart, 0))))) ? buyStart : null;
@@ -3212,12 +3212,12 @@ public class GateCore extends GateApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "name");
         String symbol = (String) this.safeSymbol(marketId, market, "_", "swap");
-        Object markPrice = this.safeNumber(contract, "mark_price");
-        Object indexPrice = this.safeNumber(contract, "index_price");
-        Object interestRate = this.safeNumber(contract, "interest_rate");
-        Object fundingRate = this.safeNumber(contract, "funding_rate");
+        Double markPrice = this.safeNumber(contract, "mark_price");
+        Double indexPrice = this.safeNumber(contract, "index_price");
+        Double interestRate = this.safeNumber(contract, "interest_rate");
+        Double fundingRate = this.safeNumber(contract, "funding_rate");
         Object fundingTime = this.safeTimestamp(contract, "funding_next_apply");
-        Object fundingRateIndicative = this.safeNumber(contract, "funding_rate_indicative");
+        Double fundingRateIndicative = this.safeNumber(contract, "funding_rate_indicative");
         Object fundingInterval = Precise.stringMul("1000", this.safeString(contract, "funding_interval"));
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
@@ -3284,7 +3284,7 @@ public class GateCore extends GateApi
                 //        "obtain_failed": "0"
                 //    }
                 //
-                Object obtainFailed = this.safeInteger(entry, "obtain_failed");
+                Long obtainFailed = this.safeInteger(entry, "obtain_failed");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(obtainFailed, null))) && Helpers.isTrue((!Helpers.isEqual(obtainFailed, 0)))))
                 {
                     continue;
@@ -3966,7 +3966,7 @@ public class GateCore extends GateApi
             }
             Object priceKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? 0 : "p";
             Object amountKey = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? 1 : "s";
-            Object nonce = this.safeInteger(response, "id");
+            Long nonce = this.safeInteger(response, "id");
             Object result = this.parseOrderBook(response, symbol, timestamp, "bids", "asks", priceKey, amountKey);
             Helpers.addElementToObject(result, "nonce", nonce);
             return result;
@@ -4126,7 +4126,7 @@ public class GateCore extends GateApi
         String low = this.safeString(ticker, "low_24h");
         String bidVolume = this.safeString2(ticker, "B", "bid1_size");
         String askVolume = this.safeString2(ticker, "A", "ask1_size");
-        Object timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = this.safeInteger(ticker, "t");
         String baseVolume = this.safeString2(ticker, "base_volume", "volume_24h_base");
         if (Helpers.isTrue(Helpers.isEqual(baseVolume, "nan")))
         {
@@ -4619,7 +4619,7 @@ public class GateCore extends GateApi
             Helpers.addElementToObject(request, "interval", this.safeString(this.timeframes, timeframe, timeframe));
             Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? 1999 : 1000;
             limit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? maxLimit : Helpers.mathMin(limit, maxLimit);
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 until = this.parseToInt(Helpers.divide(until, 1000));
@@ -4627,11 +4627,11 @@ public class GateCore extends GateApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object duration = this.parseTimeframe(timeframe);
+                int duration = this.parseTimeframe(timeframe);
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
                 Object distance = Helpers.multiply((Helpers.subtract(limit, 1)), duration);
                 Object toTimestamp = this.sum(Helpers.GetValue(request, "from"), distance);
-                Object currentTimestamp = this.seconds();
+                Long currentTimestamp = this.seconds();
                 Object to = Helpers.mathMin(toTimestamp, currentTimestamp);
                 if (Helpers.isTrue(!Helpers.isEqual(until, null)))
                 {
@@ -4755,7 +4755,7 @@ public class GateCore extends GateApi
             {
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -5072,7 +5072,7 @@ public class GateCore extends GateApi
             Object marginMode = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = ((Helpers.isTrue((!Helpers.isEqual(symbol, null))))) ? this.market(symbol) : null;
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
@@ -5425,7 +5425,7 @@ final Object finalPointFee = pointFee;
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object start = this.parseToInt(Helpers.divide(since, 1000));
+                Long start = this.parseToInt(Helpers.divide(since, 1000));
                 Helpers.addElementToObject(request, "from", start);
                 Helpers.addElementToObject(request, "to", this.sum(start, Helpers.multiply(Helpers.multiply(Helpers.multiply(30, 24), 60), 60)));
             }
@@ -5485,7 +5485,7 @@ final Object finalPointFee = pointFee;
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object start = this.parseToInt(Helpers.divide(since, 1000));
+                Long start = this.parseToInt(Helpers.divide(since, 1000));
                 Helpers.addElementToObject(request, "from", start);
                 Helpers.addElementToObject(request, "to", this.sum(start, Helpers.multiply(Helpers.multiply(Helpers.multiply(30, 24), 60), 60)));
             }
@@ -6080,7 +6080,7 @@ final Object finalPointFee = pointFee;
                     var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-                    Object cost = this.safeNumber(parameters, "cost");
+                    Double cost = this.safeNumber(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
                     if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                     {
@@ -6179,7 +6179,7 @@ final Object finalPointFee = pointFee;
                         rule = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? 2 : 1;
                         triggerOrderPrice = this.priceToPrecision(symbol, takeProfitPrice);
                     }
-                    Object priceType = this.safeInteger(parameters, "price_type", 0);
+                    Long priceType = this.safeInteger(parameters, "price_type", 0);
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isLessThan(priceType, 0)) || Helpers.isTrue(Helpers.isGreaterThan(priceType, 2))))
                     {
                         throw new BadRequest((String)Helpers.add(this.id, " createOrder () price_type should be 0 latest deal price, 1 mark price, 2 index price")) ;
@@ -6237,8 +6237,8 @@ final Object finalPointFee = pointFee;
                 }};
                 if (Helpers.isTrue(Helpers.isEqual(trigger, null)))
                 {
-                    Object defaultExpiration = this.safeInteger(options, "expiration");
-                    Object expiration = this.safeInteger(parameters, "expiration", defaultExpiration);
+                    Long defaultExpiration = this.safeInteger(options, "expiration");
+                    Long expiration = this.safeInteger(parameters, "expiration", defaultExpiration);
                     Object rule = null;
                     Object triggerOrderPrice = null;
                     if (Helpers.isTrue(isStopLossOrder))
@@ -6689,7 +6689,7 @@ final Object finalPointFee = pointFee;
         price = this.safeString(order, "price", price);
         Object remainingString = this.safeString(order, "left");
         Object cost = this.safeString(order, "filled_total");
-        Object triggerPrice = this.safeNumber(trigger, "price");
+        Double triggerPrice = this.safeNumber(trigger, "price");
         Object average = this.safeNumber2(order, "avg_deal_price", "fill_price");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isEqual(triggerPrice, 0)))))
         {
@@ -7038,7 +7038,7 @@ final Object finalRebate = rebate;
                 // see https://github.com/ccxt/ccxt/issues/22825
                 return (this.fetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, parameters)).join();
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -7123,7 +7123,7 @@ final Object finalRebate = rebate;
             {
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -8979,7 +8979,7 @@ final Object finalI = i;
         String marketId = this.safeString(info, "currency_pair");
         market = this.safeMarket(marketId, market);
         Object marginMode = ((Helpers.isTrue((!Helpers.isEqual(marketId, null))))) ? "isolated" : "cross";
-        Object timestamp = this.safeInteger(info, "create_time");
+        Long timestamp = this.safeInteger(info, "create_time");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
@@ -9098,7 +9098,7 @@ final Object finalI = i;
             Object bodyPayload = ((Helpers.isTrue((Helpers.isEqual(body, null))))) ? "" : body;
             Object bodySignature = this.hash(this.encode(bodyPayload), sha512());
             Object nonce = this.nonce();
-            Object timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
+            Long timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
             Object timestampString = String.valueOf(timestamp);
             Object signaturePath = Helpers.add(Helpers.add("/api/", this.version), entirePath);
             Object payloadArray = new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)method).toUpperCase(), signaturePath, rawQueryString, bodySignature, timestampString));
@@ -9187,7 +9187,7 @@ final Object finalI = i;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String contract = this.safeString(data, "contract");
         market = this.safeMarket(contract, market, "_", "contract");
-        Object total = this.safeNumber(data, "margin");
+        Double total = this.safeNumber(data, "margin");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
@@ -10498,7 +10498,7 @@ final Object finalI = i;
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(leverage, "currency_pair", "id");
-        Object leverageValue = this.safeInteger(leverage, "leverage");
+        Long leverageValue = this.safeInteger(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", GateCore.this.safeSymbol(marketId, market, "_", "spot") );
@@ -10763,7 +10763,7 @@ final Object finalI = i;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositionsHistory", market, parameters, "swap");
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             Object request = new java.util.HashMap<String, Object>() {{}};
             var requestparametersVariable = this.prepareRequest(market, marketType, parameters);

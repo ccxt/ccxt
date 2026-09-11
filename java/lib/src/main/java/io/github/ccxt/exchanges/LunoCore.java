@@ -861,7 +861,7 @@ public class LunoCore extends LunoApi
             {
                 response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
             }
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "volume");
         });
 
@@ -895,7 +895,7 @@ public class LunoCore extends LunoApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(order, "creation_timestamp");
+        Long timestamp = this.safeInteger(order, "creation_timestamp");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         status = ((Helpers.isTrue((Helpers.isEqual(status, "open"))))) ? status : status;
         Object side = null;
@@ -911,8 +911,8 @@ public class LunoCore extends LunoApi
         market = this.safeMarket(marketId, market);
         String price = this.safeString(order, "limit_price");
         String amount = this.safeString(order, "limit_volume");
-        Object quoteFee = this.safeNumber(order, "fee_counter");
-        Object baseFee = this.safeNumber(order, "fee_base");
+        Double quoteFee = this.safeNumber(order, "fee_counter");
+        Double baseFee = this.safeNumber(order, "fee_base");
         String filled = this.safeString(order, "base");
         String cost = this.safeString(order, "counter");
         Object fee = null;
@@ -1111,7 +1111,7 @@ public class LunoCore extends LunoApi
         //     "status":"ACTIVE"
         // }
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         String marketId = this.safeString(ticker, "pair");
         String symbol = (String) this.safeSymbol(marketId, market);
         String last = this.safeString(ticker, "last_trade");
@@ -1298,7 +1298,7 @@ public class LunoCore extends LunoApi
                 feeCost = feeCounterString;
             }
         }
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         final Object finalOrderId = orderId;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
@@ -1820,7 +1820,7 @@ public class LunoCore extends LunoApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(entry, "row_index");
         String account_id = this.safeString(entry, "account_id");
-        Object timestamp = this.safeInteger(entry, "timestamp");
+        Long timestamp = this.safeInteger(entry, "timestamp");
         String currencyId = this.safeString(entry, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);

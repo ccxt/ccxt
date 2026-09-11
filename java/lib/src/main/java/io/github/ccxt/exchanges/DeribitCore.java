@@ -1055,7 +1055,7 @@ public class DeribitCore extends DeribitApi
             //
             Object result = this.safeValue(response, "result");
             String locked = this.safeString(result, "locked");
-            Object updateTime = this.safeIntegerProduct(response, "usIn", 0.001, this.milliseconds());
+            Long updateTime = this.safeIntegerProduct(response, "usIn", 0.001, this.milliseconds());
             final Object finalLocked = locked;
             return new java.util.HashMap<String, Object>() {{
                 put( "status", ((Helpers.isTrue((Helpers.isEqual(finalLocked, "false"))))) ? "ok" : "maintenance" );
@@ -1320,7 +1320,7 @@ public class DeribitCore extends DeribitApi
                         throw new ExchangeError((String)Helpers.add(this.id, " method() missing kind")) ;
                     }
                     Object isComboMarket = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(kind, "combo"), 0);
-                    Object expiry = this.safeInteger(market, "expiration_timestamp");
+                    Long expiry = this.safeInteger(market, "expiration_timestamp");
                     Object strike = null;
                     Object optionType = null;
                     Object symbol = id;
@@ -1366,8 +1366,8 @@ public class DeribitCore extends DeribitApi
                     {
                         Helpers.addElementToObject(parsedMarkets, symbol, true);
                     }
-                    Object minTradeAmount = this.safeNumber(market, "min_trade_amount");
-                    Object tickSize = this.safeNumber(market, "tick_size");
+                    Double minTradeAmount = this.safeNumber(market, "min_trade_amount");
+                    Double tickSize = this.safeNumber(market, "tick_size");
     final Object finalSymbol = symbol;
                     final Object finalBase = base;
                     final Object finalQuote = quote;
@@ -1946,8 +1946,8 @@ public class DeribitCore extends DeribitApi
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "resolution", DeribitCore.this.safeString(DeribitCore.this.timeframes, timeframe, timeframe) );
             }};
-            Object duration = this.parseTimeframe(timeframe);
-            Object now = this.milliseconds();
+            int duration = this.parseTimeframe(timeframe);
+            Long now = this.milliseconds();
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -1968,7 +1968,7 @@ public class DeribitCore extends DeribitApi
                     Helpers.addElementToObject(request, "end_timestamp", this.sum(since, Helpers.multiply(Helpers.multiply(limit, duration), 1000)));
                 }
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -2049,7 +2049,7 @@ public class DeribitCore extends DeribitApi
         String id = this.safeString(trade, "trade_id");
         String marketId = this.safeString(trade, "instrument_name");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         String side = this.safeString(trade, "direction");
         String priceString = this.safeString(trade, "price");
         market = this.safeMarket(marketId, market);
@@ -2391,8 +2391,8 @@ public class DeribitCore extends DeribitApi
             //     }
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(result, "timestamp");
-            Object nonce = this.safeInteger(result, "change_id");
+            Long timestamp = this.safeInteger(result, "timestamp");
+            Long nonce = this.safeInteger(result, "change_id");
             Object orderbook = this.parseOrderBook(result, Helpers.GetValue(market, "symbol"), timestamp);
             Helpers.addElementToObject(orderbook, "nonce", nonce);
             return orderbook;
@@ -2465,8 +2465,8 @@ public class DeribitCore extends DeribitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(order, "instrument_name");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(order, "creation_timestamp");
-        Object lastUpdate = this.safeInteger(order, "last_update_timestamp");
+        Long timestamp = this.safeInteger(order, "creation_timestamp");
+        Long lastUpdate = this.safeInteger(order, "last_update_timestamp");
         String id = this.safeString(order, "order_id");
         String priceString = this.safeString(order, "price");
         if (Helpers.isTrue(Helpers.isEqual(priceString, "market_price")))
@@ -3388,10 +3388,10 @@ public class DeribitCore extends DeribitApi
         String currencyId = this.safeString(transaction, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Long timestamp = (Long) this.safeInteger2(transaction, "created_timestamp", "received_timestamp");
-        Object updated = this.safeInteger(transaction, "updated_timestamp");
+        Long updated = this.safeInteger(transaction, "updated_timestamp");
         String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         String address = this.safeString(transaction, "address");
-        Object feeCost = this.safeNumber(transaction, "fee");
+        Double feeCost = this.safeNumber(transaction, "fee");
         Object type = "deposit";
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -3687,8 +3687,8 @@ public class DeribitCore extends DeribitApi
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(volatilityResult)); i++)
         {
-            Object timestamp = this.safeInteger(Helpers.GetValue(volatilityResult, i), 0);
-            Object volatilityObj = this.safeNumber(Helpers.GetValue(volatilityResult, i), 1);
+            Long timestamp = this.safeInteger(Helpers.GetValue(volatilityResult, i), 0);
+            Double volatilityObj = this.safeNumber(Helpers.GetValue(volatilityResult, i), 1);
             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                 put( "info", volatilityObj );
                 put( "timestamp", timestamp );
@@ -3859,7 +3859,7 @@ public class DeribitCore extends DeribitApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(transfer, "created_timestamp");
+        Long timestamp = this.safeInteger(transfer, "created_timestamp");
         String status = this.safeString(transfer, "state");
         String account = this.safeString(transfer, "other_side");
         String direction = this.safeString(transfer, "direction");
@@ -4032,7 +4032,7 @@ public class DeribitCore extends DeribitApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object time = this.milliseconds();
+            Long time = this.milliseconds();
             final Object finalTime = time;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
@@ -4180,9 +4180,9 @@ public class DeribitCore extends DeribitApi
         //   }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(contract, "timestamp");
+        Long timestamp = this.safeInteger(contract, "timestamp");
         String datetime = this.iso8601(timestamp);
-        Object result = this.safeNumber2(contract, "result", "interest_8h");
+        Double result = this.safeNumber2(contract, "result", "interest_8h");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", DeribitCore.this.safeSymbol(null, market) );
@@ -4398,7 +4398,7 @@ public class DeribitCore extends DeribitApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(liquidation, "timestamp");
+        Long timestamp = this.safeInteger(liquidation, "timestamp");
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", DeribitCore.this.safeSymbol(null, market) );
@@ -4530,7 +4530,7 @@ public class DeribitCore extends DeribitApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(greeks, "timestamp");
+        Long timestamp = this.safeInteger(greeks, "timestamp");
         String marketId = this.safeString(greeks, "instrument_name");
         String symbol = (String) this.safeSymbol(marketId, market);
         Object stats = this.safeValue(greeks, "greeks", new java.util.HashMap<String, Object>() {{}});
@@ -4714,7 +4714,7 @@ public class DeribitCore extends DeribitApi
         market = this.safeMarket(marketId, market);
         String currencyId = this.safeString(chain, "base_currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeInteger(chain, "timestamp");
+        Long timestamp = this.safeInteger(chain, "timestamp");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", chain );
@@ -4830,10 +4830,10 @@ public class DeribitCore extends DeribitApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(interest, "creation_timestamp");
+        Long timestamp = this.safeInteger(interest, "creation_timestamp");
         String marketId = this.safeString(interest, "instrument_name");
         market = this.safeMarket(marketId, market);
-        Object openInterest = this.safeNumber(interest, "open_interest");
+        Double openInterest = this.safeNumber(interest, "open_interest");
         Object openInterestAmount = null;
         Object openInterestValue = null;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "option"), true))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))))))

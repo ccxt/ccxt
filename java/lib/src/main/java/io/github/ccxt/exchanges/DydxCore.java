@@ -632,18 +632,18 @@ public class DydxCore extends DydxApi
         //     "defaultFundingRate1H": "0"
         // }
         //
-        String quoteId = "USDC";
+        Object quoteId = "USDC";
         String marketId = this.safeString(market, "ticker");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "-");
+        Object parts = Helpers.split(marketId, "-");
         String baseName = this.safeString(parts, 0);
         String baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        String settleId = "USDC";
+        Object settleId = "USDC";
         String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
         Object contract = true;
@@ -917,7 +917,7 @@ public class DydxCore extends DydxApi
             {
                 Helpers.addElementToObject(request, "fromIso", this.iso8601(since));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -988,7 +988,7 @@ public class DydxCore extends DydxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "effectiveBeforeOrAt", this.iso8601(until));
@@ -1007,7 +1007,7 @@ public class DydxCore extends DydxApi
             //     ]
             // }
             //
-            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rows = this.safeList(response, "historicalFunding", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
@@ -1022,7 +1022,7 @@ public class DydxCore extends DydxApi
                     put( "datetime", DydxCore.this.iso8601(timestamp) );
                 }});
             }
-            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
+            Object sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -1592,8 +1592,8 @@ public class DydxCore extends DydxApi
 
     public Object pow(Object n, Object m)
     {
-        String r = Precise.stringMul(n, "1");
-        Object c = this.parseToInt(m);
+        Object r = Precise.stringMul(n, "1");
+        Long c = this.parseToInt(m);
         // TODO: cap
         for (var i = 1; Helpers.isLessThan(i, c); i++)
         {
@@ -1615,13 +1615,13 @@ public class DydxCore extends DydxApi
             throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
         }
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        String orderType = ((String)type).toUpperCase();
+        Object orderType = ((String)type).toUpperCase();
         Object market = this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
         }
-        String orderSide = ((String)side).toUpperCase();
+        Object orderSide = ((String)side).toUpperCase();
         Object subaccountId = 0;
         var subaccountIdparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "subAccountId", subaccountId);
         subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
@@ -1638,10 +1638,10 @@ public class DydxCore extends DydxApi
         Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
         Object atomicResolution = Helpers.GetValue(marketInfo, "atomicResolution");
         Object quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
-        String quantums = Precise.stringMul(amountStr, quantumScale);
+        Object quantums = Precise.stringMul(amountStr, quantumScale);
         Object quantumConversionExponent = Helpers.GetValue(marketInfo, "quantumConversionExponent");
         Object priceScale = this.pow("10", Precise.stringSub(Precise.stringSub(atomicResolution, quantumConversionExponent), "-6"));
-        String subticks = Precise.stringMul(priceStr, priceScale);
+        Object subticks = Precise.stringMul(priceStr, priceScale);
         Object clientMetadata = 0;
         Object conditionalType = 0;
         Object conditionalOrderTriggerSubticks = "0";
@@ -1701,7 +1701,7 @@ public class DydxCore extends DydxApi
             }
             conditionalOrderTriggerSubticks = Precise.stringMul(conditionalOrderTriggerSubticks, priceScale);
         }
-        Object latestBlockHeight = this.safeInteger(parameters, "latestBlockHeight");
+        Long latestBlockHeight = this.safeInteger(parameters, "latestBlockHeight");
         Object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
         Object goodTillBlockTime = null;
         Object goodTillBlockTimeInSeconds = 2592000;
@@ -1782,7 +1782,7 @@ public class DydxCore extends DydxApi
     {
         String nameSp = this.safeString(this.options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d");
         Object prefixAddress = Helpers.add(Helpers.add(address, "-"), String.valueOf(subAccountNumber));
-        String prefix = this.uuid5(nameSp, prefixAddress);
+        Object prefix = this.uuid5(nameSp, prefixAddress);
         Object orderInfo = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(prefix, "-"), this.numberToString(clientOrderId)), "-"), this.numberToString(clobPairId)), "-"), this.numberToString(orderFlags));
         return this.uuid5(nameSp, orderInfo);
     }
@@ -1810,7 +1810,7 @@ public class DydxCore extends DydxApi
             //
             Object result = this.safeDict(response, "result");
             Object info = this.safeDict(result, "response");
-            Object height = this.safeInteger(info, "last_block_height");
+            Long height = this.safeInteger(info, "last_block_height");
             if (Helpers.isTrue(Helpers.isEqual(height, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchLatestBlockHeight() could not parse last_block_height")) ;
@@ -1857,7 +1857,7 @@ public class DydxCore extends DydxApi
             Object account = (this.fetchDydxAccount()).join();
             Object lastBlockHeight = (this.fetchLatestBlockHeight()).join();
             // params['latestBlockHeight'] = lastBlockHeight;
-            java.util.Map<String, Object> newParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            Object newParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "latestBlockHeight", lastBlockHeight );
             }});
             Object orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
@@ -1932,7 +1932,7 @@ public class DydxCore extends DydxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
             }
-            String idString = String.valueOf(id);
+            Object idString = String.valueOf(id);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(id, null)) && Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(idString, "-"), Helpers.opNeg(1)))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
@@ -1944,7 +1944,7 @@ public class DydxCore extends DydxApi
             parameters = ((java.util.List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(1); // default is 30 days
             Object goodTillBlockTime = null;
             Object defaultOrderFlags = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? 32 : 64;
-            Object orderFlags = this.safeInteger(parameters, "orderFlags", defaultOrderFlags);
+            Long orderFlags = this.safeInteger(parameters, "orderFlags", defaultOrderFlags);
             Object subAccountId = 0;
             var subAccountIdparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);
             subAccountId = ((java.util.List<Object>) subAccountIdparametersVariable).get(0);
@@ -2186,7 +2186,7 @@ public class DydxCore extends DydxApi
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
         String type = (String)this.safeStringUpper(item, "type");
-        String direction = null;
+        Object direction = null;
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "TRANSFER_IN")) || Helpers.isTrue(Helpers.isEqual(type, "DEPOSIT"))))
@@ -2314,7 +2314,7 @@ public class DydxCore extends DydxApi
                 gasPrice = Helpers.GetValue(feeDenom, "CHAINTOKEN_GAS_PRICE");
                 denom = Helpers.GetValue(feeDenom, "CHAINTOKEN_DENOM");
             }
-            Double gasLimit = Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)))));
+            Object gasLimit = Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)))));
             Object feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
             if (Helpers.isTrue(Helpers.isEqual(feeAmount, null)))
             {
@@ -2366,8 +2366,8 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object fromSubaccountId = this.safeInteger(parameters, "fromSubaccountId");
-            Object toSubaccountId = this.safeInteger(parameters, "toSubaccountId");
+            Long fromSubaccountId = this.safeInteger(parameters, "fromSubaccountId");
+            Long toSubaccountId = this.safeInteger(parameters, "toSubaccountId");
             if (Helpers.isTrue(!Helpers.isEqual(fromAccount, "main")))
             {
                 // throw error if from subaccount id is undefined
@@ -2383,7 +2383,7 @@ public class DydxCore extends DydxApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("fromSubaccountId", "toSubaccountId")));
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
-            Object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
+            Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
             Object payload = null;
             Object signingPayload = null;
             if (Helpers.isTrue(Helpers.isEqual(fromAccount, "main")))
@@ -2484,7 +2484,7 @@ public class DydxCore extends DydxApi
         String id = this.safeString(transfer, "id");
         String currencyId = this.safeString(transfer, "symbol");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object amount = this.safeNumber(transfer, "size");
+        Double amount = this.safeNumber(transfer, "size");
         Object sender = this.safeDict(transfer, "sender");
         Object recipient = this.safeDict(transfer, "recipient");
         String fromAccount = this.safeString(sender, "address");
@@ -2537,9 +2537,9 @@ public class DydxCore extends DydxApi
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "methodName", "fetchTransfers" );
             }}))).join();
-            java.util.List<Object> transferIn = this.filterBy(response, "type", "TRANSFER_IN");
-            java.util.List<Object> transferOut = this.filterBy(response, "type", "TRANSFER_OUT");
-            java.util.List<Object> rows = (java.util.List<Object>) this.arrayConcat(transferIn, transferOut);
+            Object transferIn = this.filterBy(response, "type", "TRANSFER_IN");
+            Object transferOut = this.filterBy(response, "type", "TRANSFER_OUT");
+            Object rows = this.arrayConcat(transferIn, transferOut);
             return this.parseTransfers(rows, currency, since, limit);
         });
 
@@ -2576,7 +2576,7 @@ public class DydxCore extends DydxApi
         String currencyId = this.safeString(transaction, "symbol");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
-        Object amount = this.safeNumber(transaction, "size");
+        Double amount = this.safeNumber(transaction, "size");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", id );
@@ -2628,7 +2628,7 @@ public class DydxCore extends DydxApi
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            Object subaccountId = this.safeInteger(parameters, "subaccountId");
+            Long subaccountId = this.safeInteger(parameters, "subaccountId");
             if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw requires subaccountId.")) ;
@@ -2637,7 +2637,7 @@ public class DydxCore extends DydxApi
             Object currency = this.currency(code);
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
-            Object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
+            Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
             final Object finalSubaccountId = subaccountId;
             Object payload = new java.util.HashMap<String, Object>() {{
                 put( "sender", new java.util.HashMap<String, Object>() {{
@@ -2793,9 +2793,9 @@ public class DydxCore extends DydxApi
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "methodName", "fetchDepositsWithdrawals" );
             }}))).join();
-            java.util.List<Object> withdrawals = this.filterBy(response, "type", "WITHDRAWAL");
-            java.util.List<Object> deposits = this.filterBy(response, "type", "DEPOSIT");
-            java.util.List<Object> rows = (java.util.List<Object>) this.arrayConcat(withdrawals, deposits);
+            Object withdrawals = this.filterBy(response, "type", "WITHDRAWAL");
+            Object deposits = this.filterBy(response, "type", "DEPOSIT");
+            Object rows = this.arrayConcat(withdrawals, deposits);
             return this.parseTransactions(rows, currency, since, limit);
         });
 
@@ -2924,7 +2924,7 @@ public class DydxCore extends DydxApi
             // }
             //
             Object rows = this.safeList(response, "subaccounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object account = Helpers.GetValue(rows, i);
@@ -3083,7 +3083,7 @@ public class DydxCore extends DydxApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        String pathWithParams = (String) this.implodeParams(path, parameters);
+        Object pathWithParams = this.implodeParams(path, parameters);
         Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section);
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);

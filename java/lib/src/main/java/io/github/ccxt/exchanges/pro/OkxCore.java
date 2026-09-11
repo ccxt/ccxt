@@ -410,7 +410,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Object marketId = this.safeString(arg, "instId");
         String symbol = (String) this.safeSymbol(marketId);
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+        Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object trade = this.parseTrade(Helpers.GetValue(data, i));
@@ -890,7 +890,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Object marketId = this.safeString(ticker, "instId");
         market = this.safeMarket(marketId, market);
         Object symbol = this.safeString(market, "symbol");
-        Object timestamp = this.safeInteger(ticker, "ts");
+        Long timestamp = this.safeInteger(ticker, "ts");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1013,7 +1013,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object symbol = this.safeString(liquidation, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(this.liquidations, null)))
             {
-                Object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(((Number)limit).intValue());
             }
             Object cache = this.liquidations;
@@ -1133,7 +1133,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object symbol = this.safeString(liquidation, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(this.liquidations, null)))
             {
-                Object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(((Number)limit).intValue());
             }
             Object cache = this.liquidations;
@@ -1178,7 +1178,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Object firstPosData = this.safeDict(posData, 0, new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(firstPosData, "instId");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(firstPosData, "uTIme");
+        Long timestamp = this.safeInteger(firstPosData, "uTIme");
         final Object finalMarket = market;
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
@@ -1220,7 +1220,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Object liquidationDetails = this.safeDict(details, 0, new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(liquidation, "instId");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(liquidationDetails, "ts");
+        Long timestamp = this.safeInteger(liquidationDetails, "ts");
         final Object finalMarket = market;
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
@@ -1449,7 +1449,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbol, null)) && Helpers.isTrue(!Helpers.isEqual(timeframe, null))))
                 {
@@ -1598,7 +1598,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             var depthparametersVariable = this.handleOptionAndParams(parameters, "watchOrderBook", "depth", "books");
             depth = ((java.util.List<Object>) depthparametersVariable).get(0);
             parameters = ((java.util.List<Object>) depthparametersVariable).get(1);
-            Object limit = this.safeInteger(parameters, "limit");
+            Long limit = this.safeInteger(parameters, "limit");
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(limit, 1)))
@@ -1673,8 +1673,8 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         //         "17" // orders
         //     ]
         //
-        Object price = this.safeFloat(delta, 0);
-        Object amount = this.safeFloat(delta, 1);
+        Double price = this.safeFloat(delta, 0);
+        Double amount = this.safeFloat(delta, 1);
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
@@ -1716,8 +1716,8 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         this.handleDeltas(storedBids, bids);
         Object marketId = this.safeString(message, "instId");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object seqId = this.safeInteger(message, "seqId");
-        Object prevSeqId = this.safeInteger(message, "prevSeqId");
+        Long seqId = this.safeInteger(message, "seqId");
+        Long prevSeqId = this.safeInteger(message, "prevSeqId");
         Object nonce = Helpers.GetValue(orderbook, "nonce");
         Object error = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(prevSeqId, null)) && Helpers.isTrue(!Helpers.isEqual(prevSeqId, Helpers.opNeg(1)))) && Helpers.isTrue(!Helpers.isEqual(nonce, prevSeqId))))
@@ -1733,7 +1733,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             }
             client.reject(error, messageHash);
         }
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(orderbook, "nonce", seqId);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
@@ -1842,7 +1842,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             put( "books-l2-tbt", 400 );
             put( "books50-l2-tbt", 50 );
         }};
-        Object limit = this.safeInteger(depths, channel);
+        Long limit = this.safeInteger(depths, channel);
         Object messageHash = Helpers.add(Helpers.add(channel, ":"), symbol);
         if (Helpers.isTrue(Helpers.isEqual(action, "snapshot")))
         {
@@ -1877,7 +1877,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object update = Helpers.GetValue(data, i);
-                Object timestamp = this.safeInteger(update, "ts");
+                Long timestamp = this.safeInteger(update, "ts");
                 Object snapshot = this.parseOrderBook(update, symbol, timestamp, "bids", "asks", 0, 1);
                 Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
                 client.resolve(orderbook, messageHash);
@@ -2062,7 +2062,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object info = this.safeValue(order, "info", new java.util.HashMap<String, Object>() {{}});
-        Object timestamp = this.safeInteger(info, "fillTime");
+        Long timestamp = this.safeInteger(info, "fillTime");
         Object feeMarketId = this.safeString(info, "fillFeeCcy");
         Object isTaker = Helpers.isEqual(this.safeString(info, "execType", ""), "T");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
@@ -2470,7 +2470,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Integer ordersLength = Helpers.getArrayLength(orders);
         if (Helpers.isTrue(Helpers.isGreaterThan(ordersLength, 0)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
             {
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
@@ -2574,7 +2574,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         }
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object myTrades = this.myTrades;
@@ -2642,7 +2642,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             parameters = ((java.util.List<Object>) opparametersVariable).get(1);
             Object args = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object market = this.market(symbol);
-            Object instIdCode = this.safeInteger(market, "instIdCode");
+            Long instIdCode = this.safeInteger(market, "instIdCode");
             if (Helpers.isTrue(!Helpers.isEqual(instIdCode, null)))
             {
                 ((java.util.Map<String,Object>)args).remove((String)"instId");
@@ -2740,7 +2740,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             parameters = ((java.util.List<Object>) opparametersVariable).get(1);
             Object args = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
             Object market = this.market(symbol);
-            Object instIdCode = this.safeInteger(market, "instIdCode");
+            Long instIdCode = this.safeInteger(market, "instIdCode");
             if (Helpers.isTrue(!Helpers.isEqual(instIdCode, null)))
             {
                 ((java.util.Map<String,Object>)args).remove((String)"instId");
@@ -2789,7 +2789,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "clOrdId")));
             Object market = this.market(symbol);
-            Object instIdCode = this.safeInteger(market, "instIdCode");
+            Long instIdCode = this.safeInteger(market, "instIdCode");
             Object arg = new java.util.HashMap<String, Object>() {{
                 put( "instIdCode", instIdCode );
             }};
@@ -2846,7 +2846,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object messageHash = this.requestId();
             Object args = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object market = this.market(symbol);
-            Object instIdCode = this.safeInteger(market, "instIdCode");
+            Long instIdCode = this.safeInteger(market, "instIdCode");
             Object instParams = new java.util.HashMap<String, Object>() {{
                 put( "instIdCode", instIdCode );
             }};

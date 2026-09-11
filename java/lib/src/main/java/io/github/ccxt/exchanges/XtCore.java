@@ -1273,7 +1273,7 @@ public class XtCore extends XtApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.publicSpotGetWalletSupportCurrency(parameters), this.publicSpotGetCurrencies(parameters)));
+            Object promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.publicSpotGetWalletSupportCurrency(parameters), this.publicSpotGetCurrencies(parameters)));
             var chainsResponsecurrenciesResponseVariable = (Helpers.promiseAll(promisesRaw)).join();
             var chainsResponse = ((java.util.List<Object>) chainsResponsecurrenciesResponseVariable).get(0);
             var currenciesResponse = ((java.util.List<Object>) chainsResponsecurrenciesResponseVariable).get(1);
@@ -1331,7 +1331,7 @@ public class XtCore extends XtApi
             Object chainsData = this.safeList(chainsResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object currenciesResult = this.safeDict(currenciesResponse, "result", new java.util.HashMap<String, Object>() {{}});
             Object currenciesData = this.safeList(currenciesResult, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> chainsDataIndexed = this.indexBy(chainsData, "currency");
+            Object chainsDataIndexed = this.indexBy(chainsData, "currency");
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currenciesData)); i++)
             {
@@ -1377,7 +1377,7 @@ public class XtCore extends XtApi
                     }
                 }
                 String typeRaw = this.safeString(entry, "type");
-                String type = null;
+                Object type = null;
                 if (Helpers.isTrue(Helpers.isEqual(typeRaw, "FT")))
                 {
                     type = "crypto";
@@ -1442,7 +1442,7 @@ public class XtCore extends XtApi
             {
                 (this.loadTimeDifference()).join();
             }
-            java.util.List<Object> promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapAndFutureMarkets(parameters)));
+            Object promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchSpotMarkets(parameters), this.fetchSwapAndFutureMarkets(parameters)));
             Object promises = (Helpers.promiseAll(promisesUnresolved)).join();
             Object spotMarkets = Helpers.GetValue(promises, 0);
             Object swapAndFutureMarkets = Helpers.GetValue(promises, 1);
@@ -1586,7 +1586,7 @@ public class XtCore extends XtApi
             //         ]
             //     }
             //
-            java.util.List<Object> swapAndFutureMarkets = (java.util.List<Object>) this.arrayConcat(this.safeList(Helpers.GetValue(markets, 0), "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())), this.safeList(Helpers.GetValue(markets, 1), "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
+            Object swapAndFutureMarkets = this.arrayConcat(this.safeList(Helpers.GetValue(markets, 0), "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())), this.safeList(Helpers.GetValue(markets, 1), "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
             return this.parseMarkets(swapAndFutureMarkets);
         });
 
@@ -1594,7 +1594,7 @@ public class XtCore extends XtApi
 
     public Object parseMarkets(Object markets)
     {
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
         {
             ((java.util.List<Object>)result).add(this.parseMarket(Helpers.GetValue(markets, i)));
@@ -1763,13 +1763,13 @@ public class XtCore extends XtApi
         Object linear = null;
         Object inverse = null;
         Object settleId = null;
-        String settle = null;
+        Object settle = null;
         Object expiry = null;
         Object future = false;
         Object swap = false;
         Object contract = false;
         Object spot = true;
-        String type = "spot";
+        Object type = "spot";
         if (Helpers.isTrue(Helpers.isEqual(underlyingType, "U_BASED")))
         {
             symbol = Helpers.add(Helpers.add(symbol, ":"), quote);
@@ -1955,7 +1955,7 @@ public class XtCore extends XtApi
             {
                 Helpers.addElementToObject(request, "limit", 1000);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -2050,7 +2050,7 @@ public class XtCore extends XtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object isInverse = this.safeBool(market, "inverse");
-        String volumeIndex = ((Helpers.isTrue((Helpers.isEqual(isInverse, true))))) ? "v" : "a";
+        Object volumeIndex = ((Helpers.isTrue((Helpers.isEqual(isInverse, true))))) ? "v" : "a";
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, "q", volumeIndex)));
     }
 
@@ -2463,7 +2463,7 @@ public class XtCore extends XtApi
                 // the spot and contract payloads share the same field names, so
                 // the market type cannot be inferred from the entry itself
                 String marketId = this.safeString(rawTicker, "s");
-                String marketType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
+                Object marketType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
                 Object marketInner = this.safeMarket(marketId, market, "_", marketType);
                 Object ticker = this.parseTicker(rawTicker, marketInner);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
@@ -2534,7 +2534,7 @@ public class XtCore extends XtApi
         }
         market = this.safeMarket(marketId, market, "_", marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = this.safeInteger(ticker, "t");
         String percentage = this.safeString2(ticker, "cr", "r");
         if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
         {
@@ -2721,7 +2721,7 @@ public class XtCore extends XtApi
                 var marginModeparametersVariable = this.handleMarginModeAndParams("fetchMyTrades", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-                String marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
+                Object marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
                 Helpers.addElementToObject(request, "bizType", marginOrSpotRequest);
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
@@ -2946,7 +2946,7 @@ public class XtCore extends XtApi
                 }
             }
         }
-        Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "time", "timestamp")));
+        Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "time", "timestamp")));
         String quantity = this.safeString2(trade, "q", "quantity");
         Object amount = null;
         if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -3125,7 +3125,7 @@ public class XtCore extends XtApi
             String total = this.safeString2(balance, "totalAmount", "walletBalance");
             if (Helpers.isTrue(Helpers.isEqual(used, null)))
             {
-                String crossedAndIsolatedMargin = Precise.stringAdd(this.safeString(balance, "crossedMargin"), this.safeString(balance, "isolatedMargin"));
+                Object crossedAndIsolatedMargin = Precise.stringAdd(this.safeString(balance, "crossedMargin"), this.safeString(balance, "isolatedMargin"));
                 used = Precise.stringAdd(this.safeString(balance, "openOrderMarginFrozen"), crossedAndIsolatedMargin);
             }
             Helpers.addElementToObject(account, "free", free);
@@ -3253,7 +3253,7 @@ public class XtCore extends XtApi
             var marginModeparametersVariable = this.handleMarginModeAndParams("createOrder", parameters);
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-            String marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
+            Object marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
             Helpers.addElementToObject(request, "bizType", marginOrSpotRequest);
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
@@ -3270,8 +3270,8 @@ public class XtCore extends XtApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")) ;
                         } else
                         {
-                            String amountString = this.numberToString(amount);
-                            String priceString = this.numberToString(price);
+                            Object amountString = this.numberToString(amount);
+                            Object priceString = this.numberToString(price);
                             Object costCalculated = null;
                             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                             {
@@ -3367,12 +3367,12 @@ public class XtCore extends XtApi
                 Helpers.addElementToObject(request, "positionSide", requestType);
             }
             Object response = new java.util.HashMap<String, Object>() {{}};
-            Object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
-            Object stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
-            Object takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
+            Double triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
+            Double stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
+            Double takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
             String trailingPercent = this.safeString(parameters, "trailingPercent");
             String trailingAmount = this.safeString(parameters, "trailingAmount");
-            Object trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice");
+            Double trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice");
             Object isTrigger = (!Helpers.isEqual(triggerPrice, null));
             Object isStopLoss = (!Helpers.isEqual(stopLoss, null));
             Object isTakeProfit = (!Helpers.isEqual(takeProfit, null));
@@ -3428,7 +3428,7 @@ public class XtCore extends XtApi
                 Helpers.addElementToObject(request, "triggerPriceType", this.safeString(parameters, "triggerPriceType", "LATEST_PRICE"));
                 Helpers.addElementToObject(request, "orderSide", ((String)side).toUpperCase());
                 Helpers.addElementToObject(request, "stopPrice", this.priceToPrecision(symbol, triggerPrice));
-                String entrustType = ((Helpers.isTrue((Helpers.isEqual(type, "market"))))) ? "STOP_MARKET" : "STOP";
+                Object entrustType = ((Helpers.isTrue((Helpers.isEqual(type, "market"))))) ? "STOP_MARKET" : "STOP";
                 Helpers.addElementToObject(request, "entrustType", entrustType);
                 parameters = this.omit(parameters, "triggerPrice");
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
@@ -3805,7 +3805,7 @@ public class XtCore extends XtApi
                 var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrders", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-                String marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
+                Object marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
                 Helpers.addElementToObject(request, "bizType", marginOrSpotRequest);
                 response = (this.privateSpotGetHistoryOrder(this.extend(request, parameters))).join();
             }
@@ -4076,7 +4076,7 @@ public class XtCore extends XtApi
                 var marginModeparametersVariable = this.handleMarginModeAndParams("fetchOrdersByStatus", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-                String marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
+                Object marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
                 Helpers.addElementToObject(request, "bizType", marginOrSpotRequest);
                 if (Helpers.isTrue(!Helpers.isEqual(status, "open")))
                 {
@@ -4623,7 +4623,7 @@ public class XtCore extends XtApi
                 var marginModeparametersVariable = this.handleMarginModeAndParams("cancelAllOrders", parameters);
                 marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-                String marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
+                Object marginOrSpotRequest = ((Helpers.isTrue((!Helpers.isEqual(marginMode, null))))) ? "LEVER" : "SPOT";
                 Helpers.addElementToObject(request, "bizType", marginOrSpotRequest);
                 response = (this.privateSpotDeleteOpenOrder(this.extend(request, parameters))).join();
             }
@@ -4834,7 +4834,7 @@ public class XtCore extends XtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(order, "symbol");
-        String marketType = ((Helpers.isTrue(Helpers.isTrue((Helpers.inOp(order, "result"))) || Helpers.isTrue((Helpers.inOp(order, "positionSide")))))) ? "contract" : "spot";
+        Object marketType = ((Helpers.isTrue(Helpers.isTrue((Helpers.inOp(order, "result"))) || Helpers.isTrue((Helpers.inOp(order, "positionSide")))))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, marketType);
         String symbol = (String) this.safeSymbol(marketId, market, null, marketType);
         Long timestamp = (Long) this.safeInteger2(order, "time", "createdTime");
@@ -4842,7 +4842,7 @@ public class XtCore extends XtApi
         Object amount = ((Helpers.isTrue((Helpers.isEqual(marketType, "spot"))))) ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString(Helpers.GetValue(market, "contractSize")));
         Object filledQuantity = this.safeNumber(order, "executedQty");
         Object filled = ((Helpers.isTrue((Helpers.isEqual(marketType, "spot"))))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(Helpers.GetValue(market, "contractSize")));
-        Object lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
+        Long lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
         String timeInForce = this.safeString(order, "timeInForce");
         Object postOnly = null;
         if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
@@ -5032,10 +5032,10 @@ public class XtCore extends XtApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String side = this.safeString(item, "side");
-        String direction = ((Helpers.isTrue((Helpers.isEqual(side, "ADD"))))) ? "in" : "out";
+        Object direction = ((Helpers.isTrue((Helpers.isEqual(side, "ADD"))))) ? "in" : "out";
         String currencyId = this.safeString(item, "coin");
         currency = this.safeCurrency(currencyId, currency);
-        Object timestamp = this.safeInteger(item, "createdTime");
+        Long timestamp = this.safeInteger(item, "createdTime");
         final Object finalCurrency = currency;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
@@ -5392,13 +5392,13 @@ public class XtCore extends XtApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        String type = ((Helpers.isTrue((Helpers.inOp(transaction, "fromAddr"))))) ? "deposit" : "withdraw";
-        Object timestamp = this.safeInteger(transaction, "createdTime");
+        Object type = ((Helpers.isTrue((Helpers.inOp(transaction, "fromAddr"))))) ? "deposit" : "withdraw";
+        Long timestamp = this.safeInteger(transaction, "createdTime");
         String address = this.safeString(transaction, "address");
         String memo = this.safeString(transaction, "memo");
         String currencyCode = (String) this.safeCurrencyCode(this.safeString(transaction, "currency"), currency);
-        Object fee = this.safeNumber(transaction, "fee");
-        String feeCurrency = ((Helpers.isTrue((!Helpers.isEqual(fee, null))))) ? currencyCode : null;
+        Double fee = this.safeNumber(transaction, "fee");
+        Object feeCurrency = ((Helpers.isTrue((!Helpers.isEqual(fee, null))))) ? currencyCode : null;
         String networkId = this.safeString(transaction, "chain");
         final Object finalFee = fee;
         return new java.util.HashMap<String, Object>() {{
@@ -5562,7 +5562,7 @@ public class XtCore extends XtApi
             Object addOrReduce = addOrReduce3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             String positionSide = this.safeString(parameters, "positionSide");
-            String methodName = ((Helpers.isTrue((Helpers.isEqual(addOrReduce, "ADD"))))) ? "addMargin" : "reduceMargin";
+            Object methodName = ((Helpers.isTrue((Helpers.isEqual(addOrReduce, "ADD"))))) ? "addMargin" : "reduceMargin";
             this.checkRequiredArgument(methodName, positionSide, "positionSide", new java.util.ArrayList<Object>(java.util.Arrays.asList("LONG", "SHORT")));
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -5806,14 +5806,14 @@ public class XtCore extends XtApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object brackets = this.safeList(info, "leverageBrackets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(brackets)); i++)
         {
             Object tier = Helpers.GetValue(brackets, i);
             String marketId = this.safeString(info, "symbol");
             market = this.safeMarket(marketId, market, "_", "contract");
-            Object minNotional = this.safeNumber(Helpers.GetValue(brackets, Helpers.subtract(i, 1)), "maxNominalValue", 0);
+            Double minNotional = this.safeNumber(Helpers.GetValue(brackets, Helpers.subtract(i, 1)), "maxNominalValue", 0);
 final Object finalMarket = market;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
                 put( "tier", XtCore.this.safeInteger(tier, "bracket") );
@@ -5915,13 +5915,13 @@ final Object finalMarket = market;
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object items = this.safeList(result, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)
             {
                 Object entry = Helpers.GetValue(items, i);
                 String marketId = this.safeString(entry, "symbol");
                 String symbolInner = (String) this.safeSymbol(marketId, market);
-                Object timestamp = this.safeInteger(entry, "createdTime");
+                Long timestamp = this.safeInteger(entry, "createdTime");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", symbolInner );
@@ -5930,7 +5930,7 @@ final Object finalMarket = market;
                     put( "datetime", XtCore.this.iso8601(timestamp) );
                 }});
             }
-            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
+            Object sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -6027,7 +6027,7 @@ final Object finalMarket = market;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market, "_", "swap");
-        Object timestamp = this.safeInteger(contract, "nextCollectionTime");
+        Long timestamp = this.safeInteger(contract, "nextCollectionTime");
         Object interval = this.safeString(contract, "collectionInternal");
         if (Helpers.isTrue(!Helpers.isEqual(interval, null)))
         {
@@ -6124,7 +6124,7 @@ final Object finalMarket = market;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
-        Object timestamp = this.safeInteger(interest, "time");
+        Long timestamp = this.safeInteger(interest, "time");
         final Object finalMarket = market;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -6336,13 +6336,13 @@ final Object finalMarket = market;
             //
             Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object items = this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)
             {
                 Object entry = Helpers.GetValue(items, i);
                 ((java.util.List<Object>)result).add(this.parseFundingHistory(entry, market));
             }
-            java.util.List<Object> sorted = this.sortBy(result, "timestamp");
+            Object sorted = this.sortBy(result, "timestamp");
             return this.filterBySinceLimit(sorted, since, limit);
         });
 
@@ -6365,7 +6365,7 @@ final Object finalMarket = market;
         String symbol = (String) this.safeSymbol(marketId, market, "_", "swap");
         String currencyId = this.safeString(contract, "coin");
         String code = (String) this.safeCurrencyCode(currencyId);
-        Object timestamp = this.safeInteger(contract, "createdTime");
+        Long timestamp = this.safeInteger(contract, "createdTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -6448,7 +6448,7 @@ final Object finalMarket = market;
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPosition", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            java.util.List<Object> promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 ((java.util.List<Object>)promisesUnresolved).add(this.privateInverseGetFutureUserV1PositionList(this.extend(request, parameters)));
@@ -6547,7 +6547,7 @@ final Object finalMarket = market;
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositions", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            java.util.List<Object> promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 ((java.util.List<Object>)promisesUnresolved).add(this.privateInverseGetFutureUserV1PositionList(parameters));
@@ -6604,7 +6604,7 @@ final Object finalMarket = market;
             //
             Object positions = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object entry = Helpers.GetValue(positions, i);
@@ -6645,7 +6645,7 @@ final Object finalMarket = market;
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Integer symbolsLength = Helpers.getArrayLength(symbols);
+                Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -6780,11 +6780,11 @@ final Object finalMarket = market;
         // "ISOLATED"/"CROSSED" on position/list, 1 = cross / 2 = isolated on position/list-history
         String positionType = this.safeString(position, "positionType");
         Object isCross = Helpers.isTrue((Helpers.isEqual(positionType, "CROSSED"))) || Helpers.isTrue((Helpers.isEqual(positionType, "1")));
-        String marginMode = ((Helpers.isTrue((isCross)))) ? "cross" : "isolated";
-        Object collateral = this.safeNumber(position, "isolatedMargin");
+        Object marginMode = ((Helpers.isTrue((isCross)))) ? "cross" : "isolated";
+        Double collateral = this.safeNumber(position, "isolatedMargin");
         // history entries carry the liquidation price in forceMarkPrice when force is true
         Object liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));
-        Object timestamp = this.safeInteger(position, "closeTime");
+        Long timestamp = this.safeInteger(position, "closeTime");
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
@@ -7000,8 +7000,8 @@ final Object finalMarket = market;
             }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
-            Object takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
+            Double stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
+            Double takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLoss", "takeProfit")));
             Object isStopLoss = (!Helpers.isEqual(stopLoss, null));
             Object isTakeProfit = (!Helpers.isEqual(takeProfit, null));
@@ -7139,8 +7139,8 @@ final Object finalMarket = market;
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object signed = Helpers.isEqual(Helpers.GetValue(api, 0), "private");
         Object endpoint = Helpers.GetValue(api, 1);
-        String request = Helpers.add("/", this.implodeParams(path, parameters));
-        String payload = null;
+        Object request = Helpers.add("/", this.implodeParams(path, parameters));
+        Object payload = null;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(endpoint, "spot"))) || Helpers.isTrue((Helpers.isEqual(endpoint, "user")))))
         {
             if (Helpers.isTrue(signed))
@@ -7156,7 +7156,7 @@ final Object finalMarket = market;
         }
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), endpoint), payload);
         Object query = this.omit(parameters, this.extractParams(path));
-        String urlencoded = this.urlencode(this.keysort(query));
+        Object urlencoded = this.urlencode(this.keysort(query));
         headers = new java.util.HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
@@ -7165,11 +7165,11 @@ final Object finalMarket = market;
             this.checkRequiredCredentials();
             String defaultRecvWindow = this.safeString(this.options, "recvWindow");
             String recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
-            String timestamp = this.numberToString(this.nonce());
+            Object timestamp = this.numberToString(this.nonce());
             body = query;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(payload, "/v4/order"))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/order/create")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/entrust/create-plan")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/entrust/create-profit")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/order/create-batch")))))
             {
-                String id = "CCXT";
+                Object id = "CCXT";
                 if (Helpers.isTrue(Helpers.isEqual(body, null)))
                 {
                     throw new NullResponse((String)Helpers.add(this.id, " sign() returned empty body")) ;
@@ -7230,7 +7230,7 @@ final Object finalMarket = market;
                     payloadString = Helpers.add(payloadString, Helpers.add(Helpers.add(Helpers.add("#", payload), "#"), body));
                 }
             }
-            String signature = (String) this.hmac(this.encode(payloadString), this.encode(this.secret), sha256());
+            Object signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256());
             Helpers.addElementToObject(headers, "xt-validate-appkey", this.apiKey);
             Helpers.addElementToObject(headers, "xt-validate-timestamp", timestamp);
             Helpers.addElementToObject(headers, "xt-validate-signature", signature);

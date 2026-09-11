@@ -764,7 +764,7 @@ public class LighterCore extends LighterApi
         Object auths = this.safeDict(this.options, "auths");
         Object accountAuths = this.safeDict(auths, accountIndex);
         Object cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
-        Object cachedDeadline = this.safeInteger(cachedAuth, "deadline");
+        Long cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         if (Helpers.isTrue(!Helpers.isEqual(cachedDeadline, null)))
         {
             Object minimumDeadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60));
@@ -790,7 +790,7 @@ public class LighterCore extends LighterApi
     public Object pow(Object n, Object m)
     {
         Object r = Precise.stringMul(n, "1");
-        Object c = this.parseToInt(m);
+        Long c = this.parseToInt(m);
         if (Helpers.isTrue(Helpers.isLessThan(c, 0)))
         {
             throw new BadRequest((String)Helpers.add(this.id, " pow() requires m > 0.")) ;
@@ -856,9 +856,9 @@ public class LighterCore extends LighterApi
             }
             try
             {
-                Object builder = this.safeInteger(this.options, "integratorAccountIndex", 718718);
-                Object takerFeeRate = this.safeInteger(this.options, "integratorTakerFee", 1000);
-                Object makerFeeRate = this.safeInteger(this.options, "integratorMakerFee", 1000);
+                Long builder = this.safeInteger(this.options, "integratorAccountIndex", 718718);
+                Long takerFeeRate = this.safeInteger(this.options, "integratorTakerFee", 1000);
+                Long makerFeeRate = this.safeInteger(this.options, "integratorMakerFee", 1000);
                 (this.approveBuilderFee(builder, takerFeeRate, makerFeeRate, accountIndex, apiKeyIndex)).join();
                 Helpers.addElementToObject(this.options, "approvedBuilderFee", true);
             } catch(Exception e)
@@ -1140,12 +1140,12 @@ public class LighterCore extends LighterApi
             {
                 triggerOrderSide = "buy";
             }
-            Object stopLossOrderTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
+            Double stopLossOrderTriggerPrice = this.safeNumber2(stopLoss, "triggerPrice", "stopPrice");
             String stopLossOrderType = this.safeString(stopLoss, "type", "limit");
-            Object stopLossOrderLimitPrice = this.safeNumber2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice);
-            Object takeProfitOrderTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
+            Double stopLossOrderLimitPrice = this.safeNumber2(stopLoss, "price", "stopLossPrice", stopLossOrderTriggerPrice);
+            Double takeProfitOrderTriggerPrice = this.safeNumber2(takeProfit, "triggerPrice", "stopPrice");
             String takeProfitOrderType = this.safeString(takeProfit, "type", "limit");
-            Object takeProfitOrderLimitPrice = this.safeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
+            Double takeProfitOrderLimitPrice = this.safeNumber2(takeProfit, "price", "takeProfitPrice", takeProfitOrderTriggerPrice);
             // amount should be 0 for child orders
             if (Helpers.isTrue(!Helpers.isEqual(stopLoss, null)))
             {
@@ -1185,7 +1185,7 @@ public class LighterCore extends LighterApi
             {
                 return this.safeInteger(parameters, "nonce");
             }
-            Object nonceInOptions = this.safeInteger(this.options, "nonce");
+            Long nonceInOptions = this.safeInteger(this.options, "nonce");
             if (Helpers.isTrue(!Helpers.isEqual(nonceInOptions, null)))
             {
                 return nonceInOptions;
@@ -1608,7 +1608,7 @@ public class LighterCore extends LighterApi
                 String priceDecimals = this.safeString2(market, "price_decimals", "supported_price_decimals");
                 Object amountPrecision = ((Helpers.isTrue((Helpers.isEqual(amountDecimals, null))))) ? null : this.parseNumber(this.parsePrecision(amountDecimals));
                 Object pricePrecision = ((Helpers.isTrue((Helpers.isEqual(priceDecimals, null))))) ? null : this.parseNumber(this.parsePrecision(priceDecimals));
-                Object quoteMultiplier = this.safeNumber(market, "quote_multiplier");
+                Double quoteMultiplier = this.safeNumber(market, "quote_multiplier");
     final Object finalSymbol = symbol;
                 final Object finalBase = base;
                 final Object finalSettle = settle;
@@ -2102,7 +2102,7 @@ public class LighterCore extends LighterApi
                     endTs = until;
                 } else if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
-                    Object duration = this.parseTimeframe(timeframe);
+                    int duration = this.parseTimeframe(timeframe);
                     endTs = this.sum(since, Helpers.multiply(Helpers.multiply(duration, limit), 1000));
                 } else
                 {
@@ -2504,13 +2504,13 @@ public class LighterCore extends LighterApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "market_id");
         market = this.safeMarket(marketId, market);
-        Object sign = this.safeInteger(position, "sign");
+        Long sign = this.safeInteger(position, "sign");
         Object side = null;
         if (Helpers.isTrue(!Helpers.isEqual(sign, null)))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(sign, 1))))) ? "long" : "short";
         }
-        Object marginModeId = this.safeInteger(position, "margin_mode");
+        Long marginModeId = this.safeInteger(position, "margin_mode");
         Object marginMode = null;
         if (Helpers.isTrue(!Helpers.isEqual(marginModeId, null)))
         {
@@ -2520,7 +2520,7 @@ public class LighterCore extends LighterApi
         Object leverage = null;
         if (Helpers.isTrue(!Helpers.isEqual(imfStr, null)))
         {
-            Object imf = this.parseToInt(imfStr);
+            Long imf = this.parseToInt(imfStr);
             if (Helpers.isTrue(Helpers.isGreaterThan(imf, 0)))
             {
                 leverage = Helpers.divide(100, imf);
@@ -2903,7 +2903,7 @@ public class LighterCore extends LighterApi
         Object isAsk = this.safeBool(order, "is_ask");
         if (Helpers.isTrue(Helpers.isEqual(isAsk, null)))
         {
-            Object isAskAsInteger = this.safeInteger(order, "is_ask");
+            Long isAskAsInteger = this.safeInteger(order, "is_ask");
             if (Helpers.isTrue(!Helpers.isEqual(isAskAsInteger, null)))
             {
                 isAsk = Helpers.isEqual(isAskAsInteger, 1);
@@ -2917,7 +2917,7 @@ public class LighterCore extends LighterApi
         Object type = this.safeString(order, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            Object typeAsInteger = this.safeInteger(order, "order_type");
+            Long typeAsInteger = this.safeInteger(order, "order_type");
             type = this.parseOrderTypeInteger(typeAsInteger);
         }
         Object triggerPrice = this.parseNumber(this.omitZero(this.safeString(order, "trigger_price")));
@@ -2936,7 +2936,7 @@ public class LighterCore extends LighterApi
         }
         // Try to parse to integer first, because parsing an integer to a string wouldn't result in undefined
         Object tif = null;
-        Object tifAsInteger = this.safeInteger(order, "time_in_force");
+        Long tifAsInteger = this.safeInteger(order, "time_in_force");
         if (Helpers.isTrue(!Helpers.isEqual(tifAsInteger, null)))
         {
             tif = this.parseOrderTimeInForceInteger(tifAsInteger);
@@ -2947,7 +2947,7 @@ public class LighterCore extends LighterApi
         Object reduceOnly = this.safeBool(order, "reduce_only");
         if (Helpers.isTrue(Helpers.isEqual(reduceOnly, null)))
         {
-            Object reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
+            Long reduceOnlyAsInteger = this.safeInteger(order, "reduce_only");
             if (Helpers.isTrue(!Helpers.isEqual(reduceOnlyAsInteger, null)))
             {
                 reduceOnly = Helpers.isEqual(reduceOnlyAsInteger, 1);
@@ -3271,7 +3271,7 @@ public class LighterCore extends LighterApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "asset_id");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeInteger(transfer, "timestamp");
+        Long timestamp = this.safeInteger(transfer, "timestamp");
         Object fromAccount = this.safeDict(transfer, "from", new java.util.HashMap<String, Object>() {{}});
         Object toAccount = this.safeDict(transfer, "to", new java.util.HashMap<String, Object>() {{}});
         return new java.util.HashMap<String, Object>() {{
@@ -3499,7 +3499,7 @@ public class LighterCore extends LighterApi
         {
             type = "withdrawal";
         }
-        Object timestamp = this.safeInteger(transaction, "timestamp");
+        Long timestamp = this.safeInteger(transaction, "timestamp");
         String status = this.safeString(transaction, "status");
         final Object finalType = type;
         return new java.util.HashMap<String, Object>() {{
@@ -3584,7 +3584,7 @@ public class LighterCore extends LighterApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " withdraw() only supports USDC and ETH transfers")) ;
             }
-            Object routeType = this.safeInteger(parameters, "routeType", 0); // 0: perp, 1: spot
+            Long routeType = this.safeInteger(parameters, "routeType", 0); // 0: perp, 1: spot
             parameters = this.omit(parameters, "routeType");
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, parameters)).join();
             final Object finalAmount = amount;
@@ -3760,7 +3760,7 @@ public class LighterCore extends LighterApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "market_id");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         String accountIndex = this.safeString(trade, "account_index");
         String askAccountId = this.safeString(trade, "ask_account_id");
         String bidAccountId = this.safeString(trade, "bid_account_id");
@@ -4218,7 +4218,7 @@ public class LighterCore extends LighterApi
             var apiKeyIndexparametersVariable = this.handleApiKeyIndex(parameters, "setMargin", "apiKeyIndex", "api_key_index");
             apiKeyIndex = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(0);
             parameters = ((java.util.List<Object>) apiKeyIndexparametersVariable).get(1);
-            Object direction = this.safeInteger(parameters, "direction"); // 1 increase margin 0 decrease margin
+            Long direction = this.safeInteger(parameters, "direction"); // 1 increase margin 0 decrease margin
             if (Helpers.isTrue(Helpers.isEqual(direction, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setMargin() requires a direction parameter either 1 (increase margin) or 0 (decrease margin)")) ;
@@ -4267,7 +4267,7 @@ public class LighterCore extends LighterApi
     public Object parseMarginModification(Object data, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(data, "predicted_execution_time_ms");
+        Long timestamp = this.safeInteger(data, "predicted_execution_time_ms");
         return new java.util.HashMap<String, Object>() {{
             put( "info", data );
             put( "symbol", LighterCore.this.safeString(market, "symbol") );

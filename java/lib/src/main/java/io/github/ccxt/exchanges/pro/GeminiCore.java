@@ -154,7 +154,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         Object id = this.safeString2(trade, "event_id", "tid");
         Object priceString = this.safeString(trade, "price");
         Object amountString = this.safeString2(trade, "quantity", "amount");
@@ -205,7 +205,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         //
         Object trade = this.parseWsTrade(message);
         Object symbol = Helpers.GetValue(trade, "symbol");
-        Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+        Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -265,7 +265,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         if (Helpers.isTrue(!Helpers.isEqual(trades, null)))
         {
             Object symbol = Helpers.GetValue(market, "symbol");
-            Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Object stored = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
@@ -286,7 +286,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
     {
         if (Helpers.isTrue(!Helpers.isEqual(trades, null)))
         {
-            Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Object storesForSymbols = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
             {
@@ -406,7 +406,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbol, null)) && Helpers.isTrue(!Helpers.isEqual(timeframe, null))))
             {
@@ -495,8 +495,8 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(changes)); i++)
         {
             Object delta = Helpers.GetValue(changes, i);
-            Object price = this.safeNumber(delta, 1);
-            Object size = this.safeNumber(delta, 2);
+            Double price = this.safeNumber(delta, 1);
+            Double size = this.safeNumber(delta, 2);
             Object side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(delta, 0), "buy"))))) ? "bids" : "asks";
             Object bookside = Helpers.GetValue(orderbook, side);
             Helpers.callDynamically(bookside, "store", new Object[]{price, size});
@@ -595,7 +595,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         {
             Object entry = Helpers.GetValue(rawBidAskChanges, i);
             Object rawSide = this.safeString(entry, "side");
-            Object price = this.safeNumber(entry, "price");
+            Double price = this.safeNumber(entry, "price");
             Object sizeString = this.safeString(entry, "remaining");
             if (Helpers.isTrue(Precise.stringEq(sizeString, "0")))
             {
@@ -701,8 +701,8 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrderBookChanges)); i++)
         {
             Object entry = Helpers.GetValue(rawOrderBookChanges, i);
-            Object price = this.safeNumber(entry, "price");
-            Object size = this.safeNumber(entry, "remaining");
+            Double price = this.safeNumber(entry, "price");
+            Double size = this.safeNumber(entry, "remaining");
             Object rawSide = this.safeString(entry, "side");
             if (Helpers.isTrue(Helpers.isEqual(rawSide, "bid")))
             {
@@ -868,7 +868,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         Object messageHash = "orders";
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
@@ -904,7 +904,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(order, "timestampms");
+        Long timestamp = this.safeInteger(order, "timestampms");
         Object status = this.safeString(order, "type");
         Object marketId = this.safeString(order, "symbol");
         Object typeId = this.safeString(order, "order_type");
@@ -1045,8 +1045,8 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         // handle multimarketdata
         if (Helpers.isTrue(Helpers.isEqual(type, "update")))
         {
-            Object ts = this.safeInteger(message, "timestampms", this.milliseconds());
-            Object eventId = this.safeInteger(message, "eventId");
+            Long ts = this.safeInteger(message, "timestampms", this.milliseconds());
+            Long eventId = this.safeInteger(message, "eventId");
             Object events = this.safeList(message, "events");
             if (Helpers.isTrue(Helpers.isEqual(events, null)))
             {

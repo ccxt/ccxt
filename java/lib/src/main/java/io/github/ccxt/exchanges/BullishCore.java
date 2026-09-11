@@ -1157,7 +1157,7 @@ public class BullishCore extends BullishApi
             //         "sequenceNumber": 999
             //     }
             //
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, symbol, timestamp, "bids", "asks", "price", "priceLevelQuantity");
         });
 
@@ -1405,14 +1405,14 @@ public class BullishCore extends BullishApi
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(trade, "createdAtTimestamp");
+        Long timestamp = this.safeInteger(trade, "createdAtTimestamp");
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
         String side = (String)this.safeStringLower(trade, "side");
         Object isTaker = this.safeBool(trade, "isTaker");
         Object currency = Helpers.GetValue(market, "quote");
         String code = (String) this.safeCurrencyCode(currency);
-        Object feeCost = this.safeNumber(trade, "quoteFee");
+        Double feeCost = this.safeNumber(trade, "quoteFee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -1560,7 +1560,7 @@ public class BullishCore extends BullishApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(ticker, "createdAtTimestamp");
+        Long timestamp = this.safeInteger(ticker, "createdAtTimestamp");
         final Object finalMarket = market;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -1687,7 +1687,7 @@ public class BullishCore extends BullishApi
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
             Object until = this.safeInteger(request, "createdAtDatetime[lte]");
-            Object duration = this.parseTimeframe(timeframe);
+            int duration = this.parseTimeframe(timeframe);
             Object maxDelta = Helpers.multiply(Helpers.multiply(1000, duration), maxLimit);
             Object startTime = since;
             // both of since and until are required
@@ -1919,7 +1919,7 @@ public class BullishCore extends BullishApi
         Object since = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object ninetyDays = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(90, 24), 60), 60), 1000);
-        Object now = this.milliseconds();
+        Long now = this.milliseconds();
         Object allowedSince = Helpers.subtract(now, ninetyDays);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(since, null))) && Helpers.isTrue((Helpers.isLessThan(since, allowedSince)))))
         {
@@ -1929,7 +1929,7 @@ public class BullishCore extends BullishApi
         parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
             put( "paginationDirection", "backward" );
         }});
-        Object until = this.safeInteger(parameters, "until");
+        Long until = this.safeInteger(parameters, "until");
         if (Helpers.isTrue(Helpers.isEqual(until, null)))
         {
             final Object finalNow = now;
@@ -1957,7 +1957,7 @@ public class BullishCore extends BullishApi
             } else if (Helpers.isTrue(Helpers.isEqual(until, null)))
             {
                 until = this.sum(since, timeDelta);
-                Object now = this.milliseconds();
+                Long now = this.milliseconds();
                 if (Helpers.isTrue(Helpers.isGreaterThan(until, now)))
                 {
                     until = now;
@@ -2460,7 +2460,7 @@ public class BullishCore extends BullishApi
         }
         String symbol = (String) this.safeSymbol(marketId, market);
         String id = this.safeString(order, "orderId");
-        Object timestamp = this.safeInteger(order, "createdAtTimestamp");
+        Long timestamp = this.safeInteger(order, "createdAtTimestamp");
         String type = this.safeString(order, "type");
         String side = (String)this.safeStringLower(order, "side");
         String price = this.safeString(order, "price");
@@ -2479,7 +2479,7 @@ public class BullishCore extends BullishApi
         String stopPrice = this.safeString(order, "stopPrice");
         String cost = this.safeString(order, "quoteAmount");
         Object fee = new java.util.HashMap<String, Object>() {{}};
-        Object quoteFee = this.safeNumber(order, "quoteFee");
+        Double quoteFee = this.safeNumber(order, "quoteFee");
         if (Helpers.isTrue(!Helpers.isEqual(quoteFee, null)))
         {
             Helpers.addElementToObject(fee, "cost", quoteFee);
@@ -2560,7 +2560,7 @@ public class BullishCore extends BullishApi
             var requestparametersVariable = this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object until = this.safeInteger(request, "createdAtDatetime[lte]");
+            Long until = this.safeInteger(request, "createdAtDatetime[lte]");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "createdAtDatetime[lte]", this.iso8601(until));
@@ -2711,7 +2711,7 @@ public class BullishCore extends BullishApi
         Object transactionDetails = this.safeDict(transaction, "transactionDetails");
         String txid = this.safeString(transactionDetails, "blockchainTxId");
         String address = this.safeString(transactionDetails, "address");
-        Object amount = this.safeNumber(transaction, "quantity");
+        Double amount = this.safeNumber(transaction, "quantity");
         String currencyId = this.safeString(transaction, "symbol");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String status = this.safeString(transaction, "status");
@@ -2723,7 +2723,7 @@ public class BullishCore extends BullishApi
             put( "cost", null );
             put( "rate", null );
         }};
-        Object feeCost = this.safeNumber(transaction, "fee");
+        Double feeCost = this.safeNumber(transaction, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             Helpers.addElementToObject(fee, "cost", feeCost);
@@ -3168,7 +3168,7 @@ public class BullishCore extends BullishApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         market = this.safeMarket(this.safeString(position, "symbol"), market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(position, "createdAtTimestamp");
+        Long timestamp = this.safeInteger(position, "createdAtTimestamp");
         String side = this.safeString(position, "side");
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
@@ -3253,11 +3253,11 @@ public class BullishCore extends BullishApi
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "assetSymbol", Helpers.GetValue(currency, "id"));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(since, null))) && Helpers.isTrue((Helpers.isEqual(until, null)))))
             {
                 // since and until are mandatory for this endpoint, set until to now if both are undefined
-                Object now = this.milliseconds();
+                Long now = this.milliseconds();
                 parameters = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                     put( "until", now );
                 }});
@@ -3363,7 +3363,7 @@ public class BullishCore extends BullishApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(transfer, "createdAtTimestamp");
+        Long timestamp = this.safeInteger(transfer, "createdAtTimestamp");
         String currencyId = this.safeString(transfer, "assetSymbol");
         String status = this.safeString(transfer, "status");
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
@@ -3423,7 +3423,7 @@ public class BullishCore extends BullishApi
                 put( "assetSymbol", Helpers.GetValue(currency, "id") );
                 put( "tradingAccountId", tradingAccountId );
             }};
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             Object startTimestamp = since;
             var requestparametersVariable = this.handleUntilOption("createdAtDatetime[lte]", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
@@ -3471,7 +3471,7 @@ public class BullishCore extends BullishApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(info, "createdAtTimestamp");
+        Long timestamp = this.safeInteger(info, "createdAtTimestamp");
         String currencyId = this.safeString(info, "assetSymbol");
         return new java.util.HashMap<String, Object>() {{
             put( "currency", BullishCore.this.safeCurrencyCode(currencyId, currency) );
@@ -3727,9 +3727,9 @@ public class BullishCore extends BullishApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             Object token = this.token;
-            Object tokenExpires = this.safeInteger(this.options, "tokenExpires");
+            Long tokenExpires = this.safeInteger(this.options, "tokenExpires");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(token, null))) || Helpers.isTrue((Helpers.isEqual(tokenExpires, null)))) || Helpers.isTrue((Helpers.isGreaterThan(now, tokenExpires)))))
             {
                 return (this.signIn()).join();

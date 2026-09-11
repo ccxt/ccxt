@@ -415,7 +415,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "C");
+        Long timestamp = this.safeInteger(ticker, "C");
         Object close = this.safeString(ticker, "c");
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -620,7 +620,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         Object messageHash = Helpers.add("trade::", symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Object tradesArray = Helpers.GetValue(this.trades, symbol);
@@ -655,7 +655,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "T");
+        Long timestamp = this.safeInteger(trade, "T");
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -910,7 +910,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbol, null)) && Helpers.isTrue(!Helpers.isEqual(timeframe, null))))
             {
@@ -1133,7 +1133,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Object subscription = this.safeDict(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
-            Object limit = this.safeInteger(subscription, "limit");
+            Long limit = this.safeInteger(subscription, "limit");
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
@@ -1143,9 +1143,9 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             }
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-        Object timestamp = this.safeInteger(message, "E");
+        Long timestamp = this.safeInteger(message, "E");
         Object eventVar = this.safeString(message, "e");
-        Object nonce = this.safeInteger(message, "u");
+        Long nonce = this.safeInteger(message, "u");
         if (Helpers.isTrue(Helpers.isEqual(eventVar, "depthSnapshot")))
         {
             Object parsed = this.parseOrderBook(message, symbol, timestamp, "b", "a");
@@ -1304,7 +1304,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
     public Object parseWsBidAsk(Object message, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(message, "E");
+        Long timestamp = this.safeInteger(message, "E");
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1464,7 +1464,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         //
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
@@ -1517,7 +1517,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "createdTime");
+        Long timestamp = this.safeInteger(trade, "createdTime");
         Object marketId = this.safeString(trade, "symbol");
         String marketType = "spot";
         Object positionSide = this.safeString(trade, "positionSide");
@@ -1718,7 +1718,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
@@ -1837,7 +1837,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(order, "createdTime");
+        Long timestamp = this.safeInteger(order, "createdTime");
         Object marketId = this.safeString(order, "symbol");
         String marketType = "spot";
         Object positionSide = this.safeString(order, "positionSide");
@@ -2093,7 +2093,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);
             }
         }
-        Object timestamp = this.safeInteger(message, "E");
+        Long timestamp = this.safeInteger(message, "E");
         Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), "timestamp", timestamp);
         Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.balance, accountType, this.safeBalance(Helpers.GetValue(this.balance, accountType)));

@@ -382,7 +382,7 @@ public class HyperliquidCore extends HyperliquidApi
         }
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbol, null))) && !Helpers.isTrue((Helpers.inOp(this.markets, symbol)))))
         {
-            java.util.List<Object> symbolParts = (java.util.List<Object>) Helpers.split(symbol, "/");
+            Object symbolParts = Helpers.split(symbol, "/");
             String baseName = this.safeString(symbolParts, 0);
             Object spotCurrencyMapping = this.safeDict(this.options, "spotCurrencyMapping", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.inOp(spotCurrencyMapping, ((String)baseName))))
@@ -543,7 +543,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object isWrapped = Helpers.isTrue(((String)fullName).startsWith(((String)"Unit "))) && Helpers.isTrue(((String)name).startsWith(((String)"U")));
             if (Helpers.isTrue(isWrapped))
             {
-                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(name, "U");
+                Object parts = Helpers.split(name, "U");
                 Object nameWithoutU = "";
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parts)); j++)
                 {
@@ -576,7 +576,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object options = this.safeDict(this.options, "fetchMarkets", new java.util.HashMap<String, Object>() {{}});
             Object types = this.safeList(options, "types", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> rawPromises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rawPromises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(types)); i++)
             {
                 Object marketType = Helpers.GetValue(types, i);
@@ -651,8 +651,8 @@ public class HyperliquidCore extends HyperliquidApi
             Object options = this.safeDict(this.options, "fetchMarkets", new java.util.HashMap<String, Object>() {{}});
             Object hip3 = this.safeDict(options, "hip3", new java.util.HashMap<String, Object>() {{}});
             Object dexesProvided = this.safeList(hip3, "dexes", new java.util.ArrayList<Object>(java.util.Arrays.asList())); // let users provide their own list of dexes to load
-            Object maxLimit = this.safeInteger(hip3, "limit", 10);
-            Integer userProvidedDexesLength = Helpers.getArrayLength(dexesProvided);
+            Long maxLimit = this.safeInteger(hip3, "limit", 10);
+            Object userProvidedDexesLength = Helpers.getArrayLength(dexesProvided);
             if (Helpers.isTrue(Helpers.isGreaterThan(userProvidedDexesLength, 0)))
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(userProvidedDexesLength, 0)))
@@ -661,7 +661,7 @@ public class HyperliquidCore extends HyperliquidApi
                 }
             } else
             {
-                Integer fetchDexesLength = Helpers.getArrayLength(fetchDexes);
+                Object fetchDexesLength = Helpers.getArrayLength(fetchDexes);
                 for (var i = 1; Helpers.isLessThan(i, maxLimit); i++)
                 {
                     if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(i, fetchDexesLength)))
@@ -677,7 +677,7 @@ public class HyperliquidCore extends HyperliquidApi
                     ((java.util.List<Object>)fetchDexesList).add(dexName);
                 }
             }
-            java.util.List<Object> rawPromises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rawPromises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fetchDexesList)); i++)
             {
                 final Object finalFetchDexesList = fetchDexesList;
@@ -700,12 +700,12 @@ public class HyperliquidCore extends HyperliquidApi
                 String collateralToken = this.safeString(meta, "collateralToken");
                 Object universe = this.safeList(meta, "universe", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object assetCtxs = this.safeList(response, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 // helper because some endpoints return just the coin name like: flx:crcl
                 // and we don't have the base/settle information and we can't assume it's USDC for hip3 markets
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(universe)); j++)
                 {
-                    java.util.Map<String, Object> data = this.extend(this.safeDict(universe, j, new java.util.HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, j, new java.util.HashMap<String, Object>() {{}}));
+                    Object data = this.extend(this.safeDict(universe, j, new java.util.HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, j, new java.util.HashMap<String, Object>() {{}}));
                     Helpers.addElementToObject(data, "baseId", this.sum(j, offset));
                     Helpers.addElementToObject(data, "collateralToken", collateralToken);
                     Helpers.addElementToObject(data, "hip3", true);
@@ -817,10 +817,10 @@ public class HyperliquidCore extends HyperliquidApi
             Object meta = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             Object universe = this.safeList(meta, "universe", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object assetCtxs = this.safeList(response, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(universe)); i++)
             {
-                java.util.Map<String, Object> data = this.extend(this.safeDict(universe, i, new java.util.HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, i, new java.util.HashMap<String, Object>() {{}}));
+                Object data = this.extend(this.safeDict(universe, i, new java.util.HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, i, new java.util.HashMap<String, Object>() {{}}));
                 Helpers.addElementToObject(data, "baseId", i);
                 ((java.util.List<Object>)result).add(data);
             }
@@ -841,12 +841,12 @@ public class HyperliquidCore extends HyperliquidApi
     public Object calculatePricePrecision(Object price, Object amountPrecision, Object maxDecimals)
     {
         Object pricePrecision = 0;
-        String priceStr = this.numberToString(price);
+        Object priceStr = this.numberToString(price);
         if (Helpers.isTrue(Helpers.isEqual(priceStr, null)))
         {
             return 0;
         }
-        java.util.List<Object> priceSplitted = (java.util.List<Object>) Helpers.split(priceStr, ".");
+        Object priceSplitted = Helpers.split(priceStr, ".");
         if (Helpers.isTrue(Precise.stringEq(priceStr, "0")))
         {
             // Significant digits is always 5 in this case
@@ -949,7 +949,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object second = this.safeList(response, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object meta = this.safeList(first, "universe", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object tokens = this.safeList(first, "tokens", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(meta)); i++)
             {
                 Object market = this.safeDict(meta, i, new java.util.HashMap<String, Object>() {{}});
@@ -964,11 +964,11 @@ public class HyperliquidCore extends HyperliquidApi
                 // const baseName = this.safeString (marketParts, 0);
                 // const quoteId = this.safeString (marketParts, 1);
                 Object fees = this.safeDict(this.fees, "spot", new java.util.HashMap<String, Object>() {{}});
-                Object taker = this.safeNumber(fees, "taker");
-                Object maker = this.safeNumber(fees, "maker");
+                Double taker = this.safeNumber(fees, "taker");
+                Double maker = this.safeNumber(fees, "maker");
                 Object tokensPos = this.safeList(market, "tokens", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object baseTokenPos = this.safeInteger(tokensPos, 0);
-                Object quoteTokenPos = this.safeInteger(tokensPos, 1);
+                Long baseTokenPos = this.safeInteger(tokensPos, 0);
+                Long quoteTokenPos = this.safeInteger(tokensPos, 1);
                 Object baseTokenInfo = this.safeDict(tokens, baseTokenPos, new java.util.HashMap<String, Object>() {{}});
                 Object quoteTokenInfo = this.safeDict(tokens, quoteTokenPos, new java.util.HashMap<String, Object>() {{}});
                 String baseName = this.safeString(baseTokenInfo, "name");
@@ -988,15 +988,15 @@ public class HyperliquidCore extends HyperliquidApi
                 // const innerQuoteTokenInfo = this.safeDict (quoteTokenInfo, 'spec', quoteTokenInfo);
                 String amountPrecisionStr = this.safeString(innerBaseTokenInfo, "szDecimals");
                 Object amountPrecision = Helpers.parseInt(((String)amountPrecisionStr));
-                Object price = this.safeNumber(extraData, "midPx");
+                Double price = this.safeNumber(extraData, "midPx");
                 Object pricePrecision = 0;
                 if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                 {
                     pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
                 }
-                String pricePrecisionStr = this.numberToString(pricePrecision);
+                Object pricePrecisionStr = this.numberToString(pricePrecision);
                 // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-                String baseId = this.numberToString(Helpers.add(index, 10000));
+                Object baseId = this.numberToString(Helpers.add(index, 10000));
                 final Object finalMappedBase = mappedBase;
                 final Object finalBaseName = baseName;
                 final Object finalQuoteId = quoteId;
@@ -1107,17 +1107,17 @@ public class HyperliquidCore extends HyperliquidApi
             }
         }
         Object fees = this.safeDict(this.fees, "swap", new java.util.HashMap<String, Object>() {{}});
-        Object taker = this.safeNumber(fees, "taker");
-        Object maker = this.safeNumber(fees, "maker");
+        Double taker = this.safeNumber(fees, "taker");
+        Double maker = this.safeNumber(fees, "maker");
         String amountPrecisionStr = this.safeString(market, "szDecimals");
         Object amountPrecision = Helpers.parseInt(((String)amountPrecisionStr));
-        Object price = this.safeNumber(market, "markPx", 0);
+        Double price = this.safeNumber(market, "markPx", 0);
         Object pricePrecision = 0;
         if (Helpers.isTrue(!Helpers.isEqual(price, null)))
         {
             pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         }
-        String pricePrecisionStr = this.numberToString(pricePrecision);
+        Object pricePrecisionStr = this.numberToString(pricePrecision);
         Object isDelisted = this.safeBool(market, "isDelisted");
         Object active = true;
         if (Helpers.isTrue(!Helpers.isEqual(isDelisted, null)))
@@ -1312,7 +1312,7 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "info", response );
                 put( "USDC", usdcBalance );
             }};
-            Object timestamp = this.safeInteger(response, "time");
+            Long timestamp = this.safeInteger(response, "time");
             Helpers.addElementToObject(result, "timestamp", timestamp);
             Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp));
             return this.safeBalance(result);
@@ -1374,7 +1374,7 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "bids", HyperliquidCore.this.safeList(data, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
                 put( "asks", HyperliquidCore.this.safeList(data, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
             }};
-            Object timestamp = this.safeInteger(response, "time");
+            Long timestamp = this.safeInteger(response, "time");
             return this.parseOrderBook(result, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "px", "sz");
         });
 
@@ -1536,10 +1536,10 @@ public class HyperliquidCore extends HyperliquidApi
             Object meta = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             Object universe = this.safeList(meta, "universe", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object assetCtxs = this.safeList(response, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(universe)); i++)
             {
-                java.util.Map<String, Object> data = this.extend(this.safeDict(universe, i, new java.util.HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, i, new java.util.HashMap<String, Object>() {{}}));
+                Object data = this.extend(this.safeDict(universe, i, new java.util.HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, i, new java.util.HashMap<String, Object>() {{}}));
                 ((java.util.List<Object>)result).add(data);
             }
             return this.parseFundingRates(result, symbols);
@@ -1573,9 +1573,9 @@ public class HyperliquidCore extends HyperliquidApi
         String base = this.safeString(info, "name");
         Object marketId = this.coinToMarketId(base);
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object funding = this.safeNumber(info, "funding");
-        Object markPx = this.safeNumber(info, "markPx");
-        Object oraclePx = this.safeNumber(info, "oraclePx");
+        Double funding = this.safeNumber(info, "funding");
+        Double markPx = this.safeNumber(info, "markPx");
+        Double oraclePx = this.safeNumber(info, "oraclePx");
         Object fundingTimestamp = Helpers.multiply(Helpers.multiply(Helpers.multiply((Helpers.add((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(Helpers.divide(Helpers.divide(this.milliseconds(), 60), 60), 1000))))), 1)), 60), 60), 1000);
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
@@ -1663,7 +1663,7 @@ public class HyperliquidCore extends HyperliquidApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object until = this.safeInteger(parameters, "until", this.milliseconds());
+            Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Object useTail = Helpers.isEqual(since, null);
             Object originalSince = since;
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
@@ -1790,7 +1790,7 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 Helpers.addElementToObject(request, "type", "userFills");
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -1839,7 +1839,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object priceStr = this.numberToString(price);
         Object integerPart = Helpers.GetValue(Helpers.split(((String)priceStr), "."), 0);
         Object significantDigits = Helpers.mathMax(5, ((String)integerPart).length());
-        String result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
+        Object result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         Object maxDecimals = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? 8 : 6;
         Object subtractedValue = Helpers.subtract(maxDecimals, this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "amount")));
         return this.decimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
@@ -1868,7 +1868,7 @@ public class HyperliquidCore extends HyperliquidApi
     public Object constructPhantomAgent(Object hash, Object... optionalArgs)
     {
         Object isTestnet = Helpers.getArg(optionalArgs, 0, true);
-        String source = ((Helpers.isTrue((isTestnet)))) ? "b" : "a";
+        Object source = ((Helpers.isTrue((isTestnet)))) ? "b" : "a";
         return new java.util.HashMap<String, Object>() {{
             put( "source", source );
             put( "connectionId", hash );
@@ -2098,7 +2098,7 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "type", "setReferrer" );
                 put( "code", HyperliquidCore.this.safeString(HyperliquidCore.this.options, "ref", "CCXT1") );
             }};
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object signature = this.signL1Action(action, nonce);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "action", action );
@@ -2124,7 +2124,7 @@ public class HyperliquidCore extends HyperliquidApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
             final Object finalIsSandboxMode = isSandboxMode;
             Object payload = new java.util.HashMap<String, Object>() {{
@@ -2303,7 +2303,7 @@ public class HyperliquidCore extends HyperliquidApi
             var userAddressparametersVariable = this.handlePublicAddress("setUserAbstraction", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
             String type = this.safeString(parameters, "type", "userSetAbstraction");
             parameters = this.omit(parameters, "type");
@@ -2362,7 +2362,7 @@ public class HyperliquidCore extends HyperliquidApi
             var userAddressparametersVariable = this.handlePublicAddress("enableUserDexAbstraction", parameters);
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
             String type = this.safeString(parameters, "type", "userDexAbstraction");
             parameters = this.omit(parameters, "type");
@@ -2416,7 +2416,7 @@ public class HyperliquidCore extends HyperliquidApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }};
@@ -2503,7 +2503,7 @@ public class HyperliquidCore extends HyperliquidApi
             }
             (this.initializeClient()).join();
             Object market = this.market(symbol);
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object isBuy = (Helpers.isEqual(side, "BUY"));
             Object vaultAddress = null;
             Object randomize = this.safeBool(parameters, "randomize", false);
@@ -2512,7 +2512,7 @@ public class HyperliquidCore extends HyperliquidApi
             vaultAddress = ((java.util.List<Object>) vaultAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
-            Double durationMins = (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(Helpers.divide(duration, 1000), 60))))); // convert from ms to minutes
+            Object durationMins = (Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(Helpers.divide(duration, 1000), 60))))); // convert from ms to minutes
             final Object finalParameters = parameters;
             Object orderObj = new java.util.HashMap<String, Object>() {{
                 put( "a", HyperliquidCore.this.parseToInt(Helpers.GetValue(market, "baseId")) );
@@ -2537,7 +2537,7 @@ public class HyperliquidCore extends HyperliquidApi
                 parameters = this.omit(parameters, "vaultAddress");
                 Helpers.addElementToObject(request, "vaultAddress", vaultAddress);
             }
-            Object expiresAfter = this.safeInteger(parameters, "expiresAfter");
+            Long expiresAfter = this.safeInteger(parameters, "expiresAfter");
             if (Helpers.isTrue(!Helpers.isEqual(expiresAfter, null)))
             {
                 Helpers.addElementToObject(request, "expiresAfter", expiresAfter);
@@ -2612,7 +2612,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object responseObj = this.safeDict(response, "response", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeDict(responseObj, "data", new java.util.HashMap<String, Object>() {{}});
             Object statuses = this.safeList(data, "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> ordersToBeParsed = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object ordersToBeParsed = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(statuses)); i++)
             {
                 Object order = Helpers.GetValue(statuses, i);
@@ -2651,7 +2651,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object isBuy = (Helpers.isEqual(side, "BUY"));
         String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
         String slippage = this.safeString(parameters, "slippage");
-        String defaultTimeInForce = ((Helpers.isTrue((isMarket)))) ? "ioc" : "gtc";
+        Object defaultTimeInForce = ((Helpers.isTrue((isMarket)))) ? "ioc" : "gtc";
         Object postOnly = this.safeBool(parameters, "postOnly", false);
         if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
         {
@@ -2690,7 +2690,7 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
             }
-            String tpSlType = ((Helpers.isTrue((isTp)))) ? "tp" : "sl";
+            Object tpSlType = ((Helpers.isTrue((isTp)))) ? "tp" : "sl";
             final Object finalTriggerPrice = triggerPrice;
             Helpers.addElementToObject(orderType, "trigger", new java.util.HashMap<String, Object>() {{
     put( "isMarket", isMarket );
@@ -2760,8 +2760,8 @@ public class HyperliquidCore extends HyperliquidApi
             }
         }
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce")));
-        Object nonce = this.milliseconds();
-        java.util.List<Object> orderReq = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Long nonce = this.milliseconds();
+        Object orderReq = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object grouping = "na";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
@@ -2805,7 +2805,7 @@ public class HyperliquidCore extends HyperliquidApi
                     throw new NotSupported((String)Helpers.add(this.id, " only support grouping normalTpsl and positionTpsl.")) ;
                 }
                 orderParams = this.omit(orderParams, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLoss", "takeProfit", "grouping")));
-                String triggerOrderSide = "";
+                Object triggerOrderSide = "";
                 if (Helpers.isTrue(Helpers.isEqual(side, "BUY")))
                 {
                     triggerOrderSide = "sell";
@@ -2956,7 +2956,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object innerResponse = this.safeDict(response, "response");
             Object data = this.safeDict(innerResponse, "data");
             Object statuses = this.safeList(data, "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(statuses)); i++)
             {
                 Object status = Helpers.GetValue(statuses, i);
@@ -3008,7 +3008,7 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "a", HyperliquidCore.this.parseToInt(Helpers.GetValue(market, "baseId")) );
                 put( "t", HyperliquidCore.this.parseToNumeric(id) );
             }};
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object signature = this.signL1Action(action, nonce, vaultAddress);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "action", action );
@@ -3020,7 +3020,7 @@ public class HyperliquidCore extends HyperliquidApi
                 parameters = this.omit(parameters, "vaultAddress");
                 Helpers.addElementToObject(request, "vaultAddress", vaultAddress);
             }
-            Object expiresAfter = this.safeInteger(parameters, "expiresAfter");
+            Long expiresAfter = this.safeInteger(parameters, "expiresAfter");
             if (Helpers.isTrue(!Helpers.isEqual(expiresAfter, null)))
             {
                 Helpers.addElementToObject(request, "expiresAfter", expiresAfter);
@@ -3067,11 +3067,11 @@ public class HyperliquidCore extends HyperliquidApi
         Object market = this.market(symbol);
         Object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_id")));
-        Object nonce = this.milliseconds();
+        Long nonce = this.milliseconds();
         Object request = new java.util.HashMap<String, Object>() {{
             put( "nonce", nonce );
         }};
-        java.util.List<Object> cancelReq = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object cancelReq = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object cancelAction = new java.util.HashMap<String, Object>() {{
             put( "type", "" );
             put( "cancels", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
@@ -3146,11 +3146,11 @@ final Object finalClientOrderId = clientOrderId;
                 (this.loadMarkets()).join();
             }
             (this.initializeClient()).join();
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }};
-            java.util.List<Object> cancelReq = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object cancelReq = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object cancelAction = new java.util.HashMap<String, Object>() {{
                 put( "type", "" );
                 put( "cancels", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
@@ -3174,8 +3174,8 @@ final Object finalClientOrderId = clientOrderId;
                 {
                     throw new BadRequest((String)Helpers.add(this.id, " cancelOrdersForSymbols() all orders must have either id or clientOrderId")) ;
                 }
-                String assetKey = ((Helpers.isTrue(cancelByCloid))) ? "asset" : "a";
-                String idKey = ((Helpers.isTrue(cancelByCloid))) ? "cloid" : "o";
+                Object assetKey = ((Helpers.isTrue(cancelByCloid))) ? "asset" : "a";
+                Object idKey = ((Helpers.isTrue(cancelByCloid))) ? "cloid" : "o";
                 Object market = this.market(symbol);
                 Object cancelObj = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(cancelObj, assetKey, this.parseToNumeric(Helpers.GetValue(market, "baseId")));
@@ -3241,7 +3241,7 @@ final Object finalClientOrderId = clientOrderId;
             }
             (this.initializeClient()).join();
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_id")));
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             final Object finalNonce = nonce;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "nonce", finalNonce );
@@ -3304,7 +3304,7 @@ final Object finalClientOrderId = clientOrderId;
             }
         }
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("slippage", "clientOrderId", "client_id", "slippage", "triggerPrice", "stopPrice", "stopLossPrice", "takeProfitPrice", "timeInForce")));
-        java.util.List<Object> modifies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object modifies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
             Object rawOrder = Helpers.GetValue(orders, i);
@@ -3321,7 +3321,7 @@ final Object finalClientOrderId = clientOrderId;
             Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
             String defaultSlippage = this.safeString(this.options, "defaultSlippage");
             String slippage = this.safeString(orderParams, "slippage", defaultSlippage);
-            String defaultTimeInForce = ((Helpers.isTrue((isMarket)))) ? "ioc" : "gtc";
+            Object defaultTimeInForce = ((Helpers.isTrue((isMarket)))) ? "ioc" : "gtc";
             Object postOnly = this.safeBool(orderParams, "postOnly", false);
             if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
             {
@@ -3358,7 +3358,7 @@ final Object finalClientOrderId = clientOrderId;
                 {
                     triggerPrice = this.priceToPrecision(symbol, stopLossPrice);
                 }
-                String tpSlType = ((Helpers.isTrue((isTp)))) ? "tp" : "sl";
+                Object tpSlType = ((Helpers.isTrue((isTp)))) ? "tp" : "sl";
                 final Object finalTriggerPrice = triggerPrice;
                 Helpers.addElementToObject(orderType, "trigger", new java.util.HashMap<String, Object>() {{
     put( "isMarket", isMarket );
@@ -3395,7 +3395,7 @@ final Object finalClientOrderId = clientOrderId;
             }};
             ((java.util.List<Object>)modifies).add(modifyReq);
         }
-        Object nonce = this.milliseconds();
+        Long nonce = this.milliseconds();
         Object modifyAction = new java.util.HashMap<String, Object>() {{
             put( "type", "batchModify" );
             put( "modifies", modifies );
@@ -3550,11 +3550,11 @@ final Object finalClientOrderId = clientOrderId;
             {
                 (this.loadMarkets()).join();
             }
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }};
-            Object usd = this.parseToInt(Precise.stringMul(this.numberToString(initialUsd), "1000000"));
+            Long usd = this.parseToInt(Precise.stringMul(this.numberToString(initialUsd), "1000000"));
             Object action = new java.util.HashMap<String, Object>() {{
                 put( "type", "createVault" );
                 put( "name", name );
@@ -3622,7 +3622,7 @@ final Object finalClientOrderId = clientOrderId;
                 Object maxLimit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? 500 : limit;
                 Helpers.addElementToObject(request, "startTime", Helpers.subtract(this.milliseconds(), Helpers.multiply(Helpers.multiply(Helpers.multiply(maxLimit, 60), 60), 1000)));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -3639,7 +3639,7 @@ final Object finalClientOrderId = clientOrderId;
             //         }
             //     ]
             //
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object fundings = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
@@ -3648,7 +3648,7 @@ final Object finalClientOrderId = clientOrderId;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fundings)); i++)
             {
                 Object entry = Helpers.GetValue(fundings, i);
-                Object timestamp = this.safeInteger(entry, "time");
+                Long timestamp = this.safeInteger(entry, "time");
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", HyperliquidCore.this.safeSymbol(null, market) );
@@ -3657,7 +3657,7 @@ final Object finalClientOrderId = clientOrderId;
                     put( "datetime", HyperliquidCore.this.iso8601(timestamp) );
                 }});
             }
-            java.util.List<Object> sorted = this.sortBy(result, "timestamp");
+            Object sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -3666,8 +3666,8 @@ final Object finalClientOrderId = clientOrderId;
     public String getDexFromHip3Symbol(Object market)
     {
         String baseName = this.safeString(market, "baseName", "");
-        java.util.List<Object> part = (java.util.List<Object>) Helpers.split(baseName, ":");
-        Integer partsLength = Helpers.getArrayLength(part);
+        Object part = Helpers.split(baseName, ":");
+        Object partsLength = Helpers.getArrayLength(part);
         if (Helpers.isTrue(Helpers.isGreaterThan(partsLength, 1)))
         {
             return this.safeString(part, 0);
@@ -3742,7 +3742,7 @@ final Object finalClientOrderId = clientOrderId;
             //         }
             //     ]
             //
-            java.util.List<Object> orderWithStatus = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object orderWithStatus = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rawOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
@@ -3945,8 +3945,8 @@ final Object finalClientOrderId = clientOrderId;
                         Helpers.addElementToObject(deduplicatedByOid, oid, rawOrder);
                     } else
                     {
-                        Object existingTimestamp = this.safeInteger(Helpers.GetValue(deduplicatedByOid, oid), "statusTimestamp");
-                        Object currentTimestamp = this.safeInteger(rawOrder, "statusTimestamp");
+                        Long existingTimestamp = this.safeInteger(Helpers.GetValue(deduplicatedByOid, oid), "statusTimestamp");
+                        Long currentTimestamp = this.safeInteger(rawOrder, "statusTimestamp");
                         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(currentTimestamp, null)) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(existingTimestamp, null)) || Helpers.isTrue(Helpers.isGreaterThan(currentTimestamp, existingTimestamp))))))
                         {
                             Helpers.addElementToObject(deduplicatedByOid, oid, rawOrder);
@@ -4169,7 +4169,7 @@ final Object finalClientOrderId = clientOrderId;
             market = this.safeMarket(marketId, market);
         }
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(entry, "timestamp");
+        Long timestamp = this.safeInteger(entry, "timestamp");
         String status = this.safeString2(order, "status", "ccxtStatus");
         order = this.omit(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("ccxtStatus")));
         String side = this.safeString(entry, "side");
@@ -4321,7 +4321,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 Helpers.addElementToObject(request, "type", "userFills");
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -4380,7 +4380,7 @@ final Object finalClientOrderId = clientOrderId;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "time");
+        Long timestamp = this.safeInteger(trade, "time");
         String price = this.safeString(trade, "px");
         String amount = this.safeString(trade, "sz");
         String coin = this.safeString(trade, "coin");
@@ -4394,7 +4394,7 @@ final Object finalClientOrderId = clientOrderId;
             side = ((Helpers.isTrue((Helpers.isEqual(side, "A"))))) ? "sell" : "buy";
         }
         String fee = this.safeString(trade, "fee");
-        String takerOrMaker = null;
+        Object takerOrMaker = null;
         Object crossed = this.safeBool(trade, "crossed");
         if (Helpers.isTrue(!Helpers.isEqual(crossed, null)))
         {
@@ -4458,12 +4458,12 @@ final Object finalClientOrderId = clientOrderId;
         {
             return null;
         }
-        Integer symbolsLength = Helpers.getArrayLength(symbols);
+        Object symbolsLength = Helpers.getArrayLength(symbols);
         if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
         {
             return null;
         }
-        String dexName = null;
+        Object dexName = null;
         for (var i = 0; Helpers.isLessThan(i, symbolsLength); i++)
         {
             if (Helpers.isTrue(Helpers.isEqual(dexName, null)))
@@ -4568,7 +4568,7 @@ final Object finalClientOrderId = clientOrderId;
             //     }
             //
             Object data = this.safeList(response, "assetPositions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(data, i)));
@@ -4617,14 +4617,14 @@ final Object finalClientOrderId = clientOrderId;
         Object isIsolated = (Helpers.isEqual(marginMode, "isolated"));
         String rawSize = this.safeString(entry, "szi");
         Object size = rawSize;
-        String side = null;
+        Object side = null;
         if (Helpers.isTrue(!Helpers.isEqual(size, null)))
         {
             side = ((Helpers.isTrue(Precise.stringGt(rawSize, "0")))) ? "long" : "short";
             size = Precise.stringAbs(size);
         }
         String rawUnrealizedPnl = this.safeString(entry, "unrealizedPnl");
-        String absRawUnrealizedPnl = Precise.stringAbs(rawUnrealizedPnl);
+        Object absRawUnrealizedPnl = Precise.stringAbs(rawUnrealizedPnl);
         String marginUsed = this.safeString(entry, "marginUsed");
         Object initialMargin = null;
         if (Helpers.isTrue(isIsolated))
@@ -4634,7 +4634,7 @@ final Object finalClientOrderId = clientOrderId;
         {
             initialMargin = marginUsed;
         }
-        String percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, marginUsed), "100");
+        Object percentage = Precise.stringMul(Precise.stringDiv(absRawUnrealizedPnl, marginUsed), "100");
         final Object finalSide = side;
         final Object finalSize = size;
         final Object finalInitialMargin = initialMargin;
@@ -4694,14 +4694,14 @@ final Object finalClientOrderId = clientOrderId;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object leverage = this.safeInteger(parameters, "leverage");
+            Long leverage = this.safeInteger(parameters, "leverage");
             if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a leverage parameter")) ;
             }
-            Object asset = this.parseToInt(Helpers.GetValue(market, "baseId"));
+            Long asset = this.parseToInt(Helpers.GetValue(market, "baseId"));
             Object isCross = (Helpers.isEqual(marginMode, "cross"));
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("leverage")));
             final Object finalLeverage = leverage;
             Object updateAction = new java.util.HashMap<String, Object>() {{
@@ -4773,8 +4773,8 @@ final Object finalClientOrderId = clientOrderId;
             Object market = this.market(symbol);
             String marginMode = this.safeString(parameters, "marginMode", "cross");
             Object isCross = (Helpers.isEqual(marginMode, "cross"));
-            Object asset = this.parseToInt(Helpers.GetValue(market, "baseId"));
-            Object nonce = this.milliseconds();
+            Long asset = this.parseToInt(Helpers.GetValue(market, "baseId"));
+            Long nonce = this.milliseconds();
             parameters = this.omit(parameters, "marginMode");
             Object updateAction = new java.util.HashMap<String, Object>() {{
                 put( "type", "updateLeverage" );
@@ -4869,13 +4869,13 @@ final Object finalClientOrderId = clientOrderId;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object asset = this.parseToInt(Helpers.GetValue(market, "baseId"));
+            Long asset = this.parseToInt(Helpers.GetValue(market, "baseId"));
             Object sz = this.parseToInt(Precise.stringMul(this.amountToPrecision(symbol, amount), "1000000"));
             if (Helpers.isTrue(Helpers.isEqual(type, "reduce")))
             {
                 sz = Helpers.opNeg(sz);
             }
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             final Object finalSz = sz;
             Object updateAction = new java.util.HashMap<String, Object>() {{
                 put( "type", "updateIsolatedMargin" );
@@ -4965,7 +4965,7 @@ final Object finalClientOrderId = clientOrderId;
                 (this.loadMarkets()).join();
             }
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode");
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             if (Helpers.isTrue(this.inArray(fromAccount, new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "perp")))))
             {
                 // handle swap <> spot account transfer
@@ -4973,7 +4973,7 @@ final Object finalClientOrderId = clientOrderId;
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " transfer() only support spot <> swap transfer")) ;
                 }
-                String strAmount = this.numberToString(amount);
+                Object strAmount = this.numberToString(amount);
                 Object vaultAddress = this.safeString2(parameters, "vaultAddress", "subAccountAddress");
                 if (Helpers.isTrue(!Helpers.isEqual(vaultAddress, null)))
                 {
@@ -5035,7 +5035,7 @@ final Object finalClientOrderId = clientOrderId;
             if (Helpers.isTrue(Helpers.isTrue(isUsdc) && Helpers.isTrue((!Helpers.isEqual(transferType, "spot")))))
             {
                 // Transfer USDC with subAccountTransfer
-                Object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
+                Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
                 final Object finalSubAccountAddress = subAccountAddress;
                 final Object finalIsDeposit = isDeposit;
                 Object action = new java.util.HashMap<String, Object>() {{
@@ -5150,7 +5150,7 @@ final Object finalClientOrderId = clientOrderId;
             parameters = ((java.util.List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
             parameters = this.omit(parameters, "vaultAddress");
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object action = new java.util.HashMap<String, Object>() {{}};
             Object sig = null;
             if (Helpers.isTrue(!Helpers.isEqual(vaultAddress, null)))
@@ -5213,10 +5213,10 @@ final Object finalClientOrderId = clientOrderId;
         // }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(transaction, "time");
+        Long timestamp = this.safeInteger(transaction, "time");
         Object delta = this.safeDict(transaction, "delta", new java.util.HashMap<String, Object>() {{}});
         Object fee = null;
-        Object feeCost = this.safeInteger(delta, "fee");
+        Long feeCost = this.safeInteger(delta, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;
@@ -5419,7 +5419,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "endTime", until);
@@ -5458,10 +5458,10 @@ final Object finalClientOrderId = clientOrderId;
         // }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(item, "time");
+        Long timestamp = this.safeInteger(item, "time");
         Object delta = this.safeDict(item, "delta", new java.util.HashMap<String, Object>() {{}});
         Object fee = null;
-        Object feeCost = this.safeInteger(delta, "fee");
+        Long feeCost = this.safeInteger(delta, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;
@@ -5540,7 +5540,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(since, null)))
@@ -5638,7 +5638,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "endTime", until);
@@ -5826,7 +5826,7 @@ final Object finalClientOrderId = clientOrderId;
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -5872,7 +5872,7 @@ final Object finalClientOrderId = clientOrderId;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(income, "hash");
-        Object timestamp = this.safeInteger(income, "time");
+        Long timestamp = this.safeInteger(income, "time");
         Object delta = this.safeDict(income, "delta");
         String coin = this.safeString(delta, "coin");
         Object marketId = null;
@@ -5883,7 +5883,7 @@ final Object finalClientOrderId = clientOrderId;
         market = this.safeMarket(marketId, market);
         String amount = this.safeString(delta, "usdc");
         String code = this.safeString(market, "settle", "USDC");
-        Object rate = this.safeNumber(delta, "fundingRate");
+        Double rate = this.safeNumber(delta, "fundingRate");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
@@ -5911,7 +5911,7 @@ final Object finalClientOrderId = clientOrderId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }};
@@ -5943,7 +5943,7 @@ final Object finalClientOrderId = clientOrderId;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }};
@@ -5951,7 +5951,7 @@ final Object finalClientOrderId = clientOrderId;
                 put( "type", "createSubAccount" );
                 put( "name", name );
             }};
-            Object expiresAfter = this.safeInteger(parameters, "expiresAfter");
+            Long expiresAfter = this.safeInteger(parameters, "expiresAfter");
             if (Helpers.isTrue(!Helpers.isEqual(expiresAfter, null)))
             {
                 parameters = this.omit(parameters, "expiresAfter");
@@ -5969,7 +5969,7 @@ final Object finalClientOrderId = clientOrderId;
     public Object extractTypeFromDelta(Object... optionalArgs)
     {
         Object data = Helpers.getArg(optionalArgs, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> records = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object records = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object record = Helpers.GetValue(data, i);

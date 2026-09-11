@@ -493,19 +493,19 @@ public class BitoproCore extends BitoproApi
 
     public Object parseMarket(Object market)
     {
-        Boolean active = (!Helpers.isEqual(this.safeBool(market, "maintain"), true));
+        Object active = (!Helpers.isEqual(this.safeBool(market, "maintain"), true));
         String id = this.safeString(market, "pair");
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
         }
-        String uppercaseId = ((String)id).toUpperCase();
+        Object uppercaseId = ((String)id).toUpperCase();
         String baseId = this.safeString(market, "base");
         String quoteId = this.safeString(market, "quote");
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        java.util.Map<String, Object> limits = new java.util.HashMap<String, Object>() {{
+        Object limits = new java.util.HashMap<String, Object>() {{
             put( "amount", new java.util.HashMap<String, Object>() {{
                 put( "min", BitoproCore.this.safeNumber(market, "minLimitBaseAmount") );
                 put( "max", BitoproCore.this.safeNumber(market, "maxLimitBaseAmount") );
@@ -621,7 +621,7 @@ public class BitoproCore extends BitoproApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetTickersPair(this.extend(request, parameters))).join();
@@ -708,7 +708,7 @@ public class BitoproCore extends BitoproApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -813,7 +813,7 @@ public class BitoproCore extends BitoproApi
             }};
         }
         Object isTaker = this.safeBool(trade, "isTaker");
-        String takerOrMaker = null;
+        Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isTaker, null)))
         {
             if (Helpers.isTrue(isTaker))
@@ -871,7 +871,7 @@ public class BitoproCore extends BitoproApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetTradesPair(this.extend(request, parameters))).join();
@@ -975,9 +975,9 @@ public class BitoproCore extends BitoproApi
             //         ]
             //     }
             //
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object maker = this.safeNumber(first, "makerFee");
-            Object taker = this.safeNumber(first, "takerFee");
+            Object result = new java.util.HashMap<String, Object>() {{}};
+            Double maker = this.safeNumber(first, "makerFee");
+            Double taker = this.safeNumber(first, "takerFee");
             Object symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
@@ -1029,7 +1029,7 @@ public class BitoproCore extends BitoproApi
             }
             Object market = this.market(symbol);
             String resolution = this.safeString(this.timeframes, timeframe, timeframe);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "resolution", resolution );
             }};
@@ -1041,7 +1041,7 @@ public class BitoproCore extends BitoproApi
             {
                 limit = Helpers.mathMin(limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
             }
-            Object timeframeInSeconds = this.parseTimeframe(timeframe);
+            int timeframeInSeconds = this.parseTimeframe(timeframe);
             Object alignedSince = null;
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
@@ -1080,12 +1080,12 @@ public class BitoproCore extends BitoproApi
     {
         // the exchange doesn't send zero volume candles so we emulate them instead
         // otherwise sending a limit arg leads to unexpected results
-        Integer length = Helpers.getArrayLength(candles);
+        Object length = Helpers.getArrayLength(candles);
         if (Helpers.isTrue(Helpers.isEqual(length, 0)))
         {
             return candles;
         }
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object copyFrom = Helpers.GetValue(candles, 0);
         Object timestamp = null;
         if (Helpers.isTrue(Helpers.isEqual(since, null)))
@@ -1096,7 +1096,7 @@ public class BitoproCore extends BitoproApi
             timestamp = since;
         }
         Object i = 0;
-        Integer candleLength = Helpers.getArrayLength(candles);
+        Object candleLength = Helpers.getArrayLength(candles);
         Object resultLength = 0;
         while (Helpers.isTrue((Helpers.isLessThan(resultLength, limit))) && Helpers.isTrue((Helpers.isLessThan(i, candleLength))))
         {
@@ -1107,7 +1107,7 @@ public class BitoproCore extends BitoproApi
                 i = this.sum(i, 1);
             } else
             {
-                java.util.List<Object> copy = (java.util.List<Object>) this.arrayConcat(new java.util.ArrayList<Object>(java.util.Arrays.asList()), copyFrom);
+                Object copy = this.arrayConcat(new java.util.ArrayList<Object>(java.util.Arrays.asList()), copyFrom);
                 Helpers.addElementToObject(copy, 0, timestamp);
                 // set open, high, low to close
                 Helpers.addElementToObject(copy, 1, Helpers.GetValue(copy, 4));
@@ -1134,7 +1134,7 @@ public class BitoproCore extends BitoproApi
         //         "tradable":true
         //     }]
         //
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
@@ -1144,7 +1144,7 @@ public class BitoproCore extends BitoproApi
             String code = (String) this.safeCurrencyCode(currencyId);
             String amount = this.safeString(balance, "amount");
             String available = this.safeString(balance, "available");
-            java.util.Map<String, Object> account = new java.util.HashMap<String, Object>() {{
+            Object account = new java.util.HashMap<String, Object>() {{
                 put( "free", available );
                 put( "total", amount );
             }};
@@ -1196,7 +1196,7 @@ public class BitoproCore extends BitoproApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Object statuses = new java.util.HashMap<String, Object>() {{
             put( "-1", "open" );
             put( "0", "open" );
             put( "1", "open" );
@@ -1335,14 +1335,14 @@ public class BitoproCore extends BitoproApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", type );
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "action", side );
                 put( "amount", BitoproCore.this.amountToPrecision(symbol, amount) );
                 put( "timestamp", BitoproCore.this.milliseconds() );
             }};
-            String orderType = ((String)type).toUpperCase();
+            Object orderType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(orderType, "LIMIT")))
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
@@ -1415,7 +1415,7 @@ public class BitoproCore extends BitoproApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1437,7 +1437,7 @@ public class BitoproCore extends BitoproApi
     public Object parseCancelOrders(Object data)
     {
         Object dataKeys = Helpers.objectKeys(data);
-        java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(dataKeys)); i++)
         {
             Object marketId = Helpers.GetValue(dataKeys, i);
@@ -1482,7 +1482,7 @@ final Object finalJ = j;
             }
             Object market = this.market(symbol);
             Object id = Helpers.GetValue(market, "uppercaseId");
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
                 Helpers.addElementToObject(request, id, ids);
@@ -1524,7 +1524,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1577,7 +1577,7 @@ final Object finalJ = j;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1639,7 +1639,7 @@ final Object finalJ = j;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1711,7 +1711,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1745,7 +1745,7 @@ final Object finalJ = j;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "statusKind", "DONE" );
             }};
             return this.fetchOrders(symbol, since, limit, this.extend(request, parameters));
@@ -1782,7 +1782,7 @@ final Object finalJ = j;
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.privateGetOrdersTradesPair(this.extend(request, parameters))).join();
@@ -1813,7 +1813,7 @@ final Object finalJ = j;
 
     public String parseTransactionStatus(Object status)
     {
-        java.util.Map<String, Object> states = new java.util.HashMap<String, Object>() {{
+        Object states = new java.util.HashMap<String, Object>() {{
             put( "COMPLETE", "ok" );
             put( "INVALID", "failed" );
             put( "PROCESSING", "pending" );
@@ -1876,7 +1876,7 @@ final Object finalJ = j;
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "coin");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeInteger(transaction, "timestamp");
+        Long timestamp = this.safeInteger(transaction, "timestamp");
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "message");
         String status = this.safeString(transaction, "status");
@@ -1943,7 +1943,7 @@ final Object finalJ = j;
                 (this.loadMarkets()).join();
             }
             Object currency = this.safeCurrency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -2011,7 +2011,7 @@ final Object finalJ = j;
                 (this.loadMarkets()).join();
             }
             Object currency = this.safeCurrency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -2075,7 +2075,7 @@ final Object finalJ = j;
                 (this.loadMarkets()).join();
             }
             Object currency = this.safeCurrency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "serial", id );
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
@@ -2130,7 +2130,7 @@ final Object finalJ = j;
             }
             this.checkAddress(address);
             Object currency = this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", BitoproCore.this.numberToString(amount) );
                 put( "address", address );
@@ -2261,8 +2261,8 @@ final Object finalJ = j;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT"))))
             {
                 body = this.json(parameters);
-                String payload = this.stringToBase64(body);
-                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+                Object payload = this.stringToBase64(body);
+                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
                 Helpers.addElementToObject(headers, "X-BITOPRO-APIKEY", this.apiKey);
                 Helpers.addElementToObject(headers, "X-BITOPRO-PAYLOAD", payload);
                 Helpers.addElementToObject(headers, "X-BITOPRO-SIGNATURE", signature);
@@ -2272,13 +2272,13 @@ final Object finalJ = j;
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }
-                Object nonce = this.milliseconds();
-                java.util.Map<String, Object> rawData = new java.util.HashMap<String, Object>() {{
+                Long nonce = this.milliseconds();
+                Object rawData = new java.util.HashMap<String, Object>() {{
                     put( "nonce", nonce );
                 }};
-                String data = this.json(rawData);
-                String payload = this.stringToBase64(data);
-                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+                Object data = this.json(rawData);
+                Object payload = this.stringToBase64(data);
+                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
                 Helpers.addElementToObject(headers, "X-BITOPRO-APIKEY", this.apiKey);
                 Helpers.addElementToObject(headers, "X-BITOPRO-PAYLOAD", payload);
                 Helpers.addElementToObject(headers, "X-BITOPRO-SIGNATURE", signature);

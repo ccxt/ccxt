@@ -1008,7 +1008,7 @@ public class CoinspotCore extends CoinspotApi
         String amountString = this.safeString(trade, "amount");
         String marketId = this.safeString(trade, "market");
         String symbol = (String) this.safeSymbol(marketId, market, "/");
-        Object solddate = this.safeInteger(trade, "solddate");
+        Long solddate = this.safeInteger(trade, "solddate");
         if (Helpers.isTrue(!Helpers.isEqual(solddate, null)))
         {
             priceString = this.safeString(trade, "rate");

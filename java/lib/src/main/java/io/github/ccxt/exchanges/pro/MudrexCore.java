@@ -264,7 +264,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), tf);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbol, null)) && Helpers.isTrue(!Helpers.isEqual(tf, null))))
             {
@@ -289,8 +289,8 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             }
             Object market = this.safeMarket(((String)s).toUpperCase());
             Object symbol = Helpers.GetValue(market, "symbol");
-            Object timestamp = this.milliseconds();
-            Object last = this.safeNumber(t, "p");
+            Long timestamp = this.milliseconds();
+            Double last = this.safeNumber(t, "p");
             Object result = this.safeTicker(new java.util.HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "timestamp", timestamp );

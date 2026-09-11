@@ -1463,7 +1463,7 @@ public class BitmexCore extends BitmexApi
                 Object order = Helpers.GetValue(orders, i);
                 Object side = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(order, "side"), "Sell"))))) ? "asks" : "bids";
                 Object amount = this.convertFromRawQuantity(symbol, this.safeString(order, "size"));
-                Object price = this.safeNumber(order, "price");
+                Double price = this.safeNumber(order, "price");
                 // https://github.com/ccxt/ccxt/issues/4926
                 // https://github.com/ccxt/ccxt/issues/4927
                 // the exchange sometimes returns null price in the orderbook
@@ -2283,7 +2283,7 @@ public class BitmexCore extends BitmexApi
             {
                 Helpers.addElementToObject(request, "count", limit); // default 100, max 500
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
@@ -2563,7 +2563,7 @@ public class BitmexCore extends BitmexApi
             reduceOnly = (Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "ReduceOnly"), 0))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(execInst, "Close"), 0))));
         }
         Long timestamp = this.parse8601(this.safeString(order, "timestamp"));
-        Object triggerPrice = this.safeNumber(order, "stopPx");
+        Double triggerPrice = this.safeNumber(order, "stopPx");
         String remaining = this.safeString(order, "leavesQty");
         final Object finalPostOnly = postOnly;
         final Object finalReduceOnly = reduceOnly;
@@ -2727,7 +2727,7 @@ public class BitmexCore extends BitmexApi
             Object postOnly = this.safeBool(parameters, "postOnly");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "postOnly")));
             String brokerId = this.safeString(this.options, "brokerId", "CCXT");
-            Object qty = this.parseToInt(this.amountToPrecision(symbol, amount));
+            Long qty = this.parseToInt(this.amountToPrecision(symbol, amount));
             final Object finalSide = side;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -2751,7 +2751,7 @@ public class BitmexCore extends BitmexApi
                 Helpers.addElementToObject(request, "execInst", String.join((String)",", (java.util.List<String>)execInstructions));
             }
             // support for unified trigger format
-            Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
+            Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPx", "stopPrice")));
             String trailingAmount = this.safeString2(parameters, "trailingAmount", "pegOffsetValue");
             Object isTriggerOrder = !Helpers.isEqual(triggerPrice, null);
             Object isTrailingAmountOrder = !Helpers.isEqual(trailingAmount, null);
@@ -2889,7 +2889,7 @@ public class BitmexCore extends BitmexApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
             {
-                Object qty = this.parseToInt(this.amountToPrecision(symbol, amount));
+                Long qty = this.parseToInt(this.amountToPrecision(symbol, amount));
                 Helpers.addElementToObject(request, "orderQty", qty);
             }
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
@@ -3087,7 +3087,7 @@ public class BitmexCore extends BitmexApi
             }
             final Object finalTimeout = timeout;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? BitmexCore.this.parseToInt(Helpers.divide(finalTimeout, 1000)) : 0 );
+                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? ((Object) BitmexCore.this.parseToInt(Helpers.divide(finalTimeout, 1000))) : 0 );
             }};
             Object response = (this.privatePostOrderCancelAllAfter(this.extend(request, parameters))).join();
             //
@@ -3372,7 +3372,7 @@ public class BitmexCore extends BitmexApi
         Object maintenanceMargin = this.convertToRealAmount(settleCurrencyCode, this.safeString(position, "maintMargin"));
         Object unrealisedPnl = this.convertToRealAmount(settleCurrencyCode, this.safeString(position, "unrealisedPnl"));
         Object contracts = this.parseNumber(Precise.stringAbs(this.safeString(position, "currentQty")));
-        Object contractSize = this.safeNumber(market, "contractSize");
+        Double contractSize = this.safeNumber(market, "contractSize");
         Object side = null;
         String homeNotional = this.safeString(position, "homeNotional");
         if (Helpers.isTrue(!Helpers.isEqual(homeNotional, null)))
@@ -3618,7 +3618,7 @@ public class BitmexCore extends BitmexApi
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -4007,8 +4007,8 @@ public class BitmexCore extends BitmexApi
         {
             symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(baseSymbol, "/"), quoteSymbol), ":"), quoteSymbol);
         }
-        Object openInterest = this.safeNumber(interest, "openInterest");
-        Object openValue = this.safeNumber(interest, "openValue");
+        Double openInterest = this.safeNumber(interest, "openInterest");
+        Double openValue = this.safeNumber(interest, "openValue");
         final Object finalSymbol = symbol;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "info", interest );
@@ -4632,7 +4632,7 @@ public class BitmexCore extends BitmexApi
         {
             this.checkRequiredCredentials();
             Object auth = Helpers.add(method, query);
-            Object apiExpires = this.safeInteger(this.options, "api-expires"); // backwards compatibility
+            Long apiExpires = this.safeInteger(this.options, "api-expires"); // backwards compatibility
             Object expires = this.safeIntegerProduct(this.options, "recvWindow", 0.001, apiExpires);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );

@@ -1200,7 +1200,7 @@ public class CoinsphCore extends CoinsphApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(ticker, "closeTime");
+        Long timestamp = this.safeInteger(ticker, "closeTime");
         String bid = this.safeString(ticker, "bidPrice");
         String ask = this.safeString(ticker, "askPrice");
         String bidVolume = this.safeString(ticker, "bidQty");
@@ -1318,7 +1318,7 @@ public class CoinsphCore extends CoinsphApi
             }
             Object market = this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe);
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", interval );
@@ -1338,7 +1338,7 @@ public class CoinsphCore extends CoinsphApi
                 {
                     Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
                     Object endTimeByLimit = this.sum(since, Helpers.multiply(duration, (Helpers.subtract(limit, 1))));
-                    Object now = this.milliseconds();
+                    Long now = this.milliseconds();
                     Helpers.addElementToObject(request, "endTime", Helpers.mathMin(endTimeByLimit, now));
                 }
             } else if (Helpers.isTrue(!Helpers.isEqual(until, null)))
@@ -1562,7 +1562,7 @@ public class CoinsphCore extends CoinsphApi
         Object symbol = Helpers.GetValue(market, "symbol");
         String id = this.safeString2(trade, "id", "tradeId");
         String orderId = this.safeString(trade, "orderId");
-        Object timestamp = this.safeInteger(trade, "time");
+        Long timestamp = this.safeInteger(trade, "time");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "qty");
         Object type = null;
@@ -1755,7 +1755,7 @@ public class CoinsphCore extends CoinsphApi
                     var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-                    Object cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
+                    Double cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
                     parameters = this.omit(parameters, "cost");
                     if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                     {
@@ -2611,8 +2611,8 @@ public class CoinsphCore extends CoinsphApi
             type = "deposit";
         }
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Object amount = this.safeNumber(transaction, "amount");
-        Object feeCost = this.safeNumber(transaction, "transactionFee");
+        Double amount = this.safeNumber(transaction, "amount");
+        Double feeCost = this.safeNumber(transaction, "transactionFee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -2789,10 +2789,10 @@ public class CoinsphCore extends CoinsphApi
         {
             this.checkRequiredCredentials();
             Helpers.addElementToObject(query, "timestamp", this.milliseconds());
-            Object recvWindow = this.safeInteger(query, "recvWindow");
+            Long recvWindow = this.safeInteger(query, "recvWindow");
             if (Helpers.isTrue(Helpers.isEqual(recvWindow, null)))
             {
-                Object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
+                Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
                 if (Helpers.isTrue(!Helpers.isEqual(defaultRecvWindow, null)))
                 {
                     Helpers.addElementToObject(query, "recvWindow", defaultRecvWindow);

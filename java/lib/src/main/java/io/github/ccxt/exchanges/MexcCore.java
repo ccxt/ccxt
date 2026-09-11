@@ -1674,9 +1674,9 @@ public class MexcCore extends MexcApi
                     active = true;
                 }
                 Object isMarginTradingAllowed = this.safeValue(market, "isMarginTradingAllowed");
-                Object makerCommission = this.safeNumber(market, "makerCommission");
-                Object takerCommission = this.safeNumber(market, "takerCommission");
-                Object maxQuoteAmount = this.safeNumber(market, "maxQuoteAmount");
+                Double makerCommission = this.safeNumber(market, "makerCommission");
+                Double takerCommission = this.safeNumber(market, "takerCommission");
+                Double maxQuoteAmount = this.safeNumber(market, "maxQuoteAmount");
     final Object finalBase = base;
                 final Object finalActive = active;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -1920,7 +1920,7 @@ public class MexcCore extends MexcApi
                 //         ]
                 //     }
                 //
-                Object spotTimestamp = this.safeInteger(response, "timestamp");
+                Long spotTimestamp = this.safeInteger(response, "timestamp");
                 orderbook = this.parseOrderBook(response, symbol, spotTimestamp);
                 Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
@@ -1945,7 +1945,7 @@ public class MexcCore extends MexcApi
                 //     }
                 //
                 Object data = this.safeValue(response, "data");
-                Object timestamp = this.safeInteger(data, "timestamp");
+                Long timestamp = this.safeInteger(data, "timestamp");
                 orderbook = this.parseOrderBook(data, symbol, timestamp);
                 Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "version"));
             }
@@ -1960,9 +1960,9 @@ public class MexcCore extends MexcApi
         Object amountKey = Helpers.getArg(optionalArgs, 1, 1);
         Object countOrIdKey = Helpers.getArg(optionalArgs, 2, 2);
         Object countKey = 2;
-        Object price = this.safeNumber(bidask, priceKey);
-        Object amount = this.safeNumber(bidask, amountKey);
-        Object count = this.safeNumber(bidask, countKey);
+        Double price = this.safeNumber(bidask, priceKey);
+        Double amount = this.safeNumber(bidask, amountKey);
+        Double count = this.safeNumber(bidask, countKey);
         if (Helpers.isTrue(!Helpers.isEqual(count, null)))
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount, count));
@@ -2301,7 +2301,7 @@ public class MexcCore extends MexcApi
                     {
                         // we have to calculate it assuming we can get at most 2000 entries per request
                         Object end = this.sum(since, Helpers.multiply(maxLimit, duration));
-                        Object now = this.milliseconds();
+                        Long now = this.milliseconds();
                         Helpers.addElementToObject(request, "endTime", Helpers.mathMin(end, now));
                     }
                 }
@@ -2859,7 +2859,7 @@ public class MexcCore extends MexcApi
         }};
         if (Helpers.isTrue(Helpers.isEqual(type, "market")))
         {
-            Object cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
+            Double cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
             parameters = this.omit(parameters, "cost");
             if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
             {
@@ -3098,7 +3098,7 @@ public class MexcCore extends MexcApi
             }
             if (Helpers.isTrue(Helpers.isEqual(openType, 1)))
             {
-                Object leverage = this.safeInteger(parameters, "leverage");
+                Long leverage = this.safeInteger(parameters, "leverage");
                 if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createSwapOrder() requires a leverage parameter for isolated margin orders")) ;
@@ -3135,7 +3135,7 @@ public class MexcCore extends MexcApi
             {
                 Helpers.addElementToObject(request, "externalOid", clientOrderId);
             }
-            Object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
+            Double triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "externalOid", "postOnly", "stopPrice", "triggerPrice", "hedged")));
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isEqual(triggerPrice, 0)))))
@@ -3384,7 +3384,7 @@ public class MexcCore extends MexcApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             var marketTypequeryVariable = this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
@@ -3476,7 +3476,7 @@ public class MexcCore extends MexcApi
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {
                     Helpers.addElementToObject(request, "start_time", since);
-                    Object end = this.safeInteger(parameters, "end_time", until);
+                    Long end = this.safeInteger(parameters, "end_time", until);
                     if (Helpers.isTrue(Helpers.isEqual(end, null)))
                     {
                         Helpers.addElementToObject(request, "end_time", this.sum(since, Helpers.GetValue(this.options, "maxTimeTillEnd")));
@@ -4286,7 +4286,7 @@ public class MexcCore extends MexcApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object code = this.safeInteger(order, "code");
+        Long code = this.safeInteger(order, "code");
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
         {
             // error upon placing multiple orders
@@ -4312,7 +4312,7 @@ public class MexcCore extends MexcApi
         }
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "createTime", "transactTime")));
+        Long timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "createTime", "transactTime")));
         Object fee = null;
         String feeCurrency = this.safeString(order, "feeCurrency");
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrency, null)))
@@ -4896,7 +4896,7 @@ public class MexcCore extends MexcApi
                 {
                     Helpers.addElementToObject(request, "limit", limit);
                 }
-                Object until = this.safeInteger(parameters, "until");
+                Long until = this.safeInteger(parameters, "until");
                 if (Helpers.isTrue(!Helpers.isEqual(until, null)))
                 {
                     parameters = this.omit(parameters, "until");
@@ -4908,7 +4908,7 @@ public class MexcCore extends MexcApi
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {
                     Helpers.addElementToObject(request, "start_time", since);
-                    Object end = this.safeInteger(parameters, "end_time");
+                    Long end = this.safeInteger(parameters, "end_time");
                     if (Helpers.isTrue(Helpers.isEqual(end, null)))
                     {
                         Helpers.addElementToObject(request, "end_time", this.sum(since, Helpers.GetValue(this.options, "maxTimeTillEnd")));
@@ -5034,7 +5034,7 @@ public class MexcCore extends MexcApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object positionId = this.safeInteger(parameters, "positionId");
+            Long positionId = this.safeInteger(parameters, "positionId");
             if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " modifyMarginHelper() requires a positionId parameter")) ;
@@ -5126,11 +5126,11 @@ public class MexcCore extends MexcApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "leverage", leverage );
             }};
-            Object positionId = this.safeInteger(parameters, "positionId");
+            Long positionId = this.safeInteger(parameters, "positionId");
             if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
             {
-                Object openType = this.safeNumber(parameters, "openType"); // 1 or 2
-                Object positionType = this.safeNumber(parameters, "positionType"); // 1 or 2
+                Double openType = this.safeNumber(parameters, "openType"); // 1 or 2
+                Double positionType = this.safeNumber(parameters, "positionType"); // 1 or 2
                 Object market = ((Helpers.isTrue((!Helpers.isEqual(symbol, null))))) ? this.market(symbol) : null;
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(openType, null))) || Helpers.isTrue((Helpers.isEqual(positionType, null)))) || Helpers.isTrue((Helpers.isEqual(market, null)))))
                 {
@@ -5224,7 +5224,7 @@ public class MexcCore extends MexcApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
             {
                 Object entry = Helpers.GetValue(resultList, i);
-                Object timestamp = this.safeInteger(entry, "settleTime");
+                Long timestamp = this.safeInteger(entry, "settleTime");
     final Object finalSymbol = symbol;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
@@ -5263,11 +5263,11 @@ public class MexcCore extends MexcApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object nextFundingRate = this.safeNumber2(contract, "fundingRate", "rate");
-        Object nextFundingTimestamp = this.safeInteger(contract, "nextSettleTime");
+        Double nextFundingRate = this.safeNumber2(contract, "fundingRate", "rate");
+        Long nextFundingTimestamp = this.safeInteger(contract, "nextSettleTime");
         String marketId = this.safeString(contract, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market, null, "contract");
-        Object timestamp = this.safeInteger(contract, "timestamp");
+        Long timestamp = this.safeInteger(contract, "timestamp");
         String interval = this.safeString(contract, "collectCycle");
         Object intervalString = null;
         if (Helpers.isTrue(!Helpers.isEqual(interval, null)))
@@ -5431,7 +5431,7 @@ public class MexcCore extends MexcApi
                 Object entry = Helpers.GetValue(result, i);
                 String marketId = this.safeString(entry, "symbol");
                 String symbolInner = (String) this.safeSymbol(marketId);
-                Object timestamp = this.safeInteger(entry, "settleTime");
+                Long timestamp = this.safeInteger(entry, "settleTime");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", symbolInner );
@@ -6006,7 +6006,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         String id = this.safeString2(transaction, "id", "tranId");
         Object type = ((Helpers.isTrue((Helpers.isEqual(id, null))))) ? "deposit" : "withdrawal";
         Long timestamp = (Long) this.safeInteger2(transaction, "insertTime", "applyTime");
-        Object updated = this.safeInteger(transaction, "updateTime");
+        Long updated = this.safeInteger(transaction, "updateTime");
         Object currencyId = null;
         String currencyWithNetwork = this.safeString(transaction, "coin");
         if (Helpers.isTrue(!Helpers.isEqual(currencyWithNetwork, null)))
@@ -6282,15 +6282,15 @@ final Object finalRiskIncrVol = riskIncrVol;
         market = this.safeMarket(this.safeString(position, "symbol"), market, null, "swap");
         Object symbol = Helpers.GetValue(market, "symbol");
         String contracts = this.safeString(position, "holdVol");
-        Object entryPrice = this.safeNumber(position, "openAvgPrice");
+        Double entryPrice = this.safeNumber(position, "openAvgPrice");
         String initialMargin = this.safeString(position, "im");
         String rawSide = this.safeString(position, "positionType");
         Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "1"))))) ? "long" : "short";
         String openType = this.safeString(position, "margin_mode");
         Object marginType = ((Helpers.isTrue((Helpers.isEqual(openType, "1"))))) ? "isolated" : "cross";
-        Object leverage = this.safeNumber(position, "leverage");
-        Object liquidationPrice = this.safeNumber(position, "liquidatePrice");
-        Object timestamp = this.safeInteger(position, "updateTime");
+        Double leverage = this.safeNumber(position, "leverage");
+        Double liquidationPrice = this.safeNumber(position, "liquidatePrice");
+        Long timestamp = this.safeInteger(position, "updateTime");
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
             put( "id", null );
@@ -6810,7 +6810,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             //         "data":2
             //     }
             //
-            Object positionMode = this.safeInteger(response, "data");
+            Long positionMode = this.safeInteger(response, "data");
             final Object finalPositionMode = positionMode;
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
@@ -6933,7 +6933,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             Object networkEntry = Helpers.GetValue(networkList, j);
             String networkId = this.safeString(networkEntry, "network");
             String networkCode = this.safeString(Helpers.GetValue(this.options, "networks"), networkId, networkId);
-            Object fee = this.safeNumber(networkEntry, "withdrawFee");
+            Double fee = this.safeNumber(networkEntry, "withdrawFee");
             Helpers.addElementToObject(result, ((String)networkCode), fee);
         }
         return result;
@@ -7116,8 +7116,8 @@ final Object finalRiskIncrVol = riskIncrVol;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverage)); i++)
         {
             Object entry = Helpers.GetValue(leverage, i);
-            Object openType = this.safeInteger(entry, "openType");
-            Object positionType = this.safeInteger(entry, "positionType");
+            Long openType = this.safeInteger(entry, "openType");
+            Long positionType = this.safeInteger(entry, "positionType");
             if (Helpers.isTrue(Helpers.isEqual(positionType, 1)))
             {
                 longLeverage = this.safeInteger(entry, "leverage");
@@ -7287,7 +7287,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
             }
-            Object leverage = this.safeInteger(parameters, "leverage");
+            Long leverage = this.safeInteger(parameters, "leverage");
             if (Helpers.isTrue(Helpers.isEqual(leverage, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setMarginMode() requires a leverage parameter")) ;

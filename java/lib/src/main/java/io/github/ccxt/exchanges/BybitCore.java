@@ -2985,7 +2985,7 @@ public class BybitCore extends BybitApi
                 Object active = (Helpers.isEqual(status, "Trading"));
                 Object lotSizeFilter = this.safeDict(market, "lotSizeFilter");
                 Object priceFilter = this.safeDict(market, "priceFilter");
-                Object quotePrecision = this.safeNumber(lotSizeFilter, "quotePrecision");
+                Double quotePrecision = this.safeNumber(lotSizeFilter, "quotePrecision");
                 String marginTrading = this.safeString(market, "marginTrading", "none");
                 Object allowsMargin = !Helpers.isEqual(marginTrading, "none");
     final Object finalBase = base;
@@ -3369,7 +3369,7 @@ public class BybitCore extends BybitApi
                 Object lotSizeFilter = this.safeDict(market, "lotSizeFilter", new java.util.HashMap<String, Object>() {{}});
                 Object priceFilter = this.safeDict(market, "priceFilter", new java.util.HashMap<String, Object>() {{}});
                 String status = this.safeString(market, "status");
-                Object expiry = this.safeInteger(market, "deliveryTime");
+                Long expiry = this.safeInteger(market, "deliveryTime");
                 if (Helpers.isTrue(Helpers.isEqual(id, null)))
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " method() missing id")) ;
@@ -3525,7 +3525,7 @@ public class BybitCore extends BybitApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object isSpot = Helpers.isEqual(this.safeString(ticker, "openInterestValue"), null);
-        Object timestamp = this.safeInteger(ticker, "time");
+        Long timestamp = this.safeInteger(ticker, "time");
         String marketId = this.safeString(ticker, "symbol");
         Object type = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         market = this.safeMarket(marketId, market, null, type);
@@ -3995,20 +3995,20 @@ public class BybitCore extends BybitApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "timestamp"); // added artificially to avoid changing the signature
+        Long timestamp = this.safeInteger(ticker, "timestamp"); // added artificially to avoid changing the signature
         ticker = this.omit(ticker, "timestamp");
         String marketId = this.safeString(ticker, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market, null, "swap");
-        Object fundingRate = this.safeNumber(ticker, "fundingRate");
-        Object fundingTimestamp = this.safeInteger(ticker, "nextFundingTime");
-        Object markPrice = this.safeNumber(ticker, "markPrice");
-        Object indexPrice = this.safeNumber(ticker, "indexPrice");
+        Double fundingRate = this.safeNumber(ticker, "fundingRate");
+        Long fundingTimestamp = this.safeInteger(ticker, "nextFundingTime");
+        Double markPrice = this.safeNumber(ticker, "markPrice");
+        Double indexPrice = this.safeNumber(ticker, "indexPrice");
         Object info = this.safeDict(this.safeMarket(marketId, market, null, "swap"), "info");
-        Object fundingInterval = this.safeInteger(info, "fundingInterval");
+        Long fundingInterval = this.safeInteger(info, "fundingInterval");
         Object intervalString = null;
         if (Helpers.isTrue(!Helpers.isEqual(fundingInterval, null)))
         {
-            Object interval = this.parseToInt(Helpers.divide(fundingInterval, 60));
+            Long interval = this.parseToInt(Helpers.divide(fundingInterval, 60));
             intervalString = Helpers.add(String.valueOf(interval), "h");
         }
         final Object finalTicker = ticker;
@@ -4121,7 +4121,7 @@ public class BybitCore extends BybitApi
             //
             Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object tickerList = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object timestamp = this.safeInteger(response, "time");
+            Long timestamp = this.safeInteger(response, "time");
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickerList)); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(tickerList, i), "timestamp", timestamp); // will be removed inside the parser
@@ -4178,7 +4178,7 @@ public class BybitCore extends BybitApi
                 put( "limit", finalLimit );
             }};
             Object market = this.market(symbol);
-            Object fundingTimeFrameMins = this.safeInteger(Helpers.GetValue(market, "info"), "fundingInterval");
+            Long fundingTimeFrameMins = this.safeInteger(Helpers.GetValue(market, "info"), "fundingInterval");
             symbol = Helpers.GetValue(market, "symbol");
             Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             Object type = null;
@@ -4194,8 +4194,8 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
-            Object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
+            Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
+            Long endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "until")));
             if (Helpers.isTrue(!Helpers.isEqual(endTime, null)))
             {
@@ -4238,7 +4238,7 @@ public class BybitCore extends BybitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
             {
                 Object entry = Helpers.GetValue(resultList, i);
-                Object timestamp = this.safeInteger(entry, "fundingRateTimestamp");
+                Long timestamp = this.safeInteger(entry, "fundingRateTimestamp");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", BybitCore.this.safeSymbol(BybitCore.this.safeString(entry, "symbol"), null, null, "swap") );
@@ -4420,11 +4420,11 @@ public class BybitCore extends BybitApi
         String amountString = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("execQty", "orderQty", "size")));
         String priceString = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("execPrice", "orderPrice", "price")));
         String costString = this.safeString(trade, "execValue");
-        Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "execTime", "tradeTime")));
+        Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("time", "execTime", "tradeTime")));
         String side = (String)this.safeStringLower(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            Object isBuyer = this.safeInteger(trade, "isBuyer");
+            Long isBuyer = this.safeInteger(trade, "isBuyer");
             if (Helpers.isTrue(!Helpers.isEqual(isBuyer, null)))
             {
                 side = ((Helpers.isTrue((!Helpers.isEqual(isBuyer, 0))))) ? "buy" : "sell";
@@ -4671,7 +4671,7 @@ public class BybitCore extends BybitApi
             //     }
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(result, "ts");
+            Long timestamp = this.safeInteger(result, "ts");
             return this.parseOrderBook(result, symbol, timestamp, "b", "a");
         });
 
@@ -4781,7 +4781,7 @@ public class BybitCore extends BybitApi
         //         "time": 1672125441042
         //     }
         //
-        Object timestamp = this.safeInteger(response, "time");
+        Long timestamp = this.safeInteger(response, "time");
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
@@ -4908,7 +4908,7 @@ public class BybitCore extends BybitApi
             Object isFunding = Helpers.isTrue((Helpers.isEqual(lowercaseRawType, "fund"))) || Helpers.isTrue((Helpers.isEqual(lowercaseRawType, "funding")));
             if (Helpers.isTrue(isUnifiedAccount))
             {
-                Object unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
+                Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
                 if (Helpers.isTrue(Helpers.isLessThan(unifiedMarginStatus, 5)))
                 {
                     // it's not uta.20 where inverse are unified
@@ -5901,7 +5901,7 @@ public class BybitCore extends BybitApi
             }
             Object symbols = this.marketSymbols(orderSymbols, null, false, true, true);
             Object market = this.market(Helpers.GetValue(symbols, 0));
-            Object unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
+            Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
             Object category = null;
             var categoryparametersVariable = this.getBybitType("createOrders", market, parameters);
             category = ((java.util.List<Object>) categoryparametersVariable).get(0);
@@ -5924,7 +5924,7 @@ public class BybitCore extends BybitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
             {
                 Object code = Helpers.GetValue(codes, i);
-                Object retCode = this.safeInteger(code, "code");
+                Long retCode = this.safeInteger(code, "code");
                 if (Helpers.isTrue(!Helpers.isEqual(retCode, 0)))
                 {
                     Helpers.addElementToObject(data, i, this.extend(Helpers.GetValue(data, i), code));
@@ -6159,7 +6159,7 @@ public class BybitCore extends BybitApi
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
             Object market = this.market(Helpers.GetValue(orderSymbols, 0));
-            Object unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
+            Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 6);
             Object category = null;
             var categoryparametersVariable = this.getBybitType("editOrders", market, parameters);
             category = ((java.util.List<Object>) categoryparametersVariable).get(0);
@@ -6182,7 +6182,7 @@ public class BybitCore extends BybitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
             {
                 Object code = Helpers.GetValue(codes, i);
-                Object retCode = this.safeInteger(code, "code");
+                Long retCode = this.safeInteger(code, "code");
                 if (Helpers.isTrue(!Helpers.isEqual(retCode, 0)))
                 {
                     Helpers.addElementToObject(data, i, this.extend(Helpers.GetValue(data, i), code));
@@ -6914,8 +6914,8 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
-            Object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
+            Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
+            Long endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "until")));
             if (Helpers.isTrue(!Helpers.isEqual(endTime, null)))
             {
@@ -7137,8 +7137,8 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
-            Object endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
+            Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
+            Long endTime = this.safeInteger(parameters, "endTime", until); // exchange-specific in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("endTime", "until")));
             if (Helpers.isTrue(!Helpers.isEqual(endTime, null)))
             {
@@ -7949,9 +7949,9 @@ public class BybitCore extends BybitApi
         String currencyId = this.safeString(transaction, "coin");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Long timestamp = (Long) this.safeInteger2(transaction, "createTime", "successAt");
-        Object updated = this.safeInteger(transaction, "updateTime");
+        Long updated = this.safeInteger(transaction, "updateTime");
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Object feeCost = this.safeNumber2(transaction, "depositFee", "withdrawFee");
+        Double feeCost = this.safeNumber2(transaction, "depositFee", "withdrawFee");
         Object type = ((Helpers.isTrue((Helpers.inOp(transaction, "depositFee"))))) ? "deposit" : "withdrawal";
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -8057,7 +8057,7 @@ public class BybitCore extends BybitApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(enableUnified, 1), true)))
             {
-                Object unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 5); // 3/4 uta 1.0, 5/6 uta 2.0
+                Long unifiedMarginStatus = this.safeInteger(this.options, "unifiedMarginStatus", 5); // 3/4 uta 1.0, 5/6 uta 2.0
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(subType, "inverse")) && Helpers.isTrue((Helpers.isLessThan(unifiedMarginStatus, 5)))))
                 {
                     response = (this.privateGetV5AccountContractTransactionLog(this.extend(request, parameters))).join();
@@ -8444,7 +8444,7 @@ public class BybitCore extends BybitApi
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object positions = this.safeList2(result, "list", "dataList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object timestamp = this.safeInteger(response, "time");
+            Long timestamp = this.safeInteger(response, "time");
             Object first = this.safeDict(positions, 0, new java.util.HashMap<String, Object>() {{}});
             Object position = this.parsePosition(first, market);
             Helpers.addElementToObject(position, "timestamp", timestamp);
@@ -8900,7 +8900,7 @@ public class BybitCore extends BybitApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "symbol");
-        Object leverageValue = this.safeInteger(leverage, "leverage");
+        Long leverageValue = this.safeInteger(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", BybitCore.this.safeSymbol(marketId, market) );
@@ -9208,7 +9208,7 @@ public class BybitCore extends BybitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+            Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -9216,7 +9216,7 @@ public class BybitCore extends BybitApi
             } else if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 // the endpoint walks backwards from endTime and ignores a lone startTime
-                Object duration = this.parseTimeframe(timeframe);
+                int duration = this.parseTimeframe(timeframe);
                 Object requestedLimit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? 50 : limit; // exchange default
                 Helpers.addElementToObject(request, "endTime", this.sum(since, Helpers.multiply(Helpers.multiply(duration, requestedLimit), 1000)));
             }
@@ -9395,7 +9395,7 @@ public class BybitCore extends BybitApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(interest, "timestamp");
+        Long timestamp = this.safeInteger(interest, "timestamp");
         Object openInterest = this.safeNumber2(interest, "open_interest", "openInterest");
         // the openInterest is in the base asset for linear and quote asset for inverse
         Object isLinear = (Helpers.isEqual(this.safeBool(market, "linear"), true));
@@ -9464,7 +9464,7 @@ public class BybitCore extends BybitApi
             //         "time": 1786958191900
             //     }
             //
-            Object timestamp = this.safeInteger(response, "time");
+            Long timestamp = this.safeInteger(response, "time");
             Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object vipCoinList = this.safeList(data, "vipCoinList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object firstVip = this.safeDict(vipCoinList, 0, new java.util.HashMap<String, Object>() {{}});
@@ -9500,9 +9500,9 @@ public class BybitCore extends BybitApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(info, "timestamp");
+        Long timestamp = this.safeInteger(info, "timestamp");
         String currencyId = this.safeString2(info, "coin", "currency");
-        Object hourlyBorrowRate = this.safeNumber(info, "hourlyBorrowRate");
+        Double hourlyBorrowRate = this.safeNumber(info, "hourlyBorrowRate");
         Object period = ((Helpers.isTrue((!Helpers.isEqual(hourlyBorrowRate, null))))) ? 3600000 : 86400000; // 1h or 1d
         final Object finalHourlyBorrowRate = hourlyBorrowRate;
         return new java.util.HashMap<String, Object>() {{
@@ -9716,7 +9716,7 @@ public class BybitCore extends BybitApi
             //     "time": 1666875857205
             // }
             //
-            Object timestamp = this.safeInteger(response, "time");
+            Long timestamp = this.safeInteger(response, "time");
             Object transfer = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             String statusRaw = this.safeString2(response, "retCode", "retMsg");
             String status = this.parseTransferStatus(statusRaw);
@@ -9965,7 +9965,7 @@ public class BybitCore extends BybitApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "coin");
-        Object timestamp = this.safeInteger(transfer, "timestamp");
+        Long timestamp = this.safeInteger(transfer, "timestamp");
         String fromAccountId = this.safeString(transfer, "fromAccountType");
         String toAccountId = this.safeString(transfer, "toAccountType");
         Object accountIds = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
@@ -10513,7 +10513,7 @@ public class BybitCore extends BybitApi
         //         "deliveryRpl": "3.5"
         //     }
         //
-        Object timestamp = this.safeInteger(settlement, "deliveryTime");
+        Long timestamp = this.safeInteger(settlement, "deliveryTime");
         String marketId = this.safeString(settlement, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", settlement );
@@ -10619,7 +10619,7 @@ public class BybitCore extends BybitApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(volatility)); i++)
         {
             Object entry = Helpers.GetValue(volatility, i);
-            Object timestamp = this.safeInteger(entry, "time");
+            Long timestamp = this.safeInteger(entry, "time");
             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                 put( "info", volatility );
                 put( "timestamp", timestamp );
@@ -10695,7 +10695,7 @@ public class BybitCore extends BybitApi
             //         "time": 1699584008326
             //     }
             //
-            Object timestamp = this.safeInteger(response, "time");
+            Long timestamp = this.safeInteger(response, "time");
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object greeks = this.parseGreeks(Helpers.GetValue(data, 0), market);
@@ -10988,7 +10988,7 @@ public class BybitCore extends BybitApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(liquidation, "symbol");
-        Object timestamp = this.safeInteger(liquidation, "execTime");
+        Long timestamp = this.safeInteger(liquidation, "execTime");
         String contractsString = this.safeString(liquidation, "execQty");
         String contractSizeString = this.safeString(market, "contractSize");
         String priceString = this.safeString(liquidation, "execPrice");
@@ -11127,7 +11127,7 @@ public class BybitCore extends BybitApi
             Object entry = Helpers.GetValue(grouped, marketId);
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(entry)); j++)
             {
-                Object id = this.safeInteger(Helpers.GetValue(entry, j), "id");
+                Long id = this.safeInteger(Helpers.GetValue(entry, j), "id");
                 Helpers.addElementToObject(Helpers.GetValue(entry, j), "id", id);
             }
             Object market = this.safeMarket(marketId, null, null, "contract");
@@ -11296,7 +11296,7 @@ final Object finalMarket = market;
         {
             code = Helpers.GetValue(market, "quote");
         }
-        Object timestamp = this.safeInteger(income, "execTime");
+        Long timestamp = this.safeInteger(income, "execTime");
         final Object finalMarket = market;
         final Object finalCode = code;
         return new java.util.HashMap<String, Object>() {{
@@ -11550,7 +11550,7 @@ final Object finalMarket = market;
                     market = this.market(Helpers.GetValue(symbols, 0));
                 }
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters, "linear");
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
@@ -12304,7 +12304,7 @@ final Object finalMarket = market;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "symbol");
-        Object timestamp = this.safeInteger(info, "updatedTime");
+        Long timestamp = this.safeInteger(info, "updatedTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", BybitCore.this.safeSymbol(marketId, market, null, "contract") );

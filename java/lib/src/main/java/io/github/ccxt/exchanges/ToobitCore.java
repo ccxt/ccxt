@@ -1325,7 +1325,7 @@ public class ToobitCore extends ToobitApi
             //        ]
             //    }
             //
-            Object timestamp = this.safeInteger(response, "t");
+            Long timestamp = this.safeInteger(response, "t");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "b", "a");
         });
 
@@ -1532,7 +1532,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -1648,7 +1648,7 @@ public class ToobitCore extends ToobitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "s");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = this.safeInteger(ticker, "t");
         String last = this.safeString(ticker, "c");
         String baseVolume = this.safeString(ticker, "v");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "contractSize"), null)))))
@@ -1814,7 +1814,7 @@ public class ToobitCore extends ToobitApi
         // reads through safeMarket and safeInteger. The caller filters on a unified symbol.
         String marketId = this.safeString(ticker, "s");
         Object market = this.safeMarket(marketId);
-        Object timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = this.safeInteger(ticker, "t");
         return new java.util.HashMap<String, Object>() {{
             put( "timestamp", timestamp );
             put( "datetime", ToobitCore.this.iso8601(timestamp) );
@@ -1877,8 +1877,8 @@ public class ToobitCore extends ToobitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object nextFundingRate = this.safeNumber(contract, "rate");
-        Object nextFundingRateTimestamp = this.safeInteger(contract, "nextFundingTime");
+        Double nextFundingRate = this.safeNumber(contract, "rate");
+        Long nextFundingRateTimestamp = this.safeInteger(contract, "nextFundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -1965,7 +1965,7 @@ public class ToobitCore extends ToobitApi
     public Object parseFundingRateHistory(Object contract, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(contract, "settleTime");
+        Long timestamp = this.safeInteger(contract, "settleTime");
         String marketId = this.safeString(contract, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
@@ -3039,8 +3039,8 @@ public class ToobitCore extends ToobitApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(item, "coinId");
         currency = this.safeCurrency(currencyId, currency);
-        Object timestamp = this.safeInteger(item, "created");
-        Object after = this.safeNumber(item, "total");
+        Long timestamp = this.safeInteger(item, "created");
+        Double after = this.safeNumber(item, "total");
         String amountRaw = this.safeString(item, "change", "");
         Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
         Object direction = "in";
@@ -3295,7 +3295,7 @@ public class ToobitCore extends ToobitApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(transaction, "time");
+        Long timestamp = this.safeInteger(transaction, "time");
         String currencyId = this.safeString2(transaction, "coin", "coinId");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String feeString = this.safeString(transaction, "fee");
@@ -3605,7 +3605,7 @@ public class ToobitCore extends ToobitApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(leverage, "symbolId", "symbol");
-        Object leverageValue = this.safeInteger(leverage, "leverage");
+        Long leverageValue = this.safeInteger(leverage, "leverage");
         String marginType = (String)this.safeStringLower(leverage, "marginType");
         Object marginMode = ((Helpers.isTrue((Helpers.isEqual(marginType, "cross"))))) ? "cross" : "isolated";
         return new java.util.HashMap<String, Object>() {{
@@ -3689,7 +3689,7 @@ public class ToobitCore extends ToobitApi
         market = this.safeMarket(marketId, market);
         String side = (String)this.safeStringLower(position, "side");
         String quantity = this.safeString(position, "position");
-        Object leverage = this.safeInteger(position, "leverage");
+        Long leverage = this.safeInteger(position, "leverage");
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
@@ -3744,7 +3744,7 @@ public class ToobitCore extends ToobitApi
         } else
         {
             this.checkRequiredCredentials();
-            Object timestamp = this.milliseconds();
+            Long timestamp = this.milliseconds();
             // Add timestamp to parameters for signed endpoints
             Helpers.addElementToObject(extraQuery, "recvWindow", this.safeString(this.options, "recvWindow", "5000"));
             Helpers.addElementToObject(extraQuery, "timestamp", String.valueOf(timestamp));

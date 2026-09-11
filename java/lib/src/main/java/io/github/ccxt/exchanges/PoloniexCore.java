@@ -1740,7 +1740,7 @@ public class PoloniexCore extends PoloniexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "tradeID", "trdId")));
         String orderId = this.safeString2(trade, "orderId", "ordId");
-        Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("ts", "createTime", "cT", "cTime")));
+        Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("ts", "createTime", "cT", "cTime")));
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market, "_");
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -2086,7 +2086,7 @@ public class PoloniexCore extends PoloniexApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "createTime", "cTime")));
+        Long timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "createTime", "cTime")));
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             timestamp = this.parse8601(this.safeString(order, "date"));
@@ -2137,7 +2137,7 @@ public class PoloniexCore extends PoloniexApi
         String clientOrderId = this.safeString2(order, "clientOrderId", "clOrdId");
         String marginMode = (String)this.safeStringLower(order, "mgnMode");
         Object reduceOnly = this.safeBool(order, "reduceOnly");
-        Object leverage = this.safeInteger(order, "lever");
+        Long leverage = this.safeInteger(order, "lever");
         Object hedged = !Helpers.isEqual(this.safeString(order, "posSide"), "BOTH");
         final Object finalTimestamp = timestamp;
         final Object finalRawType = rawType;
@@ -2450,7 +2450,7 @@ public class PoloniexCore extends PoloniexApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", ((String)((String)side)).toUpperCase() );
             }};
-            Object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
+            Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
             var requestparametersVariable = this.orderRequest(symbol, type, side, amount, request, price, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
@@ -2484,7 +2484,7 @@ public class PoloniexCore extends PoloniexApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
+        Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
         Object market = this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
@@ -2539,7 +2539,7 @@ public class PoloniexCore extends PoloniexApi
                 var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-                Object cost = this.safeNumber(parameters, "cost");
+                Double cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                 {
@@ -2620,7 +2620,7 @@ public class PoloniexCore extends PoloniexApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
-            Object triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
+            Double triggerPrice = this.safeNumber2(parameters, "stopPrice", "triggerPrice");
             var requestparametersVariable = this.orderRequest(symbol, type, side, amount, request, price, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
@@ -2960,7 +2960,7 @@ public class PoloniexCore extends PoloniexApi
         // for swap
         if (!Helpers.isTrue(Helpers.isArray(response)))
         {
-            Object ts = this.safeInteger(response, "uTime");
+            Long ts = this.safeInteger(response, "uTime");
             Helpers.addElementToObject(result, "timestamp", ts);
             Helpers.addElementToObject(result, "datetime", this.iso8601(ts));
             Object details = this.safeList(response, "details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -3179,7 +3179,7 @@ public class PoloniexCore extends PoloniexApi
                 //    }
                 //
                 Object data = this.safeDict(responseRaw, "data", new java.util.HashMap<String, Object>() {{}});
-                Object ts = this.safeInteger(data, "ts");
+                Long ts = this.safeInteger(data, "ts");
                 return this.parseOrderBook(data, symbol, ts);
             }
             Object response = (this.publicGetMarketsSymbolOrderBook(this.extend(request, parameters))).join();
@@ -3192,7 +3192,7 @@ public class PoloniexCore extends PoloniexApi
             //         "ts" : 1659695219512
             //     }
             //
-            Object timestamp = this.safeInteger(response, "time");
+            Long timestamp = this.safeInteger(response, "time");
             Object asks = this.safeValue(response, "asks");
             Object bids = this.safeValue(response, "bids");
             Object asksResult = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -3201,8 +3201,8 @@ public class PoloniexCore extends PoloniexApi
             {
                 if (Helpers.isTrue(Helpers.isLessThan((Helpers.mod(i, 2)), 1)))
                 {
-                    Object price = this.safeNumber(asks, i);
-                    Object amount = this.safeNumber(asks, this.sum(i, 1));
+                    Double price = this.safeNumber(asks, i);
+                    Double amount = this.safeNumber(asks, this.sum(i, 1));
                     ((java.util.List<Object>)asksResult).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount)));
                 }
             }
@@ -3210,8 +3210,8 @@ public class PoloniexCore extends PoloniexApi
             {
                 if (Helpers.isTrue(Helpers.isLessThan((Helpers.mod(i, 2)), 1)))
                 {
-                    Object price = this.safeNumber(bids, i);
-                    Object amount = this.safeNumber(bids, this.sum(i, 1));
+                    Double price = this.safeNumber(bids, i);
+                    Double amount = this.safeNumber(bids, this.sum(i, 1));
                     ((java.util.List<Object>)bidsResult).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount)));
                 }
             }
@@ -3489,7 +3489,7 @@ public class PoloniexCore extends PoloniexApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object year = 31104000; // 60 * 60 * 24 * 30 * 12 = one year of history, why not
-            Object now = this.seconds();
+            Long now = this.seconds();
             Object start = ((Helpers.isTrue((!Helpers.isEqual(since, null))))) ? this.parseToInt(Helpers.divide(since, 1000)) : Helpers.subtract(now, Helpers.multiply(10, year));
             final Object finalNow = now;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3752,7 +3752,7 @@ public class PoloniexCore extends PoloniexApi
                         Object networkCode = this.networkIdToCode(networkId, Helpers.GetValue(currency, "code"));
                         Object networkInfo = this.safeValue(response, networkId);
                         Object networkObject = new java.util.HashMap<String, Object>() {{}};
-                        Object withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
+                        Double withdrawFee = this.safeNumber(networkInfo, "withdrawalFee");
                         if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
                         {
                             final Object finalWithdrawFee = withdrawFee;
@@ -3782,7 +3782,7 @@ public class PoloniexCore extends PoloniexApi
         String currencyCode = this.safeString(currency, "code");
         Helpers.addElementToObject(Helpers.GetValue(depositWithdrawFee, "info"), ((String)currencyCode), fee);
         String networkId = this.safeString(fee, "blockchain");
-        Object withdrawFee = this.safeNumber(fee, "withdrawalFee");
+        Double withdrawFee = this.safeNumber(fee, "withdrawalFee");
         final Object finalWithdrawFee = withdrawFee;
         Object withdrawResult = new java.util.HashMap<String, Object>() {{
             put( "fee", finalWithdrawFee );
@@ -4086,7 +4086,7 @@ public class PoloniexCore extends PoloniexApi
             // mgnMode arrives upper case; parseOrder and parsePosition read the
             // same field with safeStringLower
             marginMode = this.safeStringLower(entry, "mgnMode");
-            Object lever = this.safeInteger(entry, "lever");
+            Long lever = this.safeInteger(entry, "lever");
             String posSide = this.safeString(entry, "posSide");
             if (Helpers.isTrue(Helpers.isEqual(posSide, "LONG")))
             {
@@ -4279,7 +4279,7 @@ public class PoloniexCore extends PoloniexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(position, "cTime");
+        Long timestamp = this.safeInteger(position, "cTime");
         String marginMode = (String)this.safeStringLower(position, "mgnMode");
         String leverage = this.safeString(position, "lever");
         String initialMargin = this.safeString(position, "im");

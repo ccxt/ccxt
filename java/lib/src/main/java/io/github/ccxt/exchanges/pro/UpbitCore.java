@@ -337,7 +337,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         String symbol = (String) this.safeSymbol(marketId, null, "-");
         Object type = this.safeString(message, "stream_type");
         Object options = this.safeValue(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
-        Object limit = this.safeInteger(options, "limit", 15);
+        Long limit = this.safeInteger(options, "limit", 15);
         if (Helpers.isTrue(Helpers.isEqual(type, "SNAPSHOT")))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
@@ -355,14 +355,14 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object entry = Helpers.GetValue(data, i);
-            Object ask_price = this.safeFloat(entry, "ask_price");
-            Object ask_size = this.safeFloat(entry, "ask_size");
-            Object bid_price = this.safeFloat(entry, "bid_price");
-            Object bid_size = this.safeFloat(entry, "bid_size");
+            Double ask_price = this.safeFloat(entry, "ask_price");
+            Double ask_size = this.safeFloat(entry, "ask_size");
+            Double bid_price = this.safeFloat(entry, "bid_price");
+            Double bid_size = this.safeFloat(entry, "bid_size");
             Helpers.callDynamically(asks, "store", new Object[]{ask_price, ask_size});
             Helpers.callDynamically(bids, "store", new Object[]{bid_price, bid_size});
         }
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Long timestamp = this.safeInteger(message, "timestamp");
         Object datetime = this.iso8601(timestamp);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", datetime);
@@ -395,7 +395,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -756,7 +756,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         Object myTrades = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trade = this.parseWsTrade(message);
@@ -774,7 +774,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         Object orderId = this.safeString(parsed, "id");
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object cachedOrders = this.orders;
@@ -847,7 +847,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         // }
         //
         Object data = this.safeList(message, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)

@@ -723,9 +723,9 @@ final Object finalBase = base;
         Object deposit = Helpers.isEqual(this.safeString(rawCurrency, "depositStatus"), "OK");
         Object withdrawal = Helpers.isEqual(this.safeString(rawCurrency, "withdrawalStatus"), "OK");
         Object active = Helpers.isTrue(deposit) && Helpers.isTrue(withdrawal);
-        Object withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee");
+        Double withdrawFee = this.safeNumber(rawCurrency, "withdrawalFee");
         String precision = this.safeString(rawCurrency, "decimals", "8");
-        Object minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount");
+        Double minWithdraw = this.safeNumber(rawCurrency, "withdrawalMinAmount");
         // btw, absolutely all of them have 1 network atm
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networksArray)); j++)
         {
@@ -851,7 +851,7 @@ final Object finalBase = base;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "market");
         String symbol = (String) this.safeSymbol(marketId, market, "-");
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = this.safeString(ticker, "volumeQuote");
@@ -1050,7 +1050,7 @@ final Object finalBase = base;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         String side = this.safeString(trade, "side");
         String id = this.safeString2(trade, "id", "fillId");
         String marketId = this.safeString(trade, "market");
@@ -1139,8 +1139,8 @@ final Object finalBase = base;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object feesValue = this.safeValue(fees, "fees");
-        Object maker = this.safeNumber(feesValue, "maker");
-        Object taker = this.safeNumber(feesValue, "taker");
+        Double maker = this.safeNumber(feesValue, "maker");
+        Double taker = this.safeNumber(feesValue, "taker");
         Object result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
         {
@@ -1290,7 +1290,7 @@ final Object finalBase = base;
         if (Helpers.isTrue(!Helpers.isEqual(since, null)))
         {
             // https://github.com/ccxt/ccxt/issues/9227
-            Object duration = this.parseTimeframe(timeframe);
+            int duration = this.parseTimeframe(timeframe);
             Helpers.addElementToObject(request, "start", since);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -1698,7 +1698,7 @@ final Object finalBase = base;
             fromAccount = subaccountId;
             toAccount = "master";
         }
-        Object timestamp = this.safeInteger(transfer, "createdAt");
+        Long timestamp = this.safeInteger(transfer, "createdAt");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
@@ -1967,7 +1967,7 @@ final Object finalBase = base;
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object request = new java.util.HashMap<String, Object>() {{}};
         Object market = this.market(symbol);
-        Object amountRemaining = this.safeNumber(parameters, "amountRemaining");
+        Double amountRemaining = this.safeNumber(parameters, "amountRemaining");
         String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("amountRemaining", "triggerPrice", "stopPrice", "triggerAmount")));
         if (Helpers.isTrue(!Helpers.isEqual(price, null)))
@@ -2196,7 +2196,7 @@ final Object finalBase = base;
             final Object finalCodGroupId = codGroupId;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "codGroupId", finalCodGroupId );
-                put( "expiryAfterSeconds", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? BitvavoCore.this.parseToInt(Helpers.divide(timeout, 1000)) : 0 );
+                put( "expiryAfterSeconds", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ((Object) BitvavoCore.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
             }};
             Object response = (this.privatePostCancelOrdersAfter(this.extend(request, parameters))).join();
             //
@@ -2532,7 +2532,7 @@ final Object finalBase = base;
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "orderId");
-        Object timestamp = this.safeInteger(order, "created");
+        Long timestamp = this.safeInteger(order, "created");
         String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -2551,7 +2551,7 @@ final Object finalBase = base;
             cost = Precise.stringSub(amountQuote, amountQuoteRemaining);
         }
         Object fee = null;
-        Object feeCost = this.safeNumber(order, "feePaid");
+        Double feeCost = this.safeNumber(order, "feePaid");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             String feeCurrencyId = this.safeString(order, "feeCurrency");
@@ -3080,15 +3080,15 @@ final Object finalBase = base;
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object id = null;
-        Object timestamp = this.safeInteger(transaction, "timestamp");
+        Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "symbol");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Object amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount");
         String address = this.safeString(transaction, "address");
         String txid = this.safeString(transaction, "txId");
         Object fee = null;
-        Object feeCost = this.safeNumber(transaction, "fee");
+        Double feeCost = this.safeNumber(transaction, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;

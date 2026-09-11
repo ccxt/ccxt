@@ -824,7 +824,7 @@ public class BitflyerCore extends BitflyerApi
             //       commission_rate: '0.0020'
             //   }
             //
-            Object fee = this.safeNumber(response, "commission_rate");
+            Double fee = this.safeNumber(response, "commission_rate");
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", Helpers.GetValue(market, "symbol") );
@@ -946,7 +946,7 @@ public class BitflyerCore extends BitflyerApi
         String marketId = this.safeString(order, "product_code");
         String symbol = (String) this.safeSymbol(marketId, market);
         Object fee = null;
-        Object feeCost = this.safeNumber(order, "total_commission");
+        Double feeCost = this.safeNumber(order, "total_commission");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;
@@ -1438,7 +1438,7 @@ public class BitflyerCore extends BitflyerApi
         String currencyId = this.safeString(transaction, "currency_code");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString(transaction, "event_date"));
-        Object amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount");
         String txId = this.safeString(transaction, "tx_hash");
         String rawStatus = this.safeString(transaction, "status");
         Object type = null;
@@ -1618,7 +1618,7 @@ public class BitflyerCore extends BitflyerApi
         Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
         // i.e. {"status":-2,"error_message":"Under maintenance","data":null}
         String errorMessage = this.safeString(response, "error_message");
-        Object statusCode = this.safeInteger(response, "status");
+        Long statusCode = this.safeInteger(response, "status");
         if (Helpers.isTrue(!Helpers.isEqual(errorMessage, null)))
         {
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), statusCode, feedback);

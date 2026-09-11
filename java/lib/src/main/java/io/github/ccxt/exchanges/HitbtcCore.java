@@ -888,7 +888,7 @@ public class HitbtcCore extends HitbtcApi
                 }
                 Object market = this.safeValue(response, id);
                 String marketType = this.safeString(market, "type");
-                Object expiry = this.safeInteger(market, "expiry");
+                Long expiry = this.safeInteger(market, "expiry");
                 Object contract = (Helpers.isEqual(marketType, "futures"));
                 Object spot = (Helpers.isEqual(marketType, "spot"));
                 Object marginTrading = this.safeBool(market, "margin_trading", false);
@@ -1821,7 +1821,7 @@ public class HitbtcCore extends HitbtcApi
         Object tagTo = tag;
         Object sender = this.safeValue(nativeVar, "senders");
         String addressFrom = this.safeString(sender, 0);
-        Object amount = this.safeNumber(nativeVar, "amount");
+        Double amount = this.safeNumber(nativeVar, "amount");
         String subType = this.safeString(transaction, "subtype");
         Object intern = Helpers.isEqual(subType, "OFFCHAIN");
         // https://api.hitbtc.com/#check-if-offchain-is-available
@@ -1830,7 +1830,7 @@ public class HitbtcCore extends HitbtcApi
             put( "cost", null );
             put( "rate", null );
         }};
-        Object feeCost = this.safeNumber(nativeVar, "fee");
+        Double feeCost = this.safeNumber(nativeVar, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             Helpers.addElementToObject(fee, "currency", code);
@@ -2029,8 +2029,8 @@ public class HitbtcCore extends HitbtcApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object taker = this.safeNumber(fee, "take_rate");
-        Object maker = this.safeNumber(fee, "make_rate");
+        Double taker = this.safeNumber(fee, "take_rate");
+        Double maker = this.safeNumber(fee, "make_rate");
         String marketId = this.safeString(fee, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market);
         return new java.util.HashMap<String, Object>() {{
@@ -2973,7 +2973,7 @@ public class HitbtcCore extends HitbtcApi
         Object isLimit = (Helpers.isEqual(type, "limit"));
         Object reduceOnly = this.safeValue(parameters, "reduceOnly");
         String timeInForce = this.safeString(parameters, "timeInForce");
-        Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
+        Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
         Object isPostOnly = this.isPostOnly(Helpers.isEqual(type, "market"), null, parameters);
         final Object finalType = type;
         Object request = new java.util.HashMap<String, Object>() {{
@@ -3588,7 +3588,7 @@ public class HitbtcCore extends HitbtcApi
                 {
                     Object entry = Helpers.GetValue(fundingRateData, j);
                     String symbolInner = (String) this.safeSymbol(Helpers.GetValue(marketInner, "symbol"));
-                    Object fundingRate = this.safeNumber(entry, "funding_rate");
+                    Double fundingRate = this.safeNumber(entry, "funding_rate");
                     String datetime = this.safeString(entry, "timestamp");
                     ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                         put( "info", entry );
@@ -3826,7 +3826,7 @@ public class HitbtcCore extends HitbtcApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marginMode = this.safeString(position, "type");
-        Object leverage = this.safeNumber(position, "leverage");
+        Double leverage = this.safeNumber(position, "leverage");
         String datetime = this.safeString(position, "updated_at");
         Object positions = this.safeList(position, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object liquidationPrice = null;
@@ -3904,7 +3904,7 @@ public class HitbtcCore extends HitbtcApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String datetime = this.safeString(interest, "timestamp");
-        Object value = this.safeNumber(interest, "open_interest");
+        Double value = this.safeNumber(interest, "open_interest");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", HitbtcCore.this.safeSymbol(null, market) );
             put( "openInterestAmount", null );
@@ -4377,7 +4377,7 @@ public class HitbtcCore extends HitbtcApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "symbol");
-        Object leverageValue = this.safeInteger(leverage, "leverage");
+        Long leverageValue = this.safeInteger(leverage, "leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", HitbtcCore.this.safeSymbol(marketId, market) );
@@ -4417,8 +4417,8 @@ public class HitbtcCore extends HitbtcApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a margin_balance parameter that will transfer margin to the specified trading pair")) ;
             }
             Object market = this.market(symbol);
-            Object amount = this.safeNumber(parameters, "margin_balance");
-            Object maxLeverage = this.safeInteger(Helpers.GetValue(Helpers.GetValue(market, "limits"), "leverage"), "max", 50);
+            Double amount = this.safeNumber(parameters, "margin_balance");
+            Long maxLeverage = this.safeInteger(Helpers.GetValue(Helpers.GetValue(market, "limits"), "leverage"), "max", 50);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "swap")))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " setLeverage() supports swap contracts only")) ;
@@ -4525,7 +4525,7 @@ public class HitbtcCore extends HitbtcApi
             String code = this.safeString(currency, "code");
             Object networkCode = this.networkIdToCode(networkId, code);
             networkCode = ((Helpers.isTrue((!Helpers.isEqual(networkCode, null))))) ? ((String)networkCode).toUpperCase() : null;
-            Object withdrawFee = this.safeNumber(networkEntry, "payout_fee");
+            Double withdrawFee = this.safeNumber(networkEntry, "payout_fee");
             Object isDefault = this.safeValue(networkEntry, "default");
             final Object finalWithdrawFee = withdrawFee;
             Object withdrawResult = new java.util.HashMap<String, Object>() {{
