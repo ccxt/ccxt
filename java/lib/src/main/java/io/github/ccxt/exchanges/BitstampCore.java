@@ -1441,7 +1441,7 @@ public class BitstampCore extends BitstampApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " parseCurrencies() missing minimumOrder")) ;
             }
-            Object parts = Helpers.split(minimumOrder, " ");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(minimumOrder, " ");
             Object cost = Helpers.GetValue(parts, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && !Helpers.isTrue((Helpers.inOp(result, base)))))
             {
@@ -1689,7 +1689,7 @@ public class BitstampCore extends BitstampApi
     {
         trade = this.omit(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side")));
         Object currencyIds = Helpers.objectKeys(trade);
-        Object numCurrencyIds = Helpers.getArrayLength(currencyIds);
+        Integer numCurrencyIds = Helpers.getArrayLength(currencyIds);
         if (Helpers.isTrue(Helpers.isGreaterThan(numCurrencyIds, 2)))
         {
             throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " getMarketFromTrade() too many keys: "), this.json(currencyIds)), " in the trade: "), this.json(trade))) ;
@@ -3026,8 +3026,8 @@ public class BitstampCore extends BitstampApi
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
             // dt (destination tag) is embedded into the address field
-            Object addressParts = Helpers.split(address, "?dt=");
-            Object numParts = Helpers.getArrayLength(addressParts);
+            java.util.List<Object> addressParts = (java.util.List<Object>) Helpers.split(address, "?dt=");
+            Integer numParts = Helpers.getArrayLength(addressParts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
                 address = Helpers.GetValue(addressParts, 0);
@@ -3253,7 +3253,7 @@ public class BitstampCore extends BitstampApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(Helpers.GetValue(keys, i), "_"), 0)))
                 {
-                    Object marketId = Helpers.replace((String)Helpers.GetValue(keys, i), (String)"_", (String)"");
+                    String marketId = Helpers.replace((String)Helpers.GetValue(keys, i), (String)"_", (String)"");
                     market = this.safeMarket(marketId, market);
                 }
             }
@@ -3722,7 +3722,7 @@ public class BitstampCore extends BitstampApi
             this.checkRequiredCredentials();
             Object xAuth = Helpers.add("BITSTAMP ", this.apiKey);
             Object xAuthNonce = this.uuid();
-            Object xAuthTimestamp = String.valueOf(this.milliseconds());
+            String xAuthTimestamp = String.valueOf(this.milliseconds());
             Object xAuthVersion = "v2";
             Object contentType = "";
             final Object finalXAuth = xAuth;

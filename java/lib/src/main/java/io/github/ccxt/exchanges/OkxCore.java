@@ -2409,8 +2409,8 @@ public class OkxCore extends OkxApi
     {
         // support expired option contracts
         Object quote = "USD";
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(symbol, "-");
+        java.util.List<Object> symbolBase = (java.util.List<Object>) Helpers.split(symbol, "/");
         Object base = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
@@ -2483,8 +2483,8 @@ public class OkxCore extends OkxApi
         Object isOption = false;
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
-            Object parts = Helpers.split(marketId, "-");
-            Object partsLength = Helpers.getArrayLength(parts);
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "-");
+            Integer partsLength = Helpers.getArrayLength(parts);
             // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
             // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
             // BTC/USD:USD-260611-54000-C (4 parts). Requiring more than 3 dash-separated parts avoids
@@ -2537,7 +2537,7 @@ public class OkxCore extends OkxApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             final Object finalDataLength = dataLength;
             Object update = new java.util.HashMap<String, Object>() {{
                 put( "updated", null );
@@ -2799,14 +2799,14 @@ public class OkxCore extends OkxApi
         String underlying = this.safeString(market, "uly");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(underlying, null))) && !Helpers.isTrue(spot)))
         {
-            Object parts = Helpers.split(underlying, "-");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(underlying, "-");
             baseId = this.safeString(parts, 0, "");
             quoteId = this.safeString(parts, 1, "");
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(baseId, ""))) || Helpers.isTrue((Helpers.isEqual(quoteId, ""))))) && Helpers.isTrue(spot)))
         {
             String instId = this.safeString(market, "instId", "");
-            Object parts = Helpers.split(instId, "-");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(instId, "-");
             baseId = this.safeString(parts, 0, "");
             quoteId = this.safeString(parts, 1, "");
         }
@@ -3102,7 +3102,7 @@ public class OkxCore extends OkxApi
         String code = (String) this.safeCurrencyCode(currencyId);
         Object networks = new java.util.HashMap<String, Object>() {{}};
         Object type = "crypto";
-        Object chainsLength = Helpers.getArrayLength(chains);
+        Integer chainsLength = Helpers.getArrayLength(chains);
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -3113,9 +3113,9 @@ public class OkxCore extends OkxApi
                 // only happens for fiat 'TRY' currency
                 type = "fiat";
             }
-            Object idParts = Helpers.split(networkId, "-");
+            java.util.List<Object> idParts = (java.util.List<Object>) Helpers.split(networkId, "-");
             Object parts = this.arraySlice(idParts, 1);
-            Object chainPart = String.join((String)"-", (java.util.List<String>)parts);
+            String chainPart = String.join((String)"-", (java.util.List<String>)parts);
             Object networkCode = this.networkIdToCode(chainPart, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -4688,7 +4688,7 @@ public class OkxCore extends OkxApi
                 attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
             }
             Object attachOrdKeys = Helpers.objectKeys(attachAlgoOrd);
-            Object attachOrdLen = Helpers.getArrayLength(attachOrdKeys);
+            Integer attachOrdLen = Helpers.getArrayLength(attachOrdKeys);
             if (Helpers.isTrue(Helpers.isGreaterThan(attachOrdLen, 0)))
             {
                 Helpers.addElementToObject(request, "attachAlgoOrds", new java.util.ArrayList<Object>(java.util.Arrays.asList(attachAlgoOrd)));
@@ -7605,9 +7605,9 @@ public class OkxCore extends OkxApi
         String chain = this.safeString(transaction, "chain");
         if (Helpers.isTrue(!Helpers.isEqual(chain, null)))
         {
-            Object chainParts = Helpers.split(chain, "-");
+            java.util.List<Object> chainParts = (java.util.List<Object>) Helpers.split(chain, "-");
             Object networkParts = this.arraySlice(chainParts, 1);
-            Object networkId = String.join((String)"-", (java.util.List<String>)networkParts);
+            String networkId = String.join((String)"-", (java.util.List<String>)networkParts);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
             {
                 network = this.networkIdToCode(networkId, code);
@@ -7876,7 +7876,7 @@ public class OkxCore extends OkxApi
                     Object market = this.market(entry);
                     ((java.util.List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
                 }
-                Object marketIdsLength = Helpers.getArrayLength(marketIds);
+                Integer marketIdsLength = Helpers.getArrayLength(marketIds);
                 if (Helpers.isTrue(Helpers.isGreaterThan(marketIdsLength, 0)))
                 {
                     Helpers.addElementToObject(request, "instId", String.join((String)",", (java.util.List<String>)marketIds));
@@ -8985,7 +8985,7 @@ public class OkxCore extends OkxApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object accounts = (this.fetchAccountsAsync()).join();
-            Object length = Helpers.getArrayLength(accounts);
+            Integer length = Helpers.getArrayLength(accounts);
             Object selectedAccount = null;
             if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
             {
@@ -10356,7 +10356,7 @@ public class OkxCore extends OkxApi
                 {
                     continue;
                 }
-                Object chainSplit = Helpers.split(chain, "-");
+                java.util.List<Object> chainSplit = (java.util.List<Object>) Helpers.split(chain, "-");
                 String networkId = this.safeString(chainSplit, 1);
                 Object withdrawFee = this.safeNumber(feeInfo, "fee");
                 final Object finalWithdrawFee = withdrawFee;
@@ -10591,7 +10591,7 @@ public class OkxCore extends OkxApi
             }
             Object market = this.market(symbol);
             String marketId = this.safeString(market, "id", "");
-            Object optionParts = Helpers.split(marketId, "-");
+            java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(marketId, "-");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "uly", Helpers.GetValue(Helpers.GetValue(market, "info"), "uly") );
                 put( "instFamily", Helpers.GetValue(Helpers.GetValue(market, "info"), "instFamily") );
@@ -10695,7 +10695,7 @@ public class OkxCore extends OkxApi
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
                     String marketId = this.safeString(market, "id", "");
-                    Object optionParts = Helpers.split(marketId, "-");
+                    java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(marketId, "-");
                     Helpers.addElementToObject(request, "uly", Helpers.GetValue(Helpers.GetValue(market, "info"), "uly"));
                     Helpers.addElementToObject(request, "instFamily", Helpers.GetValue(Helpers.GetValue(market, "info"), "instFamily"));
                     Helpers.addElementToObject(request, "expTime", this.safeString(optionParts, 2));
@@ -11669,7 +11669,7 @@ public class OkxCore extends OkxApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     Object market = this.market(Helpers.GetValue(symbols, 0));
