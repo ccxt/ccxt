@@ -1475,7 +1475,7 @@ public class LimitlessCore extends LimitlessApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Helpers.addElementToObject(request, "limit", limit);
+                Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 100));
             }
             Object response = (this.limitlessPublicGetMarketsSlugEvents(this.extend(request, parameters))).join();
             //
