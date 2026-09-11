@@ -11,9 +11,11 @@ public final class Limits {
     public MinMax leverage;
     public MinMax price;
     public MinMax market;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Limits(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         Object amountRaw = TypeHelper.safeValue(data, "amount");
         this.amount = amountRaw instanceof Map<?, ?> ? new MinMax(amountRaw) : null;

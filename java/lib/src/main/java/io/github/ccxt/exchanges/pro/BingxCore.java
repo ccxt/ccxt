@@ -1546,10 +1546,10 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         final Object messageHash3 = messageHash2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
-            Object positions = (this.fetchPositions((Object)(null), (Object)((Object) new java.util.HashMap<String, Object>() {{
+            Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions((Object)(null), (Object)((Object) new java.util.HashMap<String, Object>() {{
                 put( "type", type );
                 put( "subType", "linear" );
-            }}))).join();
+            }}))).join());
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             Object cache = this.positions;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)

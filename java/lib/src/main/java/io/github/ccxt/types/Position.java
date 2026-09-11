@@ -34,9 +34,11 @@ public final class Position {
     public Double takeProfitPrice;
     public Double percentage;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Position(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.id = TypeHelper.safeString(data, "id");

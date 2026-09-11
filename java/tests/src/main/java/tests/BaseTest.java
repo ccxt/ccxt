@@ -607,10 +607,36 @@ public class BaseTest {
             // future whose executor is not the common pool, so joining it
             // never steals anything.
             CompletableFuture<Object> inner = (CompletableFuture<Object>) result;
-            return CompletableFuture.supplyAsync(() -> inner.join(), isolatedJoinPool);
+            return CompletableFuture.supplyAsync(() -> detypeForComparison(inner.join()), isolatedJoinPool);
         }
 
-        return CompletableFuture.completedFuture(result);
+        return CompletableFuture.completedFuture(detypeForComparison(result));
+    }
+
+    /**
+     * Exact inverse of the typed-core projection, for the reflective test path: a typed
+     * unified class retains the payload it was built from in a public {@code __raw} field,
+     * so detype is a field read (a field-set rebuild would drop venue extras and invent
+     * nulls). Types without the field -- ws caches, order books -- pass through.
+     */
+    public static Object detypeForComparison(Object value) {
+        if (value == null) {
+            return null;
+        }
+        if (value instanceof List<?> list) {
+            List<Object> out = new ArrayList<>(list.size());
+            for (Object element : list) {
+                out.add(detypeForComparison(element));
+            }
+            return out;
+        }
+        try {
+            Field raw = value.getClass().getField("__raw");
+            Object unwrapped = raw.get(value);
+            return (unwrapped != null) ? unwrapped : value;
+        } catch (NoSuchFieldException | IllegalAccessException notTyped) {
+            return value;
+        }
     }
 
     // plain (non-ForkJoin) threads used to await exchange futures — see

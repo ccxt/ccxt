@@ -10,9 +10,13 @@ import java.util.NoSuchElementException;
 public final class TradingFees implements Iterable<TradingFeeInterface> {
     public Map<String, TradingFeeInterface> fees;
     public Map<String, Object> info;
+    // Lossless inverse support (build/typeEmitters/java.ts): TypedCores helpers
+    // hand this payload back, never a field-set rebuild.
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public TradingFees(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.info = TypeHelper.getInfo(data);
         this.fees = new LinkedHashMap<>();

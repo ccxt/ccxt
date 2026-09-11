@@ -983,7 +983,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object messageHash = messageHash3;
             // as only one ws channel gives positions for all types, for snapshot must load all positions
-            java.util.List<Object> fetchFunctions = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchPositionsAsync()));
+            java.util.List<Object> fetchFunctions = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchPositionsAsync().thenApply(io.github.ccxt.TypedCores::fromPositionList)));
             Object promises = (Helpers.promiseAll(fetchFunctions)).join();
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
             Object cache = this.positions;

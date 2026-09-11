@@ -9,9 +9,13 @@ import java.util.NoSuchElementException;
 
 public final class MarginModes implements Iterable<MarginMode> {
     public Map<String, MarginMode> modes;
+    // Lossless inverse support (build/typeEmitters/java.ts): TypedCores helpers
+    // hand this payload back, never a field-set rebuild.
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public MarginModes(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.modes = new LinkedHashMap<>();
         if (data == null) {

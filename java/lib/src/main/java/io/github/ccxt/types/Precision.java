@@ -11,9 +11,11 @@ public final class Precision {
     public Double cost;
     public Double base;
     public Double quote;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Precision(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.amount = TypeHelper.safeFloat(data, "amount");
         this.price = TypeHelper.safeFloat(data, "price");

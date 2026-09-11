@@ -56,7 +56,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -67,7 +67,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
                 put( "method", "futuresPublicGetAllTickers" );
             }};
             return (this.fetchTickers((Object)(symbols), (Object)(this.extend(request, parameters)))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 

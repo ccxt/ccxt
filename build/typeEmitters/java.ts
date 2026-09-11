@@ -246,7 +246,20 @@ function readExisting (absolutePath: string, className: string): ExistingFile | 
             break;
         }
     }
-    const mapCtor = lines[ctorLine + 1] === BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);';
+    const containsKeyStyle: Record<string, boolean> = {};
+    // The generated ctor opens with the __raw retention line (see renderInterface);
+    // treat both shapes as a map ctor so a re-run over a regenerated tree stays a
+    // fixed point instead of declassifying every file to hand-maintained.
+    const ctorPreamble = lines[ctorLine + 1];
+    const mapCtor = ctorPreamble === BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);'
+        || (ctorPreamble === BODY + 'this.__raw = raw;'
+            && lines[ctorLine + 2] === BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);');
+    for (let i = ctorLine + 1; i < ctorEnd; i++) {
+        const assign = lines[i].match (/^ {8}this\.([A-Za-z0-9_]+) = data\.containsKey\(/);
+        if (assign !== null) {
+            containsKeyStyle[assign[1]] = true;
+        }
+    }
     const tail: string[] = [];
     for (let i = ctorEnd + 1; i < lines.length; i++) {
         if (lines[i] === '}') {
@@ -634,9 +647,14 @@ function renderTuple (type: IRType, existing: ExistingFile | undefined): string 
     }
     out.push ('public final class ' + type.name + ' {');
     out.push (...fieldLines);
+    // Lossless inverse support, same contract as the interface renderer: a tuple
+    // widens every slot to Long/Double, so a field-set rebuild is not an inverse.
+    // Keeping the list the object was built from makes from* exact for tuples too.
+    out.push (INDENT + 'public final Object __raw;');
     out.push ('');
     // index-based constructors perform no unchecked cast, so they carry no @SuppressWarnings
     out.push (INDENT + 'public ' + type.name + '(Object raw) {');
+    out.push (BODY + 'this.__raw = raw;');
     out.push (...bodyLines);
     out.push (INDENT + '}');
     out.push ('}');
@@ -719,11 +737,16 @@ function renderInterface (ir: TypesIR, className: string, fields: IRField[], exi
     }
     out.push ('public final class ' + className + ' {');
     out.push (...fieldLines);
+    // Lossless inverse support: a unified type is a fixed-shape projection of a
+    // variable-shape payload, so from* hands back the map the object was built
+    // from (aliased, not copied) instead of a lossy field-set rebuild.
+    out.push (INDENT + 'public final Object __raw;');
     out.push ('');
     if (existing === undefined || existing.ctorAnnotated) {
         out.push (INDENT + '@SuppressWarnings("unchecked")');
     }
     out.push (INDENT + 'public ' + className + '(Object raw) {');
+    out.push (BODY + 'this.__raw = raw;');
     out.push (BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);');
     out.push (...bodyLines);
     out.push (INDENT + '}');
@@ -872,6 +895,7 @@ function dictionaryCtorLines (className: string, elementClass: string, elementIs
     const lines: string[] = [];
     lines.push (INDENT + '@SuppressWarnings("unchecked")');
     lines.push (INDENT + 'public ' + className + '(Object raw) {');
+    lines.push (BODY + 'this.__raw = raw;');
     lines.push (BODY + 'Map<String, Object> data = TypeHelper.toMap(raw);');
     if (hasInfo) {
         lines.push (BODY + 'this.info = TypeHelper.getInfo(data);');
@@ -923,6 +947,9 @@ function renderNewDictionary (className: string, elementClass: string, elementIs
     if (hasInfo) {
         out.push (INDENT + 'public Map<String, Object> info;');
     }
+    // Lossless inverse support, same contract as the interface renderer: the
+    // wrapper is a projection, `from*` must hand back the exact input map.
+    out.push (INDENT + 'public final Object __raw;');
     out.push ('');
     out.push (...dictionaryCtorLines (className, elementClass, elementIsList));
     out.push ('');

@@ -8,9 +8,11 @@ import java.util.Map;
 public final class CurrencyLimits {
     public MinMax amount;
     public MinMax withdraw;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public CurrencyLimits(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         Object amountRaw = TypeHelper.safeValue(data, "amount");
         this.amount = amountRaw instanceof Map<?, ?> ? new MinMax(amountRaw) : null;

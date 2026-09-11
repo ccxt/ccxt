@@ -9,9 +9,13 @@ import java.util.NoSuchElementException;
 
 public final class CrossBorrowRates implements Iterable<CrossBorrowRate> {
     public Map<String, CrossBorrowRate> rates;
+    // Lossless inverse support (build/typeEmitters/java.ts): TypedCores helpers
+    // hand this payload back, never a field-set rebuild.
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public CrossBorrowRates(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.rates = new LinkedHashMap<>();
         if (data == null) {

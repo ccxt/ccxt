@@ -9,9 +9,11 @@ public final class CancellationRequest {
     public String id;
     public String clientOrderId;
     public String symbol;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public CancellationRequest(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.clientOrderId = TypeHelper.safeString(data, "clientOrderId");

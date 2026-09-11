@@ -9,9 +9,13 @@ import java.util.NoSuchElementException;
 
 public final class OrderBooks implements Iterable<OrderBook> {
     public Map<String, OrderBook> orderBooks;
+    // Lossless inverse support (build/typeEmitters/java.ts): TypedCores helpers
+    // hand this payload back, never a field-set rebuild.
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public OrderBooks(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.orderBooks = new LinkedHashMap<>();
         if (data == null) {

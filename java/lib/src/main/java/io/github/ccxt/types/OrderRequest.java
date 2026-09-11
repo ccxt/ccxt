@@ -11,16 +11,19 @@ public final class OrderRequest {
     public String side;
     public Double amount;
     public Double price;
-    public Object params;
+    public Map<String, Object> params;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public OrderRequest(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.type = TypeHelper.safeString(data, "type");
         this.side = TypeHelper.safeString(data, "side");
         this.amount = TypeHelper.safeFloat(data, "amount");
         this.price = TypeHelper.safeFloat(data, "price");
-        this.params = TypeHelper.safeValue(data, "params");
+        Object paramsRaw = TypeHelper.safeValue(data, "params");
+        this.params = paramsRaw instanceof Map ? (Map<String, Object>) paramsRaw : null;
     }
 }

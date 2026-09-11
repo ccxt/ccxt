@@ -13,9 +13,11 @@ public final class MarginLoan {
     public Long timestamp;
     public String datetime;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public MarginLoan(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.currency = TypeHelper.safeString(data, "currency");

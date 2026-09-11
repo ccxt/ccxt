@@ -13,9 +13,13 @@ public final class Network {
     public Boolean withdraw;
     public NetworkLimits limits;
     public Map<String, Object> info;
+    // Lossless inverse support (see build/typeEmitters/java.ts#renderInterface):
+    // TypedCores.fromNetwork() hands this back, never a field-set rebuild.
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Network(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.network = TypeHelper.safeString(data, "network");

@@ -10,9 +10,13 @@ import java.util.NoSuchElementException;
 public final class DepositAddresses {
     public Map<String, DepositAddress> depositAddresses;
     public Map<String, Object> info;
+    // Lossless inverse support (build/typeEmitters/java.ts): TypedCores helpers
+    // hand this payload back, never a field-set rebuild.
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public DepositAddresses(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.info = TypeHelper.getInfo(data);
         this.depositAddresses = new LinkedHashMap<>();

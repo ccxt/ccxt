@@ -23,9 +23,11 @@ public final class Option {
     public Double baseVolume;
     public Double quoteVolume;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Option(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.currency = TypeHelper.safeString(data, "currency");
         this.symbol = TypeHelper.safeString(data, "symbol");
