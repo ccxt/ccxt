@@ -82,6 +82,65 @@ const FIELD_RENAMES: Record<string, string> = {
 };
 
 /**
+ * Members the unified runtime populates but ts/src/base/types.ts does not declare. The
+ * reconciling emitter keeps only IR-named fields (see reconcileOrder), so without an entry
+ * here the member could never be added, and one already in a file would be dropped. The C#
+ * port models the same members as `csOnly` entries in build/typeEmitters/csharpSpecs.ts.
+ *
+ *   * `fees` — safeOrder()/safeTrade() ALWAYS set a `fees` list next to the single `fee`
+ *     (`addElementToObject(order, "fees", reducedFees)` / `... (trade, "fees", resultFees)`
+ *     in BaseExchange.java; parsedFeeAndFees returns an empty list when neither is defined).
+ *     TS declares no field, so a typed POJO would silently drop the data at the boundary.
+ *   * `orderId` — kraken attaches the raw venue order id to the unified trade as `orderId`
+ *     next to the unified `order` (ts/src/kraken.ts); the C# Trade struct ships it too.
+ */
+interface ExtraField {
+    name: string;
+    javaType: string;
+    /** emitted field this member follows, in both declaration and constructor order */
+    after: string;
+    /** comment lines emitted verbatim above the declaration */
+    leading: string[];
+    /** constructor statements, with BODY/INDENT already applied */
+    statements: string[];
+}
+
+const FEES_STATEMENTS: string[] = [
+    BODY + 'Object feesRaw = TypeHelper.safeValue(data, "fees");',
+    BODY + 'if (feesRaw instanceof List<?> feesList) {',
+    BODY + INDENT + 'this.fees = ((List<Object>) feesList).stream().map(Fee::new).collect(Collectors.toList());',
+    BODY + '}',
+];
+
+const EXTRA_FIELDS: Record<string, ExtraField[]> = {
+    'Trade': [
+        {
+            'name': 'fees',
+            'javaType': 'List<Fee>',
+            'after': 'fee',
+            'leading': [ INDENT + '// safeTrade() always sets a `fees` list alongside the single `fee`; TS declares no field for it.' ],
+            'statements': FEES_STATEMENTS,
+        },
+        {
+            'name': 'orderId',
+            'javaType': 'String',
+            'after': 'order',
+            'leading': [ INDENT + '// kraken puts the raw venue order id on the unified trade as `orderId` next to `order`.' ],
+            'statements': [ BODY + 'this.orderId = TypeHelper.safeString(data, "orderId");' ],
+        },
+    ],
+    'Order': [
+        {
+            'name': 'fees',
+            'javaType': 'List<Fee>',
+            'after': 'fee',
+            'leading': [ INDENT + '// safeOrder() always sets a `fees` list alongside the single `fee`; TS declares no field for it.' ],
+            'statements': FEES_STATEMENTS,
+        },
+    ],
+};
+
+/**
  * Types that are deliberately NOT generated, with the reason. Reported by the driver so the
  * skip list stays visible instead of silently shrinking coverage.
  */
@@ -576,13 +635,36 @@ function renderInterface (ir: TypesIR, className: string, fields: IRField[], exi
     }
     const existingOrder = existing === undefined ? [] : existing.fields.map ((f) => f.name);
     const order = reconcileOrder (desired, existingOrder);
+    // Java-only members (EXTRA_FIELDS) sit directly after their anchor field; an anchor the
+    // IR no longer emits means this port does not model the shape, so the member is skipped
+    // with it rather than emitted as an orphan declaration/assignment pair.
+    const extras = EXTRA_FIELDS[className] === undefined ? [] : EXTRA_FIELDS[className];
+    const renderedExtras: Record<string, ExtraField> = {};
+    for (let i = 0; i < extras.length; i++) {
+        const extra = extras[i];
+        if (order.indexOf (extra.after) < 0) {
+            continue;
+        }
+        const at = order.indexOf (extra.name);
+        if (at >= 0) {
+            order.splice (at, 1);
+        }
+        order.splice (order.indexOf (extra.after) + 1, 0, extra.name);
+        renderedExtras[extra.name] = extra;
+    }
     const fieldLines: string[] = [];
     const bodyLines: string[] = [];
     for (let i = 0; i < order.length; i++) {
         const name = order[i];
-        const emitted = rendered[name];
+        const extra = renderedExtras[name];
+        const emitted: Emitted | undefined = extra === undefined ? rendered[name] : { 'javaType': extra.javaType, 'statements': extra.statements, 'needsCollectors': false };
+        if (emitted === undefined) {
+            continue;
+        }
         const existingField = existing === undefined ? undefined : existing.fieldByName[name];
-        if (existingField !== undefined) {
+        if (extra !== undefined) {
+            fieldLines.push (...extra.leading);
+        } else if (existingField !== undefined) {
             fieldLines.push (...existingField.leading);
         }
         const suffix = existingField === undefined ? '' : existingField.commentSuffix;

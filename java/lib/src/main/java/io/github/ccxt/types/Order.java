@@ -32,6 +32,8 @@ public final class Order {
     public Boolean reduceOnly;
     public Boolean postOnly;
     public Fee fee;
+    // safeOrder() always sets a `fees` list alongside the single `fee`; TS declares no field for it.
+    public List<Fee> fees;
     public List<Trade> trades;
     public Map<String, Object> info;
 
@@ -62,10 +64,14 @@ public final class Order {
         this.reduceOnly = TypeHelper.safeBool(data, "reduceOnly");
         this.postOnly = TypeHelper.safeBool(data, "postOnly");
         Object feeRaw = TypeHelper.safeValue(data, "fee");
-        this.fee = feeRaw instanceof Map<?, ?> ? new Fee(feeRaw) : null;
+        this.fee = feeRaw != null ? new Fee(feeRaw) : null;
+        Object feesRaw = TypeHelper.safeValue(data, "fees");
+        if (feesRaw instanceof List<?> feesList) {
+            this.fees = ((List<Object>) feesList).stream().map(Fee::new).collect(Collectors.toList());
+        }
         Object tradesRaw = TypeHelper.safeValue(data, "trades");
         if (tradesRaw instanceof List<?> tradesList) {
-            this.trades = ((List<Object>) tradesList).stream().map(e -> e instanceof Map<?, ?> ? new Trade(e) : null).collect(Collectors.toList());
+            this.trades = ((List<Object>) tradesList).stream().map(Trade::new).collect(Collectors.toList());
         }
         this.info = TypeHelper.getInfo(data);
     }
