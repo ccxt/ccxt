@@ -556,28 +556,71 @@ function elementAccessHasStringElements (initializer) {
     return true;
 }
 
-// a string literal `x + 'lit'` binds add(String, String) AFTER narrowing where it bound
-// add(Object, Object) before; the two only agree when the right operand is provably a
-// string (see the `+` trap comment above).
-function isProvablyStringOperand (node) {
+// ===== JN-21: the Helpers.add LEFT-operand rule =====
+//
+// `x + r` prints `Helpers.add (x, r)` and the STATIC type of the left operand picks the
+// overload. A local retyped to String re-binds the call from add(Object, Object) to
+// add(String, Object) / add(String, String) — the runtime box does not change, but the
+// three overloads do not agree on every input pair. A javac-21 harness against the real
+// io.github.ccxt.Helpers (AddHarness.java) measured them over every box the generated code
+// can put in an operand (null, String, Long, Integer, Double, Boolean, List, Map, byte[]):
+//
+//   add(O,O)(l, r) != add(S, *)(l, r)  exactly when   (l is null and r is not a non-null
+//                                                     String)
+//                                              or     (r is a Double box — in ANY chain
+//                                                     position: the numeric branch of
+//                                                     add(O,O) fires before its String
+//                                                     branches)
+//
+// The two harness-proven agreement classes:
+//   * CLAIM1 — the direct right operand is a provably NON-NULL String: `l = null` still
+//     concatenates ("null" + r) on both sides, and add(S, String-static) == add(S, Object);
+//   * CLAIM2 — the left operand is a non-null String and the right operand is not a Double.
+//
+// So a retyped String local may sit on the LEFT of `+` when the direct right operand is a
+// provably non-null String and no DEEPER right operand of the same chain can be a Double
+// (the retyped chain is a String concat there, while add(O,O) would have gone numeric).
+
+// the hand-written BaseExchange UUID helpers build a fresh String on every path
+// (`UUID.randomUUID().toString()`, or a substring of a fresh 32-hex-char uid —
+// base/Strings.java). `capitalize` is deliberately NOT here: Strings.capitalize hands a
+// null input back untouched.
+const UUID_STRING_METHODS = new Set ([ 'uuid', 'uuid2', 'uuid16', 'uuid22', 'uuidv1' ]);
+
+// true when the printed Java for `node` is a String that is GUARANTEED non-null at runtime
+// (string literals / templates, ternaries of those, a `+` whose left operand is statically
+// String — add(String, *) is declared String and never returns null — and the audited UUID
+// helpers). Calls are otherwise not provable: even an audited non-null accessor is only
+// proven for the narrowed local, not for arbitrary call sites.
+function isProvablyNonNullStringOperand (printer, node, selfName) {
     const value = unwrapParens (node);
-    return value !== undefined
-        && (value.kind === ts.SyntaxKind.StringLiteral
-            || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
+    if (value === undefined) {
+        return false;
+    }
+    if (isProvablyNonNullStringExpression (printer, value, selfName)) {
+        return true;
+    }
+    return isThisCall (value)
+        && UUID_STRING_METHODS.has (String (value.expression.name.escapedText));
 }
 
-// walk up through `+` parents: at every level where our chain is the LEFT operand the
-// printed add switches overload family after narrowing, so its right operand must be a
-// provably-string literal. Uses in the RIGHT operand keep add(Object, Object).
-function plusUsesAreSafe (identifier) {
-    let child = identifier;
-    let current = identifier.parent;
-    while (current !== undefined && ts.isBinaryExpression (current) && current.operatorToken.kind === ts.SyntaxKind.PlusToken) {
-        if (current.left === child && !isProvablyStringOperand (current.right)) {
+// the full LEFT-operand rule for one read `n` of the local: is every `Helpers.add` call
+// this read can re-bind value-identical to the Object-declared one? Walks the `+` chain
+// through parentheses. The direct right operand must be a provably non-null String; every
+// deeper right operand (the levels where the retype also switches the left operand's static
+// type — addChainRights) must not be possibly numeric.
+export function addLeftChainIsSafe (printer, n) {
+    const rights = addChainRights (n);
+    if (rights.length === 0) {
+        return true; // not a left operand of any `+`
+    }
+    if (!isProvablyNonNullStringOperand (printer, rights[0], undefined)) {
+        return false;
+    }
+    for (let i = 1; i < rights.length; i++) {
+        if (isPossiblyNumericDeep (printer, rights[i])) {
             return false;
         }
-        child = current;
-        current = current.parent;
     }
     return true;
 }
@@ -1817,11 +1860,11 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
                 return false;
             }
         }
-        // strictPlus families (string-element access): the printed Helpers.add moves
-        // from add(Object, Object) to add(String, *) when the local is the LEFT of a
-        // `+` chain, and the two diverge for a null left / non-string right
+        // strictPlus families (string-element access / ws message hashes): the printed
+        // Helpers.add moves from add(Object, Object) to add(String, *) when the local is
+        // the LEFT of a `+` chain — see addLeftChainIsSafe (JN-21, harness-proven)
         if (info?.strictPlus === true && ts.isBinaryExpression (parent)
-            && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && !plusUsesAreSafe (n)) {
+            && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && !addLeftChainIsSafe (printer, n)) {
             return false;
         }
         if (isProFile && info?.skipInheritedAsyncGuard !== true && feedsInheritedAsyncCall (printer, n, scope)) {
@@ -3352,9 +3395,12 @@ function dataflowValueType (printer, node, context) {
                 dataflowValueType (printer, node.whenTrue, context),
                 dataflowValueType (printer, node.whenFalse, context));
         case ts.SyntaxKind.BinaryExpression:
-            // `a + b` prints `Helpers.add(a, b)`; a provably-String LEFT resolves the call
-            // to add(String, ...), declared String and never null
-            if (node.operatorToken.kind === ts.SyntaxKind.PlusToken && isProvablyStringOperand (unwrapParens (node.left))) {
+            // `a + b` prints `Helpers.add(a, b)`; a LEFT operand the printer types String
+            // (a literal, a base-declared accessor, a helper call declared String, another
+            // `+` with such a left) resolves the call to add(String, ...), declared String
+            // and never null — so the composite is a non-null String too
+            if (node.operatorToken.kind === ts.SyntaxKind.PlusToken
+                && isStaticallyStringExpression (printer, node.left, undefined)) {
                 return JAVA_DATAFLOW_STRING;
             }
             return undefined;
@@ -3558,16 +3604,6 @@ function dataflowTypeFromWrites (printer, context, declaration, varName, initial
     return type;
 }
 
-// is `value` the LEFT operand of a `+` / `+=`? (prints `Helpers.add(value, ...)`)
-function isLeftPlusOperand (value) {
-    const parent = value.parent;
-    if (parent?.kind !== ts.SyntaxKind.BinaryExpression || parent.left !== value) {
-        return false;
-    }
-    const op = parent.operatorToken.kind;
-    return op === ts.SyntaxKind.PlusToken || op === ts.SyntaxKind.PlusEqualsToken;
-}
-
 // climb through `(x)` wrappers to the expression that consumes the value
 function unwrapParensUp (node) {
     let current = node;
@@ -3760,11 +3796,8 @@ function dataflowIsSafeToRetype (printer, declaration, varName, javaType, contex
                     return false; // `x += r` re-resolves against the declared type
                 }
             }
-            if (isString && isLeftPlusOperand (unwrapParensUp (n))) {
-                const plus = unwrapParensUp (n).parent;
-                if (!isProvablyStringOperand (unwrapParens (plus.right))) {
-                    return false; // add(String, ...) diverges from add(Object, Object) on null
-                }
+            if (isString && !addLeftChainIsSafe (printer, n)) {
+                return false; // add(String, ...) diverges from add(Object, Object) — JN-21 rule
             }
         }
         if (!isString && !isList && isClassThrowArgument (n)) {

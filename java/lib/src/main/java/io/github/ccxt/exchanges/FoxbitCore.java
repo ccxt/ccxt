@@ -2494,7 +2494,7 @@ public class FoxbitCore extends FoxbitApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object version = Helpers.GetValue(api, 0);
         Object urlPath = Helpers.GetValue(api, 1);
-        Object fullPath = Helpers.add(Helpers.add(Helpers.add("/rest/", version), "/"), this.implodeParams(path, parameters));
+        String fullPath = Helpers.add(Helpers.add(Helpers.add("/rest/", version), "/"), this.implodeParams(path, parameters));
         if (Helpers.isTrue(Helpers.isEqual(version, "status")))
         {
             fullPath = "/status";
@@ -2545,7 +2545,7 @@ public class FoxbitCore extends FoxbitApi
         if (Helpers.isTrue(Helpers.isEqual(urlPath, "private")))
         {
             this.checkRequiredCredentials();
-            Object preHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.numberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature);
+            String preHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.numberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature);
             Object signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256(), "hex");
             Helpers.addElementToObject(headers, "X-FB-ACCESS-KEY", this.apiKey);
             Helpers.addElementToObject(headers, "X-FB-ACCESS-TIMESTAMP", this.numberToString(timestamp));

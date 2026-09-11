@@ -12022,7 +12022,7 @@ public Object describe()
                     {
                         Object cursorString = ((Helpers.isTrue((Helpers.isEqual(cursorValue, null))))) ? "" : cursorValue;
                         Object iteration = (Helpers.add(i, 1));
-                        Object cursorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Cursor pagination call ", String.valueOf(iteration)), " method "), method), " response length "), String.valueOf(responseLength)), " cursor "), cursorString);
+                        String cursorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Cursor pagination call ", String.valueOf(iteration)), " method "), method), " response length "), String.valueOf(responseLength)), " cursor "), cursorString);
                         this.log(cursorMessage);
                     }
                     if (Helpers.isTrue(Helpers.isEqual(responseLength, 0)))
@@ -12114,7 +12114,7 @@ public Object describe()
                     if (Helpers.isTrue(this.verbose))
                     {
                         Object iteration = String.valueOf((Helpers.add(i, 1)));
-                        Object incrementalMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Incremental pagination call ", iteration), " method "), method), " response length "), String.valueOf(responseLength));
+                        String incrementalMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Incremental pagination call ", iteration), " method "), method), " response length "), String.valueOf(responseLength));
                         this.log(incrementalMessage);
                     }
                     if (Helpers.isTrue(Helpers.isEqual(responseLength, 0)))
@@ -12481,7 +12481,7 @@ public Object describe()
         Object day = Helpers.slice(date, 4, 6);
         // the milliseconds are spelled out because every caller writes the result into
         // expiryDatetime, which types.ts documents in the ISO 8601 form with them
-        Object reconstructedDate = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("20", year), "-"), month), "-"), day), "T00:00:00.000Z");
+        String reconstructedDate = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("20", year), "-"), month), "-"), day), "T00:00:00.000Z");
         return reconstructedDate;
     }
 

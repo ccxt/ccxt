@@ -5322,7 +5322,7 @@ public class WhitebitCore extends WhitebitApi
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             Object secret = this.encode(this.secret);
-            Object request = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/", "api"), "/"), version), pathWithParams);
+            String request = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/", "api"), "/"), version), pathWithParams);
             java.util.List<Object> nonceWindowrequestParamsVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
             var nonceWindow = ((java.util.List<Object>) nonceWindowrequestParamsVariable).get(0);
             var requestParams = ((java.util.List<Object>) nonceWindowrequestParamsVariable).get(1);

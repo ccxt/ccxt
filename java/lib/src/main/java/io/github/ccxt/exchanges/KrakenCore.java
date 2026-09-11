@@ -2647,13 +2647,13 @@ final Object finalId = id;
             }
         } else if (Helpers.isTrue(Helpers.isTrue(isTrailingAmountOrder) || Helpers.isTrue(isTrailingPercentOrder)))
         {
-            Object trailingPercentString = null;
+            String trailingPercentString = null;
             if (Helpers.isTrue(!Helpers.isEqual(trailingPercent, null)))
             {
                 trailingPercentString = ((Helpers.isTrue((((String)trailingPercent).endsWith(((String)"%")))))) ? (Helpers.add("+", trailingPercent)) : (Helpers.add(Helpers.add("+", trailingPercent), "%"));
             }
             String trailingAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingAmount, null))))) ? Helpers.add("+", trailingAmount) : null; // must use + for this
-            String offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
+            Object offset = this.safeString(parameters, "offset", "-"); // can use + or - for this
             Object trailingLimitAmountString = ((Helpers.isTrue((!Helpers.isEqual(trailingLimitAmount, null))))) ? Helpers.add(offset, this.numberToString(trailingLimitAmount)) : null;
             String trailingActivationPriceType = this.safeString(parameters, "trigger", "last");
             Helpers.addElementToObject(request, "trigger", trailingActivationPriceType);
@@ -2802,7 +2802,7 @@ final Object finalId = id;
             Object allTriggerPrices = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent")));
             if (Helpers.isTrue(!Helpers.isEqual(allTriggerPrices, null)))
             {
-                String offset = this.safeString(parameters, "offset");
+                Object offset = this.safeString(parameters, "offset");
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossPrice", "takeProfitPrice", "trailingAmount", "trailingPercent", "trailingLimitAmount", "trailingLimitPercent", "offset")));
                 if (Helpers.isTrue(!Helpers.isEqual(offset, null)))
                 {

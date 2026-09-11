@@ -20,7 +20,7 @@ public class TestCreateOrder extends BaseTest {
         if (Helpers.isTrue(debugCreateOrder))
         {
             // for c# fix, extra step to convert them to string
-            Object msg = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(" >>>>> testCreateOrder [", String.valueOf((Helpers.GetValue(exchange, "id")))), " : "), symbol), "] "), message);
+            String msg = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(" >>>>> testCreateOrder [", String.valueOf((Helpers.GetValue(exchange, "id")))), " : "), symbol), "] "), message);
             System.out.println(msg);
         }
         return true;

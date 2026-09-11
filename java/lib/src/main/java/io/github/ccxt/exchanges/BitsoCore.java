@@ -2231,7 +2231,7 @@ public class BitsoCore extends BitsoApi
                 put( "address", address );
                 put( "destination_tag", finalTag );
             }};
-            Object classMethod = Helpers.add(Helpers.add("privatePost", method), "Withdrawal");
+            String classMethod = Helpers.add(Helpers.add("privatePost", method), "Withdrawal");
             Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, classMethod, new Object[] { this.extend(request, parameters) })).join();
             //
             //     {

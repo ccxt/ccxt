@@ -3702,7 +3702,7 @@ public class LbankCore extends LbankApi
         {
             this.checkRequiredCredentials();
             Object timestamp = String.valueOf(this.milliseconds());
-            Object echostr = Helpers.add(this.uuid22(), this.uuid16());
+            String echostr = Helpers.add(this.uuid22(), this.uuid16());
             query = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "api_key", LbankCore.this.apiKey );
             }}, query);

@@ -1694,7 +1694,7 @@ public class BithumbCore extends BithumbApi
             Object numParts = Helpers.getArrayLength(parts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
-                Object transactionDate = Helpers.GetValue(parts, 0);
+                String transactionDate = (String) Helpers.GetValue(parts, 0);
                 String transactionTime = (String) Helpers.GetValue(parts, 1);
                 if (Helpers.isTrue(Helpers.isLessThan(((String)transactionTime).length(), 8)))
                 {

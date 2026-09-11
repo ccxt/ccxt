@@ -9037,7 +9037,7 @@ final Object finalI = i;
             path = this.implodeParams(path, parameters);
         }
         String endPart = ((Helpers.isTrue((Helpers.isEqual(path, ""))))) ? "" : (Helpers.add("/", path));
-        Object entirePath = Helpers.add(Helpers.add("/", type), endPart);
+        String entirePath = Helpers.add(Helpers.add("/", type), endPart);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "subAccounts"))) || Helpers.isTrue((Helpers.isEqual(type, "withdrawals")))))
         {
             entirePath = endPart;
@@ -9100,7 +9100,7 @@ final Object finalI = i;
             Object nonce = this.nonce();
             Long timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
             Object timestampString = String.valueOf(timestamp);
-            Object signaturePath = Helpers.add(Helpers.add("/api/", this.version), entirePath);
+            String signaturePath = Helpers.add(Helpers.add("/api/", this.version), entirePath);
             Object payloadArray = new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)method).toUpperCase(), signaturePath, rawQueryString, bodySignature, timestampString));
             // eslint-disable-next-line quotes
             Object payload = String.join((String)"\n", (java.util.List<String>)payloadArray);

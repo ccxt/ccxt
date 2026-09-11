@@ -4681,7 +4681,7 @@ public class DeltaCore extends DeltaApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object requestPath = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
+        String requestPath = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), requestPath);
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))

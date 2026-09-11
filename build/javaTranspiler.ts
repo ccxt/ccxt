@@ -18,7 +18,7 @@ import os from 'os';
 import { isMainEntry } from "./transpile.js";
 import { filterDirtyExchangeFiles, skipUpToDateStage, testStageInputs } from "./transpile.js";
 import { unCamelCase } from "../js/src/base/functions.js";
-import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes, patchJavaLiteralLocalTypes, addLeftChainIsSafe } from './java-local-types.js';
 import { ZERO_REQUIRED_TYPED_WHITELIST } from "./generateJavaWrappers.js";
 
 ansi.nice
@@ -448,6 +448,13 @@ function isSafeToNarrow (printer: any, declaration: any, sourceName: string, isP
             } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
                 return false;
             }
+        }
+        // JN-21: `x + r` prints Helpers.add(x, r) and the retyped left operand re-binds the
+        // call to add(String, *) — identical to add(Object, Object) only when the direct right
+        // operand is a provably non-null String and no deeper right operand can be a Double
+        // (harness-proven; see addLeftChainIsSafe in build/java-local-types.js)
+        if (!addLeftChainIsSafe (printer, n)) {
+            return false;
         }
         // A pro core extends the REST *wrapper* class, whose typed overloads
         // (`Ticker fetchTicker(String symbol)`) would win Java overload resolution
@@ -2739,7 +2746,14 @@ class NewTranspiler {
         content = this.rewriteDelayWithStringCallback(content);
 
         // ── String type fixes ──
-        content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
+        // JN-21: the blanket revert below (any `String x = this.<call>(...)` / `String x =
+        // Helpers....` -> Object) predates the local-typing modules and undid EVERY provable
+        // String retype in the WS/pro and prediction tiers (2,098 + 540 locals on this tree).
+        // It is no longer needed: the retypes are declaration-only and the two live hazards
+        // are guarded elsewhere — a retyped local on the LEFT of `+` is checked by
+        // addLeftChainIsSafe (build/java-local-types.js), and the typed-wrapper overload trap
+        // by feedsInheritedAsyncCall. `./gradlew compileJava` is green with it disabled.
+        // content = content.replace(/String (\w+) = ((?:this\.\w+\(|Helpers\.)[^;]+);/gm, 'Object $1 = $2;');
 
         // ── CompletableFuture<Void> → <Object> ──
         content = content.replace(/CompletableFuture<Void>/gm, 'CompletableFuture<Object>');

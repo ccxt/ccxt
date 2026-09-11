@@ -3804,7 +3804,7 @@ public class BitfinexCore extends BitfinexApi
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             body = this.json(query);
-            Object auth = Helpers.add(Helpers.add(Helpers.add("/api/", request), nonce), body);
+            String auth = Helpers.add(Helpers.add(Helpers.add("/api/", request), nonce), body);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha384());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "bfx-nonce", nonce );
