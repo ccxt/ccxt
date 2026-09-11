@@ -234,6 +234,34 @@ public class Helpers {
         }
     }
 
+    // Typed twins of isEqual(Object, Object) for the argument shapes whose runtime boxes
+    // are String / Long / Integer only (JN-16; resolution probe + differential harness in
+    // the JN-16 report). Each twin reproduces the Object overload's result over its whole
+    // binding domain, nulls included: (null, null) is true, exactly one null is false, and
+    // two non-null boxes compare by VALUE — `a.longValue() == b.longValue()`, never boxed
+    // `==` (which compares references: Long.valueOf(1000) != Long.valueOf(1000)) and never
+    // a bare `a.equals(b)` for the crosses. The Object overload reaches its String branch
+    // for two Strings (the class check passes first) and its IsInteger branch —
+    // toLong(a).equals(toLong(b)) — for two Long/Integer boxes: the same comparisons.
+    // A primitive parameter is deliberately absent (see the arithmetic-twins block below),
+    // and so is a (Long, Integer) twin: a null-LITERAL second argument (`Helpers.isEqual
+    // (timestamp, null)`, ~550 generated sites) would be AMBIGUOUS between (Long, Long) and
+    // (Long, Integer) — both unrelated reference types are applicable to `null` and javac
+    // has no most-specific method. The (Long, Long) twin alone binds that shape (the
+    // null-literal converts to Long) and reproduces the Object result (false for exactly-
+    // one-null), which is what the tree actually needs.
+    public static boolean isEqual(String a, String b) {
+        if (a == null) return b == null;
+        if (b == null) return false;
+        return a.equals(b);
+    }
+
+    public static boolean isEqual(Long a, Long b) {
+        if (a == null) return b == null;
+        if (b == null) return false;
+        return a.longValue() == b.longValue();
+    }
+
     public static boolean isGreaterThan(Object a, Object b) {
         if (a != null && b == null) return true;
         if (a == null || b == null) return false;
@@ -276,6 +304,21 @@ public class Helpers {
         return null;
     }
 
+    // Twin of mod(Object, Object) for the (Long, Long/long/int/Integer/null) domain: the
+    // Object overload null-checks first and then takes its `a instanceof Long` branch for
+    // every non-null reachable pair — `toDouble(a) % toDouble(b)`, a DOUBLE remainder (so
+    // the twin returns Double, never a truncated long). Division by zero yields NaN on
+    // both paths; no exception is involved.
+    public static Double mod(Long a, Long b) {
+        if (a == null || b == null) return null;
+        return a.doubleValue() % b.doubleValue();
+    }
+
+    public static Double mod(Long a, Integer b) {
+        if (a == null || b == null) return null;
+        return a.doubleValue() % b.doubleValue();
+    }
+
     public static Object add(Object a, Object b) {
         a = normalizeIntIfNeeded(a);
         b = normalizeIntIfNeeded(b);
@@ -299,6 +342,56 @@ public class Helpers {
 
     public static String add(String a, Object b) {
         return a + String.valueOf(b);
+    }
+
+    // ===== typed arithmetic twins (JN-16) =====
+    //
+    // Every generated `a + b` / `a - b` / `a * b` / `a / b` / `a % b` prints through these
+    // helpers, and the (Object, Object) signatures give the call the static type Object —
+    // a generated declaration like `Long nextTimestamp = Helpers.add(ts, 1);` cannot
+    // compile against them, and a nested chain cannot name any intermediate box. The twins
+    // below hand back the concrete box the Object overload already computes for the
+    // argument shapes they can be reached from, so build/java-local-types.js can name
+    // arithmetic-result locals without an added `(Long)` checkcast.
+    //
+    // An overload is only safe when Java's overload resolution picks it ONLY for calls
+    // whose runtime behaviour is unchanged; that was measured with javac 21 (resolution
+    // probe + differential harness, JN-16 report):
+    //
+    //   * (Long, Long) is reached only from statically Long / long / null-literal
+    //     positions: an `int` argument never widens+boxes into it (`int -> long -> Long`
+    //     is not a method-invocation conversion), so `Helpers.add(x, 1)` with x a Long
+    //     does NOT bind it — that shape belongs to (Long, Integer).
+    //   * (Long, Integer) is reached from Long / long and int / Integer positions — an
+    //     `int` literal boxes to Integer at the call — and from nothing else: boxing is
+    //     exact, so a short / byte / char / float / double argument stays on
+    //     (Object, Object), where normalizeIntIfNeeded and the Double/String branches
+    //     define the answer (a Short box, e.g., must keep returning null).
+    //   * The parameters are deliberately BOXED, and the second one is Integer — not
+    //     `int`: a primitive parameter is AMBIGUOUS with (Object, Object) for calls whose
+    //     other argument is primitive (`javac: reference to add is ambiguous`, reproduced
+    //     for `(long, int)`), and a primitive parameter would also capture short / byte /
+    //     char arguments by widening.
+    //   * Both parameters being references, no argument is unboxed at the call site;
+    //     every twin null-checks explicitly and returns the same null the Object overload
+    //     returns (isEqual: the same false / true).
+    //
+    // EQUIVALENCE (differential harness: null / Long.MIN..MAX / Integer.MIN..MAX /
+    // overflow / NaN / +-0.0 / division by zero, comparing value, box CLASS and exception
+    // for every pair in the binding domain): each twin reproduces the Object overload
+    // exactly. normalizeIntIfNeeded turns an Integer into a Long before the branches, so
+    // subtract(Long, Integer) is the same unchecked long subtraction; multiply(Long, ...)
+    // is the same wrapping long product; divide(Long, ...) is the same DOUBLE division
+    // `((Long) a).doubleValue() / b` the Object path performs — never Java's truncating
+    // long division — and add/subtract inherit the Object path's null-for-null result.
+    public static Long add(Long a, Long b) {
+        if (a == null || b == null) return null;
+        return a + b;
+    }
+
+    public static Long add(Long a, Integer b) {
+        if (a == null || b == null) return null;
+        return a + b;
     }
 
 //     public static String add(Object... items) {
@@ -328,9 +421,23 @@ public class Helpers {
         }
     }
 
-    // public static int subtract(int a, int b) { return a - b; }
+    // public static int subtract(int a, int b) { return a - b; }   // primitive params are
+    // deliberately absent: ambiguous with (Object, Object) for primitive operands, and they
+    // would capture short/byte/char arguments by widening — see the twins block above.
+    // The typed twins follow (the Object overload's Long branch is the same unchecked long
+    // subtraction; either null operand returned null there and returns null here).
 
-    // public float subtract(float a, float b) { return a - b; }
+    public static Long subtract(Long a, Long b) {
+        if (a == null || b == null) return null;
+        return a - b;
+    }
+
+    public static Long subtract(Long a, Integer b) {
+        if (a == null || b == null) return null;
+        return a - b;
+    }
+
+    // public static float subtract(float a, float b) { return a - b; }
 
     public static Object divide(Object a, Object b) {
         a = normalizeIntIfNeeded(a);
@@ -344,6 +451,21 @@ public class Helpers {
         } else {
             return toDouble(a) / toDouble(b);
         }
+    }
+
+    // Twin of divide(Object, Object) for the (Long, Long/long/int/Integer/null) domain:
+    // the Object overload's Long branch computes `((Long) a).doubleValue() / b` — DOUBLE
+    // division, so the twin returns Double and must never use Java's truncating long
+    // division (`1 / 2` stays 0.5). Either null operand returned null and does so here;
+    // division by zero yields the same Infinity/NaN double, never an exception.
+    public static Double divide(Long a, Long b) {
+        if (a == null || b == null) return null;
+        return a.doubleValue() / b.doubleValue();
+    }
+
+    public static Double divide(Long a, Integer b) {
+        if (a == null || b == null) return null;
+        return a.doubleValue() / b.doubleValue();
     }
 
     public static Object multiply(Object a, Object b) {
@@ -360,6 +482,21 @@ public class Helpers {
         } else {
             return res;
         }
+    }
+
+    // Twin of multiply(Object, Object) for the (Long, Long/long/int/Integer/null) domain:
+    // with both operands Long the Object overload takes its Long branch — the same wrapping
+    // long product (`a * b`), NOT the value-dependent double branch further down (that one
+    // applies only when an operand is not a Long box, which this twin cannot receive).
+    // Either null operand returned null there and returns null here.
+    public static Long multiply(Long a, Long b) {
+        if (a == null || b == null) return null;
+        return a * b;
+    }
+
+    public static Long multiply(Long a, Integer b) {
+        if (a == null || b == null) return null;
+        return a * b;
     }
 
     public static int getArrayLength(Object value) {
@@ -499,6 +636,25 @@ public class Helpers {
         } else {
             return null;
         }
+    }
+
+    /** Typed twin of {@link #GetValue(Object, Object)} for the dominant read shape in the
+     *  generated tree: a Map receiver and a String key (census: ~4.8k call sites).
+     *
+     *  <p>Reachable only when the receiver is statically a {@code Map<String, Object>} (or
+     *  a subtype): Java guarantees such an expression evaluates to a Map instance or null —
+     *  an unchecked cast still verifies the raw Map class — so the Object overload's other
+     *  branches (String index access, array conversion, List index, reflection) are
+     *  unreachable for this call shape. For a Map + String pair the Object overload returns
+     *  {@code m.containsKey(key) ? m.get(key) : null}, and {@code containsKey} is only an
+     *  optimization: {@code get} returns the same value for a present key and null for an
+     *  absent one. A null receiver or key returns null on both paths (a null-literal key
+     *  binds this twin; the guard reproduces the Object path's null). The return type stays
+     *  {@code Object} — the box depends on the key, so no narrower type exists.
+     */
+    public static Object GetValue(java.util.Map<String, Object> value2, String key) {
+        if (value2 == null || key == null) return null;
+        return value2.get(key);
     }
 
     public static CompletableFuture<List<Object>> promiseAll(Object promisesObj) { return PromiseAll(promisesObj); }
