@@ -35,7 +35,7 @@ const KNOWN_TYPES = new Set([
     'Status', 'PositionModeInfo',
     'Transaction', 'DepositAddress', 'TransferEntry',
     'LedgerEntry', 'TradingFeeInterface', 'TradingFees',
-    'Greeks', 'Option', 'OptionChain', 'Conversion',
+    'Greeks', 'AllGreeks', 'Option', 'OptionChain', 'Conversion',
     'LastPrice', 'LastPrices', 'LongShortRatio',
     'BorrowInterest', 'CrossBorrowRate', 'CrossBorrowRates',
     'IsolatedBorrowRate', 'IsolatedBorrowRates',

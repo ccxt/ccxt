@@ -890,6 +890,18 @@ public class Hashkey extends HashkeyCore {
     public CompletableFuture<Greeks> fetchGreeksAsync(String symbol) { return fetchGreeksAsync(symbol, (Map<String, Object>) null); }
 
     @SuppressWarnings("unchecked")
+    public AllGreeks fetchAllGreeks(List<String> symbols, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchAllGreeks(symbols, params));
+        return new AllGreeks(res);
+    }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<AllGreeks> fetchAllGreeksAsync(List<String> symbols, Map<String, Object> params) {
+        return super.fetchAllGreeks(symbols, params).thenApply(AllGreeks::new);
+    }
+    public AllGreeks fetchAllGreeks(String[] symbols, Map<String, Object> params) { return fetchAllGreeks(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+    public CompletableFuture<AllGreeks> fetchAllGreeksAsync(String[] symbols, Map<String, Object> params) { return fetchAllGreeksAsync(symbols == null ? null : java.util.Arrays.asList(symbols), params); }
+
+    @SuppressWarnings("unchecked")
     public OptionChain fetchOptionChain(String code, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchOptionChain(code, params));
         return new OptionChain(res);
