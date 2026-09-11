@@ -1363,7 +1363,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object eventVar = this.safeString(message, "event");
-            Object tradesArray = this.safeValue(this.trades, symbol);
+            io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
             {
                 Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);

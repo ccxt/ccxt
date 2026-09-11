@@ -1900,7 +1900,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = (String) Helpers.add("trade::", symbol);
         Object trade = this.parseWsTrade(message, market);
-        Object tradesArray = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

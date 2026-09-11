@@ -2315,7 +2315,7 @@ public class DydxCore extends DydxApi
                 denom = Helpers.GetValue(feeDenom, "CHAINTOKEN_DENOM");
             }
             Object gasLimit = Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)))));
-            Object feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
+            String feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
             if (Helpers.isTrue(Helpers.isEqual(feeAmount, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " estimateTxFee() missing feeAmount")) ;

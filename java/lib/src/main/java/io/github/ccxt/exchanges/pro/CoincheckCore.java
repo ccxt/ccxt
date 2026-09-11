@@ -190,7 +190,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         //
         Object first = this.safeValue(message, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object symbol = this.symbol(this.safeString(first, 2));
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

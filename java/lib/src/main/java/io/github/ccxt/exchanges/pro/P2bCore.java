@@ -415,7 +415,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         Object marketId = this.safeString(data, 0);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = this.safeString(market, "symbol");
-        Object tradesArray = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);

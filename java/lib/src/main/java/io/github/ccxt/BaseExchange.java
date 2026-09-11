@@ -6731,7 +6731,7 @@ public Object describe()
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(filled, null))) && Helpers.isTrue((!Helpers.isEqual(cost, null)))) && Helpers.isTrue(Precise.stringGt(filled, "0"))))
             {
-                Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
+                String filledTimesContractSize = Precise.stringMul(filled, contractSize);
                 if (Helpers.isTrue(Helpers.isEqual(inverse, true)))
                 {
                     average = Precise.stringDiv(filledTimesContractSize, cost);
@@ -6759,7 +6759,7 @@ public Object describe()
                 multiplyPrice = average;
             }
             // contract trading
-            Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
+            String filledTimesContractSize = Precise.stringMul(filled, contractSize);
             if (Helpers.isTrue(Helpers.isEqual(inverse, true)))
             {
                 cost = Precise.stringDiv(filledTimesContractSize, multiplyPrice);

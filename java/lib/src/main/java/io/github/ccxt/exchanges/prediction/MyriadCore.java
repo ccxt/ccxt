@@ -3282,16 +3282,16 @@ final Object finalNetworkId = networkId;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBids)); i++)
         {
             Object row = Helpers.GetValue(rawBids, i);
-            Object rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
-            Object rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
+            String rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
+            String rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
             ((java.util.List<Object>)bids).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseNumber(rowPrice), this.parseNumber(rowAmount))));
         }
         java.util.List<Object> asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawAsks)); i++)
         {
             Object row = Helpers.GetValue(rawAsks, i);
-            Object rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
-            Object rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
+            String rowPrice = Precise.stringDiv(this.safeString(row, 0), "1000000000000000000");
+            String rowAmount = Precise.stringDiv(this.safeString(row, 1), "1000000000000000000");
             ((java.util.List<Object>)asks).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseNumber(rowPrice), this.parseNumber(rowAmount))));
         }
         Long timestamp = this.milliseconds();

@@ -440,7 +440,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
         String symbol = (String) this.safeSymbol(marketId);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         String messageHash = (String) Helpers.add("trades:", symbol);
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

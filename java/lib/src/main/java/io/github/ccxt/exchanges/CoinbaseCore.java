@@ -2940,7 +2940,7 @@ public class CoinbaseCore extends CoinbaseApi
                     String code = (String) this.safeCurrencyCode(currencyId);
                     String used = this.safeString(hold, "value");
                     String free = this.safeString(available, "value");
-                    Object total = Precise.stringAdd(used, free);
+                    String total = Precise.stringAdd(used, free);
                     Object account = this.safeDict(result, code);
                     if (Helpers.isTrue(Helpers.isEqual(account, null)))
                     {

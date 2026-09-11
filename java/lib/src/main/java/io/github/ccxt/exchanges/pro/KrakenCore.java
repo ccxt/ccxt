@@ -676,7 +676,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object trade = Helpers.GetValue(data, 0);
         Object symbol = ((String)this.safeString(trade, "symbol"));
         Object messageHash = this.getMessageHash("trade", null, symbol);
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

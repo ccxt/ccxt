@@ -624,7 +624,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         Object tick = this.safeValue(message, "tick", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeList(tick, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Boolean appended = false;
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))

@@ -4453,7 +4453,7 @@ public class AsterCore extends AsterApi
                         onePlusMaintenanceMarginPercentageString = Precise.stringAdd("-1", maintenanceMarginPercentageString);
                     }
                     String inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
-                    Object leftSide = Precise.stringAdd(inner, entryPriceSignString);
+                    String leftSide = Precise.stringAdd(inner, entryPriceSignString);
                     Object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
                     if (Helpers.isTrue(!Helpers.isEqual(quotePrecision, null)))
                     {
@@ -4472,7 +4472,7 @@ public class AsterCore extends AsterApi
                         onePlusMaintenanceMarginPercentageString = Precise.stringSub("-1", maintenanceMarginPercentageString);
                         entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
                     }
-                    Object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
+                    String leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     String rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
                     Object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
                     if (Helpers.isTrue(!Helpers.isEqual(basePrecision, null)))
@@ -4494,7 +4494,7 @@ public class AsterCore extends AsterApi
             timestamp = null;
         }
         Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
-        Object maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
+        String maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
         if (Helpers.isTrue(Helpers.isEqual(maintenanceMarginString, null)))
         {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
@@ -4513,12 +4513,12 @@ public class AsterCore extends AsterApi
             {
                 initialMarginPercentageString = Precise.stringAdd(initialMarginPercentageString, "1e-8");
             }
-            Object unrounded = Precise.stringMul(notionalStringAbs, initialMarginPercentageString);
+            String unrounded = Precise.stringMul(notionalStringAbs, initialMarginPercentageString);
             initialMarginString = Precise.stringDiv(unrounded, "1", 8);
         } else
         {
             initialMarginString = this.safeString(position, "initialMargin");
-            Object unrounded = Precise.stringMul(initialMarginString, "1");
+            String unrounded = Precise.stringMul(initialMarginString, "1");
             initialMarginPercentageString = Precise.stringDiv(unrounded, notionalStringAbs, 8);
         }
         Object marginRatio = null;
@@ -4842,8 +4842,8 @@ public class AsterCore extends AsterApi
                     onePlusMaintenanceMarginPercentageString = Precise.stringAdd("-1", maintenanceMarginPercentageString);
                     entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
                 }
-                Object leftSide = Precise.stringDiv(walletBalance, Precise.stringMul(contractsStringAbs, onePlusMaintenanceMarginPercentageString));
-                Object rightSide = Precise.stringDiv(entryPriceSignString, onePlusMaintenanceMarginPercentageString);
+                String leftSide = Precise.stringDiv(walletBalance, Precise.stringMul(contractsStringAbs, onePlusMaintenanceMarginPercentageString));
+                String rightSide = Precise.stringDiv(entryPriceSignString, onePlusMaintenanceMarginPercentageString);
                 liquidationPriceStringRaw = Precise.stringAdd(leftSide, rightSide);
             } else
             {
@@ -4862,8 +4862,8 @@ public class AsterCore extends AsterApi
                     entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
                 }
                 String size = Precise.stringMul(contractsStringAbs, contractSizeString);
-                Object leftSide = Precise.stringMul(size, onePlusMaintenanceMarginPercentageString);
-                Object rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
+                String leftSide = Precise.stringMul(size, onePlusMaintenanceMarginPercentageString);
+                String rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
             Object pricePrecision = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "price"));

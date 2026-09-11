@@ -146,7 +146,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         Object symbol = Helpers.GetValue(market, "symbol");
         Object content = this.safeDict(message, "contents");
         Object rawTrades = this.safeList(content, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

@@ -232,7 +232,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             Object symbol = Helpers.GetValue(symbols, i);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
-            Object tradesArray = this.safeValue(this.trades, symbol);
+            io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             client.resolve(tradesArray, messageHash);
         }
     }

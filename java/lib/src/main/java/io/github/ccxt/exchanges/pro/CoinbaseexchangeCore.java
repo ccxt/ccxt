@@ -570,7 +570,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             // therefore we resolve 'matches' here instead of 'match'
             String type = "matches";
             Object messageHash = Helpers.add(Helpers.add(type, ":"), marketId);
-            Object tradesArray = this.safeValue(this.trades, symbol);
+            io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
             {
                 Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);

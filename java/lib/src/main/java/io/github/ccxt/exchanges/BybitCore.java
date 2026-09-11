@@ -5711,7 +5711,7 @@ public class BybitCore extends BybitApi
                     orderCost = cost;
                 } else
                 {
-                    Object quoteAmount = Precise.stringMul(amountString, priceString);
+                    String quoteAmount = Precise.stringMul(amountString, priceString);
                     orderCost = quoteAmount;
                 }
                 Helpers.addElementToObject(request, "qty", this.getCost(symbol, orderCost));
@@ -5735,7 +5735,7 @@ public class BybitCore extends BybitApi
                     throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
                 {
-                    Object quoteAmount = Precise.stringMul(this.numberToString(amount), priceString);
+                    String quoteAmount = Precise.stringMul(this.numberToString(amount), priceString);
                     Object costRequest = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                     Helpers.addElementToObject(request, "qty", this.getCost(symbol, costRequest));
                 }
@@ -8792,7 +8792,7 @@ public class BybitCore extends BybitApi
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 Object useMarkPrice = this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
                 Object price = ((Helpers.isTrue(useMarkPrice))) ? markPrice : entryPrice;
-                Object difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
+                String difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
             } else
             {
@@ -8816,7 +8816,7 @@ public class BybitCore extends BybitApi
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    Object difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
+                    String difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
                     String multiply = Precise.stringMul(bustPrice, liquidationPrice);
                     maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
                     // Initial Margin = Leverage x Contracts / EntryPrice
