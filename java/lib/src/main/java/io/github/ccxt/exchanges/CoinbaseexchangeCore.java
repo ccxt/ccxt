@@ -1038,7 +1038,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1075,7 +1075,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             Object orderbook = this.parseOrderBook(response, symbol);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "sequence"));
             return orderbook;
-        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
+        });
 
     }
 
@@ -1181,7 +1181,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1228,7 +1228,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 Helpers.addElementToObject(result, symbol, this.parseTicker(first, market));
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        }).thenApply(io.github.ccxt.TypedCores::toTickers);
+        });
 
     }
 
@@ -1241,7 +1241,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1257,7 +1257,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }};
             // publicGetProductsIdTicker or publicGetProductsIdStats
             String method = this.safeString(this.options, "fetchTickerMethod", "publicGetProductsIdTicker");
-            java.util.Map<String, Object> response = null;
+            Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetProductsIdStats")))
             {
                 response = (this.publicGetProductsIdStats(this.extend(request, parameters))).join();
@@ -1288,7 +1288,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             //     }
             //
             return this.parseTicker(response, market);
-        }).thenApply(io.github.ccxt.TypedCores::toTicker);
+        });
 
     }
 
@@ -1390,7 +1390,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1435,7 +1435,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }
             java.util.List<Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
+        });
 
     }
 
@@ -1450,7 +1450,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1483,7 +1483,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             //    ]
             //
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
+        });
 
     }
 
@@ -1769,7 +1769,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1782,7 +1782,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_oid");
-            java.util.Map<String, Object> response = null;
+            Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
                 Helpers.addElementToObject(request, "id", id);
@@ -1794,7 +1794,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 response = (this.privateGetOrdersClientClientOid(this.extend(request, parameters))).join();
             }
             return this.parseOrder(response);
-        }).thenApply(io.github.ccxt.TypedCores::toOrder);
+        });
 
     }
 
@@ -1809,7 +1809,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1832,7 +1832,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }};
             java.util.List<Object> response = (this.privateGetFills(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
-        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
+        });
 
     }
 
@@ -1848,7 +1848,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {int} [params.until] the latest time in ms to fetch open orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1861,7 +1861,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 put( "status", "all" );
             }};
             return (this.fetchOpenOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
+        });
 
     }
 
@@ -1878,7 +1878,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1922,7 +1922,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }
             java.util.List<Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
-        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
+        });
 
     }
 
@@ -1938,7 +1938,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {int} [params.until] the latest time in ms to fetch open orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1951,7 +1951,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 put( "status", "done" );
             }};
             return (this.fetchOpenOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
+        });
 
     }
 
@@ -1968,7 +1968,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount2, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object amount3 = amount2;
@@ -2055,7 +2055,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             //     }
             //
             return this.parseOrder(response, market);
-        }).thenApply(io.github.ccxt.TypedCores::toOrder);
+        });
 
     }
 
@@ -2069,7 +2069,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2108,7 +2108,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }});
-        }).thenApply(io.github.ccxt.TypedCores::toOrder);
+        });
 
     }
 
@@ -2121,7 +2121,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2143,7 +2143,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
+        });
 
     }
 
@@ -2191,7 +2191,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
             }};
-            java.util.Map<String, Object> response = null;
+            Object response = null;
             if (Helpers.isTrue(Helpers.inOp(parameters, "payment_method_id")))
             {
                 response = (this.privatePostWithdrawalsPaymentMethod(this.extend(request, parameters))).join();
@@ -2686,7 +2686,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

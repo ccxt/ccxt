@@ -910,7 +910,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> unWatchChannel(Object symbol, Object channel, Object messageHashTopic, Object methodName, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> unWatchChannel(Object symbol, Object channel, Object messageHashTopic, String methodName, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

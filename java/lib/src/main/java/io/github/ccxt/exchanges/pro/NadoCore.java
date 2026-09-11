@@ -1512,7 +1512,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         return this.signHash(hash, this.privateKey);
     }
 
-    public Object createPublicSubscriptionRequest(Object method, Object streamType, Object... optionalArgs)
+    public Object createPublicSubscriptionRequest(String method, Object streamType, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = Helpers.getArg(optionalArgs, 1, null);
@@ -1626,7 +1626,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
 
     }
 
-    public Object parseWsTimestamp(Object message, Object key)
+    public Object parseWsTimestamp(Object message, String key)
     {
         String value = this.safeString(message, key);
         if (Helpers.isTrue(Helpers.isEqual(value, null)))

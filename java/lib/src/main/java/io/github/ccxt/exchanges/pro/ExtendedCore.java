@@ -1019,7 +1019,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         client.resolve(stored, messageHash);
     }
 
-    public Object findSubscription(Client client, Object name)
+    public Object findSubscription(Client client, String name)
     {
         Object keys = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)

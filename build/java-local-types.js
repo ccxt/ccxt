@@ -3100,6 +3100,9 @@ export function installJavaLocalTypes (transpiler) {
     // on printVariableDeclarationList + printCustomBinaryExpressionIfAny
     patchJavaHandlerLocalTypes (printer);
 
+    // (6) generated method parameter types (JN-15, additive slice): a printParameter()
+    // wrapper keyed by a census-proven positional table (see the section at the end).
+    patchJavaParameterTypes (transpiler);
     // (5) collection/dict helper locals (JAVA-RE-5, additive slice): a second,
     // independent patch of the same printer hooks — it keeps its own candidate table
     // and its own WeakMap of narrowed declarations, and declines every declaration the
@@ -5118,4 +5121,331 @@ export function installJavaNumericLocalTypes (transpiler) {
         return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ` + value;
     };
     printer._javaNumericTypesPatched = true;
+}
+
+// ===== 6. generated method PARAMETER types (JN-15) =====
+//
+// The Java printer emits every generated method parameter as `Object` (javaTranspiler
+// INFER_ARG_TYPE = false -> printParameterType returns DEFAULT_PARAMETER_TYPE).  The TS
+// source is precisely typed (`symbol: string`, `id: string`, `code: string`), so the box
+// already holds a String and the type may NAME it.  This section narrows a parameter at a
+// (methodName, position) that the census in build/java-param-census.mjs proved safe:
+//
+//   1. INVARIANT OVERRIDES: a base declaration (ts/src/base/Exchange.ts -> Exchange.java)
+//      and EVERY exchange override must print the same parameter type, or javac rejects
+//      the override ("have the same erasure, yet neither overrides the other").  The census
+//      admits a position only when EVERY declaration of that method name in ts/src carries
+//      the same `string`-mapped annotation, so the table is keyed by POSITION, never by
+//      name (the prediction tier renames `symbol` to `outcome`).
+//   2. NO REASSIGNMENT: a parameter the body assigns is printed through the printer's
+//      ReassignedVars machinery (`symbol2` signature + `Object symbol = symbol3;` snapshot),
+//      so the census rejects any method whose body assigns or destructures the parameter.
+//   3. NO OVERLOAD DRIFT: a String parameter as the LEFT operand of `+` moves the printed
+//      `Helpers.add` from add(Object,Object) to add(String,*).  The two agree for every
+//      String right operand, but add(Object,Object) returns a NUMBER when the right is a
+//      Double — the census rejects a position whose `+` rights are not provably String.
+//      (The `Object... optionalArgs` varargs convention is untouched: optional parameters
+//      keep printing into it, and optionalArgs itself is synthesised, never a Parameter
+//      node.)
+//   4. CALL SITES: every call site in the WHOLE generated tree (java/lib + java/tests +
+//      java/cli + java/examples — gradle compileJava builds all four) must pass a statically
+//      String argument at that position.  The classifier resolves a bare identifier against
+//      the ENCLOSING method's parameter list first (a wrapper passes its own typed params),
+//      then falls back to the file-level declaration scan; a `(Object)`-casted ws call or an
+//      Object-typed local rejects the position.  Every declaration whose method exists only
+//      in the TS test harness (ts/src/test/**) is skipped entirely.
+//   5. BOXED ONLY: `String` is a reference type — null stays null and the box is unchanged.
+//
+// MEASURED (2026-09-11, base 853ab685540): 2586 printed-parameter positions tree-wide;
+// 994 consistent + unassigned (990 with safe `+` rights); 685 of them String; 264 positions
+// over 219 methods admitted -> 856 parameter declarations / 785 signatures retyped, all
+// declaration-only.  The 421 String positions the call-site gate rejected (fetchOrderBook[0]
+// 100 decls, fetchOHLCV[0] 87, setMargin[0], closePosition[0], the `*Ws` family, ...) pass
+// Object-typed locals/`(Object)` casts into the call; they need the CALLER's parameters
+// typed too (a fixpoint the closure pass below already exploits where it can).
+// A second slice could take the 127 remaining Map/List positions the census proved
+// (`parseLeverage[0] leverage`, `parseBorrowInterest[0] info`, `parseTrades[0] trades`, ...).
+//
+// SECOND-ORDER WIN IS ZERO, measured: no TS local is initialised from a bare read of a
+// narrowed parameter (build/java-param-locals.mjs; 689 initializers mention one, but as a
+// call argument (475) or an object-literal value (167), which names no type).  The 250
+// java `Object x = <param>;` sites are printer-synthesised (183 `finalX` lambda captures,
+// 62 ReassignedVars `x3 = x2` snapshots) and are not TS locals.  The slice's value is the
+// typed public surface, not new locals.
+//
+// Reproduce the table with: node build/java-param-census.mjs && node build/java-param-sites.mjs
+// && node build/java-param-table.mjs --write (then re-splice the literal into this file).
+// The emitted diff is declaration-only.
+
+const JAVA_PARAM_STRING_TYPES = {
+    "addMargin": { 0: 'String' }, // 23 decls
+    "approveBuilderCode": { 0: 'String' }, // 1 decls
+    "bindAgentWallet": { 0: 'String' }, // 1 decls
+    "borrowCrossMargin": { 0: 'String' }, // 8 decls
+    "borrowIsolatedMargin": { 0: 'String', 1: 'String' }, // 7 decls
+    "borrowMargin": { 0: 'String' }, // 1 decls
+    "buildEncoder": { 0: 'String' }, // 1 decls
+    "calculateFee": { 0: 'String', 1: 'String', 2: 'String' }, // 3 decls
+    "calculateFeeWithRate": { 0: 'String', 1: 'String', 2: 'String' }, // 1 decls
+    "cancelOrderWithClientOrderId": { 0: 'String' }, // 1 decls
+    "checkContractMarket": { 1: 'String' }, // 1 decls
+    "checkNoStockSymbols": { 1: 'String' }, // 1 decls
+    "checkRequiredArgument": { 0: 'String' }, // 1 decls
+    "checkRequiredMarginArgument": { 0: 'String', 1: 'String', 2: 'String' }, // 1 decls
+    "convertCurrencyNetwork": { 0: 'String' }, // 1 decls
+    "createAdvancedOrderRequest": { 0: 'String' }, // 1 decls
+    "createConvertTrade": { 0: 'String', 1: 'String', 2: 'String' }, // 9 decls
+    "createDepositAddress": { 0: 'String' }, // 19 decls
+    "createEditOrderRequest": { 2: 'String' }, // 1 decls
+    "createGiftCode": { 0: 'String' }, // 1 decls
+    "createLimitBuyOrder": { 0: 'String' }, // 1 decls
+    "createLimitOrder": { 0: 'String' }, // 1 decls
+    "createLimitSellOrder": { 0: 'String' }, // 1 decls
+    "createMarketBuyOrder": { 0: 'String' }, // 1 decls
+    "createMarketBuyOrderWithCost": { 0: 'String' }, // 28 decls
+    "createMarketOrder": { 0: 'String' }, // 1 decls
+    "createMarketOrderWithCost": { 0: 'String' }, // 9 decls
+    "createMarketSellOrder": { 0: 'String' }, // 1 decls
+    "createMarketSellOrderWithCost": { 0: 'String' }, // 11 decls
+    "createOrderSettlementData": { 1: 'String', 2: 'String' }, // 1 decls
+    "createOrderWithTakeProfitAndStopLoss": { 0: 'String' }, // 1 decls
+    "createPostOnlyOrder": { 0: 'String' }, // 1 decls
+    "createPublicSubscriptionRequest": { 0: 'String' }, // 1 decls
+    "createReduceOnlyOrder": { 0: 'String' }, // 1 decls
+    "createSignedRequest": { 1: 'String' }, // 1 decls
+    "createStopLimitOrder": { 0: 'String' }, // 1 decls
+    "createStopLossOrder": { 0: 'String' }, // 1 decls
+    "createStopMarketOrder": { 0: 'String' }, // 1 decls
+    "createStopOrder": { 0: 'String' }, // 1 decls
+    "createSubAccount": { 0: 'String' }, // 4 decls
+    "createTakeProfitOrder": { 0: 'String' }, // 1 decls
+    "createTrailingAmountOrder": { 0: 'String' }, // 2 decls
+    "createTrailingPercentOrder": { 0: 'String' }, // 3 decls
+    "createTransferSettlementData": { 0: 'String' }, // 1 decls
+    "createTriggerOrder": { 0: 'String' }, // 1 decls
+    "createTwapOrder": { 0: 'String' }, // 3 decls
+    "createVault": { 0: 'String', 1: 'String' }, // 1 decls
+    "createWithdrawalSettlementData": { 1: 'String' }, // 1 decls
+    "deposit": { 0: 'String', 2: 'String' }, // 1 decls
+    "editContractOrder": { 0: 'String' }, // 1 decls
+    "editLimitBuyOrder": { 0: 'String', 1: 'String' }, // 1 decls
+    "editLimitOrder": { 0: 'String', 1: 'String' }, // 1 decls
+    "editLimitSellOrder": { 0: 'String', 1: 'String' }, // 1 decls
+    "editOrder": { 0: 'String' }, // 48 decls
+    "editOrderWithClientOrderId": { 0: 'String', 1: 'String' }, // 1 decls
+    "editSpotOrder": { 0: 'String' }, // 1 decls
+    "encodeData": { 0: 'String' }, // 1 decls
+    "encodeTriggerPriceType": { 0: 'String' }, // 2 decls
+    "encodeType": { 0: 'String' }, // 1 decls
+    "ethRpc": { 1: 'String' }, // 2 decls
+    "feeToPrecision": { 0: 'String' }, // 2 decls
+    "fetchADLRank": { 0: 'String' }, // 2 decls
+    "fetchBorrowRate": { 0: 'String' }, // 1 decls
+    "fetchBorrowRateHistory": { 0: 'String' }, // 5 decls
+    "fetchBuilderApprovals": { 0: 'String' }, // 1 decls
+    "fetchClosedOrder": { 0: 'String' }, // 4 decls
+    "fetchConvertQuote": { 0: 'String', 1: 'String' }, // 9 decls
+    "fetchConvertTrade": { 0: 'String' }, // 6 decls
+    "fetchCrossBorrowRate": { 0: 'String' }, // 7 decls
+    "fetchCurrency": { 0: 'String' }, // 1 decls
+    "fetchDeposit": { 0: 'String' }, // 7 decls
+    "fetchDepositMethodId": { 0: 'String' }, // 1 decls
+    "fetchDepositWithdrawFee": { 0: 'String' }, // 5 decls
+    "fetchDerivativesMarketLeverageTiers": { 0: 'String' }, // 1 decls
+    "fetchDerivativesOpenInterestHistory": { 0: 'String' }, // 1 decls
+    "fetchEvent": { 0: 'String' }, // 7 decls
+    "fetchGreeks": { 0: 'String' }, // 8 decls
+    "fetchIndexOHLCV": { 0: 'String' }, // 1 decls
+    "fetchIsolatedBorrowRate": { 0: 'String' }, // 4 decls
+    "fetchL2OrderBook": { 0: 'String' }, // 2 decls
+    "fetchLedgerEntry": { 0: 'String' }, // 3 decls
+    "fetchLeverage": { 0: 'String' }, // 27 decls
+    "fetchLiquidations": { 0: 'String' }, // 6 decls
+    "fetchLongShortRatio": { 0: 'String' }, // 1 decls
+    "fetchMarginMode": { 0: 'String' }, // 14 decls
+    "fetchMarkOHLCV": { 0: 'String' }, // 2 decls
+    "fetchMarket": { 0: 'String' }, // 1 decls
+    "fetchMarketLeverageTiers": { 0: 'String' }, // 10 decls
+    "fetchOpenInterestHistory": { 0: 'String' }, // 9 decls
+    "fetchOpenOrder": { 0: 'String' }, // 11 decls
+    "fetchOption": { 0: 'String' }, // 7 decls
+    "fetchOptionChain": { 0: 'String' }, // 5 decls
+    "fetchOrderStatus": { 0: 'String' }, // 3 decls
+    "fetchOrderTrades": { 0: 'String' }, // 33 decls
+    "fetchOrderWithClientOrderId": { 0: 'String' }, // 1 decls
+    "fetchPaginatedCallCursor": { 0: 'String' }, // 1 decls
+    "fetchPaginatedCallDeterministic": { 0: 'String' }, // 1 decls
+    "fetchPaginatedCallIncremental": { 0: 'String' }, // 1 decls
+    "fetchPortfolioDetails": { 0: 'String' }, // 1 decls
+    "fetchPremiumIndexOHLCV": { 0: 'String' }, // 1 decls
+    "fetchPrivateTradingFee": { 0: 'String' }, // 1 decls
+    "fetchPublicTradingFee": { 0: 'String' }, // 1 decls
+    "fetchSpotOrderTrades": { 0: 'String' }, // 1 decls
+    "fetchTicker2": { 0: 'String' }, // 1 decls
+    "fetchTrades": { 0: 'String' }, // 96 decls
+    "fetchTradingFee": { 0: 'String' }, // 38 decls
+    "fetchTransactionFee": { 0: 'String' }, // 3 decls
+    "fetchTransfer": { 0: 'String' }, // 4 decls
+    "fetchVolatilityHistory": { 0: 'String' }, // 2 decls
+    "fetchWallet": { 0: 'String' }, // 1 decls
+    "fetchWithdrawAddresses": { 0: 'String' }, // 1 decls
+    "fetchWithdrawal": { 0: 'String' }, // 6 decls
+    "filterTransfersByType": { 1: 'String' }, // 1 decls
+    "findSubscription": { 1: 'String' }, // 1 decls
+    "findSwapMarketByWsBaseQuote": { 0: 'String' }, // 1 decls
+    "fromString": { 0: 'String' }, // 1 decls
+    "future": { 0: 'String' }, // 1 decls
+    "futuresTransfer": { 0: 'String' }, // 1 decls
+    "getBaseDomainFromUrl": { 0: 'String' }, // 1 decls
+    "getDexFromSymbols": { 0: 'String' }, // 1 decls
+    "getEncoder": { 0: 'String' }, // 1 decls
+    "getEvent": { 0: 'String' }, // 1 decls
+    "getExceptionsByUrl": { 1: 'String' }, // 1 decls
+    "getExtendedStarkAmount": { 0: 'String' }, // 1 decls
+    "getExtendedStringToFelt": { 0: 'String' }, // 1 decls
+    "getOrderBookLimitByMarketType": { 0: 'String' }, // 1 decls
+    "handleAccountIndex": { 1: 'String', 2: 'String', 3: 'String' }, // 1 decls
+    "handleApiKeyIndex": { 1: 'String', 2: 'String', 3: 'String' }, // 1 decls
+    "handleDeriveSubaccountId": { 0: 'String' }, // 1 decls
+    "handleDeriveWalletAddress": { 0: 'String' }, // 1 decls
+    "handleNetworkIdAndParams": { 1: 'String' }, // 1 decls
+    "handleOption": { 1: 'String' }, // 1 decls
+    "handleOptionAndParams2": { 2: 'String', 3: 'String' }, // 3 decls
+    "handleOriginAndSingleAddress": { 0: 'String' }, // 1 decls
+    "handlePaginationParams": { 0: 'String' }, // 1 decls
+    "handleParamBool": { 1: 'String' }, // 1 decls
+    "handleParamBool2": { 1: 'String', 2: 'String' }, // 1 decls
+    "handleParamInteger": { 1: 'String' }, // 1 decls
+    "handleParamInteger2": { 1: 'String', 2: 'String' }, // 1 decls
+    "handleParamString": { 1: 'String' }, // 3 decls
+    "handleParamString2": { 1: 'String', 2: 'String' }, // 3 decls
+    "handlePortfolioAndParams": { 0: 'String' }, // 1 decls
+    "handleTickerAndBidAsk": { 0: 'String' }, // 1 decls
+    "handleUTAAndParams": { 1: 'String' }, // 1 decls
+    "handleUntilOption": { 0: 'String' }, // 1 decls
+    "handleUntilOptionString": { 0: 'String' }, // 1 decls
+    "hashStruct": { 0: 'String' }, // 1 decls
+    "helperForWatchMultipleConstruct": { 0: 'String' }, // 1 decls
+    "integerPrecisionToAmount": { 0: 'String' }, // 1 decls
+    "mintTokenizedAsset": { 0: 'String', 1: 'String' }, // 1 decls
+    "modifyMarginHelper": { 0: 'String' }, // 17 decls
+    "off": { 0: 'String' }, // 1 decls
+    "on": { 0: 'String' }, // 2 decls
+    "once": { 0: 'String' }, // 2 decls
+    "orderRequestWs": { 0: 'String' }, // 1 decls
+    "parseBorrowRateHistory": { 1: 'String' }, // 1 decls
+    "parseLeverageFromSetting": { 0: 'String' }, // 1 decls
+    "parseMarginModeFromSetting": { 0: 'String' }, // 1 decls
+    "parseMarginModeType": { 0: 'String' }, // 2 decls
+    "parseOutcomeInputSideHint": { 0: 'String' }, // 1 decls
+    "parseTradeType": { 0: 'String' }, // 1 decls
+    "parseWsTimestamp": { 1: 'String' }, // 1 decls
+    "pow": { 0: 'String' }, // 2 decls
+    "priceToPredictionPrecision": { 0: 'String' }, // 1 decls
+    "queryTransactionsByEventType": { 0: 'String', 1: 'String', 2: 'String' }, // 1 decls
+    "redeemTokenizedAsset": { 0: 'String', 1: 'String' }, // 1 decls
+    "reduceMargin": { 0: 'String' }, // 23 decls
+    "removeMarketSuffix": { 0: 'String' }, // 1 decls
+    "repayCrossMargin": { 0: 'String' }, // 8 decls
+    "repayIsolatedMargin": { 0: 'String', 1: 'String' }, // 7 decls
+    "repayMargin": { 0: 'String' }, // 2 decls
+    "requestWalletHistoryRows": { 0: 'String' }, // 1 decls
+    "resolve": { 1: 'String' }, // 1 decls
+    "resolveAuthType": { 0: 'String' }, // 1 decls
+    "resolveOutcomeInput": { 0: 'String' }, // 1 decls
+    "reusableFuture": { 0: 'String' }, // 1 decls
+    "revokeApiKey": { 0: 'String' }, // 1 decls
+    "revokeBuilderCode": { 0: 'String' }, // 1 decls
+    "sendEvmTransaction": { 4: 'String' }, // 1 decls
+    "setAgentAbstraction": { 0: 'String' }, // 1 decls
+    "setMargin": { 0: 'String' }, // 7 decls
+    "setOrderBookSnapshot": { 2: 'String' }, // 1 decls
+    "setUserAbstraction": { 0: 'String' }, // 1 decls
+    "signAndCancelAllOrders": { 0: 'String' }, // 1 decls
+    "signAndCancelOrder": { 0: 'String' }, // 1 decls
+    "signAndCreateOrder": { 0: 'String' }, // 1 decls
+    "stringAbs": { 0: 'String' }, // 1 decls
+    "stringAdd": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringDiv": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringEq": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringEquals": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringGe": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringGt": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringLe": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringLt": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringMax": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringMin": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringMod": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringMul": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringNeg": { 0: 'String' }, // 1 decls
+    "stringOr": { 0: 'String', 1: 'String' }, // 1 decls
+    "stringSub": { 0: 'String', 1: 'String' }, // 1 decls
+    "subscribeOpinionChannel": { 1: 'String' }, // 1 decls
+    "tagToSlug": { 0: 'String' }, // 1 decls
+    "tokenizedConvertStatus": { 0: 'String', 1: 'String' }, // 1 decls
+    "tradeRequest": { 0: 'String' }, // 2 decls
+    "transfer": { 0: 'String' }, // 48 decls
+    "transferBetweenMainAndSubAccount": { 0: 'String' }, // 1 decls
+    "transferBetweenSubAccounts": { 0: 'String' }, // 1 decls
+    "transferClassic": { 0: 'String' }, // 1 decls
+    "transferIn": { 0: 'String' }, // 2 decls
+    "transferOut": { 0: 'String' }, // 4 decls
+    "transferUta": { 0: 'String' }, // 1 decls
+    "unWatchChannel": { 3: 'String' }, // 1 decls
+    "unWatchChannels": { 0: 'String' }, // 1 decls
+    "unWatchTopics": { 1: 'String' }, // 1 decls
+    "updateSpotCurrencyCode": { 0: 'String' }, // 1 decls
+    "uuid5": { 0: 'String' }, // 1 decls
+    "verifyGiftCode": { 0: 'String' }, // 1 decls
+};
+
+// the Java type this parameter is emitted with, or undefined when the printer's Object
+// must stay. Positional, and only for a parameter the printed signature really carries
+// (optional parameters print into `Object... optionalArgs`).
+function javaParameterTypeOf (printer, node) {
+    if (node === undefined || !ts.isParameter (node)) {
+        return undefined;
+    }
+    const method = node.parent;
+    if (method === undefined || !ts.isMethodDeclaration (method) || method.name === undefined) {
+        return undefined;
+    }
+    if (node.initializer !== undefined || node.questionToken !== undefined) {
+        return undefined; // prints into Object... optionalArgs
+    }
+    const positions = JAVA_PARAM_STRING_TYPES[String (method.name.escapedText)];
+    if (positions === undefined) {
+        return undefined;
+    }
+    const index = method.parameters.indexOf (node);
+    const javaType = positions[index];
+    if (javaType === undefined) {
+        return undefined;
+    }
+    for (let i = 0; i < index; i++) {
+        const earlier = method.parameters[i];
+        if (earlier.initializer !== undefined || earlier.questionToken !== undefined) {
+            return undefined; // an optional parameter would have shifted the printed position
+        }
+    }
+    return javaType;
+}
+
+// install the parameter slice. Wraps printParameter() — no other section touches it, so
+// the wrapper chains with every other patch without an ordering constraint.
+export function patchJavaParameterTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printParameter !== 'function' || printer._javaParameterTypesPatched) {
+        return;
+    }
+    printer._javaParameterTypesPatched = true;
+    const upstream = printer.printParameter.bind (printer);
+    printer.printParameter = function (node, defaultValue) {
+        const printed = upstream (node, defaultValue);
+        const javaType = javaParameterTypeOf (printer, node);
+        if (javaType === undefined || !printed.startsWith ('Object ')) {
+            return printed; // untyped position, or the printer already named a type
+        }
+        return javaType + printed.slice ('Object'.length);
+    };
 }

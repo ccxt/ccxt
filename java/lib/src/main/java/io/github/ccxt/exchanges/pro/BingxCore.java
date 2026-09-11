@@ -376,7 +376,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         }}, market);
     }
 
-    public Object getOrderBookLimitByMarketType(Object marketType, Object... optionalArgs)
+    public Object getOrderBookLimitByMarketType(String marketType, Object... optionalArgs)
     {
         Object limit = Helpers.getArg(optionalArgs, 0, null);
         if (Helpers.isTrue(Helpers.isEqual(limit, null)))

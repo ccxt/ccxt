@@ -216,7 +216,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
      * @param {string} name websocket endpoint name
      * @param {object} [params] extra parameters specific to the hitbtc api
      */
-    public java.util.concurrent.CompletableFuture<Object> tradeRequest(Object name, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> tradeRequest(String name, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

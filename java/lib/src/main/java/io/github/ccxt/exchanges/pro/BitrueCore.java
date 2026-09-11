@@ -483,7 +483,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         client.resolve(orderbook, messageHash);
     }
 
-    public Object findSwapMarketByWsBaseQuote(Object wsBaseQuote)
+    public Object findSwapMarketByWsBaseQuote(String wsBaseQuote)
     {
         Object markets = this.markets;
         if (Helpers.isTrue(Helpers.isEqual(markets, null)))

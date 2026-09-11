@@ -123,7 +123,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         }});
     }
 
-    public Object orderRequestWs(Object method, Object symbol, Object type, Object request, Object amount, Object... optionalArgs)
+    public Object orderRequestWs(String method, Object symbol, Object type, Object request, Object amount, Object... optionalArgs)
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});

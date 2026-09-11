@@ -1071,7 +1071,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
 
     }
 
-    public void handleTickerAndBidAsk(Object objectName, Client client, Object message)
+    public void handleTickerAndBidAsk(String objectName, Client client, Object message)
     {
         Object channel = ((String)this.safeString(message, "channel"));
         Object parts = Helpers.split(channel, ".");
