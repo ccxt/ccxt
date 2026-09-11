@@ -205,6 +205,95 @@ const FIELD_FUNCTION_NAMES = new Set ([ 'parse8601', 'iso8601' ]);
 // ===== helpers =====
 
 const JAVA_ARRAY_TYPE = 'java.util.List<Object>';
+const JAVA_ARRAY_CAST = '(java.util.List<Object>)';
+
+// ===== 4. locals fed by string/array METHOD calls and Math builtins =====
+//
+// The base printCallExpression rewrites (the Java overrides are printSplitCall /
+// printJoinCall / printIncludesCall / ...) lower `x.<method>(...)` to a Java expression
+// whose printed value is ALREADY one concrete box at runtime:
+//
+//   x.toUpperCase/toLowerCase/trim () -> ((String)x).<method>()                  String
+//   x.startsWith / endsWith (y)       -> ((String)x).startsWith(((String)y))     Boolean
+//   x.search (y)                      -> ((String)x).indexOf(y)                  Integer
+//   x.split (sep)                     -> Helpers.split(x, sep)                   List (declared Object -> cast)
+//   x.join (sep)                      -> String.join((String)sep, (List<String>)x)  String
+//   x.replace / replaceAll (a, b)     -> Helpers.replace/replaceAll((String)x, ...) String (null in -> null out)
+//   x.slice (a, b)                    -> Helpers.slice(x, a, b)                 String (declared String; null receiver -> null)
+//   x.padEnd / padStart (n, s)        -> Helpers.padEnd/padStart(...)            String (throws on a null receiver)
+//   x.indexOf (y)                     -> Helpers.getIndexOf(x, y)               int
+//   x.includes (y)                    -> x.contains(y)                          boolean
+//   x.toString ()                     -> String.valueOf(x)                      String
+//   x.length                          -> Helpers.getArrayLength(x) / ((String)x).length()  int
+//   Math.abs (a)                      -> Helpers.mathAbs(Double.parseDouble(Helpers.toString(a)))  Double (declared Object -> cast)
+//   Math.pow (a, b)                   -> Helpers.mathPow(...)                   double
+//   Math.floor / ceil (a)             -> (Math.floor(...)) / Math.ceil(...)     double
+//   Math.round (a)                    -> Math.round(...)                        long
+//
+// Every entry lists the prefix (or a regex) the printed value must start with — defense
+// in depth, it proves the printer lowered THIS call the way the table assumes — plus the
+// accepted TS argument counts (the dispatch switches on the count).
+//
+// Deliberately absent (audited against the printer and the tree census):
+//   * Math.min / Math.max -> Helpers.mathMin/mathMax hand the ORIGINAL operand object
+//     back (any box) and null when either argument is null; no single type names that
+//     box (same exclusion as build/csharp-local-types.js);
+//   * x.concat(y) -> Helpers.concat returns a, b or a fresh list depending on the input
+//     shapes (and throws for two non-lists) — mixed box;
+//   * String(x) / Number(x) — the printer has no rule for a bare String()/Number() call
+//     (CallExpressionReplacements maps only parseInt/parseFloat) and no call site in
+//     ts/src reaches generated Java;
+//   * x.substring(...) is not rewritten by the printer (it prints as a receiver-method
+//     call whose receiver must already be String-typed) and no generated local is
+//     initialised from one (census: 0 `Object x = ....substring(` in the java tree).
+
+const RECEIVER_METHOD_LOCAL_ENTRIES = {
+    'toUpperCase': { type: 'String', prefixes: [ '((String)' ], args: [ 0 ], nonNull: true },
+    'toLowerCase': { type: 'String', prefixes: [ '((String)' ], args: [ 0 ], nonNull: true },
+    'trim':        { type: 'String', prefixes: [ '((String)' ], args: [ 0 ], nonNull: true },
+    'search':      { type: 'Integer', prefixes: [ '((String)' ], args: [ 1 ] },
+    'startsWith':  { type: 'Boolean', prefixes: [ '((String)' ], args: [ 1 ] },
+    'endsWith':    { type: 'Boolean', prefixes: [ '((String)' ], args: [ 1 ] },
+    'split':       { type: JAVA_ARRAY_TYPE, cast: JAVA_ARRAY_CAST, prefixes: [ 'Helpers.split(' ], args: [ 1, 2 ] },
+    'join':        { type: 'String', prefixes: [ 'String.join(' ], args: [ 1 ], nonNull: true },
+    'replace':     { type: 'String', prefixes: [ 'Helpers.replace(' ], args: [ 1, 2 ], nonNull: false },
+    'replaceAll':  { type: 'String', prefixes: [ 'Helpers.replaceAll(' ], args: [ 1, 2 ], nonNull: false },
+    'slice':       { type: 'String', prefixes: [ 'Helpers.slice(' ], args: [ 1, 2 ], nonNull: false },
+    'padEnd':      { type: 'String', prefixes: [ 'Helpers.padEnd(' ], args: [ 2 ], nonNull: true },
+    'padStart':    { type: 'String', prefixes: [ 'Helpers.padStart(' ], args: [ 2 ], nonNull: true },
+    'indexOf':     { type: 'Integer', prefixes: [ 'Helpers.getIndexOf(' ], args: [ 1, 2 ] },
+    'includes':    { type: 'Boolean', match: /\.contains\(/, args: [ 1, 2 ] },
+    'toString':    { type: 'String', prefixes: [ 'String.valueOf(' ], args: [ 0 ], nonNull: true },
+};
+
+// Math.<name>(...) -> the printer's Java rewrite (see the block comment above)
+const MATH_LOCAL_ENTRIES = {
+    // Helpers.mathAbs(Double.parseDouble(Helpers.toString(a))) — the argument is always a
+    // primitive double, so the helper's Double branch runs and Math.abs returns a double
+    // box. The helper is declared Object -> the declaration carries the checkcast.
+    'abs':   { type: 'Double', cast: '(Double)', prefixes: [ 'Helpers.mathAbs(' ], args: [ 1 ] },
+    'pow':   { type: 'Double', prefixes: [ 'Helpers.mathPow(' ], args: [ 2 ] },
+    'floor': { type: 'Double', prefixes: [ '(Math.floor(' ], args: [ 1 ] },
+    'ceil':  { type: 'Double', prefixes: [ 'Math.ceil(' ], args: [ 1 ] },
+    'round': { type: 'Long', prefixes: [ 'Math.round(' ], args: [ 1 ] },
+};
+
+// `x.length` (PropertyAccess, no call): ((String)x).length() when the checker types the
+// receiver as a string, else Helpers.getArrayLength(x) — an int on both paths
+const LENGTH_LOCAL_ENTRY = { type: 'Integer', prefixes: [ 'Helpers.getArrayLength(', '((String)' ] };
+
+// the printed initializer must be the shape the entry's type was derived from: a fixed
+// prefix list (`Helpers.split(`, `((String)`, ...) or a regex for the rewrites whose
+// print starts with the receiver's own text (`x.includes(y)` -> `<receiver>.contains(y)`)
+function printedValueMatches (info, printedValue) {
+    if (info.prefixes !== undefined) {
+        return info.prefixes.some ((prefix) => printedValue.startsWith (prefix));
+    }
+    if (info.match !== undefined) {
+        return info.match.test (printedValue);
+    }
+    return printedValue.startsWith ('this.');
+}
 
 function isThisCall (node) {
     return node !== undefined && ts.isCallExpression (node)
@@ -364,10 +453,41 @@ function returnCastFor (printer, node, methodName) {
 
 // ===== local narrowing (initializer -> Java type) =====
 
+// a local initialised from a non-`this` call the printer rewrites to a known Java shape
+// (string/array method calls, Math builtins) or from a `x.length` read
+function receiverMethodLocalType (initializer) {
+    if (ts.isPropertyAccessExpression (initializer)) {
+        return initializer.name.escapedText === 'length'
+            && initializer.expression.kind !== ts.SyntaxKind.ThisKeyword
+            ? LENGTH_LOCAL_ENTRY
+            : undefined;
+    }
+    if (!ts.isCallExpression (initializer)) {
+        return undefined;
+    }
+    const callee = initializer.expression;
+    if (!ts.isPropertyAccessExpression (callee)
+        || callee.expression.kind === ts.SyntaxKind.ThisKeyword
+        || callee.expression.kind === ts.SyntaxKind.SuperKeyword) {
+        return undefined;
+    }
+    const name = callee.name.escapedText;
+    const argCount = initializer.arguments?.length ?? 0;
+    if (ts.isIdentifier (callee.expression) && callee.expression.escapedText === 'Math') {
+        const math = MATH_LOCAL_ENTRIES[name];
+        return math !== undefined && math.args.includes (argCount) ? math : undefined;
+    }
+    const entry = RECEIVER_METHOD_LOCAL_ENTRIES[name];
+    return entry !== undefined && entry.args.includes (argCount) ? entry : undefined;
+}
+
 function localInitializerType (printer, declaration) {
     const initializer = unwrapParens (declaration.initializer);
-    if (initializer === undefined || !isThisCall (initializer)) {
+    if (initializer === undefined) {
         return undefined;
+    }
+    if (!isThisCall (initializer)) {
+        return receiverMethodLocalType (initializer);
     }
     const name = initializer.expression.name.escapedText;
     if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
@@ -465,20 +585,62 @@ const STRING_RECEIVER_METHODS = new Set ([
     'codePointAt', 'search', 'toString', 'valueOf', 'localeCompare', 'match', 'normalize',
 ]);
 const LIST_RECEIVER_METHODS = new Set ([
-    'push', 'pop', 'shift', 'unshift', 'splice', 'slice', 'sort', 'reverse', 'join', 'concat',
+    'push', 'pop', 'shift', 'unshift', 'splice', 'slice', 'sort', 'reverse', 'concat',
     'indexOf', 'lastIndexOf', 'includes', 'fill', 'copyWithin', 'map', 'filter', 'reduce',
     'reduceRight', 'forEach', 'some', 'every', 'find', 'findIndex', 'findLast', 'findLastIndex',
     'flat', 'flatMap', 'keys', 'values', 'entries', 'toString', 'at', 'remove', 'clear',
     'add', 'size', 'isEmpty', 'get', 'set', 'insert', 'append',
 ]);
+// `x.join(sep)` prints `String.join((String)sep, (java.util.List<String>)x)` — the
+// checkcast to List<String> is inconvertible from a List<Object>-typed local
+// (probe-verified), so a join receiver must never carry the list family.
 const LONG_RECEIVER_METHODS = new Set ([ 'toString', 'valueOf', 'intValue', 'longValue', 'doubleValue' ]);
+// the boxes the method-table families add: only the Object-level methods are provably
+// legal on the box (Integer/Long/Double/Boolean all have the primitive accessor + the
+// zero-arg `toString` the printer rewrites to String.valueOf)
+const INTEGER_RECEIVER_METHODS = new Set ([ 'toString', 'intValue', 'longValue', 'doubleValue' ]);
+const DOUBLE_RECEIVER_METHODS = new Set ([ 'toString', 'doubleValue', 'intValue', 'longValue' ]);
+const BOOLEAN_RECEIVER_METHODS = new Set ([ 'toString', 'booleanValue' ]);
+
+// argument positions the printer hard-casts: `(String)` — startsWith/endsWith arg 0,
+// replace/replaceAll args 1+2, join arg 0, padEnd/padStart arg 1; `(Number)` — the
+// padEnd/padStart length. A narrowed local in one of those positions must be castable
+// to the cast type (`(String) integer` / `(Number) str` are inconvertible in javac).
+const STRING_CAST_ARGUMENT_POSITIONS = {
+    'startsWith': [ 0 ], 'endsWith': [ 0 ], 'replace': [ 1, 2 ], 'replaceAll': [ 1, 2 ],
+    'join': [ 0 ], 'padEnd': [ 1 ], 'padStart': [ 1 ],
+};
+const NUMBER_CAST_ARGUMENT_POSITIONS = { 'padEnd': [ 0 ], 'padStart': [ 0 ] };
+
+function argumentCastIsSafe (method, index, javaType) {
+    const stringPositions = STRING_CAST_ARGUMENT_POSITIONS[method];
+    if (stringPositions !== undefined && stringPositions.includes (index)) {
+        return javaType === 'String';
+    }
+    const numberPositions = NUMBER_CAST_ARGUMENT_POSITIONS[method];
+    if (numberPositions !== undefined && numberPositions.includes (index)) {
+        return javaType === 'Integer' || javaType === 'Long' || javaType === 'Double';
+    }
+    return true;
+}
 
 function receiverCallIsSafe (method, javaType) {
     if (javaType === 'String') {
+        // `x.join(sep)` prints `(java.util.List<String>)x`: a String receiver is
+        // inconvertible there, so it is deliberately NOT in STRING_RECEIVER_METHODS
         return STRING_RECEIVER_METHODS.has (method);
     }
     if (javaType === 'Long') {
         return LONG_RECEIVER_METHODS.has (method);
+    }
+    if (javaType === 'Integer') {
+        return INTEGER_RECEIVER_METHODS.has (method);
+    }
+    if (javaType === 'Double') {
+        return DOUBLE_RECEIVER_METHODS.has (method);
+    }
+    if (javaType === 'Boolean') {
+        return BOOLEAN_RECEIVER_METHODS.has (method);
     }
     if (javaType === JAVA_ARRAY_TYPE) {
         return LIST_RECEIVER_METHODS.has (method);
@@ -530,7 +692,7 @@ function feedsInheritedAsyncCall (printer, n, scope) {
 }
 
 // reject the refinement when a later use needs the local to stay `Object`
-function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile) {
+function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, nonNull) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
         return false;
@@ -558,6 +720,29 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile) 
             if (!receiverCallIsSafe (method, javaType)) {
                 return false;
             }
+        }
+        if (ts.isCallExpression (parent)) {
+            // the identifier is a plain argument of a call: the printer hard-casts some
+            // argument positions (`(String)` in startsWith/endsWith/replace/replaceAll/
+            // join/padEnd/padStart, `(Number)` in the pad length) and an unrelated
+            // narrowed box is an inconvertible cast (verified against javac)
+            const at = parent.arguments.indexOf (n);
+            if (at !== -1 && ts.isPropertyAccessExpression (parent.expression)) {
+                const method = String (parent.expression.name.escapedText);
+                if (!argumentCastIsSafe (method, at, javaType)) {
+                    return false;
+                }
+            }
+        }
+        if (ts.isBinaryExpression (parent) && parent.left === n
+            && parent.operatorToken.kind === ts.SyntaxKind.PlusToken
+            && nonNull === false) {
+            // `x + y` prints `Helpers.add(x, y)`: a narrowed String operand switches the
+            // overload to add(String, Object), which returns "nullnull" where the Object
+            // overload returned null when BOTH operands are null (Helpers.add). Only a
+            // provably non-null String family may sit on the left; a nullable one is left
+            // as Object, exactly like every other shape the narrowed type cannot satisfy.
+            return false;
         }
         if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
             const op = parent.operator;
@@ -604,7 +789,7 @@ function javaLocalTypeOf (printer, declaration) {
     const sourceName = declaration.name.escapedText;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
-    if (!isSafeToNarrow (printer, declaration, sourceName, info.type, isProFile)) {
+    if (!isSafeToNarrow (printer, declaration, sourceName, info.type, isProFile, info.nonNull)) {
         return undefined;
     }
     return info;
@@ -672,7 +857,7 @@ export function installJavaLocalTypes (transpiler) {
             return printed;
         }
         const value = printed.slice (at + marker.length);
-        if (!value.startsWith ('this.')) {
+        if (!printedValueMatches (info, value)) {
             return printed; // unexpected shape — leave it as the printer emitted it
         }
         narrowed.set (declaration, info.type);
