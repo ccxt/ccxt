@@ -7388,7 +7388,8 @@ public Object describe()
             // close (using average)
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(close, null)) && Helpers.isTrue(!Helpers.isEqual(average, null))))
             {
-                close = Precise.stringMul(average, "2");
+                // average is the midpoint of open and close, so twice it is their sum
+                close = Precise.stringSub(Precise.stringMul(average, "2"), open);
             }
             // average
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(average, null)) && Helpers.isTrue(!Helpers.isEqual(close, null))))
