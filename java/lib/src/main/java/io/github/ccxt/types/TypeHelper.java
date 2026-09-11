@@ -39,6 +39,36 @@ public final class TypeHelper {
         return (List<Object>) obj;
     }
 
+    /**
+     * Converts the raw `{ symbol: { timeframe: OHLCV[] } }` box returned by
+     * watchOHLCVForSymbols() into the nested typed map the typed WS wrappers return.
+     * Mirrors the C# port's Helper.ConvertToDictionaryOHLCVList. A null at any level
+     * stays null (never defaulted), like every other conversion in this class.
+     */
+    public static Map<String, Map<String, List<OHLCV>>> toTypedOhlcvBySymbol(Object raw) {
+        if (raw == null) return null;
+        Map<String, Object> data = (Map<String, Object>) raw;
+        Map<String, Map<String, List<OHLCV>>> result = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> symbolEntry : data.entrySet()) {
+            Object byTimeframe = symbolEntry.getValue();
+            if (byTimeframe == null) {
+                result.put(symbolEntry.getKey(), null);
+                continue;
+            }
+            Map<String, List<OHLCV>> converted = new LinkedHashMap<>();
+            for (Map.Entry<String, Object> timeframeEntry : ((Map<String, Object>) byTimeframe).entrySet()) {
+                Object rows = timeframeEntry.getValue();
+                if (rows == null) {
+                    converted.put(timeframeEntry.getKey(), null);
+                    continue;
+                }
+                converted.put(timeframeEntry.getKey(), ((List<Object>) rows).stream().map(OHLCV::new).collect(java.util.stream.Collectors.toList()));
+            }
+            result.put(symbolEntry.getKey(), converted);
+        }
+        return result;
+    }
+
     public static Map<String, Object> getInfo(Object data) {
         if (data == null) return null;
         Map<String, Object> map = (Map<String, Object>) data;
@@ -71,6 +101,46 @@ public final class TypeHelper {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    // --- Idempotent nominal-type lifts ---------------------------------------
+    //
+    // Used by the typed exchange accessors (getMarket / getCurrency / getTickers /
+    // getMarkets / getCurrencies in build/generateJavaWrappers.ts) to name the
+    // shape a raw unified value already has.
+    //
+    // Idempotent on purpose: a value that is already the nominal type is returned
+    // as-is instead of being re-wrapped. That keeps the accessors correct if the
+    // underlying cache is ever narrowed to the nominal type, and matches the C#
+    // port's To*/From* helpers (cs/ccxt/base/Exchange.TypedCores.cs).
+    //
+    // null in, null out: an absent value stays absent rather than becoming an
+    // empty object (never fabricate data). A non-null value that is not a Map is
+    // passed to the constructor, which casts and therefore fails loudly — the
+    // cache invariants say these are maps, so anything else is a real bug.
+
+    @SuppressWarnings("unchecked")
+    public static MarketInterface toMarket(Object raw) {
+        if (raw == null || raw instanceof MarketInterface) {
+            return (MarketInterface) raw;
+        }
+        return new MarketInterface(raw);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static CurrencyInterface toCurrency(Object raw) {
+        if (raw == null || raw instanceof CurrencyInterface) {
+            return (CurrencyInterface) raw;
+        }
+        return new CurrencyInterface(raw);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Ticker toTicker(Object raw) {
+        if (raw == null || raw instanceof Ticker) {
+            return (Ticker) raw;
+        }
+        return new Ticker(raw);
     }
 
     // Index-based extraction for array types like OHLCV

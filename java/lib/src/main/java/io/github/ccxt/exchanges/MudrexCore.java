@@ -244,7 +244,7 @@ public class MudrexCore extends MudrexApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object apiUrls = this.safeDict(this.urls, "api", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> apiUrls = (java.util.Map<String, Object>) this.safeDict(this.urls, "api", new java.util.HashMap<String, Object>() {{}});
         String base = this.safeString(apiUrls, api);
         if (Helpers.isTrue(Helpers.isEqual(base, null)))
         {
@@ -324,11 +324,11 @@ public class MudrexCore extends MudrexApi
         {
             return null;
         }
-        Object success = this.safeBool(response, "success", true);
+        Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
-            Object errors = this.safeList(response, "errors", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(errors, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> errors = (java.util.List<Object>) this.safeList(response, "errors", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(errors, 0, new java.util.HashMap<String, Object>() {{}});
             String text = this.safeString(first, "text", this.json(response));
             String errCode = this.safeString(first, "code");
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), text, Helpers.add(Helpers.add(this.id, " "), text));
@@ -435,7 +435,7 @@ public class MudrexCore extends MudrexApi
             }
             Helpers.addElementToObject(request, "start_time", startTime);
             Helpers.addElementToObject(request, "end_time", endTime);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))
             {
                 response = (this.marketGetPriceMarkKline(this.extend(request, parameters))).join();
@@ -453,9 +453,9 @@ public class MudrexCore extends MudrexApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object assetTicks = this.safeDict(data, "asset_ticks", new java.util.HashMap<String, Object>() {{}});
-            Object ohlcvs = this.safeList(assetTicks, ((String)assetPair).toLowerCase(), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> assetTicks = (java.util.Map<String, Object>) this.safeDict(data, "asset_ticks", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> ohlcvs = (java.util.List<Object>) this.safeList(assetTicks, ((String)assetPair).toLowerCase(), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
 
@@ -473,7 +473,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarkOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -498,7 +498,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -514,9 +514,9 @@ public class MudrexCore extends MudrexApi
                 put( "is_symbol", 1 );
             }};
             java.util.Map<String, Object> response = (this.privateGetFuturesAssetId(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -529,7 +529,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures](https://docs.ccxt.com/#/?id=ticker-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -562,7 +562,7 @@ public class MudrexCore extends MudrexApi
                 Helpers.addElementToObject(resultTickers, symbol, this.parseTicker(t, m));
             }
             return this.filterByArrayTickers(resultTickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -769,7 +769,7 @@ public class MudrexCore extends MudrexApi
             String requested = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trade_currency", "tradeCurrency", "currency")));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trade_currency", "tradeCurrency", "currency")));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(requested, null)))
@@ -802,7 +802,7 @@ public class MudrexCore extends MudrexApi
 
     public java.util.Map<String, Object> parseBalance(Object response)
     {
-        Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
         String currency = this.safeString(response, "currency", "USDT");
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -833,7 +833,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure](https://docs.ccxt.com/#/?id=leverage-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -849,7 +849,7 @@ public class MudrexCore extends MudrexApi
                 put( "is_symbol", 1 );
             }};
             java.util.Map<String, Object> response = (this.privateGetFuturesAssetIdLeverage(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "symbol", symbol );
@@ -925,7 +925,7 @@ public class MudrexCore extends MudrexApi
      * @param {string} [params.trade_currency] the settlement currency for the order
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -987,8 +987,8 @@ public class MudrexCore extends MudrexApi
                 put( "reduce_only", MudrexCore.this.safeBool(finalParameters, "reduceOnly", false) );
             }};
             // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
-            Object takeProfit = this.safeDict(parameters, "takeProfit");
-            Object stopLoss = this.safeDict(parameters, "stopLoss");
+            java.util.Map<String, Object> takeProfit = (java.util.Map<String, Object>) this.safeDict(parameters, "takeProfit");
+            java.util.Map<String, Object> stopLoss = (java.util.Map<String, Object>) this.safeDict(parameters, "stopLoss");
             if (Helpers.isTrue(!Helpers.isEqual(takeProfit, null)))
             {
                 Helpers.addElementToObject(request, "is_takeprofit", true);
@@ -1010,7 +1010,7 @@ public class MudrexCore extends MudrexApi
             java.util.Map<String, Object> order = this.parseOrder(merged, market);
             Helpers.addElementToObject(order, "info", data);
             return order;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1028,7 +1028,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, Object symbol2, Object type, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1059,7 +1059,7 @@ public class MudrexCore extends MudrexApi
             java.util.Map<String, Object> response = (this.privatePatchFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1173,7 +1173,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1195,7 +1195,7 @@ public class MudrexCore extends MudrexApi
             java.util.Map<String, Object> response = (this.privateDeleteFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1209,7 +1209,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1231,7 +1231,7 @@ public class MudrexCore extends MudrexApi
             java.util.Map<String, Object> response = (this.privateGetFuturesOrdersOrderId(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             return this.parseOrder(data, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1266,7 +1266,7 @@ public class MudrexCore extends MudrexApi
                 Helpers.addElementToObject(q, "limit", limit);
             }
             java.util.Map<String, Object> request = this.extend(q, parameters);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(state, "closed")))
             {
                 response = (this.privateGetFuturesOrdersHistory(request)).join();
@@ -1302,7 +1302,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1312,7 +1312,7 @@ public class MudrexCore extends MudrexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState("closed", symbol, since, limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1327,7 +1327,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1337,7 +1337,7 @@ public class MudrexCore extends MudrexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState("open", symbol, since, limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1352,7 +1352,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1362,7 +1362,7 @@ public class MudrexCore extends MudrexApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState("closed", symbol, since, limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1376,7 +1376,7 @@ public class MudrexCore extends MudrexApi
      * @param {string} [params.trade_currency] the settlement currency to query positions for
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1405,7 +1405,7 @@ public class MudrexCore extends MudrexApi
                 ((java.util.List<Object>)outPos).add(pos);
             }
             return this.filterByArrayPositions(outPos, "symbol", symbols, false);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -1421,7 +1421,7 @@ public class MudrexCore extends MudrexApi
      * @param {string} [params.trade_currency] the settlement currency to filter positions by
      * @returns {object[]} a list of [position structures](https://docs.ccxt.com/#/?id=position-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1462,10 +1462,10 @@ public class MudrexCore extends MudrexApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object positions = this.parsePositions(data, symbols);
             return this.filterBySinceLimit(positions, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -1544,7 +1544,7 @@ public class MudrexCore extends MudrexApi
      * @param {float} [params.amount] the amount to close for a partial close, closes the whole position if not provided
      * @returns {object} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closePosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1560,7 +1560,7 @@ public class MudrexCore extends MudrexApi
             if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                Object positions = (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
                 {
                     Object p = Helpers.GetValue(positions, i);
@@ -1594,13 +1594,13 @@ public class MudrexCore extends MudrexApi
                     Helpers.addElementToObject(request, "limit_price", lp);
                 }
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_type", "limit_price", "amount", "position_id")));
-                Object partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters))).join();
                 return partialResponse;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id")));
-            Object response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters))).join();
             return response;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1615,7 +1615,7 @@ public class MudrexCore extends MudrexApi
      * @param {string} [params.position_id] the id of the position to add margin to, resolved from the symbol if not provided
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=add-margin-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1628,7 +1628,7 @@ public class MudrexCore extends MudrexApi
             String positionId = this.safeString(parameters, "position_id");
             if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
             {
-                Object positions = (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+                Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
                 {
                     Object p = Helpers.GetValue(positions, i);
@@ -1649,7 +1649,7 @@ public class MudrexCore extends MudrexApi
                 put( "margin", MudrexCore.this.costToPrecision(symbol, amount) );
             }};
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id")));
-            Object response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -1665,7 +1665,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure](https://docs.ccxt.com/#/?id=reduce-margin-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1689,7 +1689,7 @@ public class MudrexCore extends MudrexApi
      * @param {int} [params.paginationCalls] the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
      * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1731,7 +1731,7 @@ public class MudrexCore extends MudrexApi
                     Helpers.addElementToObject(request, "offset", offset);
                 }
                 java.util.Map<String, Object> response = (this.privateGetFuturesFeeHistory(this.extend(request, parameters))).join();
-                Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Integer dataLength = Helpers.getArrayLength(data);
                 for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
                 {
@@ -1765,7 +1765,7 @@ public class MudrexCore extends MudrexApi
             {
                 Object entry = Helpers.GetValue(allRows, i);
                 String feeType = this.safeString(entry, "fee_type");
-                Object pairKey = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.safeString(entry, "symbol", ""), ":"), this.safeString(entry, "created_at", "")), ":"), this.safeString(entry, "transaction_amount", ""));
+                String pairKey = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.safeString(entry, "symbol", ""), ":"), this.safeString(entry, "created_at", "")), ":"), this.safeString(entry, "transaction_amount", ""));
                 if (Helpers.isTrue(Helpers.isEqual(feeType, "TRANSACTION")))
                 {
                     ((java.util.List<Object>)transactions).add(entry);
@@ -1802,7 +1802,7 @@ public class MudrexCore extends MudrexApi
                 }
             }
             return this.parseTrades(rows, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1893,7 +1893,7 @@ public class MudrexCore extends MudrexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure](https://docs.ccxt.com/#/?id=transfer-structure)
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code2, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code2, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
         final Object code3 = code2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1926,7 +1926,7 @@ public class MudrexCore extends MudrexApi
                     useInr = true;
                 }
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(useInr))
             {
                 response = (this.privatePostFuturesTransfersInr(this.extend(body, parameters))).join();

@@ -362,7 +362,7 @@ public class Bit2cCore extends Bit2cApi
             Object code = Helpers.GetValue(codes, i);
             Object account = this.account();
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object uppercase = ((String)Helpers.GetValue(currency, "id")).toUpperCase();
+            String uppercase = ((String)Helpers.GetValue(currency, "id")).toUpperCase();
             if (Helpers.isTrue(Helpers.inOp(response, uppercase)))
             {
                 Helpers.addElementToObject(account, "free", this.safeString(response, Helpers.add("AVAILABLE_", uppercase)));
@@ -449,7 +449,7 @@ public class Bit2cCore extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -472,8 +472,8 @@ public class Bit2cCore extends Bit2cApi
             // feed filters these rows out, so a non-positive amount is a dead order
             // their full snapshot failed to purge - it is removed here, which also
             // uncrosses the book. rows are positional price and amount pairs
-            Object rawBids = this.safeList(orderbook, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rawAsks = this.safeList(orderbook, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> rawBids = (java.util.List<Object>) this.safeList(orderbook, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> rawAsks = (java.util.List<Object>) this.safeList(orderbook, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBids)); i++)
@@ -499,7 +499,7 @@ public class Bit2cCore extends Bit2cApi
                 put( "asks", asks );
             }};
             return this.parseOrderBook(filtered, symbol);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -543,7 +543,7 @@ public class Bit2cCore extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -559,7 +559,7 @@ public class Bit2cCore extends Bit2cApi
             }};
             java.util.Map<String, Object> response = (this.publicGetExchangesPairTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -575,7 +575,7 @@ public class Bit2cCore extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -627,7 +627,7 @@ public class Bit2cCore extends Bit2cApi
                 responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -666,7 +666,7 @@ public class Bit2cCore extends Bit2cApi
             //         }
             //     }
             //
-            Object fees = this.safeDict(response, "Fees", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> fees = (java.util.Map<String, Object>) this.safeDict(response, "Fees", new java.util.HashMap<String, Object>() {{}});
             java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(fees);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -705,7 +705,7 @@ public class Bit2cCore extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -723,7 +723,7 @@ public class Bit2cCore extends Bit2cApi
                 put( "Amount", amount );
                 put( "Pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
@@ -736,14 +736,14 @@ public class Bit2cCore extends Bit2cApi
             } else
             {
                 Helpers.addElementToObject(request, "Price", price);
-                Object amountString = this.numberToString(amount);
-                Object priceString = this.numberToString(price);
+                String amountString = this.numberToString(amount);
+                String priceString = this.numberToString(price);
                 Helpers.addElementToObject(request, "Total", this.parseToNumeric(Precise.stringMul(amountString, priceString)));
                 Helpers.addElementToObject(request, "IsBid", (Helpers.isEqual(side, "buy")));
                 response = (this.privatePostOrderAddOrder(this.extend(request, parameters))).join();
             }
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -757,7 +757,7 @@ public class Bit2cCore extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -769,7 +769,7 @@ public class Bit2cCore extends Bit2cApi
             }};
             java.util.Map<String, Object> response = (this.privatePostOrderCancelOrder(this.extend(request, parameters))).join();
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -784,7 +784,7 @@ public class Bit2cCore extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -808,9 +808,9 @@ public class Bit2cCore extends Bit2cApi
             java.util.Map<String, Object> response = (this.privateGetOrderMyOrders(this.extend(request, parameters))).join();
             Object orders = this.safeValue(response, Helpers.GetValue(market, "id"), new java.util.HashMap<String, Object>() {{}});
             Object asks = this.safeValue(orders, "ask", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object bids = this.safeList(orders, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> bids = (java.util.List<Object>) this.safeList(orders, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -824,7 +824,7 @@ public class Bit2cCore extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -855,7 +855,7 @@ public class Bit2cCore extends Bit2cApi
             //         }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1005,7 +1005,7 @@ public class Bit2cCore extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1080,14 +1080,14 @@ public class Bit2cCore extends Bit2cApi
                 responseList = this.toArray(response);
             }
             return this.parseTrades(responseList, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
     public Object removeCommaFromValue(Object str)
     {
         Object newString = "";
-        Object strParts = Helpers.split(str, ",");
+        java.util.List<Object> strParts = (java.util.List<Object>) Helpers.split(str, ",");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(strParts)); i++)
         {
             newString = Helpers.add(newString, Helpers.GetValue(strParts, i));
@@ -1146,7 +1146,7 @@ public class Bit2cCore extends Bit2cApi
             price = this.safeString(trade, "price");
             price = this.removeCommaFromValue(price);
             amount = this.safeString(trade, "firstAmount");
-            Object reference_parts = Helpers.split(reference, "|"); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            java.util.List<Object> reference_parts = (java.util.List<Object>) Helpers.split(reference, "|"); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             String marketId = this.safeString(trade, "pair");
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(Helpers.GetValue(reference_parts, 0), market);

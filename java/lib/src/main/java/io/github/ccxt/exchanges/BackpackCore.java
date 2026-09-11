@@ -706,7 +706,7 @@ public class BackpackCore extends BackpackApi
     {
         String currencyId = this.safeString(rawCurrency, "symbol");
         String code = (String) this.safeCurrencyCode(currencyId);
-        Object networks = this.safeList(rawCurrency, "tokens", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> networks = (java.util.List<Object>) this.safeList(rawCurrency, "tokens", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> parsedNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
         {
@@ -896,12 +896,12 @@ public class BackpackCore extends BackpackApi
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object filters = this.safeDict(market, "filters", new java.util.HashMap<String, Object>() {{}});
-        Object priceFilter = this.safeDict(filters, "price", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> filters = (java.util.Map<String, Object>) this.safeDict(market, "filters", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> priceFilter = (java.util.Map<String, Object>) this.safeDict(filters, "price", new java.util.HashMap<String, Object>() {{}});
         Double maxPrice = this.safeNumber(priceFilter, "maxPrice");
         Double minPrice = this.safeNumber(priceFilter, "minPrice");
         Double pricePrecision = this.safeNumber(priceFilter, "tickSize");
-        Object quantityFilter = this.safeDict(filters, "quantity", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> quantityFilter = (java.util.Map<String, Object>) this.safeDict(filters, "quantity", new java.util.HashMap<String, Object>() {{}});
         Double maxQuantity = this.safeNumber(quantityFilter, "maxQuantity");
         Double minQuantity = this.safeNumber(quantityFilter, "minQuantity");
         Double amountPrecision = this.safeNumber(quantityFilter, "stepSize");
@@ -1006,7 +1006,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1021,7 +1021,7 @@ public class BackpackCore extends BackpackApi
             java.util.List<Object> response = (this.publicGetApiV1Tickers(this.extend(request, parameters))).join();
             Object tickers = this.parseTickers(response);
             return this.filterByArrayTickers(tickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1034,7 +1034,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1050,7 +1050,7 @@ public class BackpackCore extends BackpackApi
             }};
             java.util.Map<String, Object> response = (this.publicGetApiV1Ticker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -1128,7 +1128,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1167,7 +1167,7 @@ public class BackpackCore extends BackpackApi
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1288,7 +1288,7 @@ public class BackpackCore extends BackpackApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.List<Object> response = (this.publicGetApiV1MarkPrices(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseFundingRate(data, market);
         });
 
@@ -1341,7 +1341,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=interest-history-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1360,9 +1360,9 @@ public class BackpackCore extends BackpackApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.List<Object> response = (this.publicGetApiV1OpenInterest(this.extend(request, parameters))).join();
-            Object interest = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> interest = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOpenInterest(interest, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterest);
 
     }
 
@@ -1470,7 +1470,7 @@ public class BackpackCore extends BackpackApi
      * @param {int} [params.offset] the number of trades to skip, default is 0
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1490,7 +1490,7 @@ public class BackpackCore extends BackpackApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // api maximum 1000
             }
-            Object response = null;
+            java.util.List<Object> response = null;
             Long offset = this.safeInteger(parameters, "offset");
             if (Helpers.isTrue(!Helpers.isEqual(offset, null)))
             {
@@ -1501,7 +1501,7 @@ public class BackpackCore extends BackpackApi
             }
             java.util.List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1518,7 +1518,7 @@ public class BackpackCore extends BackpackApi
      * @param {string} [params.fillType] 'User' (default) 'BookLiquidation' or 'Adl' or 'Backstop' or 'Liquidation' or 'AllLiquidation' or 'CollateralConversion' or 'CollateralConversionAndSpotLiquidation'
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1560,7 +1560,7 @@ public class BackpackCore extends BackpackApi
             java.util.List<Object> response = (this.privateGetWapiV1HistoryFills(this.extend(request, parameters))).join();
             java.util.List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1599,9 +1599,9 @@ public class BackpackCore extends BackpackApi
         market = this.safeMarket(marketId, market);
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
-        Object isBuyerMaker = this.safeBool(trade, "isBuyerMaker");
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "isBuyerMaker");
         String side = this.parseOrderSide(this.safeString(trade, "side"));
-        Object isMaker = this.safeBool(trade, "isMaker");
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
         String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
@@ -2013,7 +2013,7 @@ public class BackpackCore extends BackpackApi
         String addressFrom = this.safeString(transaction, "fromAddress");
         String tag = this.safeString(transaction, "platformMemo");
         Double feeCost = this.safeNumber(transaction, "fee");
-        Object intern = this.safeBool(transaction, "isInternal", false);
+        Boolean intern = (Boolean) this.safeBool(transaction, "isInternal", false);
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -2153,7 +2153,7 @@ public class BackpackCore extends BackpackApi
      * @param {float} [params.stopLoss.price] stop loss order price (if not provided the order will be a market order)
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2168,7 +2168,7 @@ public class BackpackCore extends BackpackApi
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             java.util.Map<String, Object> response = (this.privatePostApiV1Order(orderRequest)).join();
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2181,7 +2181,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrders(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2200,14 +2200,14 @@ public class BackpackCore extends BackpackApi
                 String side = this.safeString(rawOrder, "side");
                 Double amount = this.safeNumber(rawOrder, "amount");
                 Double price = this.safeNumber(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> orderParams = (java.util.Map<String, Object>) this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 java.util.Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             java.util.List<Object> response = (this.privatePostApiV1Orders(ordersRequests)).join();
             return this.parseOrders(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2271,7 +2271,7 @@ public class BackpackCore extends BackpackApi
         {
             Helpers.addElementToObject(parameters, "postOnly", true);
         }
-        Object takeProfit = this.safeDict(parameters, "takeProfit");
+        java.util.Map<String, Object> takeProfit = (java.util.Map<String, Object>) this.safeDict(parameters, "takeProfit");
         if (Helpers.isTrue(!Helpers.isEqual(takeProfit, null)))
         {
             String takeProfitTriggerPrice = this.safeString(takeProfit, "triggerPrice");
@@ -2286,7 +2286,7 @@ public class BackpackCore extends BackpackApi
             }
             parameters = this.omit(parameters, "takeProfit");
         }
-        Object stopLoss = this.safeDict(parameters, "stopLoss");
+        java.util.Map<String, Object> stopLoss = (java.util.Map<String, Object>) this.safeDict(parameters, "stopLoss");
         if (Helpers.isTrue(!Helpers.isEqual(stopLoss, null)))
         {
             String stopLossTriggerPrice = this.safeString(stopLoss, "triggerPrice");
@@ -2341,7 +2341,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2363,7 +2363,7 @@ public class BackpackCore extends BackpackApi
             }
             java.util.List<Object> response = (this.privateGetApiV1Orders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2377,7 +2377,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2413,7 +2413,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2435,7 +2435,7 @@ public class BackpackCore extends BackpackApi
             }};
             java.util.Map<String, Object> response = (this.privateDeleteApiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2448,7 +2448,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2469,7 +2469,7 @@ public class BackpackCore extends BackpackApi
             }};
             java.util.List<Object> response = (this.privateDeleteApiV1Orders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2484,7 +2484,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2510,7 +2510,7 @@ public class BackpackCore extends BackpackApi
             }
             java.util.List<Object> response = (this.privateGetWapiV1HistoryOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2627,8 +2627,8 @@ public class BackpackCore extends BackpackApi
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String triggerPrice = this.safeString(order, "triggerPrice");
         String filled = this.safeString(order, "executedQuantity");
-        Object reduceOnly = this.safeBool(order, "reduceOnly");
-        Object postOnly = this.safeBool(order, "postOnly");
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly");
+        Boolean postOnly = (Boolean) this.safeBool(order, "postOnly");
         String stopLossPrice = this.safeString2(order, "stopLossLimitPrice", "stopLossTriggerPrice");
         String takeProfitPrice = this.safeString2(order, "takeProfitLimitPrice", "takeProfitTriggerPrice");
         final Object finalTimestamp = timestamp;
@@ -2692,7 +2692,7 @@ public class BackpackCore extends BackpackApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2711,7 +2711,7 @@ public class BackpackCore extends BackpackApi
             }
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(positions, "symbol", symbols, false);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -2899,10 +2899,10 @@ public class BackpackCore extends BackpackApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object ts = String.valueOf(this.nonce());
+            String ts = String.valueOf(this.nonce());
             String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
-            Object optionInstructions = this.safeDict(this.options, "instructions", new java.util.HashMap<String, Object>() {{}});
-            Object optionPathInstructions = this.safeDict(optionInstructions, path, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> optionInstructions = (java.util.Map<String, Object>) this.safeDict(this.options, "instructions", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> optionPathInstructions = (java.util.Map<String, Object>) this.safeDict(optionInstructions, path, new java.util.HashMap<String, Object>() {{}});
             String instruction = this.safeString(optionPathInstructions, method, "");
             Object payload = "";
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(path, "api/v1/orders"))) && Helpers.isTrue((Helpers.isEqual(method, "POST")))))
@@ -2959,7 +2959,7 @@ public class BackpackCore extends BackpackApi
         String payload = "";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parameters)); i++)
         {
-            Object order = this.safeDict(parameters, i, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(parameters, i, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> sortedOrder = this.keysort(order);
             Object orderQuery = this.urlencode(sortedOrder);
             payload = Helpers.add(payload, Helpers.add(Helpers.add(Helpers.add(Helpers.add("instruction=", instruction), "&"), orderQuery), "&"));

@@ -417,7 +417,7 @@ public class ZaifCore extends ZaifApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object funds = this.safeDict(balances, "funds", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> funds = (java.util.Map<String, Object>) this.safeDict(balances, "funds", new java.util.HashMap<String, Object>() {{}});
         java.util.List<String> currencyIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(funds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
@@ -476,7 +476,7 @@ public class ZaifCore extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -493,7 +493,7 @@ public class ZaifCore extends ZaifApi
             }};
             java.util.Map<String, Object> response = (this.publicGetDepthPair(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -549,7 +549,7 @@ public class ZaifCore extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -576,7 +576,7 @@ public class ZaifCore extends ZaifApi
             // }
             //
             return this.parseTicker(ticker, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -632,7 +632,7 @@ public class ZaifCore extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -662,17 +662,17 @@ public class ZaifCore extends ZaifApi
             //      ]
             //
             java.util.List<Object> trades = this.toArray(response);
-            Object numTrades = Helpers.getArrayLength(trades);
+            Integer numTrades = Helpers.getArrayLength(trades);
             if (Helpers.isTrue(Helpers.isEqual(numTrades, 1)))
             {
-                Object firstTrade = this.safeDict(trades, 0, new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> firstTrade = (java.util.Map<String, Object>) this.safeDict(trades, 0, new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(Helpers.objectKeys(firstTrade)), 0)))
                 {
                     trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 }
             }
             return this.parseTrades(trades, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -689,7 +689,7 @@ public class ZaifCore extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -713,12 +713,12 @@ public class ZaifCore extends ZaifApi
                 put( "price", price );
             }};
             java.util.Map<String, Object> response = (this.privatePostTrade(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", String.valueOf(Helpers.GetValue(data, "order_id")) );
             }}, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -732,7 +732,7 @@ public class ZaifCore extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -757,9 +757,9 @@ public class ZaifCore extends ZaifApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -833,7 +833,7 @@ public class ZaifCore extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -854,9 +854,9 @@ public class ZaifCore extends ZaifApi
                 Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             }
             java.util.Map<String, Object> response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -871,7 +871,7 @@ public class ZaifCore extends ZaifApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -892,9 +892,9 @@ public class ZaifCore extends ZaifApi
                 Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             }
             java.util.Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -956,7 +956,7 @@ public class ZaifCore extends ZaifApi
             //         }
             //     }
             //
-            Object returnData = this.safeDict(result, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> returnData = (java.util.Map<String, Object>) this.safeDict(result, "return", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(returnData, currency);
         });
 
@@ -1018,7 +1018,7 @@ public class ZaifCore extends ZaifApi
 
     public Object customNonce()
     {
-        Object num = this.numberToString(Helpers.divide(this.milliseconds(), 1000));
+        String num = this.numberToString(Helpers.divide(this.milliseconds(), 1000));
         Object nonce = Helpers.parseFloat(num);
         return toFixed(nonce, 8);
     }
@@ -1090,7 +1090,7 @@ public class ZaifCore extends ZaifApi
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), error, feedback);
             throw new ExchangeError((String)feedback) ;
         }
-        Object success = this.safeBool(response, "success", true);
+        Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             throw new ExchangeError((String)feedback) ;

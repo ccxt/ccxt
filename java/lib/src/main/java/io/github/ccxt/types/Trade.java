@@ -44,7 +44,7 @@ public final class Trade {
         this.side = TypeHelper.safeString(data, "side");
         this.takerOrMaker = TypeHelper.safeString(data, "takerOrMaker");
         Object feeRaw = TypeHelper.safeValue(data, "fee");
-        this.fee = feeRaw != null ? new Fee(feeRaw) : null;
+        this.fee = feeRaw instanceof Map<?, ?> ? new Fee(feeRaw) : null;
         Object feesRaw = TypeHelper.safeValue(data, "fees");
         if (feesRaw instanceof List<?> feesList) {
             this.fees = ((List<Object>) feesList).stream().map(Fee::new).collect(Collectors.toList());

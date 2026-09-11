@@ -744,12 +744,12 @@ public class PacificaCore extends PacificaApi
             {
                 return false;
             }
-            Object buildFee = this.safeBool(this.options, "builderFee", true);
+            Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", true);
             if (Helpers.isTrue(!Helpers.isEqual(buildFee, true)))
             {
                 return false;  // skip if builder fee is not enabled
             }
-            Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+            Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
             if (Helpers.isTrue(Helpers.isEqual(approvedBuilderFee, true)))
             {
                 return true;  // skip if builder fee is already approved
@@ -823,7 +823,7 @@ public class PacificaCore extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            Object markets = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> markets = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -904,10 +904,10 @@ public class PacificaCore extends PacificaApi
         }
         if (Helpers.isTrue(isSpot))
         {
-            Object idParts = Helpers.split(id, "-");
+            java.util.List<Object> idParts = (java.util.List<Object>) Helpers.split(id, "-");
             quoteId = this.safeString(idParts, 1, quoteId);
         }
-        Object isolatedOnly = this.safeBool(market, "isolated_only", false);
+        Boolean isolatedOnly = (Boolean) this.safeBool(market, "isolated_only", false);
         if (Helpers.isTrue(isSwap))
         {
             settleId = quoteId;
@@ -928,7 +928,7 @@ public class PacificaCore extends PacificaApi
         {
             symbol = Helpers.add(Helpers.add(symbol, ":"), settle);
         }
-        Object fees = this.safeDict(this.fees, type, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> fees = (java.util.Map<String, Object>) this.safeDict(this.fees, type, new java.util.HashMap<String, Object>() {{}});
         Double taker = this.safeNumber(fees, "taker");
         Double maker = this.safeNumber(fees, "maker");
         Double amountPrecision = this.safeNumber(market, "lot_size");
@@ -1050,7 +1050,7 @@ public class PacificaCore extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", data );
             }};
@@ -1081,7 +1081,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1110,7 +1110,7 @@ public class PacificaCore extends PacificaApi
                 }};
                 settings = (this.fetchAccountSettings(this.extend(request, parameters))).join();
             }
-            Object setting = this.safeDict(settings, symbol);
+            java.util.Map<String, Object> setting = (java.util.Map<String, Object>) this.safeDict(settings, symbol);
             if (Helpers.isTrue(Helpers.isEqual(setting, null)))
             {
                 // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1124,7 +1124,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object parseLeverageFromSetting(Object symbol, Object setting)
+    public Object parseLeverageFromSetting(String symbol, Object setting)
     {
         // {
         //   "WLFI/USDC:USDC": {
@@ -1135,7 +1135,7 @@ public class PacificaCore extends PacificaApi
         //       "updated_at": 1758086074002
         //    },
         // }
-        Object isIsolated = this.safeBool(setting, "isolated", false);
+        Boolean isIsolated = (Boolean) this.safeBool(setting, "isolated", false);
         Long leverage = this.safeInteger(setting, "leverage");
         String marginMode = ((Helpers.isTrue((Helpers.isEqual(isIsolated, true))))) ? "isolated" : "cross";
         return new java.util.HashMap<String, Object>() {{
@@ -1149,8 +1149,8 @@ public class PacificaCore extends PacificaApi
 
     public Object parseLeverageFromMarket(Object market)
     {
-        Object marketLimits = this.safeDict(market, "limits", new java.util.HashMap<String, Object>() {{}});
-        Object leverageLimits = this.safeDict(marketLimits, "leverage", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> marketLimits = (java.util.Map<String, Object>) this.safeDict(market, "limits", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> leverageLimits = (java.util.Map<String, Object>) this.safeDict(marketLimits, "leverage", new java.util.HashMap<String, Object>() {{}});
         return new java.util.HashMap<String, Object>() {{
             put( "info", market );
             put( "symbol", PacificaCore.this.safeString(market, "symbol") );
@@ -1224,7 +1224,7 @@ public class PacificaCore extends PacificaApi
 
     public Object parseAccountSettings(Object settings)
     {
-        Object settingsLen = Helpers.getArrayLength(settings);
+        Integer settingsLen = Helpers.getArrayLength(settings);
         if (Helpers.isTrue(Helpers.isEqual(settingsLen, 0)))
         {
             return new java.util.HashMap<String, Object>() {{}};
@@ -1250,7 +1250,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1283,7 +1283,7 @@ public class PacificaCore extends PacificaApi
             //       "updated_at": 1758086074002
             //    },
             // }
-            Object setting = this.safeDict(settings, symbol);
+            java.util.Map<String, Object> setting = (java.util.Map<String, Object>) this.safeDict(settings, symbol);
             if (Helpers.isTrue(Helpers.isEqual(setting, null)))
             {
                 // NOTE: Upon account creation, all markets have margin settings default to cross margin and leverage default to max.
@@ -1300,7 +1300,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object parseMarginModeFromSetting(Object symbol, Object setting)
+    public Object parseMarginModeFromSetting(String symbol, Object setting)
     {
         // {
         //       "symbol": "WLFI",
@@ -1310,7 +1310,7 @@ public class PacificaCore extends PacificaApi
         //       "updated_at": 1758086074002
         //
         // }
-        Object isIsolated = this.safeBool(setting, "isolated", false);
+        Boolean isIsolated = (Boolean) this.safeBool(setting, "isolated", false);
         String marginMode = ((Helpers.isTrue((Helpers.isEqual(isIsolated, true))))) ? "isolated" : "cross";
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1330,7 +1330,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.aggLevel] aggregation level for price grouping. Defaults to 1. Can be 1, 10, 100, 1000, 10000
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1387,15 +1387,15 @@ public class PacificaCore extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object levels = this.safeList(data, "l", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> levels = (java.util.List<Object>) this.safeList(data, "l", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "bids", PacificaCore.this.safeList(levels, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
                 put( "asks", PacificaCore.this.safeList(levels, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
             }};
             Long timestamp = this.safeInteger(data, "t");
             return this.parseOrderBook(result, this.safeSymbol(null, market), timestamp, "bids", "asks", "p", "a");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1437,7 +1437,7 @@ public class PacificaCore extends PacificaApi
             //     "code": null
             //   }
             //
-            Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(result, symbols);
         });
 
@@ -1586,7 +1586,7 @@ public class PacificaCore extends PacificaApi
             //   "code": null
             // }
             //
-            Object candles = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> candles = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
         });
 
@@ -1623,7 +1623,7 @@ public class PacificaCore extends PacificaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1658,9 +1658,9 @@ public class PacificaCore extends PacificaApi
             //   "last_order_id": 1557404170
             // }
             //
-            Object recentTrades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> recentTrades = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(recentTrades, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1679,7 +1679,7 @@ public class PacificaCore extends PacificaApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1755,7 +1755,7 @@ public class PacificaCore extends PacificaApi
             //
             Object data = this.addPaginationCursorToResult(response);
             return this.parseTrades(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1870,7 +1870,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1886,7 +1886,7 @@ public class PacificaCore extends PacificaApi
             var request = ((java.util.List<Object>) requestoperationTypeVariable).get(0);
             var operationType = ((java.util.List<Object>) requestoperationTypeVariable).get(1);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "clientOrderId", "stopLimitPrice", "timeInForce", "triggerPrice", "stopLossCloid", "stopLossPrice", "stopLossLimitPrice", "takeProfitCloid", "takeProfitPrice", "takeProfitLimitPrice", "expiryWindow")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(operationType, "create_market_order")))
             {
                 response = (this.privatePostOrdersCreateMarket(this.extend(request, parameters))).join();
@@ -1908,7 +1908,7 @@ public class PacificaCore extends PacificaApi
             //    },
             // }
             //
-            Object success = this.safeBool(response, "success", false);
+            Boolean success = (Boolean) this.safeBool(response, "success", false);
             String status = null;
             if (Helpers.isTrue(!Helpers.isEqual(success, true)))
             {
@@ -1917,7 +1917,7 @@ public class PacificaCore extends PacificaApi
             {
                 status = "open";
             }
-            Object order = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String orderId = this.safeString(order, "order_id");
             final Object finalStatus = status;
             final Object finalResponse = response;
@@ -1927,7 +1927,7 @@ public class PacificaCore extends PacificaApi
                 put( "info", finalResponse );
                 put( "symbol", symbol );
             }});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1974,8 +1974,8 @@ public class PacificaCore extends PacificaApi
             put( "side", PacificaCore.this.mapSide(finalSide) );
         }};
         String operationType = null;
-        Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        Object orderType = ((String)type).toUpperCase();
+        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        String orderType = ((String)type).toUpperCase();
         String triggerPrice = this.safeString(parameters, "triggerPrice");
         String stopLossPrice = this.safeString(parameters, "stopLossPrice");
         String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
@@ -2105,7 +2105,7 @@ public class PacificaCore extends PacificaApi
         //  Create (Only Limit or Market, never stop order or tpsl order)
         //  Cancel (Only common (limit) orders)
         //
-        Object lenActions = Helpers.getArrayLength(actions);
+        Integer lenActions = Helpers.getArrayLength(actions);
         Object maxLen = this.handleOption("batchOrdersRequest", "batchOrdersMax");
         if (Helpers.isTrue(!Helpers.isEqual(maxLen, null)))
         {
@@ -2131,7 +2131,7 @@ public class PacificaCore extends PacificaApi
             String side = this.safeString(order, "side");
             String price = this.safeString(order, "price");
             String type = this.safeString(order, "type", "limit");
-            Object orderParams = this.safeDict(order, "params", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> orderParams = (java.util.Map<String, Object>) this.safeDict(order, "params", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(orderParams, "timestamp", timestamp);
             String amount = this.safeString(order, "amount");
             Object amountNumber = this.parseNumber(amount);
@@ -2159,7 +2159,7 @@ public class PacificaCore extends PacificaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrders(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2190,14 +2190,14 @@ public class PacificaCore extends PacificaApi
             //     "code": null
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object results = this.safeList(data, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> results = (java.util.List<Object>) this.safeList(data, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> ordersToReturn = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object order = Helpers.GetValue(results, i);
                 String error = this.safeString(order, "error");
-                Object success = this.safeBool(order, "success", false);
+                Boolean success = (Boolean) this.safeBool(order, "success", false);
                 String status = null;
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((!Helpers.isEqual(success, true)))))
                 {
@@ -2215,7 +2215,7 @@ public class PacificaCore extends PacificaApi
                 }}));
             }
             return ordersToReturn;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2231,7 +2231,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2269,14 +2269,14 @@ public class PacificaCore extends PacificaApi
             //     "code": null
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object results = this.safeList(data, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> results = (java.util.List<Object>) this.safeList(data, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> ordersToReturn = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object order = Helpers.GetValue(results, i);
                 String error = this.safeString(order, "error");
-                Object success = this.safeBool(order, "success", false);
+                Boolean success = (Boolean) this.safeBool(order, "success", false);
                 String status = null;
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(error, null))) || Helpers.isTrue((!Helpers.isEqual(success, true)))))
                 {
@@ -2294,7 +2294,7 @@ public class PacificaCore extends PacificaApi
                 }}));
             }
             return ordersToReturn;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2313,7 +2313,7 @@ public class PacificaCore extends PacificaApi
             }};
             ((java.util.List<Object>)actions).add(action);
         }
-        Object clientOrderIds = this.safeList(parameters, "clientOrderIds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> clientOrderIds = (java.util.List<Object>) this.safeList(parameters, "clientOrderIds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         parameters = this.omit(parameters, "clientOrderIds");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clientOrderIds)); i++)
         {
@@ -2342,7 +2342,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2370,7 +2370,7 @@ public class PacificaCore extends PacificaApi
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2379,7 +2379,7 @@ public class PacificaCore extends PacificaApi
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         String operationType = "cancel_all_orders";
         java.util.Map<String, Object> sigPayload = new java.util.HashMap<String, Object>() {{}};
-        Object excludeReduceOnly = this.safeBool(parameters, "excludeReduceOnly", false);
+        Boolean excludeReduceOnly = (Boolean) this.safeBool(parameters, "excludeReduceOnly", false);
         Helpers.addElementToObject(sigPayload, "exclude_reduce_only", excludeReduceOnly);
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
@@ -2408,7 +2408,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2425,9 +2425,9 @@ public class PacificaCore extends PacificaApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             Object request = this.cancelOrderRequest(id, symbol, parameters);
-            Object isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
+            Boolean isStopOrder = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiryWindow", "trigger", "stop", "clientOrderId")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(isStopOrder, true)))
             {
                 response = (this.privatePostOrdersStopCancel(this.extend(request, parameters))).join();
@@ -2442,7 +2442,7 @@ public class PacificaCore extends PacificaApi
             //   "data": null
             // }
             //
-            Object success = this.safeBool(response, "success", false);
+            Boolean success = (Boolean) this.safeBool(response, "success", false);
             String status = ((Helpers.isTrue((Helpers.isEqual(success, true))))) ? "canceled" : "closed";
             final Object finalResponse = response;
             final Object finalSymbol = symbol;
@@ -2452,7 +2452,7 @@ public class PacificaCore extends PacificaApi
                 put( "info", finalResponse );
                 put( "symbol", finalSymbol );
             }});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2461,7 +2461,7 @@ public class PacificaCore extends PacificaApi
         Object symbol = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object isStopOrder = this.safeBool2(parameters, "trigger", "stop", false);
+        Boolean isStopOrder = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
         String operationType = null;
         if (Helpers.isTrue(Helpers.isEqual(isStopOrder, true)))
         {
@@ -2501,7 +2501,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2525,14 +2525,14 @@ public class PacificaCore extends PacificaApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String orderId = this.safeString(data, "order_id");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "id", orderId );
                 put( "info", response );
                 put( "symbol", symbol );
             }});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2670,7 +2670,7 @@ public class PacificaCore extends PacificaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2704,7 +2704,7 @@ public class PacificaCore extends PacificaApi
             //   "code": null
             // }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -2717,7 +2717,7 @@ public class PacificaCore extends PacificaApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2767,7 +2767,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2780,10 +2780,10 @@ public class PacificaCore extends PacificaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchOrders(symbol, null, null, parameters)).join(); // don't filter here because we don't want to catch open orders
+            Object orders = io.github.ccxt.TypedCores.fromOrderList((this.fetchOrders(symbol, null, null, parameters)).join()); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("closed")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2799,7 +2799,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2812,10 +2812,10 @@ public class PacificaCore extends PacificaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchOrders(symbol, null, null, parameters)).join(); // don't filter here because we don't want to catch open orders
+            Object orders = io.github.ccxt.TypedCores.fromOrderList((this.fetchOrders(symbol, null, null, parameters)).join()); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("canceled")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2831,7 +2831,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCanceledAndClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledAndClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2844,10 +2844,10 @@ public class PacificaCore extends PacificaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object orders = (this.fetchOrders(symbol, null, null, parameters)).join(); // don't filter here because we don't want to catch open orders
+            Object orders = io.github.ccxt.TypedCores.fromOrderList((this.fetchOrders(symbol, null, null, parameters)).join()); // don't filter here because we don't want to catch open orders
             Object closedOrders = this.filterByArray(orders, "status", new java.util.ArrayList<Object>(java.util.Arrays.asList("canceled", "closed", "rejected")), false);
             return this.filterBySymbolSinceLimit(closedOrders, symbol, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2863,7 +2863,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2916,9 +2916,9 @@ public class PacificaCore extends PacificaApi
             //   "last_order_id": 1557370337
             // }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2936,7 +2936,7 @@ public class PacificaCore extends PacificaApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3007,16 +3007,16 @@ public class PacificaCore extends PacificaApi
             Object data = this.addPaginationCursorToResult(response);
             java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(data, market, since, limit);
             return orders;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
     public Object addPaginationCursorToResult(Object response)
     {
-        Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String paginationCursor = this.safeString(response, "next_cursor");
-        Object hasMore = this.safeBool(response, "has_more", false);
-        Object dataLength = Helpers.getArrayLength(data);
+        Boolean hasMore = (Boolean) this.safeBool(response, "has_more", false);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(hasMore, true)))
         {
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(paginationCursor, null))) && Helpers.isTrue((Helpers.isGreaterThan(dataLength, 0)))))
@@ -3040,7 +3040,7 @@ public class PacificaCore extends PacificaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3105,17 +3105,17 @@ public class PacificaCore extends PacificaApi
             //   "code": null
             // }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             // return last state
             java.util.List<Object> sorted = this.sortBy(data, "created_at", true);
-            Object lastIdx = Helpers.getArrayLength(sorted);
+            Integer lastIdx = Helpers.getArrayLength(sorted);
             Object lastInfo = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isGreaterThan(lastIdx, 0)))
             {
                 lastInfo = Helpers.GetValue(sorted, 0);
             }
             return this.parseOrder(lastInfo, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -3312,15 +3312,15 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object positions = (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
             return this.safeDict(positions, 0, new java.util.HashMap<String, Object>() {{}});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPosition);
 
     }
 
@@ -3334,7 +3334,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3374,14 +3374,14 @@ public class PacificaCore extends PacificaApi
             //   "code": null,
             //   "last_order_id": 1557431179
             // }
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(data, i)));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -3579,7 +3579,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.account] will default to walletAddress if not provided
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3621,9 +3621,9 @@ public class PacificaCore extends PacificaApi
             //   "error": null,
             //   "code": null
             // }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTradingFee(data, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFeeInterface);
 
     }
 
@@ -3697,7 +3697,7 @@ public class PacificaCore extends PacificaApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(Object symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3710,7 +3710,7 @@ public class PacificaCore extends PacificaApi
             }
             Object ois = (this.fetchOpenInterests(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(ois, symbol);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterest);
 
     }
 
@@ -4010,7 +4010,7 @@ public class PacificaCore extends PacificaApi
      * @param {int} [params.expiryWindow] time to live in milliseconds
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4035,7 +4035,7 @@ public class PacificaCore extends PacificaApi
             //   "code": null
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransfer(data);
         });
 
@@ -4080,7 +4080,7 @@ public class PacificaCore extends PacificaApi
      * @param {string} [params.subAccountPrivateKey] - The private key of the sub-account to use for creation
      * @returns {object} a response object
      */
-    public java.util.concurrent.CompletableFuture<Object> createSubAccount(Object name, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createSubAccount(String name, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4165,7 +4165,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> bindAgentWallet(Object agentAddress, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> bindAgentWallet(String agentAddress, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4195,7 +4195,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> revokeApiKey(Object apiKey, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> revokeApiKey(String apiKey, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4225,7 +4225,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> approveBuilderCode(Object builderCode, Object maxFeeRate, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> approveBuilderCode(String builderCode, Object maxFeeRate, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4242,7 +4242,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchBuilderApprovals(Object address)
+    public java.util.concurrent.CompletableFuture<Object> fetchBuilderApprovals(String address)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4255,7 +4255,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> revokeBuilderCode(Object builderCode, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> revokeBuilderCode(String builderCode, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4271,7 +4271,7 @@ public class PacificaCore extends PacificaApi
 
     }
 
-    public Object handleOriginAndSingleAddress(Object methodName, Object parameters)
+    public Object handleOriginAndSingleAddress(String methodName, Object parameters)
     {
         String address = null;
         java.util.List<Object> addressparametersVariable = (java.util.List<Object>) this.handleParamString2(parameters, "account", "address");
@@ -4334,7 +4334,7 @@ public class PacificaCore extends PacificaApi
         String host = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), api));
         Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
-        Object paramsLen = Helpers.getArrayLength(Helpers.objectKeys(parameters));
+        Integer paramsLen = Helpers.getArrayLength(Helpers.objectKeys(parameters));
         headers = new java.util.HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
@@ -4449,7 +4449,7 @@ public class PacificaCore extends PacificaApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(builderCode, null)))
             {
-                Object isOperationSupportBuilder = this.safeBool(Helpers.GetValue(this.options, "builderSupportOperations"), operationType, false);
+                Boolean isOperationSupportBuilder = (Boolean) this.safeBool(Helpers.GetValue(this.options, "builderSupportOperations"), operationType, false);
                 if (Helpers.isTrue(Helpers.isEqual(isOperationSupportBuilder, true)))
                 {
                     Helpers.addElementToObject(sigPayload, "builder_code", builderCode);

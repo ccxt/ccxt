@@ -373,7 +373,7 @@ public class MercadoCore extends MercadoApi
                 Object baseId = coin;
                 String quoteId = "BRL";
                 String base = (String) this.safeCurrencyCode(baseId);
-                String quote = (String) this.safeCurrencyCode(quoteId);
+                Object quote = this.safeCurrencyCode(quoteId);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(base, null))) || Helpers.isTrue((Helpers.isEqual(quote, null)))))
                 {
                     continue;
@@ -445,7 +445,7 @@ public class MercadoCore extends MercadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -462,7 +462,7 @@ public class MercadoCore extends MercadoApi
             }};
             java.util.Map<String, Object> response = (this.publicGetCoinOrderbook(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -516,7 +516,7 @@ public class MercadoCore extends MercadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -547,7 +547,7 @@ public class MercadoCore extends MercadoApi
             //     }
             //
             return this.parseTicker(ticker, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -600,7 +600,7 @@ public class MercadoCore extends MercadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -621,7 +621,7 @@ public class MercadoCore extends MercadoApi
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
             }
             Long to = this.safeInteger(parameters, "to");
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(since, null))) && Helpers.isTrue((!Helpers.isEqual(to, null)))))
             {
                 response = (this.publicGetCoinTradesFromTo(this.extend(request, parameters))).join();
@@ -633,14 +633,14 @@ public class MercadoCore extends MercadoApi
                 response = (this.publicGetCoinTrades(this.extend(request, parameters))).join();
             }
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
     public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object data = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
-        Object balances = this.safeDict(data, "balance", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> balances = (java.util.Map<String, Object>) this.safeDict(data, "balance", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -699,7 +699,7 @@ public class MercadoCore extends MercadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -716,7 +716,7 @@ public class MercadoCore extends MercadoApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "coin_pair", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
                 Helpers.addElementToObject(request, "limit_price", this.priceToPrecision(Helpers.GetValue(market, "symbol"), price));
@@ -736,8 +736,8 @@ public class MercadoCore extends MercadoApi
                     {
                         throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument with market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount")) ;
                     }
-                    Object amountString = this.numberToString(amount);
-                    Object priceString = this.numberToString(price);
+                    String amountString = this.numberToString(amount);
+                    String priceString = this.numberToString(price);
                     Object cost = this.parseToNumeric(Precise.stringMul(amountString, priceString));
                     Helpers.addElementToObject(request, "cost", this.priceToPrecision(Helpers.GetValue(market, "symbol"), cost));
                     response = (this.privatePostPlaceMarketBuyOrder(this.extend(request, parameters))).join();
@@ -753,7 +753,7 @@ public class MercadoCore extends MercadoApi
                 put( "info", finalResponse );
                 put( "id", String.valueOf(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(finalResponse, "response_data"), "order"), "order_id")) );
             }}, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -766,7 +766,7 @@ public class MercadoCore extends MercadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -811,9 +811,9 @@ public class MercadoCore extends MercadoApi
             //     }
             //
             Object responseData = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
-            Object order = this.safeDict(responseData, "order", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(responseData, "order", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -914,7 +914,7 @@ public class MercadoCore extends MercadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -936,9 +936,9 @@ public class MercadoCore extends MercadoApi
             }};
             java.util.Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
             Object responseData = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
-            Object order = this.safeDict(responseData, "order");
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(responseData, "order");
             return this.parseOrder(order, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1023,7 +1023,7 @@ public class MercadoCore extends MercadoApi
             //     }
             //
             Object responseData = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
-            Object withdrawal = this.safeDict(responseData, "withdrawal");
+            java.util.Map<String, Object> withdrawal = (java.util.Map<String, Object>) this.safeDict(responseData, "withdrawal");
             return this.parseTransaction(withdrawal, currency);
         });
 
@@ -1137,7 +1137,7 @@ public class MercadoCore extends MercadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1160,9 +1160,9 @@ public class MercadoCore extends MercadoApi
             }};
             java.util.Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
             Object responseData = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(responseData, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(responseData, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1176,7 +1176,7 @@ public class MercadoCore extends MercadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1200,9 +1200,9 @@ public class MercadoCore extends MercadoApi
             }};
             java.util.Map<String, Object> response = (this.privatePostListOrders(this.extend(request, parameters))).join();
             Object responseData = this.safeValue(response, "response_data", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(responseData, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(responseData, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1216,7 +1216,7 @@ public class MercadoCore extends MercadoApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1244,7 +1244,7 @@ public class MercadoCore extends MercadoApi
             java.util.List<java.util.Map<String, Object>> orders = this.parseOrders(ordersRaw, market, since, limit);
             Object trades = this.ordersToTrades(orders);
             return this.filterBySymbolSinceLimit(trades, Helpers.GetValue(market, "symbol"), since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1253,7 +1253,7 @@ public class MercadoCore extends MercadoApi
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
-            Object trades = this.safeList(Helpers.GetValue(orders, i), "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(Helpers.GetValue(orders, i), "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var y = 0; Helpers.isLessThan(y, Helpers.getArrayLength(trades)); y++)
             {
                 ((java.util.List<Object>)result).add(Helpers.GetValue(trades, y));
@@ -1287,7 +1287,7 @@ public class MercadoCore extends MercadoApi
                 put( "tapi_method", path );
                 put( "tapi_nonce", nonce );
             }}, parameters));
-            Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/tapi/", this.version), "/"), "?"), body);
+            String auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/tapi/", this.version), "/"), "?"), body);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "TAPI-ID", MercadoCore.this.apiKey );

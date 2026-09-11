@@ -394,11 +394,11 @@ public class BitbnsCore extends BitbnsApi
                 String quoteId = this.safeString(market, "quote");
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
-                Object marketPrecision = this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}});
-                Object marketLimits = this.safeDict(market, "limits", new java.util.HashMap<String, Object>() {{}});
-                Object amountLimits = this.safeDict(marketLimits, "amount", new java.util.HashMap<String, Object>() {{}});
-                Object priceLimits = this.safeDict(marketLimits, "price", new java.util.HashMap<String, Object>() {{}});
-                Object costLimits = this.safeDict(marketLimits, "cost", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> marketPrecision = (java.util.Map<String, Object>) this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> marketLimits = (java.util.Map<String, Object>) this.safeDict(market, "limits", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> amountLimits = (java.util.Map<String, Object>) this.safeDict(marketLimits, "amount", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> priceLimits = (java.util.Map<String, Object>) this.safeDict(marketLimits, "price", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> costLimits = (java.util.Map<String, Object>) this.safeDict(marketLimits, "cost", new java.util.HashMap<String, Object>() {{}});
                 Boolean usdt = (Helpers.isEqual(quoteId, "USDT"));
                 // INR markets don't need a _INR prefix
                 Object uppercaseId = ((Helpers.isTrue(usdt))) ? (Helpers.add(Helpers.add(baseId, "_"), quoteId)) : baseId;
@@ -470,7 +470,7 @@ public class BitbnsCore extends BitbnsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -509,7 +509,7 @@ public class BitbnsCore extends BitbnsApi
             //
             Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -582,7 +582,7 @@ public class BitbnsCore extends BitbnsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -627,7 +627,7 @@ public class BitbnsCore extends BitbnsApi
             //     }
             //
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -639,13 +639,13 @@ public class BitbnsCore extends BitbnsApi
             put( "timestamp", timestamp );
             put( "datetime", BitbnsCore.this.iso8601(timestamp) );
         }};
-        Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
         java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            Object parts = Helpers.split(key, "availableorder");
-            Object numParts = Helpers.getArrayLength(parts);
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(key, "availableorder");
+            Integer numParts = Helpers.getArrayLength(parts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
                 String currencyId = this.safeString(parts, 1);
@@ -823,7 +823,7 @@ public class BitbnsCore extends BitbnsApi
      * @param {float} [params.trail_rate] *requires params.target_rate when set, type must be 'limit'* a bracket order is placed when set
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -870,7 +870,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 Helpers.addElementToObject(request, "trail_rate", this.priceToPrecision(symbol, trailRate));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "limit")))
             {
                 response = (this.v2PostOrders(this.extend(request, parameters))).join();
@@ -889,7 +889,7 @@ public class BitbnsCore extends BitbnsApi
             //
             Object parsed = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new java.util.HashMap<String, Object>() {{}} : response;
             return this.parseOrder(parsed, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -905,7 +905,7 @@ public class BitbnsCore extends BitbnsApi
      * @param {boolean} [params.trigger] true if cancelling a trigger order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -921,13 +921,13 @@ public class BitbnsCore extends BitbnsApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
+            Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "entry_id", id );
                 put( "symbol", Helpers.GetValue(market, "uppercaseId") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             String tail = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "StopLossOrder" : "Order";
             Object quoteSide = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "quoteId"), "USDT"))))) ? "usdtcancel" : "cancel";
             quoteSide = Helpers.add(quoteSide, tail);
@@ -935,7 +935,7 @@ public class BitbnsCore extends BitbnsApi
             response = (this.v2PostCancel(this.extend(request, parameters))).join();
             Object parsed = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new java.util.HashMap<String, Object>() {{}} : response;
             return this.parseOrder(parsed, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -949,7 +949,7 @@ public class BitbnsCore extends BitbnsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -969,7 +969,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "entry_id", id );
             }};
-            Object trigger = this.safeBool2(parameters, "trigger", "stop");
+            Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOrder cannot fetch stop orders")) ;
@@ -1000,10 +1000,10 @@ public class BitbnsCore extends BitbnsApi
             //         "code":200
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(first, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1020,7 +1020,7 @@ public class BitbnsCore extends BitbnsApi
      * @param {boolean} [params.trigger] true if fetching trigger orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1038,7 +1038,7 @@ public class BitbnsCore extends BitbnsApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
+            Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             String quoteSide = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "quoteId"), "USDT"))))) ? "usdtListOpen" : "listOpen";
             final Object finalIsTrigger = isTrigger;
@@ -1069,9 +1069,9 @@ public class BitbnsCore extends BitbnsApi
             //         "code":200
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1180,7 +1180,7 @@ public class BitbnsCore extends BitbnsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1248,9 +1248,9 @@ public class BitbnsCore extends BitbnsApi
             //         "code": 200
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1264,7 +1264,7 @@ public class BitbnsCore extends BitbnsApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1294,7 +1294,7 @@ public class BitbnsCore extends BitbnsApi
             //     }
             //
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1354,7 +1354,7 @@ public class BitbnsCore extends BitbnsApi
             //         "code":200
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         });
 
@@ -1396,7 +1396,7 @@ public class BitbnsCore extends BitbnsApi
             //
             //     ...
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         });
 
@@ -1420,7 +1420,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "6", "ok" );
             }} );
         }};
-        Object statuses = this.safeDict(statusesByType, type, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> statuses = (java.util.Map<String, Object>) this.safeDict(statusesByType, type, new java.util.HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -1538,7 +1538,7 @@ public class BitbnsCore extends BitbnsApi
             //         "error":null
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String address = this.safeString(data, "token");
             String tag = this.safeString(data, "tag");
             this.checkAddress(address);
@@ -1565,7 +1565,7 @@ public class BitbnsCore extends BitbnsApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object urls = this.urls;
+        java.util.Map<String, Object> urls = this.urls;
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(urls, "api"), api))))
         {
             throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
@@ -1580,7 +1580,7 @@ public class BitbnsCore extends BitbnsApi
         String baseUrl = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api));
         Object url = Helpers.add(Helpers.add(baseUrl, "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
-        Object nonce = String.valueOf(this.nonce());
+        String nonce = String.valueOf(this.nonce());
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))

@@ -1384,7 +1384,7 @@ public class MexcCore extends MexcApi
                 //     {}
                 //
                 java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
-                Object length = Helpers.getArrayLength(keys);
+                Integer length = Helpers.getArrayLength(keys);
                 status = ((Helpers.isTrue((Helpers.isGreaterThan(length, 0))))) ? this.json(response) : "ok";
             } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
@@ -1520,7 +1520,7 @@ public class MexcCore extends MexcApi
         String id = this.safeString(rawCurrency, "coin");
         String code = (String) this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
-        Object chains = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> chains = (java.util.List<Object>) this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -1656,7 +1656,7 @@ public class MexcCore extends MexcApi
             // Notes:
             // - 'quoteAssetPrecision' & 'baseAssetPrecision' are not currency's real blockchain precision (to view currency's actual individual precision, refer to fetchCurrencies() method).
             //
-            Object data = this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -1799,7 +1799,7 @@ public class MexcCore extends MexcApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -1884,7 +1884,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1950,7 +1950,7 @@ public class MexcCore extends MexcApi
                 Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "version"));
             }
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1984,7 +1984,7 @@ public class MexcCore extends MexcApi
      * @param {int} [params.until] *spot only* *since must be defined* the latest time in ms to fetch entries for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2062,7 +2062,7 @@ public class MexcCore extends MexcApi
                 trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
             return this.parseTrades(trades, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2398,7 +2398,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2414,7 +2414,7 @@ public class MexcCore extends MexcApi
             Boolean isSingularMarket = false;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 isSingularMarket = Helpers.isEqual(length, 1);
                 String firstSymbol = this.safeString(symbols, 0);
                 market = this.market(firstSymbol);
@@ -2468,7 +2468,7 @@ public class MexcCore extends MexcApi
                 tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList(tickers));
             }
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2482,7 +2482,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2535,7 +2535,7 @@ public class MexcCore extends MexcApi
             }
             // when it's single symbol request, the returned structure is different (singular object) for both spot & swap, thus we need to wrap inside array
             return this.parseTicker(ticker, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -2685,7 +2685,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2700,14 +2700,14 @@ public class MexcCore extends MexcApi
             Boolean isSingularMarket = false;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 isSingularMarket = Helpers.isEqual(length, 1);
                 market = this.market(Helpers.GetValue(symbols, 0));
             }
             java.util.List<Object> marketTypequeryVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
-            Object tickers = null;
+            java.util.List<Object> tickers = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 tickers = (this.spotPublicGetTickerBookTicker(query)).join();
@@ -2721,7 +2721,7 @@ public class MexcCore extends MexcApi
                 tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList(tickers));
             }
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2735,7 +2735,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2754,7 +2754,7 @@ public class MexcCore extends MexcApi
                 put( "cost", cost );
             }};
             return (this.createOrder(symbol, "market", "buy", 0, null, this.extend(req, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2768,7 +2768,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2787,7 +2787,7 @@ public class MexcCore extends MexcApi
                 put( "cost", cost );
             }};
             return (this.createOrder(symbol, "market", "sell", 0, null, this.extend(req, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2818,7 +2818,7 @@ public class MexcCore extends MexcApi
      * @param {boolean} [params.test] *spot only* whether to use the test endpoint or not, default is false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2840,7 +2840,7 @@ public class MexcCore extends MexcApi
             {
                 return (this.createSwapOrder(market, type, side, amount, price, marginMode, query)).join();
             }
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2850,7 +2850,7 @@ public class MexcCore extends MexcApi
         Object marginMode = Helpers.getArg(optionalArgs, 1, null);
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object orderSide = ((String)side).toUpperCase();
+        String orderSide = ((String)side).toUpperCase();
         final Object finalType = type;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
@@ -2872,8 +2872,8 @@ public class MexcCore extends MexcApi
                     Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
                 } else
                 {
-                    Object amountString = this.numberToString(amount);
-                    Object priceString = this.numberToString(price);
+                    String amountString = this.numberToString(amount);
+                    String priceString = this.numberToString(price);
                     String quoteAmount = Precise.stringMul(amountString, priceString);
                     amount = quoteAmount;
                     Helpers.addElementToObject(request, "quoteOrderQty", this.costToPrecision(symbol, amount));
@@ -2951,7 +2951,7 @@ public class MexcCore extends MexcApi
             {
                 (this.loadMarkets()).join();
             }
-            Object test = this.safeBool(parameters, "test", false);
+            Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             Object request = this.createSpotOrderRequest(market, type, side, amount, price, marginMode, parameters);
             Object response = null;
@@ -3104,8 +3104,8 @@ public class MexcCore extends MexcApi
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createSwapOrder() requires a leverage parameter for isolated margin orders")) ;
                 }
             }
-            Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
-            Object hedged = this.safeBool(parameters, "hedged", false);
+            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+            Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
             Object sideInteger = null;
             if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
             {
@@ -3159,7 +3159,7 @@ public class MexcCore extends MexcApi
             //
             // {"success":true,"code":0,"data":{"orderId":"814218083416790528","ts":1779795118533}}
             //
-            Object data = this.safeDict(response, "data");
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "id", MexcCore.this.safeString(data, "orderId") );
                 put( "timestamp", MexcCore.this.safeInteger(data, "ts") );
@@ -3177,7 +3177,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to api endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrders(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3245,7 +3245,7 @@ public class MexcCore extends MexcApi
             // ]
             //
             return this.parseOrders(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -3261,7 +3261,7 @@ public class MexcCore extends MexcApi
      * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3345,7 +3345,7 @@ public class MexcCore extends MexcApi
                 data = this.safeValue(response, "data");
             }
             return this.parseOrder(data, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -3364,7 +3364,7 @@ public class MexcCore extends MexcApi
      * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3576,7 +3576,7 @@ public class MexcCore extends MexcApi
                 java.util.List<Object> merged = (java.util.List<Object>) this.arrayConcat(ordersOfTrigger, ordersOfRegular);
                 return this.parseOrders(merged, market, since, limit, parameters);
             }
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -3663,7 +3663,7 @@ public class MexcCore extends MexcApi
      * @param {string} [params.marginMode] only 'isolated' is supported, for spot-margin trading
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3763,10 +3763,10 @@ public class MexcCore extends MexcApi
                     Helpers.addElementToObject(request, "page_size", 100); // max
                 }
                 java.util.Map<String, Object> swapResponse = (this.contractPrivateGetOrderListOpenOrders(this.extend(request, parameters))).join();
-                Object data = this.safeList(swapResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> data = (java.util.List<Object>) this.safeList(swapResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseOrders(data, market, since, limit, parameters);
             }
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -3783,7 +3783,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3793,7 +3793,7 @@ public class MexcCore extends MexcApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState(3, symbol, since, limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -3810,7 +3810,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3820,7 +3820,7 @@ public class MexcCore extends MexcApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchOrdersByState(4, symbol, since, limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -3851,7 +3851,7 @@ public class MexcCore extends MexcApi
             } else
             {
                 Helpers.addElementToObject(request, "states", state);
-                return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
+                return io.github.ccxt.TypedCores.fromOrderList((this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join());
             }
         });
 
@@ -3870,7 +3870,7 @@ public class MexcCore extends MexcApi
      * @param {string} [params.marginMode] only 'isolated' is supported for spot-margin trading
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3964,7 +3964,7 @@ public class MexcCore extends MexcApi
                 }
             }
             return this.parseOrder(data, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -3978,7 +3978,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4014,7 +4014,7 @@ public class MexcCore extends MexcApi
                 Object data = this.safeList(response, "data");
                 return this.parseOrders(data, market);
             }
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -4030,7 +4030,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4106,10 +4106,10 @@ public class MexcCore extends MexcApi
                 //         "code": "0"
                 //     }
                 //
-                Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseOrders(data, market);
             }
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -4480,7 +4480,7 @@ public class MexcCore extends MexcApi
                 (this.loadMarkets()).join();
             }
             Object response = (this.fetchAccountHelper(marketType, query)).join();
-            Object data = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -4508,7 +4508,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4538,7 +4538,7 @@ public class MexcCore extends MexcApi
             //      "timestamp":1669109672717
             //  }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return new java.util.HashMap<String, Object>() {{
                 put( "info", data );
                 put( "symbol", symbol );
@@ -4547,7 +4547,7 @@ public class MexcCore extends MexcApi
                 put( "percentage", null );
                 put( "tierBased", null );
             }};
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFeeInterface);
 
     }
 
@@ -4720,7 +4720,7 @@ public class MexcCore extends MexcApi
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             String marginMode = this.safeString(parameters, "marginMode");
-            Object isMargin = this.safeBool(parameters, "margin", false);
+            Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("margin", "marginMode")));
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue((Helpers.isEqual(isMargin, true)))) || Helpers.isTrue((Helpers.isEqual(marketType, "margin")))))
@@ -4860,7 +4860,7 @@ public class MexcCore extends MexcApi
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4945,7 +4945,7 @@ public class MexcCore extends MexcApi
                 trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
             return this.parseTrades(trades, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -4962,7 +4962,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5024,11 +5024,11 @@ public class MexcCore extends MexcApi
                 trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
             return this.parseTrades(trades, market, since, limit, query);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount, Object addOrReduce, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object addOrReduce, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5049,7 +5049,7 @@ public class MexcCore extends MexcApi
                 put( "amount", amount );
                 put( "type", addOrReduce );
             }};
-            Object response = (this.contractPrivatePostPositionChangeMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPrivatePostPositionChangeMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,
@@ -5070,7 +5070,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5091,7 +5091,7 @@ public class MexcCore extends MexcApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5219,7 +5219,7 @@ public class MexcCore extends MexcApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object resultList = this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> resultList = (java.util.List<Object>) this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
             {
@@ -5424,7 +5424,7 @@ public class MexcCore extends MexcApi
             //    }
             //
             Object data = this.safeValue(response, "data");
-            Object result = this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
@@ -5513,7 +5513,7 @@ public class MexcCore extends MexcApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data");
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
             return this.parseLeverageTiers(data, symbols, "symbol");
         });
 
@@ -5660,7 +5660,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
                 Object networkUnified = this.networkIdToCode(networkCode, code);
-                Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(networkUnified, null))) && Helpers.isTrue((Helpers.inOp(networks, networkUnified)))))
                 {
                     Object network = ((Helpers.isTrue((Helpers.isEqual(networkUnified, null))))) ? new java.util.HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new java.util.HashMap<String, Object>() {{}});
@@ -5704,7 +5704,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @param {string} [params.network] the blockchain network name
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5726,7 +5726,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             // createDepositAddress and fetchDepositAddress use a different network-id compared to withdraw
             Object networkId = null;
             Object networkUnified = this.networkIdToCode(networkCode, code);
-            Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(networkUnified, null))) && Helpers.isTrue((Helpers.inOp(networks, networkUnified)))))
             {
                 Object network = ((Helpers.isTrue((Helpers.isEqual(networkUnified, null))))) ? new java.util.HashMap<String, Object>() {{}} : this.safeDict(networks, networkUnified, new java.util.HashMap<String, Object>() {{}});
@@ -5778,7 +5778,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 result = ((Helpers.isTrue((Helpers.isEqual(netCode, null))))) ? null : this.safeDict(addressStructures, netCode);
             } else
             {
-                Object options = this.safeDict(this.options, "defaultNetworks");
+                java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "defaultNetworks");
                 String defaultNetworkForCurrency = this.safeString(options, code);
                 if (Helpers.isTrue(!Helpers.isEqual(defaultNetworkForCurrency, null)))
                 {
@@ -6106,7 +6106,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> closeAllPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> closeAllPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6124,9 +6124,9 @@ final Object finalRiskIncrVol = riskIncrVol;
             //         "data": []
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePositions(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -6139,7 +6139,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6153,9 +6153,9 @@ final Object finalRiskIncrVol = riskIncrVol;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.fetchPositions(null, this.extend(request, parameters))).join();
+            Object response = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions(null, this.extend(request, parameters))).join());
             return this.safeValue(response, 0);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPosition);
 
     }
 
@@ -6168,7 +6168,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6210,9 +6210,9 @@ final Object finalRiskIncrVol = riskIncrVol;
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePositions(data, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -6332,7 +6332,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTransfer(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTransfer(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6365,7 +6365,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 //         }
                 //     }
                 //
-                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 return this.parseTransfer(data);
             } else if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
@@ -6505,7 +6505,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @param {string} [params.symbol] market symbol required for margin account transfers eg:BTCUSDT
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6702,7 +6702,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             java.util.List<Object> tagparametersVariable = (java.util.List<Object>) this.handleWithdrawTagAndParams(tag, parameters);
             tag = ((java.util.List<Object>) tagparametersVariable).get(0);
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
-            Object intern = this.safeBool(parameters, "internal", false);
+            Boolean intern = (Boolean) this.safeBool(parameters, "internal", false);
             if (Helpers.isTrue(Helpers.isEqual(intern, true)))
             {
                 parameters = this.omit(parameters, "internal");
@@ -6724,7 +6724,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                 //
                 return this.parseTransaction(responseForInternal, currency);
             }
-            Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             Object network = this.safeString2(parameters, "network", "netWork"); // this line allows the user to specify either ERC20 or ETH
             network = this.safeString(networks, network, network); // handle ETH > ERC-20 alias
             network = this.networkCodeToId(network, Helpers.GetValue(currency, "code"));
@@ -6926,7 +6926,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object networkList = this.safeList(transaction, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> networkList = (java.util.List<Object>) this.safeList(transaction, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
@@ -7023,7 +7023,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object networkList = this.safeList(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> networkList = (java.util.List<Object>) this.safeList(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
@@ -7056,7 +7056,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7101,7 +7101,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLeverage(data, market);
         });
 
@@ -7152,7 +7152,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object defaultValue = Helpers.getArg(optionalArgs, 1, null);
         String defaultType = this.safeString(this.options, "defaultType");
-        Object isMargin = this.safeBool(parameters, "margin", false);
+        Boolean isMargin = (Boolean) this.safeBool(parameters, "margin", false);
         Object marginMode = null;
         java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) super.handleMarginModeAndParams(methodName, parameters, defaultValue);
         marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -7179,7 +7179,7 @@ final Object finalRiskIncrVol = riskIncrVol;
      * @param {int} [params.page_num] current page number, default is 1
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7195,7 +7195,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
@@ -7247,10 +7247,10 @@ final Object finalRiskIncrVol = riskIncrVol;
             //        ]
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object positions = this.parsePositions(data, symbols, parameters);
             return this.filterBySinceLimit(positions, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -7282,7 +7282,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " setMarginMode() supports contract markets only")) ;
             }
-            Object marginModeLower = ((String)marginMode).toLowerCase();
+            String marginModeLower = ((String)marginMode).toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(marginModeLower, "isolated")) && Helpers.isTrue(!Helpers.isEqual(marginModeLower, "cross"))))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be isolated or cross")) ;
@@ -7394,7 +7394,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             } else
             {
                 this.checkRequiredCredentials();
-                Object timestamp = String.valueOf(this.nonce());
+                String timestamp = String.valueOf(this.nonce());
                 Object auth = "";
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "ApiKey", MexcCore.this.apiKey );
@@ -7448,7 +7448,7 @@ final Object finalRiskIncrVol = riskIncrVol;
         //     {"code":10216,"msg":"No available deposit address"}
         //     {"success":true, "code":0, "data":1634095541710}
         //
-        Object success = this.safeBool(response, "success", false); // v1
+        Boolean success = (Boolean) this.safeBool(response, "success", false); // v1
         if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
             return null;

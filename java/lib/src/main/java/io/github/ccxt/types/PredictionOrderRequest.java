@@ -14,7 +14,7 @@ public final class PredictionOrderRequest {
     public String side;
     public Double amount;
     public Double price;
-    public Map<String, Object> params;
+    public Object params;
     public final Object __raw;
 
     @SuppressWarnings("unchecked")
@@ -26,7 +26,6 @@ public final class PredictionOrderRequest {
         this.side = TypeHelper.safeString(data, "side");
         this.amount = TypeHelper.safeFloat(data, "amount");
         this.price = TypeHelper.safeFloat(data, "price");
-        Object paramsRaw = TypeHelper.safeValue(data, "params");
-        this.params = paramsRaw instanceof Map ? (Map<String, Object>) paramsRaw : null;
+        this.params = TypeHelper.safeValue(data, "params");
     }
 }

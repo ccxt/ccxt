@@ -765,7 +765,7 @@ public class BlofinCore extends BlofinApi
         Object strikePrice = null;
         Object optionType = null;
         String tickSize = this.safeString(market, "tickSize");
-        Object fees = this.safeDict2(this.fees, type, "trading", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> fees = (java.util.Map<String, Object>) this.safeDict2(this.fees, type, "trading", new java.util.HashMap<String, Object>() {{}});
         Double taker = this.safeNumber(fees, "taker");
         Double maker = this.safeNumber(fees, "maker");
         String maxLeverage = this.safeString(market, "maxLeverage", "100");
@@ -845,7 +845,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -887,11 +887,11 @@ public class BlofinCore extends BlofinApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(first, "ts");
             return this.parseOrderBook(first, symbol, timestamp);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -923,7 +923,7 @@ public class BlofinCore extends BlofinApi
         Object symbol = Helpers.GetValue(market, "symbol");
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
-        Object spot = this.safeBool(market, "spot", false);
+        Boolean spot = (Boolean) this.safeBool(market, "spot", false);
         Object quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCurrency24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
@@ -963,7 +963,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -978,10 +978,10 @@ public class BlofinCore extends BlofinApi
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetMarketTickers(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -995,7 +995,7 @@ public class BlofinCore extends BlofinApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrice(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchMarkPrice(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1010,10 +1010,10 @@ public class BlofinCore extends BlofinApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetMarketMarkPrice(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -1026,7 +1026,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1041,7 +1041,7 @@ public class BlofinCore extends BlofinApi
             java.util.Map<String, Object> response = (this.publicGetMarketTickers(parameters)).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1180,7 +1180,7 @@ public class BlofinCore extends BlofinApi
      * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1204,7 +1204,7 @@ public class BlofinCore extends BlofinApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100
@@ -1219,7 +1219,7 @@ public class BlofinCore extends BlofinApi
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1455,8 +1455,8 @@ public class BlofinCore extends BlofinApi
             //        "msg": ""
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object entry = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> entry = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseFundingRate(entry, market);
         });
 
@@ -1464,7 +1464,7 @@ public class BlofinCore extends BlofinApi
 
     public Object parseBalanceByType(Object response)
     {
-        Object data = this.safeList(response, "data");
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(data, null))) && Helpers.isTrue(Helpers.isArray(data))))
         {
             return this.parseFundingBalance(response);
@@ -1509,7 +1509,7 @@ public class BlofinCore extends BlofinApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(data, "ts");
         Object details = this.safeList(data, "details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(details)); i++)
@@ -1614,7 +1614,7 @@ public class BlofinCore extends BlofinApi
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(accountType, null)) && Helpers.isTrue(!Helpers.isEqual(accountType, "swap"))))
             {
-                Object options = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
                 String parsedAccountType = this.safeString(options, accountType, accountType);
                 Helpers.addElementToObject(request, "accountType", parsedAccountType);
                 response = (this.privateGetAssetBalances(this.extend(request, parameters))).join();
@@ -1657,7 +1657,7 @@ public class BlofinCore extends BlofinApi
         String triggerPriceAny = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopLossPrice", "takeProfitPrice")));
         String triggerPriceSlTp = this.safeString2(parameters, "stopLossPrice", "takeProfitPrice");
         String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
-        Object isHedged = this.safeBool(parameters, "hedged", false);
+        Boolean isHedged = (Boolean) this.safeBool(parameters, "hedged", false);
         if (Helpers.isTrue(Helpers.isEqual(isHedged, true)))
         {
             Helpers.addElementToObject(request, "positionSide", ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "long" : "short");
@@ -1682,8 +1682,8 @@ public class BlofinCore extends BlofinApi
         {
             Helpers.addElementToObject(request, "type", "post_only");
         }
-        Object stopLoss = this.safeDict(parameters, "stopLoss");
-        Object takeProfit = this.safeDict(parameters, "takeProfit");
+        java.util.Map<String, Object> stopLoss = (java.util.Map<String, Object>) this.safeDict(parameters, "stopLoss");
+        java.util.Map<String, Object> takeProfit = (java.util.Map<String, Object>) this.safeDict(parameters, "takeProfit");
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLoss", "takeProfit", "hedged")));
         Boolean hasStopLoss = !Helpers.isEqual(stopLoss, null);
         Boolean hasTakeProfit = !Helpers.isEqual(takeProfit, null);
@@ -1901,7 +1901,7 @@ public class BlofinCore extends BlofinApi
      * @param {float} [params.tpsl] whether to force to send the order to the combined TPSL oco order endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1923,7 +1923,7 @@ public class BlofinCore extends BlofinApi
             Boolean isCombinedSlTp = Helpers.isTrue((Helpers.isTrue(isStopLossPriceDefined) && Helpers.isTrue(isTakeProfitPriceDefined))) || Helpers.isTrue(isTpslEndpoint);
             Boolean isSlOrTp = Helpers.isTrue(isStopLossPriceDefined) || Helpers.isTrue(isTakeProfitPriceDefined);
             Object response = null;
-            Object reduceOnly = this.safeBool(parameters, "reduceOnly");
+            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
             if (Helpers.isTrue(!Helpers.isEqual(reduceOnly, null)))
             {
                 Helpers.addElementToObject(parameters, "reduceOnly", ((Helpers.isTrue(reduceOnly))) ? "true" : "false");
@@ -1943,16 +1943,16 @@ public class BlofinCore extends BlofinApi
             }
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isCombinedSlTp) || Helpers.isTrue(isSlOrTp)) || Helpers.isTrue(isTriggerOrder)))
             {
-                Object dataDict = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> dataDict = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 return this.parseOrder(dataDict, market);
             }
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(data, 0);
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0);
             java.util.Map<String, Object> order = this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
             return order;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1962,7 +1962,7 @@ public class BlofinCore extends BlofinApi
         Object price = Helpers.getArg(optionalArgs, 1, null);
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object hedged = this.safeBool(parameters, "hedged", false);
+        Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
         String positionSide = "net";
         if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
         {
@@ -2041,7 +2041,7 @@ public class BlofinCore extends BlofinApi
      * @param {boolean} [params.tpsl] True if cancelling a tpsl order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2060,8 +2060,8 @@ public class BlofinCore extends BlofinApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object isTrigger = this.safeBool(parameters, "trigger", false);
-            Object isTpsl = this.safeBool2(parameters, "tpsl", "TPSL", false);
+            Boolean isTrigger = (Boolean) this.safeBool(parameters, "trigger", false);
+            Boolean isTpsl = (Boolean) this.safeBool2(parameters, "tpsl", "TPSL", false);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
@@ -2082,20 +2082,20 @@ public class BlofinCore extends BlofinApi
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderId", "clientOrderId", "stop", "trigger", "tpsl")));
             if (Helpers.isTrue(Helpers.isEqual(isTpsl, true)))
             {
-                Object tpslResponse = (this.cancelOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), symbol, parameters)).join();
-                Object first = this.safeDict(tpslResponse, 0);
+                Object tpslResponse = io.github.ccxt.TypedCores.fromOrderList((this.cancelOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), symbol, parameters)).join());
+                java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(tpslResponse, 0);
                 return first;
             } else if (Helpers.isTrue(Helpers.isEqual(isTrigger, true)))
             {
                 java.util.Map<String, Object> triggerResponse = (this.privatePostTradeCancelAlgo(this.extend(request, query))).join();
-                Object triggerData = this.safeDict(triggerResponse, "data");
+                java.util.Map<String, Object> triggerData = (java.util.Map<String, Object>) this.safeDict(triggerResponse, "data");
                 return this.parseOrder(triggerData, market);
             }
             java.util.Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object order = this.safeDict(data, 0);
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(data, 0);
             return this.parseOrder(order, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2108,7 +2108,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrders(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2127,7 +2127,7 @@ public class BlofinCore extends BlofinApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> orderParams = (java.util.Map<String, Object>) this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 java.util.Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
@@ -2135,7 +2135,7 @@ public class BlofinCore extends BlofinApi
             java.util.Map<String, Object> response = (this.privatePostTradeBatchOrders(ordersRequests)).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2154,7 +2154,7 @@ public class BlofinCore extends BlofinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2187,7 +2187,7 @@ public class BlofinCore extends BlofinApi
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 100
             }
             Object isTrigger = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")), false);
-            Object isTpSl = this.safeBool2(parameters, "tpsl", "TPSL", false);
+            Boolean isTpSl = (Boolean) this.safeBool2(parameters, "tpsl", "TPSL", false);
             Object method = null;
             java.util.List<Object> methodparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrders", "method", "privateGetTradeOrdersPending");
             method = ((java.util.List<Object>) methodparametersVariable).get(0);
@@ -2207,7 +2207,7 @@ public class BlofinCore extends BlofinApi
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2226,7 +2226,7 @@ public class BlofinCore extends BlofinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2297,7 +2297,7 @@ public class BlofinCore extends BlofinApi
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2667,7 +2667,7 @@ public class BlofinCore extends BlofinApi
      * @param {boolean} [params.trigger] whether the order is a stop/trigger order
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids2, Object... optionalArgs)
     {
         final Object ids3 = ids2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2750,7 +2750,7 @@ public class BlofinCore extends BlofinApi
             }
             Object ordersData = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(ordersData, market, null, null, parameters);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2766,7 +2766,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2777,7 +2777,7 @@ public class BlofinCore extends BlofinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> accountsByType = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2787,7 +2787,7 @@ public class BlofinCore extends BlofinApi
                 put( "toAccount", toId );
             }};
             java.util.Map<String, Object> response = (this.privatePostAssetTransfer(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransfer(data, currency);
         });
 
@@ -2820,7 +2820,7 @@ public class BlofinCore extends BlofinApi
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2835,14 +2835,14 @@ public class BlofinCore extends BlofinApi
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.privateGetAccountPositions(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object position = this.safeDict(data, 0);
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> position = (java.util.Map<String, Object>) this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isEqual(position, null)))
             {
                 throw new NullResponse((String)Helpers.add(this.id, " fetchPosition() returned empty position")) ;
             }
             return this.parsePosition(position, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPosition);
 
     }
 
@@ -2856,7 +2856,7 @@ public class BlofinCore extends BlofinApi
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2869,10 +2869,10 @@ public class BlofinCore extends BlofinApi
             }
             symbols = this.marketSymbols(symbols);
             java.util.Map<String, Object> response = (this.privateGetAccountPositions(parameters)).join();
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = this.parsePositions(data);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -2890,7 +2890,7 @@ public class BlofinCore extends BlofinApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2907,7 +2907,7 @@ public class BlofinCore extends BlofinApi
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -2953,10 +2953,10 @@ public class BlofinCore extends BlofinApi
             //        ]
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object positions = this.parsePositions(data, symbols, parameters);
             return this.filterBySinceLimit(positions, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -3037,7 +3037,7 @@ public class BlofinCore extends BlofinApi
             }
         }
         Double contractSize = this.safeNumber(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         String markPriceString = this.safeString(position, "markPrice");
         String notionalString = this.safeString(position, "notionalUsd");
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
@@ -3069,7 +3069,7 @@ public class BlofinCore extends BlofinApi
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         } else if (Helpers.isTrue(Helpers.isEqual(initialMarginString, null)))
         {
-            Object initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+            String initialMarginPercentageString = this.numberToString(initialMarginPercentage);
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         String rounder = "0.00005"; // round to closest 0.01%
@@ -3205,7 +3205,7 @@ public class BlofinCore extends BlofinApi
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3245,7 +3245,7 @@ public class BlofinCore extends BlofinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         });
 
@@ -3337,7 +3337,7 @@ public class BlofinCore extends BlofinApi
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closePosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3365,7 +3365,7 @@ public class BlofinCore extends BlofinApi
             }
             java.util.Map<String, Object> response = (this.privatePostTradeClosePosition(this.extend(request, parameters))).join();
             return this.safeDict(response, "data");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -3383,7 +3383,7 @@ public class BlofinCore extends BlofinApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3435,7 +3435,7 @@ public class BlofinCore extends BlofinApi
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -3448,7 +3448,7 @@ public class BlofinCore extends BlofinApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3469,7 +3469,7 @@ public class BlofinCore extends BlofinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
         });
 
@@ -3525,7 +3525,7 @@ public class BlofinCore extends BlofinApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);  // Dict, not MarginMode: this override has no explicit return annotation, so the Go/C#/Java wrappers infer it — MarginMode would emit MarginMode instead of the map[string]any required by IExchange.SetMarginMode
         });
 
@@ -3548,7 +3548,7 @@ public class BlofinCore extends BlofinApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> response = (this.privateGetAccountPositionMode(parameters)).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String positionMode = this.safeString(data, "positionMode");
             //
             //     {
@@ -3727,8 +3727,8 @@ public class BlofinCore extends BlofinApi
         //      code: '103003'
         //  }
         //
-        Object data = this.safeList(response, "data");
-        Object first = this.safeDict(data, 0);
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0);
         String insideMsg = this.safeString(first, "msg");
         String insideCode = this.safeString(first, "code");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(insideCode, null)) && Helpers.isTrue(!Helpers.isEqual(insideCode, "0"))))
@@ -3760,7 +3760,7 @@ public class BlofinCore extends BlofinApi
         } else if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.milliseconds());
+            String timestamp = String.valueOf(this.milliseconds());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "ACCESS-KEY", BlofinCore.this.apiKey );
                 put( "ACCESS-PASSPHRASE", BlofinCore.this.password );

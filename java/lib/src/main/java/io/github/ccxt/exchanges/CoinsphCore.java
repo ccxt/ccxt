@@ -775,8 +775,8 @@ public class CoinsphCore extends CoinsphApi
     {
         String id = this.safeString(rawCurrency, "coin");
         String code = (String) this.safeCurrencyCode(id);
-        Object isFiat = this.safeBool(rawCurrency, "isLegalMoney");
-        Object networkList = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "isLegalMoney");
+        java.util.List<Object> networkList = (java.util.List<Object>) this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
@@ -838,8 +838,8 @@ public class CoinsphCore extends CoinsphApi
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(config, "byNumberOfSymbols"))) && Helpers.isTrue((Helpers.inOp(parameters, "symbols")))))
         {
             Object symbols = Helpers.GetValue(parameters, "symbols");
-            Object symbolsAmount = Helpers.getArrayLength(symbols);
-            Object byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Integer symbolsAmount = Helpers.getArrayLength(symbols);
+            java.util.List<Object> byNumberOfSymbols = (java.util.List<Object>) this.safeList(config, "byNumberOfSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(byNumberOfSymbols)); i++)
             {
                 Object entry = Helpers.GetValue(byNumberOfSymbols, i);
@@ -851,7 +851,7 @@ public class CoinsphCore extends CoinsphApi
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(config, "byLimit"))) && Helpers.isTrue((Helpers.inOp(parameters, "limit")))))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
-            Object byLimit = this.safeList(config, "byLimit", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> byLimit = (java.util.List<Object>) this.safeList(config, "byLimit", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(byLimit)); i++)
             {
                 Object entry = Helpers.GetValue(byLimit, i);
@@ -987,7 +987,7 @@ public class CoinsphCore extends CoinsphApi
             //         ]
             //     }
             //
-            Object markets = this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> markets = (java.util.List<Object>) this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
@@ -1071,7 +1071,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1095,7 +1095,7 @@ public class CoinsphCore extends CoinsphApi
                 Helpers.addElementToObject(request, "symbols", ids);
             }
             String defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-            Object options = this.safeDict(this.options, "fetchTickers", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchTickers", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method", defaultMethod);
             Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
@@ -1109,7 +1109,7 @@ public class CoinsphCore extends CoinsphApi
                 tickers = (this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, parameters))).join();
             }
             return this.parseTickers(tickers, symbols, parameters);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1124,7 +1124,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1139,7 +1139,7 @@ public class CoinsphCore extends CoinsphApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             String defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-            Object options = this.safeDict(this.options, "fetchTicker", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchTicker", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method", defaultMethod);
             Object ticker = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
@@ -1153,7 +1153,7 @@ public class CoinsphCore extends CoinsphApi
                 ticker = (this.publicGetOpenapiQuoteV1Ticker24hr(this.extend(request, parameters))).join();
             }
             return this.parseTicker(ticker, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -1250,7 +1250,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1286,7 +1286,7 @@ public class CoinsphCore extends CoinsphApi
             Object orderbook = this.parseOrderBook(response, symbol);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "lastUpdateId"));
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1391,7 +1391,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1433,7 +1433,7 @@ public class CoinsphCore extends CoinsphApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1448,7 +1448,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1480,7 +1480,7 @@ public class CoinsphCore extends CoinsphApi
             }
             java.util.List<Object> response = (this.privateGetOpenapiV1MyTrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1496,7 +1496,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1513,7 +1513,7 @@ public class CoinsphCore extends CoinsphApi
                 put( "orderId", id );
             }};
             return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1577,7 +1577,7 @@ public class CoinsphCore extends CoinsphApi
                 put( "currency", CoinsphCore.this.safeCurrencyCode(feeCurrencyId) );
             }};
         }
-        Object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker");
+        Boolean isBuyer = (Boolean) this.safeBool2(trade, "isBuyer", "isBuyerMaker");
         String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(isBuyer, null)))
         {
@@ -1663,7 +1663,7 @@ public class CoinsphCore extends CoinsphApi
 
     public java.util.Map<String, Object> parseBalance(Object response)
     {
-        Object balances = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> balances = (java.util.List<Object>) this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
@@ -1700,7 +1700,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {bool} [params.test] set to true to test an order, no order will be created but the request will be validated
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1713,7 +1713,7 @@ public class CoinsphCore extends CoinsphApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object testOrder = this.safeBool(parameters, "test", false);
+            Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             Object orderType = this.safeString(parameters, "type", type);
             orderType = this.encodeOrderType(orderType);
@@ -1767,8 +1767,8 @@ public class CoinsphCore extends CoinsphApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             String costRequest = Precise.stringMul(amountString, priceString);
                             quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
@@ -1826,7 +1826,7 @@ public class CoinsphCore extends CoinsphApi
             //     },
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1840,7 +1840,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1863,7 +1863,7 @@ public class CoinsphCore extends CoinsphApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "origClientOrderId")));
             java.util.Map<String, Object> response = (this.privateGetOpenapiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1878,7 +1878,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1900,7 +1900,7 @@ public class CoinsphCore extends CoinsphApi
             }
             java.util.List<Object> response = (this.privateGetOpenapiV1OpenOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1915,7 +1915,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1947,7 +1947,7 @@ public class CoinsphCore extends CoinsphApi
             }
             java.util.List<Object> response = (this.privateGetOpenapiV1HistoryOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1961,7 +1961,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1984,7 +1984,7 @@ public class CoinsphCore extends CoinsphApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "origClientOrderId")));
             java.util.Map<String, Object> response = (this.privateDeleteOpenapiV1Order(this.extend(request, parameters))).join();
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1997,7 +1997,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2021,7 +2021,7 @@ public class CoinsphCore extends CoinsphApi
             }
             java.util.List<Object> response = (this.privateDeleteOpenapiV1OpenOrders(this.extend(request, parameters))).join();
             return this.parseOrders(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2235,7 +2235,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2259,9 +2259,9 @@ public class CoinsphCore extends CoinsphApi
             //       }
             //     ]
             //
-            Object tradingFee = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> tradingFee = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTradingFee(tradingFee, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFeeInterface);
 
     }
 
@@ -2357,7 +2357,7 @@ public class CoinsphCore extends CoinsphApi
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object options = this.safeValue(this.options, "withdraw");
-            Object warning = this.safeBool(options, "warning", true);
+            Boolean warning = (Boolean) this.safeBool(options, "warning", true);
             if (Helpers.isTrue(Helpers.isEqual(warning, true)))
             {
                 throw new InvalidAddress((String)Helpers.add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;

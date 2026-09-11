@@ -638,7 +638,7 @@ public class DydxCore extends DydxApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
-        Object parts = Helpers.split(marketId, "-");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "-");
         String baseName = this.safeString(parts, 0);
         String baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
         String base = (String) this.safeCurrencyCode(baseId);
@@ -758,8 +758,8 @@ public class DydxCore extends DydxApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "markets", new java.util.HashMap<String, Object>() {{}});
-            Object markets = Helpers.objectValues(data);
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "markets", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> markets = Helpers.objectValues(data);
             return this.parseMarkets(markets);
         });
 
@@ -813,7 +813,7 @@ public class DydxCore extends DydxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -851,7 +851,7 @@ public class DydxCore extends DydxApi
             //
             Object rows = this.safeList(response, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(rows, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1008,7 +1008,7 @@ public class DydxCore extends DydxApi
             // }
             //
             java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rows = this.safeList(response, "historicalFunding", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> rows = (java.util.List<Object>) this.safeList(response, "historicalFunding", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object entry = Helpers.GetValue(rows, i);
@@ -1150,7 +1150,7 @@ public class DydxCore extends DydxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1166,7 +1166,7 @@ public class DydxCore extends DydxApi
             }};
             java.util.Map<String, Object> order = (this.indexerGetOrdersOrderId(this.extend(request, parameters))).join();
             return this.parseOrder(order);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1183,7 +1183,7 @@ public class DydxCore extends DydxApi
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1249,7 +1249,7 @@ public class DydxCore extends DydxApi
             // ]
             //
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1266,7 +1266,7 @@ public class DydxCore extends DydxApi
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1279,7 +1279,7 @@ public class DydxCore extends DydxApi
                 put( "status", "OPEN" );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1296,7 +1296,7 @@ public class DydxCore extends DydxApi
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1309,7 +1309,7 @@ public class DydxCore extends DydxApi
                 put( "status", "FILLED" );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1386,15 +1386,15 @@ public class DydxCore extends DydxApi
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object positions = (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
+            Object positions = io.github.ccxt.TypedCores.fromPositionList((this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join());
             return this.safeDict(positions, 0, new java.util.HashMap<String, Object>() {{}});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPosition);
 
     }
 
@@ -1409,7 +1409,7 @@ public class DydxCore extends DydxApi
      * @param {string} [params.subAccountNumber] sub account number
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1462,7 +1462,7 @@ public class DydxCore extends DydxApi
             //
             Object rows = this.safeList(response, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePositions(rows, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -1550,7 +1550,7 @@ public class DydxCore extends DydxApi
 
             // required in js
             (this.loadDydxProtos()).join();
-            Object dydxAccount = this.safeDict(this.options, "dydxAccount");
+            java.util.Map<String, Object> dydxAccount = (java.util.Map<String, Object>) this.safeDict(this.options, "dydxAccount");
             if (Helpers.isTrue(!Helpers.isEqual(dydxAccount, null)))
             {
                 return dydxAccount;
@@ -1580,7 +1580,7 @@ public class DydxCore extends DydxApi
             // }
             //
             java.util.Map<String, Object> response = (this.nodeRestGetCosmosAuthV1beta1AccountInfoDydxAddress(request)).join();
-            Object account = this.safeDict(response, "info", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> account = (java.util.Map<String, Object>) this.safeDict(response, "info", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(account, "pub_key", new java.util.HashMap<String, Object>() {{
         put( "key", Helpers.GetValue(Helpers.GetValue(account, "pub_key"), "key") );
     }});
@@ -1590,7 +1590,7 @@ public class DydxCore extends DydxApi
 
     }
 
-    public Object pow(Object n, Object m)
+    public Object pow(String n, Object m)
     {
         String r = Precise.stringMul(n, "1");
         Long c = this.parseToInt(m);
@@ -1614,14 +1614,14 @@ public class DydxCore extends DydxApi
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
         }
-        Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        Object orderType = ((String)type).toUpperCase();
+        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        String orderType = ((String)type).toUpperCase();
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
         }
-        Object orderSide = ((String)side).toUpperCase();
+        String orderSide = ((String)side).toUpperCase();
         Object subaccountId = 0;
         java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "subAccountId", subaccountId);
         subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
@@ -1635,7 +1635,7 @@ public class DydxCore extends DydxApi
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
         Object amountStr = this.amountToPrecision(symbol, amount);
         Object priceStr = this.priceToPrecision(symbol, price);
-        Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> marketInfo = (java.util.Map<String, Object>) this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
         Object atomicResolution = Helpers.GetValue(marketInfo, "atomicResolution");
         Object quantumScale = this.pow("10", Precise.stringNeg(atomicResolution));
         String quantums = Precise.stringMul(amountStr, quantumScale);
@@ -1808,8 +1808,8 @@ public class DydxCore extends DydxApi
             //     }
             // }
             //
-            Object result = this.safeDict(response, "result");
-            Object info = this.safeDict(result, "response");
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result");
+            java.util.Map<String, Object> info = (java.util.Map<String, Object>) this.safeDict(result, "response");
             Long height = this.safeInteger(info, "last_block_height");
             if (Helpers.isTrue(Helpers.isEqual(height, null)))
             {
@@ -1842,7 +1842,7 @@ public class DydxCore extends DydxApi
      * @param {float} [params.goodTillBlockTimeInSeconds] expired time elapsed for the order, required for limit GTT order and conditional, default value is 30 days
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1883,13 +1883,13 @@ public class DydxCore extends DydxApi
             //     }
             // }
             //
-            Object result = this.safeDict(response, "result");
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", result );
                 put( "id", orderId );
                 put( "clientOrderId", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(orderRequest, "value"), "order"), "orderId"), "clientId") );
             }});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1909,14 +1909,14 @@ public class DydxCore extends DydxApi
      * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id2, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object id = id3;
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+            Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(isTrigger, true))) && Helpers.isTrue((Helpers.isEqual(symbol, null)))))
             {
@@ -1932,7 +1932,7 @@ public class DydxCore extends DydxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
             }
-            Object idString = String.valueOf(id);
+            String idString = String.valueOf(id);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(id, null)) && Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(idString, "-"), Helpers.opNeg(1)))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
@@ -2017,11 +2017,11 @@ public class DydxCore extends DydxApi
             //     }
             // }
             //
-            Object result = this.safeDict(response, "result");
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result");
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", result );
             }});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2036,7 +2036,7 @@ public class DydxCore extends DydxApi
      * @param {int} [params.subAccountId] sub account id, default is 0
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2048,7 +2048,7 @@ public class DydxCore extends DydxApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object clientOrderIds = this.safeList(parameters, "clientOrderIds");
+            java.util.List<Object> clientOrderIds = (java.util.List<Object>) this.safeList(parameters, "clientOrderIds");
             if (Helpers.isTrue(Helpers.isEqual(clientOrderIds, null)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " cancelOrders only support clientOrderIds.")) ;
@@ -2105,11 +2105,11 @@ public class DydxCore extends DydxApi
             //     }
             // }
             //
-            Object result = this.safeDict(response, "result");
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result");
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", result );
     }})));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2123,7 +2123,7 @@ public class DydxCore extends DydxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2156,7 +2156,7 @@ public class DydxCore extends DydxApi
             // }
             //
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "size");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -2199,8 +2199,8 @@ public class DydxCore extends DydxApi
         }
         String amount = this.safeString(item, "size");
         Long timestamp = this.parse8601(this.safeString(item, "createdAt"));
-        Object sender = this.safeDict(item, "sender");
-        Object recipient = this.safeDict(item, "recipient");
+        java.util.Map<String, Object> sender = (java.util.Map<String, Object>) this.safeDict(item, "sender");
+        java.util.Map<String, Object> recipient = (java.util.Map<String, Object>) this.safeDict(item, "recipient");
         final Object finalDirection = direction;
         final Object finalType = type;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
@@ -2290,7 +2290,7 @@ public class DydxCore extends DydxApi
             //     }
             // }
             //
-            Object gasInfo = this.safeDict(response, "gas_info");
+            java.util.Map<String, Object> gasInfo = (java.util.Map<String, Object>) this.safeDict(response, "gas_info");
             if (Helpers.isTrue(Helpers.isEqual(gasInfo, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " failed to simulate transaction.")) ;
@@ -2302,7 +2302,7 @@ public class DydxCore extends DydxApi
             }
             String defaultFeeDenom = this.safeString(this.options, "defaultFeeDenom");
             String defaultFeeMultiplier = this.safeString(this.options, "defaultFeeMultiplier");
-            Object feeDenom = this.safeDict(this.options, "feeDenom", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> feeDenom = (java.util.Map<String, Object>) this.safeDict(this.options, "feeDenom", new java.util.HashMap<String, Object>() {{}});
             Object gasPrice = null;
             Object denom = null;
             if (Helpers.isTrue(Helpers.isEqual(defaultFeeDenom, "uusdc")))
@@ -2314,7 +2314,7 @@ public class DydxCore extends DydxApi
                 gasPrice = Helpers.GetValue(feeDenom, "CHAINTOKEN_GAS_PRICE");
                 denom = Helpers.GetValue(feeDenom, "CHAINTOKEN_DENOM");
             }
-            Object gasLimit = Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)))));
+            Double gasLimit = Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)))));
             String feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
             if (Helpers.isTrue(Helpers.isEqual(feeAmount, null)))
             {
@@ -2350,7 +2350,7 @@ public class DydxCore extends DydxApi
      * @param {string} [params.vaultAddress] the vault address for order
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code2, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code2, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
     {
         final Object code3 = code2;
         final Object fromAccount3 = fromAccount2;
@@ -2485,8 +2485,8 @@ public class DydxCore extends DydxApi
         String currencyId = this.safeString(transfer, "symbol");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Double amount = this.safeNumber(transfer, "size");
-        Object sender = this.safeDict(transfer, "sender");
-        Object recipient = this.safeDict(transfer, "recipient");
+        java.util.Map<String, Object> sender = (java.util.Map<String, Object>) this.safeDict(transfer, "sender");
+        java.util.Map<String, Object> recipient = (java.util.Map<String, Object>) this.safeDict(transfer, "recipient");
         String fromAccount = this.safeString(sender, "address");
         String toAccount = this.safeString(recipient, "address");
         Long timestamp = this.parse8601(this.safeString(transfer, "createdAt"));
@@ -2568,8 +2568,8 @@ public class DydxCore extends DydxApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(transaction, "id");
-        Object sender = this.safeDict(transaction, "sender");
-        Object recipient = this.safeDict(transaction, "recipient");
+        java.util.Map<String, Object> sender = (java.util.Map<String, Object>) this.safeDict(transaction, "sender");
+        java.util.Map<String, Object> recipient = (java.util.Map<String, Object>) this.safeDict(transaction, "recipient");
         String addressTo = this.safeString(recipient, "address");
         String addressFrom = this.safeString(sender, "address");
         String txid = this.safeString(transaction, "transactionHash");
@@ -2923,7 +2923,7 @@ public class DydxCore extends DydxApi
             //     ]
             // }
             //
-            Object rows = this.safeList(response, "subaccounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> rows = (java.util.List<Object>) this.safeList(response, "subaccounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
@@ -3035,7 +3035,7 @@ public class DydxCore extends DydxApi
             //     }
             // }
             //
-            Object data = this.safeDict(response, "subaccount");
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "subaccount");
             return this.parseBalance(data);
         });
 
@@ -3063,7 +3063,7 @@ public class DydxCore extends DydxApi
         {
             return this.walletAddress;
         }
-        Object dydxAccount = this.safeDict(this.options, "dydxAccount");
+        java.util.Map<String, Object> dydxAccount = (java.util.Map<String, Object>) this.safeDict(this.options, "dydxAccount");
         if (Helpers.isTrue(!Helpers.isEqual(dydxAccount, null)))
         {
             // return dydxAccount;
@@ -3126,7 +3126,7 @@ public class DydxCore extends DydxApi
         // rest response
         // { "code": 123 }
         //
-        Object result = this.safeDict(response, "result");
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result");
         String errorCode = this.safeString(result, "code");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(errorCode, null))) || Helpers.isTrue((Helpers.isEqual(errorCode, "")))))
         {

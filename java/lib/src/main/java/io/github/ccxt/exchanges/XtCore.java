@@ -1253,7 +1253,7 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "result");
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "result");
             return this.safeInteger(data, "serverTime");
         });
 
@@ -1328,9 +1328,9 @@ public class XtCore extends XtApi
             //
             // note: individual network's full data is available on per-currency endpoint: https://www.xt.com/sapi/v4/balance/public/currency/11
             //
-            Object chainsData = this.safeList(chainsResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object currenciesResult = this.safeDict(currenciesResponse, "result", new java.util.HashMap<String, Object>() {{}});
-            Object currenciesData = this.safeList(currenciesResult, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> chainsData = (java.util.List<Object>) this.safeList(chainsResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> currenciesResult = (java.util.Map<String, Object>) this.safeDict(currenciesResponse, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> currenciesData = (java.util.List<Object>) this.safeList(currenciesResult, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> chainsDataIndexed = this.indexBy(chainsData, "currency");
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currenciesData)); i++)
@@ -1338,8 +1338,8 @@ public class XtCore extends XtApi
                 Object entry = Helpers.GetValue(currenciesData, i);
                 String currencyId = this.safeString(entry, "currency");
                 String code = (String) this.safeCurrencyCode(currencyId);
-                Object networkEntry = this.safeDict(chainsDataIndexed, currencyId, new java.util.HashMap<String, Object>() {{}});
-                Object rawNetworks = this.safeList(networkEntry, "supportChains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.Map<String, Object> networkEntry = (java.util.Map<String, Object>) this.safeDict(chainsDataIndexed, currencyId, new java.util.HashMap<String, Object>() {{}});
+                java.util.List<Object> rawNetworks = (java.util.List<Object>) this.safeList(networkEntry, "supportChains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(rawNetworks)); j++)
                 {
@@ -1510,8 +1510,8 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object symbols = this.safeList(data, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> symbols = (java.util.List<Object>) this.safeList(data, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(symbols);
         });
 
@@ -1727,7 +1727,7 @@ public class XtCore extends XtApi
         String quote = (String) this.safeCurrencyCode(quoteId);
         String state = this.safeString(market, "state");
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object filters = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> filters = (java.util.List<Object>) this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object minAmount = null;
         Object maxAmount = null;
         Object minCost = null;
@@ -1961,7 +1961,7 @@ public class XtCore extends XtApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 response = (this.publicLinearGetFutureMarketV1PublicQKline(this.extend(request, parameters))).join();
@@ -2013,7 +2013,7 @@ public class XtCore extends XtApi
             //         ]
             //     }
             //
-            Object ohlcvs = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> ohlcvs = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
 
@@ -2049,7 +2049,7 @@ public class XtCore extends XtApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object isInverse = this.safeBool(market, "inverse");
+        Boolean isInverse = (Boolean) this.safeBool(market, "inverse");
         String volumeIndex = ((Helpers.isTrue((Helpers.isEqual(isInverse, true))))) ? "v" : "a";
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, "t"), this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber2(ohlcv, "q", volumeIndex)));
     }
@@ -2065,7 +2065,7 @@ public class XtCore extends XtApi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2080,7 +2080,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2151,7 +2151,7 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object orderBook = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> orderBook = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Long timestamp = (Long) this.safeInteger2(orderBook, "timestamp", "t");
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
@@ -2162,7 +2162,7 @@ public class XtCore extends XtApi
             Object swapOb = this.parseOrderBook(orderBook, symbol, timestamp, "b", "a");
             Helpers.addElementToObject(swapOb, "nonce", this.safeInteger2(orderBook, "u", "lastUpdateId"));
             return swapOb;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -2176,7 +2176,7 @@ public class XtCore extends XtApi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2190,7 +2190,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
                 response = (this.publicLinearGetFutureMarketV1PublicQAggTicker(this.extend(request, parameters))).join();
@@ -2253,7 +2253,7 @@ public class XtCore extends XtApi
                 return this.parseTicker(Helpers.GetValue(ticker, 0), market);
             }
             return this.parseTicker(ticker, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -2267,7 +2267,7 @@ public class XtCore extends XtApi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2287,7 +2287,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -2352,7 +2352,7 @@ public class XtCore extends XtApi
             //         ]
             //     }
             //
-            Object tickers = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
@@ -2364,7 +2364,7 @@ public class XtCore extends XtApi
                 }
             }
             return this.filterByArray(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2378,7 +2378,7 @@ public class XtCore extends XtApi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/en/latest/manual.html#ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2407,7 +2407,7 @@ public class XtCore extends XtApi
             Boolean isInverse = (Helpers.isEqual(subType, "inverse"));
             Boolean isLinear = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subType, "linear"))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
             Boolean isContract = Helpers.isTrue(isInverse) || Helpers.isTrue(isLinear);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isInverse))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicQTickerBooks(this.extend(request, parameters))).join();
@@ -2455,7 +2455,7 @@ public class XtCore extends XtApi
             //         ]
             //     }
             //
-            Object tickers = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
@@ -2473,7 +2473,7 @@ public class XtCore extends XtApi
                 }
             }
             return this.filterByArray(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2577,7 +2577,7 @@ public class XtCore extends XtApi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2593,7 +2593,7 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2651,9 +2651,9 @@ public class XtCore extends XtApi
             //         ]
             //     }
             //
-            Object trades = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2669,7 +2669,7 @@ public class XtCore extends XtApi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/en/latest/manual.html?#public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2695,7 +2695,7 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchMyTrades", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -2787,10 +2787,10 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object trades = this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2914,7 +2914,7 @@ public class XtCore extends XtApi
         market = this.safeMarket(marketId, market, "_", marketType);
         Object side = null;
         Object takerOrMaker = null;
-        Object isBuyerMaker = this.safeBool(trade, "b");
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "b");
         if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
         {
             side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
@@ -2927,7 +2927,7 @@ public class XtCore extends XtApi
                 takerOrMaker = takerMaker;
             } else
             {
-                Object isMaker = this.safeBool(trade, "isMaker");
+                Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
                 if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
                 {
                     takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
@@ -3007,7 +3007,7 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -3075,7 +3075,7 @@ public class XtCore extends XtApi
                 balances = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else
             {
-                Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
                 balances = this.safeList(data, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
             return this.parseBalance(balances);
@@ -3149,7 +3149,7 @@ public class XtCore extends XtApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3165,7 +3165,7 @@ public class XtCore extends XtApi
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
             }
             return (this.createOrder(symbol, "market", "buy", cost, 1, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -3198,7 +3198,7 @@ public class XtCore extends XtApi
      * @param {string} [params.marginMode] 'cross' or 'isolated', for trailing orders only, default is 'cross'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol2, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol2, Object type, Object side, Object amount, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3223,7 +3223,7 @@ public class XtCore extends XtApi
             {
                 return (this.createContractOrder(symbol, type, side, amount, price, parameters)).join();
             }
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -3262,7 +3262,7 @@ public class XtCore extends XtApi
                 {
                     String cost = this.safeString(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
-                    Object createMarketBuyOrderRequiresPrice = this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", true);
+                    Boolean createMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "createMarketBuyOrderRequiresPrice", true);
                     if (Helpers.isTrue(Helpers.isEqual(createMarketBuyOrderRequiresPrice, true)))
                     {
                         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(price, null)) && Helpers.isTrue((Helpers.isEqual(cost, null)))))
@@ -3270,8 +3270,8 @@ public class XtCore extends XtApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             Object costCalculated = null;
                             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                             {
@@ -3318,7 +3318,7 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object order = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         });
 
@@ -3356,7 +3356,7 @@ public class XtCore extends XtApi
             {
                 Helpers.addElementToObject(request, "timeInForce", timeInForce);
             }
-            Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
+            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
             if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
             {
                 Object requestType = ((Helpers.isTrue((Helpers.isEqual(reduceOnly, true))))) ? "SHORT" : "LONG";
@@ -3497,7 +3497,7 @@ public class XtCore extends XtApi
      * @param {bool} [params.trailing] if the order is a trailing order or not
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3516,16 +3516,16 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrder", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOrder", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object trigger = this.safeBool2(parameters, "trigger", "stop");
-            Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            Object trailing = this.safeBool(parameters, "trailing");
+            Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
+            Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
             {
                 Boolean isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
@@ -3704,9 +3704,9 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object order = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -3726,7 +3726,7 @@ public class XtCore extends XtApi
      * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3756,15 +3756,15 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object trigger = this.safeBool2(parameters, "trigger", "stop");
-            Object trailing = this.safeBool(parameters, "trailing");
+            Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
             {
                 Boolean isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
@@ -3919,10 +3919,10 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -3956,16 +3956,16 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrdersByStatus", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOrdersByStatus", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            Object trailing = this.safeBool(parameters, "trailing");
+            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+            Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
             {
                 Boolean isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
@@ -4274,7 +4274,7 @@ public class XtCore extends XtApi
             //     }
             //
             Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object resultDict = this.safeDict(response, "result");
+            java.util.Map<String, Object> resultDict = (java.util.Map<String, Object>) this.safeDict(response, "result");
             if (Helpers.isTrue(!Helpers.isEqual(resultDict, null)))
             {
                 orders = this.safeList(resultDict, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -4314,7 +4314,7 @@ public class XtCore extends XtApi
      * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4324,7 +4324,7 @@ public class XtCore extends XtApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatus("open", symbol, since, limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -4346,7 +4346,7 @@ public class XtCore extends XtApi
      * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4356,7 +4356,7 @@ public class XtCore extends XtApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatus("closed", symbol, since, limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -4378,7 +4378,7 @@ public class XtCore extends XtApi
      * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4388,7 +4388,7 @@ public class XtCore extends XtApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchOrdersByStatus("canceled", symbol, since, limit, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -4409,7 +4409,7 @@ public class XtCore extends XtApi
      * @param {bool} [params.trailing] if the order is a trailing order or not
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4428,16 +4428,16 @@ public class XtCore extends XtApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelOrder", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("cancelOrder", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object trigger = this.safeBool2(parameters, "trigger", "stop");
-            Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            Object trailing = this.safeBool(parameters, "trailing");
+            Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
+            Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
             {
                 Boolean isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
@@ -4523,7 +4523,7 @@ public class XtCore extends XtApi
             Boolean isContractResponse = (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future"))));
             Object order = ((Helpers.isTrue(isContractResponse))) ? response : this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -4543,7 +4543,7 @@ public class XtCore extends XtApi
      * @param {bool} [params.trailing] if the orders are trailing orders or not
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4563,16 +4563,16 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("cancelAllOrders", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("cancelAllOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object trigger = this.safeBool2(parameters, "trigger", "stop");
-            Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
-            Object trailing = this.safeBool(parameters, "trailing");
+            Boolean trigger = (Boolean) this.safeBool2(parameters, "trigger", "stop");
+            Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
             if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
             {
                 Boolean isContract = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subType, null))) || Helpers.isTrue((Helpers.isEqual(type, "swap")))) || Helpers.isTrue((Helpers.isEqual(type, "future")));
@@ -4647,7 +4647,7 @@ public class XtCore extends XtApi
             //     }
             //
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(response)));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -4661,7 +4661,7 @@ public class XtCore extends XtApi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/en/latest/manual.html#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4700,7 +4700,7 @@ public class XtCore extends XtApi
             //     }
             //
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(response)));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -4969,7 +4969,7 @@ public class XtCore extends XtApi
             }
             Object type = null;
             Object subType = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -5009,8 +5009,8 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object ledger = this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> ledger = (java.util.List<Object>) this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLedger(ledger, currency, since, limit);
         });
 
@@ -5117,7 +5117,7 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseDepositAddress(result, currency);
         });
 
@@ -5209,8 +5209,8 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object deposits = this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> deposits = (java.util.List<Object>) this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit, parameters);
         });
 
@@ -5282,8 +5282,8 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object withdrawals = this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> withdrawals = (java.util.List<Object>) this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(withdrawals, currency, since, limit, parameters);
         });
 
@@ -5321,7 +5321,7 @@ public class XtCore extends XtApi
             java.util.List<Object> networkCodeparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
             networkCode = (String) ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object networkIdsByCodes = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> networkIdsByCodes = (java.util.Map<String, Object>) this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             String networkId = this.safeString2(networkIdsByCodes, networkCode, code, code);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
@@ -5344,7 +5344,7 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(result, currency);
         });
 
@@ -5522,7 +5522,7 @@ public class XtCore extends XtApi
      * @param {string} params.positionSide 'LONG' or 'SHORT'
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5544,7 +5544,7 @@ public class XtCore extends XtApi
      * @param {string} params.positionSide 'LONG' or 'SHORT'
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5555,7 +5555,7 @@ public class XtCore extends XtApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount, Object addOrReduce2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object addOrReduce2, Object... optionalArgs)
     {
         final Object addOrReduce3 = addOrReduce2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5580,7 +5580,7 @@ public class XtCore extends XtApi
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("modifyMarginHelper", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.privateInversePostFutureUserV1PositionMargin(this.extend(request, parameters))).join();
@@ -5642,7 +5642,7 @@ public class XtCore extends XtApi
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchLeverageTiers", null, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicLeverageBracketList(parameters)).join();
@@ -5674,7 +5674,7 @@ public class XtCore extends XtApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             symbols = this.marketSymbols(symbols);
             return this.parseLeverageTiers(data, symbols, "symbol");
         });
@@ -5732,7 +5732,7 @@ public class XtCore extends XtApi
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5750,7 +5750,7 @@ public class XtCore extends XtApi
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchMarketLeverageTiers", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicLeverageBracketDetail(this.extend(request, parameters))).join();
@@ -5780,7 +5780,7 @@ public class XtCore extends XtApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseMarketLeverageTiers(data, market);
         });
 
@@ -5807,7 +5807,7 @@ public class XtCore extends XtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object brackets = this.safeList(info, "leverageBrackets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> brackets = (java.util.List<Object>) this.safeList(info, "leverageBrackets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(brackets)); i++)
         {
             Object tier = Helpers.GetValue(brackets, i);
@@ -5885,7 +5885,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchFundingRateHistory", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicQFundingRateRecord(this.extend(request, parameters))).join();
@@ -5913,8 +5913,8 @@ final Object finalMarket = market;
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object items = this.safeList(result, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> items = (java.util.List<Object>) this.safeList(result, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)
             {
@@ -5987,7 +5987,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchFundingRate", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicQFundingRate(this.extend(request, parameters))).join();
@@ -6008,7 +6008,7 @@ final Object finalMarket = market;
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseFundingRate(result, market);
         });
 
@@ -6065,7 +6065,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6084,7 +6084,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOpenInterest", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.publicInverseGetFutureMarketV1PublicContractOpenInterest(this.extend(request, parameters))).join();
@@ -6105,9 +6105,9 @@ final Object finalMarket = market;
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOpenInterest(result, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterest);
 
     }
 
@@ -6145,7 +6145,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6161,7 +6161,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.privateInverseGetFutureUserV1UserStepRate(parameters)).join();
@@ -6191,9 +6191,9 @@ final Object finalMarket = market;
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseTradingFee(result, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFeeInterface);
 
     }
 
@@ -6218,7 +6218,7 @@ final Object finalMarket = market;
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Boolean isInverse = (Helpers.isEqual(subType, "inverse"));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isInverse))
             {
                 response = (this.privateInverseGetFutureUserV1UserStepRate(parameters)).join();
@@ -6229,7 +6229,7 @@ final Object finalMarket = market;
             //
             // same response as fetchTradingFee
             //
-            Object fee = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> fee = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -6305,7 +6305,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchFundingHistory", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.privateInverseGetFutureUserV1BalanceFundingRateList(this.extend(request, parameters))).join();
@@ -6334,8 +6334,8 @@ final Object finalMarket = market;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object items = this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> items = (java.util.List<Object>) this.safeList(data, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)
             {
@@ -6392,7 +6392,7 @@ final Object finalMarket = market;
             // endpoint, including here and on position/list; there is no one-way/net
             // mode that would report 'BOTH', see setLeverage()/setMarginMode() which
             // both validate positionSide against exactly ['LONG', 'SHORT'])
-            Object key = Helpers.add(Helpers.add(this.safeString(breakEntry, "symbol"), "_"), this.safeString(breakEntry, "positionSide"));
+            String key = Helpers.add(Helpers.add(this.safeString(breakEntry, "symbol"), "_"), this.safeString(breakEntry, "positionSide"));
             Helpers.addElementToObject(breakBySymbolSide, key, breakEntry);
         }
         return breakBySymbolSide;
@@ -6408,7 +6408,7 @@ final Object finalMarket = market;
     {
         String marketId = this.safeString(entry, "symbol");
         Object key = Helpers.add(Helpers.add(marketId, "_"), this.safeString(entry, "positionSide"));
-        Object breakEntry = this.safeDict(breakBySymbolSide, key);
+        java.util.Map<String, Object> breakEntry = (java.util.Map<String, Object>) this.safeDict(breakBySymbolSide, key);
         if (Helpers.isTrue(Helpers.isEqual(breakEntry, null)))
         {
             return entry;
@@ -6430,7 +6430,7 @@ final Object finalMarket = market;
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6503,7 +6503,7 @@ final Object finalMarket = market;
             //         ]
             //     }
             //
-            Object positions = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> positions = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
@@ -6518,7 +6518,7 @@ final Object finalMarket = market;
                 }
             }
             throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPosition);
 
     }
 
@@ -6532,7 +6532,7 @@ final Object finalMarket = market;
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6602,7 +6602,7 @@ final Object finalMarket = market;
             //         ]
             //     }
             //
-            Object positions = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> positions = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object breakBySymbolSide = this.indexPositionBreakList(this.safeList(breakResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
@@ -6614,7 +6614,7 @@ final Object finalMarket = market;
                 ((java.util.List<Object>)result).add(this.parsePosition(merged, marketInner));
             }
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -6630,7 +6630,7 @@ final Object finalMarket = market;
      * @param {int} [params.until] timestamp in ms of the latest position to fetch
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6645,7 +6645,7 @@ final Object finalMarket = market;
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -6667,7 +6667,7 @@ final Object finalMarket = market;
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchPositionsHistory", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(subType, "inverse")))
             {
                 response = (this.privateInverseGetFutureTradeV1PositionListHistory(this.extend(request, parameters))).join();
@@ -6709,11 +6709,11 @@ final Object finalMarket = market;
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object items = this.safeList(result, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> items = (java.util.List<Object>) this.safeList(result, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object positions = this.parsePositions(items, symbols);
             return this.filterBySinceLimit(positions, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -6827,7 +6827,7 @@ final Object finalMarket = market;
      * @param {object} params extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6838,10 +6838,10 @@ final Object finalMarket = market;
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeDict(this.options, "accountsById");
+            java.util.Map<String, Object> accountsByType = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsById");
             String fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toAccountId = this.safeString(accountsByType, toAccount, toAccount);
-            Object amountString = this.currencyToPrecision(code, amount);
+            String amountString = (String) this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "bizId", XtCore.this.uuid() );
                 put( "currency", Helpers.GetValue(currency, "id") );
@@ -6982,7 +6982,7 @@ final Object finalMarket = market;
      * @param {float} [params.takeProfit] price to set a take-profit on an open position
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7013,7 +7013,7 @@ final Object finalMarket = market;
                 Helpers.addElementToObject(request, "orderId", id);
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 if (Helpers.isTrue(isStopLoss))
@@ -7056,7 +7056,7 @@ final Object finalMarket = market;
             }
             Object result = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))))) ? response : this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -7118,7 +7118,7 @@ final Object finalMarket = market;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(status, null)) && Helpers.isTrue(!Helpers.isEqual(status, "SUCCESS"))))
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-            Object error = this.safeDict(response, "error", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> error = (java.util.Map<String, Object>) this.safeDict(response, "error", new java.util.HashMap<String, Object>() {{}});
             String spotErrorCode = this.safeString(response, "mc");
             String errorCode = this.safeString(error, "code", spotErrorCode);
             String spotMessage = this.safeString(response, "msgInfo");
@@ -7140,7 +7140,7 @@ final Object finalMarket = market;
         Boolean signed = Helpers.isEqual(Helpers.GetValue(api, 0), "private");
         Object endpoint = Helpers.GetValue(api, 1);
         String request = Helpers.add("/", this.implodeParams(path, parameters));
-        Object payload = null;
+        String payload = null;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(endpoint, "spot"))) || Helpers.isTrue((Helpers.isEqual(endpoint, "user")))))
         {
             if (Helpers.isTrue(signed))
@@ -7165,7 +7165,7 @@ final Object finalMarket = market;
             this.checkRequiredCredentials();
             String defaultRecvWindow = this.safeString(this.options, "recvWindow");
             String recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
-            Object timestamp = this.numberToString(this.nonce());
+            String timestamp = this.numberToString(this.nonce());
             body = query;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(payload, "/v4/order"))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/order/create")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/entrust/create-plan")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/entrust/create-profit")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/order/create-batch")))))
             {
@@ -7192,7 +7192,7 @@ final Object finalMarket = market;
                 isUndefinedBody = false;
             }
             body = ((Helpers.isTrue(isUndefinedBody))) ? null : this.json(body);
-            Object payloadString = null;
+            String payloadString = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(endpoint, "spot"))) || Helpers.isTrue((Helpers.isEqual(endpoint, "user")))))
             {
                 payloadString = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("xt-validate-algorithms=HmacSHA256&xt-validate-appkey=", this.apiKey), "&xt-validate-recvwindow="), recvWindow), "&xt-validate-t"), "imestamp="), timestamp);

@@ -837,7 +837,7 @@ public class DeriveCore extends DeriveApi
             //     "id": "7e07fe1d-0ab4-4d2b-9e22-b65ce9e232dc"
             // }
             //
-            Object currencies = this.safeList(tokenResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> currencies = (java.util.List<Object>) this.safeList(tokenResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseCurrencies(currencies);
         });
 
@@ -955,8 +955,8 @@ public class DeriveCore extends DeriveApi
                 put( "instrument_type", "erc20" );
             }};
             java.util.Map<String, Object> response = (this.publicPostGetAllInstruments(this.extend(request, parameters))).join();
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object data = this.safeList(result, "instruments", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(result, "instruments", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(data);
         });
 
@@ -973,8 +973,8 @@ public class DeriveCore extends DeriveApi
                 put( "instrument_type", "perp" );
             }};
             java.util.Map<String, Object> response = (this.publicPostGetAllInstruments(this.extend(request, parameters))).join();
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object data = this.safeList(result, "instruments", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(result, "instruments", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(data);
         });
 
@@ -991,8 +991,8 @@ public class DeriveCore extends DeriveApi
                 put( "instrument_type", "option" );
             }};
             java.util.Map<String, Object> response = (this.publicPostGetAllInstruments(this.extend(request, parameters))).join();
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object data = this.safeList(result, "instruments", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(result, "instruments", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(data);
         });
 
@@ -1041,7 +1041,7 @@ public class DeriveCore extends DeriveApi
             margin = false;
             option = true;
             marketType = "option";
-            Object optionDetails = this.safeDict(market, "option_details");
+            java.util.Map<String, Object> optionDetails = (java.util.Map<String, Object>) this.safeDict(market, "option_details");
             expiry = this.safeTimestamp(optionDetails, "expiry");
             strike = this.safeInteger(optionDetails, "strike");
             optionLetter = this.safeString(optionDetails, "option_type");
@@ -1134,7 +1134,7 @@ public class DeriveCore extends DeriveApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1209,9 +1209,9 @@ public class DeriveCore extends DeriveApi
             //     "id": "bbd7c271-c2be-48f7-b93a-26cf6d4cb79f"
             // }
             //
-            Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(data, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -1276,7 +1276,7 @@ public class DeriveCore extends DeriveApi
         String marketId = this.safeString(ticker, "instrument_name");
         Object timestamp = this.safeIntegerOmitZero(ticker, "timestamp");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object stats = this.safeDict(ticker, "stats");
+        java.util.Map<String, Object> stats = (java.util.Map<String, Object>) this.safeDict(ticker, "stats");
         String change = this.safeString(stats, "percent_change");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1316,7 +1316,7 @@ public class DeriveCore extends DeriveApi
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1386,10 +1386,10 @@ public class DeriveCore extends DeriveApi
             //     "id": "b8539544-6975-4497-8163-5e51a38e4aa7"
             // }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object data = this.safeList(result, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(result, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1528,8 +1528,8 @@ public class DeriveCore extends DeriveApi
             //     "id": "3200ab8d-0080-42f0-8517-c13e3d9201d8"
             // }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object data = this.safeList(result, "funding_rate_history", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(result, "funding_rate_history", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -1579,7 +1579,7 @@ public class DeriveCore extends DeriveApi
             //     }
             // ]
             //
-            Object data = this.safeDict(response, 0);
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, 0);
             return this.parseFundingRate(data);
         });
 
@@ -1615,7 +1615,7 @@ public class DeriveCore extends DeriveApi
     public Object hashOrderMessage(Object order)
     {
         Object accountHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address")), order), keccak(), "binary");
-        Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+        Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
         String DOMAIN_SEPARATOR = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105" : "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b";
         Object binaryDomainSeparator = this.base16ToBinary(DOMAIN_SEPARATOR);
         Object prefix = this.base16ToBinary("1901");
@@ -1679,7 +1679,7 @@ public class DeriveCore extends DeriveApi
      * @param {float} [params.max_fee] *required* the maximum fee you are willing to pay for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1699,10 +1699,10 @@ public class DeriveCore extends DeriveApi
             java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("createOrder", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
-            Object test = this.safeBool(parameters, "test", false);
-            Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+            Boolean test = (Boolean) this.safeBool(parameters, "test", false);
+            Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
             String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            Object postOnly = this.safeBool(parameters, "postOnly");
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
             String orderType = ((String)type).toLowerCase();
             String orderSide = ((String)((String)side)).toLowerCase();
             Boolean orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -1710,7 +1710,7 @@ public class DeriveCore extends DeriveApi
             // Order signature expiry must be between 2592000 and 7776000 sec from now
             Long signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             String TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
             String priceString = this.numberToString(price);
             Object maxFee = null;
@@ -1857,16 +1857,16 @@ public class DeriveCore extends DeriveApi
             //     "id": "397087fa-0125-42af-bfc3-f66166f9fb55"
             // }
             //
-            Object result = this.safeDict(response, "result");
-            Object rawOrder = this.safeDict(result, "raw_data");
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result");
+            java.util.Map<String, Object> rawOrder = (java.util.Map<String, Object>) this.safeDict(result, "raw_data");
             if (Helpers.isTrue(Helpers.isEqual(rawOrder, null)))
             {
-                rawOrder = this.safeDict(result, "order", new java.util.HashMap<String, Object>() {{}});
+                rawOrder = (java.util.Map<String, Object>) this.safeDict(result, "order", new java.util.HashMap<String, Object>() {{}});
             }
             java.util.Map<String, Object> order = this.parseOrder(rawOrder, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1885,7 +1885,7 @@ public class DeriveCore extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1902,9 +1902,9 @@ public class DeriveCore extends DeriveApi
             java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("editOrder", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subaccountIdparametersVariable).get(1);
-            Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+            Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
             String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
-            Object postOnly = this.safeBool(parameters, "postOnly");
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
             String orderType = ((String)type).toLowerCase();
             String orderSide = ((String)((String)side)).toLowerCase();
             Boolean orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
@@ -1912,9 +1912,9 @@ public class DeriveCore extends DeriveApi
             Double signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             // TODO: subaccount id / trade module address
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
-            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             String TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
-            Object priceString = ((String)this.numberToString(price));
+            String priceString = ((String)this.numberToString(price));
             String maxFeeString = this.safeString(parameters, "max_fee", "0");
             String amountString = this.numberToString(amount);
             Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy))), keccak(), "binary");
@@ -2035,11 +2035,11 @@ public class DeriveCore extends DeriveApi
             //     "id": "fb19e991-15f6-4c80-a20c-917e762a1a38",
             //   }
             //
-            Object result = this.safeDict(response, "result");
-            Object rawOrder = this.safeDict(result, "order", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result");
+            java.util.Map<String, Object> rawOrder = (java.util.Map<String, Object>) this.safeDict(result, "order", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> order = this.parseOrder(rawOrder, market);
             return order;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2055,7 +2055,7 @@ public class DeriveCore extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2071,7 +2071,7 @@ public class DeriveCore extends DeriveApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+            Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             Object subaccountId = null;
             java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("cancelOrder", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
@@ -2149,13 +2149,13 @@ public class DeriveCore extends DeriveApi
             java.util.Map<String, Object> extendParams = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
             }};
-            Object order = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(isByClientOrder))
             {
                 Helpers.addElementToObject(extendParams, "client_order_id", clientOrderIdExchangeSpecific);
             }
             return this.extend(this.parseOrder(order, market), extendParams);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2170,7 +2170,7 @@ public class DeriveCore extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2220,7 +2220,7 @@ public class DeriveCore extends DeriveApi
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2238,7 +2238,7 @@ public class DeriveCore extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2259,7 +2259,7 @@ public class DeriveCore extends DeriveApi
             {
                 return (this.fetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, parameters, "page", 500)).join();
             }
-            Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
+            Boolean isTrigger = (Boolean) this.safeBool2(parameters, "trigger", "stop", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             Object subaccountId = null;
             java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleDeriveSubaccountId("fetchOrders", parameters);
@@ -2336,16 +2336,16 @@ public class DeriveCore extends DeriveApi
             Long page = this.safeInteger(parameters, "page");
             if (Helpers.isTrue(!Helpers.isEqual(page, null)))
             {
-                Object pagination = this.safeDict(data, "pagination");
+                java.util.Map<String, Object> pagination = (java.util.Map<String, Object>) this.safeDict(data, "pagination");
                 Long currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if (Helpers.isTrue(Helpers.isGreaterThan(page, currentPage)))
                 {
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 }
             }
-            Object orders = this.safeList(data, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(data, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2361,7 +2361,7 @@ public class DeriveCore extends DeriveApi
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2378,7 +2378,7 @@ public class DeriveCore extends DeriveApi
                 put( "status", "open" );
             }});
             return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2394,7 +2394,7 @@ public class DeriveCore extends DeriveApi
      * @param {boolean} [params.paginate] set to true if you want to fetch orders with pagination
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2411,7 +2411,7 @@ public class DeriveCore extends DeriveApi
                 put( "status", "filled" );
             }});
             return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2427,7 +2427,7 @@ public class DeriveCore extends DeriveApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2444,7 +2444,7 @@ public class DeriveCore extends DeriveApi
                 put( "status", "cancelled" );
             }});
             return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2548,7 +2548,7 @@ public class DeriveCore extends DeriveApi
         String filled = this.safeString(order, "filled_amount");
         String fee = this.safeString(order, "order_fee");
         String orderType = (String)this.safeStringLower(order, "order_type");
-        Object isBid = this.safeBool(order, "is_bid");
+        Boolean isBid = (Boolean) this.safeBool(order, "is_bid");
         String side = this.safeString(order, "direction");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
@@ -2628,7 +2628,7 @@ public class DeriveCore extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2701,10 +2701,10 @@ public class DeriveCore extends DeriveApi
             //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
             // }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object trades = this.safeList(result, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(result, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2721,7 +2721,7 @@ public class DeriveCore extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2801,20 +2801,20 @@ public class DeriveCore extends DeriveApi
             //     "id": "a16f798c-a121-44e2-b77e-c38a063f8a99"
             // }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Long page = this.safeInteger(parameters, "page");
             if (Helpers.isTrue(!Helpers.isEqual(page, null)))
             {
-                Object pagination = this.safeDict(result, "pagination");
+                java.util.Map<String, Object> pagination = (java.util.Map<String, Object>) this.safeDict(result, "pagination");
                 Long currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if (Helpers.isTrue(Helpers.isGreaterThan(page, currentPage)))
                 {
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 }
             }
-            Object trades = this.safeList(result, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(result, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit, parameters);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2828,7 +2828,7 @@ public class DeriveCore extends DeriveApi
      * @param {string} [params.subaccount_id] *required* the subaccount id
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2887,10 +2887,10 @@ public class DeriveCore extends DeriveApi
             //     "id": "167350f1-d9fc-41d4-9797-1c78f83fda8e"
             // }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object positions = this.safeList(result, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> positions = (java.util.List<Object>) this.safeList(result, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePositions(positions, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -3065,18 +3065,18 @@ public class DeriveCore extends DeriveApi
             //     "id": "524b817f-2108-467f-8795-511066f4acec"
             // }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Long page = this.safeInteger(parameters, "page");
             if (Helpers.isTrue(!Helpers.isEqual(page, null)))
             {
-                Object pagination = this.safeDict(result, "pagination");
+                java.util.Map<String, Object> pagination = (java.util.Map<String, Object>) this.safeDict(result, "pagination");
                 Long currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if (Helpers.isTrue(Helpers.isGreaterThan(page, currentPage)))
                 {
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 }
             }
-            Object events = this.safeList(result, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> events = (java.util.List<Object>) this.safeList(result, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseIncomes(events, market, since, limit);
         });
 
@@ -3185,7 +3185,7 @@ public class DeriveCore extends DeriveApi
             //     "id": "27b9a64e-3379-4ce6-a126-9fb941c4a970"
             // }
             //
-            Object result = this.safeList(response, "result");
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result");
             return this.parseBalance(result);
         });
 
@@ -3199,7 +3199,7 @@ public class DeriveCore extends DeriveApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object subaccount = Helpers.GetValue(response, i);
-            Object collaterals = this.safeList(subaccount, "collaterals", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> collaterals = (java.util.List<Object>) this.safeList(subaccount, "collaterals", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(collaterals)); j++)
             {
                 Object balance = Helpers.GetValue(collaterals, j);
@@ -3280,8 +3280,8 @@ public class DeriveCore extends DeriveApi
             // }
             //
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrency(code);
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object events = this.safeList(result, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> events = (java.util.List<Object>) this.safeList(result, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(events, currency, since, limit, parameters);
         });
 
@@ -3344,8 +3344,8 @@ public class DeriveCore extends DeriveApi
             // }
             //
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrency(code);
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object events = this.safeList(result, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> events = (java.util.List<Object>) this.safeList(result, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(events, currency, since, limit, parameters);
         });
 
@@ -3406,7 +3406,7 @@ public class DeriveCore extends DeriveApi
         return this.safeString(statuses, ((String)status), status);
     }
 
-    public Object handleDeriveSubaccountId(Object methodName, Object parameters)
+    public Object handleDeriveSubaccountId(String methodName, Object parameters)
     {
         Object derivesubAccountId = null;
         java.util.List<Object> derivesubAccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "subaccount_id");
@@ -3425,7 +3425,7 @@ public class DeriveCore extends DeriveApi
         throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a subaccount_id parameter inside 'params' or exchange.options['subaccount_id']=ID.")) ;
     }
 
-    public Object handleDeriveWalletAddress(Object methodName, Object parameters)
+    public Object handleDeriveWalletAddress(String methodName, Object parameters)
     {
         Object deriveWalletAddress = null;
         java.util.List<Object> deriveWalletAddressparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, methodName, "deriveWalletAddress");
@@ -3450,7 +3450,7 @@ public class DeriveCore extends DeriveApi
         {
             return null;  // fallback to default error handler
         }
-        Object error = this.safeDict(response, "error");
+        java.util.Map<String, Object> error = (java.util.Map<String, Object>) this.safeDict(response, "error");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
             String errorCode = this.safeString(error, "code");

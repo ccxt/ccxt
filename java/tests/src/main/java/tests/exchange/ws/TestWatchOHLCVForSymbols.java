@@ -28,7 +28,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
             chosenTimeframeKey = Helpers.GetValue(timeframeKeys, 0);
         }
         Integer limit = 10;
-        Object duration = exchange.parseTimeframe(chosenTimeframeKey);
+        Integer duration = exchange.parseTimeframe(chosenTimeframeKey);
         Object since = Helpers.subtract(Helpers.subtract(exchange.milliseconds(), Helpers.multiply(Helpers.multiply(duration, limit), 1000)), 1000);
         Integer maxIdleTime = 5000;
         Boolean idle = false;
@@ -36,7 +36,7 @@ public class TestWatchOHLCVForSymbols extends BaseTest {
         {
             Object response = null;
             Boolean success = true;
-            Object startTime = exchange.milliseconds();
+            Long startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchOHLCVForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, chosenTimeframeKey)))), since, limit)).join();

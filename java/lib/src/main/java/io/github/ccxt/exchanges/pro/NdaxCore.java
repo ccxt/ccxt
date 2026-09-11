@@ -184,7 +184,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
 
     public void handleTrades(Client client, Object message)
     {
-        Object payload = this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> payload = (java.util.List<Object>) this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         //
         // initial snapshot
         //
@@ -232,7 +232,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             Object symbol = Helpers.GetValue(symbols, i);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
-            Object tradesArray = this.safeValue(this.trades, symbol);
+            io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             client.resolve(tradesArray, messageHash);
         }
     }
@@ -303,7 +303,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //         "o": [[1608284160000,23113.52,23070.88,23075.76,23075.39,162.44964300,23075.38,23075.39,8,1608284100000]],
         //     }
         //
-        Object payload = this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> payload = (java.util.List<Object>) this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         //
         //     [
         //         [
@@ -324,7 +324,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(payload)); i++)
         {
             Object ohlcv = Helpers.GetValue(payload, i);
-            Object marketId = this.safeString(ohlcv, 8);
+            String marketId = (String) this.safeString(ohlcv, 8);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
@@ -336,7 +336,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
             {
                 Object timeframe = Helpers.GetValue(keys, j);
-                Object interval = this.safeString(this.timeframes, timeframe, timeframe);
+                String interval = (String) this.safeString(this.timeframes, timeframe, timeframe);
                 Object duration = Helpers.multiply(Helpers.parseInt(interval), 1000);
                 Long timestamp = this.safeInteger(ohlcv, 0);
                 if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
@@ -345,7 +345,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 }
                 java.util.List<Object> parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseToInt(Helpers.multiply((Helpers.divide(timestamp, duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
                 Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object length = Helpers.getArrayLength(stored);
+                Integer length = Helpers.getArrayLength(stored);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(length, 0))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(parsed, 0), Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0))))))
                 {
                     Object previous = Helpers.GetValue(stored, Helpers.subtract(length, 1));
@@ -480,7 +480,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //         "o": [[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]
         //     }
         //
-        Object payload = this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> payload = (java.util.List<Object>) this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         //
         //     [
         //         0,   // 0 MDUpdateId
@@ -496,7 +496,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //     ],
         //
         Object firstBidAsk = this.safeValue(payload, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object marketId = this.safeString(firstBidAsk, 7);
+        String marketId = (String) this.safeString(firstBidAsk, 7);
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
             return;
@@ -588,7 +588,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //         ],
         //     ]
         //
-        Object symbol = this.safeString(subscription, "symbol");
+        String symbol = (String) this.safeString(subscription, "symbol");
         Object snapshot = this.parseOrderBook(payload, symbol);
         Long limit = this.safeInteger(subscription, "limit");
         io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot, limit);
@@ -596,7 +596,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         {
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         }
-        Object messageHash = this.safeString(subscription, "messageHash");
+        String messageHash = (String) this.safeString(subscription, "messageHash");
         client.resolve(orderbook, messageHash);
     }
 
@@ -647,7 +647,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //         "o": "[[2,1,1608208308265,0,20782.49,1,25000,8,1,1]]"
         //     }
         //
-        Object payload = this.safeString(message, "o");
+        String payload = (String) this.safeString(message, "o");
         if (Helpers.isTrue(Helpers.isEqual(payload, null)))
         {
             return;
@@ -663,7 +663,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             put( "SubscribeTicker", "handleOHLCV");
             put( "TickerDataUpdateEvent", "handleOHLCV");
         }};
-        Object eventVar = this.safeString(message, "n");
+        String eventVar = (String) this.safeString(message, "n");
         Object method = ((Helpers.isTrue((Helpers.isEqual(eventVar, null))))) ? null : this.safeValue(methods, eventVar);
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
         {

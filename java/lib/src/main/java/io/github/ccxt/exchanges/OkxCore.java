@@ -2401,7 +2401,7 @@ public class OkxCore extends OkxApi
 
     public String convertToInstrumentType(Object type)
     {
-        Object exchangeTypes = this.safeDict(this.options, "exchangeType", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> exchangeTypes = (java.util.Map<String, Object>) this.safeDict(this.options, "exchangeType", new java.util.HashMap<String, Object>() {{}});
         return this.safeString(exchangeTypes, ((String)type), type);
     }
 
@@ -2409,8 +2409,8 @@ public class OkxCore extends OkxApi
     {
         // support expired option contracts
         String quote = "USD";
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(symbol, "-");
+        java.util.List<Object> symbolBase = (java.util.List<Object>) Helpers.split(symbol, "/");
         Object base = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
@@ -2483,8 +2483,8 @@ public class OkxCore extends OkxApi
         Boolean isOption = false;
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
-            Object parts = Helpers.split(marketId, "-");
-            Object partsLength = Helpers.getArrayLength(parts);
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "-");
+            Integer partsLength = Helpers.getArrayLength(parts);
             // a valid OKX option ends with the call/put flag and carries expiry+strike segments,
             // e.g. the market id BTC-USD-220325-194000-P (5 parts) or the unified symbol
             // BTC/USD:USD-260611-54000-C (4 parts). Requiring more than 3 dash-separated parts avoids
@@ -2537,7 +2537,7 @@ public class OkxCore extends OkxApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             final Object finalDataLength = dataLength;
             java.util.Map<String, Object> update = new java.util.HashMap<String, Object>() {{
                 put( "updated", null );
@@ -2595,7 +2595,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.safeInteger(first, "ts");
         });
@@ -2699,7 +2699,7 @@ public class OkxCore extends OkxApi
                 (this.loadTimeDifference()).join();
             }
             Object types = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "future", "swap", "option"));
-            Object fetchMarketsOption = this.safeDict(this.options, "fetchMarkets");
+            java.util.Map<String, Object> fetchMarketsOption = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOption, null)))
             {
                 types = this.safeList(fetchMarketsOption, "types", types);
@@ -2799,14 +2799,14 @@ public class OkxCore extends OkxApi
         String underlying = this.safeString(market, "uly");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(underlying, null))) && !Helpers.isTrue(spot)))
         {
-            Object parts = Helpers.split(underlying, "-");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(underlying, "-");
             baseId = this.safeString(parts, 0, "");
             quoteId = this.safeString(parts, 1, "");
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(baseId, ""))) || Helpers.isTrue((Helpers.isEqual(quoteId, ""))))) && Helpers.isTrue(spot)))
         {
             String instId = this.safeString(market, "instId", "");
-            Object parts = Helpers.split(instId, "-");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(instId, "-");
             baseId = this.safeString(parts, 0, "");
             quoteId = this.safeString(parts, 1, "");
         }
@@ -2849,11 +2849,11 @@ public class OkxCore extends OkxApi
             }
         }
         Object feesType = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? "" : type;
-        Object fees = this.safeDict2(this.fees, feesType, "trading", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> fees = (java.util.Map<String, Object>) this.safeDict2(this.fees, feesType, "trading", new java.util.HashMap<String, Object>() {{}});
         String maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Object maxSpotCost = this.safeNumber(market, "maxMktSz");
-        Object leverageAboveOne = Precise.stringGt(maxLeverage, "1");
+        Boolean leverageAboveOne = Precise.stringGt(maxLeverage, "1");
         Object quoteEqualSettle = (Helpers.isEqual(quoteId, settleId));
         Object baseEqualSettle = (Helpers.isEqual(baseId, settleId));
         String status = this.safeString(market, "state");
@@ -2948,8 +2948,8 @@ public class OkxCore extends OkxApi
                 Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(promisesResult)); i++)
                 {
-                    Object res = this.safeDict(promisesResult, i, new java.util.HashMap<String, Object>() {{}});
-                    Object options = this.safeList(res, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    java.util.Map<String, Object> res = (java.util.Map<String, Object>) this.safeDict(promisesResult, i, new java.util.HashMap<String, Object>() {{}});
+                    java.util.List<Object> options = (java.util.List<Object>) this.safeList(res, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     markets = this.arrayConcat(markets, options);
                 }
                 return this.parseMarkets(markets);
@@ -3031,7 +3031,7 @@ public class OkxCore extends OkxApi
             // therefore we check the keys here
             // and fallback to generating the currencies from the markets
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
             if (Helpers.isTrue(!Helpers.isTrue(this.checkRequiredCredentials(false)) || Helpers.isTrue((Helpers.isEqual(isSandboxMode, true)))))
             {
                 return new java.util.HashMap<String, Object>() {{}};
@@ -3085,9 +3085,9 @@ public class OkxCore extends OkxApi
             //        "msg": ""
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> dataByCurrencyId = this.groupBy(data, "ccy");
-            Object currencies = Helpers.objectValues(dataByCurrencyId);
+            java.util.List<Object> currencies = Helpers.objectValues(dataByCurrencyId);
             return this.parseCurrencies(currencies);
         });
 
@@ -3097,12 +3097,12 @@ public class OkxCore extends OkxApi
     {
         Object chains = currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        Object firstChain = this.safeDict(chains, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> firstChain = (java.util.Map<String, Object>) this.safeDict(chains, 0, new java.util.HashMap<String, Object>() {{}});
         String currencyId = this.safeString(firstChain, "ccy");
         String code = (String) this.safeCurrencyCode(currencyId);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         String type = "crypto";
-        Object chainsLength = Helpers.getArrayLength(chains);
+        Integer chainsLength = Helpers.getArrayLength(chains);
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -3113,9 +3113,9 @@ public class OkxCore extends OkxApi
                 // only happens for fiat 'TRY' currency
                 type = "fiat";
             }
-            Object idParts = Helpers.split(networkId, "-");
+            java.util.List<Object> idParts = (java.util.List<Object>) Helpers.split(networkId, "-");
             Object parts = this.arraySlice(idParts, 1);
-            Object chainPart = String.join((String)"-", (java.util.List<String>)parts);
+            String chainPart = String.join((String)"-", (java.util.List<String>)parts);
             Object networkCode = this.networkIdToCode(chainPart, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -3175,7 +3175,7 @@ public class OkxCore extends OkxApi
      * @param {bool} [params.rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3213,7 +3213,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "sz", limit); // max 400
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(rpi))
             {
                 response = (this.publicGetMarketBooksRpi(this.extend(request, parameters))).join();
@@ -3249,11 +3249,11 @@ public class OkxCore extends OkxApi
             // [ price, totalQty, nonRpiQty, count ] - totalQty already includes the
             // rpi liquidity, so index 0 and 1 stay the price and the amount
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(first, "ts");
             return this.parseOrderBook(first, symbol, timestamp);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -3303,7 +3303,7 @@ public class OkxCore extends OkxApi
         Object symbol = Helpers.GetValue(market, "symbol");
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
-        Object spot = this.safeBool(market, "spot", false);
+        Boolean spot = (Boolean) this.safeBool(market, "spot", false);
         Object quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCcy24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
@@ -3343,7 +3343,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3384,10 +3384,10 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -3400,7 +3400,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3460,9 +3460,9 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -3475,7 +3475,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrice(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchMarkPrice(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3504,9 +3504,9 @@ public class OkxCore extends OkxApi
             //     "msg": ""
             // }
             //
-            Object data = this.safeList(response, "data");
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
             return this.parseTicker(this.safeDict(data, 0), market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -3519,7 +3519,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkPrices(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchMarkPrices(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3553,9 +3553,9 @@ public class OkxCore extends OkxApi
                 }
             }
             java.util.Map<String, Object> response = (this.publicGetPublicMarkPrice(this.extend(request, parameters))).join();
-            Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -3674,7 +3674,7 @@ public class OkxCore extends OkxApi
      * @param {boolean} [params.paginate] *only applies to publicGetMarketHistoryTrades* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3698,7 +3698,7 @@ public class OkxCore extends OkxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 response = (this.publicGetPublicOptionTrades(this.extend(request, parameters))).join();
@@ -3756,7 +3756,7 @@ public class OkxCore extends OkxApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -3829,7 +3829,7 @@ public class OkxCore extends OkxApi
             String priceType = this.safeString(parameters, "price");
             Object isMarkOrIndex = this.inArray(priceType, new java.util.ArrayList<Object>(java.util.Arrays.asList("mark", "index")));
             parameters = this.omit(parameters, "price");
-            Object options = this.safeDict(this.options, "fetchOHLCV", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new java.util.HashMap<String, Object>() {{}});
             String timezone = this.safeString(options, "timezone", "UTC");
             Boolean limitIsUndefined = (Helpers.isEqual(limit, null));
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -3880,7 +3880,7 @@ public class OkxCore extends OkxApi
             String type = this.safeString(parameters, "type", defaultType);
             parameters = this.omit(parameters, "type");
             Boolean isHistoryCandles = (Helpers.isEqual(type, "HistoryCandles"));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(priceType, "mark")))
             {
                 if (Helpers.isTrue(isHistoryCandles))
@@ -4040,8 +4040,8 @@ public class OkxCore extends OkxApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(first, "uTime");
         Object details = this.safeList(first, "details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(details)); i++)
@@ -4131,7 +4131,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4174,10 +4174,10 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFeeInterface);
 
     }
 
@@ -4205,7 +4205,7 @@ public class OkxCore extends OkxApi
             var marketType = ((java.util.List<Object>) marketTypequeryVariable).get(0);
             var query = ((java.util.List<Object>) marketTypequeryVariable).get(1);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "funding")))
             {
                 response = (this.privateGetAssetBalances(this.extend(request, query))).join();
@@ -4330,7 +4330,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4350,7 +4350,7 @@ public class OkxCore extends OkxApi
                 put( "tgtCcy", "quote_ccy" );
             }};
             return (this.createOrder(symbol, "market", "buy", cost, null, this.extend(req, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -4364,7 +4364,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4384,7 +4384,7 @@ public class OkxCore extends OkxApi
                 put( "tgtCcy", "quote_ccy" );
             }};
             return (this.createOrder(symbol, "market", "sell", cost, null, this.extend(req, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -4537,8 +4537,8 @@ public class OkxCore extends OkxApi
                         {
                             if (Helpers.isTrue(Helpers.isEqual(notional, null)))
                             {
-                                Object amountString = this.numberToString(amount);
-                                Object priceString = this.numberToString(price);
+                                String amountString = this.numberToString(amount);
+                                String priceString = this.numberToString(price);
                                 String quoteAmount = Precise.stringMul(amountString, priceString);
                                 notional = this.parseNumber(quoteAmount);
                             }
@@ -4688,7 +4688,7 @@ public class OkxCore extends OkxApi
                 attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
             }
             java.util.List<String> attachOrdKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(attachAlgoOrd);
-            Object attachOrdLen = Helpers.getArrayLength(attachOrdKeys);
+            Integer attachOrdLen = Helpers.getArrayLength(attachOrdKeys);
             if (Helpers.isTrue(Helpers.isGreaterThan(attachOrdLen, 0)))
             {
                 Helpers.addElementToObject(request, "attachAlgoOrds", new java.util.ArrayList<Object>(java.util.Arrays.asList(attachAlgoOrd)));
@@ -4792,7 +4792,7 @@ public class OkxCore extends OkxApi
      * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4822,7 +4822,7 @@ public class OkxCore extends OkxApi
                 // because it has a lower ratelimit
                 request = new java.util.ArrayList<Object>(java.util.Arrays.asList(request));
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostTradeOrder")))
             {
                 response = (this.privatePostTradeOrder(request)).join();
@@ -4833,13 +4833,13 @@ public class OkxCore extends OkxApi
             {
                 response = (this.privatePostTradeBatchOrders(request)).join();
             }
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> order = this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
             return order;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -4852,7 +4852,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrders(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4875,7 +4875,7 @@ public class OkxCore extends OkxApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> orderParams = (java.util.Map<String, Object>) this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 java.util.Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
@@ -4905,7 +4905,7 @@ public class OkxCore extends OkxApi
             // }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -5059,7 +5059,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.newTpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type2, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, Object symbol, Object type2, Object side, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5078,7 +5078,7 @@ public class OkxCore extends OkxApi
             {
                 isAlgoOrder = true;
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(isAlgoOrder))
             {
                 response = (this.privatePostTradeAmendAlgos(this.extend(request, parameters))).join();
@@ -5101,13 +5101,13 @@ public class OkxCore extends OkxApi
             //        "msg": ""
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> order = this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
             return order;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -5124,7 +5124,7 @@ public class OkxCore extends OkxApi
      * @param {boolean} [params.trailing] set to true if you want to cancel a trailing order
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5136,11 +5136,11 @@ public class OkxCore extends OkxApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             Boolean isTrigger = Helpers.isTrue((!Helpers.isEqual(trigger, null))) && Helpers.isTrue((!Helpers.isEqual(trigger, false)));
             if (Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue((Helpers.isEqual(trailing, true)))))
             {
-                Object orderInner = (this.cancelOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), symbol, parameters)).join();
+                Object orderInner = io.github.ccxt.TypedCores.fromOrderList((this.cancelOrders(new java.util.ArrayList<Object>(java.util.Arrays.asList(id)), symbol, parameters)).join());
                 return this.safeDict(orderInner, 0);
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -5162,10 +5162,10 @@ public class OkxCore extends OkxApi
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdId", "clientOrderId")));
             java.util.Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
             // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object order = this.safeDict(data, 0);
             return this.parseOrder(order, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -5200,7 +5200,7 @@ public class OkxCore extends OkxApi
      * @param {boolean} [params.trailing] set to true if you want to cancel trailing orders
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids2, Object... optionalArgs)
     {
         final Object ids3 = ids2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5218,13 +5218,13 @@ public class OkxCore extends OkxApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.List<Object> request = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object options = this.safeDict(this.options, "cancelOrders", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "cancelOrders", new java.util.HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
             Object algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             Boolean isTrigger = Helpers.isTrue((!Helpers.isEqual(trigger, null))) && Helpers.isTrue((!Helpers.isEqual(trigger, false)));
             if (Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue((Helpers.isEqual(trailing, true)))))
             {
@@ -5288,7 +5288,7 @@ public class OkxCore extends OkxApi
                     }
                 }
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostTradeCancelAlgos")))
             {
                 response = (this.privatePostTradeCancelAlgos(request)).join(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
@@ -5330,7 +5330,7 @@ public class OkxCore extends OkxApi
             // request would otherwise come back as a list under the unified string field
             Object orderParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdId", "clientOrderId", "algoId", "stop", "trigger", "trailing", "method")));
             return this.parseOrders(ordersData, market, null, null, orderParams);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -5357,11 +5357,11 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             java.util.List<Object> request = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object options = this.safeDict(this.options, "cancelOrders", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "cancelOrders", new java.util.HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
             String method = this.safeString(parameters, "method", defaultMethod);
-            Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             Boolean isStopOrTrailing = Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(trailing, true)));
             if (Helpers.isTrue(Helpers.isEqual(isStopOrTrailing, true)))
             {
@@ -5392,7 +5392,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(requestItem, idKey, ((Helpers.isTrue((!Helpers.isEqual(clientOrderId, null))))) ? clientOrderId : id);
                 ((java.util.List<Object>)request).add(requestItem);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privatePostTradeCancelAlgos")))
             {
                 response = (this.privatePostTradeCancelAlgos(request)).join(); // * dont extend with params, otherwise ARRAY will be turned into OBJECT
@@ -5820,7 +5820,7 @@ public class OkxCore extends OkxApi
      * @param {boolean} [params.trigger] true if fetching trigger orders
      * @returns [an order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5840,7 +5840,7 @@ public class OkxCore extends OkxApi
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-            Object options = this.safeDict(this.options, "fetchOrder", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchOrder", new java.util.HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrder");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
@@ -5866,7 +5866,7 @@ public class OkxCore extends OkxApi
                 }
             }
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "clOrdId", "clientOrderId", "stop", "trigger")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetTradeOrderAlgo")))
             {
                 response = (this.privateGetTradeOrderAlgo(this.extend(request, query))).join();
@@ -5970,10 +5970,10 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object order = this.safeDict(data, 0);
             return this.parseOrder(order, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -5994,7 +5994,7 @@ public class OkxCore extends OkxApi
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6027,13 +6027,13 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
             }
-            Object options = this.safeDict(this.options, "fetchOpenOrders", new java.util.HashMap<String, Object>() {{}});
-            Object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchOpenOrders", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> algoOrderTypes = (java.util.Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersPending");
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             Boolean isTrigger = Helpers.isTrue((!Helpers.isEqual(trigger, null))) && Helpers.isTrue((!Helpers.isEqual(trigger, false)));
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trailing, true))) || Helpers.isTrue(isTrigger)) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(ordType, null))) && Helpers.isTrue((Helpers.inOp(algoOrderTypes, ordType)))))))
             {
@@ -6047,7 +6047,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "ordType", "trigger");
             }
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "stop", "trigger", "trailing")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetTradeOrdersAlgoPending")))
             {
                 response = (this.privateGetTradeOrdersAlgoPending(this.extend(request, query))).join();
@@ -6152,7 +6152,7 @@ public class OkxCore extends OkxApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -6173,7 +6173,7 @@ public class OkxCore extends OkxApi
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {object} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6204,13 +6204,13 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 100
             }
             Helpers.addElementToObject(request, "state", "canceled");
-            Object options = this.safeDict(this.options, "fetchCanceledOrders", new java.util.HashMap<String, Object>() {{}});
-            Object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchCanceledOrders", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> algoOrderTypes = (java.util.Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             Boolean isTrigger = Helpers.isTrue((!Helpers.isEqual(trigger, null))) && Helpers.isTrue((!Helpers.isEqual(trigger, false)));
             if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
             {
@@ -6246,7 +6246,7 @@ public class OkxCore extends OkxApi
                 }
             }
             Object send = this.omit(query, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "stop", "trigger", "trailing")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetTradeOrdersAlgoHistory")))
             {
                 response = (this.privateGetTradeOrdersAlgoHistory(this.extend(request, send))).join();
@@ -6355,7 +6355,7 @@ public class OkxCore extends OkxApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -6379,7 +6379,7 @@ public class OkxCore extends OkxApi
      * @param {boolean} [params.trailing] set to true if you want to fetch trailing orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6418,13 +6418,13 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
             }
-            Object options = this.safeDict(this.options, "fetchClosedOrders", new java.util.HashMap<String, Object>() {{}});
-            Object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchClosedOrders", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> algoOrderTypes = (java.util.Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
-            Object trigger = this.safeBool2(parameters, "stop", "trigger");
-            Object trailing = this.safeBool(parameters, "trailing", false);
+            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trailing, true))) || Helpers.isTrue((Helpers.isEqual(trigger, true)))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(ordType, null))) && Helpers.isTrue((Helpers.inOp(algoOrderTypes, ordType)))))))
             {
                 method = "privateGetTradeOrdersAlgoHistory";
@@ -6454,7 +6454,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "state", "filled");
             }
             Object send = this.omit(query, new java.util.ArrayList<Object>(java.util.Arrays.asList("method", "stop", "trigger", "trailing")));
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetTradeOrdersAlgoHistory")))
             {
                 response = (this.privateGetTradeOrdersAlgoHistory(this.extend(request, send))).join();
@@ -6562,7 +6562,7 @@ public class OkxCore extends OkxApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -6579,7 +6579,7 @@ public class OkxCore extends OkxApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6650,7 +6650,7 @@ public class OkxCore extends OkxApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit, query);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -6666,7 +6666,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6679,7 +6679,7 @@ public class OkxCore extends OkxApi
                 put( "ordId", id );
             }};
             return (this.fetchMyTrades(symbol, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -6720,7 +6720,7 @@ public class OkxCore extends OkxApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters)).join();
             }
-            Object options = this.safeDict(this.options, "fetchLedger", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchLedger", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method");
             method = this.safeString(parameters, "method", method);
             parameters = this.omit(parameters, "method");
@@ -6760,7 +6760,7 @@ public class OkxCore extends OkxApi
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("end", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetAccountBillsArchive")))
             {
                 response = (this.privateGetAccountBillsArchive(this.extend(request, query))).join();
@@ -6953,14 +6953,14 @@ public class OkxCore extends OkxApi
         String tag = this.safeStringN(depositAddress, new java.util.ArrayList<Object>(java.util.Arrays.asList("tag", "pmtId", "memo")));
         if (Helpers.isTrue(Helpers.isEqual(tag, null)))
         {
-            Object addrEx = this.safeDict(depositAddress, "addrEx", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> addrEx = (java.util.Map<String, Object>) this.safeDict(depositAddress, "addrEx", new java.util.HashMap<String, Object>() {{}});
             tag = this.safeString(addrEx, "comment");
         }
         String currencyId = this.safeString(depositAddress, "ccy");
         currency = this.safeCurrency(currencyId, currency);
         Object code = Helpers.GetValue(currency, "code");
         String chain = this.safeString(depositAddress, "chain");
-        Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> networksById = this.indexBy(networks, "id");
         Object networkData = ((Helpers.isTrue((Helpers.isEqual(chain, null))))) ? null : this.safeDict(networksById, chain);
         // inconsistent naming responses from exchange
@@ -7066,7 +7066,7 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> filtered = this.filterBy(data, "selected", true);
             Object parsed = this.parseDepositAddresses(filtered, new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(currency, "code"))), false);
             return this.indexBy(parsed, "network");
@@ -7102,7 +7102,7 @@ public class OkxCore extends OkxApi
             Object response = responseRaw;
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
-                Object result = this.safeDict(response, network);
+                java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, network);
                 if (Helpers.isTrue(Helpers.isEqual(result, null)))
                 {
                     throw new InvalidAddress((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchDepositAddress() cannot find "), network), " deposit address for "), code)) ;
@@ -7164,7 +7164,7 @@ public class OkxCore extends OkxApi
             String network = this.safeString(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
-                Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
                 network = this.safeString(networks, ((String)network).toUpperCase(), network); // handle ETH>ERC20 alias
                 Helpers.addElementToObject(request, "chain", Helpers.add(Helpers.add(Helpers.GetValue(currency, "id"), "-"), network));
                 parameters = this.omit(parameters, "network");
@@ -7198,7 +7198,7 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object transaction = this.safeDict(data, 0);
             return this.parseTransaction(transaction, currency);
         });
@@ -7312,7 +7312,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDeposit(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDeposit(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7333,7 +7333,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "ccy", Helpers.GetValue(currency, "id"));
             }
             java.util.Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data");
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
             Object deposit = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(deposit, currency);
         });
@@ -7439,7 +7439,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawal(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawal(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7481,7 +7481,7 @@ public class OkxCore extends OkxApi
             //        "msg": ''
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object withdrawal = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(withdrawal);
         });
@@ -7605,9 +7605,9 @@ public class OkxCore extends OkxApi
         String chain = this.safeString(transaction, "chain");
         if (Helpers.isTrue(!Helpers.isEqual(chain, null)))
         {
-            Object chainParts = Helpers.split(chain, "-");
+            java.util.List<Object> chainParts = (java.util.List<Object>) Helpers.split(chain, "-");
             Object networkParts = this.arraySlice(chainParts, 1);
-            Object networkId = String.join((String)"-", (java.util.List<String>)networkParts);
+            String networkId = String.join((String)"-", (java.util.List<String>)networkParts);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
             {
                 network = this.networkIdToCode(networkId, code);
@@ -7668,7 +7668,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7765,7 +7765,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object} a [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Position> fetchPosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7833,14 +7833,14 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object position = this.safeDict(data, 0);
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> position = (java.util.Map<String, Object>) this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isEqual(position, null)))
             {
                 throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
             }
             return this.parsePosition(position, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPosition);
 
     }
 
@@ -7855,7 +7855,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.instType] MARGIN, SWAP, FUTURES, OPTION
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7876,15 +7876,15 @@ public class OkxCore extends OkxApi
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(entry);
                     ((java.util.List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
                 }
-                Object marketIdsLength = Helpers.getArrayLength(marketIds);
+                Integer marketIdsLength = Helpers.getArrayLength(marketIds);
                 if (Helpers.isTrue(Helpers.isGreaterThan(marketIdsLength, 0)))
                 {
                     Helpers.addElementToObject(request, "instId", String.join((String)",", (java.util.List<String>)marketIds));
                 }
             }
-            Object fetchPositionsOptions = this.safeDict(this.options, "fetchPositions", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> fetchPositionsOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchPositions", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(fetchPositionsOptions, "method", "privateGetAccountPositions");
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetAccountPositionsHistory")))
             {
                 response = (this.privateGetAccountPositionsHistory(this.extend(request, parameters))).join();
@@ -7945,7 +7945,7 @@ public class OkxCore extends OkxApi
                 ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(positions, i)));
             }
             return this.filterByArrayPositions(result, "symbol", this.marketSymbols(symbols), false);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -7959,14 +7959,14 @@ public class OkxCore extends OkxApi
      * @param {string} [params.instType] MARGIN (if needed)
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsForSymbol(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsForSymbol(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             return (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -8083,7 +8083,7 @@ public class OkxCore extends OkxApi
             }
         }
         Double contractSize = this.safeNumber(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         String markPriceString = this.safeString(position, "markPx");
         String notionalString = this.safeString(position, "notionalUsd");
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
@@ -8117,7 +8117,7 @@ public class OkxCore extends OkxApi
         {
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
-                Object initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+                String initialMarginPercentageString = this.numberToString(initialMarginPercentage);
                 initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
             } else
             {
@@ -8180,7 +8180,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8191,7 +8191,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> accountsByType = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             final Object finalFromId = fromId;
@@ -8232,7 +8232,7 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawTransfer = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTransfer(rawTransfer, currency);
         });
@@ -8300,7 +8300,7 @@ public class OkxCore extends OkxApi
         Object amount = this.safeNumber(transfer, "amt");
         String fromAccountId = this.safeString(transfer, "from");
         String toAccountId = this.safeString(transfer, "to");
-        Object accountsById = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> accountsById = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(transfer, "ts");
         String balanceChange = this.safeString(transfer, "sz");
         if (Helpers.isTrue(!Helpers.isEqual(balanceChange, null)))
@@ -8345,7 +8345,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTransfer(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTransfer(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8380,7 +8380,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object transfer = this.safeDict(data, 0);
             return this.parseTransfer(transfer);
         });
@@ -8475,7 +8475,7 @@ public class OkxCore extends OkxApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object isArray = Helpers.isArray(parameters);
-        Object request = Helpers.add(Helpers.add(Helpers.add("/api/", this.version), "/"), this.implodeParams(path, parameters));
+        String request = Helpers.add(Helpers.add(Helpers.add("/api/", this.version), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest")), request);
         // const type = this.getPathAuthenticationType (path);
@@ -8515,7 +8515,7 @@ public class OkxCore extends OkxApi
                     }
                 }
             }
-            String timestamp = this.iso8601(this.nonce());
+            Object timestamp = this.iso8601(this.nonce());
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "OK-ACCESS-KEY", OkxCore.this.apiKey );
@@ -8671,7 +8671,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> marketInfo = (java.util.Map<String, Object>) this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
             String ruleType = this.safeString(marketInfo, "ruleType");
             Boolean isExtendedPerpetual = (Helpers.isEqual(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && !Helpers.isTrue(isExtendedPerpetual)))
@@ -8698,7 +8698,7 @@ public class OkxCore extends OkxApi
             //        "msg": ""
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object entry = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseFundingRate(entry, market);
         });
@@ -8731,7 +8731,7 @@ public class OkxCore extends OkxApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
-                    Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+                    java.util.Map<String, Object> marketInfo = (java.util.Map<String, Object>) this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
                     String ruleType = this.safeString(marketInfo, "ruleType");
                     Boolean isExtendedPerpetual = (Helpers.isEqual(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && !Helpers.isTrue(isExtendedPerpetual)))
@@ -8985,7 +8985,7 @@ public class OkxCore extends OkxApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object accounts = (this.fetchAccountsAsync()).join();
-            Object length = Helpers.getArrayLength(accounts);
+            Integer length = Helpers.getArrayLength(accounts);
             Object selectedAccount = null;
             if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
             {
@@ -9184,7 +9184,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9212,8 +9212,8 @@ public class OkxCore extends OkxApi
             //        "msg": ""
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rate = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> rate = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseBorrowRate(rate);
         });
 
@@ -9347,7 +9347,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBorrowRateHistory(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchBorrowRateHistory(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9392,7 +9392,7 @@ public class OkxCore extends OkxApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount, Object type, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9426,7 +9426,7 @@ public class OkxCore extends OkxApi
             //       "msg": ""
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object entry = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             String errorCode = this.safeString(response, "code");
             final Object finalErrorCode = errorCode;
@@ -9528,7 +9528,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9549,7 +9549,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9570,7 +9570,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.marginMode] 'cross' or 'isolated'
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9763,7 +9763,7 @@ public class OkxCore extends OkxApi
             //        "msg": ""
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object interest = this.parseBorrowInterests(data);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
         });
@@ -9803,7 +9803,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9835,8 +9835,8 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object loan = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> loan = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseMarginLoan(loan, currency);
         });
 
@@ -9853,7 +9853,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.id] the order ID of borrowing, it is necessary while repaying
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9893,8 +9893,8 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object loan = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> loan = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseMarginLoan(loan, currency);
         });
 
@@ -9935,7 +9935,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9975,7 +9975,7 @@ public class OkxCore extends OkxApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOpenInterest(Helpers.GetValue(data, 0), market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterest);
 
     }
 
@@ -10074,7 +10074,7 @@ public class OkxCore extends OkxApi
      * @param {int} [params.until] The time in ms of the latest record to retrieve as a unix timestamp
      * @returns An array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(Object symbol2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(String symbol2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10083,8 +10083,8 @@ public class OkxCore extends OkxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object options = this.safeDict(this.options, "fetchOpenInterestHistory", new java.util.HashMap<String, Object>() {{}});
-            Object timeframes = this.safeDict(options, "timeframes", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchOpenInterestHistory", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> timeframes = (java.util.Map<String, Object>) this.safeDict(options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             timeframe = this.safeString(timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(timeframe, "5m")) && Helpers.isTrue(!Helpers.isEqual(timeframe, "1H"))) && Helpers.isTrue(!Helpers.isEqual(timeframe, "1D"))))
             {
@@ -10113,7 +10113,7 @@ public class OkxCore extends OkxApi
                 put( "period", finalTimeframe );
             }};
             Object type = null;
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenInterestHistory", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
@@ -10302,7 +10302,7 @@ public class OkxCore extends OkxApi
             //        "msg": ""
             //    }
             //
-            Object data = this.safeList(response, "data");
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
             return this.parseDepositWithdrawFees(data, codes);
         });
 
@@ -10342,7 +10342,7 @@ public class OkxCore extends OkxApi
             String code = (String) this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
             {
-                Object depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
+                java.util.Map<String, Object> depositWithdrawFee = (java.util.Map<String, Object>) this.safeDict(depositWithdrawFees, code);
                 if (Helpers.isTrue(Helpers.isEqual(depositWithdrawFee, null)))
                 {
                     Helpers.addElementToObject(depositWithdrawFees, code, this.depositWithdrawFee(new java.util.HashMap<String, Object>() {{}}));
@@ -10356,7 +10356,7 @@ public class OkxCore extends OkxApi
                 {
                     continue;
                 }
-                Object chainSplit = Helpers.split(chain, "-");
+                java.util.List<Object> chainSplit = (java.util.List<Object>) Helpers.split(chain, "-");
                 String networkId = this.safeString(chainSplit, 1);
                 Double withdrawFee = this.safeNumber(feeInfo, "fee");
                 final Object finalWithdrawFee = withdrawFee;
@@ -10457,7 +10457,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
             java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
@@ -10579,7 +10579,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10591,7 +10591,7 @@ public class OkxCore extends OkxApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String marketId = this.safeString(market, "id", "");
-            Object optionParts = Helpers.split(marketId, "-");
+            java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(marketId, "-");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "uly", Helpers.GetValue(Helpers.GetValue(market, "info"), "uly") );
                 put( "instFamily", Helpers.GetValue(Helpers.GetValue(market, "info"), "instFamily") );
@@ -10695,7 +10695,7 @@ public class OkxCore extends OkxApi
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
                     String marketId = this.safeString(market, "id", "");
-                    Object optionParts = Helpers.split(marketId, "-");
+                    java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(marketId, "-");
                     Helpers.addElementToObject(request, "uly", Helpers.GetValue(Helpers.GetValue(market, "info"), "uly"));
                     Helpers.addElementToObject(request, "instFamily", Helpers.GetValue(Helpers.GetValue(market, "info"), "instFamily"));
                     Helpers.addElementToObject(request, "expTime", this.safeString(optionParts, 2));
@@ -10807,7 +10807,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.tag] order tag a combination of case-sensitive alphanumerics, all numbers, or all letters of up to 16 characters
      * @returns {object[]} [A list of position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> closePosition(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> closePosition(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10870,10 +10870,10 @@ public class OkxCore extends OkxApi
             //        "outTime": "1701877077102579"
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object order = this.safeDict(data, 0);
             return this.parseOrder(order, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -10886,7 +10886,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOption(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOption(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10927,7 +10927,7 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object chain = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOption(chain, null, market);
         });
@@ -10944,7 +10944,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.uly] the underlying asset, can be obtained from fetchUnderlyingAssets ()
      * @returns {object} a list of [option chain structures]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11052,7 +11052,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertQuote(Object fromCode, Object toCode, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchConvertQuote(String fromCode, String toCode, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11094,7 +11094,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(result, "baseCcy", fromCode);
             java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCurrencyId);
@@ -11117,7 +11117,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createConvertTrade(Object id, Object fromCode, Object toCode, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createConvertTrade(String id, String fromCode, String toCode, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11159,7 +11159,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(result, "baseCcy", fromCode);
             java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCurrencyId);
@@ -11180,7 +11180,7 @@ public class OkxCore extends OkxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertTrade(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchConvertTrade(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11216,7 +11216,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(result, "baseCcy");
             String toCurrencyId = this.safeString(result, "quoteCcy");
@@ -11525,7 +11525,7 @@ public class OkxCore extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object auto = this.safeBool(parameters, "auto");
+            Boolean auto = (Boolean) this.safeBool(parameters, "auto");
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a type argument")) ;
@@ -11561,7 +11561,7 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Long now = this.milliseconds();
             Long oneWeekAgo = (Long) Helpers.subtract(now, 604800000);
             Long threeMonthsAgo = (Long) Helpers.subtract(now, 7776000000L);
@@ -11617,7 +11617,7 @@ public class OkxCore extends OkxApi
             //        msg: ''
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object modifications = this.parseMarginModifications(data);
             return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
         });
@@ -11643,7 +11643,7 @@ public class OkxCore extends OkxApi
      * @param {string} [params.after] timestamp in ms of the latest position to fetch based on the last update time of the position
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsHistory(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsHistory(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11669,7 +11669,7 @@ public class OkxCore extends OkxApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
@@ -11718,10 +11718,10 @@ public class OkxCore extends OkxApi
             //        msg: ''
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object positions = this.parsePositions(data, symbols, parameters);
             return this.filterBySinceLimit(positions, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 

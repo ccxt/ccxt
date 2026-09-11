@@ -40,9 +40,10 @@ class WsClientFuturesLockTest {
                 /* validateServerSsl */ true);
     }
 
-    @SuppressWarnings("unchecked")
     private static Map<String, Object> futuresOf(WsClient client) {
-        return (Map<String, Object>) client.futures;
+        // the futures registry is typed ConcurrentHashMap<String, Future>; widen the
+        // VALUE type through the raw Map view for the Object-keyed assertions below
+        return new java.util.HashMap<String, Object>(client.futures);
     }
 
     /** Concurrent future() calls for one hash share one Future; one resolve settles all. */

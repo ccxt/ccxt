@@ -495,7 +495,7 @@ public class IndodaxCore extends IndodaxApi
     public java.util.Map<String, Object> parseBalance(Object response)
     {
         Object balances = this.safeValue(response, "return", new java.util.HashMap<String, Object>() {{}});
-        Object free = this.safeDict(balances, "balance", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> free = (java.util.Map<String, Object>) this.safeDict(balances, "balance", new java.util.HashMap<String, Object>() {{}});
         Object used = this.safeValue(balances, "balance_hold", new java.util.HashMap<String, Object>() {{}});
         Long timestamp = (Long) this.safeTimestamp(balances, "server_time");
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -583,7 +583,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -600,7 +600,7 @@ public class IndodaxCore extends IndodaxApi
             }};
             java.util.Map<String, Object> orderbook = (this.publicGetApiDepthPair(this.extend(request, parameters))).join();
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), null, "buy", "sell");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -657,7 +657,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -686,9 +686,9 @@ public class IndodaxCore extends IndodaxApi
             //         }
             //     }
             //
-            Object ticker = this.safeDict(response, "ticker", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.safeDict(response, "ticker", new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -701,7 +701,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -729,20 +729,20 @@ public class IndodaxCore extends IndodaxApi
             // }
             //
             java.util.Map<String, Object> response = (this.publicGetApiTickerAll(parameters)).join();
-            Object tickers = this.safeDict(response, "tickers", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> tickers = (java.util.Map<String, Object>) this.safeDict(response, "tickers", new java.util.HashMap<String, Object>() {{}});
             java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(tickers);
             java.util.Map<String, Object> parsedTickers = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
                 Object rawTicker = Helpers.GetValue(tickers, key);
-                Object marketId = Helpers.replace((String)key, (String)"_", (String)"");
+                String marketId = Helpers.replace((String)key, (String)"_", (String)"");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 java.util.Map<String, Object> parsed = this.parseTicker(rawTicker, market);
                 Helpers.addElementToObject(parsedTickers, marketId, parsed);
             }
             return this.filterByArray(parsedTickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -778,7 +778,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -796,7 +796,7 @@ public class IndodaxCore extends IndodaxApi
             }};
             java.util.List<Object> response = (this.publicGetApiTradesPair(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1013,7 +1013,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1034,13 +1034,13 @@ public class IndodaxCore extends IndodaxApi
                 put( "order_id", id );
             }};
             java.util.Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
-            Object orders = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> orders = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> order = this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }}, Helpers.GetValue(orders, "order")), market);
             Helpers.addElementToObject(order, "info", response);
             return order;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1055,7 +1055,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1076,7 +1076,7 @@ public class IndodaxCore extends IndodaxApi
                 Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
             }
             java.util.Map<String, Object> response = (this.privatePostOpenOrders(this.extend(request, parameters))).join();
-            Object openOrdersResult = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> openOrdersResult = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object rawOrders = Helpers.GetValue(openOrdersResult, "orders");
             // { success: 1, return: { orders: null }} if no orders
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(rawOrders, null))) || Helpers.isTrue((Helpers.isEqual(rawOrders, null)))))
@@ -1100,7 +1100,7 @@ public class IndodaxCore extends IndodaxApi
                 exchangeOrders = this.arrayConcat(exchangeOrders, parsedOrders);
             }
             return exchangeOrders;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1115,7 +1115,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1137,11 +1137,11 @@ public class IndodaxCore extends IndodaxApi
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
-            Object historyResult = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> historyResult = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.parseOrders(Helpers.GetValue(historyResult, "orders"), market);
             orders = this.filterBy(orders, "status", "closed");
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1158,7 +1158,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -1197,8 +1197,8 @@ public class IndodaxCore extends IndodaxApi
                         {
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price).")) ;
                         }
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
@@ -1235,7 +1235,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "info", result );
                 put( "id", id );
             }}, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1249,7 +1249,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1296,9 +1296,9 @@ public class IndodaxCore extends IndodaxApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "return");
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return");
             return this.parseOrder(data);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1311,7 +1311,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTransactionFee(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTransactionFee(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1356,7 +1356,7 @@ public class IndodaxCore extends IndodaxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1378,7 +1378,7 @@ public class IndodaxCore extends IndodaxApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object result = this.depositWithdrawFee(response);
             Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(data, "withdraw_fee"));
             Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
@@ -1479,8 +1479,8 @@ public class IndodaxCore extends IndodaxApi
             //     }
             //
             Object data = this.safeValue(response, "return", new java.util.HashMap<String, Object>() {{}});
-            Object withdraw = this.safeDict(data, "withdraw", new java.util.HashMap<String, Object>() {{}});
-            Object deposit = this.safeDict(data, "deposit", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> withdraw = (java.util.Map<String, Object>) this.safeDict(data, "withdraw", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> deposit = (java.util.Map<String, Object>) this.safeDict(data, "deposit", new java.util.HashMap<String, Object>() {{}});
             Object transactions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object currency = null;
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
@@ -1723,9 +1723,9 @@ public class IndodaxCore extends IndodaxApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "return");
-            Object addresses = this.safeDict(data, "address", new java.util.HashMap<String, Object>() {{}});
-            Object networks = this.safeDict(data, "network", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return");
+            java.util.Map<String, Object> addresses = (java.util.Map<String, Object>) this.safeDict(data, "address", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(data, "network", new java.util.HashMap<String, Object>() {{}});
             java.util.List<String> addressKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(addresses);
             Object result = new java.util.HashMap<String, Object>() {{
                 put( "info", data );
@@ -1753,7 +1753,7 @@ public class IndodaxCore extends IndodaxApi
                             {
                                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddresses() missing networkId")) ;
                             }
-                            Object networkIds = Helpers.split(networkId, ",");
+                            java.util.List<Object> networkIds = (java.util.List<Object>) Helpers.split(networkId, ",");
                             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
                             {
                                 Object _netIdTmp = this.networkIdToCode(Helpers.GetValue(networkIds, j), code);

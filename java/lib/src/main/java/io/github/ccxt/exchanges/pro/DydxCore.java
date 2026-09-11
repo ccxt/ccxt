@@ -141,11 +141,11 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         //     }
         // }
         //
-        Object marketId = this.safeString(message, "id");
+        String marketId = (String) this.safeString(message, "id");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object content = this.safeDict(message, "contents");
-        Object rawTrades = this.safeList(content, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> content = (java.util.Map<String, Object>) this.safeDict(message, "contents");
+        java.util.List<Object> rawTrades = (java.util.List<Object>) this.safeList(content, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -287,18 +287,18 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         //     }
         // }
         //
-        Object marketId = this.safeString(message, "id");
+        String marketId = (String) this.safeString(message, "id");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object content = this.safeDict(message, "contents");
+        java.util.Map<String, Object> content = (java.util.Map<String, Object>) this.safeDict(message, "contents");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
             orderbook = this.orderBook();
         }
         Helpers.addElementToObject(orderbook, "symbol", symbol);
-        Object asks = this.safeList(content, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object bids = this.safeList(content, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> asks = (java.util.List<Object>) this.safeList(content, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> bids = (java.util.List<Object>) this.safeList(content, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
         this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "message_id"));
@@ -349,7 +349,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String messageHash = (String) Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol"));
-            Object resolution = this.safeString(this.timeframes, timeframe, timeframe);
+            String resolution = (String) this.safeString(this.timeframes, timeframe, timeframe);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", "v4_candles" );
@@ -390,7 +390,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String messageHash = (String) Helpers.add("ohlcv:", Helpers.GetValue(market, "symbol"));
-            Object resolution = this.safeString(this.timeframes, timeframe, timeframe);
+            String resolution = (String) this.safeString(this.timeframes, timeframe, timeframe);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "unsubscribe" );
                 put( "channel", "v4_candles" );
@@ -454,15 +454,15 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         //     }
         // }
         //
-        Object id = this.safeString(message, "id", "");
+        String id = (String) this.safeString(message, "id", "");
         java.util.List<Object> part = (java.util.List<Object>) Helpers.split(id, "/");
-        Object interval = this.safeString(part, 1);
+        String interval = (String) this.safeString(part, 1);
         Object timeframe = this.findTimeframe(interval);
-        Object marketId = this.safeString(part, 0);
+        String marketId = (String) this.safeString(part, 0);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object content = this.safeDict(message, "contents");
-        Object candles = this.safeList(content, "candles");
+        java.util.Map<String, Object> content = (java.util.Map<String, Object>) this.safeDict(message, "contents");
+        java.util.List<Object> candles = (java.util.List<Object>) this.safeList(content, "candles");
         String messageHash = (String) Helpers.add("ohlcv:", symbol);
         Object ohlcv = this.safeDict(candles, 0, content);
         Object parsed = this.parseOHLCV(ohlcv, market);
@@ -482,7 +482,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
     {
         try
         {
-            Object msg = this.safeString(message, "message");
+            String msg = (String) this.safeString(message, "message");
             throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " "), msg)) ;
         } catch(Exception e)
         {
@@ -493,7 +493,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
 
     public void handleMessage(Client client, Object message)
     {
-        Object type = this.safeString(message, "type");
+        String type = (String) this.safeString(message, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "error")))
         {
             this.handleErrorMessage(client, message);
@@ -501,7 +501,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         }
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
-            Object topic = this.safeString(message, "channel");
+            String topic = (String) this.safeString(message, "channel");
             java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "v4_trades", "handleTrades");
                 put( "v4_orderbook", "handleOrderBook");

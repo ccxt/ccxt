@@ -842,7 +842,7 @@ public class PoloniexCore extends PoloniexApi
         //           ],
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object ohlcvLength = Helpers.getArrayLength(ohlcv);
+        Integer ohlcvLength = Helpers.getArrayLength(ohlcv);
         Boolean isContract = Helpers.isEqual(ohlcvLength, 9);
         if (Helpers.isTrue(isContract))
         {
@@ -1078,7 +1078,7 @@ public class PoloniexCore extends PoloniexApi
             //                "limitMaxQty": "1000000"
             //            },
             //
-            Object markets = this.safeList(response, "data");
+            java.util.List<Object> markets = (java.util.List<Object>) this.safeList(response, "data");
             return this.parseMarkets(markets);
         });
 
@@ -1391,7 +1391,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1404,7 +1404,7 @@ public class PoloniexCore extends PoloniexApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 symbols = this.marketSymbols(symbols, null, true, true, false);
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -1447,7 +1447,7 @@ public class PoloniexCore extends PoloniexApi
                 //                "iPx": "2.1834"
                 //            },
                 //
-                Object data = this.safeList(responseRaw, "data");
+                java.util.List<Object> data = (java.util.List<Object>) this.safeList(responseRaw, "data");
                 return this.parseTickers(data, symbols);
             }
             java.util.List<Object> response = (this.publicGetMarketsTicker24h(parameters)).join();
@@ -1476,7 +1476,7 @@ public class PoloniexCore extends PoloniexApi
             //     ]
             //
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1535,8 +1535,8 @@ public class PoloniexCore extends PoloniexApi
         String id = this.safeString(entry, "coin");
         String code = (String) this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
-        Object chains = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object chainsLength = Helpers.getArrayLength(chains);
+        java.util.List<Object> chains = (java.util.List<Object>) this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Integer chainsLength = Helpers.getArrayLength(chains);
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -1595,7 +1595,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1608,7 +1608,7 @@ public class PoloniexCore extends PoloniexApi
             }};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
-                Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
+                Object tickers = io.github.ccxt.TypedCores.fromTickers((this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join());
                 return this.safeDict(tickers, symbol);
             }
             java.util.Map<String, Object> response = (this.publicGetMarketsSymbolTicker24h(this.extend(request, parameters))).join();
@@ -1635,7 +1635,7 @@ public class PoloniexCore extends PoloniexApi
             //     }
             //
             return this.parseTicker(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -1790,7 +1790,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1824,7 +1824,7 @@ public class PoloniexCore extends PoloniexApi
                 //             cT: "1740777074704",
                 //         },
                 //
-                Object tradesList = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> tradesList = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseTrades(tradesList, market, since, limit);
             }
             java.util.List<Object> trades = (this.publicGetMarketsSymbolTrades(this.extend(request, parameters))).join();
@@ -1842,7 +1842,7 @@ public class PoloniexCore extends PoloniexApi
             //     ]
             //
             return this.parseTrades(trades, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1860,7 +1860,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1940,7 +1940,7 @@ public class PoloniexCore extends PoloniexApi
                 //                "actType": "TRADING"
                 //            },
                 //
-                Object data = this.safeList(raw, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> data = (java.util.List<Object>) this.safeList(raw, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseTrades(data, market, since, limit);
             }
             java.util.List<Object> response = (this.privateGetTrades(this.extend(request, parameters))).join();
@@ -1967,7 +1967,7 @@ public class PoloniexCore extends PoloniexApi
             //
             java.util.List<java.util.Map<String, Object>> result = this.parseTrades(response, market, since, limit);
             return result;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2136,7 +2136,7 @@ public class PoloniexCore extends PoloniexApi
         }
         String clientOrderId = this.safeString2(order, "clientOrderId", "clOrdId");
         String marginMode = (String)this.safeStringLower(order, "mgnMode");
-        Object reduceOnly = this.safeBool(order, "reduceOnly");
+        Boolean reduceOnly = (Boolean) this.safeBool(order, "reduceOnly");
         Long leverage = this.safeInteger(order, "lever");
         Boolean hedged = !Helpers.isEqual(this.safeString(order, "posSide"), "BOTH");
         final Object finalTimestamp = timestamp;
@@ -2215,7 +2215,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {boolean} [params.trigger] set true to fetch trigger orders instead of regular orders
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2321,7 +2321,7 @@ public class PoloniexCore extends PoloniexApi
                 put( "status", "open" );
             }};
             return this.parseOrders(response, market, since, limit, extension);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2337,7 +2337,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {int} [params.until] timestamp in ms of the latest entry
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2414,9 +2414,9 @@ public class PoloniexCore extends PoloniexApi
             //                "qCcy": "USDT"
             //            },
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2437,7 +2437,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2454,14 +2454,14 @@ public class PoloniexCore extends PoloniexApi
             var requestparametersVariable = this.orderRequest(symbol, type, side, amount, request, price, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> response = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true)))))
             {
                 java.util.Map<String, Object> responseInitial = (this.swapPrivatePostV3TradeOrder(this.extend(request, parameters))).join();
                 //
                 // {"code":200,"msg":"Success","data":{"ordId":"418876147745775616","clOrdId":"polo418876147745775616"}}
                 //
-                response = this.safeDict(responseInitial, "data", new java.util.HashMap<String, Object>() {{}});
+                response = (java.util.Map<String, Object>) this.safeDict(responseInitial, "data", new java.util.HashMap<String, Object>() {{}});
             } else if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 response = (this.privatePostSmartorders(this.extend(request, parameters))).join();
@@ -2476,7 +2476,7 @@ public class PoloniexCore extends PoloniexApi
             //     }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2513,7 +2513,7 @@ public class PoloniexCore extends PoloniexApi
                 }
             }
         }
-        Object upperCaseType = ((String)type).toUpperCase();
+        String upperCaseType = ((String)type).toUpperCase();
         Boolean isMarket = Helpers.isEqual(upperCaseType, "MARKET");
         Object isPostOnly = this.isPostOnly(isMarket, Helpers.isEqual(upperCaseType, "LIMIT_MAKER"), parameters);
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly", "triggerPrice", "stopPrice")));
@@ -2551,8 +2551,8 @@ public class PoloniexCore extends PoloniexApi
                         throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
@@ -2603,7 +2603,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {string} [params.clientOrderId] a unique identifier for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2643,11 +2643,11 @@ public class PoloniexCore extends PoloniexApi
                 put( "type", type );
             }});
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id2, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2716,7 +2716,7 @@ public class PoloniexCore extends PoloniexApi
             //   }
             //
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2732,7 +2732,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {boolean} [params.trigger] true if canceling trigger orders
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2801,7 +2801,7 @@ public class PoloniexCore extends PoloniexApi
             //     ]
             //
             return this.parseOrders(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2817,7 +2817,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {boolean} [params.trigger] true if fetching a trigger order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id2, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2879,11 +2879,11 @@ public class PoloniexCore extends PoloniexApi
             java.util.Map<String, Object> order = this.parseOrder(response);
             Helpers.addElementToObject(order, "id", id);
             return order;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderStatus(Object id2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderStatus(String id2, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2891,7 +2891,7 @@ public class PoloniexCore extends PoloniexApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object orders = (this.fetchOpenOrders(symbol, null, null, parameters)).join();
+            Object orders = io.github.ccxt.TypedCores.fromOrderList((this.fetchOpenOrders(symbol, null, null, parameters)).join());
             java.util.Map<String, Object> indexed = this.indexBy(orders, "id");
             return ((Helpers.isTrue((Helpers.inOp(indexed, id))))) ? "open" : "closed";
         });
@@ -2910,7 +2910,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2946,7 +2946,7 @@ public class PoloniexCore extends PoloniexApi
             //     ]
             //
             return this.parseTrades(trades);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2963,7 +2963,7 @@ public class PoloniexCore extends PoloniexApi
             Long ts = this.safeInteger(response, "uTime");
             Helpers.addElementToObject(result, "timestamp", ts);
             Helpers.addElementToObject(result, "datetime", this.iso8601(ts));
-            Object details = this.safeList(response, "details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> details = (java.util.List<Object>) this.safeList(response, "details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(details)); i++)
             {
                 Object balance = Helpers.GetValue(details, i);
@@ -3061,7 +3061,7 @@ public class PoloniexCore extends PoloniexApi
                 //        }
                 //    }
                 //
-                Object data = this.safeDict(responseRaw, "data", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(responseRaw, "data", new java.util.HashMap<String, Object>() {{}});
                 return this.parseBalance(data);
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3143,7 +3143,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3178,7 +3178,7 @@ public class PoloniexCore extends PoloniexApi
                 //       "msg": "Success"
                 //    }
                 //
-                Object data = this.safeDict(responseRaw, "data", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(responseRaw, "data", new java.util.HashMap<String, Object>() {{}});
                 Long ts = this.safeInteger(data, "ts");
                 return this.parseOrderBook(data, symbol, ts);
             }
@@ -3223,7 +3223,7 @@ public class PoloniexCore extends PoloniexApi
                 put( "datetime", PoloniexCore.this.iso8601(timestamp) );
                 put( "nonce", null );
             }};
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -3236,7 +3236,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3289,7 +3289,7 @@ public class PoloniexCore extends PoloniexApi
             //     }
             //
             java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
-            Object length = Helpers.getArrayLength(keys);
+            Integer length = Helpers.getArrayLength(keys);
             if (Helpers.isTrue(Helpers.isLessThan(length, 1)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() returned an empty response, you might need to try \"createDepositAddress\" at first and then use \"fetchDepositAddress\"")) ;
@@ -3374,7 +3374,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3742,7 +3742,7 @@ public class PoloniexCore extends PoloniexApi
                 java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(depositWithdrawFees, code, this.parseDepositWithdrawFee(feeInfo, currency));
                 Object childChains = this.safeValue(feeInfo, "childChains");
-                Object chainsLength = Helpers.getArrayLength(childChains);
+                Integer chainsLength = Helpers.getArrayLength(childChains);
                 if (Helpers.isTrue(Helpers.isGreaterThan(chainsLength, 0)))
                 {
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(childChains)); j++)
@@ -4008,7 +4008,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4078,7 +4078,7 @@ public class PoloniexCore extends PoloniexApi
         Object longLeverage = null;
         Object marketId = null;
         Object marginMode = null;
-        Object data = this.safeList(leverage, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(leverage, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object entry = Helpers.GetValue(data, i);
@@ -4139,7 +4139,7 @@ public class PoloniexCore extends PoloniexApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String posMode = this.safeString(data, "posMode");
             Boolean hedged = Helpers.isEqual(posMode, "HEDGE");
             return new java.util.HashMap<String, Object>() {{
@@ -4194,7 +4194,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {boolean} [params.standard] whether to fetch standard contract positions
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4239,9 +4239,9 @@ public class PoloniexCore extends PoloniexApi
             //        ]
             //    }
             //
-            Object positions = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> positions = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePositions(positions, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -4320,7 +4320,7 @@ public class PoloniexCore extends PoloniexApi
         }});
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount2, Object type2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object type2, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         final Object type3 = type2;
@@ -4361,7 +4361,7 @@ public class PoloniexCore extends PoloniexApi
             {
                 amount = Precise.stringAbs(amount);
             }
-            Object data = this.safeDict(response, "data");
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
             return this.parseMarginModification(data, market);
         });
 
@@ -4398,7 +4398,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4418,7 +4418,7 @@ public class PoloniexCore extends PoloniexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4462,7 +4462,7 @@ public class PoloniexCore extends PoloniexApi
         } else
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.nonce());
             Object auth = Helpers.add(method, "\n"); // eslint-disable-line quotes
             url = Helpers.add(url, Helpers.add("/", implodedPath));
             auth = Helpers.add(auth, Helpers.add("/", implodedPath));

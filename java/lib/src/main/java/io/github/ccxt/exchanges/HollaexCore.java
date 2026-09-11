@@ -423,7 +423,7 @@ public class HollaexCore extends HollaexApi
             //         "status": true
             //     }
             //
-            Object pairs = this.safeDict(response, "pairs", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> pairs = (java.util.Map<String, Object>) this.safeDict(response, "pairs", new java.util.HashMap<String, Object>() {{}});
             java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(pairs);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -571,8 +571,8 @@ public class HollaexCore extends HollaexApi
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            Object coins = this.safeDict(response, "coins", new java.util.HashMap<String, Object>() {{}});
-            Object values = Helpers.objectValues(coins);
+            java.util.Map<String, Object> coins = (java.util.Map<String, Object>) this.safeDict(response, "coins", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> values = Helpers.objectValues(coins);
             return this.parseCurrencies(values);
         });
 
@@ -582,16 +582,16 @@ public class HollaexCore extends HollaexApi
     {
         String id = this.safeString(rawCurrency, "symbol");
         String code = (String) this.safeCurrencyCode(id);
-        Object withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> withdrawalLimits = (java.util.List<Object>) this.safeList(rawCurrency, "withdrawal_limits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String rawType = this.safeString(rawCurrency, "type");
         String type = ((Helpers.isTrue((Helpers.isEqual(rawType, "blockchain"))))) ? "crypto" : "other";
-        Object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> rawNetworks = (java.util.Map<String, Object>) this.safeDict(rawCurrency, "withdrawal_fees", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         java.util.List<String> networkIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(rawNetworks);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
         {
             Object networkId = Helpers.GetValue(networkIds, j);
-            Object networkEntry = this.safeDict(rawNetworks, networkId);
+            java.util.Map<String, Object> networkEntry = (java.util.Map<String, Object>) this.safeDict(rawNetworks, networkId);
             Object networkCode = this.networkIdToCode(networkId, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -668,7 +668,7 @@ public class HollaexCore extends HollaexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object orderbook = this.safeDict(response, marketId, new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> orderbook = (java.util.Map<String, Object>) this.safeDict(response, marketId, new java.util.HashMap<String, Object>() {{}});
                 String symbol = (String) this.safeSymbol(marketId, null, "-");
                 Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
                 Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp));
@@ -688,7 +688,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -726,7 +726,7 @@ public class HollaexCore extends HollaexApi
             Object orderbook = this.safeValue(response, Helpers.GetValue(market, "id"));
             Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -739,7 +739,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -766,7 +766,7 @@ public class HollaexCore extends HollaexApi
             //     }
             //
             return this.parseTicker(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -779,7 +779,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -808,7 +808,7 @@ public class HollaexCore extends HollaexApi
             //     }
             //
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -899,7 +899,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -931,7 +931,7 @@ public class HollaexCore extends HollaexApi
             //
             Object trades = this.safeList(response, Helpers.GetValue(market, "id"), new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1169,7 +1169,7 @@ public class HollaexCore extends HollaexApi
             put( "timestamp", timestamp );
             put( "datetime", HollaexCore.this.iso8601(timestamp) );
         }};
-        Object currenciesById = this.currencies_by_id;
+        java.util.Map<String, Object> currenciesById = this.currencies_by_id;
         if (Helpers.isTrue(Helpers.isEqual(currenciesById, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " currencies not loaded")) ;
@@ -1236,7 +1236,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1291,7 +1291,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1304,7 +1304,7 @@ public class HollaexCore extends HollaexApi
                 put( "open", true );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1319,7 +1319,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1332,7 +1332,7 @@ public class HollaexCore extends HollaexApi
                 put( "open", false );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1346,7 +1346,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1389,7 +1389,7 @@ public class HollaexCore extends HollaexApi
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " fetchOrder() could not find order id "), id)) ;
             }
             return this.parseOrder(order);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1404,7 +1404,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1464,7 +1464,7 @@ public class HollaexCore extends HollaexApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1521,7 +1521,7 @@ public class HollaexCore extends HollaexApi
         String filled = this.safeString(order, "filled");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         Object meta = this.safeValue(order, "meta", new java.util.HashMap<String, Object>() {{}});
-        Object postOnly = this.safeBool(meta, "post_only", false);
+        Boolean postOnly = (Boolean) this.safeBool(meta, "post_only", false);
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
@@ -1562,7 +1562,7 @@ public class HollaexCore extends HollaexApi
      * @param {bool} [params.postOnly] if true, the order will only be posted to the order book and not executed immediately
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1583,7 +1583,7 @@ public class HollaexCore extends HollaexApi
             }};
             Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop")));
             Object meta = this.safeValue(parameters, "meta", new java.util.HashMap<String, Object>() {{}});
-            Object exchangeSpecificParam = this.safeBool(meta, "post_only", false);
+            Boolean exchangeSpecificParam = (Boolean) this.safeBool(meta, "post_only", false);
             Boolean isMarketOrder = Helpers.isEqual(type, "market");
             Object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
             if (!Helpers.isTrue(isMarketOrder))
@@ -1626,7 +1626,7 @@ public class HollaexCore extends HollaexApi
             //     }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1640,7 +1640,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1669,7 +1669,7 @@ public class HollaexCore extends HollaexApi
             //     }
             //
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1682,7 +1682,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1718,7 +1718,7 @@ public class HollaexCore extends HollaexApi
             //     ]
             //
             return this.parseOrders(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1733,7 +1733,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1779,7 +1779,7 @@ public class HollaexCore extends HollaexApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1800,7 +1800,7 @@ public class HollaexCore extends HollaexApi
         Object tag = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
-            Object parts = Helpers.split(address, ":");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(address, ":");
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
         }
@@ -1974,7 +1974,7 @@ public class HollaexCore extends HollaexApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawal(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawal(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2019,7 +2019,7 @@ public class HollaexCore extends HollaexApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object transaction = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> transaction = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(transaction, currency);
         });
 
@@ -2142,7 +2142,7 @@ public class HollaexCore extends HollaexApi
         Object tagFrom = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
-            Object parts = Helpers.split(address, ":");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(address, ":");
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
             addressTo = address;
@@ -2328,7 +2328,7 @@ public class HollaexCore extends HollaexApi
         if (Helpers.isTrue(!Helpers.isEqual(withdrawalFees, null)))
         {
             java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(withdrawalFees);
-            Object keysLength = Helpers.getArrayLength(keys);
+            Integer keysLength = Helpers.getArrayLength(keys);
             for (var i = 0; Helpers.isLessThan(i, keysLength); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -2340,7 +2340,7 @@ public class HollaexCore extends HollaexApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a networkCode argument")) ;
                 }
-                Object networkCodeUpper = ((String)networkCode).toUpperCase(); // default to the upper case network code
+                String networkCodeUpper = ((String)networkCode).toUpperCase(); // default to the upper case network code
                 Double withdrawalFee = this.safeNumber(value, "value");
                 Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCodeUpper, new java.util.HashMap<String, Object>() {{
     put( "deposit", null );
@@ -2403,7 +2403,7 @@ public class HollaexCore extends HollaexApi
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            Object coins = this.safeDict(response, "coins", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> coins = (java.util.Map<String, Object>) this.safeDict(response, "coins", new java.util.HashMap<String, Object>() {{}});
             return this.parseDepositWithdrawFees(coins, codes, "symbol");
         });
 
@@ -2431,7 +2431,7 @@ public class HollaexCore extends HollaexApi
             this.checkRequiredCredentials();
             Long defaultExpires = (Long) this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(Helpers.divide(this.timeout, 1000)));
             Object expires = this.sum(this.seconds(), defaultExpires);
-            Object expiresString = String.valueOf(expires);
+            String expiresString = String.valueOf(expires);
             Object auth = Helpers.add(Helpers.add(method, path), expiresString);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "api-key", HollaexCore.this.apiKey );
@@ -2481,7 +2481,7 @@ public class HollaexCore extends HollaexApi
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             String message = this.safeString(response, "message");
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
-            Object status = String.valueOf(code);
+            String status = String.valueOf(code);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), status, feedback);
         }
         return null;

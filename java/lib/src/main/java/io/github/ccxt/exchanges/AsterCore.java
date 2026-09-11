@@ -1163,7 +1163,7 @@ public class AsterCore extends AsterApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> sapiResult = (this.sapiPublicGetV3ExchangeInfo(parameters)).join();
-            Object sapiRows = this.safeList(sapiResult, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> sapiRows = (java.util.List<Object>) this.safeList(sapiResult, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //     [
             //         {
@@ -1230,10 +1230,10 @@ public class AsterCore extends AsterApi
             java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.sapiPublicGetV3ExchangeInfo(parameters), this.fapiPublicGetV3ExchangeInfo(parameters)));
             ((java.util.List<Object>)promises).add(this.signIn());
             Object results = (Helpers.promiseAll(promises)).join();
-            Object sapiResult = this.safeDict(results, 0, new java.util.HashMap<String, Object>() {{}});
-            Object sapiRows = this.safeList(sapiResult, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object fapiResult = this.safeDict(results, 1, new java.util.HashMap<String, Object>() {{}});
-            Object fapiRows = this.safeList(fapiResult, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> sapiResult = (java.util.Map<String, Object>) this.safeDict(results, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> sapiRows = (java.util.List<Object>) this.safeList(sapiResult, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> fapiResult = (java.util.Map<String, Object>) this.safeDict(results, 1, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> fapiRows = (java.util.List<Object>) this.safeList(fapiResult, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             // example:
             //
@@ -1380,12 +1380,12 @@ public class AsterCore extends AsterApi
             symbol = Helpers.add(Helpers.add(base, "/"), quote);
         }
         // filters
-        Object filters = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> filters = (java.util.List<Object>) this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
-        Object filterNotional = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL");
-        Object filterPrice = this.safeDict(filtersByType, "PRICE_FILTER");
-        Object filterLotSize = this.safeDict(filtersByType, "LOT_SIZE");
-        Object filterMarketLotSize = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> filterNotional = (java.util.Map<String, Object>) this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL");
+        java.util.Map<String, Object> filterPrice = (java.util.Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER");
+        java.util.Map<String, Object> filterLotSize = (java.util.Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE");
+        java.util.Map<String, Object> filterMarketLotSize = (java.util.Map<String, Object>) this.safeDict(filtersByType, "MARKET_LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
         Object pricePrecision = this.safeNumber(filterPrice, "tickSize");
         if (Helpers.isTrue(Helpers.isEqual(pricePrecision, null)))
         {
@@ -1661,21 +1661,21 @@ public class AsterCore extends AsterApi
         String costString = this.safeString2(trade, "quoteQty", "baseQty");
         Long timestamp = (Long) this.safeInteger2(trade, "time", "T");
         String side = (String)this.safeStringLower(trade, "side");
-        Object isMaker = this.safeBool(trade, "maker");
+        Boolean isMaker = (Boolean) this.safeBool(trade, "maker");
         String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
             takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
-                Object isBuyer = this.safeBool(trade, "buyer");
+                Boolean isBuyer = (Boolean) this.safeBool(trade, "buyer");
                 if (Helpers.isTrue(!Helpers.isEqual(isBuyer, null)))
                 {
                     side = ((Helpers.isTrue(isBuyer))) ? "buy" : "sell";
                 }
             }
         }
-        Object isBuyerMaker = this.safeBool2(trade, "isBuyerMaker", "m");
+        Boolean isBuyerMaker = (Boolean) this.safeBool2(trade, "isBuyerMaker", "m");
         if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
         {
             side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
@@ -1717,7 +1717,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1769,7 +1769,7 @@ public class AsterCore extends AsterApi
                 }
             }
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1786,7 +1786,7 @@ public class AsterCore extends AsterApi
      * @param {int} [params.until] timestamp in ms for the ending date filter, default is undefined
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1850,7 +1850,7 @@ public class AsterCore extends AsterApi
             // }
             //
             return this.parseTrades(response, market, since, limit, parameters);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1865,7 +1865,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1915,7 +1915,7 @@ public class AsterCore extends AsterApi
             //
             Long timestamp = this.safeInteger(response, "T");
             return this.parseOrderBook(response, symbol, timestamp, "bids", "asks");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -2020,7 +2020,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2071,7 +2071,7 @@ public class AsterCore extends AsterApi
             //    }
             //
             return this.parseTicker(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -2087,7 +2087,7 @@ public class AsterCore extends AsterApi
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {object} an array of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2141,7 +2141,7 @@ public class AsterCore extends AsterApi
             //     ]
             //
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2173,7 +2173,7 @@ public class AsterCore extends AsterApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLastPrices", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
                 response = (this.fapiPublicGetV3TickerPrice(parameters)).join();
@@ -2246,7 +2246,7 @@ public class AsterCore extends AsterApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2263,7 +2263,7 @@ public class AsterCore extends AsterApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBidsAsks", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
                 response = (this.fapiPublicGetV3TickerBookTicker(parameters)).join();
@@ -2286,7 +2286,7 @@ public class AsterCore extends AsterApi
             //        }, ...
             //
             return this.parseTickers(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -2578,7 +2578,7 @@ public class AsterCore extends AsterApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object data = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "swap")))
             {
@@ -2749,7 +2749,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.TradingFeeInterface> fetchTradingFee(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2778,7 +2778,7 @@ public class AsterCore extends AsterApi
             //     }
             //
             return this.parseTradingFee(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradingFeeInterface);
 
     }
 
@@ -2915,7 +2915,7 @@ public class AsterCore extends AsterApi
      * @param {string} [params.clientOrderId] a unique id for the order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2978,7 +2978,7 @@ public class AsterCore extends AsterApi
             //    }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2993,7 +2993,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3073,7 +3073,7 @@ public class AsterCore extends AsterApi
      * @param {int} [params.until] the latest time in ms to fetch orders for
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3141,7 +3141,7 @@ public class AsterCore extends AsterApi
             //        }, ...
             //
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -3159,7 +3159,7 @@ public class AsterCore extends AsterApi
      * @param {string} [params.type] 'spot', 'option', use params["subType"] for swap and future markets
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3195,7 +3195,7 @@ public class AsterCore extends AsterApi
             java.util.List<Object> subTypeparametersVariable = (java.util.List<Object>) this.handleSubTypeAndParams("fetchOpenOrders", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(this.isLinear(marketType, subType)))
             {
                 response = (this.fapiPrivateGetV3OpenOrders(this.extend(request, parameters))).join();
@@ -3235,7 +3235,7 @@ public class AsterCore extends AsterApi
             //    ]
             //
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -3261,7 +3261,7 @@ public class AsterCore extends AsterApi
      * @param {float} [params.takeProfitPrice] the price that a take profit order is triggered at
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3310,7 +3310,7 @@ public class AsterCore extends AsterApi
             //    }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -3323,7 +3323,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrders(Object orders, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> createOrders(Object orders, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3346,7 +3346,7 @@ public class AsterCore extends AsterApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> orderParams = (java.util.Map<String, Object>) this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
@@ -3391,7 +3391,7 @@ public class AsterCore extends AsterApi
             //    ]
             //
             return this.parseOrders(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -3421,7 +3421,7 @@ public class AsterCore extends AsterApi
          * @returns {object} request to be sent to the exchange
          */
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object initialUppercaseType = ((String)type).toUpperCase();
+        String initialUppercaseType = ((String)type).toUpperCase();
         Boolean isMarketOrder = Helpers.isEqual(initialUppercaseType, "MARKET");
         Boolean isLimitOrder = Helpers.isEqual(initialUppercaseType, "LIMIT");
         final Object finalSide = side;
@@ -3443,7 +3443,7 @@ public class AsterCore extends AsterApi
         Boolean isTrailingPercentOrder = !Helpers.isEqual(trailingPercent, null);
         Boolean isStopLoss = Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)) || Helpers.isTrue(!Helpers.isEqual(trailingDelta, null));
         Boolean isTakeProfit = !Helpers.isEqual(takeProfitPrice, null);
-        Object uppercaseType = initialUppercaseType;
+        String uppercaseType = initialUppercaseType;
         Object stopPrice = null;
         if (Helpers.isTrue(isTrailingPercentOrder))
         {
@@ -3487,7 +3487,7 @@ public class AsterCore extends AsterApi
         //       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
         // future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice;
         //       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
-        Object closePosition = this.safeBool(parameters, "closePosition", false);
+        Boolean closePosition = (Boolean) this.safeBool(parameters, "closePosition", false);
         Boolean timeInForceIsRequired = false;
         Boolean priceIsRequired = false;
         Boolean triggerPriceIsRequired = false;
@@ -3507,8 +3507,8 @@ public class AsterCore extends AsterApi
                         Helpers.addElementToObject(request, "quoteOrderQty", this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode));
                     } else if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String quoteOrderQuantity = Precise.stringMul(amountString, priceString);
                         Helpers.addElementToObject(request, "quoteOrderQty", this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode));
                     } else
@@ -3614,7 +3614,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3650,7 +3650,7 @@ public class AsterCore extends AsterApi
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -3665,7 +3665,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3699,7 +3699,7 @@ public class AsterCore extends AsterApi
                 response = (this.sapiPrivateDeleteV3Order(this.extend(request, parameters))).join();
             }
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -3718,7 +3718,7 @@ public class AsterCore extends AsterApi
      * @param {int[]} [params.recvWindow]
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3734,7 +3734,7 @@ public class AsterCore extends AsterApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object clientOrderIdList = this.safeList(parameters, "origClientOrderIdList");
+            java.util.List<Object> clientOrderIdList = (java.util.List<Object>) this.safeList(parameters, "origClientOrderIdList");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderIdList, null)))
             {
                 Helpers.addElementToObject(request, "origClientOrderIdList", clientOrderIdList);
@@ -3751,7 +3751,7 @@ public class AsterCore extends AsterApi
                 response = (this.sapiPrivateDeleteV3AllOpenOrders(this.extend(request, parameters))).join();
             }
             return this.parseOrders(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -4085,7 +4085,7 @@ public class AsterCore extends AsterApi
         }};
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount2, Object addOrReduce, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object addOrReduce, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4127,7 +4127,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4148,7 +4148,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4389,8 +4389,8 @@ public class AsterCore extends AsterApi
         market = this.safeMarket(marketId, market, null, "contract");
         String symbol = this.safeString(market, "symbol");
         String isolatedMarginString = this.safeString(position, "isolatedMargin");
-        Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new java.util.HashMap<String, Object>() {{}});
-        Object leverageBracket = this.safeList(leverageBrackets, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> leverageBrackets = (java.util.Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> leverageBracket = (java.util.List<Object>) this.safeList(leverageBrackets, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String notionalString = this.safeString2(position, "notional", "notionalValue");
         String notionalStringAbs = Precise.stringAbs(notionalString);
         Object maintenanceMarginPercentageString = null;
@@ -4427,13 +4427,13 @@ public class AsterCore extends AsterApi
         String entryPriceString = this.safeString(position, "entryPrice");
         Object entryPrice = this.parseNumber(entryPriceString);
         Object contractSize = this.safeValue(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         Boolean linear = (Helpers.inOp(position, "notional"));
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
         {
             // calculate collateral
-            Object precision = this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> precision = (java.util.Map<String, Object>) this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}});
             String basePrecisionValue = this.safeString(precision, "base");
             String quotePrecisionValue = this.safeString2(precision, "quote", "price");
             Boolean precisionIsUndefined = Helpers.isTrue((Helpers.isEqual(basePrecisionValue, null))) && Helpers.isTrue((Helpers.isEqual(quotePrecisionValue, null)));
@@ -4453,8 +4453,8 @@ public class AsterCore extends AsterApi
                         onePlusMaintenanceMarginPercentageString = Precise.stringAdd("-1", maintenanceMarginPercentageString);
                     }
                     String inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
-                    Object leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                    Object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
+                    String leftSide = Precise.stringAdd(inner, entryPriceSignString);
+                    Integer quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
                     if (Helpers.isTrue(!Helpers.isEqual(quotePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
@@ -4472,9 +4472,9 @@ public class AsterCore extends AsterApi
                         onePlusMaintenanceMarginPercentageString = Precise.stringSub("-1", maintenanceMarginPercentageString);
                         entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
                     }
-                    Object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
+                    String leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     String rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    Object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
+                    Integer basePrecision = this.precisionFromString(this.safeString(precision, "base"));
                     if (Helpers.isTrue(!Helpers.isEqual(basePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
@@ -4494,7 +4494,7 @@ public class AsterCore extends AsterApi
             timestamp = null;
         }
         Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
-        Object maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
+        String maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
         if (Helpers.isTrue(Helpers.isEqual(maintenanceMarginString, null)))
         {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
@@ -4513,12 +4513,12 @@ public class AsterCore extends AsterApi
             {
                 initialMarginPercentageString = Precise.stringAdd(initialMarginPercentageString, "1e-8");
             }
-            Object unrounded = Precise.stringMul(notionalStringAbs, initialMarginPercentageString);
+            String unrounded = Precise.stringMul(notionalStringAbs, initialMarginPercentageString);
             initialMarginString = Precise.stringDiv(unrounded, "1", 8);
         } else
         {
             initialMarginString = this.safeString(position, "initialMargin");
-            Object unrounded = Precise.stringMul(initialMarginString, "1");
+            String unrounded = Precise.stringMul(initialMarginString, "1");
             initialMarginPercentageString = Precise.stringDiv(unrounded, notionalStringAbs, 8);
         }
         Object marginRatio = null;
@@ -4576,7 +4576,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on the positions risk
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositionsRisk(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositionsRisk(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4626,7 +4626,7 @@ public class AsterCore extends AsterApi
             }
             symbols = this.marketSymbols(symbols);
             return this.filterByArrayPositions(result, "symbol", symbols, false);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
@@ -4640,7 +4640,7 @@ public class AsterCore extends AsterApi
      * @param {string} [params.method] method name to call, "positionRisk", "account" or "option", default is "positionRisk"
      * @returns {object[]} a list of [position structure]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4653,7 +4653,7 @@ public class AsterCore extends AsterApi
             parameters = ((java.util.List<Object>) defaultMethodparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(defaultMethod, null)))
             {
-                Object options = this.safeDict(this.options, "fetchPositions");
+                java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchPositions");
                 if (Helpers.isTrue(Helpers.isEqual(options, null)))
                 {
                     defaultMethod = this.safeString(this.options, "fetchPositions", "positionRisk");
@@ -4672,15 +4672,15 @@ public class AsterCore extends AsterApi
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, ".options[\"fetchPositions\"][\"method\"] or params[\"method\"] = \""), defaultMethod), "\" is invalid, please choose between \"account\" and \"positionRisk\"")) ;
             }
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 
     public Object parseAccountPositions(Object account, Object... optionalArgs)
     {
         Object filterClosed = Helpers.getArg(optionalArgs, 0, false);
-        Object positions = this.safeList(account, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object assets = this.safeList(account, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> positions = (java.util.List<Object>) this.safeList(account, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> assets = (java.util.List<Object>) this.safeList(account, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> balances = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
         {
@@ -4767,8 +4767,8 @@ public class AsterCore extends AsterApi
             contractsStringAbs = Precise.stringDiv(Precise.stringAdd(contractsString, "0.5"), "1", 0);
         }
         Object contracts = this.parseNumber(contractsStringAbs);
-        Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new java.util.HashMap<String, Object>() {{}});
-        Object leverageBracket = this.safeList(leverageBrackets, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> leverageBrackets = (java.util.Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> leverageBracket = (java.util.List<Object>) this.safeList(leverageBrackets, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object maintenanceMarginPercentageString = null;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverageBracket)); i++)
         {
@@ -4814,7 +4814,7 @@ public class AsterCore extends AsterApi
         String liquidationPriceStringRaw = null;
         Object liquidationPrice = null;
         Object contractSize = this.safeValue(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         if (Helpers.isTrue(Precise.stringEquals(notionalString, "0")))
         {
             entryPrice = null;
@@ -4842,8 +4842,8 @@ public class AsterCore extends AsterApi
                     onePlusMaintenanceMarginPercentageString = Precise.stringAdd("-1", maintenanceMarginPercentageString);
                     entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
                 }
-                Object leftSide = Precise.stringDiv(walletBalance, Precise.stringMul(contractsStringAbs, onePlusMaintenanceMarginPercentageString));
-                Object rightSide = Precise.stringDiv(entryPriceSignString, onePlusMaintenanceMarginPercentageString);
+                String leftSide = Precise.stringDiv(walletBalance, Precise.stringMul(contractsStringAbs, onePlusMaintenanceMarginPercentageString));
+                String rightSide = Precise.stringDiv(entryPriceSignString, onePlusMaintenanceMarginPercentageString);
                 liquidationPriceStringRaw = Precise.stringAdd(leftSide, rightSide);
             } else
             {
@@ -4862,16 +4862,16 @@ public class AsterCore extends AsterApi
                     entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
                 }
                 String size = Precise.stringMul(contractsStringAbs, contractSizeString);
-                Object leftSide = Precise.stringMul(size, onePlusMaintenanceMarginPercentageString);
-                Object rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
+                String leftSide = Precise.stringMul(size, onePlusMaintenanceMarginPercentageString);
+                String rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            Object pricePrecision = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "price"));
+            Integer pricePrecision = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "price"));
             Object pricePrecisionPlusOne = Helpers.add(pricePrecision, 1);
-            Object pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
+            String pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
             var rounder = new Precise(Helpers.add("5e-", pricePrecisionPlusOneString));
-            Object rounderString = String.valueOf(rounder);
+            String rounderString = String.valueOf(rounder);
             String liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             String truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
             if (Helpers.isTrue(Helpers.isEqual(truncatedLiquidationPrice, null)))
@@ -4972,7 +4972,7 @@ public class AsterCore extends AsterApi
             (this.loadMarketsAndSignIn()).join();
             // by default cache the leverage bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
-            Object leverageBrackets = this.safeDict(this.options, "leverageBrackets");
+            java.util.Map<String, Object> leverageBrackets = (java.util.Map<String, Object>) this.safeDict(this.options, "leverageBrackets");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(leverageBrackets, null))) || Helpers.isTrue((reload))))
             {
                 java.util.List<Object> response = (this.fapiPrivateGetV3LeverageBracket(parameters)).join();
@@ -5006,7 +5006,7 @@ public class AsterCore extends AsterApi
                     Object entry = Helpers.GetValue(entries, i);
                     String marketId = this.safeString(entry, "symbol");
                     String symbol = (String) this.safeSymbol(marketId, null, null, "contract");
-                    Object brackets = this.safeList(entry, "brackets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    java.util.List<Object> brackets = (java.util.List<Object>) this.safeList(entry, "brackets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(brackets)); j++)
                     {
@@ -5119,12 +5119,12 @@ public class AsterCore extends AsterApi
             }};
             Long chainId = this.safeInteger(parameters, "chainId");
             // TODO: check how ARBI signature would work
-            Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             String network = (String)this.safeStringUpper(parameters, "network");
             network = this.safeString(networks, network, network);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(chainId, null))) && Helpers.isTrue((!Helpers.isEqual(network, null)))))
             {
-                Object chainIds = this.safeDict(this.options, "networksToChainId", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> chainIds = (java.util.Map<String, Object>) this.safeDict(this.options, "networksToChainId", new java.util.HashMap<String, Object>() {{}});
                 chainId = this.safeInteger(chainIds, network);
             }
             if (Helpers.isTrue(Helpers.isEqual(chainId, null)))
@@ -5193,7 +5193,7 @@ public class AsterCore extends AsterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
@@ -5229,7 +5229,7 @@ public class AsterCore extends AsterApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
             }
-            Object defaultClientTranId = this.numberToString(this.milliseconds());
+            String defaultClientTranId = this.numberToString(this.milliseconds());
             String clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
             Helpers.addElementToObject(request, "kindType", type);
             Helpers.addElementToObject(request, "clientTranId", clientTranId);
@@ -5406,7 +5406,7 @@ public class AsterCore extends AsterApi
     public String encodeValuesWithJson(Object values)
     {
         String encodedString = "";
-        Object keys = Helpers.objectKeys(values);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(values);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -5422,7 +5422,7 @@ public class AsterCore extends AsterApi
     public Object capitalizeKeys(Object dict)
     {
         java.util.Map<String, Object> capitalized = new java.util.HashMap<String, Object>() {{}};
-        Object keys = Helpers.objectKeys(dict);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(dict);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -5487,7 +5487,7 @@ public class AsterCore extends AsterApi
             {
                 return false;  // skip if builder fee is not enabled
             }
-            Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
+            Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
             if (Helpers.isTrue(Helpers.isEqual(approvedBuilderFee, true)))
             {
                 return true;  // skip if builder fee is already approved
@@ -5504,11 +5504,11 @@ public class AsterCore extends AsterApi
             //    ]
             //
             java.util.List<Object> approvedBuilders = result;
-            Object length = Helpers.getArrayLength(approvedBuilders);
+            Integer length = Helpers.getArrayLength(approvedBuilders);
             Boolean found = false;
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
-                Object builderInfo = this.safeDict(approvedBuilders, i, new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> builderInfo = (java.util.Map<String, Object>) this.safeDict(approvedBuilders, i, new java.util.HashMap<String, Object>() {{}});
                 String builderAccountId = this.safeString(builderInfo, "builderAddress");
                 if (Helpers.isTrue(Helpers.isEqual(builderAccountId, this.safeString(this.options, "builder"))))
                 {

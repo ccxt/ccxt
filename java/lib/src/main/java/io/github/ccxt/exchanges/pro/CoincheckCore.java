@@ -112,7 +112,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         //         }
         //     ]
         //
-        Object symbol = this.symbol(this.safeString(message, 0));
+        String symbol = (String) this.symbol(this.safeString(message, 0));
         Object data = this.safeValue(message, 1, new java.util.HashMap<String, Object>() {{}});
         Long timestamp = (Long) this.safeTimestamp(data, "last_update_at");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp);
@@ -189,7 +189,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         //     ]
         //
         Object first = this.safeValue(message, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object symbol = this.symbol(this.safeString(first, 2));
+        String symbol = (String) this.symbol(this.safeString(first, 2));
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -222,11 +222,11 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object symbol = this.symbol(this.safeString(trade, 2));
+        String symbol = (String) this.symbol(this.safeString(trade, 2));
         Long timestamp = (Long) this.safeTimestamp(trade, 0);
-        Object side = this.safeString(trade, 5);
-        Object priceString = this.safeString(trade, 3);
-        Object amountString = this.safeString(trade, 4);
+        String side = (String) this.safeString(trade, 5);
+        String priceString = (String) this.safeString(trade, 3);
+        String amountString = (String) this.safeString(trade, 4);
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", CoincheckCore.this.safeString(trade, 1) );
             put( "info", trade );

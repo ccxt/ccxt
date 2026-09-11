@@ -28,9 +28,9 @@ public class TestFetchCurrencies extends BaseTest {
         Object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
         if (Helpers.isTrue(!Helpers.isEqual(isFetchCurrenciesPrivate, true)))
         {
-            Object values = Helpers.objectValues(currencies);
+            java.util.List<Object> values = Helpers.objectValues(currencies);
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values);
-            Object currenciesLength = Helpers.getArrayLength(values);
+            Integer currenciesLength = Helpers.getArrayLength(values);
             // ensure exchange returns enough length of currencies
             Boolean skipAmount = (Helpers.inOp(skippedProperties, "amountOfCurrencies"));
             Assert(Helpers.isTrue(skipAmount) || Helpers.isTrue(Helpers.isGreaterThan(currenciesLength, 5)), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return at least several currencies, but it returned "), String.valueOf(currenciesLength)));
@@ -49,7 +49,7 @@ public class TestFetchCurrencies extends BaseTest {
                     numInactiveCurrencies = Helpers.add(numInactiveCurrencies, 1);
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
-                Object code = exchange.safeString(currency, "code");
+                String code = exchange.safeString(currency, "code");
                 Object withdraw = exchange.safeBool(currency, "withdraw");
                 Object deposit = exchange.safeBool(currency, "deposit");
                 Object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);

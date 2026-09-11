@@ -816,14 +816,14 @@ public class GeminiCore extends GeminiApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object data = (this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>")).join();
             Object error = Helpers.add(this.id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
-            Object tables = Helpers.split(data, "tbody>");
-            Object numTables = Helpers.getArrayLength(tables);
+            java.util.List<Object> tables = (java.util.List<Object>) Helpers.split(data, "tbody>");
+            Integer numTables = Helpers.getArrayLength(tables);
             if (Helpers.isTrue(Helpers.isLessThan(numTables, 2)))
             {
                 throw new NotSupported((String)error) ;
             }
-            Object rows = Helpers.split(Helpers.GetValue(tables, 1), "\n<tr>\n"); // eslint-disable-line quotes
-            Object numRows = Helpers.getArrayLength(rows);
+            java.util.List<Object> rows = (java.util.List<Object>) Helpers.split(Helpers.GetValue(tables, 1), "\n<tr>\n"); // eslint-disable-line quotes
+            Integer numRows = Helpers.getArrayLength(rows);
             if (Helpers.isTrue(Helpers.isLessThan(numRows, 2)))
             {
                 throw new NotSupported((String)error) ;
@@ -833,8 +833,8 @@ public class GeminiCore extends GeminiApi
             for (var i = 1; Helpers.isLessThan(i, numRows); i++)
             {
                 String row = (String) Helpers.GetValue(rows, i);
-                Object cells = Helpers.split(row, "</td>\n"); // eslint-disable-line quotes
-                Object numCells = Helpers.getArrayLength(cells);
+                java.util.List<Object> cells = (java.util.List<Object>) Helpers.split(row, "</td>\n"); // eslint-disable-line quotes
+                Integer numCells = Helpers.getArrayLength(cells);
                 if (Helpers.isTrue(Helpers.isLessThan(numCells, 5)))
                 {
                     throw new NotSupported((String)error) ;
@@ -849,15 +849,15 @@ public class GeminiCore extends GeminiApi
                 Object marketId = Helpers.replace((String)Helpers.GetValue(cells, 0), (String)"<td>", (String)"");
                 marketId = Helpers.replace((String)marketId, (String)"*", (String)"");
                 // const base = this.safeCurrencyCode (baseId);
-                Object minAmountString = Helpers.replace((String)Helpers.GetValue(cells, 1), (String)"<td>", (String)"");
-                Object minAmountParts = Helpers.split(minAmountString, " ");
+                String minAmountString = Helpers.replace((String)Helpers.GetValue(cells, 1), (String)"<td>", (String)"");
+                java.util.List<Object> minAmountParts = (java.util.List<Object>) Helpers.split(minAmountString, " ");
                 Double minAmount = this.safeNumber(minAmountParts, 0);
-                Object amountPrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 2), (String)"<td>", (String)"");
-                Object amountPrecisionParts = Helpers.split(amountPrecisionString, " ");
+                String amountPrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 2), (String)"<td>", (String)"");
+                java.util.List<Object> amountPrecisionParts = (java.util.List<Object>) Helpers.split(amountPrecisionString, " ");
                 Long idLength = (Long) Helpers.subtract(Helpers.getArrayLength(marketId), 0);
                 Long startingIndex = (Long) Helpers.subtract(idLength, 3);
-                Object pricePrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 3), (String)"<td>", (String)"");
-                Object pricePrecisionParts = Helpers.split(pricePrecisionString, " ");
+                String pricePrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 3), (String)"<td>", (String)"");
+                java.util.List<Object> pricePrecisionParts = (java.util.List<Object>) Helpers.split(pricePrecisionString, " ");
                 Object quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
                 Object baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace((String)marketId, (String)quoteId, (String)""));
                 String base = (String) this.safeCurrencyCode(baseId);
@@ -947,7 +947,7 @@ public class GeminiCore extends GeminiApi
             {
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList());  // sandbox does not have usdt markets
             }
-            Object fetchUsdtMarkets = this.safeList(this.options, "fetchUsdtMarkets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> fetchUsdtMarkets = (java.util.List<Object>) this.safeList(this.options, "fetchUsdtMarkets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fetchUsdtMarkets)); i++)
             {
@@ -979,8 +979,8 @@ public class GeminiCore extends GeminiApi
             //     ]
             //
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object options = this.safeDict(this.options, "fetchMarketsFromAPI", new java.util.HashMap<String, Object>() {{}});
-            Object brokenPairs = this.safeList(this.options, "brokenPairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchMarketsFromAPI", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> brokenPairs = (java.util.List<Object>) this.safeList(this.options, "brokenPairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> allMarketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(marketIdsRaw)))
@@ -1013,14 +1013,14 @@ public class GeminiCore extends GeminiApi
             } else
             {
                 // use trading-pairs info, if it was fetched
-                Object tradingPairs = this.safeList(this.options, "tradingPairs");
+                java.util.List<Object> tradingPairs = (java.util.List<Object>) this.safeList(this.options, "tradingPairs");
                 if (Helpers.isTrue(!Helpers.isEqual(tradingPairs, null)))
                 {
                     java.util.Map<String, Object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
                     {
                         Object marketId = Helpers.GetValue(marketIds, i);
-                        Object pairInfo = this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase());
+                        java.util.List<Object> pairInfo = (java.util.List<Object>) this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase());
                         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(pairInfo, null)) && !Helpers.isTrue(this.inArray(marketId, brokenPairs))))
                         {
                             ((java.util.List<Object>)result).add(this.parseMarket(pairInfo));
@@ -1042,7 +1042,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public Object parseMarket(Object response)
+    public java.util.Map<String, Object> parseMarket(Object response)
     {
         //
         // response might be:
@@ -1113,11 +1113,11 @@ public class GeminiCore extends GeminiApi
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
-            Object marketIdUpper = ((String)((String)marketId)).toUpperCase();
+            String marketIdUpper = ((String)((String)marketId)).toUpperCase();
             Boolean isPerp = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketIdUpper, "PERP"), 0));
-            Object marketIdWithoutPerp = Helpers.replace((String)marketIdUpper, (String)"PERP", (String)"");
-            Object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new java.util.HashMap<String, Object>() {{}});
-            Object lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
+            String marketIdWithoutPerp = Helpers.replace((String)marketIdUpper, (String)"PERP", (String)"");
+            java.util.Map<String, Object> conflictingMarkets = (java.util.Map<String, Object>) this.safeDict(this.options, "conflictingMarkets", new java.util.HashMap<String, Object>() {{}});
+            String lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
             if (Helpers.isTrue(Helpers.inOp(conflictingMarkets, lowerCaseId)))
             {
                 Object conflictingMarket = Helpers.GetValue(conflictingMarkets, lowerCaseId);
@@ -1236,7 +1236,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1258,7 +1258,7 @@ public class GeminiCore extends GeminiApi
             }
             java.util.Map<String, Object> response = (this.publicGetV1BookSymbol(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "amount");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1362,7 +1362,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params.fetchTickerMethod] 'fetchTickerV2', 'fetchTickerV1' or 'fetchTickerV1AndV2' - 'fetchTickerV1' for original ccxt.gemini.fetchTicker - 'fetchTickerV1AndV2' for 2 api calls to get the result of both fetchTicker methods - default = 'fetchTickerV1'
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1378,11 +1378,11 @@ public class GeminiCore extends GeminiApi
                 return (this.fetchTickerV2(symbol, parameters)).join();
             }
             return (this.fetchTickerV1AndV2(symbol, parameters)).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
-    public Object parseTicker(Object ticker, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTickers
@@ -1492,7 +1492,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1519,13 +1519,13 @@ public class GeminiCore extends GeminiApi
             //     ]
             //
             Object result = this.parseTickers(response, symbols);
-            Object brokenPairs = this.safeList(this.options, "brokenPairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> brokenPairs = (java.util.List<Object>) this.safeList(this.options, "brokenPairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.removeKeysFromDict(result, brokenPairs);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
-    public Object parseTrade(Object trade, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public fetchTrades
@@ -1602,7 +1602,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1641,11 +1641,11 @@ public class GeminiCore extends GeminiApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
-    public Object parseBalance(Object response)
+    public java.util.Map<String, Object> parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -1762,7 +1762,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public Object parseOrder(Object order, Object... optionalArgs)
+    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder (private)
@@ -1952,7 +1952,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1991,7 +1991,7 @@ public class GeminiCore extends GeminiApi
             //      }
             //
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2006,7 +2006,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2051,7 +2051,7 @@ public class GeminiCore extends GeminiApi
                 market = this.market(symbol); // throws on non-existent symbol
             }
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2068,7 +2068,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2131,7 +2131,7 @@ public class GeminiCore extends GeminiApi
                         Helpers.addElementToObject(request, "options", new java.util.ArrayList<Object>(java.util.Arrays.asList("maker-or-cancel")));
                     }
                 }
-                Object postOnly = this.safeBool(parameters, "postOnly", false);
+                Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
                 parameters = this.omit(parameters, "postOnly");
                 if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
                 {
@@ -2169,7 +2169,7 @@ public class GeminiCore extends GeminiApi
             //      }
             //
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2183,7 +2183,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2223,7 +2223,7 @@ public class GeminiCore extends GeminiApi
             //      }
             //
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2238,7 +2238,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2269,7 +2269,7 @@ public class GeminiCore extends GeminiApi
             }
             java.util.List<Object> response = (this.privatePostV1Mytrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2389,7 +2389,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public Object parseTransaction(Object transaction, Object... optionalArgs)
+    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // withdraw
@@ -2577,7 +2577,7 @@ public class GeminiCore extends GeminiApi
             {
                 throw new AuthenticationError((String)Helpers.add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
             }
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object finalUrl = url;
             java.util.Map<String, Object> request = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "request", finalUrl );
@@ -2658,7 +2658,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2744,7 +2744,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] exchange specific parameters
      * @returns {object} an open interest structure{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterest(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OpenInterest> fetchOpenInterest(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2769,7 +2769,7 @@ public class GeminiCore extends GeminiApi
             //    }
             //
             return this.parseOpenInterest(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOpenInterest);
 
     }
 

@@ -610,8 +610,8 @@ public class OnetradingCore extends OnetradingApi
         //      "state": "ACTIVE"
         //  }
         //
-        Object baseAsset = this.safeDict(market, "base", new java.util.HashMap<String, Object>() {{}});
-        Object quoteAsset = this.safeDict(market, "quote", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> baseAsset = (java.util.Map<String, Object>) this.safeDict(market, "base", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> quoteAsset = (java.util.Map<String, Object>) this.safeDict(market, "quote", new java.util.HashMap<String, Object>() {{}});
         String baseId = this.safeString(baseAsset, "code");
         String quoteId = this.safeString(quoteAsset, "code");
         String id = this.safeString(market, "id");
@@ -769,21 +769,21 @@ public class OnetradingCore extends OnetradingApi
             //     },
             // ];
             //
-            Object spotFees = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
-            Object futuresFees = this.safeDict(response, 1, new java.util.HashMap<String, Object>() {{}});
-            Object spotFeeTiers = this.safeList(spotFees, "fee_tiers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object futuresFeeTiers = this.safeList(futuresFees, "fee_tiers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> spotFees = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> futuresFees = (java.util.Map<String, Object>) this.safeDict(response, 1, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> spotFeeTiers = (java.util.List<Object>) this.safeList(spotFees, "fee_tiers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> futuresFeeTiers = (java.util.List<Object>) this.safeList(futuresFees, "fee_tiers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object spotTiers = this.parseFeeTiers(spotFeeTiers);
             Object futuresTiers = this.parseFeeTiers(futuresFeeTiers);
-            Object firstSpotTier = this.safeDict(spotTiers, 0, new java.util.HashMap<String, Object>() {{}});
-            Object firstFuturesTier = this.safeDict(futuresTiers, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> firstSpotTier = (java.util.Map<String, Object>) this.safeDict(spotTiers, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> firstFuturesTier = (java.util.Map<String, Object>) this.safeDict(futuresTiers, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                Object tierObject = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? firstSpotTier : firstFuturesTier;
+                java.util.Map<String, Object> tierObject = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? firstSpotTier : firstFuturesTier;
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", spotFees );
         put( "symbol", symbol );
@@ -841,9 +841,9 @@ public class OnetradingCore extends OnetradingApi
             //    ]
             // }
             //
-            Object activeFeeTier = this.safeList(response, "active_fee_tiers");
-            Object spotFees = this.safeDict(activeFeeTier, 0, new java.util.HashMap<String, Object>() {{}});
-            Object futuresFees = this.safeDict(activeFeeTier, 1, new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> activeFeeTier = (java.util.List<Object>) this.safeList(response, "active_fee_tiers");
+            java.util.Map<String, Object> spotFees = (java.util.Map<String, Object>) this.safeDict(activeFeeTier, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> futuresFees = (java.util.Map<String, Object>) this.safeDict(activeFeeTier, 1, new java.util.HashMap<String, Object>() {{}});
             String spotMakerFee = this.safeString(spotFees, "maker_fee");
             String spotTakerFee = this.safeString(spotFees, "taker_fee");
             spotMakerFee = Precise.stringDiv(spotMakerFee, "100");
@@ -963,7 +963,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -997,7 +997,7 @@ public class OnetradingCore extends OnetradingApi
             //     }
             //
             return this.parseTicker(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -1010,7 +1010,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1055,7 +1055,7 @@ public class OnetradingCore extends OnetradingApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1069,7 +1069,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1146,7 +1146,7 @@ public class OnetradingCore extends OnetradingApi
             //
             Long timestamp = this.parse8601(this.safeString(response, "time"));
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1169,7 +1169,7 @@ public class OnetradingCore extends OnetradingApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object granularity = this.safeValue(ohlcv, "granularity");
         String unit = this.safeString(granularity, "unit");
-        String period = this.safeString(granularity, "period");
+        Object period = this.safeString(granularity, "period");
         java.util.Map<String, Object> units = new java.util.HashMap<String, Object>() {{
             put( "MINUTES", "m" );
             put( "HOURS", "h" );
@@ -1358,7 +1358,7 @@ public class OnetradingCore extends OnetradingApi
 
     public java.util.Map<String, Object> parseBalance(Object response)
     {
-        Object balances = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> balances = (java.util.List<Object>) this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -1570,7 +1570,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {float} [params.triggerPrice] onetrading only does stop limit orders and does not do stop market
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side2, Object amount, Object... optionalArgs)
     {
         final Object side3 = side2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1582,7 +1582,7 @@ public class OnetradingCore extends OnetradingApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
@@ -1644,7 +1644,7 @@ public class OnetradingCore extends OnetradingApi
             //     }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1659,7 +1659,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1682,7 +1682,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 Helpers.addElementToObject(request, "order_id", id);
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateDeleteAccountOrdersOrderId")))
             {
                 response = (this.privateDeleteAccountOrdersOrderId(this.extend(request, parameters))).join();
@@ -1694,7 +1694,7 @@ public class OnetradingCore extends OnetradingApi
             // responds with an empty body
             //
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1707,7 +1707,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1733,7 +1733,7 @@ public class OnetradingCore extends OnetradingApi
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", response );
     }})));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1747,7 +1747,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1771,7 +1771,7 @@ public class OnetradingCore extends OnetradingApi
                 put( "info", response );
             }});
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(order));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1785,7 +1785,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1799,7 +1799,7 @@ public class OnetradingCore extends OnetradingApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privateGetAccountOrdersOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetAccountOrdersOrderId(this.extend(request, parameters))).join();
             //
             //     {
             //         "order": {
@@ -1842,7 +1842,7 @@ public class OnetradingCore extends OnetradingApi
             //     }
             //
             return this.parseOrder(response);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1858,7 +1858,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1974,7 +1974,7 @@ public class OnetradingCore extends OnetradingApi
             //
             Object orderHistory = this.safeList(response, "order_history", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orderHistory, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1990,7 +1990,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2003,7 +2003,7 @@ public class OnetradingCore extends OnetradingApi
                 put( "with_cancelled_and_rejected", true );
             }};
             return (this.fetchOpenOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2019,7 +2019,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchOrderTrades(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2077,7 +2077,7 @@ public class OnetradingCore extends OnetradingApi
                 market = this.market(symbol);
             }
             return this.parseTrades(tradeHistory, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2093,7 +2093,7 @@ public class OnetradingCore extends OnetradingApi
      * @param {int} [params.until] timestamp in ms of the latest entry to fetch
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2160,7 +2160,7 @@ public class OnetradingCore extends OnetradingApi
             //
             Object tradeHistory = this.safeList(response, "trade_history", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(tradeHistory, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 

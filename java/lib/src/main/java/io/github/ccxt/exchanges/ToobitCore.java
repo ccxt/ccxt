@@ -940,12 +940,12 @@ public class ToobitCore extends ToobitApi
             //            },
             //          ...
             //
-            Object coins = this.safeList(response, "coins", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> coins = (java.util.List<Object>) this.safeList(response, "coins", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(coins)); i++)
             {
                 Object coin = Helpers.GetValue(coins, i);
-                Object parsed = this.parseCurrency(coin);
+                java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseCurrency(coin);
                 if (Helpers.isTrue(!Helpers.isEqual(parsed, null)))
                 {
                     Object code = Helpers.GetValue(parsed, "code");
@@ -962,7 +962,7 @@ public class ToobitCore extends ToobitApi
         String id = this.safeString(rawCurrency, "coinId");
         String code = (String) this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
-        Object rawNetworks = this.safeList(rawCurrency, "chainTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> rawNetworks = (java.util.List<Object>) this.safeList(rawCurrency, "chainTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(rawNetworks)); j++)
         {
             Object rawNetwork = Helpers.GetValue(rawNetworks, j);
@@ -1034,7 +1034,7 @@ public class ToobitCore extends ToobitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = this.safeDict(this.options, "exchangeInfo");
+            java.util.Map<String, Object> response = (java.util.Map<String, Object>) this.safeDict(this.options, "exchangeInfo");
             if (Helpers.isTrue(!Helpers.isEqual(response, null)))
             {
                 Helpers.addElementToObject(this.options, "exchangeInfo", null); // reset it to avoid using old cached data
@@ -1170,8 +1170,8 @@ public class ToobitCore extends ToobitApi
             //            },
             //          ...
             //
-            Object symbols = this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object contracts = this.safeList(response, "contracts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> symbols = (java.util.List<Object>) this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> contracts = (java.util.List<Object>) this.safeList(response, "contracts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> all = (java.util.List<Object>) this.arrayConcat(symbols, contracts);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(all)); i++)
@@ -1193,7 +1193,7 @@ public class ToobitCore extends ToobitApi
         String id = this.safeString(market, "symbol");
         String baseId = this.safeString(market, "baseAsset", "");
         String quoteId = this.safeString(market, "quoteAsset");
-        Object baseParts = Helpers.split(baseId, "-");
+        java.util.List<Object> baseParts = (java.util.List<Object>) Helpers.split(baseId, "-");
         String baseIdClean = (String) Helpers.GetValue(baseParts, 0);
         String base = (String) this.safeCurrencyCode(baseIdClean);
         String quote = (String) this.safeCurrencyCode(quoteId);
@@ -1201,14 +1201,14 @@ public class ToobitCore extends ToobitApi
         String settle = (String) this.safeCurrencyCode(settleId);
         String status = this.safeString(market, "status");
         Boolean active = (Helpers.isEqual(status, "TRADING"));
-        Object filters = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> filters = (java.util.List<Object>) this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
-        Object priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
-        Object lotSizeFilter = this.safeDict(filtersByType, "LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
-        Object minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> priceFilter = (java.util.Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> lotSizeFilter = (java.util.Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> minNotionalFilter = (java.util.Map<String, Object>) this.safeDict(filtersByType, "MIN_NOTIONAL", new java.util.HashMap<String, Object>() {{}});
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Boolean isContract = (Helpers.inOp(market, "contractMultiplier"));
-        Object inverse = this.safeBool2(market, "isInverse", "inverse");
+        Boolean inverse = (Boolean) this.safeBool2(market, "isInverse", "inverse");
         if (Helpers.isTrue(isContract))
         {
             symbol = Helpers.add(symbol, Helpers.add(":", settle));
@@ -1278,7 +1278,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1327,7 +1327,7 @@ public class ToobitCore extends ToobitApi
             //
             Long timestamp = this.safeInteger(response, "t");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "b", "a");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -1343,7 +1343,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1375,7 +1375,7 @@ public class ToobitCore extends ToobitApi
             //    ]
             //
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1426,12 +1426,12 @@ public class ToobitCore extends ToobitApi
         Long timestamp = (Long) this.safeInteger2(trade, "t", "time");
         String priceString = this.safeString2(trade, "p", "price");
         String amountString = this.safeString2(trade, "q", "qty");
-        Object isBuyer = this.safeBool(trade, "isBuyer");
+        Boolean isBuyer = (Boolean) this.safeBool(trade, "isBuyer");
         String side = null;
         Object isBuyerMaker = this.safeBool(trade, "ibm");
         if (Helpers.isTrue(Helpers.isEqual(isBuyerMaker, null)))
         {
-            Object isBuyerTaker = this.safeBool(trade, "m");
+            Boolean isBuyerTaker = (Boolean) this.safeBool(trade, "m");
             if (Helpers.isTrue(!Helpers.isEqual(isBuyerTaker, null)))
             {
                 isBuyerMaker = !Helpers.isTrue(isBuyerTaker);
@@ -1467,7 +1467,7 @@ public class ToobitCore extends ToobitApi
                 put( "cost", finalFeeAmount );
             }};
         }
-        Object isMaker = this.safeBool(trade, "isMaker");
+        Boolean isMaker = (Boolean) this.safeBool(trade, "isMaker");
         String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
@@ -1542,7 +1542,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object endpoint = null;
             java.util.List<Object> endpointparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "price");
             endpoint = ((java.util.List<Object>) endpointparametersVariable).get(0);
@@ -1557,7 +1557,7 @@ public class ToobitCore extends ToobitApi
             {
                 response = (this.commonGetQuoteV1Klines(this.extend(request, parameters))).join();
             }
-            Object candles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> candles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
                 candles = response;
@@ -1583,7 +1583,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1605,7 +1605,7 @@ public class ToobitCore extends ToobitApi
                 {
                     market = this.market(symbol);
                 }
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(length, 1))) && Helpers.isTrue((!Helpers.isEqual(market, null)))))
                 {
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
@@ -1614,7 +1614,7 @@ public class ToobitCore extends ToobitApi
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTickers", market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 response = (this.commonGetQuoteV1Ticker24hr(this.extend(request, parameters))).join();
@@ -1639,7 +1639,7 @@ public class ToobitCore extends ToobitApi
             //        ...
             //
             return this.parseTickers(response, symbols, parameters);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1707,7 +1707,7 @@ public class ToobitCore extends ToobitApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
@@ -1754,7 +1754,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1769,7 +1769,7 @@ public class ToobitCore extends ToobitApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
@@ -1789,7 +1789,7 @@ public class ToobitCore extends ToobitApi
             //        }, ...
             //
             return this.parseBidsAsksCustom(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1851,7 +1851,7 @@ public class ToobitCore extends ToobitApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
@@ -2051,7 +2051,7 @@ public class ToobitCore extends ToobitApi
      * @param {float} [params.cost] *spot market buy only* the quote quantity that can be used as an alternative for the amount
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2102,7 +2102,7 @@ public class ToobitCore extends ToobitApi
             //     }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2215,8 +2215,8 @@ public class ToobitCore extends ToobitApi
         {
             Helpers.addElementToObject(request, "stopPrice", triggerPrice);
         }
-        Object stopLoss = this.safeDict(parameters, "stopLoss");
-        Object takeProfit = this.safeDict(parameters, "takeProfit");
+        java.util.Map<String, Object> stopLoss = (java.util.Map<String, Object>) this.safeDict(parameters, "stopLoss");
+        java.util.Map<String, Object> takeProfit = (java.util.Map<String, Object>) this.safeDict(parameters, "takeProfit");
         Boolean hasStopLoss = (!Helpers.isEqual(stopLoss, null));
         Boolean hasTakeProfit = (!Helpers.isEqual(takeProfit, null));
         java.util.Map<String, Object> triggerPriceTypes = new java.util.HashMap<String, Object>() {{
@@ -2334,7 +2334,7 @@ public class ToobitCore extends ToobitApi
             // contract orders arrive as BUY_OPEN, SELL_CLOSE and the like -
             // the suffix is the only signal that carries reduceOnly, so read
             // it before discarding it (spot sides have no suffix: undefined)
-            Object sideParts = Helpers.split(rawSideLower, "_");
+            java.util.List<Object> sideParts = (java.util.List<Object>) Helpers.split(rawSideLower, "_");
             String sideSuffix = this.safeString(sideParts, 1);
             if (Helpers.isTrue(!Helpers.isEqual(sideSuffix, null)))
             {
@@ -2425,7 +2425,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2466,7 +2466,7 @@ public class ToobitCore extends ToobitApi
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " order "), id), " can not be canceled, "), this.json(response))) ;
             }
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2480,7 +2480,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2506,7 +2506,7 @@ public class ToobitCore extends ToobitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateDeleteApiV1SpotOpenOrders(this.extend(request, parameters))).join();
@@ -2518,7 +2518,7 @@ public class ToobitCore extends ToobitApi
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", finalResponse );
     }})));
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2533,7 +2533,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrders(Object ids, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelOrders(Object ids, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2544,7 +2544,7 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object idsString = String.join((String)",", (java.util.List<String>)ids);
+            String idsString = String.join((String)",", (java.util.List<String>)ids);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ids", idsString );
             }};
@@ -2561,7 +2561,7 @@ public class ToobitCore extends ToobitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument or the \"defaultType\" parameter to be set to \"spot\" or \"swap\"")) ;
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateDeleteApiV1SpotCancelOrderByIds(this.extend(request, parameters))).join();
@@ -2569,9 +2569,9 @@ public class ToobitCore extends ToobitApi
             {
                 response = (this.privateDeleteApiV1FuturesCancelOrderByIds(this.extend(request, parameters))).join();
             }
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(result, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2586,7 +2586,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2642,7 +2642,7 @@ public class ToobitCore extends ToobitApi
             //    }
             //
             return this.parseOrder(response, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -2658,7 +2658,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2686,7 +2686,7 @@ public class ToobitCore extends ToobitApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOpenOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateGetApiV1SpotOpenOrders(this.extend(request, parameters))).join();
@@ -2695,7 +2695,7 @@ public class ToobitCore extends ToobitApi
                 response = (this.privateGetApiV1FuturesOpenOrders(this.extend(request, parameters))).join();
             }
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2710,7 +2710,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2745,7 +2745,7 @@ public class ToobitCore extends ToobitApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateGetApiV1SpotTradeOrders(request)).join();
@@ -2754,7 +2754,7 @@ public class ToobitCore extends ToobitApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
             }
             return this.parseOrders(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2769,7 +2769,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2801,7 +2801,7 @@ public class ToobitCore extends ToobitApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchClosedOrders", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrders() is not supported for "), marketType), " markets")) ;
@@ -2810,7 +2810,7 @@ public class ToobitCore extends ToobitApi
                 response = (this.privateGetApiV1FuturesHistoryOrders(request)).join();
             }
             java.util.List<Object> ordersList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
                 responseList = response;
@@ -2824,7 +2824,7 @@ public class ToobitCore extends ToobitApi
                 }});
             }
             return this.parseOrders(ordersList, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -2841,7 +2841,7 @@ public class ToobitCore extends ToobitApi
      * @param {int} [params.until] the latest time in ms to fetch trades for
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2876,7 +2876,7 @@ public class ToobitCore extends ToobitApi
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateGetApiV1AccountTrades(this.extend(request, parameters))).join();
@@ -2885,7 +2885,7 @@ public class ToobitCore extends ToobitApi
                 response = (this.privateGetApiV1FuturesUserTrades(request)).join();
             }
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2901,7 +2901,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2912,7 +2912,7 @@ public class ToobitCore extends ToobitApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> accountsByType = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -3003,7 +3003,7 @@ public class ToobitCore extends ToobitApi
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchLedger", null, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object response = null;
+            java.util.List<Object> response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
                 response = (this.privateGetApiV1AccountBalanceFlow(this.extend(request, parameters))).join();
@@ -3096,7 +3096,7 @@ public class ToobitCore extends ToobitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             Object marketType = null;
             Object market = null;
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchTradingFees", null, parameters);
@@ -3131,7 +3131,7 @@ public class ToobitCore extends ToobitApi
             // }
             //
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object entry = response;
+            java.util.Map<String, Object> entry = response;
             String marketId = this.safeString(entry, "symbol");
             market = this.safeMarket(marketId, market);
             Object fee = this.parseTradingFee(entry, market);
@@ -3239,7 +3239,7 @@ public class ToobitCore extends ToobitApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(type, "deposits")))
             {
                 response = (this.privateGetApiV1AccountDepositOrders(this.extend(request, parameters))).join();
@@ -3571,7 +3571,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3595,7 +3595,7 @@ public class ToobitCore extends ToobitApi
             //     }
             // ]
             //
-            Object data = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         });
 
@@ -3626,7 +3626,7 @@ public class ToobitCore extends ToobitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [position structures]{@link https://docs.ccxt.com/?id=position-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchPositions(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Position>> fetchPositions(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3641,7 +3641,7 @@ public class ToobitCore extends ToobitApi
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
                 {
                     throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() only accepts an array with a single symbol or without symbols argument")) ;
@@ -3678,7 +3678,7 @@ public class ToobitCore extends ToobitApi
             //    ]
             //
             return this.parsePositions(response, symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toPositionList);
 
     }
 

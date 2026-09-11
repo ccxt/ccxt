@@ -165,6 +165,8 @@ interface ExistingFile {
     classLeading: string[];
     fields: ExistingField[];
     fieldByName: Record<string, ExistingField>;
+    /** field name -> true when its ctor assignment uses the containsKey style */
+    containsKeyStyle: Record<string, boolean>;
     ctorAnnotated: boolean;
     /** true when the constructor starts with `Map<String, Object> data = TypeHelper.toMap(raw);` */
     mapCtor: boolean;
@@ -277,6 +279,7 @@ function readExisting (absolutePath: string, className: string): ExistingFile | 
         'classLeading': classLeading,
         'fields': fields,
         'fieldByName': fieldByName,
+        'containsKeyStyle': containsKeyStyle,
         'ctorAnnotated': ctorAnnotated,
         'mapCtor': mapCtor,
         'tail': tail,

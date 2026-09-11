@@ -31,7 +31,7 @@ public class TestCreateOrder extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        String logPrefix = (String) TestSharedMethods.logTemplate(exchange, "createOrder", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
+        Object logPrefix = TestSharedMethods.logTemplate(exchange, "createOrder", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
         Boolean hasCancelOrder = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrder"), false)));
         Boolean hasCancelOrders = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrders"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelOrders"), false)));
         Boolean hasCancelAllOrders = Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelAllOrders"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "cancelAllOrders"), false)));

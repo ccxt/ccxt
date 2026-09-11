@@ -56,7 +56,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBidsAsks(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchBidsAsks(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -67,7 +67,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
                 put( "method", "futuresPublicGetAllTickers" );
             }};
             return (this.fetchTickers((Object)(symbols), (Object)(this.extend(request, parameters)))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -82,7 +82,7 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount2, Object... optionalArgs)
     {
         final Object toAccount3 = toAccount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -93,13 +93,13 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object amountToPrecision = this.currencyToPrecision(code, amount);
+            String amountToPrecision = (String) this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", KucoinfuturesCore.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
             String toAccountString = (String) this.parseTransferType(toAccount);
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(toAccountString, "TRADE")) || Helpers.isTrue(Helpers.isEqual(toAccountString, "MAIN"))))
             {
                 Helpers.addElementToObject(request, "recAccountType", toAccountString);

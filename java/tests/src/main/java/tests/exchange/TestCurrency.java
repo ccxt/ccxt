@@ -25,7 +25,7 @@ public class TestCurrency extends BaseTest {
         java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("name", "fee"));
         // todo: info key needs to be added in base, when exchange does not have fetchCurrencies
         Boolean isNative = Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), false)))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, "fetchCurrencies"), "emulated")));
-        Object currencyType = exchange.safeString(entry, "type");
+        String currencyType = exchange.safeString(entry, "type");
         if (Helpers.isTrue(Helpers.isEqual(isNative, true)))
         {
             Helpers.addElementToObject(format, "info", new java.util.HashMap<String, Object>() {{}});
@@ -66,7 +66,7 @@ public class TestCurrency extends BaseTest {
         // check if empty networks should be skipped
         Object networks = exchange.safeDict(entry, "networks", new java.util.HashMap<String, Object>() {{}});
         java.util.List<String> networkKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(networks);
-        Object networkKeysLength = Helpers.getArrayLength(networkKeys);
+        Integer networkKeysLength = Helpers.getArrayLength(networkKeys);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(networkKeysLength, 0)) && Helpers.isTrue((Helpers.inOp(skippedProperties, "skipCurrenciesWithoutNetworks")))))
         {
             return;
@@ -101,13 +101,13 @@ public class TestCurrency extends BaseTest {
             TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "min", "0");
             TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", "0");
             // max should be more than min (withdrawal limits)
-            Object minStringWithdrawal = exchange.safeString(withdrawLimits, "min");
+            String minStringWithdrawal = exchange.safeString(withdrawLimits, "min");
             if (Helpers.isTrue(!Helpers.isEqual(minStringWithdrawal, null)))
             {
                 TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, withdrawLimits, "max", minStringWithdrawal);
             }
             // max should be more than min (deposit limits)
-            Object minStringDeposit = exchange.safeString(depositLimits, "min");
+            String minStringDeposit = exchange.safeString(depositLimits, "min");
             if (Helpers.isTrue(!Helpers.isEqual(minStringDeposit, null)))
             {
                 TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, depositLimits, "max", minStringDeposit);

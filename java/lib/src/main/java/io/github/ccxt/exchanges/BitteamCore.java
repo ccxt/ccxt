@@ -522,7 +522,7 @@ public class BitteamCore extends BitteamApi
     {
         String id = this.safeString(market, "name");
         Long numericId = this.safeInteger(market, "id");
-        Object parts = Helpers.split(((String)id), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)id), "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = (String) this.safeCurrencyCode(baseId);
@@ -532,7 +532,7 @@ public class BitteamCore extends BitteamApi
         Long created = this.parse8601(timeStart);
         Object minCost = null;
         Object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new java.util.HashMap<String, Object>() {{}});
-        Object quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
+        Boolean quoteInUsd = (Boolean) this.safeBool(currenciesValuedInUsd, quote, false);
         if (Helpers.isTrue(Helpers.isEqual(quoteInUsd, true)))
         {
             Object settings = this.safeValue(market, "settings", new java.util.HashMap<String, Object>() {{}});
@@ -736,7 +736,7 @@ public class BitteamCore extends BitteamApi
         String id = this.safeString(currency, "symbol");
         Long numericId = this.safeInteger(currency, "id");
         String code = (String) this.safeCurrencyCode(id);
-        Object active = this.safeBool(currency, "active", false);
+        Boolean active = (Boolean) this.safeBool(currency, "active", false);
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         Object txLimits = this.safeValue(currency, "txLimits", new java.util.HashMap<String, Object>() {{}});
         String minWithdraw = this.safeString(txLimits, "minWithdraw");
@@ -918,7 +918,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -964,7 +964,7 @@ public class BitteamCore extends BitteamApi
             Long timestamp = this.safeInteger(response, "timestamp");
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             return orderbook;
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -980,7 +980,7 @@ public class BitteamCore extends BitteamApi
      * @param {string} [params.type] the status of the order - 'active', 'closed', 'cancelled', 'all', 'history' (default 'all')
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1093,7 +1093,7 @@ public class BitteamCore extends BitteamApi
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.safeList(result, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1107,7 +1107,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> fetchOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1166,7 +1166,7 @@ public class BitteamCore extends BitteamApi
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1181,7 +1181,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchOpenOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1198,7 +1198,7 @@ public class BitteamCore extends BitteamApi
                 put( "type", "active" );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1213,7 +1213,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Order[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchClosedOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchClosedOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1230,7 +1230,7 @@ public class BitteamCore extends BitteamApi
                 put( "type", "closed" );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1245,7 +1245,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCanceledOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> fetchCanceledOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1262,7 +1262,7 @@ public class BitteamCore extends BitteamApi
                 put( "type", "cancelled" );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1279,7 +1279,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1334,7 +1334,7 @@ public class BitteamCore extends BitteamApi
             //
             Object order = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1348,7 +1348,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1373,7 +1373,7 @@ public class BitteamCore extends BitteamApi
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1386,7 +1386,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [order structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelAllOrders(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Order>> cancelAllOrders(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1419,7 +1419,7 @@ public class BitteamCore extends BitteamApi
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList(result));
             return this.parseOrders(orders, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderList);
 
     }
 
@@ -1605,7 +1605,7 @@ public class BitteamCore extends BitteamApi
         {
             return null;
         }
-        Object precisionString = this.parsePrecision(precisionRawString);
+        String precisionString = (String) this.parsePrecision(precisionRawString);
         return Precise.stringMul(valueRawString, precisionString);
     }
 
@@ -1618,7 +1618,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1674,7 +1674,7 @@ public class BitteamCore extends BitteamApi
                 ((java.util.List<Object>)tickers).add(ticker);
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -1687,7 +1687,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1888,7 +1888,7 @@ public class BitteamCore extends BitteamApi
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object pair = this.safeDict(result, "pair", new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(pair, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -2040,7 +2040,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2079,7 +2079,7 @@ public class BitteamCore extends BitteamApi
             //     ]
             //
             return this.parseTrades(response, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2094,7 +2094,7 @@ public class BitteamCore extends BitteamApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://github.com/ccxt/ccxt/wiki/Manual#trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2255,7 +2255,7 @@ public class BitteamCore extends BitteamApi
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object trades = this.safeList(result, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -2772,13 +2772,13 @@ public class BitteamCore extends BitteamApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/ccxt/order/"), 0))) && Helpers.isTrue((Helpers.isEqual(method, "GET")))))
                 {
-                    Object parts = Helpers.split(url, "/order/");
+                    java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(url, "/order/");
                     String orderId = this.safeString(parts, 1);
                     throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(this.id, " order "), orderId), " not found")) ;
                 }
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/cmc/orderbook/"), 0)))
                 {
-                    Object parts = Helpers.split(url, "/cmc/orderbook/");
+                    java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(url, "/cmc/orderbook/");
                     String symbolId = this.safeString(parts, 1);
                     throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " symbolId "), symbolId), " not found")) ;
                 }

@@ -604,7 +604,7 @@ public class CoinspotCore extends CoinspotApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
             {
                 Object currencies = Helpers.GetValue(balances, i);
-                Object currencyIds = Helpers.objectKeys(currencies);
+                java.util.List<Object> currencyIds = Helpers.objectKeys(currencies);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
                 {
                     Object currencyId = Helpers.GetValue(currencyIds, j);
@@ -620,7 +620,7 @@ public class CoinspotCore extends CoinspotApi
             }
         } else
         {
-            Object currencyIds = Helpers.objectKeys(balances);
+            java.util.List<Object> currencyIds = Helpers.objectKeys(balances);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
             {
                 Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -655,7 +655,7 @@ public class CoinspotCore extends CoinspotApi
                 (this.loadMarkets()).join();
             }
             String method = this.safeString(this.options, "fetchBalance", "private_post_my_balances");
-            Object response = null;
+            java.util.Map<String, Object> response = null;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "private_post_ro_my_balances"))) || Helpers.isTrue((Helpers.isEqual(method, "privatePostRoMyBalances")))))
             {
                 response = (this.privatePostRoMyBalances(parameters)).join();
@@ -694,7 +694,7 @@ public class CoinspotCore extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderBook(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.OrderBook> fetchOrderBook(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -711,7 +711,7 @@ public class CoinspotCore extends CoinspotApi
             }};
             java.util.Map<String, Object> orderbook = (this.privatePostOrders(this.extend(request, parameters))).join();
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), null, "buyorders", "sellorders", "rate", "amount");
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrderBook);
 
     }
 
@@ -762,7 +762,7 @@ public class CoinspotCore extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ticker structure]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTicker(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Ticker> fetchTicker(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -776,7 +776,7 @@ public class CoinspotCore extends CoinspotApi
             java.util.Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             Object id = this.safeString(market, "id", "");
             id = ((String)id).toLowerCase();
-            Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> prices = (java.util.Map<String, Object>) this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
             //
             //     {
             //         "status":"ok",
@@ -789,9 +789,9 @@ public class CoinspotCore extends CoinspotApi
             //         }
             //     }
             //
-            Object ticker = this.safeDict(prices, id, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.safeDict(prices, id, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTicker);
 
     }
 
@@ -804,7 +804,7 @@ public class CoinspotCore extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTickers(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Tickers> fetchTickers(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -834,7 +834,7 @@ public class CoinspotCore extends CoinspotApi
             //    }
             //
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> prices = (java.util.Map<String, Object>) this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
             java.util.List<String> ids = (java.util.List<String>)(java.util.List) Helpers.objectKeys(prices);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
@@ -848,7 +848,7 @@ public class CoinspotCore extends CoinspotApi
                 }
             }
             return this.filterByArrayTickers(result, "symbol", symbols);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTickers);
 
     }
 
@@ -863,7 +863,7 @@ public class CoinspotCore extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchTrades(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -888,9 +888,9 @@ public class CoinspotCore extends CoinspotApi
             //         ],
             //     }
             //
-            Object trades = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -905,7 +905,7 @@ public class CoinspotCore extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMyTrades(Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<java.util.List<io.github.ccxt.types.Trade>> fetchMyTrades(Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -955,19 +955,19 @@ public class CoinspotCore extends CoinspotApi
             //          },
             //      ]
             // }
-            Object buyTrades = this.safeList(response, "buyorders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> buyTrades = (java.util.List<Object>) this.safeList(response, "buyorders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(buyTrades)); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(buyTrades, i), "side", "buy");
             }
-            Object sellTrades = this.safeList(response, "sellorders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> sellTrades = (java.util.List<Object>) this.safeList(response, "sellorders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sellTrades)); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(sellTrades, i), "side", "sell");
             }
             java.util.List<Object> trades = (java.util.List<Object>) this.arrayConcat(buyTrades, sellTrades);
             return this.parseTrades(trades, market, since, limit);
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toTradeList);
 
     }
 
@@ -1061,7 +1061,7 @@ public class CoinspotCore extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> createOrder(Object symbol, Object type2, Object side2, Object amount, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -1078,7 +1078,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
-            Object sideUpper = ((String)side).toUpperCase();
+            String sideUpper = ((String)side).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
@@ -1107,7 +1107,7 @@ public class CoinspotCore extends CoinspotApi
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1122,7 +1122,7 @@ public class CoinspotCore extends CoinspotApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> cancelOrder(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<io.github.ccxt.types.Order> cancelOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1153,7 +1153,7 @@ public class CoinspotCore extends CoinspotApi
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", finalResponse );
             }});
-        });
+        }).thenApply(io.github.ccxt.TypedCores::toOrder);
 
     }
 
@@ -1183,7 +1183,7 @@ public class CoinspotCore extends CoinspotApi
         Object version = ((Helpers.isTrue(isVersionedApi))) ? Helpers.GetValue(api, 0) : null;
         Object accessType = ((Helpers.isTrue(isVersionedApi))) ? Helpers.GetValue(api, 1) : api;
         String endpoint = Helpers.add("/", this.implodeParams(path, parameters));
-        Object fullPath = ((Helpers.isTrue((!Helpers.isEqual(version, null))))) ? Helpers.add(Helpers.add("/", version), endpoint) : endpoint;
+        String fullPath = ((Helpers.isTrue((!Helpers.isEqual(version, null))))) ? Helpers.add(Helpers.add("/", version), endpoint) : endpoint;
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), accessType), fullPath);
         if (Helpers.isTrue(Helpers.isEqual(accessType, "private")))
         {

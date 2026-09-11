@@ -26,11 +26,11 @@ public class TestFetchOHLCV extends BaseTest {
             chosenTimeframeKey = Helpers.GetValue(timeframeKeys, 0);
         }
         Integer limit = 10;
-        Object duration = exchange.parseTimeframe(chosenTimeframeKey);
+        Integer duration = exchange.parseTimeframe(chosenTimeframeKey);
         Object since = Helpers.subtract(Helpers.subtract(exchange.milliseconds(), Helpers.multiply(Helpers.multiply(duration, limit), 1000)), 1000);
         Object ohlcvs = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOHLCV", new Object[]{symbol, chosenTimeframeKey, since, limit})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, ohlcvs, symbol);
-        Object now = exchange.milliseconds();
+        Long now = exchange.milliseconds();
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ohlcvs)); i++)
         {
             TestOHLCV.testOHLCV(exchange, skippedProperties, method, Helpers.GetValue(ohlcvs, i), symbol, now);

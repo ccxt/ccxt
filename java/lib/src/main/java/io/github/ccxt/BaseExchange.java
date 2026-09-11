@@ -36,6 +36,7 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.base.Misc;
 import io.github.ccxt.base.Strings;
 import io.github.ccxt.errors.*;
+import io.github.ccxt.types.MarketInterface;
 import java.util.Random;
 import java.lang.reflect.Constructor;
 
@@ -133,19 +134,21 @@ public class BaseExchange {
 
     public volatile List<Object> symbols = new ArrayList<>();
     public volatile List<Object> codes = new ArrayList<>();
-    @SuppressWarnings({ "rawtypes", "unchecked" })
-    public volatile List ids = new ArrayList<>();
+    public volatile List<Object> ids = new ArrayList<>();
 
     public boolean substituteCommonCurrencyCodes = true;
 
     public Map<String, Object> commonCurrencies = new HashMap<>();
 
     public Object limits = new HashMap<String, Object>();
-    public Object precisionMode = DECIMAL_PLACES;
-    public volatile Object currencies_by_id = new HashMap<String, Object>();
+    public Long precisionMode = (long) DECIMAL_PLACES;
+    public volatile Map<String, Object> currencies_by_id = new HashMap<String, Object>();
 
-    public Object accounts = new HashMap<String, Object>();
-    public Object accountsById = new HashMap<String, Object>();
+    // account rows are plain dicts (id/type/code/info); the typed Account wrapper is
+    // built at the fetchAccounts boundary, not stored here. `accountsById` is the
+    // indexBy(..., 'id') result — id-keyed rows, same dicts.
+    public List<Object> accounts = new ArrayList<>();
+    public Map<String, Object> accountsById = new HashMap<String, Object>();
     public Object status = new HashMap<String, Object>();
 
     public long paddingMode = NO_PADDING;
@@ -162,16 +165,21 @@ public class BaseExchange {
     public Map<String, Object> options = new java.util.concurrent.ConcurrentHashMap<>();
     public boolean isSandboxModeEnabled = false;
 
-    public volatile Object markets = null;
-    public volatile Object currencies = new HashMap<String, Object>();
-    public Object fees = new HashMap<String, Object>();
-    public Object requiredCredentials = new HashMap<String, Object>();
-    public Object timeframes = new HashMap<String, Object>();
+    public volatile Map<String, Object> markets = null;
+    public volatile Map<String, Object> currencies = new HashMap<String, Object>();
+    public Map<String, Object> fees = new HashMap<String, Object>();
+    public Map<String, Object> requiredCredentials = new HashMap<String, Object>();
+    public Map<String, Object> timeframes = new HashMap<String, Object>();
     public double rateLimit;
     public double rollingWindowSize = 60000;
     public String rateLimiterAlgorithm = "leakyBucket";                        // 0.0 by default
-    public Object exceptions = new HashMap<String, Object>();
-    public Object urls = new HashMap<String, Object>();
+    // Map<String, Object> of per-market-type tables: each value is itself a
+    // Map<String, Class<? extends BaseError>> keyed by "exact" / "broad" (or a nested
+    // per-market-type map of those). Every write site already stores exactly this shape
+    // (`setProperties(describe())` casts the "exceptions" value to Map<String, Object>);
+    // the throw helpers read through Object-keyed lookups, so the values stay Object.
+    public Map<String, Object> exceptions = new HashMap<String, Object>();
+    public Map<String, Object> urls = new HashMap<String, Object>();
     public Object precision = new HashMap<String, Object>();
 
     // Credentials
@@ -205,11 +213,11 @@ public class BaseExchange {
 
     // Last responses — volatile for visibility across async callbacks (last-writer-wins)
     public volatile Object last_response_headers;
-    public volatile Object last_request_headers;
+    public volatile Map<String, Object> last_request_headers;
     public volatile Object last_json_response;
     public volatile Object last_http_response;
-    public volatile Object last_request_body;
-    public volatile Object last_request_url;
+    public volatile String last_request_body;
+    public volatile String last_request_url;
     public final ConcurrentLinkedQueue<Map<String, Object>> fetchHistoryCache = new ConcurrentLinkedQueue<>();
     public int fetchHistoryCacheSize = 0;
 
@@ -244,11 +252,18 @@ public class BaseExchange {
     public Object tickers = new ConcurrentHashMap<String, Object>();
     public Object fundingRates = new ConcurrentHashMap<String, Object>();
     public Object bidsasks = new ConcurrentHashMap<String, Object>();
-    public Object balance = new ConcurrentHashMap<String, Object>();
+    // watchBalance cache: account/type-keyed dict of safeBalance-shaped balance dicts
+    public Map<String, Object> balance = new ConcurrentHashMap<String, Object>();
     public Object liquidations = new ConcurrentHashMap<String, Object>();
     public Object myLiquidations = new ConcurrentHashMap<String, Object>();
     public Object trades = new ConcurrentHashMap<String, Object>();
-    public Object orderbooks = new ConcurrentHashMap<String, Object>();
+    // symbol -> the live WS order book. A census of all 116 write sites
+    // (Helpers.addElementToObject(this.orderbooks, ...)) found only
+    // orderBook()/indexedOrderBook()/countedOrderBook() values and rows read back out of
+    // this same map, i.e. always an io.github.ccxt.ws.WsOrderBook; the generated read
+    // sites in exchanges/pro/*.java already cast the value to exactly that class. The
+    // nested value type therefore names what the box has always held — no box moves.
+    public java.util.Map<String, io.github.ccxt.ws.WsOrderBook> orderbooks = new ConcurrentHashMap<String, io.github.ccxt.ws.WsOrderBook>();
     public Object ohlcvs = new ConcurrentHashMap<String, Object>();
     public Object clients = new ConcurrentHashMap<String, Object>();
 
@@ -1307,7 +1322,13 @@ public class BaseExchange {
         return new HashMap<>();
     }
 
-    public ConcurrentHashMap<String, Object> createSafeDictionary(boolean isWs) {
+    // Generic in the value type so a typed WS field keeps its declaration without a
+    // cast: `this.orderbooks = this.createSafeDictionary(true)` infers
+    // V = io.github.ccxt.ws.WsOrderBook from the assignment target (the only typed
+    // target today); the untyped `Object` targets infer V = Object exactly as before.
+    // No caller passes the result where a fixed ConcurrentHashMap<String, Object> is
+    // required (census: 5 call sites, all plain assignments in cleanWsData()).
+    public <V> ConcurrentHashMap<String, V> createSafeDictionary(boolean isWs) {
         return new ConcurrentHashMap<>();
     }
 
@@ -1978,9 +1999,9 @@ public class BaseExchange {
     /** Hand-written (not transpiled): the last_request_* fields are volatile,
      *  so plain assignments are already safe against concurrent requests. */
     public void setLastRequest(Object request) {
-        this.last_request_headers = Helpers.GetValue(request, "headers");
-        this.last_request_body = Helpers.GetValue(request, "body");
-        this.last_request_url = Helpers.GetValue(request, "url");
+        this.last_request_headers = (Map<String, Object>) Helpers.GetValue(request, "headers");
+        this.last_request_body = (String) Helpers.GetValue(request, "body");
+        this.last_request_url = (String) Helpers.GetValue(request, "url");
     }
 
     /** Check if a message is binary (byte array). */
@@ -3741,7 +3762,12 @@ public class BaseExchange {
      */
     @SuppressWarnings("unchecked")
     protected static <T> List<T> toTypedList(Object raw, java.util.function.Function<Object, T> ctor) {
-        return ((List<Object>) raw).stream().map(ctor).collect(java.util.stream.Collectors.toList());
+        if (raw == null) {
+            // an untyped method that resolved to nothing stays nothing; without this the cast
+            // below NPEs where the untyped surface returns null
+            return null;
+        }
+        return ((List<Object>) raw).stream().map(e -> e == null ? null : ctor.apply(e)).collect(java.util.stream.Collectors.toList());
     }
 
     /**
@@ -3827,7 +3853,62 @@ public class BaseExchange {
     public java.util.concurrent.CompletableFuture<Object> fetchAccountsAsync(Object... args) { return fetchAccounts(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchCurrenciesAsync(Object... args) { return fetchCurrencies(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchMarketsAsync(Object... args) { return fetchMarkets(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchAllGreeksAsync(Object... args) { return fetchAllGreeks(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchBalanceWsAsync(Object... args) { return fetchBalanceWs(args); }
+
+    // Typed market views over the raw rows this.markets / this.markets_by_id hold: raw
+    // Map rows, with per-id lists of them in markets_by_id. MarketInterface is a wrapper
+    // view, never stored, so naming it on the fields would ClassCastException on the first typed read.
+
+    /** Typed view of the loaded markets: this.markets' entries, each raw row wrapped in a
+     *  MarketInterface. Null while markets are not loaded; a fresh view per call. */
+    @SuppressWarnings("unchecked")
+    public Map<String, MarketInterface> marketsTyped () {
+        if (this.markets == null) {
+            return null;
+        }
+        Map<String, Object> rawMarkets = (Map<String, Object>) this.markets;
+        Map<String, MarketInterface> result = new LinkedHashMap<> ();
+        for (Map.Entry<String, Object> entry : rawMarkets.entrySet ()) {
+            result.put (entry.getKey (), new MarketInterface (entry.getValue ()));
+        }
+        return result;
+    }
+
+    /** Single typed market lookup, resolved exactly like market(symbol): this.markets first,
+     *  then the markets_by_id conflict list, then the expired-option path. */
+    public MarketInterface marketTyped (String symbol) {
+        Object raw = this.market (symbol);
+        if (raw == null) {
+            return null;
+        }
+        return new MarketInterface (raw);
+    }
+
+    /** Typed markets_by_id: for each id, the markets sharing it (a list, since ids may
+     *  conflict) wrapped in MarketInterface. Null while markets are not loaded. */
+    @SuppressWarnings("unchecked")
+    public Map<String, List<MarketInterface>> marketsByIdTyped () {
+        if (this.markets_by_id == null) {
+            return null;
+        }
+        Map<String, Object> rawMarketsById = (Map<String, Object>) this.markets_by_id;
+        Map<String, List<MarketInterface>> result = new LinkedHashMap<> ();
+        for (Map.Entry<String, Object> entry : rawMarketsById.entrySet ()) {
+            List<MarketInterface> typed = new ArrayList<> ();
+            Object value = entry.getValue ();
+            if (value instanceof List) {
+                for (Object row : (List<Object>) value) {
+                    typed.add (new MarketInterface (row));
+                }
+            } else if (value != null) {
+                // a value setMarkets never produces is surfaced, not hidden
+                typed.add (new MarketInterface (value));
+            }
+            result.put (entry.getKey (), typed);
+        }
+        return result;
+    }
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
@@ -4210,7 +4291,7 @@ public Object describe()
 
     public void cleanWsData()
     {
-        this.balance = this.createSafeDictionary(true);
+        this.balance = (java.util.Map<String, Object>) (this.createSafeDictionary(true));
         this.orderbooks = this.createSafeDictionary(true);
         this.tickers = this.createSafeDictionary(true);
         this.liquidations = null;
@@ -4521,10 +4602,10 @@ public Object describe()
                 proxyUrl = this.proxy;
             }
         }
-        Object length = Helpers.getArrayLength(usedProxies);
+        Integer length = Helpers.getArrayLength(usedProxies);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
         {
-            Object joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
+            String joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
             throw new InvalidProxySettings((String)Helpers.add(Helpers.add(Helpers.add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from : proxyUrl, proxy_url, proxyUrlCallback, proxy_url_callback")) ;
         }
         return proxyUrl;
@@ -4594,10 +4675,10 @@ public Object describe()
             socksProxy = ((Helpers.isTrue(issocksProxyCallbackDefined))) ? Helpers.callDynamically(this, "socksProxyCallback", new Object[] { url, method, headers, body }) : Helpers.callDynamically(this, "socks_proxy_callback", new Object[] { url, method, headers, body });
         }
         // check
-        Object length = Helpers.getArrayLength(usedProxies);
+        Integer length = Helpers.getArrayLength(usedProxies);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
         {
-            Object joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
+            String joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
             throw new InvalidProxySettings((String)Helpers.add(Helpers.add(Helpers.add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: httpProxy, httpsProxy, httpProxyCallback, httpsProxyCallback, socksProxy, socksProxyCallback")) ;
         }
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(httpProxy, httpsProxy, socksProxy));
@@ -4634,10 +4715,10 @@ public Object describe()
             wsSocksProxy = ((Helpers.isTrue((isWsSocksProxyDefined)))) ? this.wsSocksProxy : this.ws_socks_proxy;
         }
         // check
-        Object length = Helpers.getArrayLength(usedProxies);
+        Integer length = Helpers.getArrayLength(usedProxies);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 1)))
         {
-            Object joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
+            String joinedProxyNames = String.join((String)",", (java.util.List<String>)usedProxies);
             throw new InvalidProxySettings((String)Helpers.add(Helpers.add(Helpers.add(this.id, " you have multiple conflicting proxy settings ("), joinedProxyNames), "), please use only one from: wsProxy, wssProxy, wsSocksProxy")) ;
         }
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(wsProxy, wssProxy, wsSocksProxy));
@@ -4662,7 +4743,7 @@ public Object describe()
         }
         // check the address is not the same letter like 'aaaaa' nor too short nor has a space
         Object uniqChars = (this.unique(this.stringToCharsArray(address)));
-        Object length = Helpers.getArrayLength(uniqChars); // py transpiler trick
+        Integer length = Helpers.getArrayLength(uniqChars); // py transpiler trick
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(length, 1)) || Helpers.isTrue(Helpers.isLessThan(((String)address).length(), this.minFundingAddressLength))) || Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(address, " "), Helpers.opNeg(1)))))
         {
             throw new InvalidAddress((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " address is invalid or has less than "), String.valueOf(this.minFundingAddressLength)), " characters: \""), String.valueOf(address)), "\"")) ;
@@ -4694,7 +4775,7 @@ public Object describe()
         Object fromStart = Helpers.getArg(optionalArgs, 2, false);
         if (Helpers.isTrue(this.valueIsDefined(limit)))
         {
-            Object arrayLength = Helpers.getArrayLength(array);
+            Integer arrayLength = Helpers.getArrayLength(array);
             if (Helpers.isTrue(Helpers.isGreaterThan(arrayLength, 0)))
             {
                 Boolean ascending = true;
@@ -4845,7 +4926,7 @@ public Object describe()
             {
                 Helpers.addElementToObject(this.urls, "api", this.clone(Helpers.GetValue(this.urls, "apiBackup")));
             }
-            Object newUrls = this.omit(this.urls, "apiBackup");
+            java.util.Map<String, Object> newUrls = this.omit(this.urls, "apiBackup");
             this.urls = newUrls;
             // set flag
             this.isSandboxModeEnabled = false;
@@ -4871,7 +4952,7 @@ public Object describe()
         } else if (Helpers.isTrue(Helpers.inOp(this.urls, "apiBackupDemoTrading")))
         {
             Helpers.addElementToObject(this.urls, "api", ((Object)Helpers.GetValue(this.urls, "apiBackupDemoTrading")));
-            Object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            java.util.Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
@@ -5090,7 +5171,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5165,7 +5246,7 @@ public Object describe()
         java.util.List<Object> arr = this.toArray(rawCurrencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
-            Object parsed = this.parseCurrency(Helpers.GetValue(arr, i));
+            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseCurrency(Helpers.GetValue(arr, i));
             if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
             {
                 continue;
@@ -5400,7 +5481,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5423,7 +5504,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5446,7 +5527,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5488,7 +5569,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5499,7 +5580,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5510,7 +5591,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> setMargin(Object symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> setMargin(String symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5521,7 +5602,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLongShortRatio(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLongShortRatio(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5586,7 +5667,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -5641,14 +5722,14 @@ public Object describe()
         // numberToString is typed as nullable under strictNullChecks; cast to string
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
-        Object stringifiedNumber = ((String)this.numberToString(number));
+        String stringifiedNumber = ((String)this.numberToString(number));
         Object convertedNumber = ((Object)Helpers.parseFloat(stringifiedNumber));
         return Helpers.parseInt(convertedNumber);
     }
 
     public Object parseToNumeric(Object number)
     {
-        Object stringVersion = ((String)this.numberToString(number)); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
+        String stringVersion = ((String)this.numberToString(number)); // this will convert 1.0 and 1 to "1" and 1.1 to "1.1"
         // keep this in mind:
         // in JS:     1 === 1.0 is true
         // in Python: 1 == 1.0 is true
@@ -5943,7 +6024,7 @@ public Object describe()
         {
             return ((Helpers.isTrue((!Helpers.isEqual(defaultValue, null))))) ? defaultValue : methodDict;
         }
-        Object splited = Helpers.split(paramName, "."); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
+        java.util.List<Object> splited = (java.util.List<Object>) Helpers.split(paramName, "."); // can be only parent key (`stopLoss`) or with child (`stopLoss.triggerPrice`)
         Object parentKey = Helpers.GetValue(splited, 0);
         String subKey = this.safeString(splited, 1);
         if (!Helpers.isTrue((Helpers.inOp(methodDict, parentKey))))
@@ -6085,7 +6166,7 @@ public Object describe()
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
         java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(networks);
-        Object length = Helpers.getArrayLength(keys);
+        Integer length = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(!Helpers.isEqual(length, 0)))
         {
             for (var i = 0; Helpers.isLessThan(i, length); i++)
@@ -6507,7 +6588,7 @@ public Object describe()
             }
         }
         java.util.List<String> debtBalanceArray = (java.util.List<String>)(java.util.List) Helpers.objectKeys(debtBalance);
-        Object length = Helpers.getArrayLength(debtBalanceArray);
+        Integer length = Helpers.getArrayLength(debtBalanceArray);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(length, null))) && Helpers.isTrue((!Helpers.isEqual(length, 0)))))
         {
             Helpers.addElementToObject(balance, "debt", debtBalance);
@@ -6662,7 +6743,7 @@ public Object describe()
             {
                 reducedFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            Object reducedLength = Helpers.getArrayLength(reducedFees);
+            Integer reducedLength = Helpers.getArrayLength(reducedFees);
             for (var i = 0; Helpers.isLessThan(i, reducedLength); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(reducedFees, i), "cost", this.safeNumber(Helpers.GetValue(reducedFees, i), "cost"));
@@ -6721,7 +6802,7 @@ public Object describe()
         }
         // ensure that the average field is calculated correctly
         Object inverse = this.safeBool(market, "inverse", false);
-        Object contractSize = this.numberToString(this.safeValue(market, "contractSize", 1));
+        String contractSize = this.numberToString(this.safeValue(market, "contractSize", 1));
         // inverse
         // price = filled * contract size / cost
         //
@@ -6731,7 +6812,7 @@ public Object describe()
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(filled, null))) && Helpers.isTrue((!Helpers.isEqual(cost, null)))) && Helpers.isTrue(Precise.stringGt(filled, "0"))))
             {
-                Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
+                String filledTimesContractSize = Precise.stringMul(filled, contractSize);
                 if (Helpers.isTrue(Helpers.isEqual(inverse, true)))
                 {
                     average = Precise.stringDiv(filledTimesContractSize, cost);
@@ -6759,7 +6840,7 @@ public Object describe()
                 multiplyPrice = average;
             }
             // contract trading
-            Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
+            String filledTimesContractSize = Precise.stringMul(filled, contractSize);
             if (Helpers.isTrue(Helpers.isEqual(inverse, true)))
             {
                 cost = Precise.stringDiv(filledTimesContractSize, multiplyPrice);
@@ -6928,7 +7009,7 @@ public Object describe()
         return (java.util.List<java.util.Map<String, Object>>) (Object) this.filterBySymbolSinceLimit(results, symbol, since, limit);
     }
 
-    public Object calculateFeeWithRate(Object symbol, Object type, Object side, Object amount, Object price, Object... optionalArgs)
+    public Object calculateFeeWithRate(String symbol, String type, String side, Object amount, Object price, Object... optionalArgs)
     {
         Object takerOrMaker = Helpers.getArg(optionalArgs, 0, "taker");
         Object feeRate = Helpers.getArg(optionalArgs, 1, null);
@@ -6937,7 +7018,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " calculateFee() - you have provided incompatible arguments - \"market\" type order can not be \"maker\". Change either the \"type\" or the \"takerOrMaker\" argument to calculate the fee.")) ;
         }
-        Object markets = this.markets;
+        java.util.Map<String, Object> markets = this.markets;
         if (Helpers.isTrue(Helpers.isEqual(markets, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
@@ -6958,11 +7039,11 @@ public Object describe()
             // the fee is always in feeSide currency
             useQuote = Helpers.isEqual(feeSide, "quote");
         }
-        Object cost = this.numberToString(amount);
+        String cost = this.numberToString(amount);
         String key = null;
         if (Helpers.isTrue(useQuote))
         {
-            Object priceString = this.numberToString(price);
+            String priceString = this.numberToString(price);
             cost = Precise.stringMul(cost, priceString);
             key = "quote";
         } else
@@ -6992,7 +7073,7 @@ public Object describe()
         }};
     }
 
-    public Object calculateFee(Object symbol, Object type, Object side, Object amount, Object price, Object... optionalArgs)
+    public Object calculateFee(String symbol, String type, String side, Object amount, Object price, Object... optionalArgs)
     {
         /**
         * @method
@@ -7076,7 +7157,7 @@ public Object describe()
         Object amount = Helpers.getArg(optionalArgs, 2, null);
         Object price = Helpers.getArg(optionalArgs, 3, null);
         Object takerOrMaker = Helpers.getArg(optionalArgs, 4, null);
-        Object id = null;
+        String id = null;
         if (Helpers.isTrue(!Helpers.isEqual(timestamp, null)))
         {
             id = this.numberToString(timestamp);
@@ -7129,7 +7210,7 @@ public Object describe()
             {
                 reducedFees = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            Object reducedLength = Helpers.getArrayLength(reducedFees);
+            Integer reducedLength = Helpers.getArrayLength(reducedFees);
             for (var i = 0; Helpers.isLessThan(i, reducedLength); i++)
             {
                 Helpers.addElementToObject(reducedFees, i, this.parseFeeNumeric(Helpers.GetValue(reducedFees, i)));
@@ -7171,7 +7252,7 @@ public Object describe()
     public Object findNearestCeiling(Object arr, Object providedValue)
     {
         //  i.e. findNearestCeiling ([ 10, 30, 50],  23) returns 30
-        Object length = Helpers.getArrayLength(arr);
+        Integer length = Helpers.getArrayLength(arr);
         for (var i = 0; Helpers.isLessThan(i, length); i++)
         {
             Object current = Helpers.GetValue(arr, i);
@@ -7308,10 +7389,10 @@ public Object describe()
             }
         }
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object feeValues = Helpers.objectValues(reduced);
+        java.util.List<Object> feeValues = Helpers.objectValues(reduced);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeValues)); i++)
         {
-            Object reducedFeeValues = Helpers.objectValues(Helpers.GetValue(feeValues, i));
+            java.util.List<Object> reducedFeeValues = Helpers.objectValues(Helpers.GetValue(feeValues, i));
             result = this.arrayConcat(result, reducedFeeValues);
         }
         return result;
@@ -7436,7 +7517,7 @@ public Object describe()
         }});
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchBorrowRate(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchBorrowRate(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7447,7 +7528,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7458,7 +7539,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(Object symbol, Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7469,7 +7550,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7480,7 +7561,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(Object symbol, Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7491,7 +7572,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> borrowMargin(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7503,7 +7584,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> repayMargin(Object code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayMargin(String code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7701,7 +7782,7 @@ public Object describe()
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(startRegex, null)))
                 {
-                    Object splitted_by_start = Helpers.split(content, startRegex);
+                    java.util.List<Object> splitted_by_start = (java.util.List<Object>) Helpers.split(content, startRegex);
                     content = Helpers.GetValue(splitted_by_start, 1); // we need second part after start
                 }
                 if (Helpers.isTrue(Helpers.isEqual(content, null)))
@@ -7710,7 +7791,7 @@ public Object describe()
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(endRegex, null)))
                 {
-                    Object splitted_by_end = Helpers.split(content, endRegex);
+                    java.util.List<Object> splitted_by_end = (java.util.List<Object>) Helpers.split(content, endRegex);
                     content = Helpers.GetValue(splitted_by_end, 0); // we need first part after start
                 }
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(returnAsJson, true))) && Helpers.isTrue(((content instanceof String)))))
@@ -7825,7 +7906,7 @@ public Object describe()
             }
             return symbols;
         }
-        Object symbolsLength = Helpers.getArrayLength(symbols);
+        Integer symbolsLength = Helpers.getArrayLength(symbols);
         if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
         {
             if (!Helpers.isTrue(allowEmpty))
@@ -8168,7 +8249,7 @@ public Object describe()
         Object isIndexedByUnifiedNetworkCode = Helpers.getArg(optionalArgs, 0, false);
         Object chosenNetworkId = null;
         java.util.List<String> availableNetworkIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(indexedNetworkEntries);
-        Object responseNetworksLength = Helpers.getArrayLength(availableNetworkIds);
+        Integer responseNetworksLength = Helpers.getArrayLength(availableNetworkIds);
         if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(responseNetworksLength, 0)))
@@ -8321,7 +8402,7 @@ public Object describe()
                 {
                     Object response = (this.fetchTradingLimits(symbols)).join();
                     Object symbolsArray = this.requireValue(symbols, "loadTradingLimits() requires a symbols argument");
-                    Object markets = this.markets;
+                    java.util.Map<String, Object> markets = this.markets;
                     if (Helpers.isTrue(Helpers.isEqual(markets, null)))
                     {
                         throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
@@ -8580,7 +8661,7 @@ public Object describe()
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public Object handleParamString(Object parameters, Object paramName, Object... optionalArgs)
+    public Object handleParamString(Object parameters, String paramName, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         String value = this.safeString(parameters, paramName, defaultValue);
@@ -8593,7 +8674,7 @@ public Object describe()
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public Object handleParamString2(Object parameters, Object paramName1, Object paramName2, Object... optionalArgs)
+    public Object handleParamString2(Object parameters, String paramName1, String paramName2, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         String value = this.safeString2(parameters, paramName1, paramName2, defaultValue);
@@ -8604,7 +8685,7 @@ public Object describe()
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(value, parameters));
     }
 
-    public Object handleParamInteger(Object parameters, Object paramName, Object... optionalArgs)
+    public Object handleParamInteger(Object parameters, String paramName, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Long value = this.safeInteger(parameters, paramName, defaultValue);
@@ -8615,7 +8696,7 @@ public Object describe()
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(value, parameters));
     }
 
-    public Object handleParamInteger2(Object parameters, Object paramName1, Object paramName2, Object... optionalArgs)
+    public Object handleParamInteger2(Object parameters, String paramName1, String paramName2, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Long value = (Long) this.safeInteger2(parameters, paramName1, paramName2, defaultValue);
@@ -8626,7 +8707,7 @@ public Object describe()
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(value, parameters));
     }
 
-    public Object handleParamBool(Object parameters, Object paramName, Object... optionalArgs)
+    public Object handleParamBool(Object parameters, String paramName, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object value = this.safeBool(parameters, paramName, defaultValue);
@@ -8637,7 +8718,7 @@ public Object describe()
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(value, parameters));
     }
 
-    public Object handleParamBool2(Object parameters, Object paramName1, Object paramName2, Object... optionalArgs)
+    public Object handleParamBool2(Object parameters, String paramName1, String paramName2, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object value = this.safeBool2(parameters, paramName1, paramName2, defaultValue);
@@ -8903,7 +8984,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(reload))
             {
-                this.accounts = (this.fetchAccounts(parameters)).join();
+                this.accounts = (java.util.List<Object>) (this.fetchAccounts(parameters).join());
             } else
             {
                 if (Helpers.isTrue(!Helpers.isEqual(this.accounts, null)))
@@ -8911,7 +8992,7 @@ public Object describe()
                     return this.accounts;
                 } else
                 {
-                    this.accounts = (this.fetchAccounts(parameters)).join();
+                    this.accounts = (java.util.List<Object>) (this.fetchAccounts(parameters).join());
                 }
             }
             this.accountsById = this.indexBy(this.accounts, "id");
@@ -8936,7 +9017,7 @@ public Object describe()
         Integer i_close = 4;
         Integer i_volume = 5;
         Integer i_count = 6;
-        Object tradesLength = Helpers.getArrayLength(trades);
+        Integer tradesLength = Helpers.getArrayLength(trades);
         Object oldest = Helpers.mathMin(tradesLength, limit);
         Object options = this.safeDict(this.options, "buildOHLCVC", new java.util.HashMap<String, Object>() {{}});
         Object skipZeroPrices = this.safeBool(options, "skipZeroPrices", true);
@@ -8962,7 +9043,7 @@ public Object describe()
             {
                 continue;
             }
-            Object ohlcv_length = Helpers.getArrayLength(ohlcvs);
+            Integer ohlcv_length = Helpers.getArrayLength(ohlcvs);
             Long candle = (Long) Helpers.subtract(ohlcv_length, 1);
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
@@ -9033,7 +9114,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLedgerEntry(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLedgerEntry(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9097,7 +9178,7 @@ public Object describe()
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.markets_by_id, marketId)))))
             {
                 Object markets = Helpers.GetValue(this.markets_by_id, marketId);
-                Object numMarkets = Helpers.getArrayLength(markets);
+                Integer numMarkets = Helpers.getArrayLength(markets);
                 if (Helpers.isTrue(Helpers.isEqual(numMarkets, 1)))
                 {
                     return Helpers.GetValue(markets, 0);
@@ -9124,8 +9205,8 @@ public Object describe()
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(delimiter, null)) && Helpers.isTrue(!Helpers.isEqual(delimiter, ""))))
             {
-                Object parts = Helpers.split(marketId, delimiter);
-                Object partsLength = Helpers.getArrayLength(parts);
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, delimiter);
+                Integer partsLength = Helpers.getArrayLength(parts);
                 final Object finalMarketId = marketId;
                 java.util.Map<String, Object> result = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
                     put( "symbol", finalMarketId );
@@ -9319,7 +9400,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTransactionFee(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTransactionFee(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9358,7 +9439,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchDepositWithdrawFee(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9386,7 +9467,7 @@ public Object describe()
         }
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9408,7 +9489,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchIsolatedBorrowRate(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchIsolatedBorrowRate(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9481,7 +9562,7 @@ public Object describe()
 
     /* eslint-disable no-unused-vars */
     /* eslint-enable no-unused-vars */
-    public Object handleOptionAndParams2(Object parameters, Object methodName1, Object optionName1, Object optionName2, Object... optionalArgs)
+    public Object handleOptionAndParams2(Object parameters, Object methodName1, String optionName1, String optionName2, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object value = null;
@@ -9502,7 +9583,7 @@ public Object describe()
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(value2, parameters));
     }
 
-    public Object handleOption(Object methodName, Object optionName, Object... optionalArgs)
+    public Object handleOption(Object methodName, String optionName, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object res = this.handleOptionAndParams(new java.util.HashMap<String, Object>() {{}}, methodName, optionName, defaultValue);
@@ -9726,7 +9807,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createTwapOrder(Object symbol, Object side, Object amount, Object duration, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createTwapOrder(String symbol, Object side, Object amount, Object duration, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9737,7 +9818,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createConvertTrade(Object id, Object fromCode, Object toCode, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createConvertTrade(String id, String fromCode, String toCode, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9749,7 +9830,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertTrade(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchConvertTrade(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9787,7 +9868,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchADLRank(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchADLRank(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10012,7 +10093,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10025,7 +10106,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10048,7 +10129,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(Object code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOptionChain(String code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10059,7 +10140,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOption(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOption(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10070,7 +10151,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertQuote(Object fromCode, Object toCode, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchConvertQuote(String fromCode, String toCode, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10294,15 +10375,15 @@ public Object describe()
             throw new ArgumentsRequired((String)Helpers.add(this.id, " currency() requires a code argument")) ;
         }
         java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.currencies);
-        Object numCurrencies = Helpers.getArrayLength(keys);
+        Integer numCurrencies = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(Helpers.isEqual(numCurrencies, 0)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " currencies not loaded")) ;
         }
         if (Helpers.isTrue((code instanceof String)))
         {
-            Object currencies = this.currencies;
-            Object currenciesById = this.currencies_by_id;
+            java.util.Map<String, Object> currencies = this.currencies;
+            java.util.Map<String, Object> currenciesById = this.currencies_by_id;
             if (Helpers.isTrue(Helpers.inOp(currencies, code)))
             {
                 return Helpers.GetValue(currencies, code);
@@ -10320,7 +10401,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " market() requires a symbol argument")) ;
         }
-        Object markets = this.markets;
+        java.util.Map<String, Object> markets = this.markets;
         if (Helpers.isTrue(Helpers.isEqual(markets, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
@@ -10362,7 +10443,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverageSuffixes)); i++)
         {
             String leverageSuffix = (String) Helpers.GetValue(leverageSuffixes, i);
-            Object endsWithSuffix = ((String)currencyCode).endsWith(((String)leverageSuffix));
+            Boolean endsWithSuffix = ((String)currencyCode).endsWith(((String)leverageSuffix));
             if (Helpers.isTrue(endsWithSuffix))
             {
                 if (!Helpers.isTrue(checkBaseCoin))
@@ -10371,7 +10452,7 @@ public Object describe()
                 } else
                 {
                     // check if base currency is inside dict
-                    Object baseCurrencyCode = Helpers.replace((String)currencyCode, (String)leverageSuffix, (String)"");
+                    String baseCurrencyCode = Helpers.replace((String)currencyCode, (String)leverageSuffix, (String)"");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(existingCurrencies, null))) && Helpers.isTrue((Helpers.inOp(existingCurrencies, baseCurrencyCode)))))
                     {
                         return true;
@@ -10417,7 +10498,7 @@ public Object describe()
             return null;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object result = this.decimalToPrecision(price, ROUND, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+        String result = this.decimalToPrecision(price, ROUND, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
         if (Helpers.isTrue(Helpers.isEqual(result, "0")))
         {
             throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " price of "), Helpers.GetValue(market, "symbol")), " must be greater than minimum price precision of "), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "price")))) ;
@@ -10432,7 +10513,7 @@ public Object describe()
             return null;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
+        String result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
         if (Helpers.isTrue(Helpers.isEqual(result, "0")))
         {
             throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " amount of "), Helpers.GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount")))) ;
@@ -10440,7 +10521,7 @@ public Object describe()
         return result;
     }
 
-    public String feeToPrecision(Object symbol, Object fee)
+    public String feeToPrecision(String symbol, Object fee)
     {
         if (Helpers.isTrue(Helpers.isEqual(fee, null)))
         {
@@ -10549,7 +10630,7 @@ public Object describe()
         }
     }
 
-    public Object integerPrecisionToAmount(Object precision)
+    public Object integerPrecisionToAmount(String precision)
     {
         /**
          * @ignore
@@ -10607,7 +10688,7 @@ public Object describe()
         }});
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10630,7 +10711,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createSubAccount(Object name, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createSubAccount(String name, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10813,7 +10894,7 @@ public Object describe()
         throw new NotSupported((String)Helpers.add(this.id, " parseBorrowRate() is not supported yet")) ;
     }
 
-    public Object parseBorrowRateHistory(Object response, Object code, Object since, Object limit)
+    public Object parseBorrowRateHistory(Object response, String code, Object since, Object limit)
     {
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
@@ -10828,7 +10909,7 @@ public Object describe()
 
     public Object parseIsolatedBorrowRates(Object info)
     {
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
         {
             Object item = Helpers.GetValue(info, i);
@@ -11231,7 +11312,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchMarkOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarkOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11265,7 +11346,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchIndexOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchIndexOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11299,7 +11380,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPremiumIndexOHLCV(Object symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchPremiumIndexOHLCV(String symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11365,12 +11446,12 @@ public Object describe()
          * @returns the exchange specific account name or the isolated margin id for transfers
          */
         Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
-        Object lowercaseAccount = ((String)account).toLowerCase();
+        String lowercaseAccount = ((String)account).toLowerCase();
         if (Helpers.isTrue(Helpers.inOp(accountsByType, lowercaseAccount)))
         {
             return Helpers.GetValue(accountsByType, lowercaseAccount);
         }
-        Object markets = this.markets;
+        java.util.Map<String, Object> markets = this.markets;
         java.util.Map<String, Object> marketsById = this.markets_by_id;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(markets, null))) && Helpers.isTrue((Helpers.inOp(markets, account))))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(marketsById, null))) && Helpers.isTrue((Helpers.inOp(marketsById, account)))))))
         {
@@ -11382,7 +11463,7 @@ public Object describe()
         }
     }
 
-    public void checkRequiredArgument(Object methodName, Object argument, Object argumentName, Object... optionalArgs)
+    public void checkRequiredArgument(String methodName, Object argument, Object argumentName, Object... optionalArgs)
     {
         /**
         * @ignore
@@ -11394,10 +11475,10 @@ public Object describe()
         * @returns {undefined}
         */
         Object options = Helpers.getArg(optionalArgs, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object optionsLength = Helpers.getArrayLength(options);
+        Integer optionsLength = Helpers.getArrayLength(options);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(argument, null))) || Helpers.isTrue((Helpers.isTrue((Helpers.isGreaterThan(optionsLength, 0))) && Helpers.isTrue((!Helpers.isTrue((this.inArray(argument, options)))))))))
         {
-            Object messageOptions = String.join((String)", ", (java.util.List<String>)options);
+            String messageOptions = String.join((String)", ", (java.util.List<String>)options);
             Object message = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a "), argumentName), " argument");
             if (Helpers.isTrue(!Helpers.isEqual(messageOptions, "")))
             {
@@ -11407,7 +11488,7 @@ public Object describe()
         }
     }
 
-    public void checkRequiredMarginArgument(Object methodName, Object symbol, Object marginMode)
+    public void checkRequiredMarginArgument(String methodName, String symbol, String marginMode)
     {
         /**
          * @ignore
@@ -11497,7 +11578,7 @@ public Object describe()
         */
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         java.util.List<String> networkKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(Helpers.GetValue(fee, "networks"));
-        Object numNetworks = Helpers.getArrayLength(networkKeys);
+        Integer numNetworks = Helpers.getArrayLength(networkKeys);
         if (Helpers.isTrue(Helpers.isEqual(numNetworks, 1)))
         {
             Helpers.addElementToObject(fee, "withdraw", Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(fee, "networks"), Helpers.GetValue(networkKeys, 0)), "withdraw"));
@@ -11738,10 +11819,10 @@ public Object describe()
                             Helpers.addElementToObject(parameters, "until", Helpers.subtract(paginationTimestamp, 1));
                         }
                         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, null, maxEntriesPerRequest, parameters })).join();
-                        Object responseLength = Helpers.getArrayLength(response);
+                        Integer responseLength = Helpers.getArrayLength(response);
                         if (Helpers.isTrue(this.verbose))
                         {
-                            Object backwardMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength));
+                            String backwardMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength));
                             if (Helpers.isTrue(!Helpers.isEqual(paginationTimestamp, null)))
                             {
                                 backwardMessage = Helpers.add(backwardMessage, Helpers.add(" timestamp ", this.numberToString(paginationTimestamp)));
@@ -11768,10 +11849,10 @@ public Object describe()
                     {
                         // do it forwards, starting from the since
                         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, paginationTimestamp, maxEntriesPerRequest, parameters })).join();
-                        Object responseLength = Helpers.getArrayLength(response);
+                        Integer responseLength = Helpers.getArrayLength(response);
                         if (Helpers.isTrue(this.verbose))
                         {
-                            Object forwardMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength));
+                            String forwardMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Dynamic pagination call ", this.numberToString(calls)), " method "), method), " response length "), this.numberToString(responseLength));
                             if (Helpers.isTrue(!Helpers.isEqual(paginationTimestamp, null)))
                             {
                                 forwardMessage = Helpers.add(forwardMessage, Helpers.add(" timestamp ", this.numberToString(paginationTimestamp)));
@@ -11862,7 +11943,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPaginatedCallDeterministic(Object method2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchPaginatedCallDeterministic(String method2, Object... optionalArgs)
     {
         final Object method3 = method2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11914,7 +11995,7 @@ public Object describe()
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPaginatedCallDeterministic() requires a since argument when until is set")) ;
                 }
-                Object requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(until, since)), step))));
+                Double requiredCalls = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide((Helpers.subtract(until, since)), step))));
                 if (Helpers.isTrue(Helpers.isGreaterThan(requiredCalls, maxCalls)))
                 {
                     throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " the number of required calls is greater than the max number of calls allowed, either increase the paginationCalls or decrease the since-until gap. Current paginationCalls limit is "), String.valueOf(maxCalls)), " required calls is "), String.valueOf(requiredCalls))) ;
@@ -11948,7 +12029,7 @@ public Object describe()
 
     // the 'symbol' slot is forwarded to `this[method]` untouched and is only compared against
     // undefined here, so fetchPositions/fetchPositionsHistory legitimately pass a symbol list
-    public java.util.concurrent.CompletableFuture<Object> fetchPaginatedCallCursor(Object method2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchPaginatedCallCursor(String method2, Object... optionalArgs)
     {
         final Object method3 = method2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12017,12 +12098,12 @@ public Object describe()
                     {
                         throw new NullResponse((String)Helpers.add(this.id, " fetchPaginatedCallCursor() returned empty response")) ;
                     }
-                    Object responseLength = Helpers.getArrayLength(response);
+                    Integer responseLength = Helpers.getArrayLength(response);
                     if (Helpers.isTrue(this.verbose))
                     {
                         Object cursorString = ((Helpers.isTrue((Helpers.isEqual(cursorValue, null))))) ? "" : cursorValue;
                         Object iteration = (Helpers.add(i, 1));
-                        Object cursorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Cursor pagination call ", String.valueOf(iteration)), " method "), method), " response length "), String.valueOf(responseLength)), " cursor "), cursorString);
+                        String cursorMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Cursor pagination call ", String.valueOf(iteration)), " method "), method), " response length "), String.valueOf(responseLength)), " cursor "), cursorString);
                         this.log(cursorMessage);
                     }
                     if (Helpers.isTrue(Helpers.isEqual(responseLength, 0)))
@@ -12078,7 +12159,7 @@ public Object describe()
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchPaginatedCallIncremental(Object method2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchPaginatedCallIncremental(String method2, Object... optionalArgs)
     {
         final Object method3 = method2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12110,11 +12191,11 @@ public Object describe()
                     Helpers.addElementToObject(parameters, ((String)pageKey), Helpers.add(i, 1));
                     Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(this, method, new Object[] { symbol, since, maxEntriesPerRequest, parameters })).join();
                     errors = 0;
-                    Object responseLength = Helpers.getArrayLength(response);
+                    Integer responseLength = Helpers.getArrayLength(response);
                     if (Helpers.isTrue(this.verbose))
                     {
-                        Object iteration = String.valueOf((Helpers.add(i, 1)));
-                        Object incrementalMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Incremental pagination call ", iteration), " method "), method), " response length "), String.valueOf(responseLength));
+                        String iteration = String.valueOf((Helpers.add(i, 1)));
+                        String incrementalMessage = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Incremental pagination call ", iteration), " method "), method), " response length "), String.valueOf(responseLength));
                         this.log(incrementalMessage);
                     }
                     if (Helpers.isTrue(Helpers.isEqual(responseLength, 0)))
@@ -12171,7 +12252,7 @@ public Object describe()
                 ((java.util.List<Object>)uniqueResult).add(entry);
             }
         }
-        Object valuesLength = Helpers.getArrayLength(uniqueResult);
+        Integer valuesLength = Helpers.getArrayLength(uniqueResult);
         if (Helpers.isTrue(Helpers.isGreaterThan(valuesLength, 0)))
         {
             return uniqueResult;
@@ -12223,7 +12304,7 @@ public Object describe()
         return newDict;
     }
 
-    public Object handleUntilOption(Object key, Object request, Object parameters, Object... optionalArgs)
+    public Object handleUntilOption(String key, Object request, Object parameters, Object... optionalArgs)
     {
         Object multiplier = Helpers.getArg(optionalArgs, 0, 1);
         Long until = (Long) this.safeInteger2(parameters, "until", "till");
@@ -12476,12 +12557,12 @@ public Object describe()
             return null;
         }
         // parse YYMMDD to datetime string
-        Object year = Helpers.slice(date, 0, 2);
-        Object month = Helpers.slice(date, 2, 4);
-        Object day = Helpers.slice(date, 4, 6);
+        String year = Helpers.slice(date, 0, 2);
+        String month = Helpers.slice(date, 2, 4);
+        String day = Helpers.slice(date, 4, 6);
         // the milliseconds are spelled out because every caller writes the result into
         // expiryDatetime, which types.ts documents in the ISO 8601 form with them
-        Object reconstructedDate = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("20", year), "-"), month), "-"), day), "T00:00:00.000Z");
+        String reconstructedDate = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("20", year), "-"), month), "-"), day), "T00:00:00.000Z");
         return reconstructedDate;
     }
 
@@ -12492,8 +12573,8 @@ public Object describe()
             return null;
         }
         // parse 240119 to 19JAN24
-        Object year = Helpers.slice(date, 0, 2);
-        Object monthRaw = Helpers.slice(date, 2, 4);
+        String year = Helpers.slice(date, 0, 2);
+        String monthRaw = Helpers.slice(date, 2, 4);
         String month = null;
         Object day = Helpers.slice(date, 4, 6);
         if (Helpers.isTrue(Helpers.isEqual(monthRaw, "01")))
@@ -12563,8 +12644,8 @@ public Object describe()
         {
             date = Helpers.add("0", date);
         }
-        Object year = Helpers.slice(date, 0, 2);
-        Object monthName = Helpers.slice(date, 2, 5);
+        String year = Helpers.slice(date, 0, 2);
+        String monthName = Helpers.slice(date, 2, 5);
         String month = this.safeString(monthMappping, monthName);
         Object day = Helpers.slice(date, 5, 7);
         Object reconstructedDate = Helpers.add(Helpers.add(day, month), year);
@@ -12615,7 +12696,7 @@ public Object describe()
         return marginModifications;
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchTransfer(Object id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTransfer(String id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12750,7 +12831,7 @@ public Object describe()
     {
         String topic = this.safeString(subscription, "topic");
         Object symbols = this.safeList(subscription, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object symbolsLength = Helpers.getArrayLength(symbols);
+        Integer symbolsLength = Helpers.getArrayLength(symbols);
         if (Helpers.isTrue(Helpers.isEqual(topic, "ohlcv")))
         {
             Object symbolsAndTimeframes = this.safeList(subscription, "symbolsAndTimeframes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -12790,7 +12871,7 @@ public Object describe()
                 {
                     if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
                     {
-                        ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+                        this.orderbooks.remove((String)symbol);
                     }
                 } else if (Helpers.isTrue(Helpers.isEqual(topic, "ticker")))
                 {
@@ -12817,7 +12898,7 @@ public Object describe()
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(topic, "positions")) && Helpers.isTrue((!Helpers.isEqual(this.positions, null)))))
             {
                 this.positions = null;
-                Object clients = Helpers.objectValues(this.clients);
+                java.util.List<Object> clients = Helpers.objectValues(this.clients);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clients)); i++)
                 {
                     Client client = (Client)Helpers.GetValue(clients, i);

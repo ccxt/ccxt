@@ -4729,13 +4729,9 @@ function dataflowEmittedType (printer, declaration, context) {
         return undefined; // the printer emits `var x = ...` for a NewExpression initializer
     }
     const type = dataflowEmittedTypeUnchecked (printer, declaration, context);
-    if (dataflowWsReverts (printer, declaration, type)) {
-        // JN-19 (a): a same-file method declaration proving the call's static Java type
-        // is String lets the declaration wrapper spell the value with a `(String)`
-        // checkcast — postProcessWsJava's regex cannot rewrite that spelling, and the
-        // checkcast is a no-op on a String/null box — so the type survives
-        return (DATAFLOW_DEEP && dataflowWsRevertDefeated (printer, declaration)) ? type : undefined;
-    }
+    // the postProcessWsJava "String type fixes" revert pass is deleted (JN-28/JN-21),
+    // so a proven String declaration in a WS/prediction file survives unconditionally;
+    // the dataflowWsReverts guard would only desync reads from the printed declaration
     return type;
 }
 
@@ -5177,16 +5173,8 @@ function dataflowRewriteDeclaration (printer, node, identation, printed) {
         return printed; // already retyped upstream / unexpected shape — leave it alone
     }
     const value = printed.slice (at + marker.length);
-    if (info.type === JAVA_DATAFLOW_STRING
-        && (value.startsWith ('this.') || value.startsWith ('Helpers.'))
-        && DATAFLOW_WS_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
-        if (!(DATAFLOW_DEEP && dataflowWsRevertDefeated (printer, declaration))) {
-            return printed; // postProcessWsJava's String pass would revert the spelling
-        }
-        // JN-19 (a): the same file's own method declaration proves the call's static
-        // type is String — the checkcast is a no-op and defeats the revert regex
-        return printed.slice (0, at) + `${iden}${info.type} ${printedName} = (String) ` + value;
-    }
+    // the WS "String type fixes" revert pass is deleted (JN-28/JN-21): a proven String
+    // value spelled `this.`/`Helpers.` needs no defeating checkcast any more
     return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${value}`;
 }
 
