@@ -1457,7 +1457,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             this.checkRequiredCredentials();
             Object nonce = this.nonce();
             Object auth = new java.util.ArrayList<Object>(java.util.Arrays.asList(url, Helpers.add("apiKey=", this.apiKey), Helpers.add("nonce=", String.valueOf(nonce))));
-            Object keys = Helpers.objectKeys(parameters);
+            java.util.List<Object> keys = Helpers.objectKeys(parameters);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);

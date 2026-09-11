@@ -19,7 +19,7 @@ public class TestFetchOpenOrders extends BaseTest {
         String method = "fetchOpenOrders";
         Object orders = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOpenOrders", new Object[]{symbol})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, orders, symbol);
-        Object now = exchange.milliseconds();
+        Long now = exchange.milliseconds();
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
             Object order = Helpers.GetValue(orders, i);

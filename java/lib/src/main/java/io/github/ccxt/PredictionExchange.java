@@ -13,10 +13,10 @@ import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
 public class PredictionExchange extends BaseExchange {
-    public volatile Map<String, Object> outcomes = null;
-    public volatile Map<String, Object> outcomes_by_id = null;
-    public volatile Map<String, Object> events = null;
-    public volatile Map<String, Object> events_by_slug = null;
+    public volatile Object outcomes = null;
+    public volatile Object outcomes_by_id = null;
+    public volatile Object events = null;
+    public volatile Object events_by_slug = null;
     public volatile boolean reloadingEvents = false;
     public volatile java.util.concurrent.CompletableFuture<Object> eventsLoading = null;
 
@@ -115,8 +115,8 @@ public Object describe()
         // e.g. kalshi's category / series_ticker
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         String query = this.safeString(parameters, "query");
-        java.util.List<Object> queries = (java.util.List<Object>) this.safeList(parameters, "queries", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> tags = (java.util.List<Object>) this.safeList(parameters, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object queries = this.safeList(parameters, "queries", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object tags = this.safeList(parameters, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String eventId = this.safeString(parameters, "eventId");
         String slug = this.safeString(parameters, "slug");
         Integer queriesLength = Helpers.getArrayLength(queries);
@@ -125,7 +125,7 @@ public Object describe()
         {
             return null;
         }
-        java.util.List<Object> extraScopeParams = (java.util.List<Object>) this.safeList(this.options, "eventScopeParams", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object extraScopeParams = this.safeList(this.options, "eventScopeParams", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Integer extraScopeParamsLength = Helpers.getArrayLength(extraScopeParams);
         Object extraNames = "";
         for (var i = 0; Helpers.isLessThan(i, extraScopeParamsLength); i++)
@@ -235,7 +235,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
-            Boolean isActive = (Boolean) this.safeBool(eventVar, "active");
+            Object isActive = this.safeBool(eventVar, "active");
             // keep events whose status is unknown (already filtered server-side, no `active` field)
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isActive, null))) || Helpers.isTrue((Helpers.isEqual(isActive, wantActive)))))
             {
@@ -352,7 +352,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
-            java.util.List<Object> eventTags = (java.util.List<Object>) this.safeList(eventVar, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object eventTags = this.safeList(eventVar, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Boolean matched = false;
             for (var ti = 0; Helpers.isLessThan(ti, Helpers.getArrayLength(eventTags)); ti++)
             {
@@ -457,7 +457,7 @@ public Object describe()
         }
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
-        Object keys = Helpers.objectKeys(this.events);
+        java.util.List<Object> keys = Helpers.objectKeys(this.events);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object eventVar = Helpers.GetValue(this.events, Helpers.GetValue(keys, i));
@@ -646,7 +646,7 @@ public Object describe()
                 lastDash = true;
             }
         }
-        Object replacementKeys = Helpers.objectKeys(replacements);
+        java.util.List<Object> replacementKeys = Helpers.objectKeys(replacements);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(replacementKeys)); i++)
         {
             Object replacementKey = Helpers.GetValue(replacementKeys, i);
@@ -750,7 +750,7 @@ public Object describe()
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
-        Object marketKeys = Helpers.objectKeys(stored);
+        java.util.List<Object> marketKeys = Helpers.objectKeys(stored);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
         {
             Object key = Helpers.GetValue(marketKeys, i);
@@ -776,7 +776,7 @@ public Object describe()
         {
             this.outcomes_by_id = new java.util.HashMap<String, Object>() {{}};
         }
-        java.util.List<Object> outcomesList = (java.util.List<Object>) this.safeList(market, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object outcomesList = this.safeList(market, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
         {
             Object oc = Helpers.GetValue(outcomesList, j);
@@ -833,7 +833,7 @@ public Object describe()
         {
             return;
         }
-        Object marketKeys = Helpers.objectKeys(this.markets);
+        java.util.List<Object> marketKeys = Helpers.objectKeys(this.markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
         {
             this.indexMarketOutcomes(Helpers.GetValue(this.markets, Helpers.GetValue(marketKeys, i)));
@@ -851,7 +851,7 @@ public Object describe()
         {
             this.markets = this.createSafeDictionary();
         }
-        java.util.List<Object> markets = (java.util.List<Object>) this.safeList(eventVar, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object markets = this.safeList(eventVar, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Integer marketsLength = Helpers.getArrayLength(markets);
         for (var i = 0; Helpers.isLessThan(i, marketsLength); i++)
         {
@@ -896,7 +896,7 @@ public Object describe()
                 }
                 Object missingLength = Helpers.getArrayLength(missing);
                 Boolean wasWarm = Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))) && !Helpers.isTrue(this.isEmpty(this.outcomes));
-                Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
+                Object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(missingLength, 0))) && Helpers.isTrue((Helpers.isEqual(loadAll, true)))) && !Helpers.isTrue(wasWarm)) && !Helpers.isTrue(reload)))
                 {
                     (this.loadOutcomes()).join();
@@ -985,7 +985,7 @@ public Object describe()
                         return this.safeOutcome(outcomeSymbol);
                     }
                 }
-                Boolean loadAll = (Boolean) this.safeBool(this.options, "loadAllOutcomes", false);
+                Object loadAll = this.safeBool(this.options, "loadAllOutcomes", false);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(loadAll, true))) && !Helpers.isTrue(wasWarm)))
                 {
                     // a miss on a cold cache: bulk-load once so later lookups are 0-network hits.
@@ -1742,7 +1742,7 @@ public Object describe()
         String status = this.safeString(outcomeOrder, "status");
         Object lastTradeTimestamp = this.safeInteger(outcomeOrder, "lastTradeTimestamp");
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
-        java.util.List<Object> rawTrades = (java.util.List<Object>) this.safeList(outcomeOrder, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object rawTrades = this.safeList(outcomeOrder, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object trades = this.parsePredictionTrades(rawTrades, outcomeObj);
         Integer tradesLength = Helpers.getArrayLength(trades);
         java.util.List<Object> feeList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1784,7 +1784,7 @@ public Object describe()
                         lastTradeTimestamp = tradeTimestamp;
                     }
                 }
-                java.util.Map<String, Object> tradeFee = (java.util.Map<String, Object>) this.safeDict(trade, "fee");
+                Object tradeFee = this.safeDict(trade, "fee");
                 if (Helpers.isTrue(!Helpers.isEqual(tradeFee, null)))
                 {
                     ((java.util.List<Object>)feeList).add(tradeFee);

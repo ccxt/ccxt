@@ -504,7 +504,7 @@ public class LighterCore extends LighterApi
             Object accountIndex = accountIndex3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.initAuthObject(accountIndex, apiKeyIndex);
-            java.util.Map<String, Object> cachedAuths = (java.util.Map<String, Object>) this.safeDict(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex);
+            Object cachedAuths = this.safeDict(Helpers.GetValue(Helpers.GetValue(this.options, "auths"), accountIndex), apiKeyIndex);
             Object signer = this.safeValue(cachedAuths, "signer");
             if (Helpers.isTrue(!Helpers.isEqual(signer, null)))
             {
@@ -623,7 +623,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    public Object handleApiKeyIndex(Object parameters, String methodName1, String optionName1, String optionName2, Object... optionalArgs)
+    public Object handleApiKeyIndex(Object parameters, Object methodName1, Object optionName1, Object optionName2, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
         Object apiKeyIndex = null;
@@ -639,7 +639,7 @@ public class LighterCore extends LighterApi
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseToInt(apiKeyIndex), parameters));
     }
 
-    public java.util.concurrent.CompletableFuture<Object> handleAccountIndex(Object parameters2, String methodName1, String optionName1, String optionName2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> handleAccountIndex(Object parameters2, Object methodName1, Object optionName1, Object optionName2, Object... optionalArgs)
     {
         final Object parameters3 = parameters2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -691,10 +691,10 @@ public class LighterCore extends LighterApi
                 //     ]
                 // }
                 //
-                java.util.List<Object> subAccounts = (java.util.List<Object>) this.safeList(res, "sub_accounts");
+                Object subAccounts = this.safeList(res, "sub_accounts");
                 if (Helpers.isTrue(Helpers.isArray(subAccounts)))
                 {
-                    java.util.Map<String, Object> account = (java.util.Map<String, Object>) this.safeDict(subAccounts, 0);
+                    Object account = this.safeDict(subAccounts, 0);
                     if (Helpers.isTrue(Helpers.isEqual(account, null)))
                     {
                         throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName1), "() requires an "), optionName1), " or "), optionName2), " parameter")) ;
@@ -708,7 +708,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> createSubAccount(String name, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createSubAccount(Object name, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -761,9 +761,9 @@ public class LighterCore extends LighterApi
             Object res = this.handleOptionAndParams2(new java.util.HashMap<String, Object>() {{}}, "createAuth", "accountIndex", "account_index");
             accountIndex = this.safeString(res, 0);
         }
-        java.util.Map<String, Object> auths = (java.util.Map<String, Object>) this.safeDict(this.options, "auths");
-        java.util.Map<String, Object> accountAuths = (java.util.Map<String, Object>) this.safeDict(auths, accountIndex);
-        java.util.Map<String, Object> cachedAuth = (java.util.Map<String, Object>) this.safeDict(accountAuths, apiKeyIndex);
+        Object auths = this.safeDict(this.options, "auths");
+        Object accountAuths = this.safeDict(auths, accountIndex);
+        Object cachedAuth = this.safeDict(accountAuths, apiKeyIndex);
         Long cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         if (Helpers.isTrue(!Helpers.isEqual(cachedDeadline, null)))
         {
@@ -787,7 +787,7 @@ public class LighterCore extends LighterApi
         return token;
     }
 
-    public Object pow(String n, Object m)
+    public Object pow(Object n, Object m)
     {
         String r = Precise.stringMul(n, "1");
         Long c = this.parseToInt(m);
@@ -844,12 +844,12 @@ public class LighterCore extends LighterApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Boolean buildFee = (Boolean) this.safeBool(this.options, "builderFee", true);
+            Object buildFee = this.safeBool(this.options, "builderFee", true);
             if (Helpers.isTrue(!Helpers.isEqual(buildFee, true)))
             {
                 return false;
             }
-            Boolean approvedBuilderFee = (Boolean) this.safeBool(this.options, "approvedBuilderFee", false);
+            Object approvedBuilderFee = this.safeBool(this.options, "approvedBuilderFee", false);
             if (Helpers.isTrue(Helpers.isEqual(approvedBuilderFee, true)))
             {
                 return true;
@@ -998,7 +998,7 @@ public class LighterCore extends LighterApi
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument")) ;
         }
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
+        Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
         String orderType = ((String)type).toUpperCase();
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         String orderSide = ((String)((String)side)).toUpperCase();
@@ -1075,7 +1075,7 @@ public class LighterCore extends LighterApi
                 }
             }
         }
-        java.util.Map<String, Object> marketInfo = (java.util.Map<String, Object>) this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+        Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
         Object amountStr = null;
         Object priceStr = this.priceToPrecision(symbol, price);
         Object amountScale = this.pow("10", Helpers.GetValue(marketInfo, "size_decimals"));
@@ -1210,7 +1210,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> signAndCreateOrder(String method, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> signAndCreateOrder(Object method, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1348,7 +1348,7 @@ public class LighterCore extends LighterApi
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1372,7 +1372,7 @@ public class LighterCore extends LighterApi
             Object strApiKeyIndex = ((String)this.numberToString(apiKeyIndex));
             Object signer = (this.loadAccount(Helpers.GetValue(this.options, "chainId"), this.getLighterPrivateKey(strAccountIndex, strApiKeyIndex), strApiKeyIndex, strAccountIndex, parameters)).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> marketInfo = (java.util.Map<String, Object>) this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+            Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
             Object amountScale = this.pow("10", Helpers.GetValue(marketInfo, "size_decimals"));
             Object priceScale = this.pow("10", Helpers.GetValue(marketInfo, "price_decimals"));
             String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "triggerPrice", "stopLossPrice", "takeProfitPrice")));
@@ -1579,8 +1579,8 @@ public class LighterCore extends LighterApi
             //        ]
             //    }
             //
-            java.util.List<Object> spotMarkets = (java.util.List<Object>) this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> swapMarkets = (java.util.List<Object>) this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object spotMarkets = this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object swapMarkets = this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> markets = (java.util.List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
@@ -1708,7 +1708,7 @@ public class LighterCore extends LighterApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "asset_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "asset_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseCurrencies(data);
         });
 
@@ -1997,10 +1997,10 @@ public class LighterCore extends LighterApi
             //         ]
             //     }
             //
-            java.util.List<Object> spotTickers = (java.util.List<Object>) this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> swapTickers = (java.util.List<Object>) this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object spotTickers = this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object swapTickers = this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> tickers = (java.util.List<Object>) this.arrayConcat(spotTickers, swapTickers);
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(tickers, 0, new java.util.HashMap<String, Object>() {{}});
+            Object first = this.safeDict(tickers, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         });
 
@@ -2028,8 +2028,8 @@ public class LighterCore extends LighterApi
             }
             symbols = this.marketSymbols(symbols);
             java.util.Map<String, Object> response = (this.publicGetOrderBookDetails(parameters)).join();
-            java.util.List<Object> spotTickers = (java.util.List<Object>) this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> swapTickers = (java.util.List<Object>) this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object spotTickers = this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object swapTickers = this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> tickers = (java.util.List<Object>) this.arrayConcat(spotTickers, swapTickers);
             return this.parseTickers(tickers, symbols);
         });
@@ -2152,7 +2152,7 @@ public class LighterCore extends LighterApi
             //     ]
             // }
             //
-            java.util.List<Object> ohlcvs = (java.util.List<Object>) this.safeList(response, "c", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object ohlcvs = this.safeList(response, "c", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
 
@@ -2226,7 +2226,7 @@ public class LighterCore extends LighterApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "funding_rates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "funding_rates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -2322,13 +2322,13 @@ public class LighterCore extends LighterApi
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
-            java.util.List<Object> accounts = (java.util.List<Object>) this.safeList(response, "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object accounts = this.safeList(response, "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
             {
                 Object account = Helpers.GetValue(accounts, i);
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
                 {
-                    java.util.List<Object> assets = (java.util.List<Object>) this.safeList(account, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object assets = this.safeList(account, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(assets)); j++)
                     {
                         Object asset = Helpers.GetValue(assets, j);
@@ -2465,11 +2465,11 @@ public class LighterCore extends LighterApi
             //     }
             //
             java.util.List<Object> allPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> accounts = (java.util.List<Object>) this.safeList(response, "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object accounts = this.safeList(response, "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
             {
                 Object account = Helpers.GetValue(accounts, i);
-                java.util.List<Object> positions = (java.util.List<Object>) this.safeList(account, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object positions = this.safeList(account, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(positions)); j++)
                 {
                     ((java.util.List<Object>)allPositions).add(Helpers.GetValue(positions, j));
@@ -2619,7 +2619,7 @@ public class LighterCore extends LighterApi
             //         ]
             //     }
             //
-            java.util.List<Object> accounts = (java.util.List<Object>) this.safeList(response, "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object accounts = this.safeList(response, "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseAccounts(accounts, parameters);
         });
 
@@ -2751,7 +2751,7 @@ public class LighterCore extends LighterApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -2851,7 +2851,7 @@ public class LighterCore extends LighterApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -3085,7 +3085,7 @@ public class LighterCore extends LighterApi
      * @param {string} [params.memo] hex encoding memo
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount2, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount2, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         final Object fromAccount3 = fromAccount2;
@@ -3237,9 +3237,9 @@ public class LighterCore extends LighterApi
             //         "cursor": "eyJpbmRleCI6MzA4NDkxNX0="
             //     }
             //
-            java.util.List<Object> rows = (java.util.List<Object>) this.safeList(response, "transfers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rows = this.safeList(response, "transfers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String cursor = this.safeString(response, "cursor");
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(rows, 0);
+            Object first = this.safeDict(rows, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(first, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, null)))))
             {
                 Helpers.addElementToObject(Helpers.GetValue(rows, 0), "cursor", cursor);
@@ -3272,8 +3272,8 @@ public class LighterCore extends LighterApi
         String currencyId = this.safeString(transfer, "asset_id");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.safeInteger(transfer, "timestamp");
-        java.util.Map<String, Object> fromAccount = (java.util.Map<String, Object>) this.safeDict(transfer, "from", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> toAccount = (java.util.Map<String, Object>) this.safeDict(transfer, "to", new java.util.HashMap<String, Object>() {{}});
+        Object fromAccount = this.safeDict(transfer, "from", new java.util.HashMap<String, Object>() {{}});
+        Object toAccount = this.safeDict(transfer, "to", new java.util.HashMap<String, Object>() {{}});
         return new java.util.HashMap<String, Object>() {{
             put( "id", LighterCore.this.safeString(transfer, "id") );
             put( "timestamp", timestamp );
@@ -3370,9 +3370,9 @@ public class LighterCore extends LighterApi
             //         "cursor": "eyJpbmRleCI6MjkwMTg0MH0="
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String cursor = this.safeString(response, "cursor");
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0);
+            Object first = this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(first, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, null)))))
             {
                 Helpers.addElementToObject(Helpers.GetValue(data, 0), "cursor", cursor);
@@ -3455,9 +3455,9 @@ public class LighterCore extends LighterApi
             //         "cursor": "string"
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "withdraws", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "withdraws", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String cursor = this.safeString(response, "cursor");
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0);
+            Object first = this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(first, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, null)))))
             {
                 Helpers.addElementToObject(Helpers.GetValue(data, 0), "cursor", cursor);
@@ -3713,13 +3713,13 @@ public class LighterCore extends LighterApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(data, i), "account_index", accountIndex);
             }
             String nextCursor = this.safeString(response, "next_cursor");
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0);
+            Object first = this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(first, null))) && Helpers.isTrue((!Helpers.isEqual(nextCursor, null)))))
             {
                 Helpers.addElementToObject(Helpers.GetValue(data, 0), "next_cursor", nextCursor);
@@ -3764,7 +3764,7 @@ public class LighterCore extends LighterApi
         String accountIndex = this.safeString(trade, "account_index");
         String askAccountId = this.safeString(trade, "ask_account_id");
         String bidAccountId = this.safeString(trade, "bid_account_id");
-        Boolean isMakerAsk = (Boolean) this.safeBool(trade, "is_maker_ask");
+        Object isMakerAsk = this.safeBool(trade, "is_maker_ask");
         String side = null;
         Object orderId = null;
         if (Helpers.isTrue(!Helpers.isEqual(accountIndex, null)))
@@ -3933,7 +3933,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> signAndCancelOrder(String method, Object id2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> signAndCancelOrder(Object method, Object id2, Object... optionalArgs)
     {
         final Object id3 = id2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4021,7 +4021,7 @@ public class LighterCore extends LighterApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> signAndCancelAllOrders(String method, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> signAndCancelAllOrders(Object method, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4156,7 +4156,7 @@ public class LighterCore extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4179,7 +4179,7 @@ public class LighterCore extends LighterApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=reduce-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4204,7 +4204,7 @@ public class LighterCore extends LighterApi
      * @param {string} [params.apiKeyIndex] api key index
      * @returns {object} A [margin structure]{@link https://docs.ccxt.com/?id=add-margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> setMargin(String symbol2, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> setMargin(Object symbol2, Object amount, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

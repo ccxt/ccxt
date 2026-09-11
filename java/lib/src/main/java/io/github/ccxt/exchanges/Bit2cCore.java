@@ -356,7 +356,7 @@ public class Bit2cCore extends Bit2cApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object codes = Helpers.objectKeys(this.currencies);
+        java.util.List<Object> codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -472,8 +472,8 @@ public class Bit2cCore extends Bit2cApi
             // feed filters these rows out, so a non-positive amount is a dead order
             // their full snapshot failed to purge - it is removed here, which also
             // uncrosses the book. rows are positional price and amount pairs
-            java.util.List<Object> rawBids = (java.util.List<Object>) this.safeList(orderbook, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> rawAsks = (java.util.List<Object>) this.safeList(orderbook, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rawBids = this.safeList(orderbook, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rawAsks = this.safeList(orderbook, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBids)); i++)
@@ -575,7 +575,7 @@ public class Bit2cCore extends Bit2cApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -666,8 +666,8 @@ public class Bit2cCore extends Bit2cApi
             //         }
             //     }
             //
-            java.util.Map<String, Object> fees = (java.util.Map<String, Object>) this.safeDict(response, "Fees", new java.util.HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(fees);
+            Object fees = this.safeDict(response, "Fees", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> keys = Helpers.objectKeys(fees);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
@@ -808,7 +808,7 @@ public class Bit2cCore extends Bit2cApi
             java.util.Map<String, Object> response = (this.privateGetOrderMyOrders(this.extend(request, parameters))).join();
             Object orders = this.safeValue(response, Helpers.GetValue(market, "id"), new java.util.HashMap<String, Object>() {{}});
             Object asks = this.safeValue(orders, "ask", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> bids = (java.util.List<Object>) this.safeList(orders, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object bids = this.safeList(orders, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
         });
 

@@ -3954,7 +3954,7 @@ final Object finalClientOrderId = clientOrderId;
                     }
                 }
             }
-            Object deduplicated = Helpers.objectValues(deduplicatedByOid);
+            java.util.List<Object> deduplicated = Helpers.objectValues(deduplicatedByOid);
             return this.parseOrders(deduplicated, market, since, limit);
         });
 

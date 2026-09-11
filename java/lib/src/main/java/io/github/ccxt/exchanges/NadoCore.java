@@ -2357,7 +2357,7 @@ public class NadoCore extends NadoApi
             //         }
             //     }
             //
-            Object tickers = Helpers.objectKeys(response);
+            java.util.List<Object> tickers = Helpers.objectKeys(response);
             java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
@@ -2465,7 +2465,7 @@ public class NadoCore extends NadoApi
             //         }
             //     }
             //
-            Object tickers = Helpers.objectKeys(response);
+            java.util.List<Object> tickers = Helpers.objectKeys(response);
             java.util.List<Object> interests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {

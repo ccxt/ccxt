@@ -523,7 +523,7 @@ public class LunoCore extends LunoApi
             //
             java.util.List<Object> currenciesData = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> grouped = this.groupBy(currenciesData, "native_currency");
-            Object values = Helpers.objectValues(grouped);
+            java.util.List<Object> values = Helpers.objectValues(grouped);
             return this.parseCurrencies(values);
         });
 
@@ -1163,7 +1163,7 @@ public class LunoCore extends LunoApi
             java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             java.util.List<Object> rawTickers = (java.util.List<Object>) this.safeList(response, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> tickers = this.indexBy(rawTickers, "pair");
-            Object ids = Helpers.objectKeys(tickers);
+            java.util.List<Object> ids = Helpers.objectKeys(tickers);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {

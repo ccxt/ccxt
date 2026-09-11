@@ -22,12 +22,12 @@ public class TestLoadMarkets extends BaseTest {
         Assert(Helpers.isArray(exchange.symbols), ".symbols is not an array");
         Integer symbolsLength = Helpers.getArrayLength(exchange.symbols);
         Assert(!Helpers.isEqual(exchange.markets, null), ".markets is undefined");
-        Object marketKeys = Helpers.objectKeys(exchange.markets);
+        java.util.List<Object> marketKeys = Helpers.objectKeys(exchange.markets);
         Integer marketKeysLength = Helpers.getArrayLength(marketKeys);
         Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
         Assert(Helpers.isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
         Assert(Helpers.isEqual(symbolsLength, marketKeysLength), "number of .symbols is not equal to the number of .markets");
-        Object marketValues = Helpers.objectValues(markets);
+        java.util.List<Object> marketValues = Helpers.objectValues(markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)
         {
             TestMarket.testMarket(exchange, skippedProperties, method, Helpers.GetValue(marketValues, i));
@@ -35,7 +35,7 @@ public class TestLoadMarkets extends BaseTest {
         // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
         java.util.List<Object> marketTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option", "index"));
         java.util.List<Object> collectedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object allMarkets = Helpers.objectValues(exchange.markets);
+        java.util.List<Object> allMarkets = Helpers.objectValues(exchange.markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allMarkets)); i++)
         {
             Object market = Helpers.GetValue(allMarkets, i);
@@ -46,7 +46,7 @@ public class TestLoadMarkets extends BaseTest {
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketTypes)); i++)
         {
-            String mType = (String) Helpers.GetValue(marketTypes, i);
+            Object mType = Helpers.GetValue(marketTypes, i);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, mType), null)) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(exchange.has, mType), false))))
             {
                 Boolean skipMarketTypes = Helpers.isTrue((Helpers.inOp(skippedProperties, "optionsNotLoadedByDefault"))) && Helpers.isTrue(Helpers.isEqual(mType, "option"));

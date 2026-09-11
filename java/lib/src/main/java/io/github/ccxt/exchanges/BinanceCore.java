@@ -4467,7 +4467,7 @@ public class BinanceCore extends BinanceApi
      * @param {int} [params.recvWindow] cannot be greater than 60000
      * @returns {object} the response from the exchange
      */
-    public Object mintTokenizedAsset(String underlyingAsset, String underlyingAssetAmount, Object... optionalArgs)
+    public Object mintTokenizedAsset(Object underlyingAsset, Object underlyingAssetAmount, Object... optionalArgs)
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -4498,7 +4498,7 @@ public class BinanceCore extends BinanceApi
      * @param {int} [params.recvWindow] cannot be greater than 60000
      * @returns {object} the response from the exchange
      */
-    public Object redeemTokenizedAsset(String tokenizedAsset, String tokenizedAssetAmount, Object... optionalArgs)
+    public Object redeemTokenizedAsset(Object tokenizedAsset, Object tokenizedAssetAmount, Object... optionalArgs)
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -4528,7 +4528,7 @@ public class BinanceCore extends BinanceApi
      * @param {int} [params.recvWindow] cannot be greater than 60000
      * @returns {object} the response from the exchange
      */
-    public Object tokenizedConvertStatus(String issuerRequestId, String convertType, Object... optionalArgs)
+    public Object tokenizedConvertStatus(Object issuerRequestId, Object convertType, Object... optionalArgs)
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -4630,7 +4630,7 @@ public class BinanceCore extends BinanceApi
         } else if (Helpers.isTrue(Helpers.inOp(this.urls, "apiBackupDemoTrading")))
         {
             Helpers.addElementToObject(this.urls, "api", Helpers.GetValue(this.urls, "apiBackupDemoTrading"));
-            java.util.Map<String, Object> newUrls = this.omit(this.urls, "apiBackupDemoTrading");
+            Object newUrls = this.omit(this.urls, "apiBackupDemoTrading");
             this.urls = newUrls;
         }
         Helpers.addElementToObject(this.options, "enableDemoTrading", enable);
@@ -4691,7 +4691,7 @@ public class BinanceCore extends BinanceApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Boolean fetchCurrenciesEnabled = (Boolean) this.safeBool(this.options, "fetchCurrencies");
+            Object fetchCurrenciesEnabled = this.safeBool(this.options, "fetchCurrencies");
             if (Helpers.isTrue(!Helpers.isEqual(fetchCurrenciesEnabled, true)))
             {
                 return new java.util.HashMap<String, Object>() {{}};
@@ -4716,7 +4716,7 @@ public class BinanceCore extends BinanceApi
                 return new java.util.HashMap<String, Object>() {{}};
             }
             java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.sapiGetCapitalConfigGetall(parameters)));
-            Boolean fetchMargins = (Boolean) this.safeBool(this.options, "fetchMargins", false);
+            Object fetchMargins = this.safeBool(this.options, "fetchMargins", false);
             if (Helpers.isTrue(Helpers.isEqual(fetchMargins, true)))
             {
                 ((java.util.List<Object>)promises).add(this.sapiGetMarginAllPairs(parameters));
@@ -4739,7 +4739,7 @@ public class BinanceCore extends BinanceApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseCurrencies)); i++)
         {
-            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseCurrency(Helpers.GetValue(responseCurrencies, i));
+            Object parsed = this.parseCurrency(Helpers.GetValue(responseCurrencies, i));
             if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
@@ -4749,7 +4749,7 @@ public class BinanceCore extends BinanceApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
             }
-            java.util.Map<String, Object> marginEntry = (java.util.Map<String, Object>) this.safeDict(marginablesById, Helpers.GetValue(parsed, "id"));
+            Object marginEntry = this.safeDict(marginablesById, Helpers.GetValue(parsed, "id"));
             if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " parseCurrenciesCustom() could not resolve parsed")) ;
@@ -4869,8 +4869,8 @@ public class BinanceCore extends BinanceApi
         String id = this.safeString(entry, "coin");
         String name = this.safeString(entry, "name");
         String code = (String) this.safeCurrencyCode(id);
-        Boolean isFiat = (Boolean) this.safeBool(entry, "isLegalMoney");
-        java.util.List<Object> networkList = (java.util.List<Object>) this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object isFiat = this.safeBool(entry, "isLegalMoney");
+        Object networkList = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> fees = new java.util.HashMap<String, Object>() {{}};
         Object fee = null;
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
@@ -4883,13 +4883,13 @@ public class BinanceCore extends BinanceApi
             isETF = (Helpers.isEqual(network, "ETF")); // ETF currencies (e.g. BTCUP, ETHDOWN) have only 1 "network" entry and are deterministic to set
             // const name = this.safeString (networkItem, 'name');
             Double withdrawFee = this.safeNumber(networkItem, "withdrawFee");
-            Boolean depositEnable = (Boolean) this.safeBool(networkItem, "depositEnable");
-            Boolean withdrawEnable = (Boolean) this.safeBool(networkItem, "withdrawEnable");
+            Object depositEnable = this.safeBool(networkItem, "depositEnable");
+            Object withdrawEnable = this.safeBool(networkItem, "withdrawEnable");
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 Helpers.addElementToObject(fees, networkCode, withdrawFee);
             }
-            Boolean isDefault = (Boolean) this.safeBool(networkItem, "isDefault");
+            Object isDefault = this.safeBool(networkItem, "isDefault");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isDefault, true))) || Helpers.isTrue((Helpers.isEqual(fee, null)))))
             {
                 fee = withdrawFee;
@@ -4942,7 +4942,7 @@ public class BinanceCore extends BinanceApi
         {
             type = "crypto";
         }
-        Boolean trading = (Boolean) this.safeBool(entry, "trading");
+        Object trading = this.safeBool(entry, "trading");
         final Object finalType = type;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -4984,7 +4984,7 @@ public class BinanceCore extends BinanceApi
             java.util.List<Object> promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rawFetchMarkets = null;
             java.util.List<Object> defaultTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse"));
-            java.util.Map<String, Object> fetchMarketsOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
+            Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOptions, null)))
             {
                 rawFetchMarkets = this.safeList(fetchMarketsOptions, "types", defaultTypes);
@@ -5001,8 +5001,8 @@ public class BinanceCore extends BinanceApi
                     ((java.util.List<Object>)rawFetchMarkets).add("option");
                 }
             }
-            Boolean sandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
-            Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
+            Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
+            Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
             Boolean isDemoEnv = Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue((Helpers.isEqual(sandboxMode, true)));
             java.util.List<Object> fetchMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawFetchMarkets)); i++)
@@ -5014,7 +5014,7 @@ public class BinanceCore extends BinanceApi
                 }
                 ((java.util.List<Object>)fetchMarkets).add(type);
             }
-            Boolean fetchMargins = (Boolean) this.safeBool(this.options, "fetchMargins", false);
+            Object fetchMargins = this.safeBool(this.options, "fetchMargins", false);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fetchMarkets)); i++)
             {
                 Object marketType = Helpers.GetValue(fetchMarkets, i);
@@ -5055,7 +5055,7 @@ public class BinanceCore extends BinanceApi
                 Object res = this.safeValue(results, i);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchMargins, true))) && Helpers.isTrue(Helpers.isArray(res))))
                 {
-                    Object keysList = Helpers.objectKeys(this.indexBy(res, "symbol"));
+                    java.util.List<Object> keysList = Helpers.objectKeys(this.indexBy(res, "symbol"));
                     Integer length = Helpers.getArrayLength(Helpers.GetValue(this.options, "crossMarginPairsData"));
                     // first one is the cross-margin promise
                     if (Helpers.isTrue(Helpers.isEqual(length, 0)))
@@ -5067,7 +5067,7 @@ public class BinanceCore extends BinanceApi
                     }
                 } else
                 {
-                    java.util.List<Object> resultMarkets = (java.util.List<Object>) this.safeList2(res, "symbols", "optionSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object resultMarkets = this.safeList2(res, "symbols", "optionSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     markets = this.arrayConcat(markets, resultMarkets);
                 }
             }
@@ -5369,7 +5369,7 @@ public class BinanceCore extends BinanceApi
         }
         String settle = (String) this.safeCurrencyCode(settleId);
         Boolean spot = !Helpers.isTrue(contract);
-        java.util.List<Object> filters = (java.util.List<Object>) this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object filters = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
         String status = this.safeString2(market, "status", "contractStatus");
         Object contractSize = null;
@@ -5400,7 +5400,7 @@ public class BinanceCore extends BinanceApi
         Boolean active = (Helpers.isEqual(status, "TRADING"));
         if (Helpers.isTrue(spot))
         {
-            java.util.List<Object> permissions = (java.util.List<Object>) this.safeList(market, "permissions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object permissions = this.safeList(market, "permissions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(permissions)); j++)
             {
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(permissions, j), "TRD_GRP_003")))
@@ -5410,7 +5410,7 @@ public class BinanceCore extends BinanceApi
                 }
             }
         }
-        Boolean isMarginTradingAllowed = (Boolean) this.safeBool(market, "isMarginTradingAllowed", false);
+        Object isMarginTradingAllowed = this.safeBool(market, "isMarginTradingAllowed", false);
         Object marginModes = null;
         if (Helpers.isTrue(spot))
         {
@@ -5539,7 +5539,7 @@ public class BinanceCore extends BinanceApi
         }
         if (Helpers.isTrue(Helpers.inOp(filtersByType, "PRICE_FILTER")))
         {
-            java.util.Map<String, Object> filter = (java.util.Map<String, Object>) this.safeDict(filtersByType, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
+            Object filter = this.safeDict(filtersByType, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
             // PRICE_FILTER reports zero values for maxPrice
             // since they updated filter types in November 2018
             // https://github.com/ccxt/ccxt/issues/4286
@@ -5552,7 +5552,7 @@ public class BinanceCore extends BinanceApi
         }
         if (Helpers.isTrue(Helpers.inOp(filtersByType, "LOT_SIZE")))
         {
-            java.util.Map<String, Object> filter = (java.util.Map<String, Object>) this.safeDict(filtersByType, "LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
+            Object filter = this.safeDict(filtersByType, "LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(Helpers.GetValue(entry, "precision"), "amount", this.safeNumber(filter, "stepSize"));
             Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "amount", new java.util.HashMap<String, Object>() {{
     put( "min", BinanceCore.this.safeNumber(filter, "minQty") );
@@ -5561,7 +5561,7 @@ public class BinanceCore extends BinanceApi
         }
         if (Helpers.isTrue(Helpers.inOp(filtersByType, "MARKET_LOT_SIZE")))
         {
-            java.util.Map<String, Object> filter = (java.util.Map<String, Object>) this.safeDict(filtersByType, "MARKET_LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
+            Object filter = this.safeDict(filtersByType, "MARKET_LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(Helpers.GetValue(entry, "limits"), "market", new java.util.HashMap<String, Object>() {{
     put( "min", BinanceCore.this.safeNumber(filter, "minQty") );
     put( "max", BinanceCore.this.safeNumber(filter, "maxQty") );
@@ -5569,7 +5569,7 @@ public class BinanceCore extends BinanceApi
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(filtersByType, "MIN_NOTIONAL"))) || Helpers.isTrue((Helpers.inOp(filtersByType, "NOTIONAL")))))
         {
-            java.util.Map<String, Object> filter = (java.util.Map<String, Object>) this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", new java.util.HashMap<String, Object>() {{}});
+            Object filter = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(entry, "limits"), "cost"), "min", this.safeNumber2(filter, "minNotional", "notional"));
             Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(entry, "limits"), "cost"), "max", this.safeNumber(filter, "maxNotional"));
         }
@@ -5638,7 +5638,7 @@ public class BinanceCore extends BinanceApi
         } else if (Helpers.isTrue(!Helpers.isTrue(isolated) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "spot"))) || Helpers.isTrue(cross)))))
         {
             timestamp = this.safeInteger(response, "updateTime");
-            java.util.List<Object> balances = (java.util.List<Object>) this.safeList2(response, "balances", "userAssets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object balances = this.safeList2(response, "balances", "userAssets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
             {
                 Object balance = Helpers.GetValue(balances, i);
@@ -5660,12 +5660,12 @@ public class BinanceCore extends BinanceApi
             }
         } else if (Helpers.isTrue(isolated))
         {
-            java.util.List<Object> assets = (java.util.List<Object>) this.safeList(response, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object assets = this.safeList(response, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {
                 Object asset = Helpers.GetValue(assets, i);
-                java.util.Map<String, Object> base = (java.util.Map<String, Object>) this.safeDict(asset, "baseAsset", new java.util.HashMap<String, Object>() {{}});
-                java.util.Map<String, Object> quote = (java.util.Map<String, Object>) this.safeDict(asset, "quoteAsset", new java.util.HashMap<String, Object>() {{}});
+                Object base = this.safeDict(asset, "baseAsset", new java.util.HashMap<String, Object>() {{}});
+                Object quote = this.safeDict(asset, "quoteAsset", new java.util.HashMap<String, Object>() {{}});
                 String baseCode = (String) this.safeCurrencyCode(this.safeString(base, "asset"));
                 String quoteCode = (String) this.safeCurrencyCode(this.safeString(quote, "asset"));
                 if (Helpers.isTrue(!Helpers.isEqual(baseCode, null)))
@@ -5679,7 +5679,7 @@ public class BinanceCore extends BinanceApi
             }
         } else if (Helpers.isTrue(Helpers.isEqual(type, "savings")))
         {
-            java.util.List<Object> positionAmountVos = (java.util.List<Object>) this.safeList(response, "positionAmountVos", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object positionAmountVos = this.safeList(response, "positionAmountVos", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positionAmountVos)); i++)
             {
                 Object entry = Helpers.GetValue(positionAmountVos, i);
@@ -5825,7 +5825,7 @@ public class BinanceCore extends BinanceApi
                 response = (this.dapiPrivateGetAccount(this.extend(request, query))).join();
             } else if (Helpers.isTrue(Helpers.isEqual(marginMode, "isolated")))
             {
-                java.util.List<Object> paramSymbols = (java.util.List<Object>) this.safeList(parameters, "symbols");
+                Object paramSymbols = this.safeList(parameters, "symbols");
                 query = this.omit(query, "symbols");
                 if (Helpers.isTrue(!Helpers.isEqual(paramSymbols, null)))
                 {
@@ -6436,13 +6436,13 @@ public class BinanceCore extends BinanceApi
                 response = (this.dapiPublicGetTicker24hr(this.extend(request, parameters))).join();
             } else
             {
-                Boolean stock = (Boolean) this.safeBool(market, "stock", false);
+                Object stock = this.safeBool(market, "stock", false);
                 if (Helpers.isTrue(Helpers.isEqual(stock, true)))
                 {
                     response = (this.sapiGetEquityMarketQuote(this.extend(request, parameters))).join();
                 } else
                 {
-                    Boolean rolling = (Boolean) this.safeBool(parameters, "rolling", false);
+                    Object rolling = this.safeBool(parameters, "rolling", false);
                     parameters = this.omit(parameters, "rolling");
                     if (Helpers.isTrue(Helpers.isEqual(rolling, true)))
                     {
@@ -6455,7 +6455,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
-                java.util.Map<String, Object> firstTicker = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+                Object firstTicker = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
                 return this.parseTicker(firstTicker, market);
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
@@ -6467,7 +6467,7 @@ public class BinanceCore extends BinanceApi
 
     }
 
-    public void checkNoStockSymbols(Object symbols, String methodName)
+    public void checkNoStockSymbols(Object symbols, Object methodName)
     {
         if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
         {
@@ -6476,7 +6476,7 @@ public class BinanceCore extends BinanceApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             java.util.Map<String, Object> symbolMarket = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
-            Boolean stock = (Boolean) this.safeBool(symbolMarket, "stock", false);
+            Object stock = this.safeBool(symbolMarket, "stock", false);
             if (Helpers.isTrue(Helpers.isEqual(stock, true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() does not support tokenized stock symbols ("), Helpers.GetValue(symbols, i)), "), the equity quote endpoint accepts a single symbol per request, use fetchTicker() instead")) ;
@@ -6700,7 +6700,7 @@ public class BinanceCore extends BinanceApi
                 response = (this.dapiPublicGetTicker24hr(parameters)).join();
             } else if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                Boolean rolling = (Boolean) this.safeBool(parameters, "rolling", false);
+                Object rolling = this.safeBool(parameters, "rolling", false);
                 parameters = this.omit(parameters, "rolling");
                 if (Helpers.isTrue(Helpers.isEqual(rolling, true)))
                 {
@@ -6740,7 +6740,7 @@ public class BinanceCore extends BinanceApi
         {
             String marketId = this.safeString(Helpers.GetValue(response, i), "symbol");
             java.util.Map<String, Object> tickerMarket = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, "spot");
-            java.util.Map<String, Object> parsedTicker = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(response, i));
+            Object parsedTicker = this.parseTicker(Helpers.GetValue(response, i));
             Helpers.addElementToObject(parsedTicker, "symbol", Helpers.GetValue(tickerMarket, "symbol"));
             ((java.util.List<Object>)results).add(parsedTicker);
         }
@@ -6914,7 +6914,7 @@ public class BinanceCore extends BinanceApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Boolean inverse = (Boolean) this.safeBool(market, "inverse");
+        Object inverse = this.safeBool(market, "inverse");
         Object volumeIndex = ((Helpers.isTrue((Helpers.isEqual(inverse, true))))) ? 7 : 5;
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger2(ohlcv, 0, "openTime"), this.safeNumber2(ohlcv, 1, "open"), this.safeNumber2(ohlcv, 2, "high"), this.safeNumber2(ohlcv, 3, "low"), this.safeNumber2(ohlcv, 4, "close"), this.safeNumber2(ohlcv, volumeIndex, "volume")));
     }
@@ -7320,7 +7320,7 @@ public class BinanceCore extends BinanceApi
         market = this.safeMarket(marketId, market, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object side = null;
-        Boolean buyerMaker = (Boolean) this.safeBool2(trade, "m", "isBuyerMaker");
+        Object buyerMaker = this.safeBool2(trade, "m", "isBuyerMaker");
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(buyerMaker, null)))
         {
@@ -7424,7 +7424,7 @@ public class BinanceCore extends BinanceApi
      * @param {int} [params.fromId] trade id to fetch from, default gets most recent trades, not used when fetchTradesMethod is 'publicGetTrades', 'fapiPublicGetTrades', 'dapiPublicGetTrades', or 'eapiPublicGetTrades'
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7619,7 +7619,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editSpotOrder(String id, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editSpotOrder(Object id, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7676,7 +7676,7 @@ public class BinanceCore extends BinanceApi
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "newOrderResponse", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "newOrderResponse", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -7739,7 +7739,7 @@ public class BinanceCore extends BinanceApi
             }
         }
         Helpers.addElementToObject(request, "type", uppercaseType);
-        java.util.List<Object> validOrderTypes = (java.util.List<Object>) this.safeList(Helpers.GetValue(market, "info"), "orderTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object validOrderTypes = this.safeList(Helpers.GetValue(market, "info"), "orderTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (!Helpers.isTrue(this.inArray(uppercaseType, validOrderTypes)))
         {
             if (Helpers.isTrue(!Helpers.isEqual(initialUppercaseType, uppercaseType)))
@@ -7752,7 +7752,7 @@ public class BinanceCore extends BinanceApi
         }
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
         {
-            java.util.Map<String, Object> broker = (java.util.Map<String, Object>) this.safeDict(this.options, "broker");
+            Object broker = this.safeDict(this.options, "broker");
             if (Helpers.isTrue(!Helpers.isEqual(broker, null)))
             {
                 String brokerId = this.safeString(broker, "spot");
@@ -7918,7 +7918,7 @@ public class BinanceCore extends BinanceApi
      * @param {boolean} [params.portfolioMargin] set to true if you would like to edit an order in a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editContractOrder(String id, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editContractOrder(Object id, Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8007,7 +8007,7 @@ public class BinanceCore extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8826,7 +8826,7 @@ public class BinanceCore extends BinanceApi
         cost = this.safeString(order, "cumBase", cost);
         String type = (String)this.safeStringLower2(order, "type", "orderType");
         String side = (String)this.safeStringLower(order, "side");
-        java.util.List<Object> fills = (java.util.List<Object>) this.safeList2(order, "fills", "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object fills = this.safeList2(order, "fills", "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String timeInForce = this.safeString(order, "timeInForce");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTX")))
         {
@@ -8912,7 +8912,7 @@ public class BinanceCore extends BinanceApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                java.util.Map<String, Object> orderParams = (java.util.Map<String, Object>) this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
+                Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
@@ -9034,7 +9034,7 @@ public class BinanceCore extends BinanceApi
             // don't handle/omit params here, omitting happens inside createOrderRequest
             String marketType = this.safeString(parameters, "type", Helpers.GetValue(market, "type"));
             String marginMode = this.safeString(parameters, "marginMode");
-            Boolean porfolioOptionsValue = (Boolean) this.safeBool2(this.options, "papi", "portfolioMargin", false);
+            Object porfolioOptionsValue = this.safeBool2(this.options, "papi", "portfolioMargin", false);
             Object isPortfolioMargin = this.safeBool2(parameters, "papi", "portfolioMargin", porfolioOptionsValue);
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
@@ -9044,9 +9044,9 @@ public class BinanceCore extends BinanceApi
             Boolean isStopLoss = !Helpers.isEqual(stopLossPrice, null);
             Boolean isTakeProfit = !Helpers.isEqual(takeProfitPrice, null);
             Boolean isConditional = Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue(isTrailingPercentOrder)) || Helpers.isTrue(isStopLoss)) || Helpers.isTrue(isTakeProfit);
-            Boolean sor = (Boolean) this.safeBool2(parameters, "sor", "SOR", false);
-            Boolean test = (Boolean) this.safeBool(parameters, "test", false);
-            Boolean stock = (Boolean) this.safeBool(market, "stock", false);
+            Object sor = this.safeBool2(parameters, "sor", "SOR", false);
+            Object test = this.safeBool(parameters, "test", false);
+            Object stock = this.safeBool(market, "stock", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("sor", "SOR", "test")));
             // if (isPortfolioMargin) {
             //     params['portfolioMargin'] = isPortfolioMargin;
@@ -9167,7 +9167,7 @@ public class BinanceCore extends BinanceApi
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         String marketType = this.safeString(parameters, "type", Helpers.GetValue(market, "type"));
-        Boolean stock = (Boolean) this.safeBool(market, "stock", false);
+        Object stock = this.safeBool(market, "stock", false);
         String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientAlgoId", "newClientOrderId", "clientOrderId")));
         String initialUppercaseType = ((String)type).toUpperCase();
         Boolean isMarketOrder = Helpers.isEqual(initialUppercaseType, "MARKET");
@@ -9186,7 +9186,7 @@ public class BinanceCore extends BinanceApi
         java.util.List<Object> marginModeparametersVariable = (java.util.List<Object>) this.handleMarginModeAndParams("createOrder", parameters);
         marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+        Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(marketType, "margin")) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "contract"), true))) && Helpers.isTrue((!Helpers.isEqual(marginMode, null)))))))
@@ -9294,7 +9294,7 @@ public class BinanceCore extends BinanceApi
             }
         } else
         {
-            java.util.List<Object> validOrderTypes = (java.util.List<Object>) this.safeList(Helpers.GetValue(market, "info"), "orderTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object validOrderTypes = this.safeList(Helpers.GetValue(market, "info"), "orderTypes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             if (Helpers.isTrue(Helpers.isEqual(stock, true)))
             {
                 validOrderTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("LIMIT", "MARKET"));
@@ -9320,7 +9320,7 @@ public class BinanceCore extends BinanceApi
         }
         if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
         {
-            java.util.Map<String, Object> broker = (java.util.Map<String, Object>) this.safeDict(this.options, "broker", new java.util.HashMap<String, Object>() {{}});
+            Object broker = this.safeDict(this.options, "broker", new java.util.HashMap<String, Object>() {{}});
             String defaultId = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? "x-xcKtGhcu" : "x-TKT5PX2F";
             String idMarketType = "spot";
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
@@ -9380,7 +9380,7 @@ public class BinanceCore extends BinanceApi
         }
         Helpers.addElementToObject(request, typeRequest, uppercaseType);
         // additional required fields depending on the order type
-        Boolean closePosition = (Boolean) this.safeBool(parameters, "closePosition", false);
+        Object closePosition = this.safeBool(parameters, "closePosition", false);
         Boolean timeInForceIsRequired = false;
         Boolean priceIsRequired = false;
         Boolean triggerPriceIsRequired = false;
@@ -9594,7 +9594,7 @@ public class BinanceCore extends BinanceApi
         {
             parameters = this.omit(parameters, "timeInForce");
         }
-        Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
+        Object hedged = this.safeBool(parameters, "hedged", false);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "option"), true)))) && Helpers.isTrue((Helpers.isEqual(hedged, true)))))
         {
             if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
@@ -9642,7 +9642,7 @@ public class BinanceCore extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9675,7 +9675,7 @@ public class BinanceCore extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -9708,7 +9708,7 @@ public class BinanceCore extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10264,7 +10264,7 @@ public class BinanceCore extends BinanceApi
             //
             if (Helpers.isTrue(Helpers.isEqual(stock, true)))
             {
-                java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object result = this.safeList(response, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseOrders(result, market, since, limit);
             }
             return this.parseOrders(response, market, since, limit);
@@ -10337,8 +10337,8 @@ public class BinanceCore extends BinanceApi
                 }
             } else if (!Helpers.isTrue(stock))
             {
-                Boolean warnWithoutSymbol = (Boolean) this.safeBool(Helpers.GetValue(this.options, "fetchOpenOrders"), "warnWithoutSymbol");
-                Boolean optValue = (Boolean) this.safeBool(this.options, "warnOnFetchOpenOrdersWithoutSymbol"); // for backward compatibility
+                Object warnWithoutSymbol = this.safeBool(Helpers.GetValue(this.options, "fetchOpenOrders"), "warnWithoutSymbol");
+                Object optValue = this.safeBool(this.options, "warnOnFetchOpenOrdersWithoutSymbol"); // for backward compatibility
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(optValue, true))) || Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(optValue, null)) && Helpers.isTrue((Helpers.isEqual(warnWithoutSymbol, true)))))))
                 {
                     throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOpenOrders() WARNING: fetching open orders without specifying a symbol has stricter rate limits (10 times more for spot, 40 times more for other markets) compared to requesting with symbol argument. To acknowledge this warning, set "), this.id), ".options[\"fetchOpenOrders\"][\"warnWithoutSymbol\"] = false to suppress this warning message.")) ;
@@ -10452,7 +10452,7 @@ public class BinanceCore extends BinanceApi
      * @param {boolean} [params.portfolioMargin] set to true if you would like to fetch for a portfolio margin account
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenOrder(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11177,7 +11177,7 @@ public class BinanceCore extends BinanceApi
             } else
             {
                 final Object finalResponse = response;
-                java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeOrder(new java.util.HashMap<String, Object>() {{
+                Object order = this.safeOrder(new java.util.HashMap<String, Object>() {{
                     put( "info", finalResponse );
                 }});
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList(order));
@@ -11225,7 +11225,7 @@ public class BinanceCore extends BinanceApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            java.util.List<Object> origClientOrderIdList = (java.util.List<Object>) this.safeList2(parameters, "origClientOrderIdList", "clientOrderIds");
+            Object origClientOrderIdList = this.safeList2(parameters, "origClientOrderIdList", "clientOrderIds");
             if (Helpers.isTrue(!Helpers.isEqual(origClientOrderIdList, null)))
             {
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderIds")));
@@ -11297,7 +11297,7 @@ public class BinanceCore extends BinanceApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11651,7 +11651,7 @@ public class BinanceCore extends BinanceApi
             {
                 if (Helpers.isTrue(Helpers.isEqual(stock, true)))
                 {
-                    java.util.List<Object> rows = (java.util.List<Object>) this.safeList(response, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object rows = this.safeList(response, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     responseList = rows;
                 } else
                 {
@@ -11736,12 +11736,12 @@ public class BinanceCore extends BinanceApi
             //         },
             //       ]
             //     }
-            java.util.List<Object> results = (java.util.List<Object>) this.safeList(response, "userAssetDribblets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object results = this.safeList(response, "userAssetDribblets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Long rows = this.safeInteger(response, "total", 0);
             java.util.List<Object> data = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, rows); i++)
             {
-                java.util.List<Object> logs = (java.util.List<Object>) this.safeList(Helpers.GetValue(results, i), "userAssetDribbletDetails", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object logs = this.safeList(Helpers.GetValue(results, i), "userAssetDribbletDetails", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(logs)); j++)
                 {
                     Helpers.addElementToObject(Helpers.GetValue(logs, j), "isDustTrade", true);
@@ -11875,8 +11875,8 @@ public class BinanceCore extends BinanceApi
             Object currency = null;
             Object response = null;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            java.util.Map<String, Object> legalMoney = (java.util.Map<String, Object>) this.safeDict(this.options, "legalMoney", new java.util.HashMap<String, Object>() {{}});
-            Boolean fiatOnly = (Boolean) this.safeBool(parameters, "fiat", false);
+            Object legalMoney = this.safeDict(this.options, "legalMoney", new java.util.HashMap<String, Object>() {{}});
+            Object fiatOnly = this.safeBool(parameters, "fiat", false);
             parameters = this.omit(parameters, "fiatOnly");
             Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
@@ -11975,8 +11975,8 @@ public class BinanceCore extends BinanceApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, parameters)).join();
             }
-            java.util.Map<String, Object> legalMoney = (java.util.Map<String, Object>) this.safeDict(this.options, "legalMoney", new java.util.HashMap<String, Object>() {{}});
-            Boolean fiatOnly = (Boolean) this.safeBool(parameters, "fiat", false);
+            Object legalMoney = this.safeDict(this.options, "legalMoney", new java.util.HashMap<String, Object>() {{}});
+            Object fiatOnly = this.safeBool(parameters, "fiat", false);
             parameters = this.omit(parameters, "fiatOnly");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Long until = this.safeInteger(parameters, "until");
@@ -12076,7 +12076,7 @@ public class BinanceCore extends BinanceApi
                 put( "Refund Failed", "failed" );
             }} );
         }};
-        java.util.Map<String, Object> statuses = (java.util.Map<String, Object>) this.safeDict(statusesByType, type, new java.util.HashMap<String, Object>() {{}});
+        Object statuses = this.safeDict(statusesByType, type, new java.util.HashMap<String, Object>() {{}});
         return this.safeString(statuses, status, status);
     }
 
@@ -12179,7 +12179,7 @@ public class BinanceCore extends BinanceApi
             {
                 type = ((Helpers.isTrue((Helpers.isEqual(txType, "0"))))) ? "deposit" : "withdrawal";
             }
-            java.util.Map<String, Object> legalMoneyCurrenciesById = (java.util.Map<String, Object>) this.safeDict(this.options, "legalMoneyCurrenciesById");
+            Object legalMoneyCurrenciesById = this.safeDict(this.options, "legalMoneyCurrenciesById");
             code = this.safeString(legalMoneyCurrenciesById, code, code);
         }
         Object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
@@ -12318,7 +12318,7 @@ public class BinanceCore extends BinanceApi
         String type = this.safeString(transfer, "type");
         Object fromAccount = null;
         Object toAccount = null;
-        java.util.Map<String, Object> accountsById = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
+        Object accountsById = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
             java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(type, "_");
@@ -12330,8 +12330,8 @@ public class BinanceCore extends BinanceApi
         Long walletType = this.safeInteger(transfer, "walletType");
         if (Helpers.isTrue(!Helpers.isEqual(walletType, null)))
         {
-            java.util.Map<String, Object> payer = (java.util.Map<String, Object>) this.safeDict(transfer, "payerInfo", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> receiver = (java.util.Map<String, Object>) this.safeDict(transfer, "receiverInfo", new java.util.HashMap<String, Object>() {{}});
+            Object payer = this.safeDict(transfer, "payerInfo", new java.util.HashMap<String, Object>() {{}});
+            Object receiver = this.safeDict(transfer, "receiverInfo", new java.util.HashMap<String, Object>() {{}});
             fromAccount = this.safeString(payer, "accountId");
             toAccount = this.safeString(receiver, "accountId");
         }
@@ -12395,7 +12395,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.symbol] the unified symbol, required for isolated margin transfers
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12442,7 +12442,7 @@ public class BinanceCore extends BinanceApi
                         throw new ArgumentsRequired((String)Helpers.add(Helpers.add(this.id, " transfer () requires params[\"symbol\"] when toAccount is "), toAccount)) ;
                     }
                 }
-                java.util.Map<String, Object> accountsById = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
+                Object accountsById = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
                 Boolean fromIsolated = !Helpers.isTrue((Helpers.inOp(accountsById, fromId)));
                 Boolean toIsolated = !Helpers.isTrue((Helpers.inOp(accountsById, toId)));
                 if (Helpers.isTrue(Helpers.isTrue(fromIsolated) && Helpers.isTrue((Helpers.isEqual(market, null)))))
@@ -12539,7 +12539,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Boolean intern = (Boolean) this.safeBool(parameters, "internal");
+            Object intern = this.safeBool(parameters, "internal");
             parameters = this.omit(parameters, "internal");
             Object paginate = false;
             java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate");
@@ -12563,7 +12563,7 @@ public class BinanceCore extends BinanceApi
                 String defaultTo = ((Helpers.isTrue((Helpers.isEqual(fromAccount, "future"))))) ? "spot" : "future";
                 String toAccount = this.safeString(parameters, "toAccount", defaultTo);
                 Object type = this.safeString(parameters, "type");
-                java.util.Map<String, Object> accountsByType = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
+                Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
                 String fromId = this.safeString(accountsByType, fromAccount);
                 String toId = this.safeString(accountsByType, toAccount);
                 if (Helpers.isTrue(Helpers.isEqual(type, null)))
@@ -12605,7 +12605,7 @@ public class BinanceCore extends BinanceApi
             {
                 response = (this.sapiGetAssetTransfer(this.extend(request, parameters))).join();
             }
-            java.util.List<Object> rows = (java.util.List<Object>) this.safeList2(response, "rows", "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rows = this.safeList2(response, "rows", "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransfers(rows, currency, since, limit);
         });
 
@@ -12808,7 +12808,7 @@ public class BinanceCore extends BinanceApi
                 Object entry = Helpers.GetValue(coins, i);
                 String currencyId = this.safeString(entry, "coin");
                 String code = (String) this.safeCurrencyCode(currencyId);
-                java.util.List<Object> networkList = (java.util.List<Object>) this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object networkList = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     Helpers.addElementToObject(withdrawFees, code, new java.util.HashMap<String, Object>() {{}});
@@ -12946,7 +12946,7 @@ public class BinanceCore extends BinanceApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String code = this.safeString(currency, "code");
-        java.util.List<Object> networkList = (java.util.List<Object>) this.safeList(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networkList = this.safeList(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
@@ -12954,7 +12954,7 @@ public class BinanceCore extends BinanceApi
             String networkId = this.safeString(networkEntry, "network");
             Object networkCode = this.networkIdToCode(networkId, code);
             Double withdrawFee = this.safeNumber(networkEntry, "withdrawFee");
-            Boolean isDefault = (Boolean) this.safeBool(networkEntry, "isDefault");
+            Object isDefault = this.safeBool(networkEntry, "isDefault");
             if (Helpers.isTrue(Helpers.isEqual(isDefault, true)))
             {
                 Helpers.addElementToObject(result, "withdraw", new java.util.HashMap<String, Object>() {{
@@ -13078,7 +13078,7 @@ public class BinanceCore extends BinanceApi
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13306,12 +13306,12 @@ public class BinanceCore extends BinanceApi
                 //         ...
                 //     }
                 //
-                java.util.Map<String, Object> markets = this.markets;
+                Object markets = this.markets;
                 if (Helpers.isTrue(Helpers.isEqual(markets, null)))
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
                 }
-                Object symbols = Helpers.objectKeys(markets);
+                java.util.List<Object> symbols = Helpers.objectKeys(markets);
                 java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.fees, "linear"), "trading"), "tiers");
@@ -13346,12 +13346,12 @@ public class BinanceCore extends BinanceApi
                 //         "updateTime": 0
                 //     }
                 //
-                java.util.Map<String, Object> markets = this.markets;
+                Object markets = this.markets;
                 if (Helpers.isTrue(Helpers.isEqual(markets, null)))
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
                 }
-                Object symbols = Helpers.objectKeys(markets);
+                java.util.List<Object> symbols = Helpers.objectKeys(markets);
                 java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.fees, "inverse"), "trading"), "tiers");
@@ -13394,7 +13394,7 @@ public class BinanceCore extends BinanceApi
      * @param {float} params.recvWindow
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=futures-transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> futuresTransfer(String code, Object amount, Object type2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> futuresTransfer(Object code, Object amount, Object type2, Object... optionalArgs)
     {
         final Object type3 = type2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13710,8 +13710,8 @@ public class BinanceCore extends BinanceApi
     public Object parseAccountPositions(Object account, Object... optionalArgs)
     {
         Object filterClosed = Helpers.getArg(optionalArgs, 0, false);
-        java.util.List<Object> positions = (java.util.List<Object>) this.safeList(account, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> assets = (java.util.List<Object>) this.safeList(account, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object positions = this.safeList(account, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object assets = this.safeList(account, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> balances = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
         {
@@ -13885,8 +13885,8 @@ public class BinanceCore extends BinanceApi
             contractsStringAbs = Precise.stringDiv(Precise.stringAdd(contractsString, "0.5"), "1", 0);
         }
         Object contracts = this.parseNumber(contractsStringAbs);
-        java.util.Map<String, Object> leverageBrackets = (java.util.Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> leverageBracket = (java.util.List<Object>) this.safeList(leverageBrackets, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new java.util.HashMap<String, Object>() {{}});
+        Object leverageBracket = this.safeList(leverageBrackets, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object maintenanceMarginPercentageString = null;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverageBracket)); i++)
         {
@@ -14130,8 +14130,8 @@ public class BinanceCore extends BinanceApi
         market = this.safeMarket(marketId, market, null, "contract");
         String symbol = this.safeString(market, "symbol");
         String isolatedMarginString = this.safeString(position, "isolatedMargin");
-        java.util.Map<String, Object> leverageBrackets = (java.util.Map<String, Object>) this.safeDict(this.options, "leverageBrackets", new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> leverageBracket = (java.util.List<Object>) this.safeList(leverageBrackets, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object leverageBrackets = this.safeDict(this.options, "leverageBrackets", new java.util.HashMap<String, Object>() {{}});
+        Object leverageBracket = this.safeList(leverageBrackets, symbol, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String notionalString = this.safeString2(position, "notional", "notionalValue");
         String notionalStringAbs = Precise.stringAbs(notionalString);
         Object maintenanceMarginPercentageString = null;
@@ -14174,7 +14174,7 @@ public class BinanceCore extends BinanceApi
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
         {
             // calculate collateral
-            java.util.Map<String, Object> precision = (java.util.Map<String, Object>) this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}});
+            Object precision = this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}});
             String basePrecisionValue = this.safeString(precision, "base");
             String quotePrecisionValue = this.safeString2(precision, "quote", "price");
             Boolean precisionIsUndefined = Helpers.isTrue((Helpers.isEqual(basePrecisionValue, null))) && Helpers.isTrue((Helpers.isEqual(quotePrecisionValue, null)));
@@ -14322,7 +14322,7 @@ public class BinanceCore extends BinanceApi
             }
             // by default cache the leverage bracket
             // it contains useful stuff like the maintenance margin and initial margin for positions
-            java.util.Map<String, Object> leverageBrackets = (java.util.Map<String, Object>) this.safeDict(this.options, "leverageBrackets");
+            Object leverageBrackets = this.safeDict(this.options, "leverageBrackets");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(leverageBrackets, null))) || Helpers.isTrue((reload))))
             {
                 String defaultType = this.safeString(this.options, "defaultType", "future");
@@ -14370,7 +14370,7 @@ public class BinanceCore extends BinanceApi
                     Object entry = Helpers.GetValue(entries, i);
                     String marketId = this.safeString(entry, "symbol");
                     String symbol = (String) this.safeSymbol(marketId, null, null, "contract");
-                    java.util.List<Object> brackets = (java.util.List<Object>) this.safeList(entry, "brackets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object brackets = this.safeList(entry, "brackets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(brackets)); j++)
                     {
@@ -14517,7 +14517,7 @@ public class BinanceCore extends BinanceApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
-        java.util.List<Object> brackets = (java.util.List<Object>) this.safeList(info, "brackets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object brackets = this.safeList(info, "brackets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(brackets)); j++)
         {
@@ -14762,7 +14762,7 @@ final Object finalMarket = market;
             if (Helpers.isTrue(Helpers.isEqual(defaultMethod, null)))
             {
                 // check if .options['fetchPositions'] dict exist at all
-                java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchPositions");
+                Object options = this.safeDict(this.options, "fetchPositions");
                 if (Helpers.isTrue(Helpers.isEqual(options, null)))
                 {
                     // if undefined, for backward compatibility, check if it is a string
@@ -15496,7 +15496,7 @@ final Object finalMarket = market;
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "symbol");
-        Boolean marginModeRaw = (Boolean) this.safeBool(leverage, "isolated");
+        Object marginModeRaw = this.safeBool(leverage, "isolated");
         String marginMode = null;
         if (Helpers.isTrue(!Helpers.isEqual(marginModeRaw, null)))
         {
@@ -15772,7 +15772,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [ledger structure]{@link https://docs.ccxt.com/?id=ledger-entry-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLedgerEntry(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLedgerEntry(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -16051,12 +16051,12 @@ final Object finalMarket = market;
         }
         Object networkCode = null;
         java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(currencyCode);
-        java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
-        Object networkCodes = Helpers.objectKeys(networks);
+        Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> networkCodes = Helpers.objectKeys(networks);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networkCodes)); i++)
         {
             Object currentNetworkCode = Helpers.GetValue(networkCodes, i);
-            java.util.Map<String, Object> info = (java.util.Map<String, Object>) this.safeDict(Helpers.GetValue(networks, currentNetworkCode), "info", new java.util.HashMap<String, Object>() {{}});
+            Object info = this.safeDict(Helpers.GetValue(networks, currentNetworkCode), "info", new java.util.HashMap<String, Object>() {{}});
             String siteUrl = this.safeString(info, "contractAddressUrl");
             // check if url matches the field's value
             Object baseDomain = this.getBaseDomainFromUrl(siteUrl);
@@ -16068,7 +16068,7 @@ final Object finalMarket = market;
         return networkCode;
     }
 
-    public Object getBaseDomainFromUrl(String url)
+    public Object getBaseDomainFromUrl(Object url)
     {
         if (Helpers.isTrue(Helpers.isEqual(url, null)))
         {
@@ -16095,7 +16095,7 @@ final Object finalMarket = market;
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        java.util.Map<String, Object> urls = this.urls;
+        Object urls = this.urls;
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(urls, "api"), api))))
         {
             throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), api), " endpoints")) ;
@@ -16148,7 +16148,7 @@ final Object finalMarket = market;
                     Boolean isSpotOrMargin = (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(api, "sapi"), Helpers.opNeg(1))) || Helpers.isTrue(Helpers.isEqual(api, "private")));
                     String marketType = ((Helpers.isTrue(isSpotOrMargin))) ? "spot" : "future";
                     Object defaultId = ((Helpers.isTrue((!Helpers.isTrue(isSpotOrMargin))))) ? "x-xcKtGhcu" : "x-TKT5PX2F";
-                    java.util.Map<String, Object> broker = (java.util.Map<String, Object>) this.safeDict(this.options, "broker", new java.util.HashMap<String, Object>() {{}});
+                    Object broker = this.safeDict(this.options, "broker", new java.util.HashMap<String, Object>() {{}});
                     String brokerId = this.safeString(broker, marketType, defaultId);
                     Helpers.addElementToObject(parameters, "newClientOrderId", Helpers.add(brokerId, this.uuid22()));
                 }
@@ -16157,8 +16157,8 @@ final Object finalMarket = market;
             // handle batchOrders
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(path, "batchOrders"))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(method, "POST"))) || Helpers.isTrue((Helpers.isEqual(method, "PUT")))))))
             {
-                java.util.List<Object> batchOrders = (java.util.List<Object>) this.safeList(parameters, "batchOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                java.util.List<Object> checkedBatchOrders = batchOrders;
+                Object batchOrders = this.safeList(parameters, "batchOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object checkedBatchOrders = batchOrders;
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "POST")) && Helpers.isTrue(Helpers.isEqual(api, "fapiPrivate"))))
                 {
                     // check broker id if batchOrders are called with fapiPrivatePostBatchOrders
@@ -16170,7 +16170,7 @@ final Object finalMarket = market;
                         if (Helpers.isTrue(Helpers.isEqual(newClientOrderId, null)))
                         {
                             String defaultId = "x-xcKtGhcu"; // batchOrders can not be spot or margin
-                            java.util.Map<String, Object> broker = (java.util.Map<String, Object>) this.safeDict(this.options, "broker", new java.util.HashMap<String, Object>() {{}});
+                            Object broker = this.safeDict(this.options, "broker", new java.util.HashMap<String, Object>() {{}});
                             String brokerId = this.safeString(broker, "future", defaultId);
                             newClientOrderId = Helpers.add(brokerId, this.uuid22());
                             Helpers.addElementToObject(batchOrder, "newClientOrderId", newClientOrderId);
@@ -16202,7 +16202,7 @@ final Object finalMarket = market;
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "DELETE"))) && Helpers.isTrue((Helpers.isEqual(path, "batchOrders")))))
                 {
                     Object orderidlist = this.safeList(extendedParams, "orderidlist", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    java.util.List<Object> origclientorderidlist = (java.util.List<Object>) this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object origclientorderidlist = this.safeList2(extendedParams, "origclientorderidlist", "origClientOrderIdList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     extendedParams = this.omit(extendedParams, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderidlist", "origclientorderidlist", "origClientOrderIdList")));
                     if (Helpers.isTrue(Helpers.inOp(extendedParams, "symbol")))
                     {
@@ -16278,7 +16278,7 @@ final Object finalMarket = market;
         }};
     }
 
-    public Object getExceptionsByUrl(Object url, String exactOrBroad)
+    public Object getExceptionsByUrl(Object url, Object exactOrBroad)
     {
         if (Helpers.isTrue(Helpers.isEqual(url, null)))
         {
@@ -16304,7 +16304,7 @@ final Object finalMarket = market;
         }
         if (Helpers.isTrue(!Helpers.isEqual(marketType, null)))
         {
-            java.util.Map<String, Object> exceptionsForMarketType = (java.util.Map<String, Object>) this.safeDict(this.exceptions, marketType, new java.util.HashMap<String, Object>() {{}});
+            Object exceptionsForMarketType = this.safeDict(this.exceptions, marketType, new java.util.HashMap<String, Object>() {{}});
             return this.safeDict(exceptionsForMarketType, exactOrBroad, new java.util.HashMap<String, Object>() {{}});
         }
         return new java.util.HashMap<String, Object>() {{}};
@@ -16339,7 +16339,7 @@ final Object finalMarket = market;
             return null;  // fallback to default error handler
         }
         // response in format {'msg': 'The coin does not exist.', 'success': true/false}
-        Boolean success = (Boolean) this.safeBool(response, "success", true);
+        Object success = this.safeBool(response, "success", true);
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             String messageNew = this.safeString(response, "msg");
@@ -16467,7 +16467,7 @@ final Object finalMarket = market;
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount2, Object addOrReduce, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount2, Object addOrReduce, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -16588,7 +16588,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -16610,7 +16610,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -16630,7 +16630,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [borrow rate structure]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -16655,7 +16655,7 @@ final Object finalMarket = market;
             //         },
             //     ]
             //
-            java.util.Map<String, Object> rate = (java.util.Map<String, Object>) this.safeDict(response, 0);
+            Object rate = this.safeDict(response, 0);
             return this.parseBorrowRate(rate);
         });
 
@@ -16673,7 +16673,7 @@ final Object finalMarket = market;
      * @param {object} [params.vipLevel] user's current specific margin data will be returned if viplevel is omitted
      * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchIsolatedBorrowRate(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchIsolatedBorrowRate(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -16756,7 +16756,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchBorrowRateHistory(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchBorrowRateHistory(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -16851,9 +16851,9 @@ final Object finalMarket = market;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market, null, "spot");
-        java.util.List<Object> data = (java.util.List<Object>) this.safeList(info, "data");
-        java.util.Map<String, Object> baseInfo = (java.util.Map<String, Object>) this.safeDict(data, 0);
-        java.util.Map<String, Object> quoteInfo = (java.util.Map<String, Object>) this.safeDict(data, 1);
+        Object data = this.safeList(info, "data");
+        Object baseInfo = this.safeDict(data, 0);
+        Object quoteInfo = this.safeDict(data, 1);
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
@@ -16878,7 +16878,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} The gift code id, code, currency and amount
      */
-    public java.util.concurrent.CompletableFuture<Object> createGiftCode(String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createGiftCode(Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -16903,7 +16903,7 @@ final Object finalMarket = market;
             //         "success": true
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data");
             String giftcardCode = this.safeString(data, "code");
             String id = this.safeString(data, "referenceNo");
             return new java.util.HashMap<String, Object>() {{
@@ -16961,7 +16961,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} response from the exchange
      */
-    public java.util.concurrent.CompletableFuture<Object> verifyGiftCode(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> verifyGiftCode(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -17083,7 +17083,7 @@ final Object finalMarket = market;
             //         ]
             //     }
             //
-            java.util.List<Object> rows = (java.util.List<Object>) this.safeList(response, "rows");
+            Object rows = this.safeList(response, "rows");
             Object interest = this.parseBorrowInterests(rows, market);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
         });
@@ -17125,7 +17125,7 @@ final Object finalMarket = market;
      * @param {string} [params.specifyRepayAssets] *portfolio margin papiPostMarginRepayDebt only* specific asset list to repay debt
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -17180,7 +17180,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(Object symbol, Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -17223,7 +17223,7 @@ final Object finalMarket = market;
      * @param {boolean} [params.portfolioMargin] set to true if you would like to borrow margin in a portfolio margin account
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -17274,7 +17274,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(Object symbol, Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -17352,7 +17352,7 @@ final Object finalMarket = market;
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [open interest structure]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -17753,7 +17753,7 @@ final Object finalMarket = market;
             //     ]
             //
             Object liquidationsList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> rows = (java.util.List<Object>) this.safeList(response, "rows");
+            Object rows = this.safeList(response, "rows");
             if (Helpers.isTrue(!Helpers.isEqual(rows, null)))
             {
                 liquidationsList = rows;
@@ -17863,7 +17863,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchGreeks(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -18071,7 +18071,7 @@ final Object finalMarket = market;
             //        dualSidePosition: false
             //    }
             //
-            Boolean dualSidePosition = (Boolean) this.safeBool(response, "dualSidePosition");
+            Object dualSidePosition = this.safeBool(response, "dualSidePosition");
             final Object finalResponse = response;
             return new java.util.HashMap<String, Object>() {{
                 put( "info", finalResponse );
@@ -18146,7 +18146,7 @@ final Object finalMarket = market;
      * @param {string} [params.subType] "linear" or "inverse"
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -18190,7 +18190,7 @@ final Object finalMarket = market;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(marginMode, "symbol");
         market = this.safeMarket(marketId, market);
-        Boolean marginModeRaw = (Boolean) this.safeBool(marginMode, "isolated");
+        Object marginModeRaw = this.safeBool(marginMode, "isolated");
         String reMarginMode = null;
         if (Helpers.isTrue(!Helpers.isEqual(marginModeRaw, null)))
         {
@@ -18219,7 +18219,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [option chain structure]{@link https://docs.ccxt.com/?id=option-chain-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOption(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOption(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -18258,7 +18258,7 @@ final Object finalMarket = market;
             //         }
             //     ]
             //
-            java.util.Map<String, Object> chain = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            Object chain = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOption(chain, null, market);
         });
 
@@ -18488,7 +18488,7 @@ final Object finalMarket = market;
      * @param {string} [params.walletType] either 'SPOT' or 'FUNDING', the default is 'SPOT'
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertQuote(String fromCode, String toCode, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchConvertQuote(Object fromCode, Object toCode, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -18543,7 +18543,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createConvertTrade(String id, String fromCode2, String toCode2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createConvertTrade(Object id, Object fromCode2, Object toCode2, Object... optionalArgs)
     {
         final Object fromCode3 = fromCode2;
         final Object toCode3 = toCode2;
@@ -18595,7 +18595,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertTrade(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchConvertTrade(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -18629,7 +18629,7 @@ final Object finalMarket = market;
             Object data = response;
             if (Helpers.isTrue(Helpers.isEqual(code, "BUSD")))
             {
-                java.util.List<Object> rows = (java.util.List<Object>) this.safeList(response, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object rows = this.safeList(response, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 data = this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
             }
             String fromCurrencyId = this.safeString2(data, "deductedAsset", "fromAsset");
@@ -18728,7 +18728,7 @@ final Object finalMarket = market;
                 responseQuery = "list";
                 response = (this.sapiGetConvertTradeFlow(this.extend(request, parameters))).join();
             }
-            java.util.List<Object> rows = (java.util.List<Object>) this.safeList(response, responseQuery, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rows = this.safeList(response, responseQuery, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseConversions(rows, code, fromCurrencyKey, toCurrencyKey, since, limit);
         });
 
@@ -19002,7 +19002,7 @@ final Object finalMarket = market;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [auto de leverage structure]{@link https://docs.ccxt.com/?id=auto-de-leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchADLRank(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchADLRank(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -19139,7 +19139,7 @@ final Object finalMarket = market;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        java.util.Map<String, Object> adlQuantile = (java.util.Map<String, Object>) this.safeDict(info, "adlQuantile", new java.util.HashMap<String, Object>() {{}});
+        Object adlQuantile = this.safeDict(info, "adlQuantile", new java.util.HashMap<String, Object>() {{}});
         Double longNum = this.safeNumber(adlQuantile, "LONG");
         Double shortNum = this.safeNumber(adlQuantile, "SHORT");
         Double both = this.safeNumber(adlQuantile, "BOTH");

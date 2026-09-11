@@ -807,13 +807,13 @@ public class CoinbaseCore extends CoinbaseApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> pagination = (java.util.Map<String, Object>) this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "next_starting_after");
-            java.util.List<Object> accounts = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object accounts = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Integer length = Helpers.getArrayLength(accounts);
             Object lastIndex = Helpers.subtract(length, 1);
-            java.util.Map<String, Object> last = (java.util.Map<String, Object>) this.safeDict(accounts, lastIndex, new java.util.HashMap<String, Object>() {{}});
+            Object last = this.safeDict(accounts, lastIndex, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cursor, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
                 Helpers.addElementToObject(last, "next_starting_after", cursor);
@@ -876,13 +876,13 @@ public class CoinbaseCore extends CoinbaseApi
             //         "size": 9
             //     }
             //
-            java.util.List<Object> accounts = (java.util.List<Object>) this.safeList(response, "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object accounts = this.safeList(response, "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Integer accountsLength = Helpers.getArrayLength(accounts);
             String cursor = this.safeString(response, "cursor");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(accountsLength, 0))) && Helpers.isTrue((!Helpers.isEqual(cursor, null)))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
                 Object lastIndex = Helpers.subtract(accountsLength, 1);
-                java.util.Map<String, Object> last = (java.util.Map<String, Object>) this.safeDict(accounts, lastIndex, new java.util.HashMap<String, Object>() {{}});
+                Object last = this.safeDict(accounts, lastIndex, new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(last, "cursor", cursor);
                 Helpers.addElementToObject(accounts, lastIndex, last);
             }
@@ -906,7 +906,7 @@ public class CoinbaseCore extends CoinbaseApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> response = (this.v3PrivateGetBrokeragePortfolios(parameters)).join();
-            java.util.List<Object> portfolios = (java.util.List<Object>) this.safeList(response, "portfolios", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object portfolios = this.safeList(response, "portfolios", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(portfolios)); i++)
             {
@@ -980,9 +980,9 @@ public class CoinbaseCore extends CoinbaseApi
         //         }
         //     }
         //
-        Boolean active = (Boolean) this.safeBool(account, "active");
+        Object active = this.safeBool(account, "active");
         String currencyIdV3 = this.safeString(account, "currency");
-        java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeDict(account, "currency", new java.util.HashMap<String, Object>() {{}});
+        Object currency = this.safeDict(account, "currency", new java.util.HashMap<String, Object>() {{}});
         String currencyId = this.safeString(currency, "code", currencyIdV3);
         String typeV3 = this.safeString(account, "name");
         String typeV2 = this.safeString(account, "type");
@@ -1071,7 +1071,7 @@ public class CoinbaseCore extends CoinbaseApi
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String tag = this.safeString(data, "destination_tag");
             String address = this.safeString(data, "address");
             return new java.util.HashMap<String, Object>() {{
@@ -1114,7 +1114,7 @@ public class CoinbaseCore extends CoinbaseApi
             }
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("account_id", "accountId")));
             java.util.Map<String, Object> sells = (this.v2PrivateGetAccountsAccountIdSells(this.extend(request, query))).join();
-            java.util.List<Object> sellsData = (java.util.List<Object>) this.safeList(sells, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object sellsData = this.safeList(sells, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(sellsData, null, since, limit);
         });
 
@@ -1149,7 +1149,7 @@ public class CoinbaseCore extends CoinbaseApi
             }
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("account_id", "accountId")));
             java.util.Map<String, Object> buys = (this.v2PrivateGetAccountsAccountIdBuys(this.extend(request, query))).join();
-            java.util.List<Object> buysData = (java.util.List<Object>) this.safeList(buys, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object buysData = this.safeList(buys, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(buysData, null, since, limit);
         });
 
@@ -1459,7 +1459,7 @@ public class CoinbaseCore extends CoinbaseApi
         String transactionType = this.safeString(transaction, "type");
         Object amountAndCurrencyObject = null;
         Object feeObject = null;
-        java.util.Map<String, Object> network = (java.util.Map<String, Object>) this.safeDict(transaction, "network", new java.util.HashMap<String, Object>() {{}});
+        Object network = this.safeDict(transaction, "network", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(transactionType, "send")))
         {
             amountAndCurrencyObject = this.safeDict(network, "transaction_amount");
@@ -1478,7 +1478,7 @@ public class CoinbaseCore extends CoinbaseApi
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
         {
-            Boolean committed = (Boolean) this.safeBool(transaction, "committed");
+            Object committed = this.safeBool(transaction, "committed");
             status = ((Helpers.isTrue((Helpers.isEqual(committed, true))))) ? "ok" : "pending";
         }
         String id = this.safeString(transaction, "id");
@@ -1497,7 +1497,7 @@ public class CoinbaseCore extends CoinbaseApi
                 type = "withdrawal";
             }
         }
-        java.util.Map<String, Object> toObject = (java.util.Map<String, Object>) this.safeDict(transaction, "to");
+        Object toObject = this.safeDict(transaction, "to");
         String addressTo = this.safeString(toObject, "address");
         String networkId = this.safeString(network, "network_name");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
@@ -1594,10 +1594,10 @@ public class CoinbaseCore extends CoinbaseApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = null;
-        java.util.Map<String, Object> totalObject = (java.util.Map<String, Object>) this.safeDict(trade, "total", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> amountObject = (java.util.Map<String, Object>) this.safeDict(trade, "amount", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> subtotalObject = (java.util.Map<String, Object>) this.safeDict(trade, "subtotal", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> feeObject = (java.util.Map<String, Object>) this.safeDict(trade, "fee", new java.util.HashMap<String, Object>() {{}});
+        Object totalObject = this.safeDict(trade, "total", new java.util.HashMap<String, Object>() {{}});
+        Object amountObject = this.safeDict(trade, "amount", new java.util.HashMap<String, Object>() {{}});
+        Object subtotalObject = this.safeDict(trade, "subtotal", new java.util.HashMap<String, Object>() {{}});
+        Object feeObject = this.safeDict(trade, "fee", new java.util.HashMap<String, Object>() {{}});
         String marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market, "-");
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
@@ -1614,7 +1614,7 @@ public class CoinbaseCore extends CoinbaseApi
                 symbol = Helpers.add(Helpers.add(base, "/"), quote);
             }
         }
-        Boolean sizeInQuote = (Boolean) this.safeBool(trade, "size_in_quote");
+        Object sizeInQuote = this.safeBool(trade, "size_in_quote");
         String v3Price = this.safeString(trade, "price");
         Object v3Cost = null;
         String v3Amount = this.safeString(trade, "size");
@@ -1719,12 +1719,12 @@ public class CoinbaseCore extends CoinbaseApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object response = (this.fetchCurrenciesFromCache(parameters)).join();
-            java.util.Map<String, Object> currencies = (java.util.Map<String, Object>) this.safeDict(response, "currencies", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> exchangeRates = (java.util.Map<String, Object>) this.safeDict(response, "exchangeRates", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(currencies, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object currencies = this.safeDict(response, "currencies", new java.util.HashMap<String, Object>() {{}});
+            Object exchangeRates = this.safeDict(response, "exchangeRates", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(currencies, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> dataById = this.indexBy(data, "id");
-            java.util.Map<String, Object> rates = (java.util.Map<String, Object>) this.safeDict(this.safeDict(exchangeRates, "data", new java.util.HashMap<String, Object>() {{}}), "rates", new java.util.HashMap<String, Object>() {{}});
-            Object baseIds = Helpers.objectKeys(rates);
+            Object rates = this.safeDict(this.safeDict(exchangeRates, "data", new java.util.HashMap<String, Object>() {{}}), "rates", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> baseIds = Helpers.objectKeys(rates);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(baseIds)); i++)
             {
@@ -1909,12 +1909,12 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 contractPromises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            java.util.Map<String, Object> spot = (java.util.Map<String, Object>) this.safeDict(promises, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> fees = (java.util.Map<String, Object>) this.safeDict(promises, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> expiringFutures = (java.util.Map<String, Object>) this.safeDict(contractPromises, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> perpetualFutures = (java.util.Map<String, Object>) this.safeDict(contractPromises, 1, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> expiringFees = (java.util.Map<String, Object>) this.safeDict(contractPromises, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> perpetualFees = (java.util.Map<String, Object>) this.safeDict(contractPromises, 1, new java.util.HashMap<String, Object>() {{}});
+            Object spot = this.safeDict(promises, 0, new java.util.HashMap<String, Object>() {{}});
+            Object fees = this.safeDict(promises, 1, new java.util.HashMap<String, Object>() {{}});
+            Object expiringFutures = this.safeDict(contractPromises, 0, new java.util.HashMap<String, Object>() {{}});
+            Object perpetualFutures = this.safeDict(contractPromises, 1, new java.util.HashMap<String, Object>() {{}});
+            Object expiringFees = this.safeDict(contractPromises, 0, new java.util.HashMap<String, Object>() {{}});
+            Object perpetualFees = this.safeDict(contractPromises, 1, new java.util.HashMap<String, Object>() {{}});
             //
             //     {
             //         "total_volume": 0,
@@ -1934,21 +1934,21 @@ public class CoinbaseCore extends CoinbaseApi
             //         "coinbase_pro_fees": 0
             //     }
             //
-            java.util.Map<String, Object> feeTier = (java.util.Map<String, Object>) this.safeDict(fees, "fee_tier", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> expiringFeeTier = (java.util.Map<String, Object>) this.safeDict(expiringFees, "fee_tier", new java.util.HashMap<String, Object>() {{}}); // fee tier null?
-            java.util.Map<String, Object> perpetualFeeTier = (java.util.Map<String, Object>) this.safeDict(perpetualFees, "fee_tier", new java.util.HashMap<String, Object>() {{}}); // fee tier null?
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(spot, "products", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object feeTier = this.safeDict(fees, "fee_tier", new java.util.HashMap<String, Object>() {{}});
+            Object expiringFeeTier = this.safeDict(expiringFees, "fee_tier", new java.util.HashMap<String, Object>() {{}}); // fee tier null?
+            Object perpetualFeeTier = this.safeDict(perpetualFees, "fee_tier", new java.util.HashMap<String, Object>() {{}}); // fee tier null?
+            Object data = this.safeList(spot, "products", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parseSpotMarket(Helpers.GetValue(data, i), feeTier));
             }
-            java.util.List<Object> futureData = (java.util.List<Object>) this.safeList(expiringFutures, "products", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object futureData = this.safeList(expiringFutures, "products", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(futureData)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parseContractMarket(Helpers.GetValue(futureData, i), expiringFeeTier));
             }
-            java.util.List<Object> perpetualData = (java.util.List<Object>) this.safeList(perpetualFutures, "products", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object perpetualData = this.safeList(perpetualFutures, "products", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(perpetualData)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parseContractMarket(Helpers.GetValue(perpetualData, i), perpetualFeeTier));
@@ -1958,7 +1958,7 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 Object market = Helpers.GetValue(result, i);
                 Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
-                java.util.List<Object> realMarketIds = (java.util.List<Object>) this.safeList(info, "alias_to", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object realMarketIds = this.safeList(info, "alias_to", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Integer length = Helpers.getArrayLength(realMarketIds);
                 if (Helpers.isTrue(Helpers.isGreaterThan(length, 0)))
                 {
@@ -2013,8 +2013,8 @@ public class CoinbaseCore extends CoinbaseApi
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         String marketType = (String)this.safeStringLower(market, "product_type");
-        Boolean tradingDisabled = (Boolean) this.safeBool(market, "trading_disabled");
-        java.util.List<Object> stablePairs = (java.util.List<Object>) this.safeList(this.options, "stablePairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object tradingDisabled = this.safeBool(market, "trading_disabled");
+        Object stablePairs = this.safeList(this.options, "stablePairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Double defaultTakerFee = this.safeNumber(Helpers.GetValue(this.fees, "trading"), "taker");
         Double defaultMakerFee = this.safeNumber(Helpers.GetValue(this.fees, "trading"), "maker");
         Object takerFee = ((Helpers.isTrue(this.inArray(id, stablePairs)))) ? 0.00001 : ((Object) this.safeNumber(feeTier, "taker_fee_rate", defaultTakerFee));
@@ -2195,7 +2195,7 @@ public class CoinbaseCore extends CoinbaseApi
         //        }
         //
         String id = this.safeString(market, "product_id");
-        java.util.Map<String, Object> futureProductDetails = (java.util.Map<String, Object>) this.safeDict(market, "future_product_details", new java.util.HashMap<String, Object>() {{}});
+        Object futureProductDetails = this.safeDict(market, "future_product_details", new java.util.HashMap<String, Object>() {{}});
         String contractExpiryType = this.safeString(futureProductDetails, "contract_expiry_type");
         Double contractSize = this.safeNumber(futureProductDetails, "contract_size");
         String contractExpire = this.safeString(futureProductDetails, "contract_expiry");
@@ -2206,7 +2206,7 @@ public class CoinbaseCore extends CoinbaseApi
         String quoteId = this.safeString(market, "quote_currency_id");
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        Boolean tradingDisabled = (Boolean) this.safeBool(market, "is_disabled");
+        Object tradingDisabled = this.safeBool(market, "is_disabled");
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         String type = null;
         if (Helpers.isTrue(isSwap))
@@ -2285,7 +2285,7 @@ public class CoinbaseCore extends CoinbaseApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchCurrencies", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchCurrencies", new java.util.HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(options, "timestamp");
             Long expires = this.safeInteger(options, "expires", 1000);
             Long now = this.milliseconds();
@@ -2293,7 +2293,7 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters)));
                 Object promisesResult = (Helpers.promiseAll(promises)).join();
-                java.util.Map<String, Object> fiatResponse = (java.util.Map<String, Object>) this.safeDict(promisesResult, 0, new java.util.HashMap<String, Object>() {{}});
+                Object fiatResponse = this.safeDict(promisesResult, 0, new java.util.HashMap<String, Object>() {{}});
                 //
                 //    [
                 //        "data": {
@@ -2304,7 +2304,7 @@ public class CoinbaseCore extends CoinbaseApi
                 //        ...
                 //    ]
                 //
-                java.util.Map<String, Object> cryptoResponse = (java.util.Map<String, Object>) this.safeDict(promisesResult, 1, new java.util.HashMap<String, Object>() {{}});
+                Object cryptoResponse = this.safeDict(promisesResult, 1, new java.util.HashMap<String, Object>() {{}});
                 //
                 //    {
                 //        asset_id: '9476e3be-b731-47fa-82be-347fabc573d9',
@@ -2317,8 +2317,8 @@ public class CoinbaseCore extends CoinbaseApi
                 //        address_regex: '^(?:0x)?[0-9a-fA-F]{40}$'
                 //    }
                 //
-                java.util.List<Object> fiatData = (java.util.List<Object>) this.safeList(fiatResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                java.util.List<Object> cryptoData = (java.util.List<Object>) this.safeList(cryptoResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object fiatData = this.safeList(fiatResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object cryptoData = this.safeList(cryptoResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 java.util.Map<String, Object> exchangeRates = (this.v2PublicGetExchangeRates(parameters)).join();
                 final Object finalNow = now;
                 Helpers.addElementToObject(this.options, "fetchCurrencies", this.extend(options, new java.util.HashMap<String, Object>() {{
@@ -2349,7 +2349,7 @@ public class CoinbaseCore extends CoinbaseApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.v2PublicGetCurrencies(parameters), this.v2PublicGetCurrenciesCrypto(parameters), this.v2PublicGetExchangeRates(parameters)));
             Object promisesResult = (Helpers.promiseAll(promises)).join();
-            java.util.Map<String, Object> fiatResponse = (java.util.Map<String, Object>) this.safeDict(promisesResult, 0, new java.util.HashMap<String, Object>() {{}});
+            Object fiatResponse = this.safeDict(promisesResult, 0, new java.util.HashMap<String, Object>() {{}});
             //
             //    [
             //        "data": [
@@ -2360,7 +2360,7 @@ public class CoinbaseCore extends CoinbaseApi
             //            },
             //        ...
             //
-            java.util.Map<String, Object> cryptoResponse = (java.util.Map<String, Object>) this.safeDict(promisesResult, 1, new java.util.HashMap<String, Object>() {{}});
+            Object cryptoResponse = this.safeDict(promisesResult, 1, new java.util.HashMap<String, Object>() {{}});
             //
             //     [
             //        "data": [
@@ -2376,12 +2376,12 @@ public class CoinbaseCore extends CoinbaseApi
             //           },
             //          ...
             //
-            java.util.Map<String, Object> ratesResponse = (java.util.Map<String, Object>) this.safeDict(promisesResult, 2, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> fiatData = (java.util.List<Object>) this.safeList(fiatResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> cryptoData = (java.util.List<Object>) this.safeList(cryptoResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> ratesData = (java.util.Map<String, Object>) this.safeDict(ratesResponse, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> rates = (java.util.Map<String, Object>) this.safeDict(ratesData, "rates", new java.util.HashMap<String, Object>() {{}});
-            Object ratesIds = Helpers.objectKeys(rates);
+            Object ratesResponse = this.safeDict(promisesResult, 2, new java.util.HashMap<String, Object>() {{}});
+            Object fiatData = this.safeList(fiatResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object cryptoData = this.safeList(cryptoResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object ratesData = this.safeDict(ratesResponse, "data", new java.util.HashMap<String, Object>() {{}});
+            Object rates = this.safeDict(ratesData, "rates", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> ratesIds = Helpers.objectKeys(rates);
             java.util.List<Object> currencies = (java.util.List<Object>) this.arrayConcat(fiatData, cryptoData);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
@@ -2521,11 +2521,11 @@ public class CoinbaseCore extends CoinbaseApi
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> rates = (java.util.Map<String, Object>) this.safeDict(data, "rates", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object rates = this.safeDict(data, "rates", new java.util.HashMap<String, Object>() {{}});
             String quoteId = this.safeString(data, "currency");
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object baseIds = Helpers.objectKeys(rates);
+            java.util.List<Object> baseIds = Helpers.objectKeys(rates);
             String delimiter = "-";
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(baseIds)); i++)
             {
@@ -2614,7 +2614,7 @@ public class CoinbaseCore extends CoinbaseApi
             //         "num_products": 549
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "products", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "products", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -2683,9 +2683,9 @@ public class CoinbaseCore extends CoinbaseApi
             //
             //     {"data":{"base":"BTC","currency":"USD","amount":"48691.23"}}
             //
-            java.util.Map<String, Object> spotData = (java.util.Map<String, Object>) this.safeDict(spot, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> askData = (java.util.Map<String, Object>) this.safeDict(ask, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> bidData = (java.util.Map<String, Object>) this.safeDict(bid, "data", new java.util.HashMap<String, Object>() {{}});
+            Object spotData = this.safeDict(spot, "data", new java.util.HashMap<String, Object>() {{}});
+            Object askData = this.safeDict(ask, "data", new java.util.HashMap<String, Object>() {{}});
+            Object bidData = this.safeDict(bid, "data", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> bidAskLast = new java.util.HashMap<String, Object>() {{
                 put( "bid", CoinbaseCore.this.safeNumber(bidData, "amount") );
                 put( "ask", CoinbaseCore.this.safeNumber(askData, "amount") );
@@ -2741,8 +2741,8 @@ public class CoinbaseCore extends CoinbaseApi
             //         "best_ask": "28208.62"
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             Object ticker = this.parseTicker(first, market);
             Helpers.addElementToObject(ticker, "bid", this.safeNumber(response, "best_bid"));
             Helpers.addElementToObject(ticker, "ask", this.safeNumber(response, "best_ask"));
@@ -2850,10 +2850,10 @@ public class CoinbaseCore extends CoinbaseApi
         Object askVolume = null;
         if (Helpers.isTrue((Helpers.inOp(ticker, "bids"))))
         {
-            java.util.List<Object> bids = (java.util.List<Object>) this.safeList(ticker, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> asks = (java.util.List<Object>) this.safeList(ticker, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> firstBid = (java.util.Map<String, Object>) this.safeDict(bids, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> firstAsk = (java.util.Map<String, Object>) this.safeDict(asks, 0, new java.util.HashMap<String, Object>() {{}});
+            Object bids = this.safeList(ticker, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object asks = this.safeList(ticker, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object firstBid = this.safeDict(bids, 0, new java.util.HashMap<String, Object>() {{}});
+            Object firstAsk = this.safeDict(asks, 0, new java.util.HashMap<String, Object>() {{}});
             bid = this.safeNumber(firstBid, "price");
             bidVolume = this.safeNumber(firstBid, "size");
             ask = this.safeNumber(firstAsk, "price");
@@ -2895,7 +2895,7 @@ public class CoinbaseCore extends CoinbaseApi
     public Object parseCustomBalance(Object response, Object... optionalArgs)
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> balances = (java.util.List<Object>) this.safeList2(response, "data", "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object balances = this.safeList2(response, "data", "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object accounts = this.safeList(parameters, "type", Helpers.GetValue(this.options, "accounts"));
         Object v3Accounts = this.safeList(parameters, "type", Helpers.GetValue(this.options, "v3Accounts"));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -2907,7 +2907,7 @@ public class CoinbaseCore extends CoinbaseApi
             String type = this.safeString(balance, "type");
             if (Helpers.isTrue(this.inArray(type, accounts)))
             {
-                java.util.Map<String, Object> value = (java.util.Map<String, Object>) this.safeDict(balance, "balance");
+                Object value = this.safeDict(balance, "balance");
                 if (Helpers.isTrue(!Helpers.isEqual(value, null)))
                 {
                     String currencyId = this.safeString(value, "currency");
@@ -2932,8 +2932,8 @@ public class CoinbaseCore extends CoinbaseApi
                 }
             } else if (Helpers.isTrue(this.inArray(type, v3Accounts)))
             {
-                java.util.Map<String, Object> available = (java.util.Map<String, Object>) this.safeDict(balance, "available_balance");
-                java.util.Map<String, Object> hold = (java.util.Map<String, Object>) this.safeDict(balance, "hold");
+                Object available = this.safeDict(balance, "available_balance");
+                Object hold = this.safeDict(balance, "hold");
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(available, null)) && Helpers.isTrue(!Helpers.isEqual(hold, null))))
                 {
                     String currencyId = this.safeString(available, "currency");
@@ -2989,7 +2989,7 @@ public class CoinbaseCore extends CoinbaseApi
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
-            Boolean isV3 = (Boolean) this.safeBool(parameters, "v3", false);
+            Object isV3 = this.safeBool(parameters, "v3", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("v3")));
             Object marketType = null;
             java.util.List<Object> marketTypeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("fetchBalance", null, parameters);
@@ -3131,7 +3131,7 @@ public class CoinbaseCore extends CoinbaseApi
             // the value for the next page can be obtained from the result of the previous call in the 'pagination' field
             // eg: instance.last_http_response -> pagination.next_starting_after
             java.util.Map<String, Object> response = (this.v2PrivateGetAccountsAccountIdTransactions(this.extend(request, parameters))).join();
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> ledger = this.parseLedger(data, currency, since, limit);
             Integer length = Helpers.getArrayLength(ledger);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
@@ -3140,7 +3140,7 @@ public class CoinbaseCore extends CoinbaseApi
             }
             Object lastIndex = Helpers.subtract(length, 1);
             Object last = this.safeDict(ledger, lastIndex);
-            java.util.Map<String, Object> pagination = (java.util.Map<String, Object>) this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
+            Object pagination = this.safeDict(response, "pagination", new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(pagination, "next_starting_after");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cursor, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
@@ -3422,7 +3422,7 @@ public class CoinbaseCore extends CoinbaseApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        java.util.Map<String, Object> amountInfo = (java.util.Map<String, Object>) this.safeDict(item, "amount", new java.util.HashMap<String, Object>() {{}});
+        Object amountInfo = this.safeDict(item, "amount", new java.util.HashMap<String, Object>() {{}});
         String amount = this.safeString(amountInfo, "amount");
         String direction = null;
         if (Helpers.isTrue(Precise.stringLt(amount, "0")))
@@ -3446,9 +3446,9 @@ public class CoinbaseCore extends CoinbaseApi
         //     let txid = undefined;
         //
         Object fee = null;
-        java.util.Map<String, Object> networkInfo = (java.util.Map<String, Object>) this.safeDict(item, "network", new java.util.HashMap<String, Object>() {{}});
+        Object networkInfo = this.safeDict(item, "network", new java.util.HashMap<String, Object>() {{}});
         // txid = network['hash']; // txid does not belong to the unified ledger structure
-        java.util.Map<String, Object> feeInfo = (java.util.Map<String, Object>) this.safeDict(networkInfo, "transaction_fee");
+        Object feeInfo = this.safeDict(networkInfo, "transaction_fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeInfo, null)))
         {
             String feeCurrencyId = this.safeString(feeInfo, "currency");
@@ -3658,7 +3658,7 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "product_id", Helpers.GetValue(market, "id") );
                 put( "side", ((String)((String)finalSide)).toUpperCase() );
             }};
-            Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
+            Object reduceOnly = this.safeBool(parameters, "reduceOnly");
             if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
             {
                 parameters = this.omit(parameters, "reduceOnly");
@@ -3854,7 +3854,7 @@ public class CoinbaseCore extends CoinbaseApi
                 }
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("timeInForce", "triggerPrice", "stopLossPrice", "takeProfitPrice", "stopPrice", "stop_price", "stopDirection", "stop_direction", "clientOrderId", "postOnly", "post_only", "end_time", "marginMode")));
-            Boolean preview = (Boolean) this.safeBool2(parameters, "preview", "test", false);
+            Object preview = this.safeBool2(parameters, "preview", "test", false);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(preview, true)))
             {
@@ -3902,10 +3902,10 @@ public class CoinbaseCore extends CoinbaseApi
             //         }
             //     }
             //
-            Boolean success = (Boolean) this.safeBool(response, "success");
+            Object success = this.safeBool(response, "success");
             if (Helpers.isTrue(!Helpers.isEqual(success, true)))
             {
-                java.util.Map<String, Object> errorResponse = (java.util.Map<String, Object>) this.safeDict(response, "error_response");
+                Object errorResponse = this.safeDict(response, "error_response");
                 String errorTitle = this.safeString(errorResponse, "error");
                 String errorMessage = this.safeString(errorResponse, "message");
                 if (Helpers.isTrue(!Helpers.isEqual(errorResponse, null)))
@@ -3915,7 +3915,7 @@ public class CoinbaseCore extends CoinbaseApi
                     throw new ExchangeError((String)((String)errorMessage)) ;
                 }
             }
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "success_response", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "success_response", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -3992,13 +3992,13 @@ public class CoinbaseCore extends CoinbaseApi
         {
             market = this.safeMarket(symbol, market);
         }
-        java.util.Map<String, Object> orderConfiguration = (java.util.Map<String, Object>) this.safeDict(order, "order_configuration", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> limitGTC = (java.util.Map<String, Object>) this.safeDict(orderConfiguration, "limit_limit_gtc");
-        java.util.Map<String, Object> limitGTD = (java.util.Map<String, Object>) this.safeDict(orderConfiguration, "limit_limit_gtd");
-        java.util.Map<String, Object> limitIOC = (java.util.Map<String, Object>) this.safeDict(orderConfiguration, "sor_limit_ioc");
-        java.util.Map<String, Object> stopLimitGTC = (java.util.Map<String, Object>) this.safeDict(orderConfiguration, "stop_limit_stop_limit_gtc");
-        java.util.Map<String, Object> stopLimitGTD = (java.util.Map<String, Object>) this.safeDict(orderConfiguration, "stop_limit_stop_limit_gtd");
-        java.util.Map<String, Object> marketIOC = (java.util.Map<String, Object>) this.safeDict(orderConfiguration, "market_market_ioc");
+        Object orderConfiguration = this.safeDict(order, "order_configuration", new java.util.HashMap<String, Object>() {{}});
+        Object limitGTC = this.safeDict(orderConfiguration, "limit_limit_gtc");
+        Object limitGTD = this.safeDict(orderConfiguration, "limit_limit_gtd");
+        Object limitIOC = this.safeDict(orderConfiguration, "sor_limit_ioc");
+        Object stopLimitGTC = this.safeDict(orderConfiguration, "stop_limit_stop_limit_gtc");
+        Object stopLimitGTD = this.safeDict(orderConfiguration, "stop_limit_stop_limit_gtd");
+        Object marketIOC = this.safeDict(orderConfiguration, "market_market_ioc");
         Boolean isLimit = (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limitGTC, null))) || Helpers.isTrue((!Helpers.isEqual(limitGTD, null)))) || Helpers.isTrue((!Helpers.isEqual(limitIOC, null))));
         Boolean isStop = (Helpers.isTrue((!Helpers.isEqual(stopLimitGTC, null))) || Helpers.isTrue((!Helpers.isEqual(stopLimitGTD, null))));
         Object price = null;
@@ -4007,7 +4007,7 @@ public class CoinbaseCore extends CoinbaseApi
         Object triggerPrice = null;
         if (Helpers.isTrue(isLimit))
         {
-            java.util.Map<String, Object> target = null;
+            Object target = null;
             if (Helpers.isTrue(!Helpers.isEqual(limitGTC, null)))
             {
                 target = limitGTC;
@@ -4023,7 +4023,7 @@ public class CoinbaseCore extends CoinbaseApi
             postOnly = this.safeBool(target, "post_only");
         } else if (Helpers.isTrue(isStop))
         {
-            java.util.Map<String, Object> stopTarget = ((Helpers.isTrue((!Helpers.isEqual(stopLimitGTC, null))))) ? stopLimitGTC : stopLimitGTD;
+            Object stopTarget = ((Helpers.isTrue((!Helpers.isEqual(stopLimitGTC, null))))) ? stopLimitGTC : stopLimitGTD;
             price = this.safeString(stopTarget, "limit_price");
             amount = this.safeString(stopTarget, "base_size");
             postOnly = this.safeBool(stopTarget, "post_only");
@@ -4181,10 +4181,10 @@ public class CoinbaseCore extends CoinbaseApi
             //         ]
             //     }
             //
-            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object orders = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
-                Boolean success = (Boolean) this.safeBool(Helpers.GetValue(orders, i), "success");
+                Object success = this.safeBool(Helpers.GetValue(orders, i), "success");
                 if (Helpers.isTrue(!Helpers.isEqual(success, true)))
                 {
                     throw new BadRequest((String)Helpers.add(this.id, " cancelOrders() has failed, check your arguments and parameters")) ;
@@ -4234,7 +4234,7 @@ public class CoinbaseCore extends CoinbaseApi
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
-            Boolean preview = (Boolean) this.safeBool2(parameters, "preview", "test", false);
+            Object preview = this.safeBool2(parameters, "preview", "test", false);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(preview, true)))
             {
@@ -4327,7 +4327,7 @@ public class CoinbaseCore extends CoinbaseApi
             //         }
             //     }
             //
-            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(response, "order", new java.util.HashMap<String, Object>() {{}});
+            Object order = this.safeDict(response, "order", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         });
 
@@ -4434,8 +4434,8 @@ public class CoinbaseCore extends CoinbaseApi
             //         "cursor": ""
             //     }
             //
-            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(orders, 0, new java.util.HashMap<String, Object>() {{}});
+            Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object first = this.safeDict(orders, 0, new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(response, "cursor");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cursor, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
@@ -4530,8 +4530,8 @@ public class CoinbaseCore extends CoinbaseApi
             //         "cursor": ""
             //     }
             //
-            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(orders, 0, new java.util.HashMap<String, Object>() {{}});
+            Object orders = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object first = this.safeDict(orders, 0, new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(response, "cursor");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cursor, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
@@ -4738,7 +4738,7 @@ public class CoinbaseCore extends CoinbaseApi
             //         ]
             //     }
             //
-            java.util.List<Object> candles = (java.util.List<Object>) this.safeList(response, "candles", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object candles = this.safeList(response, "candles", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(candles, market, timeframe, since, limit);
         });
 
@@ -4838,7 +4838,7 @@ public class CoinbaseCore extends CoinbaseApi
             //         ]
             //     }
             //
-            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(response, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object trades = this.safeList(response, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         });
 
@@ -4926,8 +4926,8 @@ public class CoinbaseCore extends CoinbaseApi
             //         "cursor": ""
             //     }
             //
-            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(response, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(trades, 0, new java.util.HashMap<String, Object>() {{}});
+            Object trades = this.safeList(response, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object first = this.safeDict(trades, 0, new java.util.HashMap<String, Object>() {{}});
             String cursor = this.safeString(response, "cursor");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(cursor, null))) && Helpers.isTrue((!Helpers.isEqual(cursor, "")))))
             {
@@ -5002,7 +5002,7 @@ public class CoinbaseCore extends CoinbaseApi
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "pricebook", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "pricebook", new java.util.HashMap<String, Object>() {{}});
             String time = this.safeString(data, "time");
             Long timestamp = this.parse8601(time);
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "size");
@@ -5059,7 +5059,7 @@ public class CoinbaseCore extends CoinbaseApi
             //         ]
             //     }
             //
-            java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(response, "pricebooks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object tickers = this.safeList(response, "pricebooks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
         });
 
@@ -5176,7 +5176,7 @@ public class CoinbaseCore extends CoinbaseApi
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(data, currency);
         });
 
@@ -5262,7 +5262,7 @@ public class CoinbaseCore extends CoinbaseApi
             //        ]
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object addressStructures = this.parseDepositAddresses(data, null, false);
             return this.indexBy(addressStructures, "network");
         });
@@ -5342,7 +5342,7 @@ public class CoinbaseCore extends CoinbaseApi
         {
             currencyId = this.safeString(depositAddress, "currency");
         }
-        java.util.Map<String, Object> addressInfo = (java.util.Map<String, Object>) this.safeDict(depositAddress, "address_info");
+        Object addressInfo = this.safeDict(depositAddress, "address_info");
         final Object finalCurrencyId = currencyId;
         return new java.util.HashMap<String, Object>() {{
             put( "info", depositAddress );
@@ -5436,7 +5436,7 @@ public class CoinbaseCore extends CoinbaseApi
             //     }
             //
             // https://github.com/ccxt/ccxt/issues/25484
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict2(response, "data", "transfer", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict2(response, "data", "transfer", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(data);
         });
 
@@ -5521,7 +5521,7 @@ public class CoinbaseCore extends CoinbaseApi
             //     }
             //
             // https://github.com/ccxt/ccxt/issues/25484
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict2(response, "data", "transfer", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict2(response, "data", "transfer", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(data);
         });
 
@@ -5565,7 +5565,7 @@ public class CoinbaseCore extends CoinbaseApi
             //         ]
             //     }
             //
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "payment_methods", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "payment_methods", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseDepositMethodIds(result);
         });
 
@@ -5611,7 +5611,7 @@ public class CoinbaseCore extends CoinbaseApi
             //         }
             //     }
             //
-            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "payment_method", new java.util.HashMap<String, Object>() {{}});
+            Object result = this.safeDict(response, "payment_method", new java.util.HashMap<String, Object>() {{}});
             return this.parseDepositMethodId(result);
         });
 
@@ -5671,7 +5671,7 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "amount", CoinbaseCore.this.numberToString(amount) );
             }};
             java.util.Map<String, Object> response = (this.v3PrivatePostBrokerageConvertQuote(this.extend(request, parameters))).join();
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "trade", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "trade", new java.util.HashMap<String, Object>() {{}});
             return this.parseConversion(data);
         });
 
@@ -5706,7 +5706,7 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "to_account", toCode );
             }};
             java.util.Map<String, Object> response = (this.v3PrivatePostBrokerageConvertTradeTradeId(this.extend(request, parameters))).join();
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "trade", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "trade", new java.util.HashMap<String, Object>() {{}});
             return this.parseConversion(data);
         });
 
@@ -5752,7 +5752,7 @@ public class CoinbaseCore extends CoinbaseApi
                 put( "to_account", finalToCode );
             }};
             java.util.Map<String, Object> response = (this.v3PrivateGetBrokerageConvertTradeTradeId(this.extend(request, parameters))).join();
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "trade", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "trade", new java.util.HashMap<String, Object>() {{}});
             return this.parseConversion(data);
         });
 
@@ -5766,9 +5766,9 @@ public class CoinbaseCore extends CoinbaseApi
         String fromCode = (String) this.safeCurrencyCode(fromCoin, fromCurrency);
         String to = this.safeString(conversion, "target_currency");
         String toCode = (String) this.safeCurrencyCode(to, toCurrency);
-        java.util.Map<String, Object> fromAmountStructure = (java.util.Map<String, Object>) this.safeDict(conversion, "user_entered_amount");
-        java.util.Map<String, Object> feeStructure = (java.util.Map<String, Object>) this.safeDict(conversion, "total_fee");
-        java.util.Map<String, Object> feeAmountStructure = (java.util.Map<String, Object>) this.safeDict(feeStructure, "amount");
+        Object fromAmountStructure = this.safeDict(conversion, "user_entered_amount");
+        Object feeStructure = this.safeDict(conversion, "total_fee");
+        Object feeAmountStructure = this.safeDict(feeStructure, "amount");
         return new java.util.HashMap<String, Object>() {{
             put( "info", conversion );
             put( "timestamp", null );
@@ -5884,7 +5884,7 @@ public class CoinbaseCore extends CoinbaseApi
             }
             Helpers.addElementToObject(request, "client_order_id", clientOrderId);
             java.util.Map<String, Object> response = (this.v3PrivatePostBrokerageOrdersClosePosition(this.extend(request, parameters))).join();
-            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(response, "success_response", new java.util.HashMap<String, Object>() {{}});
+            Object order = this.safeDict(response, "success_response", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order);
         });
 
@@ -5942,7 +5942,7 @@ public class CoinbaseCore extends CoinbaseApi
                 }};
                 response = (this.v3PrivateGetBrokerageIntxPositionsPortfolioUuid(this.extend(request, parameters))).join();
             }
-            java.util.List<Object> positions = (java.util.List<Object>) this.safeList(response, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object positions = this.safeList(response, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePositions(positions, symbols);
         });
 
@@ -6001,7 +6001,7 @@ public class CoinbaseCore extends CoinbaseApi
                 }};
                 response = (this.v3PrivateGetBrokerageIntxPositionsPortfolioUuidSymbol(this.extend(request, parameters))).join();
             }
-            java.util.Map<String, Object> position = (java.util.Map<String, Object>) this.safeDict(response, "position", new java.util.HashMap<String, Object>() {{}});
+            Object position = this.safeDict(response, "position", new java.util.HashMap<String, Object>() {{}});
             return this.parsePosition(position, market);
         });
 
@@ -6107,14 +6107,14 @@ public class CoinbaseCore extends CoinbaseApi
         {
             marginMode = ((Helpers.isTrue((Helpers.isEqual(rawMargin, "MARGIN_TYPE_CROSS"))))) ? "cross" : "isolated";
         }
-        java.util.Map<String, Object> notionalObject = (java.util.Map<String, Object>) this.safeDict(position, "position_notional", new java.util.HashMap<String, Object>() {{}});
+        Object notionalObject = this.safeDict(position, "position_notional", new java.util.HashMap<String, Object>() {{}});
         String positionSide = this.safeString(position, "position_side");
         String side = ((Helpers.isTrue((Helpers.isEqual(positionSide, "POSITION_SIDE_LONG"))))) ? "long" : "short";
-        java.util.Map<String, Object> unrealizedPNLObject = (java.util.Map<String, Object>) this.safeDict(position, "unrealized_pnl", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> liquidationPriceObject = (java.util.Map<String, Object>) this.safeDict(position, "liquidation_price", new java.util.HashMap<String, Object>() {{}});
+        Object unrealizedPNLObject = this.safeDict(position, "unrealized_pnl", new java.util.HashMap<String, Object>() {{}});
+        Object liquidationPriceObject = this.safeDict(position, "liquidation_price", new java.util.HashMap<String, Object>() {{}});
         Double liquidationPrice = this.safeNumber(liquidationPriceObject, "value");
-        java.util.Map<String, Object> vwapObject = (java.util.Map<String, Object>) this.safeDict(position, "vwap", new java.util.HashMap<String, Object>() {{}});
-        java.util.Map<String, Object> summaryObject = (java.util.Map<String, Object>) this.safeDict(position, "portfolio_summary", new java.util.HashMap<String, Object>() {{}});
+        Object vwapObject = this.safeDict(position, "vwap", new java.util.HashMap<String, Object>() {{}});
+        Object summaryObject = this.safeDict(position, "portfolio_summary", new java.util.HashMap<String, Object>() {{}});
         final Object finalMarket = market;
         final Object finalMarginMode = marginMode;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
@@ -6201,7 +6201,7 @@ public class CoinbaseCore extends CoinbaseApi
             //     has_promo_fee: false
             // }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "fee_tier", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "fee_tier", new java.util.HashMap<String, Object>() {{}});
             Double taker_fee = this.safeNumber(data, "taker_fee_rate");
             Double maker_fee = this.safeNumber(data, "maker_fee_rate");
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
@@ -6257,10 +6257,10 @@ public class CoinbaseCore extends CoinbaseApi
     public Object parsePortfolioDetails(Object portfolioData)
     {
         Object breakdown = Helpers.GetValue(portfolioData, "breakdown");
-        java.util.Map<String, Object> portfolioInfo = (java.util.Map<String, Object>) this.safeDict(breakdown, "portfolio", new java.util.HashMap<String, Object>() {{}});
+        Object portfolioInfo = this.safeDict(breakdown, "portfolio", new java.util.HashMap<String, Object>() {{}});
         String portfolioName = this.safeString(portfolioInfo, "name", "Unknown");
         String portfolioUuid = this.safeString(portfolioInfo, "uuid", "");
-        java.util.List<Object> spotPositions = (java.util.List<Object>) this.safeList(breakdown, "spot_positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object spotPositions = this.safeList(breakdown, "spot_positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> parsedPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(spotPositions)); i++)
         {
@@ -6271,9 +6271,9 @@ public class CoinbaseCore extends CoinbaseApi
             String totalBalanceFiatStr = this.safeString(position, "total_balance_fiat", "0");
             Object totalBalanceFiat = this.parseNumber(totalBalanceFiatStr);
             Object holdAmount = Helpers.subtract(totalBalanceFiat, availableBalance);
-            java.util.Map<String, Object> costBasisDict = (java.util.Map<String, Object>) this.safeDict(position, "cost_basis", new java.util.HashMap<String, Object>() {{}});
+            Object costBasisDict = this.safeDict(position, "cost_basis", new java.util.HashMap<String, Object>() {{}});
             String costBasisStr = this.safeString(costBasisDict, "value", "0");
-            java.util.Map<String, Object> averageEntryPriceDict = (java.util.Map<String, Object>) this.safeDict(position, "average_entry_price", new java.util.HashMap<String, Object>() {{}});
+            Object averageEntryPriceDict = this.safeDict(position, "average_entry_price", new java.util.HashMap<String, Object>() {{}});
             String averageEntryPriceStr = this.safeString(averageEntryPriceDict, "value", "0");
             final Object finalHoldAmount = holdAmount;
             final Object finalTotalBalanceFiat = totalBalanceFiat;
@@ -6551,7 +6551,7 @@ public class CoinbaseCore extends CoinbaseApi
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), errorMessage, feedback);
             throw new ExchangeError((String)feedback) ;
         }
-        java.util.Map<String, Object> errorResponse = (java.util.Map<String, Object>) this.safeDict(response, "error_response");
+        Object errorResponse = this.safeDict(response, "error_response");
         if (Helpers.isTrue(!Helpers.isEqual(errorResponse, null)))
         {
             String errorMessageInner = this.safeString2(errorResponse, "preview_failure_reason", "preview_failure_reason");
@@ -6559,7 +6559,7 @@ public class CoinbaseCore extends CoinbaseApi
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), errorMessageInner, feedback);
             throw new ExchangeError((String)feedback) ;
         }
-        java.util.List<Object> errors = (java.util.List<Object>) this.safeList(response, "errors");
+        Object errors = this.safeList(response, "errors");
         if (Helpers.isTrue(!Helpers.isEqual(errors, null)))
         {
             if (Helpers.isTrue(Helpers.isArray(errors)))
@@ -6609,7 +6609,7 @@ public class CoinbaseCore extends CoinbaseApi
             }
             Object request = this.prepareAccountRequest(null, parameters);
             java.util.Map<String, Object> response = (this.v2PrivateGetAccountsAccountIdAddresses(this.extend(request, parameters))).join();
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseDepositAddresses(data, codes, false, new java.util.HashMap<String, Object>() {{}});
         });
 

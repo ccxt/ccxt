@@ -25,7 +25,7 @@ public class TestWatchTrades extends BaseTest {
         {
             Object response = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Boolean success = true;
-            Object startTime = exchange.milliseconds();
+            Long startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchTrades(symbol)).join();

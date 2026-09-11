@@ -19,7 +19,7 @@ public class TestFetchLedger extends BaseTest {
         String method = "fetchLedger";
         Object items = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{code})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, items, code);
-        Object now = exchange.milliseconds();
+        Long now = exchange.milliseconds();
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(items)); i++)
         {
             TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, Helpers.GetValue(items, i), code, now);

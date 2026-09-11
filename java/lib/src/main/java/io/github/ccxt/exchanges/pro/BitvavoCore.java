@@ -631,7 +631,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("multi:", name), "@"), Helpers.GetValue(market, "id")), "_"), interval));
             }
             java.util.List<Object> channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object intervals = Helpers.objectKeys(marketIdsByInterval);
+            java.util.List<Object> intervals = Helpers.objectKeys(marketIdsByInterval);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(intervals)); i++)
             {
                 Object interval = Helpers.GetValue(intervals, i);
@@ -723,7 +723,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 ((java.util.List<Object>)subMessageHashes).add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("multi:", name), "@"), Helpers.GetValue(market, "id")), "_"), interval));
             }
             Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object intervals = Helpers.objectKeys(marketIdsByInterval);
+            java.util.List<Object> intervals = Helpers.objectKeys(marketIdsByInterval);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(intervals)); i++)
             {
                 Object interval = Helpers.GetValue(intervals, i);
@@ -1163,7 +1163,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //
         // the confirmation carries the remaining subscriptions without identifying
         // which unsubscribe request it belongs to, so settle every pending unsubscription
-        Object keys = Helpers.objectKeys(client.subscriptions);
+        java.util.List<Object> keys = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -1536,9 +1536,9 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
 
     public Object requestId()
     {
-        Object ts = String.valueOf(this.milliseconds());
+        String ts = String.valueOf(this.milliseconds());
         Object randomNumber = this.randNumber(4);
-        Object randomPart = String.valueOf(randomNumber);
+        String randomPart = String.valueOf(randomNumber);
         return Helpers.parseInt(Helpers.add(ts, randomPart));
     }
 
@@ -1548,7 +1548,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object messageHash = this.requestId();
-            Object messageHashStr = String.valueOf(messageHash);
+            String messageHashStr = String.valueOf(messageHash);
             Helpers.addElementToObject(request, "action", action);
             Helpers.addElementToObject(request, "requestId", messageHash);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -2206,7 +2206,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "book", "handleOrderBookSubscriptions");
         }};
-        Object names = Helpers.objectKeys(subscriptions);
+        java.util.List<Object> names = Helpers.objectKeys(subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(names)); i++)
         {
             Object name = Helpers.GetValue(names, i);
@@ -2233,7 +2233,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {
                 Long timestamp = this.milliseconds();
-                Object stringTimestamp = String.valueOf(timestamp);
+                String stringTimestamp = String.valueOf(timestamp);
                 Object auth = Helpers.add(Helpers.add(Helpers.add(stringTimestamp, "GET/"), this.version), "/websocket");
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 String action = "authenticate";

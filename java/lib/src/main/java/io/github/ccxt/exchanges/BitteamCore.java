@@ -758,7 +758,7 @@ public class BitteamCore extends BitteamApi
         Object statuses = this.safeValue(statusesResponse, numericId, new java.util.HashMap<String, Object>() {{}});
         Object deposit = this.safeValue(statuses, "depositStatus");
         Object withdraw = this.safeValue(statuses, "withdrawStatus");
-        Object networkIds = Helpers.objectKeys(feesByNetworkId);
+        java.util.List<Object> networkIds = Helpers.objectKeys(feesByNetworkId);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object networkPrecision = this.parseNumber(this.parsePrecision(this.safeString(currency, "decimals")));
         String typeRaw = this.safeString(currency, "type");
@@ -2451,7 +2451,7 @@ public class BitteamCore extends BitteamApi
         }};
         Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
         Object balanceByCurrencies = this.omit(result, new java.util.ArrayList<Object>(java.util.Arrays.asList("free", "used", "total")));
-        Object rawCurrencyIds = Helpers.objectKeys(balanceByCurrencies);
+        java.util.List<Object> rawCurrencyIds = Helpers.objectKeys(balanceByCurrencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawCurrencyIds)); i++)
         {
             Object rawCurrencyId = Helpers.GetValue(rawCurrencyIds, i);

@@ -3628,7 +3628,7 @@ public class BitgetCore extends BitgetApi
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(productType, parameters));
     }
 
-    public java.util.concurrent.CompletableFuture<Object> handleUTAAndParams(Object parameters2, String methodName, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> handleUTAAndParams(Object parameters2, Object methodName, Object... optionalArgs)
     {
         final Object parameters3 = parameters2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3734,7 +3734,7 @@ public class BitgetCore extends BitgetApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object types = null;
-            java.util.Map<String, Object> fetchMarketsOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
+            Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
             java.util.List<Object> defaultMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap"));
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOptions, null)))
             {
@@ -3775,10 +3775,10 @@ public class BitgetCore extends BitgetApi
             Helpers.addElementToObject(this.options, "isolatedMarginPairsData", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
-                java.util.Map<String, Object> res = (java.util.Map<String, Object>) this.safeDict(results, i);
-                java.util.List<Object> data = (java.util.List<Object>) this.safeList(res, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                java.util.Map<String, Object> firstData = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
-                Boolean isBorrowable = (Boolean) this.safeBool(firstData, "isBorrowable");
+                Object res = this.safeDict(results, i);
+                Object data = this.safeList(res, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object firstData = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+                Object isBorrowable = this.safeBool(firstData, "isBorrowable");
                 if (Helpers.isTrue(Helpers.isTrue(fetchMargins) && Helpers.isTrue(!Helpers.isEqual(isBorrowable, null))))
                 {
                     // cross and isolated availability are per-symbol - a coin can be listed by
@@ -3789,15 +3789,15 @@ public class BitgetCore extends BitgetApi
                     java.util.List<Object> isolatedKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(data)); j++)
                     {
-                        java.util.Map<String, Object> entry = (java.util.Map<String, Object>) this.safeDict(data, j, new java.util.HashMap<String, Object>() {{}});
+                        Object entry = this.safeDict(data, j, new java.util.HashMap<String, Object>() {{}});
                         String entrySymbol = this.safeString(entry, "symbol");
-                        Boolean entryBorrowable = (Boolean) this.safeBool(entry, "isBorrowable", true);
+                        Object entryBorrowable = this.safeBool(entry, "isBorrowable", true);
                         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(entryBorrowable, true))) && Helpers.isTrue(this.safeBool(entry, "isCrossBorrowable", true))))
                         {
                             ((java.util.List<Object>)crossKeys).add(entrySymbol);
                         }
-                        Boolean isolatedBase = (Boolean) this.safeBool(entry, "isIsolatedBaseBorrowable", true);
-                        Boolean isolatedQuote = (Boolean) this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
+                        Object isolatedBase = this.safeBool(entry, "isIsolatedBaseBorrowable", true);
+                        Object isolatedQuote = this.safeBool2(entry, "isIsolatedQuotedBorrowable", "isIsolatedQuoteBorrowable", true);
                         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(entryBorrowable, true))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(isolatedBase, true))) || Helpers.isTrue((Helpers.isEqual(isolatedQuote, true)))))))
                         {
                             ((java.util.List<Object>)isolatedKeys).add(entrySymbol);
@@ -4070,8 +4070,8 @@ public class BitgetCore extends BitgetApi
             Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
-                java.util.Map<String, Object> res = (java.util.Map<String, Object>) this.safeDict(results, i);
-                java.util.List<Object> data = (java.util.List<Object>) this.safeList(res, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object res = this.safeDict(results, i);
+                Object data = this.safeList(res, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 markets = this.arrayConcat(markets, data);
             }
             //
@@ -4397,7 +4397,7 @@ public class BitgetCore extends BitgetApi
         Object entry = rawCurrency;
         String id = this.safeString(entry, "coin"); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints (deposit, withdraw, etc..)
         String code = (String) this.safeCurrencyCode(id);
-        java.util.List<Object> chains = (java.util.List<Object>) this.safeList(entry, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object chains = this.safeList(entry, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object withdraw = null;
         Object deposit = null;
@@ -4493,7 +4493,7 @@ public class BitgetCore extends BitgetApi
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [leverage tiers structure]{@link https://docs.ccxt.com/?id=leverage-tiers-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarketLeverageTiers(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4842,7 +4842,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            java.util.List<Object> rawTransactions = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rawTransactions = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(rawTransactions, null, since, limit);
         });
 
@@ -4924,7 +4924,7 @@ final Object finalMinNotional = minNotional;
             Object result = this.parseTransaction(data, currency);
             Helpers.addElementToObject(result, "type", "withdrawal");
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new java.util.HashMap<String, Object>() {{}});
-            Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+            Object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
             if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(result, "currency", code);
@@ -5076,7 +5076,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            java.util.List<Object> rawTransactions = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rawTransactions = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(rawTransactions, currency, since, limit);
         });
 
@@ -5272,7 +5272,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseDepositAddress(data, currency);
         });
 
@@ -5714,7 +5714,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTicker(Helpers.GetValue(data, 0), market);
         });
 
@@ -5756,7 +5756,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(request, "productType", productType);
                 response = (this.publicMixGetV2MixMarketSymbolPrice(this.extend(request, parameters))).join();
             }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTicker(Helpers.GetValue(data, 0), market);
         });
 
@@ -5948,7 +5948,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data, symbols);
         });
 
@@ -6132,7 +6132,7 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.paginate] *only applies to publicSpotGetV2SpotMarketFillsHistory and publicMixGetV2MixMarketFillsHistory* default false, when true will automatically paginate by calling this endpoint multiple times
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6290,7 +6290,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         });
 
@@ -6306,7 +6306,7 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.marginMode] 'isolated' or 'cross', for finding the fee rate of spot margin trading pairs
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6388,7 +6388,7 @@ final Object finalMinNotional = minNotional;
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
             {
-                Boolean margin = (Boolean) this.safeBool(parameters, "margin", false);
+                Object margin = this.safeBool(parameters, "margin", false);
                 parameters = this.omit(parameters, "margin");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue((Helpers.isEqual(margin, true)))))
                 {
@@ -6480,7 +6480,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -6524,7 +6524,7 @@ final Object finalMinNotional = minNotional;
         //     ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Boolean inverse = (Boolean) this.safeBool(market, "inverse");
+        Object inverse = this.safeBool(market, "inverse");
         Object volumeIndex = ((Helpers.isTrue((Helpers.isEqual(inverse, true))))) ? 6 : 5;
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeInteger(ohlcv, 0), this.safeNumber(ohlcv, 1), this.safeNumber(ohlcv, 2), this.safeNumber(ohlcv, 3), this.safeNumber(ohlcv, 4), this.safeNumber(ohlcv, volumeIndex)));
     }
@@ -6569,8 +6569,8 @@ final Object finalMinNotional = minNotional;
             Integer defaultLimit = 100; // default 100, max 1000
             Object maxLimitForRecentEndpoint = 1000;
             Object maxLimitForHistoryEndpoint = 200; // note, max 1000 bars are supported for "recent-candles" endpoint, but "historical-candles" support only max 200
-            Boolean useHistoryEndpoint = (Boolean) this.safeBool(parameters, "useHistoryEndpoint", false);
-            Boolean useHistoryEndpointForPagination = (Boolean) this.safeBool(parameters, "useHistoryEndpointForPagination", true);
+            Object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
+            Object useHistoryEndpointForPagination = this.safeBool(parameters, "useHistoryEndpointForPagination", true);
             Object paginate = false;
             java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -6613,10 +6613,10 @@ final Object finalMinNotional = minNotional;
             // - https://www.bitget.com/api-doc/spot/market/Get-Candle-Data#request-parameters
             // - https://www.bitget.com/api-doc/contract/market/Get-Candle-Data#description
             String key = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? "spot" : "swap";
-            java.util.Map<String, Object> ohlcOptions = (java.util.Map<String, Object>) this.safeDict(Helpers.GetValue(this.options, "fetchOHLCV"), key, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> maxLimitPerTimeframe = (java.util.Map<String, Object>) this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new java.util.HashMap<String, Object>() {{}});
+            Object ohlcOptions = this.safeDict(Helpers.GetValue(this.options, "fetchOHLCV"), key, new java.util.HashMap<String, Object>() {{}});
+            Object maxLimitPerTimeframe = this.safeDict(ohlcOptions, "maxLimitPerTimeframe", new java.util.HashMap<String, Object>() {{}});
             Object maxLimitForThisTimeframe = this.safeInteger(maxLimitPerTimeframe, timeframe, limit);
-            java.util.Map<String, Object> recentEndpointDaysMap = (java.util.Map<String, Object>) this.safeDict(Helpers.GetValue(this.options, "fetchOHLCV"), "maxRecentDaysPerTimeframe", new java.util.HashMap<String, Object>() {{}});
+            Object recentEndpointDaysMap = this.safeDict(Helpers.GetValue(this.options, "fetchOHLCV"), "maxRecentDaysPerTimeframe", new java.util.HashMap<String, Object>() {{}});
             Object recentEndpointAvailableDays = this.safeInteger(recentEndpointDaysMap, timeframe);
             Object recentEndpointBoundaryTs = Helpers.subtract(now, Helpers.multiply((Helpers.subtract(recentEndpointAvailableDays, 1)), msInDay));
             if (Helpers.isTrue(limitDefined))
@@ -6831,7 +6831,7 @@ final Object finalMinNotional = minNotional;
                 } else
                 {
                     response = (this.privateUtaGetV3AccountAssets(this.extend(request, parameters))).join();
-                    java.util.Map<String, Object> results = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                    Object results = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                     assets = this.safeList(results, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 }
                 return this.parseUtaBalance(assets);
@@ -7366,7 +7366,7 @@ final Object finalMinNotional = minNotional;
         Boolean uta = !Helpers.isEqual(this.safeString(order, "category"), null);
         if (Helpers.isTrue(uta))
         {
-            java.util.Map<String, Object> feeResult = (java.util.Map<String, Object>) this.safeDict(feeDetail, 0, new java.util.HashMap<String, Object>() {{}});
+            Object feeResult = this.safeDict(feeDetail, 0, new java.util.HashMap<String, Object>() {{}});
             String utaFee = this.safeString(feeResult, "fee");
             final Object finalMarket_2 = market;
             fee = new java.util.HashMap<String, Object>() {{
@@ -7378,7 +7378,7 @@ final Object finalMinNotional = minNotional;
             if (Helpers.isTrue(!Helpers.isEqual(feeDetail, null)))
             {
                 Object parsedFeeDetail = Helpers.parseJson(feeDetail);
-                Object feeValues = Helpers.objectValues(parsedFeeDetail);
+                java.util.List<Object> feeValues = Helpers.objectValues(parsedFeeDetail);
                 Object feeObject = null;
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeValues)); i++)
                 {
@@ -7500,7 +7500,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -7649,7 +7649,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -7799,7 +7799,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(request, "timeInForce", "ioc");
             }
         }
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+        Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         Boolean hedged = null;
         java.util.List<Object> hedgedparametersVariable = (java.util.List<Object>) this.handleParamBool(parameters, "hedged", false);
         hedged = (Boolean) ((java.util.List<Object>) hedgedparametersVariable).get(0);
@@ -7897,7 +7897,7 @@ final Object finalMinNotional = minNotional;
             Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
         }
         String triggerPriceType = this.safeString2(parameters, "triggerPriceType", "triggerType", "mark_price");
-        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly", false);
+        Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
         String clientOrderId = this.safeString2(parameters, "clientOid", "clientOrderId");
         String exchangeSpecificTifParam = this.safeString2(parameters, "force", "timeInForce");
         Boolean postOnly = null;
@@ -8215,7 +8215,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market);
         });
 
@@ -8391,7 +8391,7 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type2, Object side2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type2, Object side2, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -8499,7 +8499,7 @@ final Object finalMinNotional = minNotional;
             {
                 String cost = this.safeString(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
-                Boolean editMarketBuyOrderRequiresPrice = (Boolean) this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
+                Object editMarketBuyOrderRequiresPrice = this.safeBool(this.options, "editMarketBuyOrderRequiresPrice", true);
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(editMarketBuyOrderRequiresPrice, true))) || Helpers.isTrue((!Helpers.isEqual(cost, null))))) && Helpers.isTrue(isMarketOrder)) && Helpers.isTrue((Helpers.isEqual(side, "buy")))))
                 {
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(price, null)) && Helpers.isTrue(Helpers.isEqual(cost, null))))
@@ -8637,7 +8637,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data, market);
         });
 
@@ -8898,7 +8898,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market);
         });
 
@@ -9019,7 +9019,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(data, "successList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object orders = this.safeList(data, "successList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market);
         });
 
@@ -9068,7 +9068,7 @@ final Object finalMinNotional = minNotional;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object response = null;
             Object uta = null;
@@ -9114,7 +9114,7 @@ final Object finalMinNotional = minNotional;
                     //     }
                     //
                     Long timestamp = this.safeInteger(response, "requestTime");
-                    java.util.Map<String, Object> responseData = (java.util.Map<String, Object>) this.safeDict(response, "data");
+                    Object responseData = this.safeDict(response, "data");
                     String marketId = this.safeString(responseData, "symbol");
                     final Object finalResponse = response;
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -9135,9 +9135,9 @@ final Object finalMinNotional = minNotional;
                     response = (this.privateMixPostV2MixOrderBatchCancelOrders(this.extend(request, parameters))).join();
                 }
             }
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data");
             Object resultList = this.safeListN(data, new java.util.ArrayList<Object>(java.util.Arrays.asList("resultList", "successList", "list")));
-            java.util.List<Object> failureList = (java.util.List<Object>) this.safeList2(data, "failure", "failureList");
+            Object failureList = this.safeList2(data, "failure", "failureList");
             Object responseList = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(resultList, null))) && Helpers.isTrue((!Helpers.isEqual(failureList, null)))))
             {
@@ -9330,7 +9330,7 @@ final Object finalMinNotional = minNotional;
             {
                 response = Helpers.parseJson(response);
             }
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data");
             if (Helpers.isTrue((!Helpers.isEqual(data, null))))
             {
                 if (!Helpers.isTrue(Helpers.isArray(data)))
@@ -9338,13 +9338,13 @@ final Object finalMinNotional = minNotional;
                     return this.parseOrder(data, market);
                 }
             }
-            java.util.List<Object> dataList = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object dataList = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Integer dataListLength = Helpers.getArrayLength(dataList);
             if (Helpers.isTrue(Helpers.isEqual(dataListLength, 0)))
             {
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOrder() could not find order id "), id), " in "), this.json(response))) ;
             }
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(dataList, 0, new java.util.HashMap<String, Object>() {{}});
+            Object first = this.safeDict(dataList, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(first, market);
         });
 
@@ -9437,8 +9437,8 @@ final Object finalMinNotional = minNotional;
                 return (this.fetchPaginatedCallCursor("fetchOpenOrders", symbol, since, limit, parameters, cursorReceived, cursorSent)).join();
             }
             Object response = null;
-            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+            Object trailing = this.safeBool(parameters, "trailing");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Boolean planTypeDefined = !Helpers.isEqual(this.safeString(parameters, "planType"), null);
             Boolean isTrigger = Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue(planTypeDefined);
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
@@ -9798,12 +9798,12 @@ final Object finalMinNotional = minNotional;
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marginMode, null))) || Helpers.isTrue((Helpers.isEqual(trigger, true)))))
                 {
-                    java.util.List<Object> resultList = (java.util.List<Object>) this.safeList(data, "orderList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object resultList = this.safeList(data, "orderList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     return this.parseOrders(resultList, market, since, limit);
                 }
             } else
             {
-                java.util.List<Object> result = (java.util.List<Object>) this.safeList(data, "entrustedList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object result = this.safeList(data, "entrustedList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseOrders(result, market, since, limit);
             }
             return this.parseOrders(data, market, since, limit);
@@ -9976,8 +9976,8 @@ final Object finalMinNotional = minNotional;
                 return (this.fetchPaginatedCallCursor("fetchCanceledAndClosedOrders", symbol, since, limit, parameters, cursorReceived, "idLessThan")).join();
             }
             Object response = null;
-            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+            Object trailing = this.safeBool(parameters, "trailing");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger", "trailing")));
             java.util.List<Object> requestparametersVariable = (java.util.List<Object>) this.handleUntilOption("endTime", request, parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
@@ -10254,7 +10254,7 @@ final Object finalMinNotional = minNotional;
             {
                 response = Helpers.parseJson(response);
             }
-            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object orders = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
 
@@ -10317,7 +10317,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(request, "limit", limit);
             }
             Object response = null;
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             if (Helpers.isTrue(Helpers.isEqual(trigger, true)))
             {
@@ -10409,8 +10409,8 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object orders = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
 
@@ -10924,15 +10924,15 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeValue(response, "data");
             if (Helpers.isTrue(Helpers.isEqual(uta, true)))
             {
-                java.util.List<Object> fills = (java.util.List<Object>) this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object fills = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseTrades(fills, market, since, limit);
             } else if (Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "future"), true))))))
             {
-                java.util.List<Object> fills = (java.util.List<Object>) this.safeList(data, "fillList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object fills = this.safeList(data, "fillList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseTrades(fills, market, since, limit);
             } else if (Helpers.isTrue(!Helpers.isEqual(marginMode, null)))
             {
-                java.util.List<Object> fills = (java.util.List<Object>) this.safeList(data, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object fills = this.safeList(data, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 return this.parseTrades(fills, market, since, limit);
             }
             return this.parseTrades(data, market, since, limit);
@@ -11017,7 +11017,7 @@ final Object finalMinNotional = minNotional;
                 //         }
                 //     }
                 //
-                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 result = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else
             {
@@ -11056,7 +11056,7 @@ final Object finalMinNotional = minNotional;
                 //
                 result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             }
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
+            Object first = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parsePosition(first, market);
         });
 
@@ -11099,7 +11099,7 @@ final Object finalMinNotional = minNotional;
                 return (this.fetchPaginatedCallCursor("fetchPositions", null, null, null, parameters, "endId", "idLessThan")).join();
             }
             Object method = null;
-            Boolean useHistoryEndpoint = (Boolean) this.safeBool(parameters, "useHistoryEndpoint", false);
+            Object useHistoryEndpoint = this.safeBool(parameters, "useHistoryEndpoint", false);
             if (Helpers.isTrue(Helpers.isEqual(useHistoryEndpoint, true)))
             {
                 method = "privateMixGetV2MixPositionHistoryPosition";
@@ -11276,7 +11276,7 @@ final Object finalMinNotional = minNotional;
             Object position = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uta, true))) || Helpers.isTrue(isHistory)))
             {
-                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 position = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else
             {
@@ -11605,7 +11605,7 @@ final Object finalMinNotional = minNotional;
                 //         }
                 //     }
                 //
-                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 result = this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else
             {
@@ -11718,7 +11718,7 @@ final Object finalMinNotional = minNotional;
                     response = (this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters))).join();
                 }
             }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRate(Helpers.GetValue(data, 0), market);
         });
 
@@ -11821,7 +11821,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.publicMixGetV2MixMarketCurrentFundRate(this.extend(request, parameters))).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(data, symbols);
         });
 
@@ -12108,7 +12108,7 @@ final Object finalMinNotional = minNotional;
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(String symbol, Object amount, Object type, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> modifyMarginHelper(Object symbol, Object amount, Object type, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12189,7 +12189,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> reduceMargin(String symbol, Object amount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> reduceMargin(Object symbol, Object amount2, Object... optionalArgs)
     {
         final Object amount3 = amount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12219,7 +12219,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin structure]{@link https://docs.ccxt.com/?id=margin-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> addMargin(String symbol, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> addMargin(Object symbol, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12244,7 +12244,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [leverage structure]{@link https://docs.ccxt.com/?id=leverage-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLeverage(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12294,7 +12294,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseLeverage(data, market);
         });
 
@@ -12554,7 +12554,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(request, "productType", productType);
                 response = (this.publicMixGetV2MixMarketOpenInterest(this.extend(request, parameters))).join();
             }
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOpenInterest(data, market);
         });
 
@@ -12588,7 +12588,7 @@ final Object finalMinNotional = minNotional;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        java.util.List<Object> data = (java.util.List<Object>) this.safeList2(interest, "openInterestList", "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList2(interest, "openInterestList", "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Long timestamp = this.safeInteger(interest, "ts");
         String marketId = this.safeString(Helpers.GetValue(data, 0), "symbol");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
@@ -12677,7 +12677,7 @@ final Object finalMinNotional = minNotional;
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit);
         });
 
@@ -12699,7 +12699,7 @@ final Object finalMinNotional = minNotional;
      * @param {string} [params.clientOid] custom id
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount, Object toAccount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12750,7 +12750,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "ts", this.safeInteger(response, "requestTime"));
             return this.parseTransfer(data, currency);
         });
@@ -12838,7 +12838,7 @@ final Object finalMinNotional = minNotional;
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        java.util.List<Object> chains = (java.util.List<Object>) this.safeList(fee, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object chains = this.safeList(fee, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Integer chainsLength = Helpers.getArrayLength(chains);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
@@ -12930,7 +12930,7 @@ final Object finalMinNotional = minNotional;
             //         "requestTime": "1700120731773"
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "coin");
         });
 
@@ -12946,7 +12946,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -12991,7 +12991,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(Object symbol, Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13039,7 +13039,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(Object symbol, Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13087,7 +13087,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13316,7 +13316,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> liquidations = (java.util.List<Object>) this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object liquidations = this.safeList(data, "resultList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLiquidations(liquidations, market, since, limit);
         });
 
@@ -13382,7 +13382,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [isolated borrow rate structure]{@link https://docs.ccxt.com/?id=isolated-borrow-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchIsolatedBorrowRate(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchIsolatedBorrowRate(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13440,7 +13440,7 @@ final Object finalMinNotional = minNotional;
             //
             Long timestamp = this.safeInteger(response, "requestTime");
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(first, "timestamp", timestamp);
             return this.parseIsolatedBorrowRate(first, market);
         });
@@ -13513,7 +13513,7 @@ final Object finalMinNotional = minNotional;
      * @param {boolean} [params.uta] set to true for the unified trading account (uta), defaults to false
      * @returns {object} a [borrow rate structure]{@link https://github.com/ccxt/ccxt/wiki/Manual#borrow-rate-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchCrossBorrowRate(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13529,7 +13529,7 @@ final Object finalMinNotional = minNotional;
             }};
             Object uta = null;
             Object response = null;
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Object result = new java.util.HashMap<String, Object>() {{}};
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) (this.handleUTAAndParams(parameters, "fetchCrossBorrowRate", false)).join();
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
@@ -13548,7 +13548,7 @@ final Object finalMinNotional = minNotional;
                 //         }
                 //     }
                 //
-                result = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             } else
             {
                 response = (this.privateMarginGetV2MarginCrossedInterestRateAndLimit(this.extend(request, parameters))).join();
@@ -13579,7 +13579,7 @@ final Object finalMinNotional = minNotional;
                 //     }
                 //
                 Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                result = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+                result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             }
             Long timestamp = this.safeInteger(response, "requestTime");
             Helpers.addElementToObject(result, "timestamp", timestamp);
@@ -13869,7 +13869,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateMixPostV2MixOrderClosePositions(this.extend(request, parameters))).join();
             }
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> order = (java.util.List<Object>) this.safeList2(data, "successList", "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object order = this.safeList2(data, "successList", "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrder(Helpers.GetValue(order, 0), market);
         });
 
@@ -13916,7 +13916,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateMixPostV2MixOrderClosePositions(this.extend(request, parameters))).join();
             }
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> orderInfo = (java.util.List<Object>) this.safeList2(data, "successList", "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object orderInfo = this.safeList2(data, "successList", "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePositions(orderInfo, null, parameters);
         });
 
@@ -13931,7 +13931,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin mode structure]{@link https://docs.ccxt.com/?id=margin-mode-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchMarginMode(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -13981,7 +13981,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
         });
 
@@ -14067,8 +14067,8 @@ final Object finalMinNotional = minNotional;
             {
                 response = (this.privateMixGetV2MixPositionHistoryPosition(this.extend(request, parameters))).join();
             }
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> responseList = (java.util.List<Object>) this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object responseList = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object positions = this.parsePositions(responseList, symbols, parameters);
             return this.filterBySinceLimit(positions, since, limit);
         });
@@ -14086,7 +14086,7 @@ final Object finalMinNotional = minNotional;
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchConvertQuote(String fromCode, String toCode, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchConvertQuote(Object fromCode, Object toCode, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -14119,7 +14119,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(data, "fromCoin", fromCode);
             java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
@@ -14143,7 +14143,7 @@ final Object finalMinNotional = minNotional;
      * @param {string} params.toAmount the amount you want to trade in units of the toCurrency, obtained from fetchConvertQuote()
      * @returns {object} a [conversion structure]{@link https://docs.ccxt.com/?id=conversion-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createConvertTrade(String id, String fromCode, String toCode, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createConvertTrade(Object id, Object fromCode, Object toCode, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -14189,7 +14189,7 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String toCurrencyId = this.safeString(data, "toCoin", toCode);
             java.util.Map<String, Object> toCurrency = (java.util.Map<String, Object>) this.currency(toCurrencyId);
             return this.parseConversion(data, null, toCurrency);
@@ -14267,8 +14267,8 @@ final Object finalMinNotional = minNotional;
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> dataList = (java.util.List<Object>) this.safeList(data, "dataList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object dataList = this.safeList(data, "dataList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseConversions(dataList, code, "fromCoin", "toCoin", since, limit);
         });
 
@@ -14367,7 +14367,7 @@ final Object finalMinNotional = minNotional;
             //     }
             //
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
@@ -14453,8 +14453,8 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(request, "productType", productType);
                 response = (this.publicMixGetV2MixMarketFundingTime(this.extend(request, parameters))).join();
             }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseFundingRate(first, market);
         });
 
@@ -14503,7 +14503,7 @@ final Object finalMinNotional = minNotional;
             {
                 response = (this.publicMarginGetV2MarginMarketLongShortRatio(this.extend(request, parameters))).join();
             }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLongShortRatioHistory(data, market);
         });
 
@@ -14598,7 +14598,7 @@ final Object finalMinNotional = minNotional;
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(!Helpers.isTrue(signed) && Helpers.isTrue((Helpers.isEqual(method, "GET")))))
         {
-            Object keys = Helpers.objectKeys(query);
+            java.util.List<Object> keys = Helpers.objectKeys(query);
             Integer keysLength = Helpers.getArrayLength(keys);
             if (Helpers.isTrue(Helpers.isGreaterThan(keysLength, 0)))
             {
@@ -14648,7 +14648,7 @@ final Object finalMinNotional = minNotional;
                 Helpers.addElementToObject(headers, "Content-Type", "application/json");
             }
         }
-        Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+        Object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sandboxMode, true))) && Helpers.isTrue((!Helpers.isEqual(path, "v2/public/time")))) && Helpers.isTrue((!Helpers.isEqual(path, "v3/market/current-fund-rate")))))
         {
             // https://github.com/ccxt/ccxt/issues/25252#issuecomment-2662742336

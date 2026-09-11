@@ -48,7 +48,7 @@ public class TestAfterConstruct extends BaseTest {
             Assert(Helpers.inOp(exchange.options, "networksById"), "exchange.options[\"networksById\"] is not set");
             Assert(exchange.isDictionary(Helpers.GetValue(exchange.options, "networksById")), "exchange.options[\"networksById\"] is not a dict");
             //
-            Object networkCodes = Helpers.objectKeys(Helpers.GetValue(exchange.options, "networks"));
+            java.util.List<Object> networkCodes = Helpers.objectKeys(Helpers.GetValue(exchange.options, "networks"));
             // 3) ensure that the same network-id is not assigned to multiple networkCodes
             java.util.List<Object> collectedNetworkIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networkCodes)); i++)

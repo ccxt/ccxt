@@ -846,7 +846,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {string} [params.method] method, default: marketPublicGetV1beta3CryptoLocTrades
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -895,7 +895,7 @@ public class AlpacaCore extends AlpacaApi
                 //        }
                 //    }
                 //
-                java.util.Map<String, Object> trades = (java.util.Map<String, Object>) this.safeDict(response, "trades", new java.util.HashMap<String, Object>() {{}});
+                Object trades = this.safeDict(response, "trades", new java.util.HashMap<String, Object>() {{}});
                 symbolTrades = this.safeList(trades, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             } else if (Helpers.isTrue(Helpers.isEqual(method, "marketPublicGetV1beta3CryptoLocLatestTrades")))
             {
@@ -913,8 +913,8 @@ public class AlpacaCore extends AlpacaApi
                 //        }
                 //    }
                 //
-                java.util.Map<String, Object> trades = (java.util.Map<String, Object>) this.safeDict(response, "trades", new java.util.HashMap<String, Object>() {{}});
-                java.util.Map<String, Object> symbolTrade = (java.util.Map<String, Object>) this.safeDict(trades, marketId, new java.util.HashMap<String, Object>() {{}});
+                Object trades = this.safeDict(response, "trades", new java.util.HashMap<String, Object>() {{}});
+                Object symbolTrade = this.safeDict(trades, marketId, new java.util.HashMap<String, Object>() {{}});
                 symbolTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbolTrade));
             } else
             {
@@ -997,7 +997,7 @@ public class AlpacaCore extends AlpacaApi
             //       }
             //   }
             //
-            java.util.Map<String, Object> orderbooks = (java.util.Map<String, Object>) this.safeDict(response, "orderbooks", new java.util.HashMap<String, Object>() {{}});
+            Object orderbooks = this.safeDict(response, "orderbooks", new java.util.HashMap<String, Object>() {{}});
             Object rawOrderbook = this.safeDict(orderbooks, id, new java.util.HashMap<String, Object>() {{}});
             Long timestamp = this.parse8601(this.safeString(rawOrderbook, "t"));
             return this.parseOrderBook(rawOrderbook, Helpers.GetValue(market, "symbol"), timestamp, "b", "a", "p", "s");
@@ -1101,7 +1101,7 @@ public class AlpacaCore extends AlpacaApi
                 //        "next_page_token": "QlRDL1VTRHxNfDIwMjItMDctMjFUMDU6MDE6MDAuMDAwMDAwMDAwWg=="
                 //     }
                 //
-                java.util.Map<String, Object> bars = (java.util.Map<String, Object>) this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
+                Object bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
                 ohlcvs = this.safeList(bars, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 if (Helpers.isTrue(paginate))
                 {
@@ -1116,8 +1116,8 @@ public class AlpacaCore extends AlpacaApi
                         }
                         Helpers.addElementToObject(request, "page_token", pageToken);
                         response = (this.marketPublicGetV1beta3CryptoLocBars(this.extend(request, parameters))).join();
-                        bars = (java.util.Map<String, Object>) this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
-                        java.util.List<Object> page = (java.util.List<Object>) this.safeList(bars, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
+                        Object page = this.safeList(bars, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                         Integer pageLength = Helpers.getArrayLength(page);
                         if (Helpers.isTrue(Helpers.isEqual(pageLength, 0)))
                         {
@@ -1146,8 +1146,8 @@ public class AlpacaCore extends AlpacaApi
                 //        }
                 //     }
                 //
-                java.util.Map<String, Object> bars = (java.util.Map<String, Object>) this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
-                java.util.Map<String, Object> bar = (java.util.Map<String, Object>) this.safeDict(bars, marketId, new java.util.HashMap<String, Object>() {{}});
+                Object bars = this.safeDict(response, "bars", new java.util.HashMap<String, Object>() {{}});
+                Object bar = this.safeDict(bars, marketId, new java.util.HashMap<String, Object>() {{}});
                 ohlcvs = new java.util.ArrayList<Object>(java.util.Arrays.asList(bar));
             } else
             {
@@ -1294,19 +1294,19 @@ public class AlpacaCore extends AlpacaApi
             //     }
             //
             java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> snapshots = (java.util.Map<String, Object>) this.safeDict(response, "snapshots", new java.util.HashMap<String, Object>() {{}});
-            Object marketIds = Helpers.objectKeys(snapshots);
+            Object snapshots = this.safeDict(response, "snapshots", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> marketIds = Helpers.objectKeys(snapshots);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-                java.util.Map<String, Object> entry = (java.util.Map<String, Object>) this.safeDict(snapshots, marketId);
-                java.util.Map<String, Object> dailyBar = (java.util.Map<String, Object>) this.safeDict(entry, "dailyBar", new java.util.HashMap<String, Object>() {{}});
-                java.util.Map<String, Object> prevDailyBar = (java.util.Map<String, Object>) this.safeDict(entry, "prevDailyBar", new java.util.HashMap<String, Object>() {{}});
-                java.util.Map<String, Object> latestQuote = (java.util.Map<String, Object>) this.safeDict(entry, "latestQuote", new java.util.HashMap<String, Object>() {{}});
-                java.util.Map<String, Object> latestTrade = (java.util.Map<String, Object>) this.safeDict(entry, "latestTrade", new java.util.HashMap<String, Object>() {{}});
+                Object entry = this.safeDict(snapshots, marketId);
+                Object dailyBar = this.safeDict(entry, "dailyBar", new java.util.HashMap<String, Object>() {{}});
+                Object prevDailyBar = this.safeDict(entry, "prevDailyBar", new java.util.HashMap<String, Object>() {{}});
+                Object latestQuote = this.safeDict(entry, "latestQuote", new java.util.HashMap<String, Object>() {{}});
+                Object latestTrade = this.safeDict(entry, "latestTrade", new java.util.HashMap<String, Object>() {{}});
                 String datetime = this.safeString(latestQuote, "t");
-                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.safeTicker(new java.util.HashMap<String, Object>() {{
+                Object ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
                     put( "timestamp", AlpacaCore.this.parse8601(datetime) );
@@ -1359,7 +1359,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(String symbol, Object side, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketOrderWithCost(Object symbol, Object side, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1387,7 +1387,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1415,7 +1415,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketSellOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1810,7 +1810,7 @@ public class AlpacaCore extends AlpacaApi
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol2, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type, Object side, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2670,7 +2670,7 @@ public class AlpacaCore extends AlpacaApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
-        Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), Helpers.GetValue(api, 0)));
+        String url = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), Helpers.GetValue(api, 0)));
         headers = ((Helpers.isTrue((!Helpers.isEqual(headers, null))))) ? headers : new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(api, 1), "private")))
         {

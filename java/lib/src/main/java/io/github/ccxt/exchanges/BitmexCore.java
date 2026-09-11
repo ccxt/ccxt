@@ -763,7 +763,7 @@ public class BitmexCore extends BitmexApi
         String code = (String) this.safeCurrencyCode(asset);
         String id = this.safeString(currency, "currency");
         String name = this.safeString(currency, "name");
-        java.util.List<Object> chains = (java.util.List<Object>) this.safeList(currency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object chains = this.safeList(currency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Boolean depositEnabled = false;
         Boolean withdrawEnabled = false;
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
@@ -777,8 +777,8 @@ public class BitmexCore extends BitmexApi
             Object network = this.networkIdToCode(networkId, code);
             String withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
             Object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
-            Boolean isDepositEnabled = (Boolean) this.safeBool(chain, "depositEnabled", false);
-            Boolean isWithdrawEnabled = (Boolean) this.safeBool(chain, "withdrawalEnabled", false);
+            Object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
+            Object isWithdrawEnabled = this.safeBool(chain, "withdrawalEnabled", false);
             Boolean active = (Helpers.isTrue((Helpers.isEqual(isDepositEnabled, true))) && Helpers.isTrue((Helpers.isEqual(isWithdrawEnabled, true))));
             if (Helpers.isTrue(Helpers.isEqual(isDepositEnabled, true)))
             {
@@ -2161,7 +2161,7 @@ public class BitmexCore extends BitmexApi
             java.util.List<Object> rawTickers = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
             {
-                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(rawTickers, i));
+                Object ticker = this.parseTicker(Helpers.GetValue(rawTickers, i));
                 String symbol = this.safeString(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -2608,7 +2608,7 @@ public class BitmexCore extends BitmexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2724,7 +2724,7 @@ public class BitmexCore extends BitmexApi
                     throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support reduceOnly for "), Helpers.GetValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")) ;
                 }
             }
-            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
+            Object postOnly = this.safeBool(parameters, "postOnly");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "postOnly")));
             String brokerId = this.safeString(this.options, "brokerId", "CCXT");
             Long qty = this.parseToInt(this.amountToPrecision(symbol, amount));
@@ -2819,7 +2819,7 @@ public class BitmexCore extends BitmexApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type2, Object side2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type2, Object side2, Object... optionalArgs)
     {
         final Object type3 = type2;
         final Object side3 = side2;
@@ -3513,7 +3513,7 @@ public class BitmexCore extends BitmexApi
                 Object item = Helpers.GetValue(rawItems, i);
                 String marketId = this.safeString(item, "symbol");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-                Boolean swap = (Boolean) this.safeBool(market, "swap", false);
+                Object swap = this.safeBool(market, "swap", false);
                 if (Helpers.isTrue(Helpers.isEqual(swap, true)))
                 {
                     ((java.util.List<Object>)filteredResponse).add(item);
@@ -3837,7 +3837,7 @@ public class BitmexCore extends BitmexApi
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        java.util.List<Object> networks = (java.util.List<Object>) this.safeList(fee, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object networks = this.safeList(fee, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Integer networksLength = Helpers.getArrayLength(networks);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
@@ -4053,7 +4053,7 @@ public class BitmexCore extends BitmexApi
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

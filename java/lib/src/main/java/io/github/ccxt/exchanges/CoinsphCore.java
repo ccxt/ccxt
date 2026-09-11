@@ -775,8 +775,8 @@ public class CoinsphCore extends CoinsphApi
     {
         String id = this.safeString(rawCurrency, "coin");
         String code = (String) this.safeCurrencyCode(id);
-        Boolean isFiat = (Boolean) this.safeBool(rawCurrency, "isLegalMoney");
-        java.util.List<Object> networkList = (java.util.List<Object>) this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object isFiat = this.safeBool(rawCurrency, "isLegalMoney");
+        Object networkList = this.safeList(rawCurrency, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
@@ -839,7 +839,7 @@ public class CoinsphCore extends CoinsphApi
         {
             Object symbols = Helpers.GetValue(parameters, "symbols");
             Integer symbolsAmount = Helpers.getArrayLength(symbols);
-            java.util.List<Object> byNumberOfSymbols = (java.util.List<Object>) this.safeList(config, "byNumberOfSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(byNumberOfSymbols)); i++)
             {
                 Object entry = Helpers.GetValue(byNumberOfSymbols, i);
@@ -851,7 +851,7 @@ public class CoinsphCore extends CoinsphApi
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(config, "byLimit"))) && Helpers.isTrue((Helpers.inOp(parameters, "limit")))))
         {
             Object limit = Helpers.GetValue(parameters, "limit");
-            java.util.List<Object> byLimit = (java.util.List<Object>) this.safeList(config, "byLimit", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object byLimit = this.safeList(config, "byLimit", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(byLimit)); i++)
             {
                 Object entry = Helpers.GetValue(byLimit, i);
@@ -987,7 +987,7 @@ public class CoinsphCore extends CoinsphApi
             //         ]
             //     }
             //
-            java.util.List<Object> markets = (java.util.List<Object>) this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object markets = this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
@@ -1095,7 +1095,7 @@ public class CoinsphCore extends CoinsphApi
                 Helpers.addElementToObject(request, "symbols", ids);
             }
             String defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchTickers", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchTickers", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method", defaultMethod);
             Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
@@ -1139,7 +1139,7 @@ public class CoinsphCore extends CoinsphApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             String defaultMethod = "publicGetOpenapiQuoteV1Ticker24hr";
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchTicker", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchTicker", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method", defaultMethod);
             Object ticker = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(method, "publicGetOpenapiQuoteV1TickerPrice")))
@@ -1391,7 +1391,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1496,7 +1496,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -1577,7 +1577,7 @@ public class CoinsphCore extends CoinsphApi
                 put( "currency", CoinsphCore.this.safeCurrencyCode(feeCurrencyId) );
             }};
         }
-        Boolean isBuyer = (Boolean) this.safeBool2(trade, "isBuyer", "isBuyerMaker");
+        Object isBuyer = this.safeBool2(trade, "isBuyer", "isBuyerMaker");
         String side = null;
         if (Helpers.isTrue(!Helpers.isEqual(isBuyer, null)))
         {
@@ -1663,7 +1663,7 @@ public class CoinsphCore extends CoinsphApi
 
     public Object parseBalance(Object response)
     {
-        java.util.List<Object> balances = (java.util.List<Object>) this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object balances = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
@@ -1713,7 +1713,7 @@ public class CoinsphCore extends CoinsphApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Boolean testOrder = (Boolean) this.safeBool(parameters, "test", false);
+            Object testOrder = this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             Object orderType = this.safeString(parameters, "type", type);
             orderType = this.encodeOrderType(orderType);
@@ -2235,7 +2235,7 @@ public class CoinsphCore extends CoinsphApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2259,7 +2259,7 @@ public class CoinsphCore extends CoinsphApi
             //       }
             //     ]
             //
-            java.util.Map<String, Object> tradingFee = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            Object tradingFee = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTradingFee(tradingFee, market);
         });
 
@@ -2357,7 +2357,7 @@ public class CoinsphCore extends CoinsphApi
             Object tag = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object options = this.safeValue(this.options, "withdraw");
-            Boolean warning = (Boolean) this.safeBool(options, "warning", true);
+            Object warning = this.safeBool(options, "warning", true);
             if (Helpers.isTrue(Helpers.isEqual(warning, true)))
             {
                 throw new InvalidAddress((String)Helpers.add(this.id, " withdraw() makes a withdrawals only to coins_ph account, add .options['withdraw']['warning'] = false to make a withdrawal to your coins_ph account")) ;
@@ -2739,7 +2739,7 @@ public class CoinsphCore extends CoinsphApi
     {
         Object query = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object encodedArrayParams = "";
-        Object keys = Helpers.objectKeys(query);
+        java.util.List<Object> keys = Helpers.objectKeys(query);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

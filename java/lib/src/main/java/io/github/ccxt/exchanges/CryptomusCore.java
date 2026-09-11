@@ -505,7 +505,7 @@ public class CryptomusCore extends CryptomusApi
             //
             java.util.List<Object> coins = (java.util.List<Object>) this.safeList(response, "result");
             java.util.Map<String, Object> groupedById = this.groupBy(coins, "currency_code");
-            Object groupedArray = Helpers.objectValues(groupedById);
+            java.util.List<Object> groupedArray = Helpers.objectValues(groupedById);
             return this.parseCurrencies(groupedArray);
         });
 

@@ -28,7 +28,7 @@ public class TestFetchCurrencies extends BaseTest {
         Object isFetchCurrenciesPrivate = exchange.safeValue(fetchCurrencies, "private", false);
         if (Helpers.isTrue(!Helpers.isEqual(isFetchCurrenciesPrivate, true)))
         {
-            Object values = Helpers.objectValues(currencies);
+            java.util.List<Object> values = Helpers.objectValues(currencies);
             TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values);
             Integer currenciesLength = Helpers.getArrayLength(values);
             // ensure exchange returns enough length of currencies
@@ -49,7 +49,7 @@ public class TestFetchCurrencies extends BaseTest {
                     numInactiveCurrencies = Helpers.add(numInactiveCurrencies, 1);
                 }
                 // ensure that major currencies are active and enabled for deposit and withdrawal
-                Object code = exchange.safeString(currency, "code");
+                String code = exchange.safeString(currency, "code");
                 Object withdraw = exchange.safeBool(currency, "withdraw");
                 Object deposit = exchange.safeBool(currency, "deposit");
                 Object isMicaCompliant = exchange.safeBool(exchange.options, "mica", false);
@@ -72,7 +72,7 @@ public class TestFetchCurrencies extends BaseTest {
     {
         // detect if there are currencies with different ids for the same code
         java.util.Map<String, Object> ids = new java.util.HashMap<String, Object>() {{}};
-        Object keys = Helpers.objectKeys(currencyValues);
+        java.util.List<Object> keys = Helpers.objectKeys(currencyValues);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

@@ -226,7 +226,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 Helpers.addElementToObject(updates, symbol, true);
             }
         }
-        Object symbols = Helpers.objectKeys(updates);
+        java.util.List<Object> symbols = Helpers.objectKeys(updates);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
@@ -332,7 +332,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 Helpers.addElementToObject(updates, marketId, new java.util.HashMap<String, Object>() {{}});
             }
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-            Object keys = Helpers.objectKeys(this.timeframes);
+            java.util.List<Object> keys = Helpers.objectKeys(this.timeframes);
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
             {
                 Object timeframe = Helpers.GetValue(keys, j);
@@ -345,7 +345,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 }
                 java.util.List<Object> parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseToInt(Helpers.multiply((Helpers.divide(timestamp, duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
                 Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object length = Helpers.getArrayLength(stored);
+                Integer length = Helpers.getArrayLength(stored);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(length, 0))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(parsed, 0), Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0))))))
                 {
                     Object previous = Helpers.GetValue(stored, Helpers.subtract(length, 1));
@@ -393,11 +393,11 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             }
         }
         String name = "SubscribeTicker";
-        Object marketIds = Helpers.objectKeys(updates);
+        java.util.List<Object> marketIds = Helpers.objectKeys(updates);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
-            Object timeframes = Helpers.objectKeys(Helpers.GetValue(updates, marketId));
+            java.util.List<Object> timeframes = Helpers.objectKeys(Helpers.GetValue(updates, marketId));
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(timeframes)); j++)
             {
                 Object timeframe = Helpers.GetValue(timeframes, j);

@@ -2401,7 +2401,7 @@ public class OkxCore extends OkxApi
 
     public String convertToInstrumentType(Object type)
     {
-        java.util.Map<String, Object> exchangeTypes = (java.util.Map<String, Object>) this.safeDict(this.options, "exchangeType", new java.util.HashMap<String, Object>() {{}});
+        Object exchangeTypes = this.safeDict(this.options, "exchangeType", new java.util.HashMap<String, Object>() {{}});
         return this.safeString(exchangeTypes, ((String)type), type);
     }
 
@@ -2595,7 +2595,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.safeInteger(first, "ts");
         });
@@ -2699,7 +2699,7 @@ public class OkxCore extends OkxApi
                 (this.loadTimeDifference()).join();
             }
             Object types = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "future", "swap", "option"));
-            java.util.Map<String, Object> fetchMarketsOption = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchMarkets");
+            Object fetchMarketsOption = this.safeDict(this.options, "fetchMarkets");
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOption, null)))
             {
                 types = this.safeList(fetchMarketsOption, "types", types);
@@ -2849,7 +2849,7 @@ public class OkxCore extends OkxApi
             }
         }
         Object feesType = ((Helpers.isTrue((Helpers.isEqual(type, null))))) ? "" : type;
-        java.util.Map<String, Object> fees = (java.util.Map<String, Object>) this.safeDict2(this.fees, feesType, "trading", new java.util.HashMap<String, Object>() {{}});
+        Object fees = this.safeDict2(this.fees, feesType, "trading", new java.util.HashMap<String, Object>() {{}});
         String maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Object maxSpotCost = this.safeNumber(market, "maxMktSz");
@@ -2948,8 +2948,8 @@ public class OkxCore extends OkxApi
                 Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(promisesResult)); i++)
                 {
-                    java.util.Map<String, Object> res = (java.util.Map<String, Object>) this.safeDict(promisesResult, i, new java.util.HashMap<String, Object>() {{}});
-                    java.util.List<Object> options = (java.util.List<Object>) this.safeList(res, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object res = this.safeDict(promisesResult, i, new java.util.HashMap<String, Object>() {{}});
+                    Object options = this.safeList(res, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     markets = this.arrayConcat(markets, options);
                 }
                 return this.parseMarkets(markets);
@@ -3031,7 +3031,7 @@ public class OkxCore extends OkxApi
             // therefore we check the keys here
             // and fallback to generating the currencies from the markets
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Boolean isSandboxMode = (Boolean) this.safeBool(this.options, "sandboxMode", false);
+            Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
             if (Helpers.isTrue(!Helpers.isTrue(this.checkRequiredCredentials(false)) || Helpers.isTrue((Helpers.isEqual(isSandboxMode, true)))))
             {
                 return new java.util.HashMap<String, Object>() {{}};
@@ -3085,9 +3085,9 @@ public class OkxCore extends OkxApi
             //        "msg": ""
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> dataByCurrencyId = this.groupBy(data, "ccy");
-            Object currencies = Helpers.objectValues(dataByCurrencyId);
+            java.util.List<Object> currencies = Helpers.objectValues(dataByCurrencyId);
             return this.parseCurrencies(currencies);
         });
 
@@ -3097,7 +3097,7 @@ public class OkxCore extends OkxApi
     {
         Object chains = currency;
         // currencies are grouped by chain entries, so there is at least one entry
-        java.util.Map<String, Object> firstChain = (java.util.Map<String, Object>) this.safeDict(chains, 0, new java.util.HashMap<String, Object>() {{}});
+        Object firstChain = this.safeDict(chains, 0, new java.util.HashMap<String, Object>() {{}});
         String currencyId = this.safeString(firstChain, "ccy");
         String code = (String) this.safeCurrencyCode(currencyId);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
@@ -3249,7 +3249,7 @@ public class OkxCore extends OkxApi
             // [ price, totalQty, nonRpiQty, count ] - totalQty already includes the
             // rpi liquidity, so index 0 and 1 stay the price and the amount
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(first, "ts");
             return this.parseOrderBook(first, symbol, timestamp);
@@ -3303,7 +3303,7 @@ public class OkxCore extends OkxApi
         Object symbol = Helpers.GetValue(market, "symbol");
         String last = this.safeString(ticker, "last");
         String open = this.safeString(ticker, "open24h");
-        Boolean spot = (Boolean) this.safeBool(market, "spot", false);
+        Object spot = this.safeBool(market, "spot", false);
         Object quoteVolume = ((Helpers.isTrue((Helpers.isEqual(spot, true))))) ? this.safeString(ticker, "volCcy24h") : null;
         String baseVolume = this.safeString(ticker, "vol24h");
         String high = this.safeString(ticker, "high24h");
@@ -3384,7 +3384,7 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         });
@@ -3460,7 +3460,7 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
         });
 
@@ -3504,7 +3504,7 @@ public class OkxCore extends OkxApi
             //     "msg": ""
             // }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
+            Object data = this.safeList(response, "data");
             return this.parseTicker(this.safeDict(data, 0), market);
         });
 
@@ -3553,7 +3553,7 @@ public class OkxCore extends OkxApi
                 }
             }
             java.util.Map<String, Object> response = (this.publicGetPublicMarkPrice(this.extend(request, parameters))).join();
-            java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(tickers, symbols);
         });
 
@@ -3829,7 +3829,7 @@ public class OkxCore extends OkxApi
             String priceType = this.safeString(parameters, "price");
             Object isMarkOrIndex = this.inArray(priceType, new java.util.ArrayList<Object>(java.util.Arrays.asList("mark", "index")));
             parameters = this.omit(parameters, "price");
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchOHLCV", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchOHLCV", new java.util.HashMap<String, Object>() {{}});
             String timezone = this.safeString(options, "timezone", "UTC");
             Boolean limitIsUndefined = (Helpers.isEqual(limit, null));
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -4040,8 +4040,8 @@ public class OkxCore extends OkxApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+        Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(first, "uTime");
         Object details = this.safeList(first, "details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(details)); i++)
@@ -4174,7 +4174,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTradingFee(first, market);
         });
@@ -4687,7 +4687,7 @@ public class OkxCore extends OkxApi
                 }
                 attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
             }
-            Object attachOrdKeys = Helpers.objectKeys(attachAlgoOrd);
+            java.util.List<Object> attachOrdKeys = Helpers.objectKeys(attachAlgoOrd);
             Integer attachOrdLen = Helpers.getArrayLength(attachOrdKeys);
             if (Helpers.isTrue(Helpers.isGreaterThan(attachOrdLen, 0)))
             {
@@ -4833,8 +4833,8 @@ public class OkxCore extends OkxApi
             {
                 response = (this.privatePostTradeBatchOrders(request)).join();
             }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             Object order = this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
@@ -4875,7 +4875,7 @@ public class OkxCore extends OkxApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                java.util.Map<String, Object> orderParams = (java.util.Map<String, Object>) this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
+                Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 java.util.Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
@@ -5101,8 +5101,8 @@ public class OkxCore extends OkxApi
             //        "msg": ""
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             Object order = this.parseOrder(first, market);
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);
@@ -5136,7 +5136,7 @@ public class OkxCore extends OkxApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+            Object trailing = this.safeBool(parameters, "trailing", false);
             Boolean isTrigger = Helpers.isTrue((!Helpers.isEqual(trigger, null))) && Helpers.isTrue((!Helpers.isEqual(trigger, false)));
             if (Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue((Helpers.isEqual(trailing, true)))))
             {
@@ -5162,7 +5162,7 @@ public class OkxCore extends OkxApi
             Object query = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clOrdId", "clientOrderId")));
             java.util.Map<String, Object> response = (this.privatePostTradeCancelOrder(this.extend(request, query))).join();
             // {"code":"0","data":[{"clOrdId":"","ordId":"317251910906576896","sCode":"0","sMsg":""}],"msg":""}
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object order = this.safeDict(data, 0);
             return this.parseOrder(order, market);
         });
@@ -5218,13 +5218,13 @@ public class OkxCore extends OkxApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.List<Object> request = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "cancelOrders", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "cancelOrders", new java.util.HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object clientOrderIds = this.parseIds(this.safeValue2(parameters, "clOrdId", "clientOrderId"));
             Object algoIds = this.parseIds(this.safeValue(parameters, "algoId"));
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+            Object trailing = this.safeBool(parameters, "trailing", false);
             Boolean isTrigger = Helpers.isTrue((!Helpers.isEqual(trigger, null))) && Helpers.isTrue((!Helpers.isEqual(trigger, false)));
             if (Helpers.isTrue(Helpers.isTrue(isTrigger) || Helpers.isTrue((Helpers.isEqual(trailing, true)))))
             {
@@ -5357,11 +5357,11 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             java.util.List<Object> request = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "cancelOrders", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "cancelOrders", new java.util.HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privatePostTradeCancelBatchOrders");
             String method = this.safeString(parameters, "method", defaultMethod);
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
-            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
+            Object trailing = this.safeBool(parameters, "trailing", false);
             Boolean isStopOrTrailing = Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(trailing, true)));
             if (Helpers.isTrue(Helpers.isEqual(isStopOrTrailing, true)))
             {
@@ -5840,7 +5840,7 @@ public class OkxCore extends OkxApi
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
             String clientOrderId = this.safeString2(parameters, "clOrdId", "clientOrderId");
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchOrder", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchOrder", new java.util.HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrder");
             String method = this.safeString(parameters, "method", defaultMethod);
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
@@ -5970,7 +5970,7 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object order = this.safeDict(data, 0);
             return this.parseOrder(order, market);
         });
@@ -6027,13 +6027,13 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
             }
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchOpenOrders", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> algoOrderTypes = (java.util.Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchOpenOrders", new java.util.HashMap<String, Object>() {{}});
+            Object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersPending");
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+            Object trailing = this.safeBool(parameters, "trailing", false);
             Boolean isTrigger = Helpers.isTrue((!Helpers.isEqual(trigger, null))) && Helpers.isTrue((!Helpers.isEqual(trigger, false)));
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trailing, true))) || Helpers.isTrue(isTrigger)) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(ordType, null))) && Helpers.isTrue((Helpers.inOp(algoOrderTypes, ordType)))))))
             {
@@ -6204,13 +6204,13 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 100
             }
             Helpers.addElementToObject(request, "state", "canceled");
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchCanceledOrders", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> algoOrderTypes = (java.util.Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchCanceledOrders", new java.util.HashMap<String, Object>() {{}});
+            Object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
             Object trigger = this.safeValue2(parameters, "stop", "trigger");
-            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+            Object trailing = this.safeBool(parameters, "trailing", false);
             Boolean isTrigger = Helpers.isTrue((!Helpers.isEqual(trigger, null))) && Helpers.isTrue((!Helpers.isEqual(trigger, false)));
             if (Helpers.isTrue(Helpers.isEqual(trailing, true)))
             {
@@ -6418,13 +6418,13 @@ public class OkxCore extends OkxApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, maxLimit)); // default 100, max 100
             }
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchClosedOrders", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> algoOrderTypes = (java.util.Map<String, Object>) this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchClosedOrders", new java.util.HashMap<String, Object>() {{}});
+            Object algoOrderTypes = this.safeDict(this.options, "algoOrderTypes", new java.util.HashMap<String, Object>() {{}});
             String defaultMethod = this.safeString(options, "method", "privateGetTradeOrdersHistory");
             String method = this.safeString(parameters, "method", defaultMethod);
             String ordType = this.safeString(parameters, "ordType");
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
-            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
+            Object trailing = this.safeBool(parameters, "trailing", false);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trailing, true))) || Helpers.isTrue((Helpers.isEqual(trigger, true)))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(ordType, null))) && Helpers.isTrue((Helpers.inOp(algoOrderTypes, ordType)))))))
             {
                 method = "privateGetTradeOrdersAlgoHistory";
@@ -6720,7 +6720,7 @@ public class OkxCore extends OkxApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchLedger", code, since, limit, parameters)).join();
             }
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchLedger", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchLedger", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(options, "method");
             method = this.safeString(parameters, "method", method);
             parameters = this.omit(parameters, "method");
@@ -6953,14 +6953,14 @@ public class OkxCore extends OkxApi
         String tag = this.safeStringN(depositAddress, new java.util.ArrayList<Object>(java.util.Arrays.asList("tag", "pmtId", "memo")));
         if (Helpers.isTrue(Helpers.isEqual(tag, null)))
         {
-            java.util.Map<String, Object> addrEx = (java.util.Map<String, Object>) this.safeDict(depositAddress, "addrEx", new java.util.HashMap<String, Object>() {{}});
+            Object addrEx = this.safeDict(depositAddress, "addrEx", new java.util.HashMap<String, Object>() {{}});
             tag = this.safeString(addrEx, "comment");
         }
         String currencyId = this.safeString(depositAddress, "ccy");
         currency = this.safeCurrency(currencyId, currency);
         Object code = Helpers.GetValue(currency, "code");
         String chain = this.safeString(depositAddress, "chain");
-        java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
+        Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> networksById = this.indexBy(networks, "id");
         Object networkData = ((Helpers.isTrue((Helpers.isEqual(chain, null))))) ? null : this.safeDict(networksById, chain);
         // inconsistent naming responses from exchange
@@ -7066,7 +7066,7 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> filtered = this.filterBy(data, "selected", true);
             Object parsed = this.parseDepositAddresses(filtered, new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(currency, "code"))), false);
             return this.indexBy(parsed, "network");
@@ -7115,7 +7115,7 @@ public class OkxCore extends OkxApi
                 return Helpers.GetValue(response, codeNetwork);
             }
             // if the network is not specified, return the first address
-            Object keys = Helpers.objectKeys(response);
+            java.util.List<Object> keys = Helpers.objectKeys(response);
             String first = this.safeString(keys, 0, "");
             return this.safeDict(response, first);
         });
@@ -7164,7 +7164,7 @@ public class OkxCore extends OkxApi
             String network = this.safeString(parameters, "network"); // this line allows the user to specify either ERC20 or ETH
             if (Helpers.isTrue(!Helpers.isEqual(network, null)))
             {
-                java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+                Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
                 network = this.safeString(networks, ((String)network).toUpperCase(), network); // handle ETH>ERC20 alias
                 Helpers.addElementToObject(request, "chain", Helpers.add(Helpers.add(Helpers.GetValue(currency, "id"), "-"), network));
                 parameters = this.omit(parameters, "network");
@@ -7198,7 +7198,7 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object transaction = this.safeDict(data, 0);
             return this.parseTransaction(transaction, currency);
         });
@@ -7333,7 +7333,7 @@ public class OkxCore extends OkxApi
                 Helpers.addElementToObject(request, "ccy", Helpers.GetValue(currency, "id"));
             }
             java.util.Map<String, Object> response = (this.privateGetAssetDepositHistory(this.extend(request, parameters))).join();
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
+            Object data = this.safeList(response, "data");
             Object deposit = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(deposit, currency);
         });
@@ -7481,7 +7481,7 @@ public class OkxCore extends OkxApi
             //        "msg": ''
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object withdrawal = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(withdrawal);
         });
@@ -7833,8 +7833,8 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> position = (java.util.Map<String, Object>) this.safeDict(data, 0);
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object position = this.safeDict(data, 0);
             if (Helpers.isTrue(Helpers.isEqual(position, null)))
             {
                 throw new NullResponse((String)Helpers.add(Helpers.add(this.id, " fetchPosition() could not find a position for "), symbol)) ;
@@ -7882,7 +7882,7 @@ public class OkxCore extends OkxApi
                     Helpers.addElementToObject(request, "instId", String.join((String)",", (java.util.List<String>)marketIds));
                 }
             }
-            java.util.Map<String, Object> fetchPositionsOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchPositions", new java.util.HashMap<String, Object>() {{}});
+            Object fetchPositionsOptions = this.safeDict(this.options, "fetchPositions", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(fetchPositionsOptions, "method", "privateGetAccountPositions");
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(method, "privateGetAccountPositionsHistory")))
@@ -8191,7 +8191,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            java.util.Map<String, Object> accountsByType = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
+            Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
             final Object finalFromId = fromId;
@@ -8232,7 +8232,7 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawTransfer = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTransfer(rawTransfer, currency);
         });
@@ -8300,7 +8300,7 @@ public class OkxCore extends OkxApi
         Object amount = this.safeNumber(transfer, "amt");
         String fromAccountId = this.safeString(transfer, "from");
         String toAccountId = this.safeString(transfer, "to");
-        java.util.Map<String, Object> accountsById = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
+        Object accountsById = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
         Long timestamp = this.safeInteger(transfer, "ts");
         String balanceChange = this.safeString(transfer, "sz");
         if (Helpers.isTrue(!Helpers.isEqual(balanceChange, null)))
@@ -8380,7 +8380,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object transfer = this.safeDict(data, 0);
             return this.parseTransfer(transfer);
         });
@@ -8475,7 +8475,7 @@ public class OkxCore extends OkxApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object isArray = Helpers.isArray(parameters);
-        String request = Helpers.add(Helpers.add(Helpers.add("/api/", this.version), "/"), this.implodeParams(path, parameters));
+        Object request = Helpers.add(Helpers.add(Helpers.add("/api/", this.version), "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest")), request);
         // const type = this.getPathAuthenticationType (path);
@@ -8515,7 +8515,7 @@ public class OkxCore extends OkxApi
                     }
                 }
             }
-            Object timestamp = this.iso8601(this.nonce());
+            String timestamp = this.iso8601(this.nonce());
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "OK-ACCESS-KEY", OkxCore.this.apiKey );
@@ -8671,7 +8671,7 @@ public class OkxCore extends OkxApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            java.util.Map<String, Object> marketInfo = (java.util.Map<String, Object>) this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+            Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
             String ruleType = this.safeString(marketInfo, "ruleType");
             Boolean isExtendedPerpetual = (Helpers.isEqual(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && !Helpers.isTrue(isExtendedPerpetual)))
@@ -8698,7 +8698,7 @@ public class OkxCore extends OkxApi
             //        "msg": ""
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object entry = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseFundingRate(entry, market);
         });
@@ -8731,7 +8731,7 @@ public class OkxCore extends OkxApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
-                    java.util.Map<String, Object> marketInfo = (java.util.Map<String, Object>) this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
+                    Object marketInfo = this.safeDict(market, "info", new java.util.HashMap<String, Object>() {{}});
                     String ruleType = this.safeString(marketInfo, "ruleType");
                     Boolean isExtendedPerpetual = (Helpers.isEqual(ruleType, "xperp")); // long-dated futures that still pay funding, e.g. ETH-USD_UM_XPERP-310404
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "swap"), true))) && !Helpers.isTrue(isExtendedPerpetual)))
@@ -9212,8 +9212,8 @@ public class OkxCore extends OkxApi
             //        "msg": ""
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> rate = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rate = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseBorrowRate(rate);
         });
 
@@ -9273,7 +9273,7 @@ public class OkxCore extends OkxApi
                 ((java.util.List<Object>)borrrowRateCode).add(borrowRateStructure);
             }
         }
-        Object keys = Helpers.objectKeys(borrowRateHistories);
+        java.util.List<Object> keys = Helpers.objectKeys(borrowRateHistories);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object code = Helpers.GetValue(keys, i);
@@ -9426,7 +9426,7 @@ public class OkxCore extends OkxApi
             //       "msg": ""
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object entry = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             String errorCode = this.safeString(response, "code");
             final Object finalErrorCode = errorCode;
@@ -9763,7 +9763,7 @@ public class OkxCore extends OkxApi
             //        "msg": ""
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object interest = this.parseBorrowInterests(data);
             return this.filterByCurrencySinceLimit(interest, code, since, limit);
         });
@@ -9835,8 +9835,8 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> loan = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object loan = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseMarginLoan(loan, currency);
         });
 
@@ -9893,8 +9893,8 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> loan = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object loan = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseMarginLoan(loan, currency);
         });
 
@@ -10083,8 +10083,8 @@ public class OkxCore extends OkxApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchOpenInterestHistory", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> timeframes = (java.util.Map<String, Object>) this.safeDict(options, "timeframes", new java.util.HashMap<String, Object>() {{}});
+            Object options = this.safeDict(this.options, "fetchOpenInterestHistory", new java.util.HashMap<String, Object>() {{}});
+            Object timeframes = this.safeDict(options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             timeframe = this.safeString(timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(timeframe, "5m")) && Helpers.isTrue(!Helpers.isEqual(timeframe, "1H"))) && Helpers.isTrue(!Helpers.isEqual(timeframe, "1D"))))
             {
@@ -10302,7 +10302,7 @@ public class OkxCore extends OkxApi
             //        "msg": ""
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
+            Object data = this.safeList(response, "data");
             return this.parseDepositWithdrawFees(data, codes);
         });
 
@@ -10342,7 +10342,7 @@ public class OkxCore extends OkxApi
             String code = (String) this.safeCurrencyCode(currencyId);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(codes, null))) || Helpers.isTrue((this.inArray(code, codes)))))))
             {
-                java.util.Map<String, Object> depositWithdrawFee = (java.util.Map<String, Object>) this.safeDict(depositWithdrawFees, code);
+                Object depositWithdrawFee = this.safeDict(depositWithdrawFees, code);
                 if (Helpers.isTrue(Helpers.isEqual(depositWithdrawFee, null)))
                 {
                     Helpers.addElementToObject(depositWithdrawFees, code, this.depositWithdrawFee(new java.util.HashMap<String, Object>() {{}}));
@@ -10378,7 +10378,7 @@ public class OkxCore extends OkxApi
                 }
             }
         }
-        Object depositWithdrawCodes = Helpers.objectKeys(depositWithdrawFees);
+        java.util.List<Object> depositWithdrawCodes = Helpers.objectKeys(depositWithdrawFees);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(depositWithdrawCodes)); i++)
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);
@@ -10457,7 +10457,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
             java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
@@ -10870,7 +10870,7 @@ public class OkxCore extends OkxApi
             //        "outTime": "1701877077102579"
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object order = this.safeDict(data, 0);
             return this.parseOrder(order, market);
         });
@@ -10927,7 +10927,7 @@ public class OkxCore extends OkxApi
             //         ]
             //     }
             //
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object chain = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOption(chain, null, market);
         });
@@ -11094,7 +11094,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(result, "baseCcy", fromCode);
             java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCurrencyId);
@@ -11159,7 +11159,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(result, "baseCcy", fromCode);
             java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCurrencyId);
@@ -11216,7 +11216,7 @@ public class OkxCore extends OkxApi
             //         "msg": ""
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(result, "baseCcy");
             String toCurrencyId = this.safeString(result, "quoteCcy");
@@ -11525,7 +11525,7 @@ public class OkxCore extends OkxApi
             {
                 (this.loadMarkets()).join();
             }
-            Boolean auto = (Boolean) this.safeBool(parameters, "auto");
+            Object auto = this.safeBool(parameters, "auto");
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a type argument")) ;
@@ -11617,7 +11617,7 @@ public class OkxCore extends OkxApi
             //        msg: ''
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object modifications = this.parseMarginModifications(data);
             return this.filterBySymbolSinceLimit(modifications, symbol, since, limit);
         });
@@ -11718,7 +11718,7 @@ public class OkxCore extends OkxApi
             //        msg: ''
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object positions = this.parsePositions(data, symbols, parameters);
             return this.filterBySinceLimit(positions, since, limit);
         });

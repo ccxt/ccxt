@@ -29,7 +29,7 @@ public class TestFetchLastPrices extends BaseTest {
             checkedSymbol = symbol;
         }
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, checkedSymbol);
-        Object values = Helpers.objectValues(response);
+        java.util.List<Object> values = Helpers.objectValues(response);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
         Boolean atLeastOnePassed = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(values)); i++)

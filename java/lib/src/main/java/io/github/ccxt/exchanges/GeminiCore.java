@@ -947,7 +947,7 @@ public class GeminiCore extends GeminiApi
             {
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList());  // sandbox does not have usdt markets
             }
-            java.util.List<Object> fetchUsdtMarkets = (java.util.List<Object>) this.safeList(this.options, "fetchUsdtMarkets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object fetchUsdtMarkets = this.safeList(this.options, "fetchUsdtMarkets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fetchUsdtMarkets)); i++)
             {
@@ -979,8 +979,8 @@ public class GeminiCore extends GeminiApi
             //     ]
             //
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "fetchMarketsFromAPI", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> brokenPairs = (java.util.List<Object>) this.safeList(this.options, "brokenPairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object options = this.safeDict(this.options, "fetchMarketsFromAPI", new java.util.HashMap<String, Object>() {{}});
+            Object brokenPairs = this.safeList(this.options, "brokenPairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> allMarketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(marketIdsRaw)))
@@ -1013,14 +1013,14 @@ public class GeminiCore extends GeminiApi
             } else
             {
                 // use trading-pairs info, if it was fetched
-                java.util.List<Object> tradingPairs = (java.util.List<Object>) this.safeList(this.options, "tradingPairs");
+                Object tradingPairs = this.safeList(this.options, "tradingPairs");
                 if (Helpers.isTrue(!Helpers.isEqual(tradingPairs, null)))
                 {
                     java.util.Map<String, Object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
                     {
                         Object marketId = Helpers.GetValue(marketIds, i);
-                        java.util.List<Object> pairInfo = (java.util.List<Object>) this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase());
+                        Object pairInfo = this.safeList(indexedTradingPairs, ((String)marketId).toUpperCase());
                         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(pairInfo, null)) && !Helpers.isTrue(this.inArray(marketId, brokenPairs))))
                         {
                             ((java.util.List<Object>)result).add(this.parseMarket(pairInfo));
@@ -1116,7 +1116,7 @@ public class GeminiCore extends GeminiApi
             String marketIdUpper = ((String)((String)marketId)).toUpperCase();
             Boolean isPerp = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketIdUpper, "PERP"), 0));
             String marketIdWithoutPerp = Helpers.replace((String)marketIdUpper, (String)"PERP", (String)"");
-            java.util.Map<String, Object> conflictingMarkets = (java.util.Map<String, Object>) this.safeDict(this.options, "conflictingMarkets", new java.util.HashMap<String, Object>() {{}});
+            Object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new java.util.HashMap<String, Object>() {{}});
             String lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
             if (Helpers.isTrue(Helpers.inOp(conflictingMarkets, lowerCaseId)))
             {
@@ -1519,7 +1519,7 @@ public class GeminiCore extends GeminiApi
             //     ]
             //
             Object result = this.parseTickers(response, symbols);
-            java.util.List<Object> brokenPairs = (java.util.List<Object>) this.safeList(this.options, "brokenPairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object brokenPairs = this.safeList(this.options, "brokenPairs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.removeKeysFromDict(result, brokenPairs);
         });
 
@@ -1602,7 +1602,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2131,7 +2131,7 @@ public class GeminiCore extends GeminiApi
                         Helpers.addElementToObject(request, "options", new java.util.ArrayList<Object>(java.util.Arrays.asList("maker-or-cancel")));
                     }
                 }
-                Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+                Object postOnly = this.safeBool(parameters, "postOnly", false);
                 parameters = this.omit(parameters, "postOnly");
                 if (Helpers.isTrue(Helpers.isEqual(postOnly, true)))
                 {
@@ -2658,7 +2658,7 @@ public class GeminiCore extends GeminiApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [address structure]{@link https://docs.ccxt.com/?id=address-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createDepositAddress(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

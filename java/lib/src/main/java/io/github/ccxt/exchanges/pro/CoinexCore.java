@@ -181,12 +181,12 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            Object tickersSymbols = Helpers.objectKeys(tickers);
-            Object numTickers = Helpers.getArrayLength(tickersSymbols);
+            java.util.List<Object> tickersSymbols = Helpers.objectKeys(tickers);
+            Integer numTickers = Helpers.getArrayLength(tickersSymbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numTickers, 0)))
             {
                 client.resolve(tickers, messageHash);
@@ -291,7 +291,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
             java.util.List<Object> activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
             java.util.Map<String, Object> activeCurrenciesById = this.indexBy(activeCurrencies, "id");
-            Object currencies = Helpers.objectKeys(activeCurrenciesById);
+            java.util.List<Object> currencies = Helpers.objectKeys(activeCurrenciesById);
             if (Helpers.isTrue(Helpers.isEqual(currencies, null)))
             {
                 currencies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -961,7 +961,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(callerMethodName, market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
-            Object marketList = Helpers.objectValues(watchOrderBookSubscriptions);
+            java.util.List<Object> marketList = Helpers.objectValues(watchOrderBookSubscriptions);
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "depth.subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -1687,7 +1687,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
             Client client = this.client(url);
             Long time = this.milliseconds();
-            Object timestamp = String.valueOf(time);
+            String timestamp = String.valueOf(time);
             String messageHash = (String) "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);

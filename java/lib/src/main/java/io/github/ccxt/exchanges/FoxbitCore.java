@@ -428,7 +428,7 @@ public class FoxbitCore extends FoxbitApi
             //     }
             //   ]
             // }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseCurrencies(data);
         });
 
@@ -440,9 +440,9 @@ public class FoxbitCore extends FoxbitApi
         String currencyId = this.safeString(rawCurrency, "symbol");
         String name = this.safeString(rawCurrency, "name");
         String code = (String) this.safeCurrencyCode(currencyId);
-        java.util.Map<String, Object> depositInfo = (java.util.Map<String, Object>) this.safeDict(rawCurrency, "deposit_info");
-        java.util.Map<String, Object> withdrawInfo = (java.util.Map<String, Object>) this.safeDict(rawCurrency, "withdraw_info");
-        java.util.List<Object> networks = (java.util.List<Object>) this.safeList(rawCurrency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object depositInfo = this.safeDict(rawCurrency, "deposit_info");
+        Object withdrawInfo = this.safeDict(rawCurrency, "withdraw_info");
+        Object networks = this.safeList(rawCurrency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String type = (String)this.safeStringLower(rawCurrency, "type");
         java.util.Map<String, Object> parsedNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
@@ -450,8 +450,8 @@ public class FoxbitCore extends FoxbitApi
             Object network = Helpers.GetValue(networks, j);
             String networkId = this.safeString(network, "code");
             Object networkCode = this.networkIdToCode(networkId, code);
-            java.util.Map<String, Object> networkWithdrawInfo = (java.util.Map<String, Object>) this.safeDict(network, "withdraw_info");
-            java.util.Map<String, Object> networkDepositInfo = (java.util.Map<String, Object>) this.safeDict(network, "deposit_info");
+            Object networkWithdrawInfo = this.safeDict(network, "withdraw_info");
+            Object networkDepositInfo = this.safeDict(network, "deposit_info");
             Boolean isWithdrawEnabled = Helpers.isEqual(this.safeString(networkWithdrawInfo, "status"), "ENABLED");
             Boolean isDepositEnabled = Helpers.isEqual(this.safeString(networkDepositInfo, "status"), "ENABLED");
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
@@ -622,7 +622,7 @@ public class FoxbitCore extends FoxbitApi
             //       }
             //     ]
             //   }
-            java.util.List<Object> markets = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object markets = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -683,8 +683,8 @@ public class FoxbitCore extends FoxbitApi
             //      }
             //    ]
             //  }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(result, market);
         });
 
@@ -733,7 +733,7 @@ public class FoxbitCore extends FoxbitApi
             //      }
             //    ]
             //  }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data, symbols);
         });
 
@@ -765,7 +765,7 @@ public class FoxbitCore extends FoxbitApi
             //         "taker": "0.005"
             //     }
             // ]
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -850,7 +850,7 @@ public class FoxbitCore extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -884,7 +884,7 @@ public class FoxbitCore extends FoxbitApi
             //     }
             // ]
             java.util.Map<String, Object> response = (this.v3PublicGetMarketsMarketTradesHistory(this.extend(request, parameters))).join();
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         });
 
@@ -983,7 +983,7 @@ public class FoxbitCore extends FoxbitApi
             //         }
             //     ]
             // }
-            java.util.List<Object> accounts = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object accounts = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
@@ -1109,7 +1109,7 @@ public class FoxbitCore extends FoxbitApi
                 }
             }
             java.util.Map<String, Object> response = (this.v3PrivateGetOrders(this.extend(request, parameters))).join();
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data);
         });
 
@@ -1152,7 +1152,7 @@ public class FoxbitCore extends FoxbitApi
                 throw new InvalidOrder((String)Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
             }
             String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
-            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
+            Object postOnly = this.safeBool(parameters, "postOnly", false);
             Double triggerPrice = this.safeNumber(parameters, "triggerPrice");
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
@@ -1240,7 +1240,7 @@ public class FoxbitCore extends FoxbitApi
             java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
-                java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(orders, i);
+                Object order = this.safeDict(orders, i);
                 String symbol = this.safeString(order, "symbol");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 String type = (String)this.safeStringUpper(order, "type");
@@ -1250,7 +1250,7 @@ public class FoxbitCore extends FoxbitApi
                     throw new InvalidOrder((String)Helpers.add(Helpers.add("Invalid order type: ", type), ". Must be one of: limit, market, stop_market, stop_limit, instant.")) ;
                 }
                 String timeInForce = (String)this.safeStringUpper(orderParams, "timeInForce");
-                Boolean postOnly = (Boolean) this.safeBool(orderParams, "postOnly", false);
+                Object postOnly = this.safeBool(orderParams, "postOnly", false);
                 Double triggerPrice = this.safeNumber(orderParams, "triggerPrice");
                 final Object finalType = type;
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1318,7 +1318,7 @@ public class FoxbitCore extends FoxbitApi
             //         }
             //     ]
             // }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data);
         });
 
@@ -1358,8 +1358,8 @@ public class FoxbitCore extends FoxbitApi
             //         }
             //     ]
             // }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result);
         });
 
@@ -1528,7 +1528,7 @@ public class FoxbitCore extends FoxbitApi
             //         }
             //     ]
             // }
-            java.util.List<Object> list = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object list = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(list, market, since, limit);
         });
 
@@ -1593,7 +1593,7 @@ public class FoxbitCore extends FoxbitApi
             //         "created_at": "2021-02-15T22:06:32.999Z"
             //     ]
             // }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, market, since, limit);
         });
 
@@ -1705,7 +1705,7 @@ public class FoxbitCore extends FoxbitApi
             //         }
             //     ]
             // }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         });
 
@@ -1785,7 +1785,7 @@ public class FoxbitCore extends FoxbitApi
             //         }
             //     ]
             // }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         });
 
@@ -1850,8 +1850,8 @@ public class FoxbitCore extends FoxbitApi
             //     "meta": {
             //     }
             // }
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> attributes = (java.util.Map<String, Object>) this.safeDict(data, "attributes", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Object attributes = this.safeDict(data, "attributes", new java.util.HashMap<String, Object>() {{}});
             String statusRaw = this.safeString(attributes, "status");
             java.util.Map<String, Object> statusMap = new java.util.HashMap<String, Object>() {{
                 put( "NORMAL", "ok" );
@@ -1882,7 +1882,7 @@ public class FoxbitCore extends FoxbitApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol2, Object type2, Object side2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol2, Object type2, Object side2, Object... optionalArgs)
     {
         final Object symbol3 = symbol2;
         final Object type3 = type2;
@@ -1953,7 +1953,7 @@ public class FoxbitCore extends FoxbitApi
             //         "client_order_id": "451637946501"
             //     }
             // }
-            java.util.Map<String, Object> created = (java.util.Map<String, Object>) this.safeDict(response, "create", new java.util.HashMap<String, Object>() {{}});
+            Object created = this.safeDict(response, "create", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(created, market);
         });
 
@@ -2060,7 +2060,7 @@ public class FoxbitCore extends FoxbitApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Helpers.addElementToObject(request, "symbol", Helpers.GetValue(currency, "id"));
             java.util.Map<String, Object> response = (this.v3PrivateGetAccountsSymbolTransactions(this.extend(request, parameters))).join();
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLedger(data, currency, since, limit);
         });
 
@@ -2069,14 +2069,14 @@ public class FoxbitCore extends FoxbitApi
     public Object parseMarket(Object market)
     {
         String id = this.safeString(market, "symbol");
-        java.util.Map<String, Object> baseAssets = (java.util.Map<String, Object>) this.safeDict(market, "base");
+        Object baseAssets = this.safeDict(market, "base");
         String baseId = this.safeString(baseAssets, "symbol");
-        java.util.Map<String, Object> quoteAssets = (java.util.Map<String, Object>) this.safeDict(market, "quote");
+        Object quoteAssets = this.safeDict(market, "quote");
         String quoteId = this.safeString(quoteAssets, "symbol");
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        java.util.Map<String, Object> fees = (java.util.Map<String, Object>) this.safeDict(market, "default_fees");
+        Object fees = this.safeDict(market, "default_fees");
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -2153,9 +2153,9 @@ public class FoxbitCore extends FoxbitApi
         String marketId = this.safeString(ticker, "market_symbol");
         String symbol = (String) this.safeSymbol(marketId, market, null, "spot");
         Object rolling_24h = Helpers.GetValue(ticker, "rolling_24h");
-        java.util.Map<String, Object> best = (java.util.Map<String, Object>) this.safeDict(ticker, "best");
-        java.util.Map<String, Object> bestAsk = (java.util.Map<String, Object>) this.safeDict(best, "ask");
-        java.util.Map<String, Object> bestBid = (java.util.Map<String, Object>) this.safeDict(best, "bid");
+        Object best = this.safeDict(ticker, "best");
+        Object bestAsk = this.safeDict(best, "ask");
+        Object bestBid = this.safeDict(best, "bid");
         Object lastTrade = Helpers.GetValue(ticker, "last_trade");
         String lastPrice = this.safeString(lastTrade, "price");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -2308,7 +2308,7 @@ public class FoxbitCore extends FoxbitApi
     public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        java.util.Map<String, Object> network = (java.util.Map<String, Object>) this.safeDict(depositAddress, "network");
+        Object network = this.safeDict(depositAddress, "network");
         String networkId = this.safeString(network, "code");
         String currencyCode = (String) this.safeCurrencyCode(null, currency);
         Object unifiedNetwork = this.networkIdToCode(networkId, currencyCode);
@@ -2345,7 +2345,7 @@ public class FoxbitCore extends FoxbitApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
-        java.util.Map<String, Object> cryptoDetails = (java.util.Map<String, Object>) this.safeDict(transaction, "details_crypto");
+        Object cryptoDetails = this.safeDict(transaction, "details_crypto");
         String address = this.safeString2(cryptoDetails, "receiving_address", "destination_address");
         String sn = this.safeString(transaction, "sn");
         String type = "withdrawal";
@@ -2494,7 +2494,7 @@ public class FoxbitCore extends FoxbitApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object version = Helpers.GetValue(api, 0);
         Object urlPath = Helpers.GetValue(api, 1);
-        String fullPath = Helpers.add(Helpers.add(Helpers.add("/rest/", version), "/"), this.implodeParams(path, parameters));
+        Object fullPath = Helpers.add(Helpers.add(Helpers.add("/rest/", version), "/"), this.implodeParams(path, parameters));
         if (Helpers.isTrue(Helpers.isEqual(version, "status")))
         {
             fullPath = "/status";
@@ -2507,7 +2507,7 @@ public class FoxbitCore extends FoxbitApi
         Object signatureQuery = "";
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            Object paramKeys = Helpers.objectKeys(parameters);
+            java.util.List<Object> paramKeys = Helpers.objectKeys(parameters);
             Integer paramKeysLength = Helpers.getArrayLength(paramKeys);
             if (Helpers.isTrue(Helpers.isGreaterThan(paramKeysLength, 0)))
             {
@@ -2545,7 +2545,7 @@ public class FoxbitCore extends FoxbitApi
         if (Helpers.isTrue(Helpers.isEqual(urlPath, "private")))
         {
             this.checkRequiredCredentials();
-            String preHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.numberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature);
+            Object preHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.numberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature);
             Object signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256(), "hex");
             Helpers.addElementToObject(headers, "X-FB-ACCESS-KEY", this.apiKey);
             Helpers.addElementToObject(headers, "X-FB-ACCESS-TIMESTAMP", this.numberToString(timestamp));
@@ -2569,9 +2569,9 @@ public class FoxbitCore extends FoxbitApi
         {
             return null;
         }
-        java.util.Map<String, Object> error = (java.util.Map<String, Object>) this.safeDict(response, "error");
+        Object error = this.safeDict(response, "error");
         String code = this.safeString(error, "code");
-        java.util.List<Object> details = (java.util.List<Object>) this.safeList(error, "details");
+        Object details = this.safeList(error, "details");
         String message = this.safeString(error, "message");
         Object detailsString = "";
         if (Helpers.isTrue(!Helpers.isEqual(details, null)))

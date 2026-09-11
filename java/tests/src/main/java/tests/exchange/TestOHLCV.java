@@ -17,15 +17,15 @@ public class TestOHLCV extends BaseTest {
         java.util.List<Object> emptyNotAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList(0, 1, 2, 3, 4, 5));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyNotAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now, 0);
-        Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
+        String logText = (String) TestSharedMethods.logTemplate(exchange, method, entry);
         //
         Assert(Helpers.isGreaterThanOrEqual(Helpers.getArrayLength(entry), 6), Helpers.add("ohlcv array length should be >= 6;", logText));
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "roundTimestamp"))))
         {
             TestSharedMethods.AssertRoundMinuteTimestamp(exchange, skippedProperties, method, entry, 0);
         }
-        Object high = exchange.safeString(entry, 2);
-        Object low = exchange.safeString(entry, 3);
+        String high = exchange.safeString(entry, 2);
+        String low = exchange.safeString(entry, 3);
         if (Helpers.isTrue(Helpers.inOp(skippedProperties, "compareOHLCV")))
         {
             return;

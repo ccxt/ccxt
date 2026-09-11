@@ -30,7 +30,7 @@ public class TestKeysort extends BaseTest
                 put( "b", 2 );
                 put( "c", 3 );
             }};
-            Object result1 = exchange.keysort(unsortedDict1);
+            java.util.Map<String, Object> result1 = exchange.keysort(unsortedDict1);
             AssertDeepEqual(exchange, null, "testKeysort", Helpers.objectKeys(result1), Helpers.objectKeys(expectedSorted1));
             // Test 2: Already sorted dictionary
             java.util.Map<String, Object> unsortedDict2 = new java.util.HashMap<String, Object>() {{
@@ -43,7 +43,7 @@ public class TestKeysort extends BaseTest
                 put( "beta", "second" );
                 put( "gamma", "third" );
             }};
-            Object result2 = exchange.keysort(unsortedDict2);
+            java.util.Map<String, Object> result2 = exchange.keysort(unsortedDict2);
             AssertDeepEqual(exchange, null, "testKeysort", Helpers.objectKeys(result2), Helpers.objectKeys(expectedSorted2));
             // Test 3: Reverse sorted input
             java.util.Map<String, Object> unsortedDict3 = new java.util.HashMap<String, Object>() {{
@@ -56,12 +56,12 @@ public class TestKeysort extends BaseTest
                 put( "n", "middle" );
                 put( "z", "last" );
             }};
-            Object result3 = exchange.keysort(unsortedDict3);
+            java.util.Map<String, Object> result3 = exchange.keysort(unsortedDict3);
             AssertDeepEqual(exchange, null, "testKeysort", Helpers.objectKeys(result3), Helpers.objectKeys(expectedSorted3));
             // Test 4: Empty dictionary
             java.util.Map<String, Object> unsortedDict4 = new java.util.HashMap<String, Object>() {{}};
             java.util.Map<String, Object> expectedSorted4 = new java.util.HashMap<String, Object>() {{}};
-            Object result4 = exchange.keysort(unsortedDict4);
+            java.util.Map<String, Object> result4 = exchange.keysort(unsortedDict4);
             AssertDeepEqual(exchange, null, "testKeysort", Helpers.objectKeys(result4), Helpers.objectKeys(expectedSorted4));
             // Test 5: Single key dictionary
             java.util.Map<String, Object> unsortedDict5 = new java.util.HashMap<String, Object>() {{
@@ -70,7 +70,7 @@ public class TestKeysort extends BaseTest
             java.util.Map<String, Object> expectedSorted5 = new java.util.HashMap<String, Object>() {{
                 put( "only", "one" );
             }};
-            Object result5 = exchange.keysort(unsortedDict5);
+            java.util.Map<String, Object> result5 = exchange.keysort(unsortedDict5);
             AssertDeepEqual(exchange, null, "testKeysort", Helpers.objectKeys(result5), Helpers.objectKeys(expectedSorted5));
             // Test 6: Numeric string keys
             java.util.Map<String, Object> unsortedDict6 = new java.util.HashMap<String, Object>() {{
@@ -83,7 +83,7 @@ public class TestKeysort extends BaseTest
                 put( "10", "ten" );
                 put( "2", "two" );
             }};
-            Object result6 = exchange.keysort(unsortedDict6);
+            java.util.Map<String, Object> result6 = exchange.keysort(unsortedDict6);
             AssertDeepEqual(exchange, null, "testKeysort", Helpers.objectKeys(result6), Helpers.objectKeys(expectedSorted6));
             // Test 7: Mixed case keys (lexicographic sort)
             java.util.Map<String, Object> unsortedDict7 = new java.util.HashMap<String, Object>() {{
@@ -96,7 +96,7 @@ public class TestKeysort extends BaseTest
                 put( "Cherry", 3 );
                 put( "apple", 2 );
             }};
-            Object result7 = exchange.keysort(unsortedDict7);
+            java.util.Map<String, Object> result7 = exchange.keysort(unsortedDict7);
             AssertDeepEqual(exchange, null, "testKeysort", Helpers.objectKeys(result7), Helpers.objectKeys(expectedSorted7));
         }
 }

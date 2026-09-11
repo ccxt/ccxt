@@ -280,8 +280,8 @@ public class BtcboxCore extends BtcboxApi
             var response1 = ((java.util.List<Object>) response1response2Variable).get(0);
             var response2 = ((java.util.List<Object>) response1response2Variable).get(1);
             //
-            java.util.Map<String, Object> result2Data = (java.util.Map<String, Object>) this.safeDict(response2, "data", new java.util.HashMap<String, Object>() {{}});
-            Object marketIds = Helpers.objectKeys(response1);
+            Object result2Data = this.safeDict(response2, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> marketIds = Helpers.objectKeys(response1);
             java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
@@ -291,11 +291,11 @@ public class BtcboxCore extends BtcboxApi
                 String quote = this.safeString(symbolParts, 1, "");
                 String quoteId = ((String)quote).toLowerCase();
                 String id = ((String)baseCurr).toLowerCase();
-                java.util.Map<String, Object> res = (java.util.Map<String, Object>) this.safeDict(response1, marketId, new java.util.HashMap<String, Object>() {{}});
+                Object res = this.safeDict(response1, marketId, new java.util.HashMap<String, Object>() {{}});
                 Object symbol = Helpers.add(Helpers.add(baseCurr, "/"), quote);
                 Object fee = ((Helpers.isTrue((Helpers.isEqual(id, "BTC"))))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
-                java.util.Map<String, Object> details = (java.util.Map<String, Object>) this.safeDict(result2Data, id, new java.util.HashMap<String, Object>() {{}});
-                java.util.Map<String, Object> tradeDetails = (java.util.Map<String, Object>) this.safeDict(details, "trade", new java.util.HashMap<String, Object>() {{}});
+                Object details = this.safeDict(result2Data, id, new java.util.HashMap<String, Object>() {{}});
+                Object tradeDetails = this.safeDict(details, "trade", new java.util.HashMap<String, Object>() {{}});
     final Object finalId = id;
                 final Object finalBaseCurr = baseCurr;
                             ((java.util.List<Object>)markets).add(this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
@@ -421,7 +421,7 @@ public class BtcboxCore extends BtcboxApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object codes = Helpers.objectKeys(this.currencies);
+        java.util.List<Object> codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -634,7 +634,7 @@ public class BtcboxCore extends BtcboxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {

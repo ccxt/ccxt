@@ -27,7 +27,7 @@ public class TestFetchLedgerEntry extends BaseTest {
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
                 Object item = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedgerEntry", new Object[]{id})).join();
-                Object now = exchange.milliseconds();
+                Long now = exchange.milliseconds();
                 TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, item, code, now);
             }
         }

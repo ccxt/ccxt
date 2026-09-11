@@ -1216,7 +1216,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             //     }
             //
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object marketIds = Helpers.objectKeys(response);
+            java.util.List<Object> marketIds = Helpers.objectKeys(response);
             String delimiter = "-";
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {

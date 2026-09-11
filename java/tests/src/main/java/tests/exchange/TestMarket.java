@@ -130,7 +130,7 @@ public class TestMarket extends BaseTest {
         {
             TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, market, "symbol");
         }
-        Object logText = TestSharedMethods.logTemplate(exchange, method, market);
+        String logText = (String) TestSharedMethods.logTemplate(exchange, method, market);
         // check taker/maker
         // todo: check not all to be within 0-1.0
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "taker", "-100");
@@ -147,7 +147,7 @@ public class TestMarket extends BaseTest {
         java.util.List<Object> checkedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedTypes)); i++)
         {
-            String type = (String) Helpers.GetValue(checkedTypes, i);
+            Object type = Helpers.GetValue(checkedTypes, i);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, type), true)))
             {
                 Assert(Helpers.isEqual(type, Helpers.GetValue(market, "type")), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("market.type (", Helpers.GetValue(market, "type")), ") not equal to \""), type), "\""), logText));
@@ -159,7 +159,7 @@ public class TestMarket extends BaseTest {
             java.util.List<Object> checkedSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedSubTypes)); i++)
             {
-                String subType = (String) Helpers.GetValue(checkedSubTypes, i);
+                Object subType = Helpers.GetValue(checkedSubTypes, i);
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, subType), true)))
                 {
                     Assert(Helpers.isEqual(subType, Helpers.GetValue(market, "subType")), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("market.subType (", Helpers.GetValue(market, "subType")), ") not equal to \""), subType), "\""), logText));
@@ -190,7 +190,7 @@ public class TestMarket extends BaseTest {
             // if not spot, any of the below should be true
             Assert(Helpers.isTrue((Helpers.isEqual(contract, true))) && Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(future, true))) || Helpers.isTrue((Helpers.isEqual(swap, true)))) || Helpers.isTrue((Helpers.isEqual(option, true)))) || Helpers.isTrue((Helpers.isEqual(isIndex, true))))), Helpers.add("for non-spot markets, any of (future/swap/option/index) should be set", logText));
         }
-        Object contractSize = exchange.safeString(market, "contractSize");
+        String contractSize = exchange.safeString(market, "contractSize");
         // contract fields
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(contract, true))) && !Helpers.isTrue(isInactiveMarket)))
         {
@@ -238,7 +238,7 @@ public class TestMarket extends BaseTest {
             Assert(!Helpers.isEqual(Helpers.GetValue(market, "expiry"), null), Helpers.add("\"expiry\" must be defined when \"future\" is true", logText));
             Assert(!Helpers.isEqual(Helpers.GetValue(market, "expiryDatetime"), null), Helpers.add("\"expiryDatetime\" must be defined when \"future\" is true", logText));
             // expiry datetime should be correct
-            Object isoString = exchange.iso8601(Helpers.GetValue(market, "expiry"));
+            String isoString = exchange.iso8601(Helpers.GetValue(market, "expiry"));
             Assert(Helpers.isEqual(Helpers.GetValue(market, "expiryDatetime"), isoString), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("expiryDatetime (\"", Helpers.GetValue(market, "expiryDatetime")), "\") must be equal to expiry in iso8601 format \""), isoString), "\""), logText));
             TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "expiry", "0");
             if (Helpers.isTrue(Helpers.isEqual(option, true)))
@@ -261,7 +261,7 @@ public class TestMarket extends BaseTest {
             Assert(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "expiry"), null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "expiryDatetime"), null))), Helpers.add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText));
         }
         // check precisions
-        Object precisionKeys = Helpers.objectKeys(Helpers.GetValue(market, "precision"));
+        java.util.List<Object> precisionKeys = Helpers.objectKeys(Helpers.GetValue(market, "precision"));
         Integer precisionKeysLen = Helpers.getArrayLength(precisionKeys);
         Assert(Helpers.isGreaterThanOrEqual(precisionKeysLen, 2), Helpers.add("precision should have \"amount\" and \"price\" keys at least", logText));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(precisionKeys)); i++)
@@ -282,7 +282,7 @@ public class TestMarket extends BaseTest {
             }
         }
         // check limits
-        Object limitsKeys = Helpers.objectKeys(Helpers.GetValue(market, "limits"));
+        java.util.List<Object> limitsKeys = Helpers.objectKeys(Helpers.GetValue(market, "limits"));
         Integer limitsKeysLength = Helpers.getArrayLength(limitsKeys);
         Assert(Helpers.isGreaterThanOrEqual(limitsKeysLength, 3), Helpers.add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(limitsKeys)); i++)
@@ -300,7 +300,7 @@ public class TestMarket extends BaseTest {
                 // max >= 0
                 TestSharedMethods.AssertGreater(exchange, skippedProperties, method, limitEntry, "max", "0");
                 // max >= min
-                Object minString = exchange.safeString(limitEntry, "min");
+                String minString = exchange.safeString(limitEntry, "min");
                 if (Helpers.isTrue(!Helpers.isEqual(minString, null)))
                 {
                     TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, limitEntry, "max", minString);

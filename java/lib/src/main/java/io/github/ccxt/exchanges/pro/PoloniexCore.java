@@ -215,7 +215,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
-            Object messageHash = String.valueOf(this.nonce());
+            String messageHash = String.valueOf(this.nonce());
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", messageHash );
                 put( "event", name );
@@ -261,12 +261,12 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             }
             (this.authenticate()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderWs() side is required")) ;
             }
-            Object uppercaseSide = ((String)side).toUpperCase();
+            String uppercaseSide = ((String)side).toUpperCase();
             Object isPostOnly = this.isPostOnly(Helpers.isEqual(uppercaseType, "MARKET"), Helpers.isEqual(uppercaseType, "LIMIT_MAKER"), parameters);
             if (Helpers.isTrue(isPostOnly))
             {
@@ -1275,9 +1275,9 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object tickers = this.filterByArray(newTickers, "symbol", symbols);
             if (!Helpers.isTrue(this.isEmpty(tickers)))
             {
@@ -1529,7 +1529,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         } else
         {
             Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0)))
             {
                 Helpers.callDynamically(this, method, new Object[] {client, message});

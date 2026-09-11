@@ -111,7 +111,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         //     }
         //
         Object rawTrades = this.safeList(message, "trade_updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object length = Helpers.getArrayLength(rawTrades);
+        Integer length = Helpers.getArrayLength(rawTrades);
         if (Helpers.isTrue(Helpers.isEqual(length, 0)))
         {
             return;
@@ -395,7 +395,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         {
             return;
         }
-        Object subscriptions = Helpers.objectValues(client.subscriptions);
+        java.util.List<Object> subscriptions = Helpers.objectValues(client.subscriptions);
         java.util.List<Object> handlers = new java.util.ArrayList<Object>(java.util.Arrays.asList("handleOrderBook", "handleTrades"));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(handlers)); j++)
         {

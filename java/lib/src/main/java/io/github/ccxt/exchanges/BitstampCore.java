@@ -1669,7 +1669,7 @@ public class BitstampCore extends BitstampApi
             return currencyId;
         }
         transaction = this.omit(transaction, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee", "price", "datetime", "type", "status", "id")));
-        Object ids = Helpers.objectKeys(transaction);
+        java.util.List<Object> ids = Helpers.objectKeys(transaction);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
         {
             Object id = Helpers.GetValue(ids, i);
@@ -1688,7 +1688,7 @@ public class BitstampCore extends BitstampApi
     public Object getMarketFromTrade(Object trade)
     {
         trade = this.omit(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side")));
-        Object currencyIds = Helpers.objectKeys(trade);
+        java.util.List<Object> currencyIds = Helpers.objectKeys(trade);
         Integer numCurrencyIds = Helpers.getArrayLength(currencyIds);
         if (Helpers.isTrue(Helpers.isGreaterThan(numCurrencyIds, 2)))
         {
@@ -1763,7 +1763,7 @@ public class BitstampCore extends BitstampApi
         Object rawMarketId = null;
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
-            Object keys = Helpers.objectKeys(trade);
+            java.util.List<Object> keys = Helpers.objectKeys(trade);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object currentKey = Helpers.GetValue(keys, i);
@@ -1895,7 +1895,7 @@ public class BitstampCore extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2020,7 +2020,7 @@ public class BitstampCore extends BitstampApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> ohlc = (java.util.List<Object>) this.safeList(data, "ohlc", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object ohlc = this.safeList(data, "ohlc", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(ohlc, market, timeframe, since, limit);
         });
 
@@ -2099,7 +2099,7 @@ public class BitstampCore extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2129,7 +2129,7 @@ public class BitstampCore extends BitstampApi
             //     ]
             //
             java.util.Map<String, Object> tradingFeesByMarketId = this.indexBy(response, "currency_pair");
-            java.util.Map<String, Object> tradingFee = (java.util.Map<String, Object>) this.safeDict(tradingFeesByMarketId, Helpers.GetValue(market, "id"));
+            Object tradingFee = this.safeDict(tradingFeesByMarketId, Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(Helpers.isEqual(tradingFee, null)))
             {
                 tradingFee = new java.util.HashMap<String, Object>() {{}};
@@ -2143,7 +2143,7 @@ public class BitstampCore extends BitstampApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(fee, "market");
-        java.util.Map<String, Object> fees = (java.util.Map<String, Object>) this.safeDict(fee, "fees", new java.util.HashMap<String, Object>() {{}});
+        Object fees = this.safeDict(fee, "fees", new java.util.HashMap<String, Object>() {{}});
         return new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "symbol", BitstampCore.this.safeSymbol(marketId, market) );
@@ -2252,7 +2252,7 @@ public class BitstampCore extends BitstampApi
         Object codes = Helpers.getArg(optionalArgs, 0, null);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         java.util.Map<String, Object> currencies = this.indexBy(response, "currency");
-        Object ids = Helpers.objectKeys(currencies);
+        java.util.List<Object> ids = Helpers.objectKeys(currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
         {
             Object id = Helpers.GetValue(ids, i);
@@ -2415,7 +2415,7 @@ public class BitstampCore extends BitstampApi
                 }
             }
             Object orderResponse = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new java.util.HashMap<String, Object>() {{}} : response;
-            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(orderResponse, market);
+            Object order = this.parseOrder(orderResponse, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         });
@@ -2439,7 +2439,7 @@ public class BitstampCore extends BitstampApi
      * @param {string} [params.clientOrderId] a unique identifier for the order, automatically generated if not sent
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> editOrder(String id, Object symbol, Object type, Object side, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> editOrder(Object id, Object symbol, Object type, Object side, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2466,7 +2466,7 @@ public class BitstampCore extends BitstampApi
                 Helpers.addElementToObject(request, "id", id);
             }
             java.util.Map<String, Object> response = (this.privatePostReplaceOrder(this.extend(request, parameters))).join();
-            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(response, market);
+            Object order = this.parseOrder(response, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         });
@@ -2560,7 +2560,7 @@ public class BitstampCore extends BitstampApi
             //        "success": true
             //    }
             //
-            java.util.List<Object> canceled = (java.util.List<Object>) this.safeList(response, "canceled");
+            Object canceled = this.safeList(response, "canceled");
             return this.parseOrders(canceled);
         });
 
@@ -2578,7 +2578,7 @@ public class BitstampCore extends BitstampApi
         return this.safeString(statuses, status, status);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderStatus(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderStatus(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3246,9 +3246,9 @@ public class BitstampCore extends BitstampApi
         Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
         if (Helpers.isTrue(Helpers.isEqual(type, "trade")))
         {
-            java.util.Map<String, Object> parsedTrade = (java.util.Map<String, Object>) this.parseTrade(item);
+            Object parsedTrade = this.parseTrade(item);
             Object market = null;
-            Object keys = Helpers.objectKeys(item);
+            java.util.List<Object> keys = Helpers.objectKeys(item);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(Helpers.GetValue(keys, i), "_"), 0)))
@@ -3618,7 +3618,7 @@ public class BitstampCore extends BitstampApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount2, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         final Object toAccount3 = toAccount2;
@@ -3790,7 +3790,7 @@ public class BitstampCore extends BitstampApi
                 ((java.util.List<Object>)errors).add(error);
             } else if (Helpers.isTrue(!Helpers.isEqual(error, null)))
             {
-                Object keys = Helpers.objectKeys(error);
+                java.util.List<Object> keys = Helpers.objectKeys(error);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
                 {
                     Object key = Helpers.GetValue(keys, i);
@@ -3810,7 +3810,7 @@ public class BitstampCore extends BitstampApi
                 ((java.util.List<Object>)errors).add(reasonInner);
             } else
             {
-                java.util.List<Object> all = (java.util.List<Object>) this.safeList(reasonInner, "__all__", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object all = this.safeList(reasonInner, "__all__", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(all)); i++)
                 {
                     ((java.util.List<Object>)errors).add(Helpers.GetValue(all, i));

@@ -41,7 +41,7 @@ public class TestFetchTickers extends BaseTest {
         String method = "fetchTickers";
         Object response = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTickers", new Object[]{argSymbols, argParams})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, response, exchange.json(argSymbols));
-        Object values = Helpers.objectValues(response);
+        java.util.List<Object> values = Helpers.objectValues(response);
         Object checkedSymbol = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(argSymbols, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(argSymbols), 1))))
         {
@@ -72,7 +72,7 @@ public class TestFetchTickers extends BaseTest {
     }
     public static void fetchTickersAmountsTest(BaseExchange exchange, Object skippedProperties, Object tickers)
     {
-        Object tickersValues = Helpers.objectValues(tickers);
+        java.util.List<Object> tickersValues = Helpers.objectValues(tickers);
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "checkActiveSymbols"))))
         {
             //

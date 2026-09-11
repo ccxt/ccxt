@@ -21,11 +21,11 @@ public class TestBalance extends BaseTest {
             put( "info", new java.util.HashMap<String, Object>() {{}} );
         }};
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format);
-        Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
+        String logText = (String) TestSharedMethods.logTemplate(exchange, method, entry);
         //
-        Object codesTotal = Helpers.objectKeys(Helpers.GetValue(entry, "total"));
-        Object codesFree = Helpers.objectKeys(Helpers.GetValue(entry, "free"));
-        Object codesUsed = Helpers.objectKeys(Helpers.GetValue(entry, "used"));
+        java.util.List<Object> codesTotal = Helpers.objectKeys(Helpers.GetValue(entry, "total"));
+        java.util.List<Object> codesFree = Helpers.objectKeys(Helpers.GetValue(entry, "free"));
+        java.util.List<Object> codesUsed = Helpers.objectKeys(Helpers.GetValue(entry, "used"));
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesTotal, "total");
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesFree, "free");
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, codesUsed, "used");
@@ -42,9 +42,9 @@ public class TestBalance extends BaseTest {
             Assert(Helpers.inOp(Helpers.GetValue(entry, "total"), code), Helpers.add(Helpers.add(Helpers.add("code ", code), " not in total"), logText));
             Assert(Helpers.inOp(Helpers.GetValue(entry, "free"), code), Helpers.add(Helpers.add(Helpers.add("code ", code), " not in free"), logText));
             Assert(Helpers.inOp(Helpers.GetValue(entry, "used"), code), Helpers.add(Helpers.add(Helpers.add("code ", code), " not in used"), logText));
-            Object total = exchange.safeString(Helpers.GetValue(entry, "total"), code);
-            Object free = exchange.safeString(Helpers.GetValue(entry, "free"), code);
-            Object used = exchange.safeString(Helpers.GetValue(entry, "used"), code);
+            String total = exchange.safeString(Helpers.GetValue(entry, "total"), code);
+            String free = exchange.safeString(Helpers.GetValue(entry, "free"), code);
+            String used = exchange.safeString(Helpers.GetValue(entry, "used"), code);
             Assert(!Helpers.isEqual(total, null), Helpers.add("total is undefined", logText));
             Assert(!Helpers.isEqual(free, null), Helpers.add("free is undefined", logText));
             Assert(!Helpers.isEqual(used, null), Helpers.add("used is undefined", logText));

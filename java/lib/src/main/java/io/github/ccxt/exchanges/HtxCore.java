@@ -2184,7 +2184,7 @@ public class HtxCore extends HtxApi
                 //         }
                 //     }
                 //
-                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 Long marketStatus = this.safeInteger(data, "marketStatus");
                 status = ((Helpers.isTrue((Helpers.isEqual(marketStatus, 1))))) ? "ok" : "maintenance";
                 eta = this.safeInteger(data, "haltEndTime");
@@ -2211,7 +2211,7 @@ public class HtxCore extends HtxApi
                 //         "ts": 1557714418033 // stale on the exchange side, do not trust as an update time
                 //     }
                 //
-                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 String heartbeatKey = "heartbeat";
                 String etaKey = "estimated_recovery_time";
                 if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
@@ -2314,7 +2314,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [fee structure]{@link https://docs.ccxt.com/?id=fee-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTradingFee(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -2486,7 +2486,7 @@ public class HtxCore extends HtxApi
             parameters = ((java.util.List<Object>) typesparametersVariable).get(1);
             Object allMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object keys = Helpers.objectKeys(types);
+            java.util.List<Object> keys = Helpers.objectKeys(types);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -2646,7 +2646,7 @@ public class HtxCore extends HtxApi
             //         "ts":1640736207263
             //     }
             //
-            java.util.List<Object> markets = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object markets = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Integer numMarkets = Helpers.getArrayLength(markets);
             if (Helpers.isTrue(Helpers.isLessThan(numMarkets, 1)))
             {
@@ -2905,7 +2905,7 @@ public class HtxCore extends HtxApi
         {
             Helpers.addElementToObject(this.options, "futureMarketIdsForSymbols", new java.util.HashMap<String, Object>() {{}});
         }
-        java.util.Map<String, Object> futureMarketIdsForSymbols = (java.util.Map<String, Object>) this.safeDict(this.options, "futureMarketIdsForSymbols", new java.util.HashMap<String, Object>() {{}});
+        Object futureMarketIdsForSymbols = this.safeDict(this.options, "futureMarketIdsForSymbols", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.inOp(futureMarketIdsForSymbols, symbolOrMarketId)))
         {
             return Helpers.GetValue(futureMarketIdsForSymbols, symbolOrMarketId);
@@ -3139,7 +3139,7 @@ public class HtxCore extends HtxApi
             //     }
             //
             Object tick = this.safeValue(response, "tick", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(tick, market);
+            Object ticker = this.parseTicker(tick, market);
             Long timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -3280,7 +3280,7 @@ public class HtxCore extends HtxApi
             //         "ts":1637504679376
             //     }
             //
-            java.util.List<Object> rawTickers = (java.util.List<Object>) this.safeList2(response, "data", "ticks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object rawTickers = this.safeList2(response, "data", "ticks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object tickers = this.parseTickers(rawTickers, symbols, parameters);
             return this.filterByArrayTickers(tickers, "symbol", symbols);
         });
@@ -3334,7 +3334,7 @@ public class HtxCore extends HtxApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLastPrices() does not support "), type), " markets yet")) ;
             }
             Object tick = this.safeValue(response, "tick", new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(tick, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(tick, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLastPrices(data, symbols);
         });
 
@@ -3672,7 +3672,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOrderTrades(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3712,7 +3712,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=trade-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchSpotOrderTrades(String id, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchSpotOrderTrades(Object id, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -3729,7 +3729,7 @@ public class HtxCore extends HtxApi
                 put( "order-id", id );
             }};
             java.util.Map<String, Object> response = (this.spotPrivateGetV1OrderOrdersOrderIdMatchresults(this.extend(request, parameters))).join();
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(data, null, since, limit);
         });
 
@@ -3965,7 +3965,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -4034,14 +4034,14 @@ public class HtxCore extends HtxApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                java.util.List<Object> trades = (java.util.List<Object>) this.safeList(Helpers.GetValue(data, i), "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object trades = this.safeList(Helpers.GetValue(data, i), "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(trades)); j++)
                 {
-                    java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.parseTrade(Helpers.GetValue(trades, j), market);
+                    Object trade = this.parseTrade(Helpers.GetValue(trades, j), market);
                     ((java.util.List<Object>)result).add(trade);
                 }
             }
@@ -4259,7 +4259,7 @@ public class HtxCore extends HtxApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(data, market, timeframe, since, limit);
         });
 
@@ -4434,7 +4434,7 @@ public class HtxCore extends HtxApi
             //        ]
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Helpers.addElementToObject(this.options, "networkNamesByChainIds", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(this.options, "networkChainIdsByNames", new java.util.HashMap<String, Object>() {{}});
             return this.parseCurrencies(data);
@@ -4460,7 +4460,7 @@ public class HtxCore extends HtxApi
         {
             Helpers.addElementToObject(Helpers.GetValue(this.options, "networkChainIdsByNames"), code, new java.util.HashMap<String, Object>() {{}});
         }
-        java.util.List<Object> chains = (java.util.List<Object>) this.safeList(rawCurrency, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object chains = this.safeList(rawCurrency, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
@@ -4537,7 +4537,7 @@ public class HtxCore extends HtxApi
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         Object networkId = Helpers.getArg(optionalArgs, 0, null);
         Object currencyCode = Helpers.getArg(optionalArgs, 1, null);
-        Object keys = Helpers.objectKeys(Helpers.GetValue(this.options, "networkNamesByChainIds"));
+        java.util.List<Object> keys = Helpers.objectKeys(Helpers.GetValue(this.options, "networkNamesByChainIds"));
         Integer keysLength = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(Helpers.isEqual(keysLength, 0)))
         {
@@ -4558,13 +4558,13 @@ public class HtxCore extends HtxApi
         {
             return super.networkCodeToId(networkCode);
         }
-        Object keys = Helpers.objectKeys(Helpers.GetValue(this.options, "networkChainIdsByNames"));
+        java.util.List<Object> keys = Helpers.objectKeys(Helpers.GetValue(this.options, "networkChainIdsByNames"));
         Integer keysLength = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(Helpers.isEqual(keysLength, 0)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " networkCodeToId() - markets need to be loaded at first")) ;
         }
-        java.util.Map<String, Object> uniqueNetworkIds = (java.util.Map<String, Object>) this.safeDict(Helpers.GetValue(this.options, "networkChainIdsByNames"), currencyCode, new java.util.HashMap<String, Object>() {{}});
+        Object uniqueNetworkIds = this.safeDict(Helpers.GetValue(this.options, "networkChainIdsByNames"), currencyCode, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.inOp(uniqueNetworkIds, networkCode)))
         {
             return Helpers.GetValue(uniqueNetworkIds, networkCode);
@@ -4817,7 +4817,7 @@ public class HtxCore extends HtxApi
             Object data = this.safeValue(response, "data");
             if (Helpers.isTrue(Helpers.isTrue(isMultiAssetMode) || Helpers.isTrue((Helpers.isTrue(linear) && Helpers.isTrue((Helpers.isTrue(swap) || Helpers.isTrue(future)))))))
             {
-                java.util.List<Object> details = (java.util.List<Object>) this.safeList(data, "details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object details = this.safeList(data, "details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(details)); i++)
                 {
                     Object balance = Helpers.GetValue(details, i);
@@ -4851,7 +4851,7 @@ public class HtxCore extends HtxApi
                                 Helpers.addElementToObject(subResult, code, this.parseMarginBalanceHelper(balance, code, subResult));
                             }
                         }
-                        Object subCodes = Helpers.objectKeys(subResult);
+                        java.util.List<Object> subCodes = Helpers.objectKeys(subResult);
                         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subCodes)); j++)
                         {
                             Object subCode = Helpers.GetValue(subCodes, j);
@@ -4861,7 +4861,7 @@ public class HtxCore extends HtxApi
                     result = this.safeBalance(result);
                 } else
                 {
-                    java.util.List<Object> balances = (java.util.List<Object>) this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object balances = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
                     {
                         Object balance = Helpers.GetValue(balances, i);
@@ -4953,11 +4953,11 @@ public class HtxCore extends HtxApi
                 }
             } else
             {
-                Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
-                Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
-                Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss");
-                Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit");
-                Boolean trailing = (Boolean) this.safeBool(parameters, "trailing");
+                Object trigger = this.safeBool2(parameters, "stop", "trigger");
+                Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+                Object stopLoss = this.safeBool(parameters, "stopLoss");
+                Object takeProfit = this.safeBool(parameters, "takeProfit");
+                Object trailing = this.safeBool(parameters, "trailing");
                 Boolean isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(stopLoss, true)))) || Helpers.isTrue((Helpers.isEqual(takeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(trailing, true))));
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
                 String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("client_order_id", "clientOrderId", "algo_client_order_id")));
@@ -5247,7 +5247,7 @@ public class HtxCore extends HtxApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -5301,11 +5301,11 @@ public class HtxCore extends HtxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-            Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss");
-            Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit");
-            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+            Object stopLoss = this.safeBool(parameters, "stopLoss");
+            Object takeProfit = this.safeBool(parameters, "takeProfit");
+            Object trailing = this.safeBool(parameters, "trailing", false);
             Boolean isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(stopLoss, true)))) || Helpers.isTrue((Helpers.isEqual(takeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(trailing, true))));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -5421,11 +5421,11 @@ public class HtxCore extends HtxApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
-                Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+                Object trigger = this.safeBool2(parameters, "stop", "trigger");
                 Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-                Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss");
-                Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit");
-                Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+                Object stopLoss = this.safeBool(parameters, "stopLoss");
+                Object takeProfit = this.safeBool(parameters, "takeProfit");
+                Object trailing = this.safeBool(parameters, "trailing", false);
                 Boolean isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(stopLoss, true)))) || Helpers.isTrue((Helpers.isEqual(takeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(trailing, true))));
                 if (Helpers.isTrue(Helpers.isEqual(isAlgo, true)))
                 {
@@ -5563,11 +5563,11 @@ public class HtxCore extends HtxApi
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "linear"), true)))
                 {
-                    Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+                    Object trigger = this.safeBool2(parameters, "stop", "trigger");
                     Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-                    Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss");
-                    Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit");
-                    Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+                    Object stopLoss = this.safeBool(parameters, "stopLoss");
+                    Object takeProfit = this.safeBool(parameters, "takeProfit");
+                    Object trailing = this.safeBool(parameters, "trailing", false);
                     Boolean isAlgo = (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(stopLoss, true)))) || Helpers.isTrue((Helpers.isEqual(takeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(trailing, true))));
                     if (Helpers.isTrue(Helpers.isEqual(isAlgo, true)))
                     {
@@ -5741,11 +5741,11 @@ public class HtxCore extends HtxApi
                         Helpers.addElementToObject(request, "page_size", limit);
                     }
                 }
-                Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
-                Boolean stopLossTakeProfit = (Boolean) this.safeBool(parameters, "stopLossTakeProfit");
-                Boolean stopLoss = (Boolean) this.safeBool(parameters, "stopLoss");
-                Boolean takeProfit = (Boolean) this.safeBool(parameters, "takeProfit");
-                Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+                Object trigger = this.safeBool2(parameters, "stop", "trigger");
+                Object stopLossTakeProfit = this.safeBool(parameters, "stopLossTakeProfit");
+                Object stopLoss = this.safeBool(parameters, "stopLoss");
+                Object takeProfit = this.safeBool(parameters, "takeProfit");
+                Object trailing = this.safeBool(parameters, "trailing", false);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
                 if (Helpers.isTrue(isLinear))
                 {
@@ -6445,7 +6445,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(String symbol, Object cost, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createMarketBuyOrderWithCost(Object symbol, Object cost, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6480,7 +6480,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> createTrailingPercentOrder(String symbol, Object type, Object side, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> createTrailingPercentOrder(Object symbol, Object type, Object side, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -6557,7 +6557,7 @@ public class HtxCore extends HtxApi
             String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop-price")));
             if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
             {
-                java.util.Map<String, Object> stopOrderTypes = (java.util.Map<String, Object>) this.safeDict(options, "stopOrderTypes", new java.util.HashMap<String, Object>() {{}});
+                Object stopOrderTypes = this.safeDict(options, "stopOrderTypes", new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(Helpers.inOp(stopOrderTypes, orderType)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a triggerPrice for a trigger order")) ;
@@ -6651,7 +6651,7 @@ public class HtxCore extends HtxApi
             {
                 Helpers.addElementToObject(request, "amount", this.amountToPrecision(symbol, amount));
             }
-            java.util.Map<String, Object> limitOrderTypes = (java.util.Map<String, Object>) this.safeDict(options, "limitOrderTypes", new java.util.HashMap<String, Object>() {{}});
+            Object limitOrderTypes = this.safeDict(options, "limitOrderTypes", new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.inOp(limitOrderTypes, orderType)))
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
@@ -6716,8 +6716,8 @@ public class HtxCore extends HtxApi
         subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
         parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
         Boolean isLinear = (Helpers.isEqual(subType, "linear"));
-        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
+        Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
+        Object hedged = this.safeBool(parameters, "hedged", false);
         String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force", "gtc");
         if (Helpers.isTrue(isLinear))
         {
@@ -6731,8 +6731,8 @@ public class HtxCore extends HtxApi
             {
                 Helpers.addElementToObject(request, "time_in_force", ((String)timeInForce).toLowerCase());
             }
-            java.util.Map<String, Object> stopLoss = (java.util.Map<String, Object>) this.safeDict(parameters, "stopLoss");
-            java.util.Map<String, Object> takeProfit = (java.util.Map<String, Object>) this.safeDict(parameters, "takeProfit");
+            Object stopLoss = this.safeDict(parameters, "stopLoss");
+            Object takeProfit = this.safeDict(parameters, "takeProfit");
             Double stopLossTriggerPriceAttached = this.safeNumber(stopLoss, "triggerPrice");
             Double stopLossOrderPrice = this.safeNumber(stopLoss, "price");
             String stopLossType = this.safeString(stopLoss, "type");
@@ -7384,9 +7384,9 @@ public class HtxCore extends HtxApi
             parameters = ((java.util.List<Object>) subTypeparametersVariable).get(1);
             Boolean isLinear = (Helpers.isEqual(subType, "linear"));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Object stopLossTakeProfit = this.safeBoolN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLossTakeProfit", "stopLoss", "takeProfit")));
-            Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+            Object trailing = this.safeBool(parameters, "trailing", false);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger", "stopLoss", "takeProfit")));
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -7540,7 +7540,7 @@ public class HtxCore extends HtxApi
             {
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(trigger, true))) || Helpers.isTrue((Helpers.isEqual(stopLossTakeProfit, true)))) || Helpers.isTrue((Helpers.isEqual(trailing, true)))))
                 {
-                    java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
                 } else
                 {
@@ -7595,7 +7595,7 @@ public class HtxCore extends HtxApi
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+            Object trigger = this.safeBool2(parameters, "stop", "trigger");
             Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trigger")));
             Object response = null;
@@ -7775,7 +7775,7 @@ public class HtxCore extends HtxApi
             {
                 return this.parseCancelOrders(response);
             }
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
+            Object data = this.safeDict(response, "data");
             return this.parseCancelOrders(data);
         });
 
@@ -7842,8 +7842,8 @@ public class HtxCore extends HtxApi
         {
             success = this.safeList(orders, "success", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         }
-        java.util.List<Object> failed = (java.util.List<Object>) this.safeList2(orders, "errors", "failed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> data = (java.util.List<Object>) this.safeList(orders, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object failed = this.safeList2(orders, "errors", "failed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object data = this.safeList(orders, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
@@ -7928,7 +7928,7 @@ public class HtxCore extends HtxApi
                 //         }
                 //     }
                 //
-                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
+                Object data = this.safeDict(response, "data");
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeOrder(new java.util.HashMap<String, Object>() {{
         put( "info", data );
     }})));
@@ -7943,9 +7943,9 @@ public class HtxCore extends HtxApi
                     Helpers.addElementToObject(request, "symbol", this.safeString(market, "settleId"));
                 }
                 Helpers.addElementToObject(request, "contract_code", this.safeString(market, "id"));
-                Boolean trigger = (Boolean) this.safeBool2(parameters, "stop", "trigger");
+                Object trigger = this.safeBool2(parameters, "stop", "trigger");
                 Object stopLossTakeProfit = this.safeValue(parameters, "stopLossTakeProfit");
-                Boolean trailing = (Boolean) this.safeBool(parameters, "trailing", false);
+                Object trailing = this.safeBool(parameters, "trailing", false);
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "stopLossTakeProfit", "trailing", "trigger")));
                 if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "linear"), true)))
                 {
@@ -8001,7 +8001,7 @@ public class HtxCore extends HtxApi
                 {
                     return this.parseCancelOrders(response);
                 }
-                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
+                Object data = this.safeDict(response, "data");
                 return this.parseCancelOrders(data);
             }
         });
@@ -8154,7 +8154,7 @@ public class HtxCore extends HtxApi
 
     }
 
-    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawAddresses(String code, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchWithdrawAddresses(Object code, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8276,7 +8276,7 @@ public class HtxCore extends HtxApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         });
 
@@ -8353,7 +8353,7 @@ public class HtxCore extends HtxApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(data, currency, since, limit);
         });
 
@@ -8619,7 +8619,7 @@ public class HtxCore extends HtxApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        java.util.Map<String, Object> accountsById = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
+        Object accountsById = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
         String id = this.safeString2(transfer, "transfer_id", "data");
         String currencyId = this.safeString(transfer, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
@@ -8675,7 +8675,7 @@ public class HtxCore extends HtxApi
      * @param {string} [params.subType] 'linear' or 'inverse', only used when transfering to/from swap accounts
      * @returns {object} a [transfer structure]{@link https://docs.ccxt.com/?id=transfer-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> transfer(String code, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> transfer(Object code, Object amount, Object fromAccount2, Object toAccount, Object... optionalArgs)
     {
         final Object fromAccount3 = fromAccount2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -8849,7 +8849,7 @@ public class HtxCore extends HtxApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransfers(data, currency, since, limit);
         });
 
@@ -9050,7 +9050,7 @@ public class HtxCore extends HtxApi
             } else
             {
                 Object cursor = this.safeValue(data, "current_page");
-                java.util.List<Object> result = (java.util.List<Object>) this.safeList(data, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object result = this.safeList(data, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
                 {
                     Object entry = Helpers.GetValue(result, i);
@@ -9180,7 +9180,7 @@ public class HtxCore extends HtxApi
             Object result = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
-                java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 result = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             } else
             {
@@ -9649,11 +9649,11 @@ public class HtxCore extends HtxApi
             String code = this.safeString(response, "code");
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, feedback);
         }
-        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
-        java.util.List<Object> errorsList = (java.util.List<Object>) this.safeList(data, "errors");
+        Object data = this.safeDict(response, "data");
+        Object errorsList = this.safeList(data, "errors");
         if (Helpers.isTrue(!Helpers.isEqual(errorsList, null)))
         {
-            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(errorsList, 0);
+            Object first = this.safeDict(errorsList, 0);
             String errcode = this.safeString(first, "err_code");
             String errmessage = this.safeString(first, "err_msg");
             Object feedBack = Helpers.add(Helpers.add(this.id, " "), body);
@@ -9758,7 +9758,7 @@ public class HtxCore extends HtxApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 response = (this.contractPrivatePostApiV3ContractFinancialRecordExact(this.extend(request, parameters))).join();
             }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseIncomes(data, market, since, limit);
         });
 
@@ -10102,7 +10102,7 @@ public class HtxCore extends HtxApi
                     throw new NotSupported((String)Helpers.add(this.id, " fetchPositions() not support this market type")) ;
                 }
             }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Long timestamp = this.safeInteger(response, "ts");
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -10181,7 +10181,7 @@ public class HtxCore extends HtxApi
             Object data = this.safeValue(response, "data");
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
-                java.util.Map<String, Object> linearPosition = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+                Object linearPosition = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
                 return this.parsePosition(linearPosition, market);
             }
             Object account = null;
@@ -10425,7 +10425,7 @@ public class HtxCore extends HtxApi
             //        ]
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLeverageTiers(data, symbols, "contract_code");
         });
 
@@ -10437,12 +10437,12 @@ public class HtxCore extends HtxApi
         String currencyId = this.safeString(info, "trade_partition");
         String marketId = this.safeString(info, "contract_code");
         java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        java.util.List<Object> brackets = (java.util.List<Object>) this.safeList(info, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object brackets = this.safeList(info, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(brackets)); i++)
         {
             Object item = Helpers.GetValue(brackets, i);
             String leverage = this.safeString(item, "lever_rate");
-            java.util.List<Object> ladders = (java.util.List<Object>) this.safeList(item, "ladders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object ladders = this.safeList(item, "ladders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var k = 0; Helpers.isLessThan(k, Helpers.getArrayLength(ladders)); k++)
             {
                 Object bracket = Helpers.GetValue(ladders, k);
@@ -10478,7 +10478,7 @@ public class HtxCore extends HtxApi
      * @param {int} [params.pair] eg BTC-USDT *Only for USDT-M*
      * @returns {object} an array of [open interest structures]{@link https://docs.ccxt.com/?id=open-interest-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchOpenInterestHistory(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10593,7 +10593,7 @@ public class HtxCore extends HtxApi
             //    }
             //
             Object data = this.safeValue(response, "data");
-            java.util.List<Object> tick = (java.util.List<Object>) this.safeList(data, "tick");
+            Object tick = this.safeList(data, "tick");
             return this.parseOpenInterestsHistory(tick, market, since, limit);
         });
 
@@ -10651,7 +10651,7 @@ public class HtxCore extends HtxApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchOpenInterests() does not currently support linear markets")) ;
             }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOpenInterests(data, symbols);
         });
 
@@ -10764,13 +10764,13 @@ public class HtxCore extends HtxApi
             Long timestamp = this.safeInteger(response, "ts");
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
-                java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                Object result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 return this.extend(this.parseOpenInterest(result, market), new java.util.HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                     put( "datetime", HtxCore.this.iso8601(timestamp) );
                 }});
             }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object openInterest = this.parseOpenInterest(Helpers.GetValue(data, 0), market);
             Helpers.addElementToObject(openInterest, "timestamp", timestamp);
             Helpers.addElementToObject(openInterest, "datetime", this.iso8601(timestamp));
@@ -10857,7 +10857,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowIsolatedMargin(Object symbol, Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10902,7 +10902,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> borrowCrossMargin(Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10945,7 +10945,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(String symbol, String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayIsolatedMargin(Object symbol, Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -10995,7 +10995,7 @@ public class HtxCore extends HtxApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [margin loan structure]{@link https://docs.ccxt.com/?id=margin-loan-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(String code, Object amount, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> repayCrossMargin(Object code, Object amount, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11210,7 +11210,7 @@ public class HtxCore extends HtxApi
             //
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
-                java.util.List<Object> dataLinear = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Object dataLinear = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object settlementsLinear = this.parseSettlements(dataLinear, market);
                 return this.sortBy(settlementsLinear, "timestamp");
             }
@@ -11279,7 +11279,7 @@ public class HtxCore extends HtxApi
             //        ]
             //    }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
+            Object data = this.safeList(response, "data");
             return this.parseDepositWithdrawFees(data, codes, "currency");
         });
 
@@ -11319,7 +11319,7 @@ public class HtxCore extends HtxApi
         //          }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        java.util.List<Object> chains = (java.util.List<Object>) this.safeList(fee, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object chains = this.safeList(fee, "chains", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String code = this.safeString(currency, "code");
         Object result = this.depositWithdrawFee(fee);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
@@ -11504,7 +11504,7 @@ public class HtxCore extends HtxApi
      * @param {int} [params.tradeType] *not supported for linear swap* default 0: filled liquidated orders, 5: liquidated close orders, 6: liquidated open orders
      * @returns {object} an array of [liquidation structures]{@link https://docs.ccxt.com/?id=liquidation-structure}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchLiquidations(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -11578,7 +11578,7 @@ public class HtxCore extends HtxApi
             //         "ts": 1604312615051
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseLiquidations(data, market, since, limit);
         });
 
@@ -11707,7 +11707,7 @@ public class HtxCore extends HtxApi
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
-                java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 return this.parseOrder(data, market);
             }
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
@@ -11832,7 +11832,7 @@ public class HtxCore extends HtxApi
                     throw new NotSupported((String)Helpers.add(this.id, " fetchPositionsADLRank() not support this market type")) ;
                 }
             }
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseADLRanks(data, symbols);
         });
 

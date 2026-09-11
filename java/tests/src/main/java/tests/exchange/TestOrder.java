@@ -63,7 +63,7 @@ public class TestOrder extends BaseTest {
         TestSharedMethods.AssertGreaterOrEqual(exchange, skippedProperties, method, entry, "amount", exchange.safeString(entry, "filled"));
         if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "trades"))))
         {
-            Object skippedNew = exchange.deepExtend(skippedProperties, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> skippedNew = exchange.deepExtend(skippedProperties, new java.util.HashMap<String, Object>() {{
                 put( "timestamp", true );
                 put( "datetime", true );
                 put( "side", true );

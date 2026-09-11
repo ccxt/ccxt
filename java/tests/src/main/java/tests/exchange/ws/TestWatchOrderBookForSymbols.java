@@ -28,7 +28,7 @@ public class TestWatchOrderBookForSymbols extends BaseTest {
         {
             Object response = null;
             Boolean succeeded = true;
-            Object startTime = exchange.milliseconds();
+            Long startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchOrderBookForSymbols(symbols)).join();

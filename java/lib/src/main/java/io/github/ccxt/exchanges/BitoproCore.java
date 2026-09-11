@@ -1436,7 +1436,7 @@ public class BitoproCore extends BitoproApi
 
     public Object parseCancelOrders(Object data)
     {
-        Object dataKeys = Helpers.objectKeys(data);
+        java.util.List<Object> dataKeys = Helpers.objectKeys(data);
         java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(dataKeys)); i++)
         {

@@ -127,7 +127,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object isLimitOrder = ((String)type).endsWith(((String)"limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
+        Boolean isLimitOrder = ((String)type).endsWith(((String)"limit")); // supporting limit, stop-loss-limit, take-profit-limit, etc
         if (Helpers.isTrue(isLimitOrder))
         {
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
@@ -735,7 +735,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
         }
-        Object ohlcvsLength = Helpers.getArrayLength(data);
+        Integer ohlcvsLength = Helpers.getArrayLength(data);
         for (var i = 0; Helpers.isLessThan(i, ohlcvsLength); i++)
         {
             Object candle = Helpers.GetValue(data, i);
@@ -1167,7 +1167,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         } else
         {
             // snapshot
-            Object depth = Helpers.getArrayLength(a);
+            Integer depth = Helpers.getArrayLength(a);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, depth));
             orderbook = Helpers.GetValue(this.orderbooks, symbol);
             java.util.List<Object> keys = new java.util.ArrayList<Object>(java.util.Arrays.asList("asks", "bids"));
@@ -1176,7 +1176,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 String key = (String) Helpers.GetValue(keys, i);
                 Object bookside = Helpers.GetValue(orderbook, key);
                 Object deltas = this.safeList(first, key, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object deltasLength = Helpers.getArrayLength(deltas);
+                Integer deltasLength = Helpers.getArrayLength(deltas);
                 if (Helpers.isTrue(Helpers.isGreaterThan(deltasLength, 0)))
                 {
                     this.customHandleDeltas(bookside, deltas);
@@ -1209,7 +1209,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                     ((java.util.List<Object>)payloadArray).add(formattedBid);
                 }
             }
-            Object payload = String.join((String)"", (java.util.List<String>)payloadArray);
+            String payload = String.join((String)"", (java.util.List<String>)payloadArray);
             Object localChecksum = this.crc32(payload, false);
             if (Helpers.isTrue(!Helpers.isEqual(localChecksum, c)))
             {
@@ -1237,7 +1237,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
 
     public Object formatNumber(Object data)
     {
-        Object parts = Helpers.split(data, ".");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(data, ".");
         Object integer = this.safeString(parts, 0);
         String decimals = this.safeString(parts, 1, "");
         Object joinedResult = Helpers.add(integer, decimals);
@@ -1462,7 +1462,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         //
         Object subscription = Helpers.getArg(optionalArgs, 0, null);
         Object allTrades = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object allTradesLength = Helpers.getArrayLength(allTrades);
+        Integer allTradesLength = Helpers.getArrayLength(allTrades);
         if (Helpers.isTrue(Helpers.isGreaterThan(allTradesLength, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
@@ -1482,7 +1482,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             }
             String name = "myTrades";
             client.resolve(this.myTrades, name);
-            Object keys = Helpers.objectKeys(symbols);
+            java.util.List<Object> keys = Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(keys, i));
@@ -1613,7 +1613,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         //
         Object subscription = Helpers.getArg(optionalArgs, 0, null);
         Object allOrders = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object allOrdersLength = Helpers.getArrayLength(allOrders);
+        Integer allOrdersLength = Helpers.getArrayLength(allOrders);
         if (Helpers.isTrue(Helpers.isGreaterThan(allOrdersLength, 0)))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1637,7 +1637,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                     java.util.Map<String, Object> newRawOrder = this.extend(Helpers.GetValue(previousOrder, "info"), Helpers.GetValue(newOrder, "info"));
                     newOrder = this.parseWsOrder(newRawOrder);
                 }
-                Object length = Helpers.getArrayLength(stored);
+                Integer length = Helpers.getArrayLength(stored);
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(length, limit)) && Helpers.isTrue((Helpers.isEqual(previousOrder, null)))))
                 {
                     Object first = Helpers.GetValue(stored, 0);
@@ -1655,7 +1655,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             }
             String name = "orders";
             client.resolve(this.orders, name);
-            Object keys = Helpers.objectKeys(symbols);
+            java.util.List<Object> keys = Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(keys, i));

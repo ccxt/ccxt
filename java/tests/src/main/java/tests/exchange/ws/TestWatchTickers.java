@@ -39,7 +39,7 @@ public class TestWatchTickers extends BaseTest {
             Object response = new java.util.HashMap<String, Object>() {{}};
             Boolean success = true;
             Boolean shouldReturn = false;
-            Object startTime = exchange.milliseconds();
+            Long startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchTickers(argSymbols, argParams)).join();
@@ -69,7 +69,7 @@ public class TestWatchTickers extends BaseTest {
             if (Helpers.isTrue(Helpers.isEqual(success, true)))
             {
                 Assert(exchange.isDictionary(response), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " "), exchange.json(argSymbols)), " must return a dictionary. "), exchange.json(response)));
-                Object values = Helpers.objectValues(response);
+                java.util.List<Object> values = Helpers.objectValues(response);
                 Object checkedSymbol = null;
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(argSymbols, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(argSymbols), 1))))
                 {

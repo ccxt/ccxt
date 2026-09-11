@@ -795,7 +795,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
     public void setOrderBookSnapshot(Client client, Object message, Object channel)
     {
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object length = Helpers.getArrayLength(data);
+        Integer length = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(length, 0)))
         {
             return;
@@ -1392,9 +1392,9 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(filtered)))
             {
@@ -1518,7 +1518,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             {
                 Object url = this.getUserStreamUrl();
                 Client client = this.client(url);
-                Object messageHashes = Helpers.objectKeys(client.futures);
+                java.util.List<Object> messageHashes = Helpers.objectKeys(client.futures);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
                 {
                     Object messageHash = Helpers.GetValue(messageHashes, i);
