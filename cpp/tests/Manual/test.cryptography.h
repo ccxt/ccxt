@@ -58,12 +58,44 @@ inline void testCryptography () {
     assertTrue (isEqual (decodeUtf8 (fromBase58 ("StV1DL6CwTryKyV")), std::string ("hello world")));
 
     // NOT COVERED HERE, and deliberately so rather than silently:
-    //   ecdsa  - the TS assertions pin exact (r, s, v) triples, which requires the
-    //            RFC-6979 deterministic nonce @noble/curves uses. OpenSSL's
-    //            ECDSA_do_sign draws a random nonce, so it cannot reproduce them
-    //            without implementing 6979 by hand.
-    //   rsa/jwt- need PEM parsing plus PKCS#1 v1.5 signing wired through a
-    //            ccxt-shaped jwt(); the pieces exist in OpenSSL but are not plumbed.
-    //   keccak - OpenSSL ships padded SHA-3, not the original Keccak padding ethereum
-    //            uses; digestFor() throws rather than signing with the wrong one.
+    //   rsa     - PEM parsing + PKCS#1 v1.5 signing wired through a ccxt-shaped
+    //             jwt(); the pieces exist in OpenSSL but are not plumbed. This is
+    //             the ONLY remaining gap: RFC-6979 ECDSA over secp256k1, the
+    //             original (non-SHA3) keccak-256, and jwt HS256/EdDSA are all
+    //             implemented and vector-validated elsewhere (Crypto.cpp /
+    //             Starknet.cpp comments + the ETH signing probes).
+
+    // EIP-712 array-of-structs encoding (CPP-006): ethers encodes each struct
+    // element as typehash||fields with a PER-ELEMENT keccak, then one keccak over
+    // the concatenation (NOT a bare field-concat keccak). Reference vector
+    // generated from the repo's pinned ethers fork (typed-data.ts getEncoder).
+    {
+        ccxt::ExchangeBase ex;
+        const std::any domain = ccxt::dict {
+            { std::string ("name"), std::string ("Test") },
+            { std::string ("version"), std::string ("1") },
+            { std::string ("chainId"), 1 },
+            { std::string ("verifyingContract"), std::string ("0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC") },
+        };
+        const std::any types = ccxt::dict {
+            { std::string ("Order"), ccxt::list {
+                ccxt::dict { { std::string ("name"), std::string ("legs") },
+                             { std::string ("type"), std::string ("Leg[]") } } } },
+            { std::string ("Leg"), ccxt::list {
+                ccxt::dict { { std::string ("name"), std::string ("price") },
+                             { std::string ("type"), std::string ("uint256") } },
+                ccxt::dict { { std::string ("name"), std::string ("side") },
+                             { std::string ("type"), std::string ("uint8") } } } },
+        };
+        const std::any message = ccxt::dict {
+            { std::string ("legs"), ccxt::list {
+                ccxt::dict { { std::string ("price"), std::string ("100") }, { std::string ("side"), 1 } },
+                ccxt::dict { { std::string ("price"), std::string ("200") }, { std::string ("side"), 0 } } } },
+        };
+        const std::any encoded = ex.ethEncodeStructuredData (domain, types, message);
+        assertTrue (isEqual (toBase16 (std::any_cast<bytes> (encoded)),
+            std::string ("1901"
+                "9a8af9fa0e0b9cc754673d55fcc039a94f1fa62a8ea41c8a977869f73d86b933"
+                "1287d85fcfc3713a33bd8724f32131f49ca37833681c7219bc2e7190471e0d23")));
+    }
 }
