@@ -43,7 +43,7 @@ async function testWatchTradesForSymbols (exchange: Exchange, skippedProperties:
             }
         }
     }
-    assert (returnedSymbols.length < symbols.length, logText + 'only received part of symbols: ' + exchange.json (returnedSymbols));
+    assert (returnedSymbols.length === symbols.length, logText + 'only received part of symbols: ' + exchange.json (returnedSymbols));
     return true;
 }
 
