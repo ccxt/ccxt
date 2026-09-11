@@ -1,0 +1,10 @@
+unified methods scanned: 234
+
+[A] type used in a return with NO Java class (and not in KNOWN_TYPES):
+  (none)
+
+[B] Java class EXISTS but NOT wired into KNOWN_TYPES (typed overload never emitted):
+  fetchDepositAddressesByNetwork -> DepositAddresses
+
+[C] KNOWN_TYPES entries with no Java class (would break the wrapper compile):
+  (none)

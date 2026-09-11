@@ -629,6 +629,7 @@ const DICT_FIELD: Record<string, string> = {
     'FundingRates': 'rates',
     'IsolatedBorrowRates': 'rates',
     'CrossBorrowRates': 'rates',
+    'AllGreeks': 'greeks',
     'Currencies': 'currencies',
     'OrderBooks': 'orderBooks',
     'DepositWithdrawFees': 'fees',
@@ -647,6 +648,7 @@ const DICT_HAS_INFO: Record<string, boolean> = {
     'PredictionTickers': true,
     'DepositWithdrawFees': true,
     'TradingFees': true,
+    'AllGreeks': true,
 };
 
 /** Wrappers that skip `"info"` in the fill loop without exposing an `info` field (Currencies). */
@@ -656,6 +658,7 @@ const DICT_SKIP_INFO_KEY: Record<string, boolean> = {
     'DepositWithdrawFees': true,
     'TradingFees': true,
     'Currencies': true,
+    'AllGreeks': true,
 };
 
 /**
