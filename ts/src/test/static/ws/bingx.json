@@ -7283,7 +7283,7 @@
                     {
                         "type": "swap",
                         "fetchBalanceSnapshot": true,
-                        "awaitBalanceSnapshot": true
+                        "awaitBalanceSnapshot": false
                     }
                 ],
                 "options": {
@@ -7362,7 +7362,7 @@
                     {
                         "type": "spot",
                         "fetchBalanceSnapshot": true,
-                        "awaitBalanceSnapshot": true
+                        "awaitBalanceSnapshot": false
                     }
                 ],
                 "options": {
