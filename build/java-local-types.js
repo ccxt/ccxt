@@ -189,6 +189,48 @@ const LOCAL_THIS_RETURN_TYPES = {
     'safeCurrencyCode': { type: 'String', cast: '(String)' },
 };
 
+// ===== market/currency structure locals =====
+//
+// A market/currency row in generated Java is a plain `java.util.HashMap<String, Object>`
+// (or LinkedHashMap), never a nominal wrapper: fetchMarkets bodies build rows with the
+// printer's object-literal emit, setMarkets merges them through deepExtend/indexBy, and
+// markets_by_id / currencies_by_id hold those same boxes. `io.github.ccxt.types.
+// MarketInterface` is a generated wrapper class used only by a handful of hand-written
+// facade files; naming it in generated code would change the box. `java.util.Map<String,
+// Object>` is the lossless spelling — the same conclusion the C# port reached with
+// `Dictionary<string, object>`.
+//
+// The accessors are declared `Object` in the generated BaseExchange (the printer erases
+// every non-boolean return annotation), so the narrowed declaration carries an explicit
+// checkcast on the box these methods already return — it moves no runtime value:
+//
+//   * BaseExchange: safeMarketStructure / safeCurrencyStructure build the row with an
+//     object-literal emit or deepExtend(...); safeMarket returns a markets_by_id element,
+//     a safeMarketStructure result, the caller-passed row, or createExpiredOptionMarket
+//     (an object-literal row in every venue override); safeCurrency likewise reads
+//     currencies_by_id or safeCurrencyStructure; market()/currency() read this.markets /
+//     this.markets_by_id / this.currencies / this.currencies_by_id (rows by construction).
+//   * Venue overrides (hyperliquid/binance market; okx/binance/bitflyer/gate/deribit/
+//     apex/delta/bybit/bithumb safeMarket): every one delegates to super.<name>(...) or
+//     returns a row built by createExpiredOptionMarket / Helpers.add, same contract. The
+//     gate is therefore `resolvesToMethodNamed` (any declaration of that name), not the
+//     base-file gate the parse* accessors use.
+//
+// CONSUMERS. Generated code reads these locals through Helpers.GetValue(x, k) /
+// this.safeString(x, k) / Helpers.addElementToObject(x, ...) / this.deepExtend(x, ...) —
+// every one of those takes Object, and a Map<String, Object> argument binds them exactly
+// as before. Java has no implicit downcast, which is why the declaration carries the cast.
+const JAVA_STRUCTURE_TYPE = 'java.util.Map<String, Object>';
+
+const STRUCTURE_THIS_RETURN_TYPES = {
+    'safeMarket': JAVA_STRUCTURE_TYPE,
+    'safeCurrency': JAVA_STRUCTURE_TYPE,
+    'safeMarketStructure': JAVA_STRUCTURE_TYPE,
+    'safeCurrencyStructure': JAVA_STRUCTURE_TYPE,
+    'market': JAVA_STRUCTURE_TYPE,
+    'currency': JAVA_STRUCTURE_TYPE,
+};
+
 // ts sources that may hold the resolved declaration of an admitted accessor call —
 // anything else (a venue override) never classifies
 const ACCESSOR_SOURCE_FILES = [
@@ -382,6 +424,10 @@ function localInitializerType (printer, declaration) {
     if (accessor !== undefined && resolvesToBaseAccessor (printer, initializer, name)) {
         return { type: accessor.type, cast: accessor.cast };
     }
+    const structure = STRUCTURE_THIS_RETURN_TYPES[name];
+    if (structure !== undefined && resolvesToMethodNamed (printer, initializer, name)) {
+        return { type: structure, cast: '(' + structure + ')' };
+    }
     return undefined;
 }
 
@@ -408,6 +454,9 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 return false;
             }
             const name = callee.name.escapedText;
+            if (javaType === JAVA_STRUCTURE_TYPE) {
+                return STRUCTURE_THIS_RETURN_TYPES[name] !== undefined && resolvesToMethodNamed (printer, node, name);
+            }
             if (javaType === 'String') {
                 if (name === 'parse8601') {
                     return false;
@@ -472,6 +521,11 @@ const LIST_RECEIVER_METHODS = new Set ([
     'add', 'size', 'isEmpty', 'get', 'set', 'insert', 'append',
 ]);
 const LONG_RECEIVER_METHODS = new Set ([ 'toString', 'valueOf', 'intValue', 'longValue', 'doubleValue' ]);
+// java.util.Map<String, Object>-safe receiver methods: only the prints that route
+// through an Object-taking helper (Helpers.getIndexOf / Helpers.slice / Helpers.split /
+// Helpers.concat / String.valueOf / Helpers.getArrayLength). Map has no `contains`,
+// no list casts and no String members.
+const MAP_RECEIVER_METHODS = new Set ([ 'toString', 'indexOf', 'split', 'concat', 'toFixed', 'slice' ]);
 
 function receiverCallIsSafe (method, javaType) {
     if (javaType === 'String') {
@@ -482,6 +536,9 @@ function receiverCallIsSafe (method, javaType) {
     }
     if (javaType === JAVA_ARRAY_TYPE) {
         return LIST_RECEIVER_METHODS.has (method);
+    }
+    if (javaType === JAVA_STRUCTURE_TYPE) {
+        return MAP_RECEIVER_METHODS.has (method);
     }
     return false;
 }
@@ -706,12 +763,15 @@ export function installJavaLocalTypes (transpiler) {
         // parse8601/iso8601) need none
         const accessor = LOCAL_THIS_RETURN_TYPES[call];
         const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType)
+            || (javaType === JAVA_STRUCTURE_TYPE && STRUCTURE_THIS_RETURN_TYPES[call] !== undefined)
             || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'))
             || (javaType === 'String' && (JAVA_STRING_RETURN_METHODS_CASE_CAST.has (call)
                 || call === 'safeStringUpper' || call === 'safeStringLower'
                 || call === 'safeStringUpper2' || call === 'safeStringLower2'
                 || call === 'safeStringUpperN' || call === 'safeStringLowerN'));
-        const cast = needsCast ? (javaType === 'String' ? '(String)' : '(Long)') : '';
+        const cast = !needsCast ? ''
+            : (javaType === 'String' ? '(String)'
+                : javaType === JAVA_STRUCTURE_TYPE ? '(' + JAVA_STRUCTURE_TYPE + ')' : '(Long)');
         if (cast === '') {
             return printed;
         }
