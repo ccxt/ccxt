@@ -5,7 +5,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
 import { TRUNCATE, DECIMAL_PLACES } from '../base/functions/number.js';
-import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, OrderNotFound } from '../base/errors.js';
+import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, NetworkError, NotSupported, OrderNotFound } from '../base/errors.js';
 import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 
@@ -187,6 +187,10 @@ export default class predictfun extends Exchange {
                 // of the range the venue accepts, so the order crosses whatever is resting
                 'marketBuyPrice': 0.99,
                 'marketSellPrice': 0.01,
+                // those two defaults are aggressive enough to be worth an explicit opt in, so a
+                // priceless market order throws until this is turned off - per call through params
+                // or on the instance. it warns by raising, the way every other warnOn option does
+                'warnOnMarketOrderWithoutPrice': true,
                 'chainId': 56,                  // BNB mainnet, swapped to 97 by setSandboxMode
                 // where approve () broadcasts, and the collateral it approves - both chain scoped
                 'rpcUrls': {
@@ -1671,15 +1675,31 @@ export default class predictfun extends Exchange {
      * @returns {undefined}
      */
     override setSandboxMode (enable: boolean) {
+        // read before the flag is overwritten: only an actual switch touches the token, so calling
+        // this twice with the same value is a no-op rather than a forced re-authentication
+        const wasSandbox = this.safeBool (this.options, 'sandboxMode', false);
         super.setSandboxMode (enable);
         // the testnet is a different chain, so the EIP-712 chainId and every verifying contract
         // change with it - and the venue serves the testnet without an api key
         this.options['sandboxMode'] = enable;
         this.options['chainId'] = (enable) ? 97 : 56;
         this.requiredCredentials['apiKey'] = !enable;
-        // a token minted for one host is not valid on the other
-        this.options['jwtToken'] = undefined;
-        this.options['jwtTokenExpiresAt'] = 0;
+        if (wasSandbox !== enable) {
+            // a token minted for one host is not valid on the other, so the live one is set aside
+            // on the way in and taken back on the way out - a round trip through the sandbox then
+            // costs no re-authentication. the sandbox token is not kept: it dies with the switch
+            if (enable) {
+                this.options['backupJwtToken'] = this.safeString (this.options, 'jwtToken');
+                this.options['backupJwtTokenExpiresAt'] = this.safeInteger (this.options, 'jwtTokenExpiresAt', 0);
+                this.options['jwtToken'] = undefined;
+                this.options['jwtTokenExpiresAt'] = 0;
+            } else {
+                this.options['jwtToken'] = this.safeString (this.options, 'backupJwtToken');
+                this.options['jwtTokenExpiresAt'] = this.safeInteger (this.options, 'backupJwtTokenExpiresAt', 0);
+                this.options['backupJwtToken'] = undefined;
+                this.options['backupJwtTokenExpiresAt'] = 0;
+            }
+        }
     }
 
     /**
@@ -1832,12 +1852,13 @@ export default class predictfun extends Exchange {
      * @param {string} type 'limit' or 'market'
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount the number of outcome shares
-     * @param {float} [price] the price per share between 0 and 1, required for a limit order; a market order without one is signed at 0.99 to buy or 0.01 to sell, the worst price it accepts
+     * @param {float} [price] the price per share between 0 and 1, required for a limit order, and for a market order too unless warnOnMarketOrderWithoutPrice is turned off
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {int} [params.expiration] unix timestamp in seconds the limit order expires at
      * @param {bool} [params.postOnly] reject the order if it would take liquidity
      * @param {bool} [params.isFillOrKill] fill the order completely or cancel it
      * @param {string} [params.slippageBps] slippage tolerance for a market order, in basis points
+     * @param {bool} [params.warnOnMarketOrderWithoutPrice] set to false to sign a priceless market order at 0.99 to buy or 0.01 to sell, the worst price it accepts
      * @param {string} [params.selfTradePrevention] 'CANCEL_MAKER' | 'CANCEL_TAKER' | 'CANCEL_BOTH'
      * @param {string} [params.salt] order salt, pin it to retry an order idempotently
      * @param {string} [params.nonce] the maker's on chain nonce, defaults to 0
@@ -1869,12 +1890,20 @@ export default class predictfun extends Exchange {
         const amountString: Str = this.numberToString (amount);
         const priceString = this.numberToString (price);
         let priceToProvide = priceString;
+        // read through the extractor rather than off the instance, so one call can opt in without
+        // reconfiguring the exchange - and so the key is taken out of params instead of riding
+        // along into the request body
+        let warnOnMarketOrderWithoutPrice: Bool = true;
+        [ warnOnMarketOrderWithoutPrice, params ] = this.handleOptionAndParams (params, 'createOrder', 'warnOnMarketOrderWithoutPrice', true);
         if (price === undefined) {
-            // a priceless limit order already threw above, so this is a market order. it still
-            // has to name a price, so it takes the aggressive end of the
-            // range the venue allows: 0.99 crosses any ask, 0.01 is crossed by any bid. the fill
-            // happens at the book's own prices, this is only the worst price the order accepts -
-            // which is also the collateral the maker leg has to cover
+            // a priceless limit order already threw above, so this is a market order
+            if (warnOnMarketOrderWithoutPrice) {
+                throw new ArgumentsRequired (this.id + ' createOrder() market orders require a price argument. To use default values set warnOnMarketOrderWithoutPrice to false in options');
+            }
+            // it still has to name a price, so it takes the aggressive end of the range the venue
+            // allows: 0.99 crosses any ask, 0.01 is crossed by any bid. the fill happens at the
+            // book's own prices, this is only the worst price the order accepts - which is also
+            // the collateral the maker leg has to cover
             priceToProvide = (isBuy) ? this.numberToString (this.safeNumber (this.options, 'marketBuyPrice', 0.99)) : this.numberToString (this.safeNumber (this.options, 'marketSellPrice', 0.01));
         }
         const quantityWei = Precise.stringMul (amountString, '1000000000000000000');
@@ -3000,8 +3029,13 @@ export default class predictfun extends Exchange {
         const messageHashes = this.safeList (subscription, 'messageHashes', []);
         const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
         const messageHashesLength = messageHashes.length;
+        // one wallet hash stands for a family: 'orders' is what an unnarrowed caller waits on and
+        // 'orders::<outcome>' what a narrowed one waits on, so the base matches it as a prefix and
+        // releases both. the book path needs no such thing - it registers the full narrowed hash of
+        // every outcome of the market, and an exact match is what keeps a sibling market out of it
+        const isWalletTopic = (this.safeString (subscription, 'topic') === 'walletEvents');
         for (let i = 0; i < messageHashesLength; i++) {
-            this.cleanUnsubscription (client, subMessageHashes[i], messageHashes[i]);
+            this.cleanUnsubscription (client, subMessageHashes[i], messageHashes[i], isWalletTopic);
         }
         this.cleanCache (subscription);
         // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
@@ -3014,12 +3048,16 @@ export default class predictfun extends Exchange {
         // topic backs two of them - so the caches it cannot reach are dropped here by the hashes
         // the subscription does list. a stale cache left behind would be served to the next watcher
         // as if it had just arrived
-        for (let i = 0; i < subMessageHashes.length; i++) {
+        // the reset is delegated to the base rather than written here: assigning undefined to an
+        // inherited cache from a derived class is dropped outright by the go and c# transpilers,
+        // silently leaving those two languages with a stale cache
+        const subMessageHashesLength = subMessageHashes.length;
+        for (let i = 0; i < subMessageHashesLength; i++) {
             const subHash = subMessageHashes[i];
-            if (subHash === 'orders') {
-                this.orders = undefined;
-            } else if (subHash === 'myTrades') {
-                this.myTrades = undefined;
+            if ((subHash === 'orders') || (subHash === 'myTrades')) {
+                this.cleanCache ({
+                    'topic': subHash,
+                });
             }
         }
     }
@@ -3042,6 +3080,13 @@ export default class predictfun extends Exchange {
             const outcomeObj = this.outcome (outcome);
             outcome = this.safeOutcomeSymbol (undefined, outcomeObj);
             messageHash = 'orders::' + outcome;
+        } else {
+            // events arrive for whatever market the wallet traded, and the handler that resolves
+            // them is synchronous - so the universe is warmed here, while there is still a place to
+            // await. without it the first events land on a cold cache and every one of them buckets
+            // into the cache under the same undefined outcome. the call is idempotent and returns
+            // without a request once the cache is warm
+            await this.loadOutcomes ();
         }
         const orders = await this.watchWalletEvents (messageHash, params);
         if (this.newUpdates) {
@@ -3068,6 +3113,10 @@ export default class predictfun extends Exchange {
             const outcomeObj = this.outcome (outcome);
             outcome = this.safeOutcomeSymbol (undefined, outcomeObj);
             messageHash = 'myTrades::' + outcome;
+        } else {
+            // same as watchOrders (): the fills come from the one wallet topic and are resolved by
+            // a synchronous handler, so the cache is warmed here rather than on the first event
+            await this.loadOutcomes ();
         }
         const trades = await this.watchWalletEvents (messageHash, params);
         if (this.newUpdates) {
@@ -3137,16 +3186,46 @@ export default class predictfun extends Exchange {
             'requestId': requestId,
             'params': [ topic ], // one topic per request, the venue reads only the first entry
         };
+        const url = this.socketUrl ();
+        const client = this.client (url);
         const subscription: Dict = {
             'id': this.numberToString (requestId),
             // the topic carries the token, so the registered subscription names the stable hash
             // instead - a secret has no business sitting in state that gets logged or dumped
             'topic': 'walletEvents',
             'subscribeHash': 'walletEvents',
-            'messageHashes': [ 'orders', 'myTrades' ],
+            'messageHashes': this.walletEventMessageHashes (client, messageHash),
         };
-        const url = this.socketUrl ();
         return await this.watch (url, messageHash, this.extend (request, params), 'walletEvents', subscription);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#walletEventMessageHashes
+     * @description the hashes every waiter on the wallet topic is parked on, the narrowed ones included
+     * @param {Client} client the websocket client
+     * @param {string} messageHash the hash this call is about to park on, not registered yet
+     * @returns {string[]} the message hashes
+     */
+    walletEventMessageHashes (client: Client, messageHash: string): string[] {
+        // handleSubscriptionError rejects exactly this list, so a hash missing from it belongs to a
+        // caller the venue's refusal never reaches - watchOrders (outcome) would sit forever on a
+        // topic that was turned down. the unnarrowed pair is always listed, the narrowed ones are
+        // whatever is already live on this connection plus the hash watch () is about to register
+        const hashes: string[] = [ 'orders', 'myTrades' ];
+        const futures = Object.keys (client.futures);
+        const futuresLength = futures.length;
+        for (let i = 0; i < futuresLength; i++) {
+            const future = futures[i];
+            if ((future.indexOf ('orders::') === 0) || (future.indexOf ('myTrades::') === 0)) {
+                hashes.push (future);
+            }
+        }
+        if (!this.inArray (messageHash, hashes)) {
+            hashes.push (messageHash);
+        }
+        return hashes;
     }
 
     /**
@@ -3190,8 +3269,13 @@ export default class predictfun extends Exchange {
     socketUrl (): string {
         const urls = this.urls['api'] as Dict;
         const base = this.safeString (urls, 'ws');
+        if (base === undefined) {
+            // setSandboxMode replaces urls['api'] with urls['test'] wholesale, and the venue
+            // documents no testnet socket - so under sandbox there is nothing to connect to
+            throw new NotSupported (this.id + ' does not have a sandbox websocket endpoint');
+        }
         if (this.apiKey === undefined) {
-            throw new AuthenticationError (this.id + ' watchOrderBook() requires an apiKey - the venue answers the socket handshake with a 401 without one');
+            throw new AuthenticationError (this.id + ' requires an apiKey for all methods - the venue answers the socket handshake with a 401 without one');
         }
         // the key rides in the query string rather than a header: a browser cannot set headers on
         // a websocket handshake, and the venue documents both forms
@@ -3471,7 +3555,25 @@ export default class predictfun extends Exchange {
                 return candidate;
             }
         }
-        return this.safeOutcome (undefined, undefined);
+        // the wallet stream reports every market the wallet ever touched, including ones outside
+        // the capped listing watchOrders () warms the cache from, so a miss survives that warm-up.
+        // the event does name its topic and its outcome, and the unified event handle and label are
+        // derived from exactly those two strings - so both are rebuilt here the way parseTopicMarket
+        // builds them. the market symbol and the token id are not: the first needs the topic's
+        // market count and the second the on-chain id, neither of which the event carries. they stay
+        // undefined rather than guessed - a handle that does not match the one the rest of the api
+        // reports is worse than none at all
+        const topicSlug = this.safeString (details, 'categorySlug');
+        const eventHandle = (topicSlug !== undefined) ? this.shortenSlug (topicSlug) : undefined;
+        const label = this.stripPriceFormatting (this.safeStringUpper (details, 'outcomeName'));
+        return {
+            'outcome': undefined,
+            'outcomeId': undefined,
+            'market': undefined,
+            'label': label,
+            'event': eventHandle,
+            'info': details,
+        };
     }
 
     /**
@@ -3642,13 +3744,32 @@ export default class predictfun extends Exchange {
      * @param {object} message the raw message
      */
     handleHeartbeat (client: Client, message: Dict) {
+        // client.send () is a coroutine in the python port, so firing it from this synchronous
+        // handler would drop it unsent and the venue would close the socket on its next probe
+        this.spawn (this.pong, client, message);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#pong
+     * @description echoes the probe timestamp back, which is what keeps the connection open
+     * @param {Client} client the websocket client
+     * @param {object} message the raw probe
+     */
+    async pong (client: Client, message: Dict) {
         // the server probes every fifteen seconds and drops the connection on the next probe unless
         // the exact timestamp it sent comes back, so the reply echoes it verbatim
         const reply: Dict = {
             'method': 'heartbeat',
             'data': this.safeInteger (message, 'data'),
         };
-        client.send (reply);
+        try {
+            await client.send (reply);
+        } catch (e) {
+            const error = new NetworkError (this.id + ' pong failed with error ' + this.exceptionMessage (e));
+            client.reset (error);
+        }
     }
 
     /**
