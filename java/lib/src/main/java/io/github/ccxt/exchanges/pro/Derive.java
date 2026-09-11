@@ -93,6 +93,22 @@ public class Derive extends DeriveCore {
     public CompletableFuture<List<Liquidation>> watchMyLiquidationsForSymbolsAsync(String[] symbols, Long since, Long limit, Map<String, Object> params) { return watchMyLiquidationsForSymbolsAsync(symbols == null ? null : java.util.Arrays.asList(symbols), since, limit, params); }
 
     @SuppressWarnings("unchecked")
+    public Map<String, Map<String, List<OHLCV>>> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.watchOHLCVForSymbols((Object) symbolsAndTimeframes, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
+        return TypeHelper.toTypedOhlcvBySymbol(res);
+    }
+    public Map<String, Map<String, List<OHLCV>>> watchOHLCVForSymbols(Object symbolsAndTimeframes) { return watchOHLCVForSymbols(symbolsAndTimeframes, (Long) null, (Long) null, (Map<String, Object>) null); }
+    public Map<String, Map<String, List<OHLCV>>> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since) { return watchOHLCVForSymbols(symbolsAndTimeframes, since, (Long) null, (Map<String, Object>) null); }
+    public Map<String, Map<String, List<OHLCV>>> watchOHLCVForSymbols(Object symbolsAndTimeframes, Long since, Long limit) { return watchOHLCVForSymbols(symbolsAndTimeframes, since, limit, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<Map<String, Map<String, List<OHLCV>>>> watchOHLCVForSymbolsAsync(Object symbolsAndTimeframes, Long since, Long limit, Map<String, Object> params) {
+        return super.watchOHLCVForSymbols((Object) symbolsAndTimeframes, (Object) since, (Object) limit, (Object) (params != null ? params : new java.util.HashMap<String, Object>())).thenApply(res -> TypeHelper.toTypedOhlcvBySymbol(res));
+    }
+    public CompletableFuture<Map<String, Map<String, List<OHLCV>>>> watchOHLCVForSymbolsAsync(Object symbolsAndTimeframes) { return watchOHLCVForSymbolsAsync(symbolsAndTimeframes, (Long) null, (Long) null, (Map<String, Object>) null); }
+    public CompletableFuture<Map<String, Map<String, List<OHLCV>>>> watchOHLCVForSymbolsAsync(Object symbolsAndTimeframes, Long since) { return watchOHLCVForSymbolsAsync(symbolsAndTimeframes, since, (Long) null, (Map<String, Object>) null); }
+    public CompletableFuture<Map<String, Map<String, List<OHLCV>>>> watchOHLCVForSymbolsAsync(Object symbolsAndTimeframes, Long since, Long limit) { return watchOHLCVForSymbolsAsync(symbolsAndTimeframes, since, limit, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
     public FundingRate watchFundingRate(String symbol, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.watchFundingRate((Object) symbol, (Object) (params != null ? params : new java.util.HashMap<String, Object>())));
         return new FundingRate(res);

@@ -39,6 +39,36 @@ public final class TypeHelper {
         return (List<Object>) obj;
     }
 
+    /**
+     * Converts the raw `{ symbol: { timeframe: OHLCV[] } }` box returned by
+     * watchOHLCVForSymbols() into the nested typed map the typed WS wrappers return.
+     * Mirrors the C# port's Helper.ConvertToDictionaryOHLCVList. A null at any level
+     * stays null (never defaulted), like every other conversion in this class.
+     */
+    public static Map<String, Map<String, List<OHLCV>>> toTypedOhlcvBySymbol(Object raw) {
+        if (raw == null) return null;
+        Map<String, Object> data = (Map<String, Object>) raw;
+        Map<String, Map<String, List<OHLCV>>> result = new LinkedHashMap<>();
+        for (Map.Entry<String, Object> symbolEntry : data.entrySet()) {
+            Object byTimeframe = symbolEntry.getValue();
+            if (byTimeframe == null) {
+                result.put(symbolEntry.getKey(), null);
+                continue;
+            }
+            Map<String, List<OHLCV>> converted = new LinkedHashMap<>();
+            for (Map.Entry<String, Object> timeframeEntry : ((Map<String, Object>) byTimeframe).entrySet()) {
+                Object rows = timeframeEntry.getValue();
+                if (rows == null) {
+                    converted.put(timeframeEntry.getKey(), null);
+                    continue;
+                }
+                converted.put(timeframeEntry.getKey(), ((List<Object>) rows).stream().map(OHLCV::new).collect(java.util.stream.Collectors.toList()));
+            }
+            result.put(symbolEntry.getKey(), converted);
+        }
+        return result;
+    }
+
     public static Map<String, Object> getInfo(Object data) {
         if (data == null) return null;
         Map<String, Object> map = (Map<String, Object>) data;

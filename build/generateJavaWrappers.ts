@@ -34,8 +34,14 @@ const KNOWN_TYPES = new Set([
     'MarginMode', 'MarginModes', 'MarginModification', 'MarginLoan',
     'Status', 'PositionModeInfo',
     'Transaction', 'DepositAddress', 'TransferEntry',
+    // DepositAddresses: fetchDepositAddressesByNetwork() answers a network-keyed dict
+    // (parseDepositAddresses indexed=true). Without it here that wrapper stayed untyped.
+    'DepositAddresses',
     'LedgerEntry', 'TradingFeeInterface', 'TradingFees',
-    'Greeks', 'Option', 'OptionChain', 'Conversion',
+    // Greeks + AllGreeks: fetchAllGreeks() answers a symbol-keyed dict (parseAllGreeks
+    // filters with indexed=true). AllGreeks is that dict; without it here the typed
+    // wrapper silently degraded to CompletableFuture<Object> (the C# port types it).
+    'Greeks', 'AllGreeks', 'Option', 'OptionChain', 'Conversion',
     'LastPrice', 'LastPrices', 'LongShortRatio',
     'BorrowInterest', 'CrossBorrowRate', 'CrossBorrowRates',
     'IsolatedBorrowRate', 'IsolatedBorrowRates',
@@ -62,6 +68,12 @@ const KNOWN_TYPE_ALIASES: Record<string, string> = {
     'Currency': 'CurrencyInterface',
 };
 
+// watchOHLCVForSymbols() returns `{ symbol: { timeframe: OHLCV[] } }` — a nested map that
+// is not a named types.ts shape, so there is no container class for it. The typed WS
+// wrapper returns this nested generic type and converts the raw box with
+// io.github.ccxt.types.TypeHelper.toTypedOhlcvBySymbol().
+const OHLCV_BY_SYMBOL_TYPE = 'Map<String, Map<String, List<OHLCV>>>';
+
 function tsTypeToJavaType(tsType: string | undefined, isReturn = false): string {
     if (!tsType) return 'Object';
     if (isStringType(tsType)) return 'String';
@@ -82,7 +94,12 @@ function tsReturnTypeToJava(methodName: string, tsReturnType: string): { javaTyp
     // special-case the typed OrderBook wrapper is never emitted. Java-only — do
     // not annotate Exchange.ts here (Go IFetchL2OrderBook / C# already diverge).
     if (methodName === 'fetchL2OrderBook') return { javaType: 'OrderBook', isArray: false, elementType: null };
-    if (methodName === 'watchOHLCVForSymbols') return null;
+    // `{ symbol: { timeframe: OHLCV[] } }` is not a named types.ts shape, so the IR has
+    // no container class for it — the wrapper returns the nested generic map directly and
+    // TypeHelper.toTypedOhlcvBySymbol() does the conversion (the C# port types the same
+    // method with Dictionary<string, Dictionary<string, List<OHLCV>>> +
+    // Helper.ConvertToDictionaryOHLCVList).
+    if (methodName === 'watchOHLCVForSymbols') return { javaType: OHLCV_BY_SYMBOL_TYPE, isArray: false, elementType: null };
 
     const isPromise = tsReturnType.startsWith('Promise<') && tsReturnType.endsWith('>');
     let inner = isPromise ? tsReturnType.slice(8, -1) : tsReturnType;
@@ -300,6 +317,7 @@ function genReturnExpr(m: MethodInfo): string {
     if (m.javaReturnType === 'String') return '(String) res';
     if (m.javaReturnType === 'Boolean') return '(Boolean) res';
     if (m.javaReturnType === 'Map<String, Object>') return '(Map<String, Object>) res';
+    if (m.javaReturnType === OHLCV_BY_SYMBOL_TYPE) return 'TypeHelper.toTypedOhlcvBySymbol(res)';
     return `new ${m.javaReturnType}(res)`;
 }
 
@@ -311,6 +329,7 @@ function genAsyncReturnExpr(m: MethodInfo): string {
     if (m.javaReturnType === 'String') return 'res -> (String) res';
     if (m.javaReturnType === 'Boolean') return 'res -> (Boolean) res';
     if (m.javaReturnType === 'Map<String, Object>') return 'res -> (Map<String, Object>) res';
+    if (m.javaReturnType === OHLCV_BY_SYMBOL_TYPE) return 'res -> TypeHelper.toTypedOhlcvBySymbol(res)';
     return `${m.javaReturnType}::new`;
 }
 
