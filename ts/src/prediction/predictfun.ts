@@ -6,6 +6,7 @@ import { Precise } from '../base/Precise.js';
 import { TRUNCATE, DECIMAL_PLACES } from '../base/functions/number.js';
 import { ArgumentsRequired, AuthenticationError, BadRequest, BadSymbol, ExchangeError, InsufficientFunds, InvalidOrder, MarketClosed, OrderNotFound } from '../base/errors.js';
 import type { Bool, Dict, Endpoint, fetchEventsParams, Int, Market, Num, OrderSide, OrderType, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTrade, Str, Strings } from '../base/types.js';
+import type Client from '../base/ws/Client.js';
 
 // ---------------------------------------------------------------------------
 
@@ -22,7 +23,7 @@ export default class predictfun extends Exchange {
             'rateLimit': 250,
             'version': 'v1',
             'certified': false,
-            'pro': false,
+            'pro': true,
             'has': {
                 'CORS': undefined,
                 'spot': false,
@@ -64,7 +65,8 @@ export default class predictfun extends Exchange {
                 'fetchWithdrawals': false,
                 'prediction': true,         // Prediction market support
                 'watchMyTrades': false,
-                'watchOrderBook': false,
+                'unWatchOrderBook': true,
+                'watchOrderBook': true,
                 'watchOrders': false,
                 'watchTicker': false,
                 'watchTrades': false,
@@ -73,6 +75,9 @@ export default class predictfun extends Exchange {
                 'logo': '',
                 'api': {
                     'predictfun': 'https://api.predict.fun',
+                    // the socket authenticates on the handshake and the venue documents only a
+                    // mainnet host - there is no testnet socket to swap in under sandboxMode
+                    'ws': 'wss://ws.predict.fun/ws',
                 },
                 'test': {
                     'predictfun': 'https://api-testnet.predict.fun',
@@ -2829,6 +2834,403 @@ export default class predictfun extends Exchange {
         const approveData = '0x095ea7b3' + this.padHexAddress (spender) + amountHex;
         const txHash = await this.sendEvmTransaction (rpcUrl, chainId, owner, token, '0x0', approveData, gasLimit);
         return await this.waitForTransactionReceipt (rpcUrl, txHash);
+    }
+
+    /**
+     * @method
+     * @name predictfun#watchOrderBook
+     * @description subscribes to the live order book of an outcome and returns it as it updates
+     * @see https://dev.predict.fun/subscription-topics-1915507m0
+     * @param {string} outcome unified outcome handle
+     * @param {int} [limit] the maximum number of price levels to return
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [prediction order book structure](https://docs.ccxt.com/#/?id=prediction-order-book-structure)
+     */
+    override async watchOrderBook (outcome: string, limit: Int = undefined, params = {}): Promise<PredictionOrderBook> {
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const marketId = this.safeString (info, 'marketId');
+        if (marketId === undefined) {
+            throw new ArgumentsRequired (this.id + ' watchOrderBook() could not resolve the market id of ' + outcome);
+        }
+        const outcomeHandle = this.safeOutcomeSymbol (undefined, outcomeObj);
+        // the venue publishes one book per market, quoted on the yes side, and the no side is its
+        // complement - so a single subscription serves both outcomes and each waits on its own hash
+        const topic = 'predictOrderbook/' + marketId;
+        const messageHash = 'orderbook::' + outcomeHandle;
+        const requestId = this.requestId ();
+        const request: Dict = {
+            'method': 'subscribe',
+            'requestId': requestId,
+            'params': [ topic ], // one topic per request, the venue reads only the first entry
+        };
+        // the subscription travels as a dict rather than the default boolean: a reply carries only
+        // the request id, so every registered subscription is indexed on it - and indexBy cannot
+        // look inside a boolean. both outcomes wait on this one topic, so a rejected request has to
+        // be able to release both of them
+        const subscription: Dict = {
+            'id': this.numberToString (requestId),
+            'topic': topic,
+            'subscribeHash': topic,
+            'messageHashes': this.orderBookMessageHashes (marketId),
+        };
+        const url = this.socketUrl ();
+        const orderbook = await this.watch (url, messageHash, this.extend (request, params), topic, subscription);
+        return orderbook.limit ();
+    }
+
+    /**
+     * @method
+     * @name predictfun#unWatchOrderBook
+     * @description stops watching the order book of an outcome. the venue publishes one book per market and both of its outcomes read it, so the sibling outcome is released with it
+     * @see https://dev.predict.fun/subscription-topics-1915507m0
+     * @param {string} outcome unified outcome handle
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {any} the venue's acknowledgement
+     */
+    override async unWatchOrderBook (outcome: string, params = {}): Promise<any> {
+        await this.loadOutcome (outcome);
+        const outcomeObj = this.outcome (outcome);
+        const info = this.safeDict (outcomeObj, 'info', {});
+        const marketId = this.safeString (info, 'marketId');
+        if (marketId === undefined) {
+            throw new ArgumentsRequired (this.id + ' unWatchOrderBook() could not resolve the market id of ' + outcome);
+        }
+        const topic = 'predictOrderbook/' + marketId;
+        const outcomes = this.outcomesByMarketId (marketId);
+        const outcomesLength = outcomes.length;
+        const handles: string[] = [];
+        const subMessageHashes: string[] = [];
+        const messageHashes: string[] = [];
+        for (let i = 0; i < outcomesLength; i++) {
+            const handle = this.safeString (outcomes[i], 'outcome');
+            if (handle !== undefined) {
+                handles.push (handle);
+                subMessageHashes.push ('orderbook::' + handle);
+                messageHashes.push ('unsubscribe::orderbook::' + handle);
+            }
+        }
+        const requestId = this.requestId ();
+        const request: Dict = {
+            'method': 'unsubscribe',
+            'requestId': requestId,
+            'params': [ topic ], // one topic per request, the venue reads only the first entry
+        };
+        // the acknowledgement carries the request id and nothing else - no topic - so the id is
+        // what ties the reply back to this subscription, which travels with it as the last argument
+        const subscription: Dict = {
+            'unsubscribe': true,
+            'id': this.numberToString (requestId),
+            'topic': 'orderbook',
+            'symbols': handles,
+            'subMessageHashes': subMessageHashes,
+            'messageHashes': messageHashes,
+            'subscribeHash': topic,
+        };
+        const messageHash = 'unsubscribe::orderbook::' + this.safeOutcomeSymbol (undefined, outcomeObj);
+        const url = this.socketUrl ();
+        return await this.watch (url, messageHash, this.extend (request, params), messageHash, subscription);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#orderBookMessageHashes
+     * @description the hashes every waiter on a market's book is parked on, one per outcome
+     * @param {string} [marketId] the venue market id
+     * @returns {string[]} the message hashes
+     */
+    orderBookMessageHashes (marketId: Str): string[] {
+        const outcomes = this.outcomesByMarketId (marketId);
+        const outcomesLength = outcomes.length;
+        const hashes: string[] = [];
+        for (let i = 0; i < outcomesLength; i++) {
+            const handle = this.safeString (outcomes[i], 'outcome');
+            if (handle !== undefined) {
+                hashes.push ('orderbook::' + handle);
+            }
+        }
+        return hashes;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#handleSubscriptionError
+     * @description releases the one request the venue turned down and leaves the rest of the connection alone
+     * @param {Client} client the websocket client
+     * @param {object} message the raw rejection
+     * @param {object} subscription the subscription that request registered, empty when it cannot be attributed
+     */
+    handleSubscriptionError (client: Client, message: Dict, subscription: Dict) {
+        const rawError = this.safeDict (message, 'error', {});
+        const error = new ExchangeError (this.id + ' subscription rejected ' + this.json (rawError));
+        // watch () registers a subscription before it sends and only sends while the hash is still
+        // unregistered, so a rejected request has to take its own entry down - otherwise a retry
+        // would skip the send and wait forever on a topic the venue never accepted
+        const subscribeHash = this.safeString (subscription, 'subscribeHash');
+        if ((subscribeHash !== undefined) && (subscribeHash in client.subscriptions)) {
+            delete client.subscriptions[subscribeHash];
+        }
+        const messageHashes = this.safeList (subscription, 'messageHashes', []);
+        const messageHashesLength = messageHashes.length;
+        if (messageHashesLength === 0) {
+            // the reply names a request this connection does not know, so the failure cannot be
+            // pinned on one waiter and belongs to the connection as a whole
+            throw error;
+        }
+        for (let i = 0; i < messageHashesLength; i++) {
+            client.reject (error, messageHashes[i]);
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#handleUnSubscription
+     * @description tears down what an acknowledged unsubscribe leaves behind
+     * @param {Client} client the websocket client
+     * @param {object} subscription the subscription the acknowledged request id belongs to
+     */
+    handleUnSubscription (client: Client, subscription: Dict) {
+        const messageHashes = this.safeList (subscription, 'messageHashes', []);
+        const subMessageHashes = this.safeList (subscription, 'subMessageHashes', []);
+        const messageHashesLength = messageHashes.length;
+        for (let i = 0; i < messageHashesLength; i++) {
+            this.cleanUnsubscription (client, subMessageHashes[i], messageHashes[i]);
+        }
+        this.cleanCache (subscription);
+        // the subscription itself is keyed by the topic, which is what watchOrderBook registered -
+        // leaving it behind would make a later watch believe it is still subscribed
+        const subscribeHash = this.safeString (subscription, 'subscribeHash');
+        if ((subscribeHash !== undefined) && (subscribeHash in client.subscriptions)) {
+            delete client.subscriptions[subscribeHash];
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#socketUrl
+     * @description the socket endpoint carrying the api key the venue demands on the handshake
+     * @returns {string} the url to connect to
+     */
+    socketUrl (): string {
+        const urls = this.urls['api'] as Dict;
+        const base = this.safeString (urls, 'ws');
+        if (this.apiKey === undefined) {
+            throw new AuthenticationError (this.id + ' watchOrderBook() requires an apiKey - the venue answers the socket handshake with a 401 without one');
+        }
+        // the key rides in the query string rather than a header: a browser cannot set headers on
+        // a websocket handshake, and the venue documents both forms
+        return base + '?apiKey=' + this.apiKey;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#requestId
+     * @description a monotonic id the venue echoes back so a subscription reply can be matched to its request
+     * @returns {int} the next request id
+     */
+    requestId (): number {
+        this.lockId ();
+        const previous = this.safeInteger (this.options, 'requestId', 0);
+        const next = this.sum (previous, 1);
+        this.options['requestId'] = next;
+        this.unlockId ();
+        return next;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#outcomesByMarketId
+     * @description the cached outcomes that belong to one venue market id
+     * @param {string} [marketId] the venue market id
+     * @returns {object[]} the outcome objects
+     */
+    outcomesByMarketId (marketId: Str): any[] {
+        const result: any[] = [];
+        const cached = this.outcomes;
+        if ((marketId === undefined) || (cached === undefined)) {
+            return result;
+        }
+        const handles = Object.keys (cached);
+        const handlesLength = handles.length;
+        for (let i = 0; i < handlesLength; i++) {
+            const outcomeObj = cached[handles[i]];
+            const info = this.safeDict (outcomeObj, 'info', {});
+            if (this.safeString (info, 'marketId') === marketId) {
+                result.push (outcomeObj);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#handleOrderBook
+     * @description turns a book message into the two complementary outcome books of its market
+     * @param {Client} client the websocket client
+     * @param {object} message the raw message
+     */
+    handleOrderBook (client: Client, message: Dict) {
+        //
+        //     {
+        //         "type": "M",
+        //         "topic": "predictOrderbook/2107",
+        //         "data": {
+        //             "asks": [
+        //                 [ 0.029, 1478.08 ],
+        //                 [ 0.03, 870.93 ]
+        //             ],
+        //             "bids": [
+        //                 [ 0.02, 1386.724081632653 ],
+        //                 [ 0.017, 2640.3371187742646 ]
+        //             ],
+        //             "lastOrderSettled": {
+        //                 "id": "3172327577",
+        //                 "kind": "LIMIT",
+        //                 "marketId": 2107,
+        //                 "outcome": "Yes",
+        //                 "price": "0.02",
+        //                 "side": "Bid"
+        //             },
+        //             "marketId": 2107,
+        //             "orderCount": 62,
+        //             "settlementsPending": {
+        //                 "asks": [
+        //                     [ 0.029, 0.14906 ]
+        //                 ],
+        //                 "bids": []
+        //             },
+        //             "updateTimestampMs": 1788953990223,
+        //             "version": 1
+        //         }
+        //     }
+        //
+        const data = this.safeDict (message, 'data', {});
+        const marketId = this.safeString (data, 'marketId');
+        const timestamp = this.safeInteger (data, 'updateTimestampMs');
+        const rawAsks = this.safeList (data, 'asks', []) as any[];
+        const rawBids = this.safeList (data, 'bids', []) as any[];
+        // every message carries the whole book - the venue publishes no deltas - and the levels
+        // arrive already sorted, best first
+        const yesBids: any[] = [];
+        const yesAsks: any[] = [];
+        const noBids: any[] = [];
+        const noAsks: any[] = [];
+        const bidsLength = rawBids.length;
+        for (let i = 0; i < bidsLength; i++) {
+            const bid = rawBids[i];
+            const bidPrice = this.safeString (bid, 0);
+            const bidSize = this.parseNumber (this.safeString (bid, 1));
+            yesBids.push ([ this.parseNumber (bidPrice), bidSize ]);
+            // a bid for yes at p is an offer of no at 1 - p
+            noAsks.push ([ this.parseNumber (Precise.stringSub ('1', bidPrice)), bidSize ]);
+        }
+        const asksLength = rawAsks.length;
+        for (let i = 0; i < asksLength; i++) {
+            const ask = rawAsks[i];
+            const askPrice = this.safeString (ask, 0);
+            const askSize = this.parseNumber (this.safeString (ask, 1));
+            yesAsks.push ([ this.parseNumber (askPrice), askSize ]);
+            noBids.push ([ this.parseNumber (Precise.stringSub ('1', askPrice)), askSize ]);
+        }
+        const outcomes = this.outcomesByMarketId (marketId);
+        const outcomesLength = outcomes.length;
+        for (let i = 0; i < outcomesLength; i++) {
+            const outcomeObj = outcomes[i];
+            const outcomeInfo = this.safeDict (outcomeObj, 'info', {});
+            const isYesOutcome = this.safeInteger (outcomeInfo, 'indexSet') === 1;
+            const outcomeHandle = this.safeString (outcomeObj, 'outcome');
+            if (outcomeHandle !== undefined) {
+                if (!(outcomeHandle in this.orderbooks)) {
+                    this.orderbooks[outcomeHandle] = this.orderBook ({});
+                }
+                const orderbook = this.orderbooks[outcomeHandle];
+                let bids = yesBids;
+                let asks = yesAsks;
+                if (!isYesOutcome) {
+                    bids = this.sortBy (noBids, 0, true);
+                    asks = this.sortBy (noAsks, 0);
+                }
+                orderbook.reset ({
+                    'bids': bids,
+                    'asks': asks,
+                    'timestamp': timestamp,
+                    'datetime': this.iso8601 (timestamp),
+                    'outcome': outcomeHandle,
+                    'outcomeId': this.safeString (outcomeObj, 'outcomeId'),
+                    'market': this.safeString (outcomeObj, 'market'),
+                    'nonce': this.safeInteger (data, 'version'),
+                });
+                client.resolve (orderbook, 'orderbook::' + outcomeHandle);
+            }
+        }
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#handleHeartbeat
+     * @description echoes the probe timestamp back, which is what keeps the connection open
+     * @param {Client} client the websocket client
+     * @param {object} message the raw message
+     */
+    handleHeartbeat (client: Client, message: Dict) {
+        // the server probes every fifteen seconds and drops the connection on the next probe unless
+        // the exact timestamp it sent comes back, so the reply echoes it verbatim
+        const reply: Dict = {
+            'method': 'heartbeat',
+            'data': this.safeInteger (message, 'data'),
+        };
+        client.send (reply);
+    }
+
+    /**
+     * @ignore
+     * @method
+     * @name predictfun#handleMessage
+     * @description routes a socket message to the handler of its topic
+     * @param {Client} client the websocket client
+     * @param {object} message the raw message
+     */
+    override handleMessage (client: Client, message: Dict) {
+        const messageType = this.safeString (message, 'type');
+        if (messageType === 'R') {
+            // a subscription reply - the venue reports a rejected topic here instead of closing.
+            // it carries only the request id, so the subscription that request registered is found
+            // by it - see handleSubscriptionStatus in pro/binance.ts
+            const id = this.safeString (message, 'requestId');
+            const subscriptionsById = this.indexBy (client.subscriptions, 'id');
+            const subscription = this.safeDict (subscriptionsById, id, {});
+            const success = this.safeBool (message, 'success', false);
+            if (!success) {
+                this.handleSubscriptionError (client, message, subscription);
+                return;
+            }
+            if (this.safeBool (subscription, 'unsubscribe', false)) {
+                this.handleUnSubscription (client, subscription);
+            }
+            return;
+        }
+        const topic = this.safeString (message, 'topic');
+        if (topic === 'heartbeat') {
+            this.handleHeartbeat (client, message);
+            return;
+        }
+        if (topic === undefined) {
+            return;
+        }
+        const parts = topic.split ('/');
+        const channel = this.safeString (parts, 0);
+        if (channel === 'predictOrderbook') {
+            this.handleOrderBook (client, message);
+        }
     }
 
     /**
