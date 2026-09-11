@@ -3173,6 +3173,198 @@ function dataflowDebug (message) {
     }
 }
 
+// JN5-CENSUS-BEGIN (TEMPORARY — remove before commit; env-gated, writes to stderr only)
+// Census of generated locals that hold market/currency/ticker/order/trade structures:
+// what the surviving tables decided, and — when they decided nothing — why. Also
+// simulates adding the parse*/safe* structure names to STRUCTURE_THIS_RETURN_TYPES.
+const MARKET_CENSUS = process.env['CCXT_JAVA_MARKET_CENSUS'] === '1';
+const CENSUS_CALL_RE = /^(?:safemarket|safecurrency|safemarketstructure|safecurrencystructure|market|currency|safeticker|safeorder|safetrade|safeposition|safeliquidation|safeorderbook|parsemarket|parsemarkets|parseticker|parsetickers|parseorder|parseorders|parsetrade|parsetrades|parsetradehelper|parsecurrency|parsecuracies|parsecurrencies)$/;
+const CENSUS_SIM_NAMES = new Set ([
+    'safeTicker', 'safeOrder', 'safeTrade', 'safePosition', 'safeLiquidation',
+    'parseMarket', 'parseMarkets', 'parseTicker', 'parseTickers', 'parseOrder',
+    'parseOrders', 'parseTrade', 'parseCurrency', 'parseCurrencies',
+]);
+const CENSUS_SIM_INFO = { type: JAVA_STRUCTURE_TYPE, cast: '(' + JAVA_STRUCTURE_TYPE + ')' };
+function censusReasonText (node) {
+    try {
+        return String (node.getText ()).replace (/\s+/g, ' ').slice (0, 70);
+    } catch (e) {
+        return '<no text>';
+    }
+}
+// mirror of isSafeToNarrow's checks in the same order; returns 'ok' or the first reason
+function censusUnsafeUseReason (printer, declaration, sourceName, javaType, isProFile, info) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return 'no-scope';
+    }
+    const uses = identifierIndex (scope).get (sourceName) ?? [];
+    for (const n of uses) {
+        if (n === declaration.name) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent === undefined) {
+            continue;
+        }
+        if (ts.isVariableDeclaration (parent) && parent.name === n) {
+            continue;
+        }
+        if (ts.isPropertyAccessExpression (parent) && parent.name === n) {
+            continue;
+        }
+        if (ts.isElementAccessExpression (parent) && parent.expression === n) {
+            const grand = parent.parent;
+            if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+                return 'delete-element [' + censusReasonText (n) + ']';
+            }
+            if (javaType === 'String' && grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent
+                && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind)) {
+                return 'element-write [' + censusReasonText (n) + ']';
+            }
+        }
+        if (ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.parent !== undefined
+            && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
+            const method = String (parent.name.escapedText);
+            if (!receiverCallIsSafe (method, javaType)) {
+                return 'receiver-call:' + method + ' [' + censusReasonText (parent.parent) + ']';
+            }
+        }
+        if (ts.isCallExpression (parent)) {
+            const at = parent.arguments.indexOf (n);
+            if (at !== -1 && ts.isPropertyAccessExpression (parent.expression)) {
+                const method = String (parent.expression.name.escapedText);
+                if (!argumentCastIsSafe (method, at, javaType)) {
+                    return 'argument-cast:' + method + '#' + at + ' [' + censusReasonText (parent) + ']';
+                }
+            }
+        }
+        if (ts.isBinaryExpression (parent) && parent.left === n
+            && parent.operatorToken.kind === ts.SyntaxKind.PlusToken
+            && info?.nonNull === false) {
+            return 'plus-null-left [' + censusReasonText (parent) + ']';
+        }
+        if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
+            const op = parent.operator;
+            if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
+                return 'unary++/--';
+            }
+        }
+        if (ts.isSpreadElement (parent)) {
+            return 'spread';
+        }
+        if (ts.isTypeOfExpression (parent)) {
+            return 'typeof';
+        }
+        if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
+            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            return 'array-destructuring';
+        }
+        if (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent)) {
+            return 'as-cast [' + censusReasonText (parent) + ']';
+        }
+        if (ts.isBinaryExpression (parent) && parent.left === n) {
+            const op = parent.operatorToken.kind;
+            if (op === ts.SyntaxKind.EqualsToken) {
+                let ok;
+                if (javaType === 'String') {
+                    ok = isStaticallyStringExpression (printer, unwrapParens (parent.right), sourceName)
+                        || isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName);
+                } else {
+                    ok = isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName);
+                }
+                if (!ok) {
+                    return 'write [' + censusReasonText (parent) + ']';
+                }
+            } else if (op === ts.SyntaxKind.PlusEqualsToken && javaType === 'String') {
+                if (!isProvablyNonNullStringExpression (printer, parent.right, sourceName)) {
+                    return 'plus-equals [' + censusReasonText (parent) + ']';
+                }
+            } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
+                return 'compound-assign [' + censusReasonText (parent) + ']';
+            }
+        }
+        if (info?.strictPlus === true && ts.isBinaryExpression (parent)
+            && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && !plusUsesAreSafe (n)) {
+            return 'strict-plus [' + censusReasonText (parent) + ']';
+        }
+        if (isProFile && info?.skipInheritedAsyncGuard !== true && feedsInheritedAsyncCall (printer, n, scope)) {
+            return 'pro-inherited-async [' + censusReasonText (n) + ']';
+        }
+    }
+    return 'ok';
+}
+function censusMarketLocal (printer, declaration, printed) {
+    try {
+        const initializer = unwrapParens (declaration.initializer);
+        if (initializer === undefined || !ts.isCallExpression (initializer) || !isThisCall (initializer)) {
+            return;
+        }
+        const name = String (initializer.expression.name.escapedText);
+        if (!CENSUS_CALL_RE.test (name.toLowerCase ())) {
+            return;
+        }
+        const fileName = declaration.getSourceFile ().fileName;
+        const file = fileName.includes ('ts/src/') ? fileName.slice (fileName.indexOf ('ts/src/')) : fileName;
+        const scope = enclosingFunction (declaration);
+        const fn = scope?.name === undefined ? '<anon>' : String (scope.name.escapedText);
+        const local = String (declaration.name.escapedText);
+        const args = initializer.arguments?.length ?? 0;
+        const isProFile = /[\\/]pro[\\/]/.test (fileName);
+        // surviving-table decision
+        const info = javaLocalTypeOf (printer, declaration, undefined);
+        let outcome = info === undefined ? 'none' : 'typed:' + info.type;
+        // why (when none)
+        let reason = '-';
+        if (info === undefined) {
+            const initInfo = localInitializerType (printer, declaration, isProFile, undefined);
+            if (initInfo === undefined) {
+                const tableHit = STRUCTURE_THIS_RETURN_TYPES[name] !== undefined
+                    || LOCAL_THIS_RETURN_TYPES[name] !== undefined
+                    || JAVA_STRING_RETURN_METHODS.has (name) || JAVA_LIST_RETURN_METHODS.has (name);
+                if (!tableHit) {
+                    reason = 'no-table-entry';
+                } else if (!resolvesToMethodNamed (printer, initializer, name)) {
+                    reason = 'unresolved-declaration';
+                } else {
+                    reason = 'init-unprovable';
+                }
+            } else {
+                reason = 'unsafe-use:' + censusUnsafeUseReason (printer, declaration, local, initInfo.type, isProFile, initInfo);
+            }
+            if (reason.startsWith ('unsafe-use:ok')) {
+                reason = 'printed-shape-or-hook-miss';
+            }
+        }
+        // dataflow engine decision (independent)
+        let dataflowType = '-';
+        try {
+            const d = dataflowLocalTypeOf (printer, declaration, undefined);
+            dataflowType = d === undefined ? '-' : d.type;
+        } catch (e) {
+            dataflowType = 'ERR';
+        }
+        // still Object in the text at this layer?
+        const iden = printer.getIden (0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = `;
+        const objectRemains = printed.includes (marker) ? 'Object' : 'retyped';
+        // harvest simulation for the parse*/safe* structure families
+        let sim = '-';
+        if (info === undefined && CENSUS_SIM_NAMES.has (name)) {
+            if (!resolvesToMethodNamed (printer, initializer, name)) {
+                sim = 'sim-unresolved';
+            } else {
+                const simReason = censusUnsafeUseReason (printer, declaration, local, CENSUS_SIM_INFO.type, isProFile, CENSUS_SIM_INFO);
+                sim = (simReason === 'ok') ? 'sim-ok' : 'sim-unsafe:' + simReason;
+            }
+        }
+        console.error ([ 'market-census', file, fn, local, name, args, outcome, reason, dataflowType, objectRemains, sim ].join ('\t'));
+    } catch (e) {
+        // never break the print
+    }
+}
+// JN5-CENSUS-END
+
 // box-identical widening edges a join may take. EMPTY on purpose (see the header).
 const JAVA_WIDENING_EDGES = [];
 
@@ -3860,6 +4052,9 @@ function dataflowRewriteDeclaration (printer, node, identation, printed) {
     const declaration = declarations[0];
     if (declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
         return printed;
+    }
+    if (MARKET_CENSUS) {
+        censusMarketLocal (printer, declaration, printed); // JN5-CENSUS-CALL
     }
     const info = dataflowLocalTypeOf (printer, declaration, undefined);
     if (info === undefined) {

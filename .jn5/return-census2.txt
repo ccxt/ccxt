@@ -1,0 +1,169 @@
+
+## parseContractOrder: 1 declarations, 1 return sites
+     1  call:this.safeOrder   e.g. ts/src/kucoin.ts:6375 this.safeOrder ({ 'id': orderId, 'clientOrderId': clientOrderId, 'symb
+
+## parseContractTicker: 1 declarations, 1 return sites
+     1  call:this.safeTicker   e.g. ts/src/kucoin.ts:2882 this.safeTicker ({ 'symbol': market['symbol'], 'timestamp': timestamp,
+
+## parseContractTrade: 1 declarations, 1 return sites
+     1  call:this.safeTrade   e.g. ts/src/kucoin.ts:7466 this.safeTrade ({ 'info': trade, 'id': id, 'order': orderId, 'timestam
+
+## parseCurrencies: 2 declarations, 2 return sites
+     2  id:result   e.g. ts/src/base/Exchange.ts:3768 result
+            ts/src/base/Exchange.ts:3768 result
+            ts/src/bitstamp.ts:887 result
+
+## parseCurrency: 60 declarations, 59 return sites
+    57  call:this.safeCurrencyStructure   e.g. ts/src/apex.ts:559 this.safeCurrencyStructure ({ 'info': currency, 'code': code, 'id': cu
+            ts/src/apex.ts:559 this.safeCurrencyStructure ({ 'info': currency, 'code': code, 'id': cu
+            ts/src/aster.ts:827 this.safeCurrencyStructure ({ 'info': rawCurrency, 'code': code, 'id':
+            ts/src/backpack.ts:595 this.safeCurrencyStructure ({ 'id': currencyId, 'code': code, 'precisi
+            ts/src/bigone.ts:585 this.safeCurrencyStructure ({ 'id': id, 'code': code, 'info': rawCurre
+     1  id:result   e.g. ts/src/hyperliquid.ts:522 result
+     1  row-literal
+
+## parseDustTrade: 1 declarations, 1 return sites
+     1  row-literal
+
+## parseMarket: 52 declarations, 52 return sites
+    43  call:this.safeMarketStructure   e.g. ts/src/alpaca.ts:586 this.safeMarketStructure ({ 'id': marketId, 'symbol': symbol, 'base': 
+            ts/src/alpaca.ts:586 this.safeMarketStructure ({ 'id': marketId, 'symbol': symbol, 'base': 
+            ts/src/apex.ts:671 this.safeMarketStructure ({ 'id': id, 'id2': id2, 'symbol': symbol, 'b
+            ts/src/aster.ts:1027 this.safeMarketStructure ({ 'id': id, 'symbol': symbol, 'base': base, 
+            ts/src/backpack.ts:759 this.safeMarketStructure ({ 'id': id, 'symbol': symbol, 'base': base, 
+     5  row-literal
+     2  call:this.extend   e.g. ts/src/deepcoin.ts:539 this.extend (fees, { 'id': id, 'symbol': symbol, 'base': base, 'quote'
+            ts/src/deepcoin.ts:539 this.extend (fees, { 'id': id, 'symbol': symbol, 'base': base, 'quote'
+            ts/src/okx.ts:1901 this.extend (fees, { 'id': id, 'instIdCode': instIdCode, 'symbol': sym
+     1  call:this.parseSwapMarket   e.g. ts/src/poloniex.ts:859 this.parseSwapMarket (market)
+     1  call:this.parseSpotMarket   e.g. ts/src/poloniex.ts:861 this.parseSpotMarket (market)
+
+## parseMarkets: 3 declarations, 3 return sites
+     3  id:result   e.g. ts/src/base/Exchange.ts:3780 result
+            ts/src/base/Exchange.ts:3780 result
+            ts/src/bitvavo.ts:539 result
+            ts/src/xt.ts:1210 result
+
+## parseMyUtaTrade: 1 declarations, 1 return sites
+     1  call:this.safeTrade   e.g. ts/src/kucoin.ts:7509 this.safeTrade ({ 'info': trade, 'id': this.safeString (trade, 'tradeI
+
+## parseOrder: 93 declarations, 106 return sites
+    99  call:this.safeOrder   e.g. ts/src/alpaca.ts:1541 this.safeOrder ({ 'id': this.safeString (order, 'id'), 'clientOrderId'
+            ts/src/alpaca.ts:1541 this.safeOrder ({ 'id': this.safeString (order, 'id'), 'clientOrderId'
+            ts/src/apex.ts:1222 this.safeOrder ({ 'id': orderId, 'clientOrderId': clientOrderId, 'time
+            ts/src/aster.ts:2319 this.safeOrder ({ 'info': info, 'id': this.safeString (order, 'orderId
+            ts/src/backpack.ts:2139 this.safeOrder ({ 'info': order, 'id': id, 'clientOrderId': clientOrde
+     2  call:this.parseSpotOrder   e.g. ts/src/kucoin.ts:6264 this.parseSpotOrder (order, market)
+            ts/src/kucoin.ts:6264 this.parseSpotOrder (order, market)
+            ts/src/phemex.ts:2670 this.parseSpotOrder (order, market)
+     1  id:result   e.g. ts/src/blockchaincom.ts:621 result
+     1  call:this.parseUtaOrder   e.g. ts/src/kucoin.ts:6257 this.parseUtaOrder (order, market)
+     1  call:this.parseContractOrder   e.g. ts/src/kucoin.ts:6262 this.parseContractOrder (order, market)
+     1  call:this.parseSwapOrder   e.g. ts/src/phemex.ts:2668 this.parseSwapOrder (order, market)
+     1  id:parsedOrder   e.g. ts/src/zebpay.ts:1380 parsedOrder
+
+## parseOrders: 1 declarations, 2 return sites
+     1  list-literal   e.g. ts/src/base/Exchange.ts:5009 []
+     1  call:this.filterBySymbolSinceLimit   e.g. ts/src/base/Exchange.ts:5030 this.filterBySymbolSinceLimit (results, symbol, since, limit) as Order
+
+## parseSpotMarket: 3 declarations, 3 return sites
+     3  call:this.safeMarketStructure   e.g. ts/src/coinbase.ts:1673 this.safeMarketStructure ({ 'id': id, 'symbol': base + '/' + quote, 'b
+            ts/src/coinbase.ts:1673 this.safeMarketStructure ({ 'id': id, 'symbol': base + '/' + quote, 'b
+            ts/src/phemex.ts:852 this.safeMarketStructure ({ 'id': id, 'symbol': base + '/' + quote, 'b
+            ts/src/poloniex.ts:875 this.safeMarketStructure ({ 'id': id, 'symbol': base + '/' + quote, 'b
+
+## parseSpotOrUtaTrade: 1 declarations, 1 return sites
+     1  call:this.safeTrade   e.g. ts/src/kucoin.ts:7331 this.safeTrade ({ 'info': trade, 'id': id, 'order': orderId, 'timestam
+
+## parseSpotOrder: 2 declarations, 2 return sites
+     2  call:this.safeOrder   e.g. ts/src/kucoin.ts:6554 this.safeOrder ({ 'info': order, 'id': this.safeStringN (order, [ 'id'
+            ts/src/kucoin.ts:6554 this.safeOrder ({ 'info': order, 'id': this.safeStringN (order, [ 'id'
+            ts/src/phemex.ts:2450 this.safeOrder ({ 'info': order, 'id': id, 'clientOrderId': clientOrde
+
+## parseSwapMarket: 2 declarations, 2 return sites
+     2  call:this.safeMarketStructure   e.g. ts/src/phemex.ts:750 this.safeMarketStructure ({ 'id': id, 'symbol': base + '/' + quote + '
+            ts/src/phemex.ts:750 this.safeMarketStructure ({ 'id': id, 'symbol': base + '/' + quote + '
+            ts/src/poloniex.ts:980 this.safeMarketStructure ({ 'id': id, 'symbol': symbol, 'base': base, 
+
+## parseSwapOrder: 1 declarations, 1 return sites
+     1  call:this.safeOrder   e.g. ts/src/phemex.ts:2636 this.safeOrder ({ 'info': order, 'id': id, 'clientOrderId': clientOrde
+
+## parseTicker: 93 declarations, 93 return sites
+    90  call:this.safeTicker   e.g. ts/src/apex.ts:754 this.safeTicker ({ 'symbol': symbol, 'timestamp': timestamp, 'datetime
+            ts/src/apex.ts:754 this.safeTicker ({ 'symbol': symbol, 'timestamp': timestamp, 'datetime
+            ts/src/aster.ts:1567 this.safeTicker ({ 'symbol': market['symbol'], 'timestamp': timestamp,
+            ts/src/bigone.ts:852 this.safeTicker ({ 'symbol': symbol, 'timestamp': undefined, 'datetime
+            ts/src/binance.ts:4619 this.safeTicker ({ 'symbol': symbol, 'timestamp': timestamp, 'datetime
+     1  id:parsedTicker   e.g. ts/src/backpack.ts:922 parsedTicker
+     1  call:this.parseContractTicker   e.g. ts/src/kucoin.ts:2788 this.parseContractTicker (ticker, market)
+     1  call:super.parseTicker   e.g. ts/src/pro/coinbaseexchange.ts:848 super.parseTicker (ticker, market)
+
+## parseTickers: 2 declarations, 2 return sites
+     1  call:this.filterByArray   e.g. ts/src/base/Exchange.ts:7627 this.filterByArray (results, 'symbol', symbols)
+     1  call:this.filterByArrayTickers   e.g. ts/src/hollaex.ts:707 this.filterByArrayTickers (result, 'symbol', symbols)
+
+## parseTrade: 96 declarations, 99 return sites
+    93  call:this.safeTrade   e.g. ts/src/alpaca.ts:1688 this.safeTrade ({ 'info': trade, 'id': this.safeString2 (trade, 'i', '
+            ts/src/alpaca.ts:1688 this.safeTrade ({ 'info': trade, 'id': this.safeString2 (trade, 'i', '
+            ts/src/apex.ts:1009 this.safeTrade ({ 'info': trade, 'id': id, 'order': undefined, 'timest
+            ts/src/aster.ts:1292 this.safeTrade ({ 'id': id, 'info': trade, 'timestamp': timestamp, 'da
+            ts/src/backpack.ts:1343 this.safeTrade ({ 'info': trade, 'timestamp': timestamp, 'datetime': t
+     1  call:this.parseDustTrade   e.g. ts/src/binance.ts:5244 this.parseDustTrade (trade, market)
+     1  id:result   e.g. ts/src/blofin.ts:888 result as Trade
+     1  call:this.parseMyUtaTrade   e.g. ts/src/kucoin.ts:7195 this.parseMyUtaTrade (trade, market)
+     1  call:this.parseSpotOrUtaTrade   e.g. ts/src/kucoin.ts:7200 this.parseSpotOrUtaTrade (trade, market)
+     1  call:this.parseContractTrade   e.g. ts/src/kucoin.ts:7202 this.parseContractTrade (trade, market)
+     1  row-literal
+
+## parseTrades: 2 declarations, 2 return sites
+     1  call:this.parseTradesHelper   e.g. ts/src/base/Exchange.ts:6162 this.parseTradesHelper (false, trades, market, since, limit, params)
+     1  call:this.filterBySymbolSinceLimit   e.g. ts/src/derive.ts:1033 this.filterBySymbolSinceLimit (result, symbol, since, limit) as Trade[
+
+## parseUtaOrder: 1 declarations, 1 return sites
+     1  call:this.safeOrder   e.g. ts/src/kucoin.ts:6654 this.safeOrder ({ 'id': this.safeString (order, 'orderId'), 'clientOrd
+
+## safeCurrency: 1 declarations, 3 return sites
+     1  id:currency   e.g. ts/src/base/Exchange.ts:6581 currency
+     1  elem   e.g. ts/src/base/Exchange.ts:6584 this.currencies_by_id[currencyId]
+     1  call:this.safeCurrencyStructure   e.g. ts/src/base/Exchange.ts:6590 this.safeCurrencyStructure ({ 'id': currencyId, 'code': code, 'precisi
+
+## safeCurrencyStructure: 1 declarations, 1 return sites
+     1  call:this.extend   e.g. ts/src/base/Exchange.ts:4406 this.extend ({ 'info': undefined, 'id': undefined, 'numericId': undefi
+
+## safeLiquidation: 1 declarations, 1 return sites
+     1  id:liquidation   e.g. ts/src/base/Exchange.ts:5114 liquidation as Liquidation
+
+## safeMarket: 10 declarations, 20 return sites
+     9  call:super.safeMarket   e.g. ts/src/apex.ts:1312 super.safeMarket (marketId, market, delimiter, marketType)
+            ts/src/apex.ts:1312 super.safeMarket (marketId, market, delimiter, marketType)
+            ts/src/binance.ts:2960 super.safeMarket (marketId, market, delimiter, marketType)
+            ts/src/bitflyer.ts:255 super.safeMarket (marketId, market, delimiter, 'spot')
+            ts/src/bithumb.ts:405 super.safeMarket (marketId, market, delimiter, 'spot')
+     6  call:this.createExpiredOptionMarket   e.g. ts/src/binance.ts:2958 this.createExpiredOptionMarket (marketId)
+            ts/src/binance.ts:2958 this.createExpiredOptionMarket (marketId)
+            ts/src/bybit.ts:1687 this.createExpiredOptionMarket (marketId)
+            ts/src/delta.ts:423 this.createExpiredOptionMarket (marketId)
+            ts/src/deribit.ts:612 this.createExpiredOptionMarket (marketId)
+     1  elem   e.g. ts/src/base/Exchange.ts:6603 markets[0]
+     1  id:currentMarket   e.g. ts/src/base/Exchange.ts:6615 currentMarket
+     1  id:result   e.g. ts/src/base/Exchange.ts:6646 result
+     1  id:market   e.g. ts/src/base/Exchange.ts:6650 market
+     1  id:emptyMarket   e.g. ts/src/base/Exchange.ts:6656 emptyMarket
+
+## safeMarketStructure: 1 declarations, 2 return sites
+     1  id:result   e.g. ts/src/base/Exchange.ts:4515 result
+     1  call:this.extend   e.g. ts/src/base/Exchange.ts:4517 this.extend (cleanStructure)
+
+## safeOrder: 1 declarations, 1 return sites
+     1  call:this.extend   e.g. ts/src/base/Exchange.ts:4957 this.extend (order, { 'id': this.safeString (order, 'id'), 'clientOrde
+
+## safeOrderBook: 0 declarations
+
+## safePosition: 1 declarations, 1 return sites
+     1  id:position   e.g. ts/src/base/Exchange.ts:6101 position as Position
+
+## safeTicker: 1 declarations, 1 return sites
+     1  call:this.extend   e.g. ts/src/base/Exchange.ts:5420 this.extend (ticker, { 'bid': this.parseNumber (this.omitZero (this.sa
+
+## safeTrade: 1 declarations, 1 return sites
+     1  id:trade   e.g. ts/src/base/Exchange.ts:5140 trade as Trade
