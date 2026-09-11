@@ -29,7 +29,13 @@ function testOrderBook (exchange: Exchange, skippedProperties: object, method: s
     testSharedMethods.assertSymbol (exchange, skippedProperties, method, orderbook, 'symbol', symbol);
     const logText = testSharedMethods.logTemplate (exchange, method, orderbook);
     // todo: check non-emtpy arrays for bids/asks for toptier exchanges
-    const bids = orderbook['bids'];
+    // walk frozen frames, not the live sides: in threaded languages the ws
+    // delta-applier mutates the book during this walk - a stale length capture
+    // plus safe-indexed reads yields X>null asserts (ten-exchange java cluster,
+    // 2026-08-17). the copy routes through the synchronized snapshot iterator,
+    // so it is one coherent instant of the book - the pattern threaded-language
+    // consumers should use for any multi-row read
+    const bids = exchange.arrayConcat ([], orderbook['bids']);
     const bidsLength = bids.length;
     for (let i = 0; i < bidsLength; i++) {
         const currentBidString = exchange.safeString (bids[i], 0);
@@ -46,7 +52,7 @@ function testOrderBook (exchange: Exchange, skippedProperties: object, method: s
             testSharedMethods.assertGreater (exchange, skippedProperties, method, bids[i], 1, '0');
         }
     }
-    const asks = orderbook['asks'];
+    const asks = exchange.arrayConcat ([], orderbook['asks']);
     const asksLength = asks.length;
     for (let i = 0; i < asksLength; i++) {
         const currentAskString = exchange.safeString (asks[i], 0);
