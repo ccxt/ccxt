@@ -199,17 +199,17 @@ public class BinanceCore extends BinanceApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object queries = (java.util.List<Object>)(this.parseSearchQueries(parameters));
-            Object queriesLength = Helpers.getArrayLength(queries);
+            Integer queriesLength = Helpers.getArrayLength(queries);
             if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
             {
                 Object eventParams = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("limit")));
                 Object events = (this.fetchEvents(eventParams)).join();
-                Object eventsLength = Helpers.getArrayLength(events);
+                Integer eventsLength = Helpers.getArrayLength(events);
                 Object queryMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var ei = 0; Helpers.isLessThan(ei, eventsLength); ei++)
                 {
                     Object eventMarkets = (java.util.List<Object>)(this.safeList(Helpers.GetValue(events, ei), "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-                    Object eventMarketsLength = Helpers.getArrayLength(eventMarkets);
+                    Integer eventMarketsLength = Helpers.getArrayLength(eventMarkets);
                     for (var mi = 0; Helpers.isLessThan(mi, eventMarketsLength); mi++)
                     {
                         ((java.util.List<Object>)queryMarkets).add(Helpers.GetValue(eventMarkets, mi));
@@ -222,13 +222,13 @@ public class BinanceCore extends BinanceApi
             Object rawTopics = (this.fetchRawTopics(maxMarkets, rest)).join();
             Object parsedEvents = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object flatMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawTopicsLength = Helpers.getArrayLength(rawTopics);
+            Integer rawTopicsLength = Helpers.getArrayLength(rawTopics);
             for (var i = 0; Helpers.isLessThan(i, rawTopicsLength); i++)
             {
                 Object parsedEvent = this.parseEvent(Helpers.GetValue(rawTopics, i));
                 ((java.util.List<Object>)parsedEvents).add(parsedEvent);
                 Object eventMarkets = (java.util.List<Object>)(this.safeList(parsedEvent, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-                Object eventMarketsLength = Helpers.getArrayLength(eventMarkets);
+                Integer eventMarketsLength = Helpers.getArrayLength(eventMarkets);
                 for (var mi = 0; Helpers.isLessThan(mi, eventMarketsLength); mi++)
                 {
                     ((java.util.List<Object>)flatMarkets).add(Helpers.GetValue(eventMarkets, mi));
@@ -270,7 +270,7 @@ public class BinanceCore extends BinanceApi
             while (true)
             {
                 Object reqLimit = pageLimit;
-                Object collectedLength = Helpers.getArrayLength(collected);
+                Integer collectedLength = Helpers.getArrayLength(collected);
                 Object remaining = Helpers.subtract(maxTopics, collectedLength);
                 if (Helpers.isTrue(Helpers.isLessThan(remaining, reqLimit)))
                 {
@@ -320,7 +320,7 @@ public class BinanceCore extends BinanceApi
                 //     }
                 //
                 Object pageTopics = (java.util.List<Object>)(this.safeList(response, "marketTopics", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-                Object pageTopicsLength = Helpers.getArrayLength(pageTopics);
+                Integer pageTopicsLength = Helpers.getArrayLength(pageTopics);
                 for (var i = 0; Helpers.isLessThan(i, pageTopicsLength); i++)
                 {
                     ((java.util.List<Object>)collected).add(Helpers.GetValue(pageTopics, i));
@@ -374,18 +374,18 @@ public class BinanceCore extends BinanceApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawTopicsLength = Helpers.getArrayLength(rawTopics);
+            Integer rawTopicsLength = Helpers.getArrayLength(rawTopics);
             for (var i = 0; Helpers.isLessThan(i, rawTopicsLength); i++)
             {
                 Object rawTopic = Helpers.GetValue(rawTopics, i);
                 Object rawMarkets = (java.util.List<Object>)(this.safeList(rawTopic, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-                Object rawMarketsLength = Helpers.getArrayLength(rawMarkets);
+                Integer rawMarketsLength = Helpers.getArrayLength(rawMarkets);
                 Object hasOutcomes = false;
                 if (Helpers.isTrue(Helpers.isGreaterThan(rawMarketsLength, 0)))
                 {
                     Object firstMarket = this.safeDict(rawMarkets, 0, new java.util.HashMap<String, Object>() {{}});
                     Object firstOutcomes = (java.util.List<Object>)(this.safeList(firstMarket, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-                    Object firstOutcomesLength = Helpers.getArrayLength(firstOutcomes);
+                    Integer firstOutcomesLength = Helpers.getArrayLength(firstOutcomes);
                     hasOutcomes = (Helpers.isGreaterThan(firstOutcomesLength, 0));
                 }
                 if (Helpers.isTrue(hasOutcomes))
@@ -439,7 +439,7 @@ public class BinanceCore extends BinanceApi
             Object queries = this.parseSearchQueries(parameters);
             // binance has no tag taxonomy — resolve requested tags through the semantic search too
             Object tags = this.safeList(parameters, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object tagsLength = Helpers.getArrayLength(tags);
+            Integer tagsLength = Helpers.getArrayLength(tags);
             Object allQueries = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(queries)); i++)
             {
@@ -449,7 +449,7 @@ public class BinanceCore extends BinanceApi
             {
                 ((java.util.List<Object>)allQueries).add(Helpers.GetValue(tags, i));
             }
-            Object allQueriesLength = Helpers.getArrayLength(allQueries);
+            Integer allQueriesLength = Helpers.getArrayLength(allQueries);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries")));
             Object userLimit = this.safeInteger(parameters, "limit");
             Object fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
@@ -507,14 +507,14 @@ public class BinanceCore extends BinanceApi
                 Object listed = (this.fetchRawTopics(fetchCap, this.extend(listingRequest, rest))).join();
                 rawTopics = (this.completeRawTopics(listed)).join();
             }
-            Object rawTopicsLength = Helpers.getArrayLength(rawTopics);
+            Integer rawTopicsLength = Helpers.getArrayLength(rawTopics);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, rawTopicsLength); i++)
             {
                 Object parsedEvent = this.parseEvent(Helpers.GetValue(rawTopics, i));
                 ((java.util.List<Object>)result).add(parsedEvent);
                 Object parsedMarkets = (java.util.List<Object>)(this.safeList(parsedEvent, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-                Object parsedMarketsLength = Helpers.getArrayLength(parsedMarkets);
+                Integer parsedMarketsLength = Helpers.getArrayLength(parsedMarkets);
                 for (var mi = 0; Helpers.isLessThan(mi, parsedMarketsLength); mi++)
                 {
                     Object m = Helpers.GetValue(parsedMarkets, mi);
@@ -555,7 +555,7 @@ public class BinanceCore extends BinanceApi
             Object rest = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object seen = new java.util.HashMap<String, Object>() {{}};
             Object collected = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object queriesLength = Helpers.getArrayLength(queries);
+            Integer queriesLength = Helpers.getArrayLength(queries);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 20;
@@ -583,7 +583,7 @@ public class BinanceCore extends BinanceApi
                 //         }
                 //     ]
                 //
-                Object responseLength = Helpers.getArrayLength(response);
+                Integer responseLength = Helpers.getArrayLength(response);
                 for (var i = 0; Helpers.isLessThan(i, responseLength); i++)
                 {
                     Object rawTopic = Helpers.GetValue(response, i);
@@ -600,7 +600,7 @@ public class BinanceCore extends BinanceApi
                 }
             }
             Object capped = collected;
-            Object collectedLength = Helpers.getArrayLength(collected);
+            Integer collectedLength = Helpers.getArrayLength(collected);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThan(collectedLength, limit)))))
             {
                 capped = this.arraySlice(collected, 0, limit);
@@ -674,7 +674,7 @@ public class BinanceCore extends BinanceApi
         Object rawMarkets = (java.util.List<Object>)(this.safeList(rawTopic, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
         Object marketsList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object anyActive = false;
-        Object rawMarketsLength = Helpers.getArrayLength(rawMarkets);
+        Integer rawMarketsLength = Helpers.getArrayLength(rawMarkets);
         for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
         {
             Object parsed = this.parseTopicMarket(Helpers.GetValue(rawMarkets, i), rawTopic);
@@ -783,7 +783,7 @@ public class BinanceCore extends BinanceApi
         Object rawOutcomes = (java.util.List<Object>)(this.safeList(rawMarket, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
         Object outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object resolvedOutcomeRaw = null;
-        Object rawOutcomesLength = Helpers.getArrayLength(rawOutcomes);
+        Integer rawOutcomesLength = Helpers.getArrayLength(rawOutcomes);
         for (var oi = 0; Helpers.isLessThan(oi, rawOutcomesLength); oi++)
         {
             Object rawOutcome = Helpers.GetValue(rawOutcomes, oi);
@@ -1032,7 +1032,7 @@ final Object finalMarketSymbol = marketSymbol;
             (this.loadOutcomes(outcomes)).join();
             Object responsesByMarketId = new java.util.HashMap<String, Object>() {{}};
             Object result = new java.util.HashMap<String, Object>() {{}};
-            Object outcomesLength = Helpers.getArrayLength(outcomes);
+            Integer outcomesLength = Helpers.getArrayLength(outcomes);
             for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
             {
                 Object outcomeObj = this.outcome(Helpers.GetValue(outcomes, i));
@@ -1560,7 +1560,7 @@ final Object finalMarketSymbol = marketSymbol;
                 return positions;
             }
             Object filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object positionsLength = Helpers.getArrayLength(positions);
+            Integer positionsLength = Helpers.getArrayLength(positions);
             for (var i = 0; Helpers.isLessThan(i, positionsLength); i++)
             {
                 Object position = Helpers.GetValue(positions, i);
@@ -1922,7 +1922,7 @@ final Object finalMarketSymbol = marketSymbol;
                 Helpers.addElementToObject(this.options, "wallet", cachedWallet);
                 return cachedWallet;
             }
-            Object walletLength = Helpers.getArrayLength(wallets);
+            Integer walletLength = Helpers.getArrayLength(wallets);
             for (var i = 0; Helpers.isLessThan(i, walletLength); i++)
             {
                 Object w = this.safeString(Helpers.GetValue(wallets, i), "walletAddress", "");
@@ -2054,8 +2054,8 @@ final Object finalMarketSymbol = marketSymbol;
             // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
             Object marketSymbol = ((String)this.safeString(outcomeObj, "market"));
             Object market = this.market(marketSymbol);
-            Object typeUpper = ((String)type).toUpperCase();
-            Object sideUpper = ((String)side).toUpperCase();
+            String typeUpper = ((String)type).toUpperCase();
+            String sideUpper = ((String)side).toUpperCase();
             Object wallet = (this.fetchWallet("createOrder", parameters)).join();
             Object defaultSlippage = this.safeString(this.options, "defaultSlippage", "0.05");
             Object slippage = this.safeString(parameters, "slippage", defaultSlippage);
@@ -2253,7 +2253,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object canceledOrders = this.safeList(response, "canceled", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object outcomeSymbol = this.safeString(outcomeObj, "outcome", outcome);
             Object failedOrders = this.safeList(response, "failed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object failedOrdersLength = Helpers.getArrayLength(failedOrders);
+            Integer failedOrdersLength = Helpers.getArrayLength(failedOrders);
             if (Helpers.isTrue(Helpers.isGreaterThan(failedOrdersLength, 0)))
             {
                 Object failedDetails = "";
@@ -2271,7 +2271,7 @@ final Object finalMarketSymbol = marketSymbol;
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " cancelOrders() failed for "), failedDetails)) ;
             }
             Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object canceledOrdersLength = Helpers.getArrayLength(canceledOrders);
+            Integer canceledOrdersLength = Helpers.getArrayLength(canceledOrders);
             for (var i = 0; Helpers.isLessThan(i, canceledOrdersLength); i++)
             {
                 Object status = Helpers.GetValue(canceledOrders, i);
