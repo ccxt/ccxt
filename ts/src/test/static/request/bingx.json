@@ -41,6 +41,22 @@
         ],
         "fetchTransfers": [
             {
+                "description": "fetch transfers paginates by transfer id without account filters",
+                "method": "fetchTransfers",
+                "url": "https://open-api.bingx.com/openApi/api/v3/asset/transferRecord?pageSize=100&timestamp=1752388736730&transferId=1051461075661819338791&signature=d2ed1857c6a8f7aa3cbf3b42fb5976fbb585e1f9eba7899656c12e4c4ce7eb9f",
+                "input": [
+                    "USDT",
+                    null,
+                    null,
+                    {
+                        "transferId": "1051461075661819338791",
+                        "paginate": true,
+                        "paginationCalls": 1,
+                        "maxRetries": 0
+                    }
+                ]
+            },
+            {
                 "description": "fetch transfers paginates backward with account filters",
                 "method": "fetchTransfers",
                 "url": "https://open-api.bingx.com/openApi/api/v3/asset/transferRecord?endTime=1721961000000&fromAccount=spot&pageSize=2&timestamp=1752388736730&toAccount=USDTMPerp&signature=dca36b2862fdeb7742a8ee559c4a32424c21ae70191eed9e7376248dec59c88c",
