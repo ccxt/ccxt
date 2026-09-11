@@ -671,7 +671,7 @@ export default class bitget extends bitgetRest {
             stored = new ArrayCacheByTimestamp(limit);
             this.ohlcvs[symbol][timeframe] = stored;
         }
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const parsed = this.parseWsOHLCV(data[i], market);
             stored.append(parsed);
@@ -2423,7 +2423,7 @@ export default class bitget extends bitgetRest {
         //
         const arg = this.safeDict(message, 'arg', {});
         const instType = this.safeStringLower(arg, 'instType');
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         for (let i = 0; i < data.length; i++) {
             const rawBalance = data[i];
             if (instType === 'uta') {

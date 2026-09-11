@@ -2784,7 +2784,7 @@ class bitstamp extends bitstamp$1["default"] {
                 errors$1.push(reasonInner);
             }
             else {
-                const all = this.safeValue(reasonInner, '__all__', []);
+                const all = this.safeList(reasonInner, '__all__', []);
                 for (let i = 0; i < all.length; i++) {
                     errors$1.push(all[i]);
                 }

@@ -2870,7 +2870,7 @@ class kucoin extends kucoin$1["default"] {
             return undefined;
         }
         const cache = this.positions.hashmap;
-        const symbolCache = this.safeValue(cache, symbol, {});
+        const symbolCache = this.safeDict(cache, symbol, {});
         const values = Object.values(symbolCache);
         return this.safeValue(values, 0);
     }
