@@ -725,3 +725,476 @@ export function installJavaLocalTypes (transpiler) {
     };
     printer._javaLocalTypesPatched = true;
 }
+
+// ===== 4. numeric helpers -> boxed Long/Double/Integer locals (JAVA-RE-7) =====
+//
+// The numeric half of the local-typing campaign. Every helper below ALREADY hands
+// back one concrete box at runtime; this section names it on the generated locals
+// (`Object ts = this.safeInteger (...)` -> `Long ts = this.safeInteger (...)`), and
+// retypes the few Java declarations that still erase that box to `Object`.
+//
+// WHAT THE RUNTIME BOX IS (audited tree-wide; all hand-written Java sources):
+//   * safeInteger / safeInteger2 / safeIntegerN / safeIntegerProduct -> Long or null.
+//     SafeMethods.SafeIntegerN (declared `Long`) returns a parsed long (Long.parseLong /
+//     Math.floor / n.longValue()) or toLongQuiet(default) (a Long) or null; the
+//     SafeMethods.SafeInteger / SafeInteger2 and the BaseExchange.safeInteger* wrappers
+//     say Object but every path already hands a Long box through.
+//   * safeFloat / safeFloat2 / safeFloatN -> Double or null; ALREADY declared Double in
+//     the hand-written base (SafeMethods + BaseExchange), so only the locals move.
+//   * safeNumber / safeNumber2 / safeNumberN -> Double or null. Generated bodies are
+//     `return this.parseNumber(value, default)`, and BaseExchange.parseNumber
+//     (hand-written) is declared Double on every overload; the erased `Object` return
+//     type hid a single box.
+//   * parseToInt -> Long or null: generated body returns Helpers.parseInt(...), whose
+//     hand-written body returns toLong(a) (a Long) or null.
+//   * milliseconds / seconds / parse8601 -> Long; ALREADY declared Long by the
+//     hand-written BaseExchange (Time.milliseconds() is a primitive long, boxed at the
+//     boundary). parseTimeframe -> primitive int; declared `int` and it THROWS on
+//     malformed input instead of returning undefined, so no null can ever flow in.
+//   * nonce -> deliberately NOT typed. BaseExchange.nonce() returns this.seconds() (a
+//     Long box) but the ~40 venue overrides disagree (ts/src/binance.ts returns
+//     `this.milliseconds() - this.options["timeDifference"]` -> Helpers.subtract -> a
+//     Double box; the generated BinanceCore/OkxCore keep that Double; prediction/Bitmex
+//     return milliseconds() -> Long). One local type cannot cover them without a
+//     per-venue closed table; excluded.
+//   * safeIntegerProduct2 / safeIntegerProductN (and SafeMethods.SafeNumberN) -> NOT
+//     typed: they hand the caller's raw defaultValue back on the failure path, so the
+//     box is whatever the call site passed (an Integer for the ubiquitous `0`).
+//   * safeTimestamp / safeTimestamp2 are NOT narrowable for the same reason (the Java
+//     safeTimestampN returns the caller's default untouched) — already documented in
+//     section 3; they are absent here too.
+//
+// UPSTREAM RETYPES (the other half of the slice — all declaration-only):
+//   * java/lib/src/main/java/io/github/ccxt/BaseExchange.java: safeInteger / safeInteger2
+//     / safeIntegerN / safeIntegerProduct -> Long (hand-written wrappers; bodies untouched).
+//   * java/lib/src/main/java/io/github/ccxt/base/SafeMethods.java: SafeInteger /
+//     SafeInteger2 -> Long (bodies untouched; SafeIntegerN already declared Long).
+//   * java/lib/src/main/java/io/github/ccxt/Helpers.java: parseInt -> Long, parseFloat ->
+//     Double (toLong/toDouble already produced exactly those boxes).
+//   * patchJavaNumericMethodReturns() below retypes the GENERATED methods (parseToInt,
+//     safeNumber, safeNumber2, safeNumberN) at print time by wrapping printFunctionType
+//     — their signatures live below the "METHODS BELOW THIS LINE" delimiter (rewritten
+//     from ts/src/base/Exchange.ts by every regen), so a text edit would not survive.
+//
+// JAVA TRAPS this section encodes (each differential-tested with a javac harness):
+//   * a PRIMITIVE local cannot hold null: `int x; x = null` does not compile, so a
+//     nullish write rejects the int family outright (parseTimeframe never returns null,
+//     but the guard costs nothing).
+//   * ternary ARMS: `cond ? 0 : this.parseToInt (x)` is a REFERENCE conditional while
+//     parseToInt prints `Object`, and becomes a NUMERIC conditional the moment the arm
+//     is statically Long — javac then applies binary numeric promotion and UNBOXES the
+//     arm, so a null return throws NPE where the baseline stored null. The retype is
+//     therefore paired with patchJavaNumericConditionals: any conditional arm that is
+//     one of the newly retyped calls gets a restoring `((Object) ...)` cast when the
+//     other arm is a numeric literal or a different family box (10 sites tree-wide,
+//     all `? ... parseToInt(...) : 0` / `? 0.00001 : safeNumber(...)`).
+//   * `==` on boxed types compares REFERENCES: harmless here because the Java printer
+//     never emits a raw `==`/`!=` — every comparison prints through Helpers.isEqual /
+//     isGreaterThan / ... (Object-taking, value semantics; census over every generated
+//     Core file found 0 raw comparisons outside comments). The guard is nonetheless the
+//     usual one: an arm/use that would print an unboxing operator (++/--/compound
+//     assignment/spread/typeof/`x as T`/array destructuring) rejects the local.
+//   * INTEGER DIVISION differs from JS number division: `/` always prints
+//     Helpers.divide (single Object,Object signature -> toDouble/toDouble -> JS
+//     semantics) so a typed operand changes nothing; but `Helpers.subtract` is
+//     OVERLOADED — subtract(int, int) returns a primitive int (Int32 wraparound, no
+//     toDouble normalisation) where subtract(Object, Object) returned a Double box.
+//     `int`-typed locals are therefore rejected as direct operands of `-` (census: 0
+//     sites today; the guard mirrors build/csharp-local-types.js's subtract-on-int rule).
+//   * unary plus prints raw `+(x)` (an unboxing read): sites can only exist where the
+//     operand was ALREADY numeric (the baseline `+(Object)` does not compile), and all
+//     prefix/postfix unary uses reject the local anyway.
+//
+// The scan is otherwise the same shape as section 3 (and matches the reference
+// java-loc-numeric slice): any use that would print an unboxing operator or a receiver
+// cast the type cannot satisfy keeps the local Object.
+
+// helper -> Java type of a LOCAL fed by a whole `this.<helper>(...)` call. Every entry
+// names the box the callee already returns (see the audit above); the local declaration
+// line is the only thing that moves, no cast is emitted (section 3's safeInteger2
+// `(Long)` cast predates the upstream retype and is a harmless no-op checkcast now).
+export const JAVA_NUMERIC_LOCAL_TYPES = {
+    'safeInteger': 'Long',
+    'safeInteger2': 'Long',
+    'safeIntegerN': 'Long',
+    'safeIntegerProduct': 'Long',
+    'safeFloat': 'Double',
+    'safeFloat2': 'Double',
+    'safeFloatN': 'Double',
+    'safeNumber': 'Double',
+    'safeNumber2': 'Double',
+    'safeNumberN': 'Double',
+    'parseToInt': 'Long',
+    'milliseconds': 'Long',
+    'seconds': 'Long',
+    'parse8601': 'Long',
+    'parseTimeframe': 'int',
+};
+
+// calls whose Java DECLARED return type moves Object -> Long/Double in this slice: a
+// conditional ARM carrying one of these changes from a reference conditional to a
+// numeric one, and javac then unboxes the arm (NPE on a null return where the baseline
+// stored null). Only these arms get the restoring `(Object)` cast — safeFloat* /
+// milliseconds / seconds / parse8601 / parseTimeframe were already concrete in the
+// hand-written Java, so their arms keep exactly the baseline behaviour.
+const JAVA_NUMERIC_RETYPED_CALLS = new Set ([
+    'safeInteger', 'safeInteger2', 'safeIntegerN', 'safeIntegerProduct',
+    'safeNumber', 'safeNumber2', 'safeNumberN', 'parseToInt',
+]);
+
+// GENERATED methods whose erased `Object` return type patchJavaNumericMethodReturns
+// names at print time. Bodies need no edit — every return expression is already
+// statically the named type (parseNumber -> Double, Helpers.parseInt -> Long).
+const JAVA_NUMERIC_METHOD_RETURN_TYPES = {
+    'parseToInt': 'Long',
+    'safeNumber': 'Double',
+    'safeNumber2': 'Double',
+    'safeNumberN': 'Double',
+};
+
+// Source files whose declarations are the base-tier numeric helpers: the functions
+// mixed into Exchange as instance fields (ts/src/base/functions/type.ts, time.ts,
+// misc.ts) and the methods declared on the base classes. The base class file is
+// printed from an overload-stripped temp copy (`Exchange.nooverloads.<pid>.ts`, see
+// build/stripOverloads.ts), so both spellings are accepted. A call resolving anywhere
+// else (a venue override, a same-named venue helper) is left `Object`.
+const NUMERIC_BASE_TIER_DECLARATION_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/](Exchange(\.nooverloads\.\d+)?\.ts|PredictionExchange(\.nooverloads\.\d+)?\.ts|functions[\\/](type|time|misc)\.ts)$/;
+// `milliseconds = now` where `now = Date.now` (ts/src/base/functions/time.ts), so a
+// `this.milliseconds()` call resolves to the lib signature.
+const NUMERIC_LIB_DTS_FILE = /(^|[\\/])node_modules[\\/]typescript6[\\/]lib[\\/]lib\..*\.d\.ts$/;
+
+// method names whose Java print is safe on a narrowed numeric receiver: toString ->
+// String.valueOf(x) and toFixed -> toFixed(x, d) are the only Object-taking prints;
+// every other method the printer knows how to special case casts the receiver
+// (String) / (List).
+const NUMERIC_RECEIVER_METHODS = new Set ([ 'toString', 'toFixed' ]);
+
+const JAVA_NUMERIC_DEBUG = process.env.CCXT_JAVA_NUMERIC_DEBUG === '1';
+
+function numericDebug (message) {
+    if (JAVA_NUMERIC_DEBUG) {
+        console.error ('[java-numeric] ' + message);
+    }
+}
+
+// the numeric section reuses section 3's unwrapParens/enclosingFunction/identifierIndex/
+// isThisOrSuperCall/isAsyncMethodCall/feedsInheritedAsyncCall; only the non-null
+// assertion needs stripping on top of plain parens (Java has no `!`, the printer drops it)
+function unwrapNumericExpression (node) {
+    while (node !== undefined
+        && (ts.isParenthesizedExpression (node) || node.kind === ts.SyntaxKind.NonNullExpression)) {
+        node = node.expression;
+    }
+    return node;
+}
+
+// the Java type a call to this accessor is declared to receive here, or undefined when
+// the node is not a whole family call. The resolved signature must be the base-tier
+// declaration (NUMERIC_BASE_TIER_DECLARATION_FILE) — a venue override of the same name
+// is not provable and keeps the local `Object`.
+function numericFamilyCallType (printer, node) {
+    const call = unwrapNumericExpression (node);
+    if (call === undefined || !ts.isCallExpression (call) || !isThisOrSuperCall (call)) {
+        return undefined;
+    }
+    const method = String (call.expression.name.escapedText);
+    const javaType = JAVA_NUMERIC_LOCAL_TYPES[method];
+    if (javaType === undefined) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (call)?.declaration;
+    } catch (e) {
+        declaration = undefined;
+    }
+    if (declaration === undefined) {
+        return undefined;
+    }
+    const fileName = declaration.getSourceFile?.().fileName;
+    if (fileName === undefined
+        || (!NUMERIC_BASE_TIER_DECLARATION_FILE.test (fileName) && !NUMERIC_LIB_DTS_FILE.test (fileName))) {
+        return undefined;
+    }
+    return javaType;
+}
+
+// a whole call to one of the calls whose Java return type this slice retypes
+function numericRetypedCallType (printer, node) {
+    const call = unwrapNumericExpression (node);
+    if (call === undefined || !ts.isCallExpression (call) || !isThisOrSuperCall (call)
+        || !JAVA_NUMERIC_RETYPED_CALLS.has (String (call.expression.name.escapedText))) {
+        return undefined;
+    }
+    return numericFamilyCallType (printer, node);
+}
+
+// a later write is accepted only when it hands the same box back (the callee is
+// already declared with the narrowed type, so no cast is needed) or writes
+// null/undefined — never for the primitive `int` family, which cannot hold null
+function numericIsSameFamilyWrite (printer, node, javaType) {
+    const right = unwrapNumericExpression (node);
+    if (right === undefined) {
+        return false;
+    }
+    if (right.kind === ts.SyntaxKind.NullKeyword) {
+        return javaType !== 'int';
+    }
+    if (right.kind === ts.SyntaxKind.Identifier && right.escapedText === 'undefined') {
+        return javaType !== 'int';
+    }
+    return numericFamilyCallType (printer, right) === javaType;
+}
+
+function numericReceiverCallIsSafe (method) {
+    // an unknown method on the locally-declared number: keep Object
+    return NUMERIC_RECEIVER_METHODS.has (method);
+}
+
+// is `n` (through parentheses) a direct operand of a `-`? `a - x` prints
+// Helpers.subtract(a, x), whose (int, int) overload returns a primitive int where the
+// Object overload returned a Double box — an int-typed operand must keep Object.
+function numericIsMinusOperand (n) {
+    let node = n;
+    let parent = n.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        node = parent;
+        parent = parent.parent;
+    }
+    return parent !== undefined && ts.isBinaryExpression (parent)
+        && parent.operatorToken.kind === ts.SyntaxKind.MinusToken
+        && (parent.left === node || parent.right === node);
+}
+
+// reject the narrowing when any use needs the local to stay `Object` (or the printer
+// would emit a cast / unboxing the narrowed type can't satisfy).
+function numericIsSafeToNarrow (printer, declaration, sourceName, javaType, isProFile) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    const uses = identifierIndex (scope).get (sourceName) ?? [];
+    for (const n of uses) {
+        if (n === declaration.name) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent === undefined) {
+            continue;
+        }
+        if (ts.isVariableDeclaration (parent)) {
+            continue; // `const b = x` — b stays Object; a sibling declarator gets its own type
+        }
+        if (ts.isPropertyAccessExpression (parent)) {
+            if (parent.name === n) {
+                continue; // `obj.<name>` is a member read, not this local
+            }
+            if (parent.expression === n
+                && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
+                const method = String (parent.name.escapedText);
+                if (!numericReceiverCallIsSafe (method)) {
+                    numericDebug (`reject ${sourceName} (receiver .${method})`);
+                    return false;
+                }
+                continue;
+            }
+            // a plain `x.foo` read on a narrowed number: keep Object
+            numericDebug (`reject ${sourceName} (property read .${parent.name.escapedText})`);
+            return false;
+        }
+        if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
+            // ++ / -- print natively (an unboxing write), unary +/- likewise
+            numericDebug (`reject ${sourceName} (unary operator)`);
+            return false;
+        }
+        if (ts.isSpreadElement (parent)) {
+            numericDebug (`reject ${sourceName} (spread)`);
+            return false;
+        }
+        if (ts.isTypeOfExpression (parent)) {
+            // `typeof x === 'number'` prints `x instanceof Long` chains
+            numericDebug (`reject ${sourceName} (typeof)`);
+            return false;
+        }
+        if (parent.kind === ts.SyntaxKind.AsExpression || parent.kind === ts.SyntaxKind.TypeAssertionExpression) {
+            // `x as T` prints a hard cast
+            numericDebug (`reject ${sourceName} (as-cast)`);
+            return false;
+        }
+        if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
+            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
+            numericDebug (`reject ${sourceName} (array destructuring)`);
+            return false;
+        }
+        if (ts.isConditionalExpression (parent) && parent.condition !== n) {
+            // a ternary ARM: javac unboxes when the other arm is primitive
+            numericDebug (`reject ${sourceName} (ternary arm)`);
+            return false;
+        }
+        if (ts.isBinaryExpression (parent)) {
+            const op = parent.operatorToken.kind;
+            if (parent.left === n && op === ts.SyntaxKind.EqualsToken) {
+                if (!numericIsSameFamilyWrite (printer, parent.right, javaType)) {
+                    numericDebug (`reject ${sourceName} (write of a different value)`);
+                    return false;
+                }
+            } else if (parent.left === n
+                && op >= ts.SyntaxKind.FirstCompoundAssignment
+                && op <= ts.SyntaxKind.LastCompoundAssignment) {
+                // `x += y` prints `x = Helpers.add(x, y)` -> Object into the narrowed local
+                numericDebug (`reject ${sourceName} (compound assignment)`);
+                return false;
+            } else if (javaType === 'int' && parent.operatorToken.kind === ts.SyntaxKind.MinusToken) {
+                numericDebug (`reject ${sourceName} (int subtract operand)`);
+                return false;
+            }
+        } else if (javaType === 'int' && numericIsMinusOperand (n)) {
+            numericDebug (`reject ${sourceName} (int subtract operand)`);
+            return false;
+        }
+        if (ts.isCallExpression (parent) && parent.arguments.indexOf (n) !== -1) {
+            const callee = parent.expression;
+            // `Number.isInteger(x)` / `Number.isFinite(x)` print instanceof chains;
+            // Number()/String()/Boolean() conversions are unproven
+            if (ts.isPropertyAccessExpression (callee)
+                && callee.expression.kind === ts.SyntaxKind.Identifier
+                && String (callee.expression.escapedText) === 'Number') {
+                numericDebug (`reject ${sourceName} (Number.* call)`);
+                return false;
+            }
+            if (ts.isIdentifier (callee)
+                && ['Number', 'String', 'Boolean'].includes (String (callee.escapedText))) {
+                numericDebug (`reject ${sourceName} (${String (callee.escapedText)} conversion)`);
+                return false;
+            }
+        }
+        // a pro core extends the typed WS/REST wrapper class: once an argument
+        // expression is Long/Double, the wrapper's typed overload wins Java overload
+        // resolution over the `Object...` core and the result shape changes. Keep any
+        // local that feeds such a call `Object`.
+        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
+            numericDebug (`reject ${sourceName} (feeds inherited async call)`);
+            return false;
+        }
+    }
+    return true;
+}
+
+function numericLocalTypeForDeclaration (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name)) {
+        return undefined;
+    }
+    const javaType = numericFamilyCallType (printer, declaration.initializer);
+    if (javaType === undefined) {
+        return undefined;
+    }
+    // scan by the SOURCE name: ReservedKeywordsReplacements renames the printed one
+    const sourceName = declaration.name.escapedText;
+    const fileName = declaration.getSourceFile ().fileName;
+    const isProFile = /[\\/]pro[\\/]/.test (fileName);
+    if (!numericIsSafeToNarrow (printer, declaration, sourceName, javaType, isProFile)) {
+        return undefined;
+    }
+    return javaType;
+}
+
+// `cond ? <numeric literal> : this.<family>(...)`: the moment the arm's static type is
+// Long/Double, javac promotes the conditional to a numeric conditional and UNBOXES the
+// arm, so a null return throws where the Object-typed baseline stored null
+// (differential-tested: `Long x = null; Object r = cond ? 1 : (Object) x;` yields null,
+// `cond ? 1 : x` NPEs).
+function numericIsLiteralArm (node) {
+    const n = unwrapParens (node);
+    if (n === undefined) {
+        return false;
+    }
+    if (n.kind === ts.SyntaxKind.NumericLiteral) {
+        return true;
+    }
+    return ts.isPrefixUnaryExpression (n)
+        && (n.operator === ts.SyntaxKind.MinusToken || n.operator === ts.SyntaxKind.PlusToken)
+        && n.operand !== undefined && n.operand.kind === ts.SyntaxKind.NumericLiteral;
+}
+
+// the printer's printConditionalExpression, rebuilt with the arm casts. Only a
+// conditional whose arm is one of the NEWLY retyped calls can change semantics; every
+// other conditional rebuilds byte-identically (same three printer calls, same order).
+function numericConditionalWithArmCasts (printer, node) {
+    const condition = printer.printCondition (node.condition, 0);
+    const whenTrue = printer.printNode (node.whenTrue, 0);
+    const whenFalse = printer.printNode (node.whenFalse, 0);
+    const trueType = numericFamilyCallType (printer, node.whenTrue);
+    const falseType = numericFamilyCallType (printer, node.whenFalse);
+    const trueRetyped = numericRetypedCallType (printer, node.whenTrue) !== undefined;
+    const falseRetyped = numericRetypedCallType (printer, node.whenFalse) !== undefined;
+    const wrapTrue = trueRetyped
+        && (falseType === undefined ? numericIsLiteralArm (node.whenFalse) : falseType !== trueType);
+    const wrapFalse = falseRetyped
+        && (trueType === undefined ? numericIsLiteralArm (node.whenTrue) : trueType !== falseType);
+    const trueArm = wrapTrue ? `((Object) ${whenTrue})` : whenTrue;
+    const falseArm = wrapFalse ? `((Object) ${whenFalse})` : whenFalse;
+    if (wrapTrue || wrapFalse) {
+        numericDebug (`conditional arm cast (${wrapTrue ? 'true' : ''}${wrapFalse ? ' false' : ''})`);
+    }
+    return `((${condition})) ? ${trueArm} : ${falseArm}`;
+}
+
+// install the numeric slice: (1) the generated method returns, (2) the conditional-arm
+// restorations, (3) the locals fed by a whole family call. Chains with section 1-3 on
+// the same printer; safe to call more than once.
+export function installJavaNumericLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printFunctionType !== 'function' || printer._javaNumericTypesPatched) {
+        return;
+    }
+    // (1) generated return types: parseToInt -> Long, safeNumber/safeNumber2/safeNumberN
+    // -> Double. Wrapping printFunctionType() covers the declaration in BaseExchange.java
+    // and any other file that declares the same name from ts/src/base/Exchange.ts.
+    const upstreamFunctionType = printer.printFunctionType.bind (printer);
+    printer.printFunctionType = function (node, ...rest) {
+        const own = upstreamFunctionType (node, ...rest);
+        if (own === 'Object' && node !== undefined && ts.isMethodDeclaration (node) && node.name !== undefined) {
+            const javaType = JAVA_NUMERIC_METHOD_RETURN_TYPES[String (node.name.escapedText)];
+            if (javaType !== undefined && NUMERIC_BASE_TIER_DECLARATION_FILE.test (node.getSourceFile ().fileName)) {
+                return javaType;
+            }
+        }
+        return own;
+    };
+    // (2) keep the conditional arms on the baseline's reference-conditional shape
+    if (typeof printer.printConditionalExpression === 'function') {
+        printer.printConditionalExpression = function (node) {
+            return numericConditionalWithArmCasts (printer, node);
+        };
+    }
+    // (3) the declaration line: `<iden>Object <name> = <value>` -> `<iden><type> <name> = <value>`
+    const original = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = original (node, identation);
+        if (node.declarations?.length !== 1) {
+            return printed; // multi-declarator lists are left as the printer emitted them
+        }
+        const declaration = node.declarations[0];
+        if (declaration.initializer === undefined) {
+            return printed;
+        }
+        const javaType = numericLocalTypeForDeclaration (printer, declaration);
+        if (javaType === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name)} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        const value = printed.slice (at + marker.length);
+        if (!value.startsWith ('this.') && !value.startsWith ('super.')) {
+            return printed; // unexpected shape — leave it as the printer emitted it
+        }
+        numericDebug (`typed ${declaration.name.escapedText} -> ${javaType}`);
+        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ` + value;
+    };
+    printer._javaNumericTypesPatched = true;
+}

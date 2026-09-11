@@ -1,7 +1,7 @@
 import { Transpiler } from 'ast-transpiler';
 import { getProgramBatch } from './worker-program-batch.js';
 import { patchJavaLocalTypes } from './javaTranspiler.js';
-import { installJavaLocalTypes } from './java-local-types.js';
+import { installJavaLocalTypes, installJavaNumericLocalTypes } from './java-local-types.js';
 import log from 'ololog'
 
 // task payload posted by javaTranspiler.ts#webworkerTranspile (structured clone)
@@ -41,6 +41,7 @@ export default async ({ transpilerConfig, configKey, file, files, roots }: JavaW
         // batch below prints through this very javaTranspiler instance
         patchJavaLocalTypes (cachedTranspiler);
         installJavaLocalTypes (cachedTranspiler);
+        installJavaNumericLocalTypes (cachedTranspiler);
         cachedConfigKey = key;
     }
     const transpiler = cachedTranspiler;
