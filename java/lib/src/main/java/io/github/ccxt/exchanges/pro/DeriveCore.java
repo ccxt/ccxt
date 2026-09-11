@@ -419,7 +419,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         Object symbol = Helpers.GetValue(market, "symbol");
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
-            ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+            this.orderbooks.remove((String)symbol);
         }
         if (Helpers.isTrue(Helpers.inOp(client.subscriptions, topic)))
         {

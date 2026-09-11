@@ -3314,7 +3314,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object subMessageHash = Helpers.add("orderbook:", symbol);
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
-            ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+            this.orderbooks.remove((String)symbol);
         }
         if (Helpers.isTrue(Helpers.inOp(client.subscriptions, subMessageHash)))
         {

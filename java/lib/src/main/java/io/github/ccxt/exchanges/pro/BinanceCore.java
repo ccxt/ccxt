@@ -1364,7 +1364,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
                 {
-                    ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+                    this.orderbooks.remove((String)symbol);
                 }
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
@@ -1388,7 +1388,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object symbol = Helpers.GetValue(symbols, i);
             if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
             {
-                ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+                this.orderbooks.remove((String)symbol);
             }
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             final Object finalSymbol = symbol;

@@ -1095,7 +1095,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Long limit = this.safeInteger(subscription, "limit");
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, ((String)symbol))))
         {
-            ((java.util.Map<String,Object>)this.orderbooks).remove((String)((String)symbol));
+            this.orderbooks.remove((String)((String)symbol));
         }
         Helpers.addElementToObject(this.orderbooks, ((String)symbol), this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
     }

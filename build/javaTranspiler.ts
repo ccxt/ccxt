@@ -1427,6 +1427,12 @@ class NewTranspiler {
             [/(\b\w*)RestInstance.describe/g, "(\(BaseExchange\)$1RestInstance).describe"],
 
             // [/(put\(\s*"\w+", )(this\.\w+)/gm, "$1BaseExchange.$2"],
+            // `this.orderbooks` is declared Map<String, io.github.ccxt.ws.WsOrderBook> in
+            // the hand-written BaseExchange header, so the parameterized cast the printer
+            // emits for `delete this.orderbooks[symbol]` is both redundant (Map.remove
+            // takes Object) and a javac error — parameterized->parameterized casts require
+            // identical type arguments (JLS 5.5.1).
+            [/\(\(java\.util\.Map<String,Object>\)this\.orderbooks\)/g, 'this.orderbooks'],
             [/public Object setMarketsFromExchange\(Object sourceExchange\)/g, "public Object setMarketsFromExchange(BaseExchange sourceExchange)"]
         ]);
         // cast callDynamically to CompletableFuture when .join() is called on the result
@@ -2492,6 +2498,14 @@ class NewTranspiler {
         // Direct access without cast
         content = content.replace(/client\.subscriptions\.remove\(/gm, '((java.util.Map<String,Object>)client.subscriptions).remove(');
         content = content.replace(/client\.subscriptions\.keySet\(/gm, '((java.util.Map<String,Object>)client.subscriptions).keySet(');
+
+        // ── this.orderbooks value type ──
+        // the field is declared Map<String, io.github.ccxt.ws.WsOrderBook> in the
+        // hand-written BaseExchange header, so the parameterized cast the printer emits
+        // for `delete this.orderbooks[symbol]` is a javac error (parameterized->
+        // parameterized casts require identical type arguments, JLS 5.5.1) and redundant
+        // besides — Map.remove takes Object. Drop it.
+        content = content.replace(/\(\(java\.util\.Map<String,Object>\)this\.orderbooks\)/gm, 'this.orderbooks');
 
         // Object.keys / Object.values / Array.isArray are now emitted as
         // `Helpers.objectKeys(x)` / `objectValues(x)` / `isArray(x)` directly

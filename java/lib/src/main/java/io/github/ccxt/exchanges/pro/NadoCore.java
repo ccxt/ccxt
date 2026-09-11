@@ -2173,7 +2173,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             {
                 ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
             }
-            ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+            this.orderbooks.remove((String)symbol);
             var error = new InvalidNonce(Helpers.add(this.id, " watchOrderBook received invalid nonce"));
             client.reject(error, messageHash);
             return;
@@ -2297,7 +2297,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             Object symbol = Helpers.replace((String)messageHash, (String)"orderbook:", (String)"");
             if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
             {
-                ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+                this.orderbooks.remove((String)symbol);
             }
         } else if (Helpers.isTrue(Helpers.isEqual(Helpers.getIndexOf(messageHash, "ohlcv:"), 0)))
         {

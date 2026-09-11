@@ -2290,7 +2290,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 Object symbol = Helpers.replace((String)messageHash, (String)"unsubscribe:orderbook:", (String)"");
                 if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
                 {
-                    ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
+                    this.orderbooks.remove((String)symbol);
                 }
             } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "trades"), 0)))
             {
