@@ -160,6 +160,11 @@ function testSafeTicker () {
     const result10 = exchange.safeTicker (ticker10);
     assert (preciseEqualStr (exchange, result10, 'close', '6.0'));
     assert (preciseEqualStr (exchange, result10, 'last', '6.0'));
+    // the supplied average must survive untouched, and this path deliberately
+    // leaves change and percentage underived - pin that boundary
+    assert (preciseEqualStr (exchange, result10, 'average', '5.5'));
+    assert (result10['change'] === undefined);
+    assert (result10['percentage'] === undefined);
 }
 
 export default testSafeTicker;
