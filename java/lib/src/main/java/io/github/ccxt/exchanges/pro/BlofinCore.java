@@ -457,7 +457,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         {
             Object ticker = this.parseWsBidAsk(Helpers.GetValue(data, i));
             Object symbol = Helpers.GetValue(ticker, "symbol");
-            Object messageHash = Helpers.add("bidask:", symbol);
+            String messageHash = (String) Helpers.add("bidask:", symbol);
             Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
             client.resolve(ticker, messageHash);
         }
@@ -589,7 +589,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         Object resolveData = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, unifiedTimeframe, stored));
-        Object messageHash = Helpers.add(Helpers.add(Helpers.add("candle", interval), ":"), symbol);
+        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("candle", interval), ":"), symbol);
         client.resolve(resolveData, messageHash);
     }
 
@@ -857,7 +857,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchFundingRate", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) marketTypeparametersVariable).get(1);
-            Object messageHash = Helpers.add("fundingRate:", Helpers.GetValue(market, "symbol"));
+            String messageHash = (String) Helpers.add("fundingRate:", Helpers.GetValue(market, "symbol"));
             Object requestParams = new java.util.HashMap<String, Object>() {{
                 put( "channel", "funding-rate" );
                 put( "instId", Helpers.GetValue(market, "id") );
@@ -891,7 +891,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         Object fundingRate = this.parseFundingRate(first);
         Object symbol = Helpers.GetValue(fundingRate, "symbol");
         Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
-        Object messageHash = Helpers.add("fundingRate:", symbol);
+        String messageHash = (String) Helpers.add("fundingRate:", symbol);
         client.resolve(fundingRate, messageHash);
     }
 
@@ -1063,7 +1063,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             Object milliseconds = this.milliseconds();
-            Object messageHash = "authenticate_hash";
+            String messageHash = (String) "authenticate_hash";
             Object timestamp = String.valueOf(milliseconds);
             Object nonce = Helpers.add("n_", timestamp);
             Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/users/self/verify", "GET"), timestamp), ""), nonce);

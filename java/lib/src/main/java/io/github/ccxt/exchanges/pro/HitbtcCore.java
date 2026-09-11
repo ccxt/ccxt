@@ -104,7 +104,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
 
             this.checkRequiredCredentials();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
-            Object messageHash = "authenticated";
+            String messageHash = (String) "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
@@ -322,7 +322,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object item = Helpers.GetValue(data, marketId);
-            Object messageHash = Helpers.add("orderbooks::", symbol);
+            String messageHash = (String) Helpers.add("orderbooks::", symbol);
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
             {
                 Object subscription = this.safeDict(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
@@ -781,7 +781,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             {
                 Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(trades, j)});
             }
-            Object messageHash = Helpers.add("trades::", symbol);
+            String messageHash = (String) Helpers.add("trades::", symbol);
             client.resolve(stored, messageHash);
         }
         return message;
@@ -941,7 +941,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             {
                 Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(ohlcvs, j)});
             }
-            Object messageHash = Helpers.add("candles::", symbol);
+            String messageHash = (String) Helpers.add("candles::", symbol);
             client.resolve(stored, messageHash);
         }
         return message;
@@ -1661,7 +1661,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object success = this.safeValue(message, "result");
-        Object messageHash = "authenticated";
+        String messageHash = (String) "authenticated";
         if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
             Object future = this.safeValue(client.futures, messageHash);
@@ -1707,7 +1707,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             {
                 if (Helpers.isTrue(Helpers.isInstance(e, AuthenticationError.class)))
                 {
-                    Object messageHash = "authenticated";
+                    String messageHash = (String) "authenticated";
                     client.reject(e, messageHash);
                     if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                     {

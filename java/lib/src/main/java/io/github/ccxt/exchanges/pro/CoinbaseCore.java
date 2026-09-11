@@ -948,7 +948,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object trade = this.safeDict(trades, 0);
         Object marketId = this.safeString(trade, "product_id");
         String symbol = (String) this.safeSymbol(marketId);
-        Object messageHash = Helpers.add("market_trades::", symbol);
+        String messageHash = (String) Helpers.add("market_trades::", symbol);
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
@@ -1045,7 +1045,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         {
             Object marketId = Helpers.GetValue(marketIds, i);
             String symbol = (String) this.safeSymbol(marketId);
-            Object messageHash = Helpers.add("user::", symbol);
+            String messageHash = (String) Helpers.add("user::", symbol);
             client.resolve(this.orders, messageHash);
             this.tryResolveUsdc(client, messageHash, this.orders);
         }
@@ -1164,7 +1164,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("level2::", symbol);
+            String messageHash = (String) Helpers.add("level2::", symbol);
             Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
             Object limit = this.safeInteger(subscription, "limit");
             Object type = this.safeString(eventVar, "type");

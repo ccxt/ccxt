@@ -449,7 +449,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Object parsed = this.parseWsTrade(data);
-        Object stored = Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         client.resolve(stored, Helpers.add("trade::", symbol));
     }
@@ -579,7 +579,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object secondPart = this.safeString(parts, 1, "");
         Object timeframeId = Helpers.replace((String)secondPart, (String)"-TRADE", (String)"");
         Object timeframe = this.findTimeframe(timeframeId);
-        Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
+        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
@@ -759,7 +759,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         // unconditional assignment is correct for every language.
         Helpers.addElementToObject(orderbook, "symbol", symbol);
         Helpers.addElementToObject(orderbook, "nonce", sequenceNumber);
-        Object messageHash = Helpers.add("orderbook::", symbol);
+        String messageHash = (String) Helpers.add("orderbook::", symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }

@@ -125,7 +125,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object topic = Helpers.add("recentlyTrade.H.", Helpers.GetValue(market, "id2"));
                 ((java.util.List<Object>)topics).add(topic);
-                Object messageHash = Helpers.add("trade:", symbol);
+                String messageHash = (String) Helpers.add("trade:", symbol);
                 ((java.util.List<Object>)messageHashes).add(messageHash);
             }
             Object trades = (this.watchTopics(url, messageHashes, topics, parameters)).join();
@@ -183,7 +183,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object parsed = this.parseWsTrade(Helpers.GetValue(trades, index), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        Object messageHash = Helpers.add(Helpers.add("trade", ":"), symbol);
+        String messageHash = (String) Helpers.add(Helpers.add("trade", ":"), symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -290,7 +290,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 }
                 Object topic = Helpers.add(Helpers.add(Helpers.add("orderBook", String.valueOf(limit)), ".H."), Helpers.GetValue(market, "id2"));
                 ((java.util.List<Object>)topics).add(topic);
-                Object messageHash = Helpers.add("orderbook:", symbol);
+                String messageHash = (String) Helpers.add("orderbook:", symbol);
                 ((java.util.List<Object>)messageHashes).add(messageHash);
             }
             Object orderbook = (this.watchTopics(url, messageHashes, topics, parameters)).join();
@@ -423,7 +423,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }
-        Object messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
+        String messageHash = (String) Helpers.add(Helpers.add("orderbook", ":"), symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
@@ -464,7 +464,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = this.getWsPublicUrl();
-            Object messageHash = Helpers.add("ticker:", symbol);
+            String messageHash = (String) Helpers.add("ticker:", symbol);
             Object topic = Helpers.add(Helpers.add("instrumentInfo", ".H."), Helpers.GetValue(market, "id2"));
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList(topic));
             return (this.watchTopics(url, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), topics, parameters)).join();
@@ -502,7 +502,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object topic = Helpers.add(Helpers.add("instrumentInfo", ".H."), Helpers.GetValue(market, "id2"));
                 ((java.util.List<Object>)topics).add(topic);
-                Object messageHash = Helpers.add("ticker:", symbol);
+                String messageHash = (String) Helpers.add("ticker:", symbol);
                 ((java.util.List<Object>)messageHashes).add(messageHash);
             }
             Object ticker = (this.watchTopics(url, messageHashes, topics, parameters)).join();
@@ -565,7 +565,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Helpers.addElementToObject(parsed, "timestamp", timestamp);
         Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.tickers, ((String)symbol), parsed);
-        Object messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = (String) Helpers.add("ticker:", symbol);
         client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
     }
 
@@ -698,7 +698,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i));
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
+        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
         Object resolveData = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
@@ -791,7 +791,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHash = "";
+            String messageHash = (String) "";
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
                 symbols = this.marketSymbols(symbols);
@@ -903,7 +903,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             client.resolve(trades, currentMessageHash);
         }
         // non-symbol specific
-        Object messageHash = "myTrades";
+        String messageHash = (String) "myTrades";
         client.resolve(trades, messageHash);
     }
 
@@ -958,7 +958,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object currentMessageHash = Helpers.add("orders:", Helpers.GetValue(symbolsArray, i));
             client.resolve(orders, currentMessageHash);
         }
-        Object messageHash = "orders";
+        String messageHash = (String) "orders";
         client.resolve(orders, messageHash);
     }
 
@@ -969,7 +969,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         {
             return;
         }
-        Object messageHash = "fetchPositionsSnapshot";
+        String messageHash = (String) "fetchPositionsSnapshot";
         if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
         {
             client.future((String)messageHash);
@@ -1089,7 +1089,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object http_method = "GET";
             Object messageString = (Helpers.add(Helpers.add(timestamp, http_method), request_path));
             Object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
-            Object messageHash = "authenticated";
+            String messageHash = (String) "authenticated";
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
@@ -1203,7 +1203,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         {
             if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
             {
-                Object messageHash = "authenticated";
+                String messageHash = (String) "authenticated";
                 client.reject(error, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
@@ -1360,7 +1360,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         //
         Object success = this.safeValue(message, "success");
         Object code = this.safeInteger(message, "retCode");
-        Object messageHash = "authenticated";
+        String messageHash = (String) "authenticated";
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) || Helpers.isTrue((Helpers.isEqual(code, 0)))))
         {
             Object future = this.safeValue(client.futures, messageHash);

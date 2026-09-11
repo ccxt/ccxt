@@ -100,7 +100,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.authenticate(parameters)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object messageHash = "balance";
+            String messageHash = (String) "balance";
             Object subscribeHash = "ACCOUNT_HISTORY";
             Object bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
             Object subscribe = new java.util.HashMap<String, Object>() {{
@@ -147,7 +147,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         //     }
         //
         this.balance = this.parseBalance(message);
-        Object messageHash = "balance";
+        String messageHash = (String) "balance";
         client.resolve(this.balance, messageHash);
     }
 
@@ -173,7 +173,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object subscriptionHash = "MARKET_TICKER";
-            Object messageHash = Helpers.add("ticker.", symbol);
+            String messageHash = (String) Helpers.add("ticker.", symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -212,7 +212,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
             Object subscriptionHash = "MARKET_TICKER";
-            Object messageHash = "tickers";
+            String messageHash = (String) "tickers";
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -381,7 +381,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("book:", symbol);
+            String messageHash = (String) Helpers.add("book:", symbol);
             Object subscriptionHash = "ORDER_BOOK";
             Object depth = 0;
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1195,7 +1195,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             {
                 throw new NotSupported((String)Helpers.add(this.id, " this interval is not supported, please provide one of the supported timeframes")) ;
             }
-            Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv.", symbol), "."), timeframe);
+            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv.", symbol), "."), timeframe);
             Object subscriptionHash = "CANDLESTICKS";
             Client client = (Client)this.safeValue(this.clients, url);
             Object type = "SUBSCRIBE";
@@ -1526,7 +1526,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            Object messageHash = "authenticated";
+            String messageHash = (String) "authenticated";
             Object future = client.reusableFuture("authenticated");
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))

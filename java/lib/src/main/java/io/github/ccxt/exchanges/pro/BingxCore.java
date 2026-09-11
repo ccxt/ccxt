@@ -242,7 +242,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object market = this.market(symbol);
             Object dataType = Helpers.add(Helpers.GetValue(market, "id"), "@ticker");
             Object subMessageHash = this.getMessageHash("ticker", Helpers.GetValue(market, "symbol"));
-            Object messageHash = Helpers.add("unsubscribe::", subMessageHash);
+            String messageHash = (String) Helpers.add("unsubscribe::", subMessageHash);
             Object topic = "ticker";
             Object methodName = "unWatchTicker";
             return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters)).join();
@@ -458,7 +458,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 url = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), marketType);
             }
             Object rawHash = Helpers.add(Helpers.GetValue(market, "id"), "@trade");
-            Object messageHash = Helpers.add("trade::", symbol);
+            String messageHash = (String) Helpers.add("trade::", symbol);
             Object uuid = this.uuid();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", uuid );
@@ -514,7 +514,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object market = this.market(symbol);
             Object dataType = Helpers.add(Helpers.GetValue(market, "id"), "@trade");
             Object subMessageHash = this.getMessageHash("trade", Helpers.GetValue(market, "symbol"));
-            Object messageHash = Helpers.add("unsubscribe::", subMessageHash);
+            String messageHash = (String) Helpers.add("unsubscribe::", subMessageHash);
             Object topic = "trades";
             Object methodName = "unWatchTrades";
             return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters)).join();
@@ -612,7 +612,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object messageHash = Helpers.add("trade::", symbol);
+        String messageHash = (String) Helpers.add("trade::", symbol);
         Object trades = null;
         if (Helpers.isTrue(Helpers.isArray(data)))
         {
@@ -739,7 +739,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
             Object depth = this.safeInteger(options, "depth", 100);
             Object subMessageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), "depth"), this.numberToString(depth));
-            Object messageHash = Helpers.add("unsubscribe::", subMessageHash);
+            String messageHash = (String) Helpers.add("unsubscribe::", subMessageHash);
             Object topic = "orderbook";
             Object methodName = "unWatchOrderBook";
             return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters)).join();
@@ -833,7 +833,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         Object marketType = ((Helpers.isTrue(isSwap))) ? "swap" : "spot";
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object orderbook = this.safeValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
             // const limit = [ 5, 10, 20, 50, 100 ]
@@ -844,7 +844,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object limit = this.safeInteger(subscription, "limit", 100);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
-        orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object snapshot = null;
         Long timestamp = (Long) this.safeInteger2(message, "timestamp", "ts");
         timestamp = (Long) this.safeInteger2(data, "timestamp", "ts", timestamp);
@@ -1125,7 +1125,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object timeframes = this.safeValue(options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             Object rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
             Object subMessageHash = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), rawTimeframe);
-            Object messageHash = Helpers.add("unsubscribe::", subMessageHash);
+            String messageHash = (String) Helpers.add("unsubscribe::", subMessageHash);
             Object topic = "ohlcv";
             Object methodName = "unWatchOHLCV";
             Object symbolsAndTimeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"), timeframe))));
@@ -1462,7 +1462,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             }
             (this.authenticate()).join();
             Object market = null;
-            Object messageHash = "";
+            String messageHash = (String) "";
             symbols = this.marketSymbols(symbols);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
@@ -1797,7 +1797,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 // the registry: client.future () is the atomic check-and-insert
                 // and client.resolve () / client.reject () settle and remove the
                 // entry under the same lock in every port
-                Object messageHash = "authenticate";
+                String messageHash = (String) "authenticate";
                 Client client = this.client("authenticationFlights");
                 if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
@@ -1812,7 +1812,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
                 try
                 {
-                    Object response = (this.userAuthPrivatePostUserDataStream()).join();
+                    java.util.Map<String, Object> response = (this.userAuthPrivatePostUserDataStream()).join();
                     Object listenKey = this.safeString(response, "listenKey");
                     if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
                     {

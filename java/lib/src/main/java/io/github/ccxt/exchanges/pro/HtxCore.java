@@ -180,7 +180,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 throw new BadRequest((String)Helpers.add(this.id, " watchTicker() with name market.{marketId}.ticker is only allowed for spot markets, use market.{marketId}.detail instead")) ;
             }
-            Object messageHash = this.implodeParams(topic, new java.util.HashMap<String, Object>() {{
+            String messageHash = (String) this.implodeParams(topic, new java.util.HashMap<String, Object>() {{
                 put( "marketId", Helpers.GetValue(market, "id") );
             }});
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"));
@@ -308,7 +308,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
+            String messageHash = (String) Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"));
             Object trades = (this.subscribePublic(url, symbol, messageHash, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -432,7 +432,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
+            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"));
             Object ohlcv = (this.subscribePublic(url, symbol, messageHash, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -563,7 +563,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " watchOrderBook market accepts limits of 5, 20, 150 or 400 only")) ;
             }
-            Object messageHash = null;
+            String messageHash = (String) null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".mbp."), this.numberToString(limit));
@@ -661,7 +661,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object lastTimestamp = this.safeInteger(subscription, "lastTimestamp");
         try
         {
-            Object orderbook = this.safeValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
             Object data = this.safeValue(message, "data");
             Object messages = ((java.util.List<Object>)Helpers.GetValue(orderbook, "cache"));
             Object firstMessage = this.safeValue(messages, 0, new java.util.HashMap<String, Object>() {{}});
@@ -677,7 +677,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object snapshotTimestamp = this.safeInteger(message, "ts");
             Helpers.addElementToObject(subscription, "lastTimestamp", snapshotTimestamp);
             Object snapshotLimit = this.safeInteger(subscription, "limit");
-            Object snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
+            io.github.ccxt.ws.WsOrderBook snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
             client.resolve(snapshotOrderBook, id);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sequence, null))) || Helpers.isTrue((Helpers.isLessThan(nonce, sequence)))))
             {
@@ -972,7 +972,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object limit = this.safeInteger(sizeParts, 1);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(eventVar, null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(orderbook, "nonce"), null)))))
         {
             ((java.util.List<Object>)((java.util.List<Object>)Helpers.GetValue(orderbook, "cache"))).add(message);
@@ -3336,7 +3336,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 put( "unsub", subMessageHash );
                 put( "id", requestId );
             }};
-            Object messageHash = Helpers.add("unsubscribe::", subMessageHash);
+            String messageHash = (String) Helpers.add("unsubscribe::", subMessageHash);
             Object isFeed = (Helpers.isEqual(topic, "orderbook"));
             if (Helpers.isTrue(Helpers.isEqual(market, null)))
             {
@@ -3425,7 +3425,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " authenticate requires a url, hostname and type argument")) ;
             }
             this.checkRequiredCredentials();
-            Object messageHash = "auth";
+            String messageHash = (String) "auth";
             Object relativePath = Helpers.replace((String)url, (String)Helpers.add("wss://", hostname), (String)"");
             Client client = this.client(url);
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);

@@ -709,7 +709,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             var tradesArrayCache = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, ((String)symbol), tradesArrayCache);
         }
-        Object tradesArray = Helpers.GetValue(this.trades, ((String)symbol));
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, ((String)symbol));
         Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
         Helpers.addElementToObject(this.trades, ((String)symbol), tradesArray);
         client.resolve(tradesArray, channel);

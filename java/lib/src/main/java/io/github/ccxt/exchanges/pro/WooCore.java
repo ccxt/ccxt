@@ -272,7 +272,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 return;
             }
-            Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             Object timestamp = this.safeInteger(orderbook, "timestamp");
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
@@ -310,7 +310,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 Object limit = this.safeInteger(subscription, "limit", defaultLimit);
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             }
-            Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             Object timestamp = this.safeInteger(message, "ts");
             Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
@@ -353,7 +353,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                     // if the orderbook is dropped before the snapshot is received
                     return null;
                 }
-                Object orderbook = this.safeValue(this.orderbooks, symbol);
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
                 Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
                 Object messages = ((java.util.List<Object>)Helpers.GetValue(orderbook, "cache"));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messages)); i++)
@@ -1130,7 +1130,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             this.checkRequiredCredentials();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.uid);
             Client client = this.client(url);
-            Object messageHash = "authenticated";
+            String messageHash = (String) "authenticated";
             Object eventVar = "auth";
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
@@ -1634,7 +1634,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
-            Object messageHash = "fetchPositionsSnapshot";
+            String messageHash = (String) "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
                 client.future((String)messageHash);
@@ -1719,7 +1719,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             Object position = this.parsePosition(rawPosition, market);
             ((java.util.List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
-            Object messageHash = Helpers.add("positions::", Helpers.GetValue(market, "symbol"));
+            String messageHash = (String) Helpers.add("positions::", Helpers.GetValue(market, "symbol"));
             client.resolve(position, messageHash);
         }
         client.resolve(newPositions, "positions");
@@ -1899,7 +1899,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         {
             if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
             {
-                Object messageHash = "authenticated";
+                String messageHash = (String) "authenticated";
                 client.reject(error, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {
@@ -2072,7 +2072,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         //         "ts": 1657463158812
         //     }
         //
-        Object messageHash = "authenticated";
+        String messageHash = (String) "authenticated";
         Object success = this.safeValue(message, "success");
         if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {

@@ -101,7 +101,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             this.checkRequiredCredentials();
             Object timestamp = this.numberToString(this.milliseconds());
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
-            Object messageHash = "authenticated";
+            String messageHash = (String) "authenticated";
             Client client = this.client(url);
             Object future = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
@@ -710,7 +710,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                 (this.loadMarkets()).join();
             }
             Object name = "orders";
-            Object messageHash = "myTrades";
+            String messageHash = (String) "myTrades";
             (this.authenticate()).join();
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1145,7 +1145,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             Object marketId = Helpers.GetValue(marketIds, i);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("orders::", symbol);
+            String messageHash = (String) Helpers.add("orders::", symbol);
             client.resolve(orders, messageHash);
         }
         client.resolve(orders, "orders");
@@ -1413,7 +1413,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         //    }
         //
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object messageHash = "balances";
+        String messageHash = (String) "balances";
         this.balance = this.parseWsBalance(data);
         client.resolve(this.balance, messageHash);
     }
@@ -1587,7 +1587,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             {
                 if (Helpers.isTrue(Helpers.isInstance(e, AuthenticationError.class)))
                 {
-                    Object messageHash = "authenticated";
+                    String messageHash = (String) "authenticated";
                     client.reject(e, messageHash);
                     if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                     {
@@ -1615,7 +1615,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         //
         Object data = this.safeValue(message, "data");
         Object success = this.safeValue(data, "success");
-        Object messageHash = "authenticated";
+        String messageHash = (String) "authenticated";
         if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
             client.resolve(message, messageHash);

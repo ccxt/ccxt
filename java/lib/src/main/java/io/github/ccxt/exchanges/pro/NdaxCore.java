@@ -591,7 +591,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         Object symbol = this.safeString(subscription, "symbol");
         Object snapshot = this.parseOrderBook(payload, symbol);
         Object limit = this.safeInteger(subscription, "limit");
-        Object orderbook = this.orderBook(snapshot, limit);
+        io.github.ccxt.ws.WsOrderBook orderbook = this.orderBook(snapshot, limit);
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, orderbook);

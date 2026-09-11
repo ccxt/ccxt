@@ -175,7 +175,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object timestamp = this.safeInteger(message, "ts");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
@@ -606,7 +606,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             var stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object trades = Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         Helpers.callDynamically(trades, "append", new Object[]{trade});
         Helpers.addElementToObject(this.trades, symbol, trades);
         client.resolve(trades, topic);
@@ -703,7 +703,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //         "ts": 1657463158812
         //     }
         //
-        Object messageHash = "authenticated";
+        String messageHash = (String) "authenticated";
         Object success = this.safeValue(message, "success");
         if (Helpers.isTrue(Helpers.isEqual(success, true)))
         {
@@ -731,7 +731,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             this.checkRequiredCredentials();
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "/"), this.accountId);
             Client client = this.client(url);
-            Object messageHash = "authenticated";
+            String messageHash = (String) "authenticated";
             Object eventVar = "auth";
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
@@ -1245,7 +1245,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
-            Object messageHash = "fetchPositionsSnapshot";
+            String messageHash = (String) "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
                 client.future((String)messageHash);
@@ -1336,7 +1336,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             Object position = this.parseWsPosition(rawPosition, market);
             ((java.util.List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
-            Object messageHash = Helpers.add("positions::", Helpers.GetValue(market, "symbol"));
+            String messageHash = (String) Helpers.add("positions::", Helpers.GetValue(market, "symbol"));
             client.resolve(position, messageHash);
         }
         client.resolve(newPositions, "positions");
@@ -1539,7 +1539,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         {
             if (Helpers.isTrue(Helpers.isInstance(error, AuthenticationError.class)))
             {
-                Object messageHash = "authenticated";
+                String messageHash = (String) "authenticated";
                 client.reject(error, messageHash);
                 if (Helpers.isTrue(Helpers.inOp(client.subscriptions, messageHash)))
                 {

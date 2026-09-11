@@ -1139,7 +1139,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object symbol = this.safeString(subscription, "symbol");
-            Object messageHash = Helpers.add("orderbook::", symbol);
+            String messageHash = (String) Helpers.add("orderbook::", symbol);
             try
             {
                 Object defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
@@ -1155,7 +1155,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     // if the orderbook is dropped before the snapshot is received
                     return null;
                 }
-                Object orderbook = this.safeValue(this.orderbooks, symbol);
+                io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
                 Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
                 // unroll the accumulated deltas
                 Object messages = ((java.util.List<Object>)Helpers.GetValue(orderbook, "cache"));
@@ -1268,7 +1268,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object messageHash = Helpers.add("orderbook::", symbol);
+        String messageHash = (String) Helpers.add("orderbook::", symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             //
@@ -1281,7 +1281,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             //
             return;
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object nonce = this.safeInteger(orderbook, "nonce");
         if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
         {
@@ -1898,7 +1898,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object messageHash = Helpers.add("trade::", symbol);
+        String messageHash = (String) Helpers.add("trade::", symbol);
         Object trade = this.parseWsTrade(message, market);
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
@@ -2278,7 +2278,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object isSpot = this.isSpotUrl(client);
         Object marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         String symbol = (String) this.safeSymbol(marketId, null, null, marketType);
-        Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), unifiedTimeframe);
+        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), unifiedTimeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), unifiedTimeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -3428,7 +3428,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             // the subscriptions flag is raised before the subscribe request is confirmed,
             // so a concurrent caller would otherwise return onto an unauthenticated stream
-            Object messageHash = Helpers.add("authenticate:signature:", marketType);
+            String messageHash = (String) Helpers.add("authenticate:signature:", marketType);
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
             {
                 // another caller is already subscribing, wait for it instead of subscribing again
@@ -3521,7 +3521,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 // renewal timer re-entry through renewListenToken, so a concurrent caller
                 // waits for the leader rather than minting a second listenToken
                 Client client = this.client(url);
-                Object messageHash = Helpers.add(Helpers.add("authenticate:", marketType), ":listenToken");
+                String messageHash = (String) Helpers.add(Helpers.add("authenticate:", marketType), ":listenToken");
                 if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
                     // another caller is already fetching, wait for it instead of fetching again
@@ -3550,7 +3550,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     {
                         Helpers.addElementToObject(request, "validity", validity);
                     }
-                    Object response = (this.sapiPostUserListenToken(request)).join();
+                    java.util.Map<String, Object> response = (this.sapiPostUserListenToken(request)).join();
                     Object listenToken = this.safeString(response, "token");
                     if (Helpers.isTrue(Helpers.isEqual(listenToken, null)))
                     {
@@ -3701,7 +3701,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 // client.futures is the registry: client.future () is the atomic
                 // check-and-insert and client.resolve () / client.reject () settle
                 // and remove the entry under the same lock in every port
-                Object messageHash = Helpers.add("authenticate:", type);
+                String messageHash = (String) Helpers.add("authenticate:", type);
                 Client client = this.client("authenticationFlights");
                 if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
@@ -6785,7 +6785,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 }
             }
             Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
-            Object messageHash = "orders";
+            String messageHash = (String) "orders";
             Object symbolSpecificMessageHash = Helpers.add("orders:", symbol);
             client.resolve(cachedOrders, messageHash);
             client.resolve(cachedOrders, symbolSpecificMessageHash);

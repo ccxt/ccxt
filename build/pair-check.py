@@ -31,11 +31,11 @@ TYPE_RE = re.compile(r'^(?P<indent>\s*)(?P<type>[A-Za-z_][\w.<>, ]*?) (?P<rest>.
 def normalize(line):
     s = line.strip()
     # strip a leading declaration type only when followed by `name = `
-    m = re.match(r'^(?:final\s+)?(?:java\.util\.Map<String, Object>|java\.util\.List<Object>|java\.util\.List<String>|String|Long|Integer|Double|Boolean|Object)\s+(\w+ = .*)$', s)
+    m = re.match(r'^(?:final\s+)?(?:java\.util\.Map<String, Object>|java\.util\.List<Object>|java\.util\.List<String>|io\.github\.ccxt\.ws\.[A-Za-z.]+|String|Long|Integer|Double|Boolean|Object)\s+(\w+ = .*)$', s)
     if m:
         s = m.group(1)
     # strip injected checkcast right after `= `
-    s = re.sub(r'^(\w+ = )\((?:java\.util\.Map<String, Object>|java\.util\.List<Object>|String|Long|Integer|Double|Boolean)\) ', r'\1', s)
+    s = re.sub(r'^(\w+ = )\((?:java\.util\.Map<String, Object>|java\.util\.List<Object>|io\.github\.ccxt\.ws\.[A-Za-z.]+|String|Long|Integer|Double|Boolean)\) ', r'\1', s)
     s = re.sub(r'^\(\((?:java\.util\.Map<String, Object>|java\.util\.List<Object>|String|Long)\)(\w+)\)', r'\1', s)
     # return-site casts: `return (String) x` vs `return x`
     s = re.sub(r'^return \((?:String|java\.util\.List<Object>|java\.util\.Map<String, Object>)\) (.*)$', r'return \1', s)

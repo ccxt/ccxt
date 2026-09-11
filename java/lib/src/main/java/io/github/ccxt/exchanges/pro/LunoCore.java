@@ -77,7 +77,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
                 put( "symbol", finalSymbol );
             }};
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
-            Object messageHash = Helpers.add("trades:", symbol);
+            String messageHash = (String) Helpers.add("trades:", symbol);
             Object subscribe = new java.util.HashMap<String, Object>() {{
                 put( "api_key_id", LunoCore.this.apiKey );
                 put( "api_key_secret", LunoCore.this.secret );
@@ -118,7 +118,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         }
         Object symbol = Helpers.GetValue(subscription, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object messageHash = Helpers.add("trades:", symbol);
+        String messageHash = (String) Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -199,7 +199,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
                 put( "symbol", finalSymbol );
             }};
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), subscriptionHash);
-            Object messageHash = Helpers.add("orderbook:", symbol);
+            String messageHash = (String) Helpers.add("orderbook:", symbol);
             Object subscribe = new java.util.HashMap<String, Object>() {{
                 put( "api_key_id", LunoCore.this.apiKey );
                 put( "api_key_secret", LunoCore.this.secret );
@@ -246,7 +246,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         //     }
         //
         Object symbol = Helpers.GetValue(subscription, "symbol");
-        Object messageHash = Helpers.add("orderbook:", symbol);
+        String messageHash = (String) Helpers.add("orderbook:", symbol);
         Object timestamp = this.safeInteger(message, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {

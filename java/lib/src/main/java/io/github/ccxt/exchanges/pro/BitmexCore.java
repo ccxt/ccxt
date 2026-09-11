@@ -122,7 +122,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                     Object subscription = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
                     ((java.util.List<Object>)rawSubscriptions).add(subscription);
-                    Object messageHash = Helpers.add("ticker:", symbol);
+                    String messageHash = (String) Helpers.add("ticker:", symbol);
                     ((java.util.List<Object>)messageHashes).add(messageHash);
                 }
             } else
@@ -389,7 +389,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object fullParsedTicker = this.deepExtend(Helpers.GetValue(this.tickers, symbol), updatedTicker);
             Helpers.addElementToObject(tickers, symbol, fullParsedTicker);
             Helpers.addElementToObject(this.tickers, symbol, fullParsedTicker);
-            Object messageHash = Helpers.add("ticker:", symbol);
+            String messageHash = (String) Helpers.add("ticker:", symbol);
             client.resolve(fullParsedTicker, messageHash);
             client.resolve(fullParsedTicker, "alltickers");
         }
@@ -547,7 +547,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object messageHash = "margin";
+            String messageHash = (String) "margin";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "op", "subscribe" );
@@ -784,7 +784,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            Object messageHash = "authenticated";
+            String messageHash = (String) "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
@@ -808,7 +808,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
     public void handleAuthenticationMessage(Client client, Object message)
     {
         Object authenticated = this.safeBool(message, "success", false);
-        Object messageHash = "authenticated";
+        String messageHash = (String) "authenticated";
         if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {
             // we resolve the future here permanently so authentication only happens once
@@ -851,7 +851,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             }
             (this.authenticate()).join();
             Object subscriptionHash = "position";
-            Object messageHash = "positions";
+            String messageHash = (String) "positions";
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
                 symbols = this.marketSymbols(symbols);

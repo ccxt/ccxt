@@ -972,7 +972,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add(Helpers.add(eventVar, "@"), Helpers.GetValue(market, "id"));
-        Object orderbook = this.safeValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
             return;
@@ -1061,7 +1061,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         String symbol = (String) this.safeSymbol(marketId, null, "-");
         Object name = "book";
         Object messageHash = Helpers.add(Helpers.add(name, "@"), marketId);
-        Object orderbook = this.safeValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
             // the market was unsubscribed while this snapshot request was in flight
@@ -1224,7 +1224,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object marketId = Helpers.GetValue(market, "id");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object name = "account";
-            Object messageHash = Helpers.add("order:", symbol);
+            String messageHash = (String) Helpers.add("order:", symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -1275,7 +1275,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object marketId = Helpers.GetValue(market, "id");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object name = "account";
-            Object messageHash = Helpers.add("myTrades:", symbol);
+            String messageHash = (String) Helpers.add("myTrades:", symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -2148,7 +2148,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object marketId = this.safeString(message, "market");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object messageHash = Helpers.add("order:", symbol);
+        String messageHash = (String) Helpers.add("order:", symbol);
         Object order = this.parseOrder(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -2180,7 +2180,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object marketId = this.safeString(message, "market");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object messageHash = Helpers.add("myTrades:", symbol);
+        String messageHash = (String) Helpers.add("myTrades:", symbol);
         Object trade = this.parseTrade(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
@@ -2228,7 +2228,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            Object messageHash = "authenticated";
+            String messageHash = (String) "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {
@@ -2260,7 +2260,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //         "authenticated": true
         //     }
         //
-        Object messageHash = "authenticated";
+        String messageHash = (String) "authenticated";
         Object authenticated = this.safeBool(message, "authenticated", false);
         if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {

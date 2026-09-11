@@ -131,7 +131,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), channel));
-            Object messageHash = Helpers.add("kline::", Helpers.GetValue(market, "symbol"));
+            String messageHash = (String) Helpers.add("kline::", Helpers.GetValue(market, "symbol"));
             Object ohlcv = (this.subscribe("kline.subscribe", messageHash, request, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -328,7 +328,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object name = "depth.subscribe";
-            Object messageHash = Helpers.add("orderbook::", Helpers.GetValue(market, "symbol"));
+            String messageHash = (String) Helpers.add("orderbook::", Helpers.GetValue(market, "symbol"));
             Object interval = this.safeString(parameters, "interval", "0.001");
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -428,7 +428,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             Object trade = this.parseTrade(item, market);
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
         }
-        Object messageHash = Helpers.add("deals::", symbol);
+        String messageHash = (String) Helpers.add("deals::", symbol);
         client.resolve(tradesArray, messageHash);
         return message;
     }
@@ -522,7 +522,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         Object marketId = this.safeString(parameters, 2);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object messageHash = Helpers.add("orderbook::", Helpers.GetValue(market, "symbol"));
+        String messageHash = (String) Helpers.add("orderbook::", Helpers.GetValue(market, "symbol"));
         Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
         Object limit = this.safeInteger(subscription, "limit");
         Object orderbook = this.safeValue(this.orderbooks, symbol);

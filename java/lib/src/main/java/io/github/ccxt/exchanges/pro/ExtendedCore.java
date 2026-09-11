@@ -78,7 +78,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("orderbook:", symbol);
+            String messageHash = (String) Helpers.add("orderbook:", symbol);
             Object query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/orderbooks/"), Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(Helpers.isGreaterThan(((String)query).length(), 0)))
@@ -117,7 +117,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object marketId = this.safeString(data, "m");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object messageHash = Helpers.add("orderbook:", symbol);
+        String messageHash = (String) Helpers.add("orderbook:", symbol);
         Object timestamp = this.safeInteger(message, "ts");
         Object nonce = this.safeInteger(message, "seq");
         Object type = this.safeString(message, "type", this.safeString(data, "t"));
@@ -436,7 +436,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object keys = Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
-            Object messageHash = Helpers.add("myTrades:", Helpers.GetValue(keys, i));
+            String messageHash = (String) Helpers.add("myTrades:", Helpers.GetValue(keys, i));
             client.resolve(stored, messageHash);
         }
         client.resolve(stored, "myTrades");
@@ -617,7 +617,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object keys = Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
-            Object messageHash = Helpers.add("orders:", Helpers.GetValue(keys, i));
+            String messageHash = (String) Helpers.add("orders:", Helpers.GetValue(keys, i));
             client.resolve(orders, messageHash);
         }
         client.resolve(orders, "orders");
@@ -653,7 +653,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("fundingRate:", symbol);
+            String messageHash = (String) Helpers.add("fundingRate:", symbol);
             Object query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/funding/"), Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(Helpers.isGreaterThan(((String)query).length(), 0)))
@@ -686,7 +686,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object fundingRate = this.parseWsFundingRate(data, null, message);
         Object symbol = this.safeString(fundingRate, "symbol");
         Helpers.addElementToObject(this.fundingRates, ((String)symbol), fundingRate);
-        Object messageHash = Helpers.add("fundingRate:", symbol);
+        String messageHash = (String) Helpers.add("fundingRate:", symbol);
         client.resolve(fundingRate, messageHash);
     }
 
@@ -742,7 +742,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("markPrice:", symbol);
+            String messageHash = (String) Helpers.add("markPrice:", symbol);
             Object query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/prices/mark/"), Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(Helpers.isGreaterThan(((String)query).length(), 0)))
@@ -791,7 +791,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             put( "info", message );
         }}, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
-        Object messageHash = Helpers.add("markPrice:", symbol);
+        String messageHash = (String) Helpers.add("markPrice:", symbol);
         client.resolve(ticker, messageHash);
     }
 
@@ -820,7 +820,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("trades:", symbol);
+            String messageHash = (String) Helpers.add("trades:", symbol);
             Object query = this.urlencode(parameters);
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/publicTrades/"), Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(Helpers.isGreaterThan(((String)query).length(), 0)))
@@ -870,7 +870,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         Object marketId = this.safeString(first, "m");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object messageHash = Helpers.add("trades:", symbol);
+        String messageHash = (String) Helpers.add("trades:", symbol);
         Object subscription = this.safeDict(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -941,7 +941,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("candleType", "price")));
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object messageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("ohlcv:", symbol), ":"), timeframe), ":"), candleType);
+            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("ohlcv:", symbol), ":"), timeframe), ":"), candleType);
             Object query = this.urlencode(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "interval", interval );
             }}, parameters));

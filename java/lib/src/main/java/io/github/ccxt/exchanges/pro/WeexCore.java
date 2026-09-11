@@ -389,7 +389,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         Object data = this.safeDict(tickers, 0, new java.util.HashMap<String, Object>() {{}});
         Object ticker = this.parseWsTicker(data, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object messageHash = Helpers.add("ticker::", symbol);
+        String messageHash = (String) Helpers.add("ticker::", symbol);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(Helpers.GetValue(this.tickers, symbol), messageHash);
     }
@@ -617,13 +617,13 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             return;
         }
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object messageHash = Helpers.add("trade::", symbol);
+        String messageHash = (String) Helpers.add("trade::", symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
             Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
-        Object tradesArray = Helpers.GetValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         Object data = this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object newTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -757,7 +757,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 Object unifiedTimeframe = this.safeString(data, 1, "1");
                 Object interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
                 Object channel = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), interval), "_"), priceType);
-                Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbolString), "::"), unifiedTimeframe);
+                String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbolString), "::"), unifiedTimeframe);
                 ((java.util.List<Object>)channels).add(channel);
                 ((java.util.List<Object>)messageHashes).add(messageHash);
             }
@@ -848,7 +848,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 Object unifiedTimeframe = this.safeString(data, 1, "1");
                 Object interval = this.safeString(this.timeframes, unifiedTimeframe, unifiedTimeframe);
                 Object channel = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), interval), "_"), priceType);
-                Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbolString), "::"), unifiedTimeframe);
+                String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbolString), "::"), unifiedTimeframe);
                 Object unSubMessageHash = Helpers.add("unsubscribe::", messageHash);
                 ((java.util.List<Object>)channels).add(channel);
                 ((java.util.List<Object>)subHashes).add(messageHash);
@@ -923,7 +923,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object parsed = this.parseWsOHLCV(entry);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
-        Object messageHash = Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
+        String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("ohlcv::", symbol), "::"), timeframe);
         Object resolveData = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol, timeframe, stored));
         client.resolve(resolveData, messageHash);
     }
@@ -1014,7 +1014,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                Object messageHash = Helpers.add("orderbook::", symbol);
+                String messageHash = (String) Helpers.add("orderbook::", symbol);
                 Object channel = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@depth"), depth);
                 ((java.util.List<Object>)messageHashes).add(messageHash);
                 ((java.util.List<Object>)channels).add(channel);
@@ -1088,7 +1088,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             {
                 Object symbol = Helpers.GetValue(symbols, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-                Object messageHash = Helpers.add("orderbook::", symbol);
+                String messageHash = (String) Helpers.add("orderbook::", symbol);
                 Object channel = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@depth"), depth);
                 Object unSubMessageHash = Helpers.add("unsubscribe::", messageHash);
                 ((java.util.List<Object>)subHashes).add(messageHash);
@@ -1129,7 +1129,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             return;
         }
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object messageHash = Helpers.add("orderbook::", symbol);
+        String messageHash = (String) Helpers.add("orderbook::", symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Object subscription = this.safeDict(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
@@ -1203,7 +1203,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 Object symbol = Helpers.GetValue(symbols, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object channelName = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), "bookTicker");
-                Object messageHash = Helpers.add("bidask::", symbol);
+                String messageHash = (String) Helpers.add("bidask::", symbol);
                 ((java.util.List<Object>)messageHashes).add(messageHash);
                 ((java.util.List<Object>)channels).add(channelName);
             }
@@ -1253,7 +1253,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
                 Object symbol = Helpers.GetValue(symbols, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object channelName = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), "bookTicker");
-                Object messageHash = Helpers.add("bidask::", symbol);
+                String messageHash = (String) Helpers.add("bidask::", symbol);
                 Object unSubMessageHash = Helpers.add("unsubscribe::", messageHash);
                 ((java.util.List<Object>)subHashes).add(messageHash);
                 ((java.util.List<Object>)channels).add(channelName);
@@ -1297,7 +1297,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         {
             Helpers.addElementToObject(this.bidsasks, symbol, ticker);
         }
-        Object messageHash = Helpers.add("bidask::", symbol);
+        String messageHash = (String) Helpers.add("bidask::", symbol);
         client.resolve(ticker, messageHash);
     }
 
@@ -2160,7 +2160,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot", false);
         if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
-            Object messageHash = "fetchPositionsSnapshot";
+            String messageHash = (String) "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
                 client.future((String)messageHash);

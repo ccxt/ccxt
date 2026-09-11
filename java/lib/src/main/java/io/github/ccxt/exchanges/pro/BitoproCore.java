@@ -97,7 +97,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add(Helpers.add("ORDER_BOOK", ":"), symbol);
+            String messageHash = (String) Helpers.add(Helpers.add("ORDER_BOOK", ":"), symbol);
             Object endPart = null;
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -176,7 +176,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add(Helpers.add("TRADE", ":"), symbol);
+            String messageHash = (String) Helpers.add(Helpers.add("TRADE", ":"), symbol);
             Object trades = (this.watchPublic("trades", messageHash, Helpers.GetValue(market, "id"))).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -425,7 +425,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add(Helpers.add("TICKER", ":"), symbol);
+            String messageHash = (String) Helpers.add(Helpers.add("TICKER", ":"), symbol);
             return (this.watchPublic("tickers", messageHash, Helpers.GetValue(market, "id"))).join();
         });
 
@@ -525,7 +525,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHash = "ACCOUNT_BALANCE";
+            String messageHash = (String) "ACCOUNT_BALANCE";
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "ws"), "private"), "/"), "account-balance");
             this.authenticate(url);
             return (this.watch(url, messageHash, null, messageHash, null)).join();

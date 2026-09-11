@@ -83,7 +83,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             // only supports a limit of 150 at this time
-            Object messageHash = Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".detail");
+            String messageHash = (String) Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".detail");
             Object api = this.safeString(this.options, "api", "api");
             Object hostname = new java.util.HashMap<String, Object>() {{
                 put( "hostname", BittradeCore.this.hostname );
@@ -169,7 +169,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             // only supports a limit of 150 at this time
-            Object messageHash = Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
+            String messageHash = (String) Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
             Object api = this.safeString(this.options, "api", "api");
             Object hostname = new java.util.HashMap<String, Object>() {{
                 put( "hostname", BittradeCore.this.hostname );
@@ -273,7 +273,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
+            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
             Object api = this.safeString(this.options, "api", "api");
             Object hostname = new java.util.HashMap<String, Object>() {{
                 put( "hostname", BittradeCore.this.hostname );
@@ -373,7 +373,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             symbol = Helpers.GetValue(market, "symbol");
             // only supports a limit of 150 at this time
             limit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? 150 : limit;
-            Object messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".mbp."), String.valueOf(limit));
+            String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".mbp."), String.valueOf(limit));
             Object api = this.safeString(this.options, "api", "api");
             Object hostname = new java.util.HashMap<String, Object>() {{
                 put( "hostname", BittradeCore.this.hostname );
@@ -426,7 +426,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Object symbol = this.safeString(subscription, "symbol");
         Object messageHash = this.safeString(subscription, "messageHash");
         Object timestamp = this.safeInteger(message, "ts");
-        Object orderbook = Helpers.GetValue(this.orderbooks, ((String)symbol));
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, ((String)symbol));
         Object data = this.safeValue(message, "data");
         Object snapshot = this.parseOrderBook(data, symbol);
         Helpers.addElementToObject(snapshot, "nonce", this.safeInteger(data, "seqNum"));
@@ -573,7 +573,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Object parts = Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
         String symbol = (String) this.safeSymbol(marketId);
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(orderbook, "nonce"), null)))
         {
             ((java.util.List<Object>)((java.util.List<Object>)Helpers.GetValue(orderbook, "cache"))).add(message);

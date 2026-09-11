@@ -104,7 +104,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             // the interval upon getting an update
             // so that can't be part of the message hash, and the user can only subscribe
             // to one timeframe per symbol
-            Object messageHash = Helpers.add("candles:", symbol);
+            String messageHash = (String) Helpers.add("candles:", symbol);
             Object reqParams = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketId, interval));
             Object method = "candles_subscribe";
             Object ohlcv = (this.watchPublic(messageHash, method, reqParams, parameters)).join();
@@ -144,7 +144,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object marketId = this.safeString(data, 7);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add(Helpers.add("candles", ":"), symbol);
+            String messageHash = (String) Helpers.add(Helpers.add("candles", ":"), symbol);
             Object parsed = this.parseOHLCV(data, market);
             // this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol);
             if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
@@ -191,7 +191,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             {
                 limit = 10; // max 100
             }
-            Object messageHash = Helpers.add(Helpers.add("orderbook", ":"), Helpers.GetValue(market, "symbol"));
+            String messageHash = (String) Helpers.add(Helpers.add("orderbook", ":"), Helpers.GetValue(market, "symbol"));
             Object method = "depth_subscribe";
             Object options = this.safeValue(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
             Object defaultPriceInterval = this.safeString(options, "priceInterval", "0");
@@ -252,7 +252,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object timestamp = this.safeTimestamp(data, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
-            Object ob = this.orderBook();
+            io.github.ccxt.ws.WsOrderBook ob = this.orderBook();
             Helpers.addElementToObject(this.orderbooks, symbol, ob);
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
@@ -269,7 +269,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
         }
-        Object messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
+        String messageHash = (String) Helpers.add(Helpers.add("orderbook", ":"), symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -310,7 +310,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object method = "market_subscribe";
-            Object messageHash = Helpers.add("ticker:", symbol);
+            String messageHash = (String) Helpers.add("ticker:", symbol);
             // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
             return (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
         });
@@ -386,7 +386,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object rawTicker = this.safeValue(tickers, 1, new java.util.HashMap<String, Object>() {{}});
-        Object messageHash = Helpers.add(Helpers.add("ticker", ":"), symbol);
+        String messageHash = (String) Helpers.add(Helpers.add("ticker", ":"), symbol);
         Object ticker = this.parseTicker(rawTicker, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         // watchTicker
@@ -438,7 +438,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add(Helpers.add("trades", ":"), symbol);
+            String messageHash = (String) Helpers.add(Helpers.add("trades", ":"), symbol);
             Object method = "trades_subscribe";
             // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
             Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
@@ -494,7 +494,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
         }
-        Object messageHash = Helpers.add("trades:", Helpers.GetValue(market, "symbol"));
+        String messageHash = (String) Helpers.add("trades:", Helpers.GetValue(market, "symbol"));
         client.resolve(stored, messageHash);
     }
 
@@ -529,7 +529,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             (this.authenticate()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("myTrades:", symbol);
+            String messageHash = (String) Helpers.add("myTrades:", symbol);
             Object method = "deals_subscribe";
             Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, true, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -573,7 +573,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object parsed = this.parseWsTrade(trade);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Object symbol = Helpers.GetValue(parsed, "symbol");
-        Object messageHash = Helpers.add("myTrades:", symbol);
+        String messageHash = (String) Helpers.add("myTrades:", symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -684,7 +684,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             (this.authenticate()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("orders:", symbol);
+            String messageHash = (String) Helpers.add("orders:", symbol);
             Object method = "ordersPending_subscribe";
             Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -739,7 +739,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         }}));
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
         Object symbol = Helpers.GetValue(parsed, "symbol");
-        Object messageHash = Helpers.add("orders:", symbol);
+        String messageHash = (String) Helpers.add("orders:", symbol);
         client.resolve(this.orders, messageHash);
     }
 
@@ -1202,7 +1202,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             // token fetch, so concurrent cold callers would each burn a private REST call and push
             // their own authorize frame. the flight lives in client.futures of the handshake client
             // under a non-messageHash key and settles only via client.resolve () / client.reject ()
-            Object messageHash = "authenticateFlight";
+            String messageHash = (String) "authenticateFlight";
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
             {
                 // a flight is already in progress - wake when the leader settles
@@ -1226,7 +1226,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
             try
             {
-                Object authToken = (this.v4PrivatePostProfileWebsocketToken()).join();
+                java.util.Map<String, Object> authToken = (this.v4PrivatePostProfileWebsocketToken()).join();
                 //
                 //   {
                 //       "websocket_token": "$2y$10$lxCvTXig/XrcTBFY1bdFseCKQmFTDtCpEzHNVnXowGplExFxPJp9y"

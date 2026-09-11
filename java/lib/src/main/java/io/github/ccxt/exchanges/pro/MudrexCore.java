@@ -90,7 +90,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("ticker:", symbol);
+            String messageHash = (String) Helpers.add("ticker:", symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             this.setBrokerHeaders();
             Object baseIdString = ((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(market, "baseId"), null))))) ? Helpers.GetValue(market, "baseId") : "";
@@ -300,7 +300,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
                 put( "info", t );
             }});
             Helpers.addElementToObject(this.tickers, symbol, result);
-            Object messageHash = Helpers.add("ticker:", symbol);
+            String messageHash = (String) Helpers.add("ticker:", symbol);
             client.resolve(result, messageHash);
             client.resolve(result, "tickers");
         }

@@ -67,7 +67,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            Object messageHash = "authenticated";
+            String messageHash = (String) "authenticated";
             Object future = client.reusableFuture("authenticated");
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
@@ -218,7 +218,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object messageHash = Helpers.add(Helpers.add("order_book.", Helpers.GetValue(market, "id")), ".snapshot@15@100ms");
+            String messageHash = (String) Helpers.add(Helpers.add("order_book.", Helpers.GetValue(market, "id")), ".snapshot@15@100ms");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
@@ -293,7 +293,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                 ((java.util.List<Object>)Helpers.GetValue(orderbookData, "asks")).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, size)));
             }
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
         Helpers.addElementToObject(snapshot, "nonce", this.safeInteger(data, "seq_no"));
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
