@@ -7,14 +7,16 @@
 
 #pragma once
 
-#include "../base/Exchange.h"
+#include "../../base/PredictionExchange.h"
 
 namespace ccxt {
 
-class myriadApi : public Exchange {
+namespace prediction {
+
+class myriadApi : public PredictionExchange {
 public:
     myriadApi () = default;
-    explicit myriadApi (std::any config) : Exchange (config) {}
+    explicit myriadApi (std::any config) : PredictionExchange (config) {}
 
     // Calls the myriadPublicGetQuestions endpoint. Returns a JSON object.
     virtual std::shared_future<std::any> myriadPublicGetQuestions (std::any parameters = ccxt::dict {}) {
@@ -178,4 +180,5 @@ public:
 
 };
 
+} // namespace prediction
 } // namespace ccxt

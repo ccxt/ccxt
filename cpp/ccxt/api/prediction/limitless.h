@@ -7,14 +7,16 @@
 
 #pragma once
 
-#include "../base/Exchange.h"
+#include "../../base/PredictionExchange.h"
 
 namespace ccxt {
 
-class limitlessApi : public Exchange {
+namespace prediction {
+
+class limitlessApi : public PredictionExchange {
 public:
     limitlessApi () = default;
-    explicit limitlessApi (std::any config) : Exchange (config) {}
+    explicit limitlessApi (std::any config) : PredictionExchange (config) {}
 
     // Calls the limitlessPublicGetMarketsActive endpoint. Returns a JSON object.
     virtual std::shared_future<std::any> limitlessPublicGetMarketsActive (std::any parameters = ccxt::dict {}) {
@@ -308,4 +310,5 @@ public:
 
 };
 
+} // namespace prediction
 } // namespace ccxt
