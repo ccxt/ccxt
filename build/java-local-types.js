@@ -1783,7 +1783,7 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
             return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
-        if (kind === 'guarded-string' && (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent))) {
+        if (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent)) {
             // a TS cast on the local prints a Java cast of the asserted type; for the
             // narrowed type the spelled cast can be inconvertible (String -> Double is a
             // compile error) — keep Object (the C# campaign's reject family, reused here)
@@ -1793,7 +1793,7 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
                 let ok;
-                if (kind === 'guarded-string') {
+                if (javaType === 'String') {
                     // the narrowed declaration can only take writes whose printed Java is
                     // statically String (isStaticallyStringExpression) or a same-family
                     // helper call the reassignment hook casts
@@ -1805,7 +1805,7 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
                 if (!ok) {
                     return false;
                 }
-            } else if (op === ts.SyntaxKind.PlusEqualsToken && kind === 'guarded-string') {
+            } else if (op === ts.SyntaxKind.PlusEqualsToken && javaType === 'String') {
                 // `x += r` lowers to `x = Helpers.add (x, r)` (generated Java never keeps
                 // a raw `+=` on these locals): the same non-null String right operand the
                 // direct-add rule needs; the read of x in this statement is this very node,
