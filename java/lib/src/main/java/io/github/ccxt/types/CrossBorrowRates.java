@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class CrossBorrowRates {
+public final class CrossBorrowRates implements Iterable<CrossBorrowRate> {
     public Map<String, CrossBorrowRate> rates;
 
     @SuppressWarnings("unchecked")
@@ -23,5 +23,31 @@ public final class CrossBorrowRates {
         CrossBorrowRate r = rates.get(key);
         if (r == null) throw new NoSuchElementException("Key not found: " + key);
         return r;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public CrossBorrowRate getOrNull(String key) {
+        return rates.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return rates.size();
+    }
+
+    public boolean isEmpty() {
+        return rates.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (CrossBorrowRate x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<CrossBorrowRate> iterator() {
+        return this.rates.values().iterator();
     }
 }

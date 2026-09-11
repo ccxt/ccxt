@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class LastPrices {
+public final class LastPrices implements Iterable<LastPrice> {
     public Map<String, LastPrice> prices;
 
     @SuppressWarnings("unchecked")
@@ -23,5 +23,31 @@ public final class LastPrices {
         LastPrice p = prices.get(key);
         if (p == null) throw new NoSuchElementException("Key not found: " + key);
         return p;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public LastPrice getOrNull(String key) {
+        return prices.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return prices.size();
+    }
+
+    public boolean isEmpty() {
+        return prices.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (LastPrice x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<LastPrice> iterator() {
+        return this.prices.values().iterator();
     }
 }

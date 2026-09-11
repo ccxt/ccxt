@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class Tickers {
+public final class Tickers implements Iterable<Ticker> {
     public Map<String, Ticker> tickers;
     public Map<String, Object> info;
 
@@ -27,5 +27,31 @@ public final class Tickers {
         Ticker t = tickers.get(key);
         if (t == null) throw new NoSuchElementException("Key not found: " + key);
         return t;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public Ticker getOrNull(String key) {
+        return tickers.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return tickers.size();
+    }
+
+    public boolean isEmpty() {
+        return tickers.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (Ticker x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<Ticker> iterator() {
+        return this.tickers.values().iterator();
     }
 }

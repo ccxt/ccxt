@@ -9,7 +9,7 @@ import java.util.Map;
 import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
-public final class LeverageTiers {
+public final class LeverageTiers implements Iterable<List<LeverageTier>> {
     public Map<String, List<LeverageTier>> tiers;
 
     @SuppressWarnings("unchecked")
@@ -28,5 +28,31 @@ public final class LeverageTiers {
         List<LeverageTier> t = tiers.get(key);
         if (t == null) throw new NoSuchElementException("Key not found: " + key);
         return t;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public List<LeverageTier> getOrNull(String key) {
+        return tiers.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return tiers.size();
+    }
+
+    public boolean isEmpty() {
+        return tiers.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (List<LeverageTier> x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<List<LeverageTier>> iterator() {
+        return this.tiers.values().iterator();
     }
 }

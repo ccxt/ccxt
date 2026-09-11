@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class OptionChain {
+public final class OptionChain implements Iterable<Option> {
     public Map<String, Option> options;
 
     @SuppressWarnings("unchecked")
@@ -23,5 +23,31 @@ public final class OptionChain {
         Option o = options.get(key);
         if (o == null) throw new NoSuchElementException("Key not found: " + key);
         return o;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public Option getOrNull(String key) {
+        return options.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return options.size();
+    }
+
+    public boolean isEmpty() {
+        return options.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (Option x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<Option> iterator() {
+        return this.options.values().iterator();
     }
 }

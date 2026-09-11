@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class Leverages {
+public final class Leverages implements Iterable<Leverage> {
     public Map<String, Leverage> leverages;
 
     @SuppressWarnings("unchecked")
@@ -23,5 +23,31 @@ public final class Leverages {
         Leverage l = leverages.get(key);
         if (l == null) throw new NoSuchElementException("Key not found: " + key);
         return l;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public Leverage getOrNull(String key) {
+        return leverages.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return leverages.size();
+    }
+
+    public boolean isEmpty() {
+        return leverages.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (Leverage x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<Leverage> iterator() {
+        return this.leverages.values().iterator();
     }
 }

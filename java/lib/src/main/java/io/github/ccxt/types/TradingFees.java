@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class TradingFees {
+public final class TradingFees implements Iterable<TradingFeeInterface> {
     public Map<String, TradingFeeInterface> fees;
     public Map<String, Object> info;
 
@@ -27,5 +27,31 @@ public final class TradingFees {
         TradingFeeInterface f = fees.get(key);
         if (f == null) throw new NoSuchElementException("Key not found: " + key);
         return f;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public TradingFeeInterface getOrNull(String key) {
+        return fees.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return fees.size();
+    }
+
+    public boolean isEmpty() {
+        return fees.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (TradingFeeInterface x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<TradingFeeInterface> iterator() {
+        return this.fees.values().iterator();
     }
 }

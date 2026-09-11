@@ -7,7 +7,7 @@ import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.NoSuchElementException;
 
-public final class FundingRates {
+public final class FundingRates implements Iterable<FundingRate> {
     public Map<String, FundingRate> rates;
 
     @SuppressWarnings("unchecked")
@@ -23,5 +23,31 @@ public final class FundingRates {
         FundingRate f = rates.get(key);
         if (f == null) throw new NoSuchElementException("Key not found: " + key);
         return f;
+    }
+
+    /**
+     * Nullable counterpart of get(), for the keys an exchange simply does
+     * not report — a missing symbol is routine here, not an error.
+     */
+    public FundingRate getOrNull(String key) {
+        return rates.get(key);
+    }
+
+    /** Number of entries the exchange reported. */
+    public int size() {
+        return rates.size();
+    }
+
+    public boolean isEmpty() {
+        return rates.isEmpty();
+    }
+
+    /**
+     * Typed iteration over the values, in the order the exchange reported
+     * them: for (FundingRate x : this) { ... }
+     */
+    @Override
+    public java.util.Iterator<FundingRate> iterator() {
+        return this.rates.values().iterator();
     }
 }
