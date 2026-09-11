@@ -151,6 +151,20 @@ function testSafeTicker () {
     assert (preciseEqualStr (exchange, result9, 'percentage', '0'));
     assert (preciseEqualStr (exchange, result9, 'open', '6.0'));
     assert (preciseEqualStr (exchange, result9, 'last', '6.0'));
+
+    // CASE 10 - by open and average, the pair that derives close from average
+    const ticker10 = {
+        'open': 5.0,
+        'average': 5.5,
+    };
+    const result10 = exchange.safeTicker (ticker10);
+    assert (preciseEqualStr (exchange, result10, 'close', '6.0'));
+    assert (preciseEqualStr (exchange, result10, 'last', '6.0'));
+    // the supplied average must survive untouched, and this path deliberately
+    // leaves change and percentage underived - pin that boundary
+    assert (preciseEqualStr (exchange, result10, 'average', '5.5'));
+    assert (result10['change'] === undefined);
+    assert (result10['percentage'] === undefined);
 }
 
 export default testSafeTicker;

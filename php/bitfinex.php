@@ -1262,8 +1262,13 @@ class bitfinex extends Exchange {
         //     )
         //
         $length = count($ticker);
-        $firstValue = $this->safe_number($ticker, 0);
-        $isFetchTicker = $firstValue !== null; // if it's Nan, then it's string ($symbol)
+        // the list shapes (fetchTickers) carry the $market id in slot 0, the singular
+        // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
+        // in PHP a non numeric string casts to 0.0 instead of null, so 'fUSD' would
+        // look like a number and the whole array would be read off by one.
+        $firstValue = $this->safe_string($ticker, 0);
+        $hasMarketId = ($firstValue !== null) && (str_starts_with($firstValue, 't') || str_starts_with($firstValue, 'f'));
+        $isFetchTicker = !$hasMarketId;
         $symbol = null;
         $minusIndex = 0;
         if ($isFetchTicker) {
@@ -1288,7 +1293,9 @@ class bitfinex extends Exchange {
             $bid = $this->safe_string($ticker, 2 - $minusIndex);
             $ask = $this->safe_string($ticker, 5 - $minusIndex);
             $change = $this->safe_string($ticker, 8 - $minusIndex);
-            $percentage = $this->safe_string($ticker, 9 - $minusIndex);
+            // DAILY_CHANGE_RELATIVE, per the array above => the same field the trading
+            // branch reads at index 6 and scales
+            $percentage = Precise::string_mul($this->safe_string($ticker, 9 - $minusIndex), '100');
             $volume = $this->safe_string($ticker, 11 - $minusIndex);
             $high = $this->safe_string($ticker, 12 - $minusIndex);
             $low = $this->safe_string($ticker, 13 - $minusIndex);

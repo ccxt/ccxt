@@ -5328,13 +5328,13 @@ class bingx extends Exchange {
         if ($toAccount !== null) {
             $request['toAccount'] = $toId;
         }
-        $params = $this->omit($params, array( 'fromAccount', 'toAccount' ));
         $maxLimit = 100;
         $paginate = false;
         list($paginate, $params) = $this->handle_option_and_params($params, 'fetchTransfers', 'paginate', false);
         if ($paginate) {
-            return $this->fetch_paginated_call_dynamic('fetchTransfers', null, $since, $limit, $params, $maxLimit);
+            return $this->fetch_paginated_call_dynamic('fetchTransfers', $code, $since, $limit, $params, $maxLimit);
         }
+        $params = $this->omit($params, array( 'fromAccount', 'toAccount' ));
         if ($since !== null) {
             $request['startTime'] = $since;
         }
