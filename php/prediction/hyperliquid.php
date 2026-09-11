@@ -837,7 +837,7 @@ class hyperliquid extends Exchange {
          * @param {int} [$limit] max number of $candles
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] end timestamp in ms
-         * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} a list of $candles ordered as timestamp, open, high, low, close, volume
          */
         Async\await($this->load_outcome($outcome));
         $outcomeObj = $this->outcome($outcome);
@@ -898,7 +898,7 @@ class hyperliquid extends Exchange {
          * parses a single hyperliquid candle object into a CCXT OHLCV tuple
          * @param {array} $ohlcv the raw candle object
          * @param {array} [$market] the $market the candle belongs to
-         * @return {int[]} a candle ordered, open, high, low, close, volume
+         * @return {int[]} a candle ordered as timestamp, open, high, low, close, volume
          */
         //
         //     {
@@ -1222,7 +1222,7 @@ class hyperliquid extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] 'Gtc' | 'Ioc' | 'Alo' (default 'Gtc')
          * @param {boolean} [$params->postOnly] if true sets timeInForce to 'Alo'
-         * @param {boolean} [$params->reduceOnly] if true, marks the order only so it can only decrease an existing position
+         * @param {boolean} [$params->reduceOnly] if true, marks the order as reduce only so it can only decrease an existing position
          * @param {string} [$params->slippage] $slippage for $market orders (default 5%)
          * @param {string} [$params->clientOrderId] hex cloid
          * @param {string} [$params->vaultAddress] optional subaccount/vault address to trade on behalf of (master signer must be authorized)

@@ -72,6 +72,11 @@ func (this *PaymiumCore) PrivateGetUserPriceAlerts(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetUserPriceAlerts", args...)
 }
 
+// PrivateGetUserWithdrawals returns a channel that yields a JSON array.
+func (this *PaymiumCore) PrivateGetUserWithdrawals(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetUserWithdrawals", args...)
+}
+
 // PrivateGetMerchantGetPaymentUuid returns a channel that yields a JSON object.
 func (this *PaymiumCore) PrivateGetMerchantGetPaymentUuid(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMerchantGetPaymentUuid", args...)

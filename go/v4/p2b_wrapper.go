@@ -527,7 +527,7 @@ func (this *P2b) EditOrders(orders []OrderRequest, options ...EditOrdersOptions)
 func (this *P2b) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *P2b) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *P2b) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *P2b) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -569,7 +569,7 @@ func (this *P2b) FetchDepositAddress(code string, options ...FetchDepositAddress
 func (this *P2b) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *P2b) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *P2b) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *P2b) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

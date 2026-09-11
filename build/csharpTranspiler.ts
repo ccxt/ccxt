@@ -24,6 +24,7 @@ type dict = { [key: string]: string }
 
 let exchanges = JSON.parse (fs.readFileSync("./exchanges.json", "utf8"));
 const exchangeIds: string[] = exchanges.ids
+const wsIds: string[] = exchanges.ws || []
 const predictionIds: string[] = exchanges.prediction || []
 const predictionWsIds: string[] = exchanges.predictionWs || []
 
@@ -53,6 +54,12 @@ if (platform === 'win32') {
     }
 }
 
+// watchOHLCVForSymbols returns `{ symbol: { timeframe: OHLCV[] } }`. That nested map is not a
+// types.ts struct, so it has no generated To*/From* pair — the hand-written
+// ToOHLCVDict / FromOHLCVDict in Exchange.TranspileHelpers.cs (built on ToOHLCVList /
+// FromOHLCVList) carry it, keyed on this exact type string.
+const OHLCV_DICT_TYPE = 'Dictionary<string, Dictionary<string, List<OHLCV>>>';
+
 // core methods whose `Task<object>` return is rewritten to a typed `Task<T>` / `Task<List<T>>`,
 // moving the `new T(item)` conversion out of the PascalCase wrapper and onto the core return path.
 // only methods whose every intra-core call site is a plain `return await this.X(...);` from a core
@@ -61,6 +68,7 @@ if (platform === 'win32') {
 const TYPED_CORES: Record<string, string> = {
     'cancelAllContractOrders': 'List<Order>',
     'cancelAllOrders': 'List<Order>',
+    'cancelAllOrdersAfter': 'Dictionary<string, object>',
     'cancelAllOrdersWs': 'List<Order>',
     'cancelAllSpotOrders': 'List<Order>',
     'cancelAllUtaOrders': 'List<Order>',
@@ -68,9 +76,8 @@ const TYPED_CORES: Record<string, string> = {
     'cancelOrder': 'Order',
     'cancelOrderWithClientOrderId': 'Order',
     'cancelOrderWs': 'Order',
-    // 'cancelOrders' is deliberately absent: okx merges the caller's `params` onto every
-    // parsed order, so a clientOrderIds[] request comes back with clientOrderId as a list,
-    // which the unified Order struct's `string? clientOrderId` cannot carry.
+    // okx#cancelOrders omits request-only keys (clientOrderId[], trigger, …) before parseOrders
+    'cancelOrders': 'List<Order>',
     'cancelOrdersForSymbols': 'List<Order>',
     'cancelOrdersWithClientOrderIds': 'List<Order>',
     'cancelOrdersWs': 'List<Order>',
@@ -80,10 +87,13 @@ const TYPED_CORES: Record<string, string> = {
     'cancelUtaOrder': 'Order',
     'cancelUtaOrders': 'List<Order>',
     'createAmmOrder': 'PredictionOrder',
+    'createApiKey': 'Dictionary<string, object>',
     'createContractOrder': 'Order',
     'createContractOrders': 'List<Order>',
     'createConvertTrade': 'Conversion',
     'createDepositAddress': 'DepositAddress',
+    'createExtendedOrderRequest': 'Dictionary<string, object>',
+    'createGiftCode': 'Dictionary<string, object>',
     'createLimitBuyOrder': 'Order',
     'createLimitBuyOrderWs': 'Order',
     'createLimitOrder': 'Order',
@@ -105,12 +115,14 @@ const TYPED_CORES: Record<string, string> = {
     'createOrderWithTakeProfitAndStopLossWs': 'Order',
     'createOrderWs': 'Order',
     'createOrderbookOrder': 'PredictionOrder',
+    'createOrDeriveApiKey': 'Dictionary<string, object>',
     'createOrders': 'List<Order>',
     'createOrdersWs': 'List<Order>',
     'createPostOnlyOrder': 'Order',
     'createPostOnlyOrderWs': 'Order',
     'createReduceOnlyOrder': 'Order',
     'createReduceOnlyOrderWs': 'Order',
+    'createSubAccount': 'Dictionary<string, object>',
     'createSpotOrder': 'Order',
     'createSpotOrders': 'List<Order>',
     'createStopLimitOrder': 'Order',
@@ -133,6 +145,7 @@ const TYPED_CORES: Record<string, string> = {
     'createTwapOrder': 'Order',
     'createUtaOrder': 'Order',
     'createUtaOrders': 'List<Order>',
+    'createVault': 'Dictionary<string, object>',
     'editContractOrder': 'Order',
     'editLimitBuyOrder': 'Order',
     'editLimitOrder': 'Order',
@@ -144,44 +157,88 @@ const TYPED_CORES: Record<string, string> = {
     'editSpotOrder': 'Order',
     'fetchADLRank': 'ADL',
     'fetchAccount': 'Account',
+    // htx: every path is safeString(...) — the params override is stringified in TS too
+    'fetchAccountIdByType': 'string',
     'fetchAccountPositions': 'List<Position>',
     'fetchAccounts': 'List<Account>',
+    'fetchAccountSettings': 'Dictionary<string, object>',
     'fetchAccountsV2': 'List<Account>',
     'fetchAccountsV3': 'List<Account>',
-    // fetchAllGreeks is deliberately NOT typed: parseAllGreeks() ends in
-    // filterByArray(results, 'symbol', symbols), whose `indexed` parameter defaults to
-    // TRUE, so it returns a dict keyed by symbol - not the Greeks[] the TS return
-    // annotation claims. ToGreeksList then throws on a Dictionary.
+    // parseAllGreeks() ends in filterByArray(results, 'symbol', symbols), whose `indexed`
+    // parameter defaults to TRUE, so the runtime value is a symbol-keyed dict, not the
+    // Greeks[] the TS annotation used to claim. AllGreeks is that dict.
+    'fetchAllGreeks': 'AllGreeks',
     'fetchAmmOrders': 'List<PredictionOrder>',
-    // The dictionary-like container families (Balances, Tickers, MarginModes, Leverages,
-    // TradingFees, LeverageTiers, OpenInterests, FundingRates, CrossBorrowRates,
-    // IsolatedBorrowRates, DepositWithdrawFees) are NOT invertible - their constructors
-    // splat the payload into a Dictionary<string, T> that cannot be rebuilt. So the
-    // corresponding cores may only be typed when the wrapper conversion is their SOLE
-    // consumer. These all have real consuming call sites where the result lands in an
-    // `object` local and is then indexed / safeDict()ed - which silently returns null on
-    // a boxed struct - so they stay untyped:
-    //   fetchBalance / fetchBalanceWs   bydfi, weex, kucoin, toobit, hashkey, binance
-    //   fetchTickers / fetchTickersWs   bigone, poloniex, cex, nado, upbit, lbank + base fetchTicker
-    //   fetchMarkPrices                 base fetchMarkPrice
-    //   fetchMarginModes                woofipro, binance + base fetchMarginMode
-    //   fetchLeverages                  base fetchLeverage
-    //   fetchOpenInterests              hyperliquid, pacifica + base fetchOpenInterest
-    //   fetchLeverageTiers              btse, kucoin + base fetchMarketLeverageTiers
-    //   fetchTradingFees                hashkey, lbank + base fetchTradingFee
-    //   fetchFundingRates/Intervals     hyperliquid, lbank, whitebit + base fetchFundingRate
-    //   fetchCrossBorrowRates           base fetchCrossBorrowRate
-    //   fetchIsolatedBorrowRates        binance + base fetchIsolatedBorrowRate
-    //   fetchDepositWithdrawFees        base fetchDepositWithdrawFee
-    // Dropping those pulls their sub-cores with them, because a tail
-    // `return await this.fetchSwapBalance (params)` inside the now-untyped fetchBalance
-    // forwards a typed core with no From helper: fetchSpot/Swap/Margin/Financial/Contract/
-    // UtaBalance, fetchSpot/ContractTickers, fetchTickersV2/V3 are untyped for that reason.
-    // The set is a closed fixed point - verify with the closure check before adding a name.
-    // setLeverage is NOT typed either: on master its wrapper is cast-only
+    'fetchApiKey': 'Dictionary<string, object>',
+    'fetchApiKeys': 'Dictionary<string, object>',
+    // The dictionary-like container families (Balances, Tickers, MarginModes, ...) splat the
+    // payload into a Dictionary<string, T>; their From* helpers write every entry back under
+    // its own key, so a consuming site (`object x = await this.fetchTickers(...)` then
+    // indexed / safeDict()ed) is funnelled through the reverse helper by typeCores. Every
+    // consumer must sit inside a method body typeCores visits: Task<object> AND void Task
+    // (loadBalanceSnapshot / loadPositionsSnapshot are void).
+    // setLeverage is NOT typed: on master its wrapper is cast-only
     // (Task<Dictionary<string, object>>), so typing it to Leverage would silently drop
     // every venue-specific key from the public C# return - an API regression, not a win.
+    'fetchBalance': 'Balances',
+    'fetchBalanceWs': 'Balances',
     'fetchBidsAsks': 'Tickers',
+    'fetchBorrowRate': 'Dictionary<string, object>',
+    'fetchBorrowRateHistories': 'Dictionary<string, object>',
+    'fetchBorrowRateHistory': 'List<Dictionary<string, object>>',
+    'fetchBuilderApprovals': 'List<Dictionary<string, object>>',
+    'fetchContractBalance': 'Balances',
+    'fetchContractTickers': 'Tickers',
+    'fetchCrossBorrowRates': 'CrossBorrowRates',
+    'fetchCurrenciesFromCache': 'Dictionary<string, object>',
+    // gemini: parseCurrencies dict, or `{}` when the web scrape is empty. Currencies
+    // is reversible and Currency already has the extra bag, so the struct is lossless.
+    'fetchCurrenciesFromWeb': 'Currencies',
+    'fetchCurrency': 'Dictionary<string, object>',
+    'fetchCurrencyById': 'Dictionary<string, object>',
+    'fetchDepositMethodId': 'Dictionary<string, object>',
+    'fetchDepositMethodIds': 'List<Dictionary<string, object>>',
+    'fetchDepositWithdrawFees': 'DepositWithdrawFees',
+    'fetchDydxAccount': 'Dictionary<string, object>',
+    'fetchFundingIntervals': 'FundingRates',
+    'fetchFundingLimits': 'Dictionary<string, object>',
+    'fetchFundingRates': 'FundingRates',
+    'fetchIsolatedBorrowRates': 'IsolatedBorrowRates',
+    'fetchLatestBlockHeight': 'Int64',
+    'fetchLeverages': 'Leverages',
+    'fetchMarginModes': 'MarginModes',
+    'fetchMarkPrices': 'Tickers',
+    'fetchMarketsByTypeAndSubType': 'List<MarketInterface>',
+    'fetchMarketsFromAPI': 'List<MarketInterface>',
+    'fetchMarketsFromWeb': 'List<MarketInterface>',
+    // bitstamp: publicGetMarkets returns a list of market dicts (cached). The
+    // previous Dictionary wrapper was a runtime InvalidCastException.
+    'fetchMarketsFromCache': 'List<Dictionary<string, object>>',
+    // kraken: privatePostDepositMethods['result'] is a list of method dicts.
+    'fetchDepositMethods': 'List<Dictionary<string, object>>',
+    // mexc: both spot and (after wrapping the swap asset list) swap return an
+    // account dict with a `balances` array.
+    'fetchAccountHelper': 'Dictionary<string, object>',
+    'fetchMarketsV1': 'List<MarketInterface>',
+    'fetchMyDustTrades': 'List<Trade>',
+    'fetchNetworkDepositAddress': 'Dictionary<string, object>',
+    'fetchOpenInterests': 'OpenInterests',
+    'fetchOrderBooks': 'OrderBooks',
+    'fetchOutcome': 'Dictionary<string, object>',
+    'fetchPaymentMethods': 'List<Dictionary<string, object>>',
+    'fetchPortfolioDetails': 'List<Dictionary<string, object>>',
+    'fetchPrivateDepositWithdrawFees': 'Dictionary<string, object>',
+    'fetchPrivateTradingFee': 'Dictionary<string, object>',
+    'fetchPrivateTransactionFees': 'Dictionary<string, object>',
+    'fetchPublicDepositWithdrawFees': 'Dictionary<string, object>',
+    'fetchPublicTradingFee': 'Dictionary<string, object>',
+    'fetchPublicTransactionFees': 'Dictionary<string, object>',
+    'fetchSpotTickers': 'Tickers',
+    'fetchSwapAndFutureMarkets': 'List<MarketInterface>',
+    'fetchTickers': 'Tickers',
+    'fetchTickersV2': 'Tickers',
+    'fetchTickersV3': 'Tickers',
+    'fetchTickersWs': 'Tickers',
     'fetchBorrowInterest': 'List<BorrowInterest>',
     'fetchCanceledAndClosedOrders': 'List<Order>',
     'fetchCanceledOrders': 'List<Order>',
@@ -192,6 +249,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchClosedSpotOrders': 'List<Order>',
     'fetchContractDepositAddress': 'DepositAddress',
     'fetchContractDeposits': 'List<Transaction>',
+    'fetchContractMarkets': 'List<MarketInterface>',
     'fetchContractOHLCV': 'List<OHLCV>',
     'fetchContractOrder': 'Order',
     'fetchContractOrders': 'List<Order>',
@@ -202,8 +260,12 @@ const TYPED_CORES: Record<string, string> = {
     'fetchConvertTrade': 'Conversion',
     'fetchConvertTradeHistory': 'List<Conversion>',
     'fetchCrossBorrowRate': 'CrossBorrowRate',
+    'fetchDefaultMarkets': 'List<MarketInterface>',
     'fetchDeposit': 'Transaction',
     'fetchDepositAddress': 'DepositAddress',
+    // parseDepositAddresses(indexed=true) returns a network-keyed dict on every venue;
+    // the old List<DepositAddress> wrapper was a shape lie that threw at runtime
+    'fetchDepositAddressesByNetwork': 'DepositAddresses',
     'fetchDepositAddressDefault': 'DepositAddress',
     'fetchDepositAddressSupplement': 'DepositAddress',
     'fetchDepositAddresses': 'List<DepositAddress>',
@@ -218,16 +280,18 @@ const TYPED_CORES: Record<string, string> = {
     'fetchDepositsWs': 'List<Transaction>',
     'fetchDerivativesMarketLeverageTiers': 'List<LeverageTier>',
     'fetchDerivativesOpenInterestHistory': 'List<OpenInterest>',
-    // 'fetchEvent' is deliberately absent: PredictionEvent.markets is List<PredictionMarket>,
-    // which carries none of the unified market-interface keys (base/quote/spot/swap/precision
-    // /limits/...) the fixtures store on each nested market. See fetchEvents below.
+    'fetchExtendedAccount': 'Dictionary<string, object>',
+    'fetchFinancialBalance': 'Balances',
     'fetchFreeBalance': 'Balance',
     'fetchFundingHistory': 'List<FundingHistory>',
     'fetchFundingInterval': 'FundingRate',
     'fetchFundingRate': 'FundingRate',
     'fetchFundingRateHistory': 'List<FundingRateHistory>',
+    'fetchFutureMarkets': 'List<MarketInterface>',
     'fetchGreeks': 'Greeks',
+    'fetchHip3Markets': 'List<MarketInterface>',
     'fetchIndexOHLCV': 'List<OHLCV>',
+    'fetchInverseSwapMarkets': 'List<MarketInterface>',
     'fetchIsolatedBorrowRate': 'IsolatedBorrowRate',
     'fetchLastPrices': 'LastPrices',
     'fetchLedger': 'List<LedgerEntry>',
@@ -235,14 +299,26 @@ const TYPED_CORES: Record<string, string> = {
     'fetchLedgerEntriesByIds': 'List<LedgerEntry>',
     'fetchLedgerEntry': 'LedgerEntry',
     'fetchLeverage': 'Leverage',
+    // parseLeverageTiers returns a symbol-keyed dict with NO top-level `info`; the struct ctor
+    // splats it (Helper.GetInfo yields null), so FromLeverageTiers inverts it exactly — the
+    // consuming base site (fetchMarketLeverageTiers reads tiers[symbol]) is routed through it
+    'fetchLeverageTiers': 'LeverageTiers',
     'fetchLiquidations': 'List<Liquidation>',
     'fetchLongShortRatio': 'LongShortRatio',
     'fetchLongShortRatioHistory': 'List<LongShortRatio>',
+    'fetchMarginBalance': 'Balances',
     'fetchMarginAdjustmentHistory': 'List<MarginModification>',
     'fetchMarginMode': 'MarginMode',
+    'fetchMarket': 'MarketInterface',
+    'fetchMarketById': 'MarketInterface',
     'fetchMarkOHLCV': 'List<OHLCV>',
     'fetchMarkPrice': 'Ticker',
     'fetchMarketLeverageTiers': 'List<LeverageTier>',
+    'fetchMarkets': 'List<MarketInterface>',
+    'fetchMarketsByType': 'List<MarketInterface>',
+    'fetchMarketsV2': 'List<MarketInterface>',
+    'fetchMarketsV3': 'List<MarketInterface>',
+    'fetchMarketsWs': 'List<MarketInterface>',
     'fetchMyBuys': 'List<Trade>',
     'fetchMyContractTrades': 'List<Trade>',
     'fetchMyLiquidations': 'List<Liquidation>',
@@ -251,8 +327,12 @@ const TYPED_CORES: Record<string, string> = {
     'fetchMyTrades': 'List<Trade>',
     'fetchMyTradesWs': 'List<Trade>',
     'fetchMyUtaTrades': 'List<Trade>',
+    'fetchMySettlementHistory': 'List<Dictionary<string, object>>',
     'fetchOHLCV': 'List<OHLCV>',
     'fetchOHLCVWs': 'List<OHLCV>',
+    'fetchL2OrderBook': 'OrderBook',
+    'fetchL3OrderBook': 'OrderBook',
+    'fetchNonce': 'Int64',
     'fetchOpenInterest': 'OpenInterest',
     'fetchOpenInterestHistory': 'List<OpenInterest>',
     'fetchOpenOrder': 'Order',
@@ -264,10 +344,14 @@ const TYPED_CORES: Record<string, string> = {
     'fetchOpenSwapOrders': 'List<Order>',
     'fetchOption': 'Option',
     'fetchOptionChain': 'OptionChain',
+    'fetchOptionMarkets': 'List<MarketInterface>',
+    'fetchOptionUnderlyings': 'List<string>',
     'fetchOptionOHLCV': 'List<OHLCV>',
     'fetchOptionPositions': 'List<Position>',
     'fetchOrder': 'Order',
+    'fetchOrderBook': 'OrderBook',
     'fetchOrderBookWs': 'OrderBook',
+    'fetchOrderStatus': 'string',
     'fetchOrderClassic': 'Order',
     'fetchOrderDefault': 'Order',
     'fetchOrderSupplement': 'Order',
@@ -284,6 +368,7 @@ const TYPED_CORES: Record<string, string> = {
     'fetchOrdersClassic': 'List<Order>',
     'fetchOrdersWithMethod': 'List<Order>',
     'fetchOrdersWs': 'List<Order>',
+    'fetchOutcomes': 'Dictionary<string, object>',
     'fetchPartialBalance': 'Balance',
     'fetchPortfolios': 'List<Account>',
     'fetchPosition': 'Position',
@@ -299,11 +384,11 @@ const TYPED_CORES: Record<string, string> = {
     'fetchPositionsRisk': 'List<Position>',
     'fetchPositionsWs': 'List<Position>',
     'fetchPremiumIndexOHLCV': 'List<OHLCV>',
-    // fetchRestOrderBookSafe is deliberately NOT typed: its result is consumed, not
-    // terminal. Exchange.WsBridge.cs feeds it to getCacheIndex() and stored.reset(),
-    // which need the plain dictionary — a boxed ccxt.OrderBook struct silently
-    // produced an empty book (3 binance watchOrderBook static-ws failures).
+    'fetchRestOrderBookSafe': 'OrderBook',
+    'fetchSettlementHistory': 'List<Dictionary<string, object>>',
     'fetchSettlements': 'List<PredictionSettlement>',
+    'fetchSpotBalance': 'Balances',
+    'fetchSpotMarkets': 'List<MarketInterface>',
     'fetchSpotOHLCV': 'List<OHLCV>',
     'fetchSpotOrder': 'Order',
     'fetchSpotOrderTrades': 'List<Trade>',
@@ -311,6 +396,8 @@ const TYPED_CORES: Record<string, string> = {
     'fetchSpotOrdersByStates': 'List<Order>',
     'fetchSpotOrdersByStatus': 'List<Order>',
     'fetchStatus': 'Status',
+    'fetchSwapBalance': 'Balances',
+    'fetchSwapMarkets': 'List<MarketInterface>',
     'fetchTicker': 'Ticker',
     'fetchTicker2': 'Ticker',
     'fetchTickerV1': 'Ticker',
@@ -318,11 +405,27 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTickerV2': 'Ticker',
     'fetchTickerV3': 'Ticker',
     'fetchTickerWs': 'Ticker',
+    'fetchTime': 'Int64',
     'fetchTotalBalance': 'Balance',
     'fetchTrades': 'List<Trade>',
     'fetchTradesWs': 'List<Trade>',
     'fetchTradingFee': 'TradingFeeInterface',
+    // TradingFeeInterface.tiers (ts/src/base/types.ts) carries the cryptomus/onetrading
+    // volume-tier schedule, so the TradingFees struct is now lossless for every venue.
+    'fetchTradingFees': 'TradingFees',
+    'fetchPrivateTradingFees': 'TradingFees',
+    'fetchPublicTradingFees': 'TradingFees',
+    'fetchQuote': 'Dictionary<string, object>',
+    'fetchRawEventByTicker': 'Dictionary<string, object>',
+    'fetchRawMarketById': 'Dictionary<string, object>',
+    'fetchRawQuestionById': 'Dictionary<string, object>',
+    'fetchRawTopicDetail': 'Dictionary<string, object>',
+    'fetchTradeQuote': 'Dictionary<string, object>',
     'fetchTradingFeesWs': 'TradingFees',
+    'fetchTradingLimits': 'Dictionary<string, object>',
+    'fetchTradingLimitsById': 'Dictionary<string, object>',
+    'fetchTransactionFee': 'Dictionary<string, object>',
+    'fetchTransactionFees': 'Dictionary<string, object>',
     'fetchTransactions': 'List<Transaction>',
     'fetchTransactionsByType': 'List<Transaction>',
     // fetchTransactionsHelper is deliberately NOT typed: dydx holds its result in an
@@ -332,19 +435,35 @@ const TYPED_CORES: Record<string, string> = {
     'fetchTransactionsWithMethod': 'List<Transaction>',
     'fetchTransfer': 'TransferEntry',
     'fetchTransfers': 'List<TransferEntry>',
+    'fetchUSDTMarkets': 'List<MarketInterface>',
+    'fetchUnderlyingAssets': 'List<string>',
+    'fetchUTAMarkets': 'List<MarketInterface>',
+    'fetchUtaMarkets': 'List<MarketInterface>',
     'fetchUTAOHLCV': 'List<OHLCV>',
     'fetchUnifiedOrder': 'Order',
     'fetchUsedBalance': 'Balance',
+    'fetchUtaBalance': 'Balances',
     'fetchUtaCanceledAndClosedOrders': 'List<Order>',
     'fetchUtaOrder': 'Order',
     'fetchUtaOrdersByStatus': 'List<Order>',
+    'fetchVolatilityHistory': 'List<Dictionary<string, object>>',
+    'fetchWallet': 'Dictionary<string, object>',
+    'fetchWithdrawAddresses': 'List<Dictionary<string, object>>',
     'fetchWithdrawal': 'Transaction',
     'fetchWithdrawals': 'List<Transaction>',
     'fetchWithdrawalsWs': 'List<Transaction>',
+    'fetchWithdrawalWhitelist': 'List<Dictionary<string, object>>',
+    'setLeverage': 'Dictionary<string, object>',
     'setMargin': 'MarginModification',
-    // the transfer family is deliberately absent: hyperliquid#transfer hands back the raw
-    // venue acknowledgement ({status, response}), not a unified transfer structure, so a
-    // TransferEntry core would silently rewrite it into the unified key set.
+    'setMarginMode': 'Dictionary<string, object>',
+    'setPositionMode': 'Dictionary<string, object>',
+    'transfer': 'TransferEntry',
+    'transferBetweenMainAndSubAccount': 'TransferEntry',
+    'transferBetweenSubAccounts': 'TransferEntry',
+    'transferClassic': 'TransferEntry',
+    'transferIn': 'TransferEntry',
+    'transferOut': 'TransferEntry',
+    'transferUta': 'TransferEntry',
     // --- watch* -------------------------------------------------------------------
     // A watch core hands back the LIVE ws structure (ArrayCache*, the shared balance /
     // ticker dictionaries). Every To* helper materialises a NEW List/struct from the rows,
@@ -372,6 +491,7 @@ const TYPED_CORES: Record<string, string> = {
     'watchMyTrades': 'List<Trade>',
     'watchMyTradesForSymbols': 'List<Trade>',
     'watchOHLCV': 'List<OHLCV>',
+    'watchOHLCVForSymbols': OHLCV_DICT_TYPE,
     'watchOrders': 'List<Order>',
     'watchOrdersForSymbols': 'List<Order>',
     'watchPosition': 'Position',
@@ -383,6 +503,12 @@ const TYPED_CORES: Record<string, string> = {
     'watchUtaTickers': 'Tickers',
     'withdraw': 'Transaction',
     'withdrawWs': 'Transaction',
+    // the ws container families below snapshot the live cache exactly as the wrapper's
+    // `new Tickers(res)` / `new FundingRates(res)` did: the ctor re-materialises every row
+    // into a fresh struct, so the caller never holds the live dictionary
+    'watchTickers': 'Tickers',
+    'watchMarkPrices': 'Tickers',
+    'watchFundingRates': 'FundingRates',
 };
 
 // watch* cores whose public shape is a SNAPSHOT of a live ws structure rather than a
@@ -416,31 +542,36 @@ const SNAPSHOT_CORES: Record<string, { type: string; helper: string; predictionT
 // structures, so the same method name is typed differently there — no invariance conflict
 // struct families that have a reverse `FromX` / `FromXList` helper in
 // cs/ccxt/base/Exchange.TypedCores.cs, i.e. that can be handed back to the untyped
-// object pipeline. Produced by `python3 build/generateTypedCoreHelpers.py --capabilities`;
-// the dictionary-like containers (Tickers, Balances, OrderBook, ...) are absent on purpose —
-// their constructors are not invertible, so a typed core of that shape may not reach a
-// consuming call site or reflective pagination.
+// object pipeline. Produced by `python3 build/generateTypedCoreHelpers.py --capabilities`.
+// The dictionary-like containers (Tickers, Balances, OrderBook, ...) are included since the
+// generator learned to invert their splat constructors: the loop copies every non-"info"
+// key verbatim, so writing each entry back under its own key restores the source dict.
+// OHLCV's ctor is positional so the generator cannot invert it; FromOHLCVList is hand-written
+// in Exchange.TranspileHelpers.cs, which is why the family is still listed here.
 const REVERSIBLE_FAMILIES: string[] = [
-    'ADL', 'Account', 'Balance', 'BalanceAccount', 'BorrowInterest', 'CancellationRequest',
-    'Conversion', 'CrossBorrowRate', 'CurrencyLimits', 'DepositAddress', 'Fee',
-    'FundingHistory', 'FundingRate', 'FundingRateHistory', 'Greeks', 'IsolatedBorrowRate',
-    'LastPrice', 'LedgerEntry', 'Leverage', 'LeverageTier', 'Limits', 'Liquidation',
-    'LongShortRatio', 'MarginLoan', 'MarginMode', 'MarginModification', 'Market',
-    'MarketInterface', 'MarketMarginModes', 'MinMax', 'Network', 'NetworkLimits',
-    'OHLCV', 'OpenInterest', 'Option', 'Order', 'OrderRequest', 'Position',
+    'ADL', 'Account', 'Balance', 'BalanceAccount', 'Balances', 'BorrowInterest',
+    'CancellationRequest', 'Conversion', 'CrossBorrowRate', 'CrossBorrowRates', 'Currencies',
+    'Currency', 'CurrencyLimits', 'DepositAddress', 'DepositAddresses', 'DepositWithdrawFee',
+    'DepositWithdrawFeeNetwork', 'DepositWithdrawFees', 'Fee', 'FundingHistory', 'FundingRate',
+    'FundingRateHistory', 'FundingRates', 'Greeks', 'IsolatedBorrowRate', 'IsolatedBorrowRates',
+    'LastPrice', 'LastPrices', 'LedgerEntry', 'Leverage', 'LeverageTier', 'LeverageTiers',
+    'Leverages', 'Limits', 'Liquidation', 'LongShortRatio', 'MarginLoan', 'MarginMode',
+    'MarginModes', 'MarginModification', 'Market', 'MarketInterface', 'MarketMarginModes',
+    'MinMax', 'Network', 'NetworkLimits', 'OHLCV', 'OpenInterest', 'OpenInterests', 'Option',
+    'OptionChain', 'Order', 'OrderBook', 'OrderBooks', 'OrderRequest', 'Position',
     'PositionModeInfo', 'Precision', 'PredictionEvent', 'PredictionFees', 'PredictionMarket',
-    'PredictionOpenInterest', 'PredictionOrder', 'PredictionOrderRequest', 'PredictionOutcome',
-    'PredictionPosition', 'PredictionSettlement', 'PredictionTicker', 'PredictionTrade',
-    'PredictionTradingFee', 'Status', 'Ticker', 'Trade', 'TradingFeeInterface',
-    'Transaction', 'TransferEntry', 'WithdrawalResponse',
+    'PredictionOpenInterest', 'PredictionOrder', 'PredictionOrderBook',
+    'PredictionOrderRequest', 'PredictionOutcome', 'PredictionPosition', 'PredictionSettlement',
+    'PredictionTicker', 'PredictionTickers', 'PredictionTrade', 'PredictionTradingFee',
+    'AllGreeks',
+    'Status', 'Ticker', 'Tickers', 'Trade', 'TradingFeeInterface', 'TradingFees', 'Transaction',
+    'TransferEntry', 'WithdrawalResponse',
 ];
 
 // the prediction tier (PredictionExchange : BaseExchange) is a sibling hierarchy with its own
 // structures, so the same method name is typed differently there — no invariance conflict
 const PREDICTION_TYPED_CORES: Record<string, string> = {
-    // 'cancelAllOrders': '' below is an explicit opt-out, not an omission: omitting it would
-    // fall through to TYPED_CORES and pick up 'List<Order>'.
-    'cancelAllOrders': '',
+    'cancelAllOrders': 'List<PredictionOrder>',
     'cancelOrder': 'PredictionOrder',
     'cancelOrders': 'List<PredictionOrder>',
     'createMarketBuyOrderWithCost': 'PredictionOrder',
@@ -452,9 +583,27 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     'fetchAccounts': 'List<Account>',
     'fetchCanceledOrders': 'List<PredictionOrder>',
     'fetchClosedOrders': 'List<PredictionOrder>',
-    // 'fetchEvents' is deliberately absent for the same reason as 'fetchEvent': the nested
-    // PredictionMarket has no unified market-interface fields, so a typed core rewrites
-    // every nested market into a much narrower key set than the fixture stores.
+    // fetchEvent/fetchEvents/fetchEventsByQuery: the nested PredictionMarket carries the
+    // unified market-interface keys (base/quote/precision/limits/...) in its `extra` bag,
+    // which FromPredictionMarket writes back, so the round trip is lossless.
+    'fetchEvent': 'PredictionEvent',
+    'fetchEvents': 'List<PredictionEvent>',
+    'fetchEventsByQuery': 'List<Dictionary<string, object>>',
+    // venue-internal raw-page helpers: each returns one locally-built list of API rows and
+    // every consumer reads it through getArrayLength/getValue/safeList/promiseAll
+    'fetchRawActiveMarkets': 'List<Dictionary<string, object>>',
+    'fetchRawEventsBySearch': 'List<Dictionary<string, object>>',
+    'fetchRawEventsList': 'List<Dictionary<string, object>>',
+    'fetchRawMarketsBySearch': 'List<Dictionary<string, object>>',
+    'fetchRawMarketsByTags': 'List<Dictionary<string, object>>',
+    'fetchRawMarketsList': 'List<Dictionary<string, object>>',
+    'fetchRawQuestionsBySearch': 'List<Dictionary<string, object>>',
+    'fetchRawQuestionsList': 'List<Dictionary<string, object>>',
+    'fetchRawTopics': 'List<Dictionary<string, object>>',
+    'fetchSeriesEvents': 'List<Dictionary<string, object>>',
+    // the fetchMarkets family is deliberately absent so it falls through to TYPED_CORES
+    // 'List<MarketInterface>': FetchMarkets is declared on BaseExchange and C# overrides are
+    // invariant, so the prediction tier cannot diverge (CS0508).
     'fetchMyTrades': 'List<PredictionTrade>',
     'fetchOpenInterest': 'PredictionOpenInterest',
     'fetchOpenOrders': 'List<PredictionOrder>',
@@ -462,12 +611,58 @@ const PREDICTION_TYPED_CORES: Record<string, string> = {
     'fetchOrderTrades': 'List<PredictionTrade>',
     'fetchOrders': 'List<PredictionOrder>',
     'fetchOrdersByIds': 'List<PredictionOrder>',
+    'fetchOrderBook': 'PredictionOrderBook',
     'fetchPosition': 'PredictionPosition',
     'fetchPositions': 'List<PredictionPosition>',
     'fetchTicker': 'PredictionTicker',
     'fetchTickers': 'PredictionTickers',
+    // the prediction tier caches PredictionTicker rows, so its watchTickers snapshot is a
+    // PredictionTickers — it is a sibling hierarchy declaration, no invariance conflict
+    'watchTickers': 'PredictionTickers',
     'fetchTrades': 'List<PredictionTrade>',
     'fetchTradingFee': 'PredictionTradingFee',
+};
+
+// Per-venue typed cores: one method name can legitimately carry different shapes on
+// different classes (dydx fetchTransactionsHelper is a raw row list feeding filterBy, alpaca's
+// is a parsed Transaction[]). The table is consulted BEFORE the name-keyed tables, keyed by
+// the ts/src file id the core is declared in; derived venues (bequant : hitbtc) resolve
+// through their parent. An empty string opts a venue out of a name-keyed entry.
+const VENUE_TYPED_CORES: Record<string, Record<string, string>> = {
+    'alpaca': { 'fetchTransactionsHelper': 'List<Transaction>' },
+    'bydfi': { 'fetchTransactionsHelper': 'List<Transaction>' },
+    'hitbtc': { 'fetchTransactionsHelper': 'List<Transaction>' },
+    'dydx': { 'fetchTransactionsHelper': 'List<Dictionary<string, object>>' },
+    'poloniex': { 'fetchTransactionsHelper': 'Dictionary<string, object>' },
+    // sync homonyms: hashkey/kucoin/mexc/weex declare a SYNC createSpotOrderRequest and
+    // 29 venues a sync createOrderRequest — only these async declarations are typed
+    'htx': { 'createSpotOrderRequest': 'Dictionary<string, object>' },
+    'nado': {
+        'cancelAllOrdersRequest': 'Dictionary<string, object>',
+        'cancelOrdersRequest': 'Dictionary<string, object>',
+        'createOrderRequest': 'Dictionary<string, object>',
+        'editOrderRequest': 'Dictionary<string, object>',
+    },
+};
+
+// Sync cores retyped from `object` to a concrete C# type. Unlike TYPED_CORES (async
+// Task<object> -> Task<T>, where a To*/From* helper pair moves a boxed struct across the
+// boundary), these are plain sync methods whose runtime value ALREADY is the named type:
+// this.markets / this.currencies / this.markets_by_id / this.currencies_by_id hold plain
+// Dictionary<string, object> rows (setMarkets builds each row with deepExtend and toArray
+// de-types the typed fetchMarkets list before the merge), so naming the type moves no box.
+// Every declaration (the BaseExchange original and every venue override — C# overrides are
+// invariant) is rewritten, and each return expression is funnelled through ToDict (`as`
+// cast: identity for these rows, null for null) unless it already hands the dictionary back
+// unchanged. Registered in build/csharp-local-types.js so `object x = this.market(symbol)`
+// locals can be typed downstream.
+const SYNC_TYPED_CORES: Record<string, string> = {
+    'safeMarketStructure': 'Dictionary<string, object>',
+    'safeCurrencyStructure': 'Dictionary<string, object>',
+    'safeMarket': 'Dictionary<string, object>',
+    'safeCurrency': 'Dictionary<string, object>',
+    'market': 'Dictionary<string, object>',
+    'currency': 'Dictionary<string, object>',
 };
 
 // Generated C# core parameters that can be narrowed from `object` to `string`.
@@ -594,8 +789,44 @@ const CORE_NUMERIC_ARGS: Record<string, Record<number, string>> = {
     'withdraw': { 1: 'double' },
 };
 
+// Collection-returning helpers whose every return site yields a list (or null) at runtime but
+// whose generated declaration still said `object`. Every site was checked mechanically (a
+// return-site census over cs/ccxt/*.cs and cs/ccxt/exchanges/*.cs): `new List<object>()`, a
+// `List<object>` local, `null`, a call to another name in this list, or one of the three shapes
+// typeCollectionReturns() normalizes:
+//   return <own object param>;         -> return this.toArray(<param>);
+//   return this.arraySlice(...);       -> return this.toArray(this.arraySlice(...));
+//   return ((object)this.<name>(...)); -> return this.<name>(...);
+// Deliberately absent: filterByArray / filterOutByArray / filterByArray* / filterBySymbols*
+// (they hand back a DICTIONARY when `indexed` is true - argument-dependent, so not a list
+// type), parseTickers / parsePositions / parseFundingRates / parseOpenInterests (funelled
+// through filterByArray), parseFundingHistory (returns a Dictionary), parseWsTrade /
+// parseWsTrades (46 ws-file overrides - a full ws regeneration is out of scope here) and
+// arraySlice (byte[] callers receive byte[] / List<byte> back, so it keeps its object
+// signature; its list returns are funnelled through toArray at the call sites above).
+const COLLECTION_RETURN_METHODS: string[] = [
+    'filterByKey', 'filterBySymbol', 'filterByLimit', 'filterBySinceLimit',
+    'filterByValueSinceLimit', 'filterBySymbolSinceLimit', 'filterByCurrencySinceLimit',
+    'filterBySymbolsSinceLimit', 'filterByOutcomeSinceLimit',
+    'parseTrades', 'parseTradesHelper', 'parseOrders', 'parseOHLCVs', 'parseTransactions',
+    'parseLedger', 'parseLiquidations', 'marketIds', 'currencyIds', 'marketCodes',
+    'marketSymbols', 'marketsForSymbols', 'parseMarkets',
+];
+
+// Same idea for the one collection helper that hands back a keyed dictionary: parseCurrencies
+// accumulates `Dictionary<string, object> result` (keyed by currency code) and returns it —
+// both the base implementation and the bitstamp override. No return-site normalizations are
+// needed (every return is that dict local); only the declaration changes.
+const COLLECTION_RETURN_DICT_METHODS: string[] = [
+    'parseCurrencies',
+];
+
 const CORE_STRING_ARGS: Record<string, number[]> = {
     'addMargin': [ 0 ],
+    'borrowCrossMargin': [ 0 ],
+    'borrowIsolatedMargin': [ 1 ],
+    'borrowMargin': [ 0 ],
+    'buildOHLCVC': [ 1 ],
     'cancelAllOrders': [ 0 ],
     'cancelAllOrdersWs': [ 0 ],
     'cancelContractOrder': [ 0, 1 ],
@@ -610,9 +841,13 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'cancelUtaOrder': [ 0, 1 ],
     'cancelUtaOrders': [ 1 ],
     'closePosition': [ 0, 1 ],
+    'commonCurrencyCode': [ 0 ],
+    'convertCurrencyNetwork': [ 0 ],
+    'convertToRealAmount': [ 0 ],
     'createAmmOrder': [ 0, 1, 2 ],
     'createConvertTrade': [ 0 ],
     'createDepositAddress': [ 0 ],
+    'createGiftCode': [ 0 ],
     'createLimitBuyOrder': [ 0 ],
     'createLimitBuyOrderWs': [ 0 ],
     'createLimitOrder': [ 0, 1 ],
@@ -629,6 +864,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'createMarketSellOrder': [ 0 ],
     'createMarketSellOrderWithCost': [ 0 ],
     'createMarketSellOrderWs': [ 0 ],
+    'createOHLCVObject': [ 1 ],
     'createOrder': [ 0, 1, 2 ],
     'createOrderWithTakeProfitAndStopLoss': [ 0, 1, 2 ],
     'createOrderWithTakeProfitAndStopLossWs': [ 0, 1, 2 ],
@@ -655,6 +891,10 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'createTriggerOrder': [ 0, 1, 2 ],
     'createTriggerOrderWs': [ 0, 1, 2 ],
     'createTwapOrder': [ 0, 1 ],
+    'currency': [ 0 ],
+    'currencyId': [ 0 ],
+    'currencyToPrecision': [ 0 ],
+    'deposit': [ 0 ],
     'editContractOrder': [ 0, 1, 2, 3 ],
     'editLimitBuyOrder': [ 0, 1 ],
     'editLimitOrder': [ 0, 1, 2 ],
@@ -665,24 +905,34 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'editSpotOrder': [ 0, 1, 2, 3 ],
     'fetchADLRank': [ 0 ],
     'fetchAmmOrders': [ 0 ],
+    'fetchBorrowInterest': [ 0 ],
+    'fetchBorrowRate': [ 0 ],
+    'fetchBorrowRateHistory': [ 0 ],
     'fetchCanceledOrders': [ 0 ],
     'fetchClosedOrder': [ 0, 1 ],
     'fetchClosedOrders': [ 0 ],
     'fetchClosedOrdersWs': [ 0 ],
     'fetchContractDepositAddress': [ 0 ],
+    'fetchContractDeposits': [ 0 ],
     'fetchContractOHLCV': [ 0, 1 ],
+    'fetchContractWithdrawals': [ 0 ],
     'fetchConvertTrade': [ 0, 1 ],
     'fetchConvertTradeHistory': [ 0 ],
     'fetchCrossBorrowRate': [ 0 ],
+    'fetchCurrency': [ 0 ],
     'fetchDeposit': [ 0, 1 ],
     'fetchDepositAddress': [ 0 ],
     'fetchDepositAddressDefault': [ 0 ],
     'fetchDepositAddressSupplement': [ 0 ],
     'fetchDepositAddressesByNetwork': [ 0 ],
+    'fetchDepositMethods': [ 0 ],
     'fetchDepositWithdrawFee': [ 0 ],
     'fetchDeposits': [ 0 ],
+    'fetchDepositsRequest': [ 0 ],
+    'fetchDepositsWithdrawals': [ 0 ],
     'fetchDepositsWs': [ 0 ],
     'fetchDerivativesMarketLeverageTiers': [ 0 ],
+    'fetchDerivativesOpenInterestHistory': [ 1 ],
     'fetchEvent': [ 0 ],
     'fetchFundingInterval': [ 0 ],
     'fetchFundingRate': [ 0 ],
@@ -709,9 +959,12 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchMySells': [ 0 ],
     'fetchMyTrades': [ 0 ],
     'fetchMyTradesWs': [ 0 ],
+    'fetchNetworkDepositAddress': [ 0 ],
     'fetchOHLCV': [ 0, 1 ],
+    'fetchOHLCVRequest': [ 1 ],
     'fetchOHLCVWs': [ 0, 1 ],
     'fetchOpenInterest': [ 0 ],
+    'fetchOpenInterestHistory': [ 1 ],
     'fetchOpenOrder': [ 0, 1 ],
     'fetchOpenOrders': [ 0 ],
     'fetchOpenOrdersWs': [ 0 ],
@@ -728,6 +981,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchOrdersByIds': [ 1 ],
     'fetchOrdersByStatusWs': [ 0, 1 ],
     'fetchOrdersWs': [ 0 ],
+    'fetchPaginatedCallDeterministic': [ 4 ],
     'fetchPosition': [ 0 ],
     'fetchPositionADLRank': [ 0 ],
     'fetchPositionHistory': [ 0 ],
@@ -748,13 +1002,39 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'fetchTrades': [ 0 ],
     'fetchTradesWs': [ 0 ],
     'fetchTradingFee': [ 0 ],
+    'fetchTransactionFee': [ 0 ],
+    'fetchTransactions': [ 0 ],
+    'fetchTransactionsByType': [ 1 ],
+    'fetchTransactionsWithMethod': [ 1 ],
     'fetchTransfer': [ 0, 1 ],
     'fetchTransfers': [ 0 ],
     'fetchUTAOHLCV': [ 0, 1 ],
+    'fetchVolatilityHistory': [ 0 ],
+    'fetchWithdrawAddresses': [ 0 ],
     'fetchWithdrawal': [ 0, 1 ],
     'fetchWithdrawals': [ 0 ],
+    'fetchWithdrawalsRequest': [ 0 ],
     'fetchWithdrawalsWs': [ 0 ],
+    'filterByCurrencySinceLimit': [ 1 ],
+    'futuresTransfer': [ 0 ],
+    'getAssetHistoryRows': [ 0 ],
+    'mergeBalanceAccount': [ 1 ],
+    'parseBalanceForSingleCurrency': [ 1 ],
+    'parseBorrowRateHistory': [ 1 ],
+    'parseConversions': [ 1 ],
+    'parseOHLCVs': [ 2 ],
+    'parseTradingViewOHLCV': [ 2 ],
+    'parseTransactionsByType': [ 2 ],
+    'parseWsOHLCVs': [ 2 ],
+    'prepareAccountRequestWithCurrencyCode': [ 0 ],
+    'prepareRequestForDepositAddress': [ 0 ],
+    'queryTransactionsByEventType': [ 3 ],
     'reduceMargin': [ 0 ],
+    'repayCrossMargin': [ 0 ],
+    'repayIsolatedMargin': [ 1 ],
+    'repayMargin': [ 0 ],
+    'requestWalletHistoryRows': [ 2 ],
+    'safeDeterministicCall': [ 4 ],
     'setLeverage': [ 1 ],
     'setMarginMode': [ 0, 1 ],
     'setPositionMode': [ 1 ],
@@ -765,6 +1045,8 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'transferIn': [ 0 ],
     'transferOut': [ 0 ],
     'transferUta': [ 0, 2, 3 ],
+    'unWatchOHLCV': [ 1 ],
+    'updateSpotCurrencyCode': [ 0 ],
     // watch* string args, gated by build/tmp_watch_args.py: admitted only when every
     // generated wrapper declaration agrees on `string` at that position and every core
     // declaration agrees on arity. The venue-internal helpers (watchPublic, watchTopics,
@@ -781,6 +1063,7 @@ const CORE_STRING_ARGS: Record<string, number[]> = {
     'watchTicker': [ 0 ],
     'watchTrades': [ 0 ],
     'withdraw': [ 0, 2, 3 ],
+    'withdrawRequest': [ 0 ],
     'withdrawWs': [ 0, 2, 3 ],
     // fetchRestOrderBookSafe omitted: TS declares `symbol: any`, so the wrapper and the
     // hand-written WsBridge caller both pass `object` and cannot be narrowed here
@@ -800,15 +1083,89 @@ const GLOBAL_WRAPPER_FILE = './cs/ccxt/base/Exchange.Wrappers.cs';
 const GLOBAL_TRADING_WRAPPER_FILE = './cs/ccxt/base/Exchange.TradingWrappers.cs';
 const BASE_TRADING_METHODS_FILE = './cs/ccxt/base/Exchange.TradingMethods.cs';
 const EXCHANGE_WRAPPER_FOLDER = './cs/ccxt/wrappers/'
-const EXCHANGE_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/pro/wrappers/'
+// ws + prediction class aliases are consolidated into one file each, mirroring the REST
+// Exchange.Wrappers.cs, so no per-exchange wrapper directory survives
+const WS_CLASS_ALIAS_FILE = './cs/ccxt/ws/Exchange.WsAliases.cs'
+const PREDICTION_CLASS_ALIAS_FILE = './cs/ccxt/base/Exchange.PredictionAliases.cs'
+const PREDICTION_WS_CLASS_ALIAS_FILE = './cs/ccxt/base/Exchange.PredictionWsAliases.cs'
 const ERRORS_FILE = './cs/ccxt/base/Exchange.Errors.cs';
 const BASE_METHODS_FILE = './cs/ccxt/base/Exchange.BaseMethods.cs';
+
+// The safeDict/safeList family is generated from ts/src/base/Exchange.ts, but its return
+// annotations (`Dictionary<any>` / `any[]`, each unioned with `undefined`) do not reach the
+// C# printer: getTypeFromRawType() has no member for a dictionary alias and a union falls
+// back to DEFAULT_RETURN_TYPE, so every one of the six prints `public virtual object`
+// (probed against the pinned ast-transpiler: bare `Dict`, `Dictionary<any>`, `Array<any>`,
+// `any[]` and every `| undefined` variant all emit `object`). The bodies, however, return
+// the real type on every path, so the emitted method text is retyped here: signature to the
+// concrete C# type, every `return <x>;` through an explicit cast. build/csharp-local-types.js
+// then names the locals fed by these calls.
+//
+// The dictionary three return the INTERFACE, not the concrete class: the found value only
+// passed `isDictionary`, which accepts any IDictionary<string, object> — this port hands
+// ConcurrentDictionary<string, object> through these paths for real (options itself is one,
+// createSafeDictionary() builds one, and paradex stores one in options['paradexAccount']),
+// and `(Dictionary<string, object>)` on such a value throws InvalidCastException. The cast
+// to the interface is identity-preserving for every value the guard passes and never throws
+// where the previous `object` return did not.
+//
+// Lists keep the concrete List<object>: every value the List<> guard passes that is NOT a
+// List<object> also fails the consumer-side IList<object> casts this port already emits, so
+// narrowing to List<object> changes nothing a caller could previously have used.
+//
+// The FOUND value is cast (the guard proves it); the DEFAULT is handed back with `as`, so a
+// default that is not the declared collection drops to null instead of throwing — the same
+// convention the hand-written SafeString/SafeStringN use (`return defaultValue as string`).
+// This is reachable in the real tree: myriad's fetchOHLCV passes a dictionary as the list
+// default (`safeDict`-shaped data read through `safeList (chart, 'data', chart)`), which the
+// fixture suite catches the moment a hard cast is used there.
+//
+// The rewrite is exact-match and throws if the generated shape ever changes.
+const SAFE_COLLECTION_HELPER_TYPES: Record<string, string> = {
+    'safeDict': 'IDictionary<string, object>',
+    'safeDict2': 'IDictionary<string, object>',
+    'safeDictN': 'IDictionary<string, object>',
+    'safeList': 'List<object>',
+    'safeList2': 'List<object>',
+    'safeListN': 'List<object>',
+};
+
+// locate a whole transpiled C# method (plus a preceding /** */ doc-comment block, if any)
+// by name — the span stripCSharpMethod() cuts out, kept addressable so a rewritten method
+// can be spliced back at its original position
+function findCSharpMethodSpan (body: string, name: string): { start: number, end: number, method: string } | undefined {
+    const sigRe = new RegExp ('\\n([ \\t]*)public [^\\n]*\\b' + name + '\\s*\\(');
+    const m = sigRe.exec (body);
+    if (!m) {
+        return undefined;
+    }
+    let start = m.index; // the '\n' just before the signature line
+    const before = body.substring (0, start);
+    const docMatch = before.match (/\n[ \t]*\/\*\*[\s\S]*?\*\/[ \t]*$/);
+    if (docMatch) {
+        start = docMatch.index as number;
+    }
+    let depth = 0;
+    let end = body.indexOf ('{', m.index + m[0].length - 1);
+    for (; end < body.length; end++) {
+        const c = body[end];
+        if (c === '{') {
+            depth++;
+        } else if (c === '}') {
+            depth--;
+            if (depth === 0) {
+                end++;
+                break;
+            }
+        }
+    }
+    return { start, end, method: body.substring (start, end) };
+}
 const EXCHANGES_FOLDER = './cs/ccxt/exchanges/';
 const EXCHANGES_WS_FOLDER = './cs/ccxt/exchanges/pro/';
 const EXCHANGES_PREDICTION_FOLDER = './cs/ccxt/exchanges/prediction/';
 const EXCHANGE_PREDICTION_WRAPPER_FOLDER = './cs/ccxt/wrappers/prediction/';
 const EXCHANGES_PREDICTION_WS_FOLDER = './cs/ccxt/exchanges/prediction/pro/';
-const EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER = './cs/ccxt/exchanges/prediction/pro/wrappers/';
 const GENERATED_TESTS_FOLDER = './cs/tests/Generated/Exchange/';
 const BASE_TESTS_FOLDER = './cs/tests/Generated/Base';
 const BASE_TESTS_FILE =  './cs/tests/Generated/TestMethods.cs';
@@ -837,6 +1194,11 @@ class NewTranspiler {
     // true while transpiling the prediction-market exchanges (ts/src/prediction/),
     // which live in the ccxt.prediction / ccxt.prediction.pro namespaces
     isPrediction = false;
+    // the ts/src id of the class currently being emitted ('' for the base tiers and the
+    // tests), so VENUE_TYPED_CORES can type one method name per class
+    currentVenue = '';
+    // derived venue -> parent venue (bequant -> hitbtc), read off the `class X : Y` line
+    venueParents: Record<string, string> = {};
     // set once PredictionExchange.cs has been emitted in this process. A full run reaches
     // transpilePredictionBaseMethods twice (recursive prediction pass, then the main pass)
     // with identical inputs, so the second call would only rewrite the same bytes.
@@ -869,6 +1231,12 @@ class NewTranspiler {
             [/client\.subscriptions/gm, '((WebSocketClient)client).subscriptions'],
             [/Dictionary<string,object>\)client.futures/gm, 'Dictionary<string, ccxt.Exchange.Future>)client.futures'],
             [/this\.safeValue\(client\.futures,/gm, 'this.safeValue((client as WebSocketClient).futures,'],
+            // reads of the cached orderbook map go through the typed helpers added next to
+            // safeValue in cs/ccxt/ws/Exchange.WsBridge.cs (both return ccxt.pro.IOrderBook;
+            // the map only ever holds this.orderBook()/indexedOrderBook()/countedOrderBook()
+            // instances, so the value inside the box is unchanged)
+            [/this\.safeValue\((this\.orderbooks),/gm, 'this.safeOrderBook($1,'],
+            [/getValue\((this\.orderbooks),/gm, 'this.getOrderBook($1,'],
             [/Dictionary<string,object>\)this\.clients/gm, 'Dictionary<string, ccxt.Exchange.WebSocketClient>)this.clients'],
             [/(object \w+) = client\.futures/, '$1 = (client as WebSocketClient).futures'],
             [/(orderbook)(\.reset.+)/gm, '($1 as IOrderBook)$2'],
@@ -1369,6 +1737,13 @@ class NewTranspiler {
             'setSandBoxMode',
             'loadOrderBook',
             'fetchCurrencies',
+            // same as fetchCurrencies: a hand-written PascalCase public method already
+            // lives on Exchange.cs (new Currencies(await fetchCurrenciesWs())). Emitting
+            // a generated wrapper is a second overload (object vs Dictionary params) and
+            // bitvavo's ws override stays on the camelCase core that the hand-written
+            // method already calls. Blacklist, don't type — the BaseExchange decl is
+            // never rewritten, so a typed override would be CS0508.
+            'fetchCurrenciesWs',
             'loadMarketsHelper',
             'createNetworksByIdObject',
             'setMarketsFromExchange',
@@ -1381,8 +1756,43 @@ class NewTranspiler {
             'watchMultiple',
             'watchPrivate',
             'watchPublic',
+            // venue-internal ws transport plumbing: each of these resolves 2+ runtime
+            // shapes across its call sites (ticker dict / live orderbook / ArrayCache /
+            // [symbol, timeframe, stored] tuple / raw message), so no closed C# type
+            // fits and a cast-only `Dictionary<string, object>` wrapper is a lie
+            'watchExecuteRequest',
+            'watchHeartbeat',
+            'watchMany',
+            'watchMultiHelper',
+            'watchMultiTickerHelper',
+            'watchMultipleWrapper',
+            'watchPrivateMultiple',
+            'watchPrivateRequest',
+            'watchPrivateSubscribe',
+            'watchPublicMultiple',
+            'watchRequest',
+            'watchSpotPrivate',
+            'watchSpotPublic',
+            'watchStockMarketStream',
+            'watchSwapPrivate',
+            'watchSwapPublic',
+            'watchTopics',
             'setPositionsCache',
-            'setPositionCache'
+            'setPositionCache',
+            // internal HTTP / pagination transport: not public API (users never call
+            // fetch2 / fetchPaginatedCallCursor). fetch2 and fetchWebEndpoint return
+            // polymorphic JSON (dict | list | string). fetchPaginatedCall* return a
+            // concatenated List<object> of whatever the inner method produced, and
+            // ~80 consumers immediately wrap that in ToTradeList / ToOrderList / …
+            // which still hard-cast `(IList<object>)` — List<T> is invariant, so
+            // typing them as List<Dictionary<string, object>> would throw at those
+            // sites even after the toArray re-box. Blacklist, don't force a type.
+            'fetch2',
+            'fetchWebEndpoint',
+            'fetchPaginatedCallDynamic',
+            'fetchPaginatedCallDeterministic',
+            'fetchPaginatedCallCursor',
+            'fetchPaginatedCallIncremental',
         ] // improve this later
         if (isWs) {
             if (methodName.indexOf('Snapshot') !== -1 || methodName.indexOf('Subscription') !== -1 || methodName.indexOf('Cache') !== -1) {
@@ -1395,7 +1805,16 @@ class NewTranspiler {
     }
 
     // the typed C# return of a core method, or '' when the method keeps `Task<object>`
-    typedCoreType (methodName: string, isPredictionTier = false): string {
+    typedCoreType (methodName: string, isPredictionTier = false, venue: string = this.currentVenue): string {
+        // the per-venue axis wins: walk the venue and its parents (bequant -> hitbtc)
+        let v: string | undefined = venue;
+        while (v !== undefined && v !== '') {
+            const perVenue = VENUE_TYPED_CORES[v];
+            if (perVenue !== undefined && (methodName in perVenue)) {
+                return perVenue[methodName];
+            }
+            v = this.venueParents[v];
+        }
         const snapshot = SNAPSHOT_CORES[methodName];
         if (snapshot !== undefined) {
             return (isPredictionTier && snapshot.predictionType !== undefined) ? snapshot.predictionType : snapshot.type;
@@ -1413,6 +1832,24 @@ class NewTranspiler {
         if (snapshot !== undefined) {
             return (isPredictionTier && snapshot.predictionHelper !== undefined) ? snapshot.predictionHelper : snapshot.helper;
         }
+        if (csharpType === 'Dictionary<string, object>') {
+            return 'ccxt.BaseExchange.ToDict';
+        }
+        if (csharpType === 'List<Dictionary<string, object>>') {
+            return 'ccxt.BaseExchange.ToDictList';
+        }
+        if (csharpType === OHLCV_DICT_TYPE) {
+            return 'ccxt.BaseExchange.ToOHLCVDict';
+        }
+        if (csharpType === 'Int64') {
+            return 'ccxt.BaseExchange.ToInt64Value';
+        }
+        if (csharpType === 'string') {
+            return 'ccxt.BaseExchange.ToStringValue';
+        }
+        if (csharpType === 'List<string>') {
+            return 'ccxt.BaseExchange.ToStringList';
+        }
         return 'ccxt.BaseExchange.To' + this.typedCoreHelperSuffix (csharpType);
     }
 
@@ -1426,6 +1863,13 @@ class NewTranspiler {
     qualifyTypedCoreType (csharpType: string): string {
         if (csharpType.startsWith ('ccxt.')) {
             return csharpType; // SNAPSHOT_CORES already spell the fully qualified name
+        }
+        // raw / primitive core types are not ccxt. structs
+        if (csharpType === 'Int64' || csharpType === 'string' || csharpType === 'List<string>' || csharpType === 'Dictionary<string, object>' || csharpType === 'List<Dictionary<string, object>>') {
+            return csharpType;
+        }
+        if (csharpType === OHLCV_DICT_TYPE) {
+            return 'Dictionary<string, Dictionary<string, List<ccxt.OHLCV>>>';
         }
         if (csharpType.startsWith ('List<') && csharpType.endsWith ('>')) {
             return 'List<ccxt.' + csharpType.substring (5, csharpType.length - 1) + '>';
@@ -1470,6 +1914,24 @@ class NewTranspiler {
     // `object x = await this.fetchOrders(...)` consumer reads dictionary keys off the
     // result, so a boxed struct has to be de-typed first.
     typedCoreFromHelper (csharpType: string): string {
+        if (csharpType === 'Dictionary<string, object>') {
+            return 'ccxt.BaseExchange.FromDict';
+        }
+        if (csharpType === 'List<Dictionary<string, object>>') {
+            return 'ccxt.BaseExchange.FromDictList';
+        }
+        if (csharpType === OHLCV_DICT_TYPE) {
+            return 'ccxt.BaseExchange.FromOHLCVDict';
+        }
+        if (csharpType === 'Int64') {
+            return 'ccxt.BaseExchange.FromInt64';
+        }
+        if (csharpType === 'string') {
+            return 'ccxt.BaseExchange.FromStringValue';
+        }
+        if (csharpType === 'List<string>') {
+            return 'ccxt.BaseExchange.FromStringList';
+        }
         const family = csharpType.startsWith ('List<') ? csharpType.slice (5, -1) : csharpType;
         if (!REVERSIBLE_FAMILIES.includes (family)) {
             return '';
@@ -1549,9 +2011,17 @@ class NewTranspiler {
     // every method name that may carry a typed return: the two TYPED_CORES tables plus the
     // ws snapshot cores, whose type differs per tier but is never ''
     typedCoreNames (): string[] {
-        return Object.keys (TYPED_CORES)
+        const names = Object.keys (TYPED_CORES)
             .concat (Object.keys (PREDICTION_TYPED_CORES).filter ((n) => !(n in TYPED_CORES)))
             .concat (Object.keys (SNAPSHOT_CORES).filter ((n) => !(n in TYPED_CORES)));
+        for (const venue of Object.keys (VENUE_TYPED_CORES)) {
+            for (const name of Object.keys (VENUE_TYPED_CORES[venue])) {
+                if (!names.includes (name)) {
+                    names.push (name);
+                }
+            }
+        }
+        return names;
     }
 
     typeCores (content: string, predictionTier = this.isPrediction): string {
@@ -1560,7 +2030,12 @@ class NewTranspiler {
             return content;
         }
         const lines = content.split ('\n');
-        const sigRe = /^(\s*)public async (virtual|override) Task<object> (\w+)\(/;
+        // void `Task` bodies (loadBalanceSnapshot, loadPositionsSnapshot) are visited too: they
+        // consume typed cores into `object` locals and need the From* funnel like anyone else
+        // `Task<...>` with a concrete argument is matched too: a typed core can itself consume
+        // another typed core into an `object` local (okx FetchDepositAddress reads
+        // FetchDepositAddressesByNetwork), and that boxed struct needs the same From* funnel
+        const sigRe = /^(\s*)public async (virtual|override) Task(?:<[\w.<>, ]+>)? (\w+)\(/;
         const typedCallRe = new RegExp ('^await this\\.(' + names.join ('|') + ')\\(');
         for (let i = 0; i < lines.length; i++) {
             const sig = sigRe.exec (lines[i]);
@@ -1568,7 +2043,8 @@ class NewTranspiler {
                 continue;
             }
             const [ , indent, modifier, methodName ] = sig;
-            const typedType = this.typedCoreType (methodName, predictionTier);
+            const isObjectTask = lines[i].indexOf (' Task<object> ') !== -1;
+            const typedType = isObjectTask ? this.typedCoreType (methodName, predictionTier) : '';
             const isTyped = typedType !== '';
             // the method body ends at its closing brace, which is the first line indented exactly
             // like the signature — brace counting is unusable here because generated bodies carry
@@ -1630,11 +2106,109 @@ class NewTranspiler {
                 if (lines[j] === null || lines[j].indexOf ('await this.') === -1) {
                     continue;
                 }
+                // a consuming call whose argument list spans several lines has to be joined
+                // first, or matchingParen gives up and the boxed struct escapes untouched
+                // (binance watchTicker -> `object tickers = await this.WatchTickers(` + 3 lines)
+                let end = j;
+                if (this.matchingParen (lines[j], lines[j].indexOf ('await this.')) === -1) {
+                    const [ last ] = this.collectReturnStatement (lines, j);
+                    if (last > j && last < bodyEnd) {
+                        end = last;
+                    }
+                }
+                if (end > j) {
+                    const pad = lines[j].substring (0, lines[j].length - lines[j].trimStart ().length);
+                    const joined = lines.slice (j, end + 1).map ((l, k) => (k === 0 ? l : l.trim ())).join (' ');
+                    const wrapped = this.wrapTypedCoreConsumers (joined, names, predictionTier, tailOk[j] === true);
+                    if (wrapped !== joined) {
+                        lines[j] = pad + wrapped.trim ();
+                        for (let k = j + 1; k <= end; k++) {
+                            lines[k] = null as any;
+                        }
+                        j = end;
+                        continue;
+                    }
+                }
                 lines[j] = this.wrapTypedCoreConsumers (lines[j], names, predictionTier, tailOk[j] === true);
             }
             i = bodyEnd;
         }
         return lines.filter (line => line !== null).join ('\n');
+    }
+
+    // rewrites every sync core declared in SYNC_TYPED_CORES — the BaseExchange original and
+    // every venue override — from `object` to its concrete type, and funnels each return
+    // expression through `ccxt.BaseExchange.ToDict(...)`. ToDict is `value as
+    // Dictionary<string, object>`: identity for the rows these paths build, null for null,
+    // so the typed signature compiles without touching the box. Return expressions that
+    // already carry the dictionary statically stay bare: extend/deepExtend are declared
+    // Dictionary<string, object> in Exchange.Generic.cs, and a retyped core hands the same
+    // row back unmodified (this.safeMarketStructure(, base.safeMarket(, ...).
+    typeSyncCores (content: string): string {
+        const names = Object.keys (SYNC_TYPED_CORES);
+        if (!names.some (name => content.includes ('object ' + name + '('))) {
+            return content;
+        }
+        const sigRe = new RegExp ('^(\\s*)public (virtual|override) object (' + names.join ('|') + ')\\(');
+        const lines = content.split ('\n');
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig) {
+                continue;
+            }
+            const [ full, indent, modifier, methodName ] = sig;
+            lines[i] = indent + 'public ' + modifier + ' ' + SYNC_TYPED_CORES[methodName] + ' ' + methodName + '(' + lines[i].substring (full.length);
+            // the body ends at its closing brace: the first line indented exactly like the
+            // signature (brace counting is unusable — generated bodies carry braces inside
+            // string literals)
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                if (!lines[j].trim ().startsWith ('return ')) {
+                    continue;
+                }
+                const [ lastLine, semi ] = this.collectReturnStatement (lines, j);
+                const head = lines[j].substring (lines[j].indexOf ('return ') + 7);
+                const middle = lines.slice (j + 1, lastLine);
+                const tail = lastLine === j ? '' : lines[lastLine].substring (0, semi);
+                const expr = (lastLine === j ? head.substring (0, semi - lines[j].indexOf ('return ') - 7) : [ head ].concat (middle).concat ([ tail ]).join (' ')).trim ();
+                if (this.syncCoreReturnIsAlreadyTyped (expr)) {
+                    j = lastLine;
+                    continue;
+                }
+                const retAt = lines[j].indexOf ('return ') + 7;
+                if (lastLine === j) {
+                    lines[j] = lines[j].substring (0, retAt) + 'ccxt.BaseExchange.ToDict(' + lines[j].substring (retAt, semi) + ')' + lines[j].substring (semi);
+                } else {
+                    // multi-line expression: open the helper on the first line, close it
+                    // before the `;` on the last — formatting is preserved
+                    lines[j] = lines[j].substring (0, retAt) + 'ccxt.BaseExchange.ToDict(' + lines[j].substring (retAt);
+                    lines[lastLine] = lines[lastLine].substring (0, semi) + ')' + lines[lastLine].substring (semi);
+                }
+                j = lastLine;
+            }
+            i = bodyEnd;
+        }
+        return lines.join ('\n');
+    }
+
+    // the returns of a SYNC_TYPED_CORES method that already hand the dictionary back, so a
+    // ToDict funnel would only add noise
+    syncCoreReturnIsAlreadyTyped (expr: string): boolean {
+        const unchanged = [ 'ccxt.BaseExchange.ToDict(', 'this.extend(', 'base.extend(', 'this.deepExtend(', 'base.deepExtend(' ];
+        for (const name of Object.keys (SYNC_TYPED_CORES)) {
+            unchanged.push ('this.' + name + '(', 'base.' + name + '(');
+        }
+        return unchanged.some ((prefix) => expr.startsWith (prefix));
     }
 
     // A typed core needs no PascalCase forwarding wrapper: the core itself carries the public
@@ -1858,6 +2432,87 @@ class NewTranspiler {
         return lines.join ('\n');
     }
 
+    // Retypes the helpers in COLLECTION_RETURN_METHODS from `object` to `IList<object>` (same
+    // runtime box, now nameable) and normalizes the return sites that would stop compiling; see
+    // the COLLECTION_RETURN_METHODS comment for the exact shapes. In-place, line-preserving:
+    // only the signature line and specific single-line return statements change. The list is
+    // also registered in build/csharp-local-types.js so `object x = this.<name>(...)` locals
+    // become `IList<object>`.
+    typeCollectionReturns (content: string): string {
+        if (!COLLECTION_RETURN_METHODS.concat (COLLECTION_RETURN_DICT_METHODS).some ((name) => content.includes (' object ' + name + '('))) {
+            return content;
+        }
+        const targets = new Map<string, string> ();
+        for (const name of COLLECTION_RETURN_METHODS) {
+            targets.set (name, 'IList<object>');
+        }
+        for (const name of COLLECTION_RETURN_DICT_METHODS) {
+            targets.set (name, 'Dictionary<string, object>');
+        }
+        const lines = content.split ('\n');
+        const sigRe = /^(\s*)public (async )?(virtual|override) object (\w+)\((.*)\)\s*$/;
+        for (let i = 0; i < lines.length; i++) {
+            const sig = sigRe.exec (lines[i]);
+            if (!sig || !targets.has (sig[4])) {
+                continue;
+            }
+            const [ , indent, , , methodName, plist ] = sig;
+            const target = targets.get (methodName) as string;
+            // body span: opening brace on its own line, closing brace at the signature indent
+            let bodyStart = i + 1;
+            while (bodyStart < lines.length && lines[bodyStart].trim () !== '{') {
+                bodyStart++;
+            }
+            if (bodyStart >= lines.length) {
+                continue;
+            }
+            let bodyEnd = lines.length - 1;
+            for (let j = bodyStart + 1; j < lines.length; j++) {
+                if (lines[j] === indent + '}') { bodyEnd = j; break; }
+            }
+            const paramNames = this.splitCsharpParams (plist)
+                .map ((p) => p.split ('=')[0].trim ().split (/\s+/).pop ())
+                .filter ((p) => p !== undefined) as string[];
+            lines[i] = lines[i].replace (' object ' + methodName + '(', ' ' + target + ' ' + methodName + '(');
+            if (target !== 'IList<object>') {
+                continue; // dict returns need no return-site normalization
+            }
+            for (let j = bodyStart + 1; j < bodyEnd; j++) {
+                const line = lines[j];
+                const trimmed = line.trim ();
+                if (!trimmed.startsWith ('return ')) {
+                    continue;
+                }
+                const pad = line.substring (0, line.length - line.trimStart ().length);
+                // arraySlice keeps its object signature (byte[] callers get byte[] / List<byte>
+                // back); toArray is an identity on the list inputs these helpers receive
+                const slice = /^return this\.arraySlice\((.*)\);\s*$/.exec (trimmed);
+                if (slice) {
+                    lines[j] = `${pad}return this.toArray(this.arraySlice(${slice[1]}));`;
+                    continue;
+                }
+                // `return ((object)this.<another listed name>(...));` — the (object) cast was a
+                // no-op while both sides were `object`; drop it so the typed return compiles
+                if (trimmed.startsWith ('return ((object)this.')) {
+                    const inner = trimmed.substring ('return ((object)this.'.length);
+                    const called = /^(\w+)\(/.exec (inner);
+                    if (called && targets.has (called[1])) {
+                        lines[j] = pad + 'return this.' + inner.replace (/\)\);\s*$/, ');');
+                        continue;
+                    }
+                }
+                // `return <own object param>;` — the null/empty guards hand the input straight
+                // back; toArray keeps null null and an IList<object>/List<object> identical
+                const ident = /^return (\w+);\s*$/.exec (trimmed);
+                if (ident && paramNames.includes (ident[1])) {
+                    lines[j] = `${pad}return this.toArray(${ident[1]});`;
+                    continue;
+                }
+            }
+        }
+        return lines.join ('\n');
+    }
+
     // narrowing a core parameter to `string` breaks every intra-core call site that still
     // holds the value in an `object` local, so each such argument gets an explicit
     // `((string)expr)`. The value is a string by contract (the TS signature says so); the
@@ -2071,6 +2726,10 @@ class NewTranspiler {
     }
 
     createWrapper (exchangeName: string, methodWrapper: any, isWs = false) {
+        // the PascalCase core IS the public C# API. Method wrappers (cast-only and
+        // converting) have been retired; only the `class Binance : binance` aliases
+        // remain, emitted by createExchangesWrappers / needsCapitalizedClass.
+        return '';
         // non-async methods with a declared Promise<T> return type (pure delegators) must be wrapped like async ones
         const isAsync = methodWrapper.async || (methodWrapper.returnType ?? '').startsWith ('Promise');
         const methodName = methodWrapper.name;
@@ -2080,14 +2739,14 @@ class NewTranspiler {
         const methodNameCapitalized = methodName.charAt(0).toUpperCase() + methodName.slice(1);
         // a typed core is emitted PascalCase (pascalizeTypedCores), so it already *is* the public
         // API — a wrapper here would be a duplicate declaration of the same name
-        if (isAsync && this.typedCoreType (methodName, this.isPrediction) !== '') {
+        if (isAsync && this.typedCoreType (methodName, this.isPrediction, exchangeName) !== '') {
             return '';
         }
         const returnType = this.convertJavascriptTypeToCsharpType(methodName, methodWrapper.returnType, true);
         const unwrappedType = this.unwrapTaskIfNeeded(returnType as string);
         // a typed core's wrapper is `return res;`, so the wrapper's own return type must be the
         // exact type the core emits — unqualified `OrderBook` binds to ccxt.pro.OrderBook here
-        const typedCore = this.typedCoreType (methodName, this.isPrediction);
+        const typedCore = this.typedCoreType (methodName, this.isPrediction, exchangeName);
         const wrapperReturnType = (typedCore !== '' && isAsync) ? `Task<${this.qualifyTypedCoreType (typedCore)}>` : returnType;
         const args: any[] = methodWrapper.parameters.map((param: any) => this.convertJavascriptParamToCsharpParam(param));
         const stringArgs = args.filter(arg => arg !== undefined).join(', ');
@@ -2121,34 +2780,46 @@ class NewTranspiler {
         return res;
     }
 
-    createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false, prediction = false) {
-        // ast-transpiler drops the `= {}` default of a type-annotated params bag, which would
-        // emit it as a required parameter sitting after optionals (CS1737)
-        restoreParamsBagInitializers(wrappers);
-        const wrappersIndented = wrappers.map(wrapper => this.createWrapper(exchange, wrapper, ws)).filter(wrapper => wrapper !== '').join('\n');
-        const shouldCreateClassWrappers = exchange === 'BaseExchange';
-        const classes = shouldCreateClassWrappers ? this.createExchangesWrappers().filter(e=> !!e).join('\n') : '';
-        // const exchangeName = ws ? exchange + 'Ws' : exchange;
-        const namespace = this.getNamespace (ws);
-        const capitizedName = exchange.charAt(0).toUpperCase() + exchange.slice(1);
-        // prediction REST exchanges are not part of createExchangesWrappers (Exchange.Wrappers.cs),
-        // so their Capitalized wrapper class is emitted into their own wrapper file
-        const needsCapitalizedClass = ws || this.isPrediction;
-        const capitalizeStatement = needsCapitalizedClass ? `public class  ${capitizedName}: ${exchange} { public ${capitizedName}(object args = null) : base(args) { } }` : '';
-        const file = [
-            namespace,
-            '',
-            this.createGeneratedHeader().join('\n'),
-            capitalizeStatement,
-            `public partial class ${exchange}`,
-            '{',
-            wrappersIndented,
-            '}',
-            classes
-        ].join('\n')
+    createClassAliasFile (ids: string[], path: string, namespace: string) {
+        // one file per tier holding every `class Binance : binance` alias, so the
+        // generator never recreates a per-exchange wrapper directory
+        if (!ids.length) {
+            if (fs.existsSync (path)) {
+                fs.unlinkSync (path);
+                log.magenta ('×', (path as any).yellow)
+            }
+            return;
+        }
+        const header = this.createGeneratedHeader().join('\n');
+        const classes = [ '// class wrappers' ];
+        ids.forEach ((exchange: string) => {
+            const capitalized = exchange.charAt(0).toUpperCase() + exchange.slice(1);
+            const constructor = `public ${capitalized}(object args = null) : base(args) { }`;
+            classes.push (`public class  ${capitalized}: ${exchange} { ${constructor} }`);
+        });
+        const file = [ namespace, '', header, classes.join('\n') ].join('\n') + '\n';
         log.magenta ('→', (path as any).yellow)
-
         overwriteFileAndFolder (path, file);
+    }
+
+    createCSharpWrappers(exchange:string, path: string, wrappers: any[], ws = false, prediction = false) {
+        // Method wrappers have been retired: the PascalCase core is the public C# API.
+        // This emitter now only writes the documented `class Binance : binance` aliases,
+        // consolidated into one file per tier (createClassAliasFile). Any per-exchange
+        // wrapper file that would be an empty partial class is deleted instead.
+        const namespace = this.getNamespace (ws);
+        const header = this.createGeneratedHeader().join('\n');
+        if (exchange === 'BaseExchange') {
+            const classes = this.createExchangesWrappers().filter(e => !!e).join('\n');
+            const file = [ namespace, '', header, classes ].join('\n') + '\n';
+            log.magenta ('→', (path as any).yellow)
+            overwriteFileAndFolder (path, file);
+            return;
+        }
+        if (fs.existsSync (path)) {
+            fs.unlinkSync (path);
+            log.magenta ('×', (path as any).yellow)
+        }
     }
 
     transpileErrorHierarchy (force = true) {
@@ -2279,6 +2950,38 @@ class NewTranspiler {
         return { 'body': newBody, 'method': method };
     }
 
+    // retype the generated safeDict/safeList family in Exchange.BaseMethods.cs (see
+    // SAFE_COLLECTION_HELPER_TYPES for why the printer cannot do it from the TS annotations).
+    // The found value is proven by the method's own guard, so it goes through an explicit
+    // cast; the fallback hands the caller's default back with `as` (drop to null when it is
+    // not the declared collection, the SafeString convention). Throws if a method is
+    // missing, its signature moved, or any return survived without the rewrite.
+    retypeSafeCollectionHelpers (baseMethods: string): string {
+        for (const [ name, csharpType ] of Object.entries (SAFE_COLLECTION_HELPER_TYPES)) {
+            const found = findCSharpMethodSpan (baseMethods, name);
+            if (!found) {
+                throw new Error (`[csharp] retypeSafeCollectionHelpers: ${name} not found in the generated base methods`);
+            }
+            const signature = 'public virtual object ' + name + '(';
+            if (!found.method.includes (signature)) {
+                throw new Error (`[csharp] retypeSafeCollectionHelpers: ${name} does not carry the expected \`${signature}\` signature`);
+            }
+            let rewritten = found.method.replace (signature, 'public virtual ' + csharpType + ' ' + name + '(');
+            for (const returned of [ 'value', 'value2' ]) {
+                rewritten = rewritten.replaceAll ('return ' + returned + ';', 'return (' + csharpType + ')' + returned + ';');
+            }
+            rewritten = rewritten.replaceAll ('return defaultValue;', 'return defaultValue as ' + csharpType + ';');
+            const returns = (found.method.match (/return\s/g) ?? []).length;
+            const typedReturns = (rewritten.match (/return\s(?:\(|defaultValue as )/g) ?? []).length;
+            const bareReturns = (rewritten.match (/return\s(?!(?:\(|defaultValue as ))/g) ?? []).length;
+            if (returns === 0 || typedReturns !== returns || bareReturns !== 0) {
+                throw new Error (`[csharp] retypeSafeCollectionHelpers: ${name} lost return statements in the rewrite (${returns} -> ${typedReturns} typed, ${bareReturns} bare)`);
+            }
+            baseMethods = baseMethods.substring (0, found.start) + rewritten + baseMethods.substring (found.end);
+        }
+        return baseMethods;
+    }
+
     transpileBaseMethods(baseExchangeFile: string, force = true) {
         // the four generated base files all come out of this one pass; `exchanges.json`
         // is a real input too — createExchangesWrappers() emits one `public class <Id>`
@@ -2309,13 +3012,12 @@ class NewTranspiler {
 
         // the 62 symbol-based trading methods declared in TS `class Exchange extends BaseExchange`
         const exchangeTierNames = this.getExchangeTierMethodNames (baseExchangeFile);
-        // methods that TS places in `class Exchange` but which C#'s hand-written BaseExchange WS layer
-        // (cs/ccxt/ws/Exchange.WsBridge.cs) depends on, so they must remain reachable from BaseExchange:
-        //   loadOrderBook          — hand-written in WsBridge.cs (drop the transpiled copy)
-        //   fetchRestOrderBookSafe — called by BaseExchange.loadOrderBook
-        //   fetchOrderBook         — called by fetchRestOrderBookSafe (also overridden by every venue)
+        // loadOrderBook is hand-written on partial class Exchange (WsBridge.cs); drop the
+        // transpiled copy. fetchOrderBook / fetchRestOrderBookSafe stay on the Exchange tier
+        // so the prediction sibling can type fetchOrderBook as PredictionOrderBook (CS0508
+        // if either name is declared on shared BaseExchange).
         const droppedOnBase = [ 'loadOrderBook' ];
-        const retainedOnBase = [ 'fetchRestOrderBookSafe', 'fetchOrderBook' ];
+        const retainedOnBase: string[] = [];
         const isExchangeTier = (methodName: string) => exchangeTierNames.has (methodName) && !retainedOnBase.includes (methodName) && !droppedOnBase.includes (methodName);
 
         // create wrappers with specific types — base-tier wrappers stay on BaseExchange (inherited by
@@ -2338,6 +3040,10 @@ class NewTranspiler {
         // Fix setMarketsFromExchange parameter type — typed as BaseExchange so it lives on the base
         // tier (returning `this`) and accepts both Exchange and PredictionExchange source instances
         baseClass = baseClass.replaceAll(/public virtual object setMarketsFromExchange\(object sourceExchange\)/g, 'public virtual BaseExchange setMarketsFromExchange(BaseExchange sourceExchange)');
+        // implodeHostname forwards implodeParams (object -> string in Exchange.Misc.cs), so its
+        // generated `object` signature only erased the string it already returns; the local-typing
+        // classifier (build/csharp-local-types.js) relies on the honest `string` here.
+        baseClass = baseClass.replaceAll(/public virtual object implodeHostname\(object url\)/g, 'public virtual string implodeHostname(object url)');
         // baseClass = baseClass.replace("= new List<Task<List<object>>> {", "= new List<Task<object>> {");
         // baseClass = baseClass.replace("this.number = Number;", "this.number = typeof(float);"); // tmp fix for c#
         baseClass = baseClass.replace("throw new getValue(broad, broadKey)(((string)message));", "this.throwDynamicException(broad, broadKey, message);"); // tmp fix for c#
@@ -2386,7 +3092,7 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class BaseExchange\n{\n\n"
             ]).join("\n");
-            const file = fileHeader + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, false))), false) + "\n";
+            const file = fileHeader + this.retypeSafeCollectionHelpers (this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), false)))), false)) + "\n";
             fs.writeFileSync (csharpExchangeBase, file);
             log.green ('Transpiled base methods to', (csharpExchangeBase as any).yellow)
             if (exchangeClassMatch) {
@@ -2394,7 +3100,7 @@ class NewTranspiler {
                     this.createGeneratedHeader().join('\n'),
                     "public partial class Exchange\n{\n\n"
                 ]).join("\n");
-                const tradingFile = tradingHeader + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (exchangeBody, false))), false) + "\n}\n";
+                const tradingFile = tradingHeader + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (exchangeBody), false)))), false) + "\n}\n";
                 fs.writeFileSync (BASE_TRADING_METHODS_FILE, tradingFile);
                 log.green ('Transpiled trading methods to', (BASE_TRADING_METHODS_FILE as any).yellow)
             }
@@ -2423,10 +3129,9 @@ class NewTranspiler {
         const jsDelimiter = '// ' + delimiter
         const parts = baseClass.split (jsDelimiter)
         if (parts.length > 1) {
-            // fetchOrderBook erases to the same object-typed signature as the BaseExchange virtual
-            // and must be emitted as an override to avoid hiding it, warning CS0114, see
-            // https://github.com/ccxt/ccxt/pull/29695
-            const baseMethods = parts[1].replaceAll('public async virtual Task<object> fetchOrderBook(object outcome', 'public async override Task<object> fetchOrderBook(object outcome')
+            // fetchOrderBook lives on the Exchange / PredictionExchange siblings, not on
+            // BaseExchange, so the prediction declaration is virtual (not override).
+            const baseMethods = parts[1];
             const fields = [
                 '    public PredictionExchange(object args = null) : base(args) {}',
                 '',
@@ -2442,15 +3147,8 @@ class NewTranspiler {
                 this.createGeneratedHeader().join('\n'),
                 "public partial class PredictionExchange : BaseExchange\n{\n\n"
             ]).join("\n");
-            // typed wrappers (Task<PredictionTrade> etc.) emitted as a second partial so a prediction
-            // venue that does NOT override a unified method still exposes the prediction-typed signature
-            // instead of inheriting the crypto-typed wrapper from Exchange.Wrappers.cs
-            const prevIsPrediction = this.isPrediction;
-            this.isPrediction = true;
-            const typedWrappers = (baseFile.methodsTypes || []).map((w: any) => this.createWrapper('PredictionExchange', w)).filter((w: string) => w !== '').join('\n');
-            this.isPrediction = prevIsPrediction;
-            const wrapperPartial = '\n\npublic partial class PredictionExchange\n{\n' + typedWrappers + '\n}\n';
-            const file = fileHeader + fields + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (baseMethods, true))), true) + "\n" + wrapperPartial;
+            // method wrappers retired: PascalCase cores on PredictionExchange are the public API
+            const file = fileHeader + fields + this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (baseMethods), true)))), true) + "\n";
             fs.writeFileSync (predictionBase, file);
             this._predictionBaseWritten = true;
             log.green ('Transpiled prediction base methods to', (predictionBase as any).yellow)
@@ -2623,7 +3321,7 @@ class NewTranspiler {
         const maxThreads = csharpWorkerThreads ();
         if (!this.piscina) {
             this.piscina = new Piscina({
-                filename: resolve(__dirname, 'csharp-worker.js'),
+                filename: resolve(__dirname, 'csharp-worker.ts'),
                 maxThreads,
             });
         }
@@ -2631,7 +3329,7 @@ class NewTranspiler {
         const configKey = JSON.stringify (parserConfig);
 
         // One file per task. `roots` is the FULL stage list on every task so each worker
-        // builds ONE sticky ts.Program (build/worker-program-batch.js) and prints off it.
+        // builds ONE sticky ts.Program (build/worker-program-batch.ts) and prints off it.
         const promises: any = [];
         const now = Date.now();
         for (const file of allFiles) {
@@ -2689,9 +3387,10 @@ class NewTranspiler {
         }
 
         // the wrapper folder is needed up front: a skipped exchange must have BOTH its
-        // transpiled class and its wrapper already up to date
+        // transpiled class and its wrapper already up to date. ws/prediction-ws aliases
+        // live in one consolidated file, so only the REST tiers have a folder stamp.
         const wrapperFolder = ws
-            ? (this.isPrediction ? EXCHANGE_PREDICTION_WS_WRAPPER_FOLDER : EXCHANGE_WS_WRAPPER_FOLDER)
+            ? undefined
             : (this.isPrediction ? EXCHANGE_PREDICTION_WRAPPER_FOLDER : EXCHANGE_WRAPPER_FOLDER);
 
         // incremental gate (same rule as the Python/PHP pass in build/transpile.ts):
@@ -2730,14 +3429,17 @@ class NewTranspiler {
                 const path = wrapperFolder + exchangeName + '.cs';
                 this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes)
             }
-        } else {
-            //
-            for (let i = 0; i < transpiledFiles.length; i++) {
-                const transpiled = transpiledFiles[i];
-                const exchangeName = exchangeFiles[i].replace('.ts','');
-                const path = wrapperFolder + exchangeName + '.cs';
-                this.createCSharpWrappers(exchangeName, path, transpiled.methodsTypes, true)
+        }
+        // ws / prediction-ws class aliases are written once, from the full id list, so a
+        // scoped run cannot truncate the file to just the exchanges it transpiled
+        if (ws) {
+            if (this.isPrediction) {
+                this.createClassAliasFile (predictionWsIds, PREDICTION_WS_CLASS_ALIAS_FILE, this.getNamespace (true));
+            } else {
+                this.createClassAliasFile (wsIds, WS_CLASS_ALIAS_FILE, this.getNamespace (true));
             }
+        } else if (this.isPrediction) {
+            this.createClassAliasFile (predictionIds, PREDICTION_CLASS_ALIAS_FILE, this.getNamespace (false));
         }
         exchangeFiles.map ((file: string, idx: number) => this.transpileDerivedExchangeFile (jsFolder, file, options, transpiledFiles[idx], force, ws, prediction))
 
@@ -2778,7 +3480,16 @@ class NewTranspiler {
             // (client → WebSocketClient, orderbook casts, append/resolve, ...) apply here too
             content = this.regexAll (content, this.getWsRegexes());
         }
-        content = this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCores (content))));
+        const classDecl = /public partial class (\w+) : ([\w.]+)/.exec (content);
+        if (classDecl) {
+            this.currentVenue = classDecl[1];
+            const parent = classDecl[2].split ('.').pop () as string;
+            if (parent !== 'Exchange' && parent !== 'PredictionExchange' && parent !== this.currentVenue) {
+                this.venueParents[this.currentVenue] = parent;
+            }
+        }
+        content = this.pascalizeTypedCores (this.castCoreArgCallSites (this.typeCoreArgs (this.typeCollectionReturns (this.typeCores (this.typeSyncCores (content))))));
+        this.currentVenue = '';
         content = this.createGeneratedHeader().join('\n') + '\n' + content;
         return csharpImports + content;
     }
@@ -3243,10 +3954,12 @@ class NewTranspiler {
             }
 
             contentIndentend = this.regexAll (contentIndentend, regexes)
+            // narrowed core parameters (`string code`, `string timeframe`) also need an explicit
+            // cast in tests: REST tests route only the awaited `await exchange.X(` calls through
+            // invokeExchangeDynamically, so synchronous helpers (currency, parseOHLCVs, ...) stay
+            // static calls against `BaseExchange`; WS tests bind statically throughout.
+            contentIndentend = this.castCoreArgCallSites (contentIndentend, [ 'exchange.' ]);
             if (isWs) {
-                // WS tests bind the unified methods statically (no `dynamic` hop), so a core
-                // parameter narrowed to `string` needs the same explicit cast the cores get
-                contentIndentend = this.castCoreArgCallSites (contentIndentend, [ 'exchange.' ]);
                 contentIndentend = this.pascalizeTypedCores (contentIndentend, false, [ 'exchange.' ], false);
                 // must run last: it matches the PascalCase names the previous pass produced
                 contentIndentend = this.detypeWsTypedCoreCalls (contentIndentend);

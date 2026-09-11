@@ -326,3 +326,13 @@ func (this *CoinmateCore) PrivatePostUnconfirmedSolDeposits(args ...any) <-chan 
 func (this *CoinmateCore) PrivatePostBankWireWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBankWireWithdrawal", args...)
 }
+
+// PrivatePostLightningDeposit returns a channel that yields a JSON object.
+func (this *CoinmateCore) PrivatePostLightningDeposit(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLightningDeposit", args...)
+}
+
+// PrivatePostLightningWithdraw returns a channel that yields a JSON object.
+func (this *CoinmateCore) PrivatePostLightningWithdraw(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostLightningWithdraw", args...)
+}

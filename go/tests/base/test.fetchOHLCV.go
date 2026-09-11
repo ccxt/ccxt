@@ -21,7 +21,7 @@ func testFetchOHLCVBody(ch chan any, exchange ccxt.ICoreExchange, skippedPropert
 	if !IsTrue(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
 		chosenTimeframeKey = GetValue(timeframeKeys, 0)
 	}
-	var limit any = 10
+	var limit int = 10
 	var duration any = exchange.ParseTimeframe(chosenTimeframeKey)
 	var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
 

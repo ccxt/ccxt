@@ -14,11 +14,11 @@ public partial class BaseTest
             });
             Assert(isGreaterThan(exchange.milliseconds(), 0), "go transpiler workaround");
             // @SKIP_START_GO
-            object bids = new List<object>() {new List<object>() {789.1, 111.05}, new List<object>() {789.1, 111.05}, new List<object>() {123.3, 456.2}, new List<object>() {784.2, 111.05}, new List<object>() {789.1, 111.05}};
-            object expectedBids = new List<object>() {new List<object>() {123.3, 456.2}, new List<object>() {784.2, 111.05}, new List<object>() {789.1, 333.15}};
+            List<object> bids = new List<object>() {new List<object>() {789.1, 111.05}, new List<object>() {789.1, 111.05}, new List<object>() {123.3, 456.2}, new List<object>() {784.2, 111.05}, new List<object>() {789.1, 111.05}};
+            List<object> expectedBids = new List<object>() {new List<object>() {123.3, 456.2}, new List<object>() {784.2, 111.05}, new List<object>() {789.1, 333.15}};
             AssertDeepEqual(exchange, null, "aggregate", exchange.aggregate(exchange.sortBy(bids, 0)), expectedBids);
-            object asks = new List<object>() {new List<object>() {123.2, 456.2}, new List<object>() {784.2, 222.44}, new List<object>() {789.1, 111.01}};
-            object expectedAsks = new List<object>() {new List<object>() {123.2, 456.2}, new List<object>() {784.2, 222.44}, new List<object>() {789.1, 111.01}};
+            List<object> asks = new List<object>() {new List<object>() {123.2, 456.2}, new List<object>() {784.2, 222.44}, new List<object>() {789.1, 111.01}};
+            List<object> expectedAsks = new List<object>() {new List<object>() {123.2, 456.2}, new List<object>() {784.2, 222.44}, new List<object>() {789.1, 111.01}};
             AssertDeepEqual(exchange, null, "aggregate", exchange.aggregate(exchange.sortBy(asks, 0)), expectedAsks);
             AssertDeepEqual(exchange, null, "aggregate", exchange.aggregate(new List<object>() {}), new List<object>() {});
             // Test 1: Simple aggregation - same price combined

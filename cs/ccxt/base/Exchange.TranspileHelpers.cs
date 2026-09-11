@@ -54,6 +54,48 @@ public partial class BaseExchange
         return a;
     }
 
+    // Typed counterparts for locals the transpiler declares as `int` / `Int64` / `double`
+    // (for-loop counters and numeric locals). A `ref` argument binds only to its exact
+    // type, so `ref int` never competes with the `ref object` overload above. The
+    // arithmetic is the same unchecked `+ 1` / `- 1` the `object` overload applies to an
+    // int / Int64 / double box, and the return value is the incremented value exactly as
+    // above (it is only ever discarded).
+    public static int postFixIncrement(ref int a)
+    {
+        a = a + 1;
+        return a;
+    }
+
+    public static Int64 postFixIncrement(ref Int64 a)
+    {
+        a = a + 1;
+        return a;
+    }
+
+    public static double postFixIncrement(ref double a)
+    {
+        a = a + 1;
+        return a;
+    }
+
+    public static int postFixDecrement(ref int a)
+    {
+        a = a - 1;
+        return a;
+    }
+
+    public static Int64 postFixDecrement(ref Int64 a)
+    {
+        a = a - 1;
+        return a;
+    }
+
+    public static double postFixDecrement(ref double a)
+    {
+        a = a - 1;
+        return a;
+    }
+
     public static object postFixDecrement(ref object a)
     {
 
@@ -102,6 +144,28 @@ public partial class BaseExchange
         return a;
     }
 
+    // Typed counterparts for prefix `-x` on locals the transpiler declares as `int` /
+    // `Int64` / `double`: `a = -a` is the same unchecked negation the object overload
+    // applies to the box (wrapping at the value type's minimum), and the return value is
+    // the same boxed numeric value it returns.
+    public static int prefixUnaryNeg(ref int a)
+    {
+        a = -a;
+        return a;
+    }
+
+    public static Int64 prefixUnaryNeg(ref Int64 a)
+    {
+        a = -a;
+        return a;
+    }
+
+    public static double prefixUnaryNeg(ref double a)
+    {
+        a = -a;
+        return a;
+    }
+
     public static object prefixUnaryPlus(ref object a)
     {
         if (a.GetType() == typeof(Int64))
@@ -127,34 +191,23 @@ public partial class BaseExchange
         return a;
     }
 
-    public static object plusEqual(object a, object value)
+    // Same typed counterparts for prefix `+x`: `a = +a` is the identity the object
+    // overload applies to the box, with the same return value.
+    public static int prefixUnaryPlus(ref int a)
     {
+        a = +a;
+        return a;
+    }
 
-        a = normalizeIntIfNeeded(a);
-        value = normalizeIntIfNeeded(value);
+    public static Int64 prefixUnaryPlus(ref Int64 a)
+    {
+        a = +a;
+        return a;
+    }
 
-        if (value == null)
-            return null;
-        if (a.GetType() == typeof(Int64))
-        {
-            a = (Int64)a + (Int64)value;
-        }
-        else if (a.GetType() == typeof(int))
-        {
-            a = (int)a + (int)value;
-        }
-        else if (a.GetType() == typeof(double))
-        {
-            a = (double)a + (double)value;
-        }
-        else if (a.GetType() == typeof(string))
-        {
-            a = (string)a + (string)value;
-        }
-        else
-        {
-            return null;
-        }
+    public static double prefixUnaryPlus(ref double a)
+    {
+        a = +a;
         return a;
     }
 
@@ -403,6 +456,17 @@ public partial class BaseExchange
         }
     }
 
+    // The three `add` overloads MUST agree wherever more than one is applicable, because
+    // the declared type of a generated local picks the overload at compile time:
+    //   add(object, object): null left -> null; null right -> left unchanged
+    //   add(string, string): C# concat: null on either side -> the other side ("" for both)
+    //   add(string, object): was `a + b.ToString()`, a NullReferenceException on a null right;
+    //                        now delegates to add(string, string) so the two string overloads
+    //                        are identical for every input (a string right operand's ToString()
+    //                        is itself; a null right becomes a null string)
+    // A null LEFT still differs between (object,object) [null] and (string,*) [right operand],
+    // which is why build/csharp-local-types.js keeps a string local `object` when it is the
+    // LEFT operand of `+`: only RIGHT operands may be typed (see the proof there).
     public static string add(string a, string b)
     {
         return a + b;
@@ -410,7 +474,7 @@ public partial class BaseExchange
 
     public static string add(string a, object b)
     {
-        return add(a, b.ToString());
+        return add(a, b?.ToString());
     }
 
     // public static string add(object a, string b)
@@ -830,6 +894,18 @@ public partial class BaseExchange
             int parsed = Convert.ToInt32(key);
             return ((List<Int64>)value)[parsed];
         }
+        // List<T> is invariant so List<Dictionary<string, object>> is not IList<object>
+        // and not List<dict> (dict = IDictionary). Re-box through the non-generic IList
+        // the same way toArray / arraySlice do, before the reflection last-resort.
+        else if (value is System.Collections.IList genericList && !(value is System.Collections.IDictionary) && !(value is string))
+        {
+            int parsed = Convert.ToInt32(key);
+            if (parsed < 0 || parsed >= genericList.Count)
+            {
+                return null;
+            }
+            return genericList[parsed];
+        }
         // check this last, avoid reflection
         else if (key.GetType() == typeof(string) && (value.GetType()).GetProperty((string)key) != null)
         {
@@ -904,6 +980,24 @@ public partial class BaseExchange
         return results.ToList();
     }
 
+    // A typed core gathers sibling typed cores (`fetchSpotMarkets` + `fetchSwapMarkets`)
+    // in an untyped promise list, then wants the flattened typed rows back. Awaiting via
+    // AsTaskOfObject keeps Task<T> invariance out of it; ToXList re-materialises the rows.
+    public static async Task<List<T>> PromiseAllTyped<T>(object promisesObj, Func<object, List<T>> toList)
+    {
+        var results = await PromiseAll(promisesObj);
+        var flat = new List<T>();
+        foreach (var result in results)
+        {
+            var rows = toList(result);
+            if (rows != null)
+            {
+                flat.AddRange(rows);
+            }
+        }
+        return flat;
+    }
+
     // A watch* core hands back the LIVE order book: without a copy the caller keeps
     // mutating with the ws thread. Idempotent, so re-entering an already-typed core
     // (a tail `return await this.watchOrderBook(...)` override) copies only once.
@@ -915,6 +1009,97 @@ public partial class BaseExchange
     public static PredictionOrderBook ToPredictionOrderBookSnapshot(object value)
     {
         return (value is PredictionOrderBook already) ? already : new PredictionOrderBook(ToOrderBookSnapshot(value));
+    }
+
+    public static Dictionary<string, object> ToDict(object value)
+    {
+        return value as Dictionary<string, object>;
+    }
+
+    public static List<Dictionary<string, object>> ToDictList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<Dictionary<string, object>> already)
+        {
+            return already;
+        }
+        var rows = (IList<object>)values;
+        var result = new List<Dictionary<string, object>>(rows.Count);
+        foreach (var row in rows)
+        {
+            result.Add(row as Dictionary<string, object>);
+        }
+        return result;
+    }
+
+    public static Int64 ToInt64Value(object value)
+    {
+        return ToInt64ArgRequired(value);
+    }
+
+    public static string ToStringValue(object value)
+    {
+        // a string-typed core may tail-return a numeric id read off user params
+        // (htx fetchAccountIdByType); stringify primitives instead of nulling them
+        if (value is string s)
+        {
+            return s;
+        }
+        if (value is Int64 || value is int || value is double || value is decimal || value is float)
+        {
+            return Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture);
+        }
+        return null;
+    }
+
+    // a `Promise<string[]>` core (fetchUnderlyingAssets, fetchOptionUnderlyings) hands back
+    // a `List<object>` of strings from the generated body; project it to `List<string>`
+    public static List<string> ToStringList(object values)
+    {
+        if (values == null)
+        {
+            return null;
+        }
+        if (values is List<string> already)
+        {
+            return already;
+        }
+        var result = new List<string>();
+        foreach (var item in (System.Collections.IEnumerable)values)
+        {
+            result.Add(ToStringValue(item));
+        }
+        return result;
+    }
+
+    // the generated helpers (getValue / getArrayLength / safeString) already read
+    // List<string> by index, so the reverse is a pass-through
+    public static object FromStringList(object values)
+    {
+        return values;
+    }
+
+    public static object FromDict(object value)
+    {
+        return value;
+    }
+
+    public static object FromDictList(object values)
+    {
+        return values;
+    }
+
+    public static object FromInt64(object value)
+    {
+        return value;
+    }
+
+    public static object FromStringValue(object value)
+    {
+        return value;
     }
 
     public static string toStringOrNull(object value)
@@ -1228,6 +1413,55 @@ public partial class BaseExchange
         foreach (var candle in typed)
         {
             result.Add(new List<object>() { candle.timestamp, candle.open, candle.high, candle.low, candle.close, candle.volume });
+        }
+        return result;
+    }
+
+    // watchOHLCVForSymbols: `{ symbol: { timeframe: OHLCV[] } }`. Not a types.ts struct, so the
+    // generator has no To*/From* pair for it — these two are the hand-written equivalents,
+    // built on ToOHLCVList / FromOHLCVList (see OHLCV_DICT_TYPE in build/csharpTranspiler.ts)
+    public static Dictionary<string, Dictionary<string, List<OHLCV>>> ToOHLCVDict(object value)
+    {
+        if (value == null)
+        {
+            return null;
+        }
+        if (value is Dictionary<string, Dictionary<string, List<OHLCV>>> already)
+        {
+            return already;
+        }
+        var bySymbol = (IDictionary<string, object>)value;
+        var result = new Dictionary<string, Dictionary<string, List<OHLCV>>>(bySymbol.Count);
+        foreach (var symbolEntry in bySymbol)
+        {
+            var byTimeframe = new Dictionary<string, List<OHLCV>>();
+            if (symbolEntry.Value is IDictionary<string, object> timeframes)
+            {
+                foreach (var timeframeEntry in timeframes)
+                {
+                    byTimeframe[timeframeEntry.Key] = ToOHLCVList(timeframeEntry.Value);
+                }
+            }
+            result[symbolEntry.Key] = byTimeframe;
+        }
+        return result;
+    }
+
+    public static object FromOHLCVDict(object value)
+    {
+        if (!(value is Dictionary<string, Dictionary<string, List<OHLCV>>> typed))
+        {
+            return value;
+        }
+        var result = new Dictionary<string, object>(typed.Count);
+        foreach (var symbolEntry in typed)
+        {
+            var byTimeframe = new Dictionary<string, object>(symbolEntry.Value.Count);
+            foreach (var timeframeEntry in symbolEntry.Value)
+            {
+                byTimeframe[timeframeEntry.Key] = FromOHLCVList(timeframeEntry.Value);
+            }
+            result[symbolEntry.Key] = byTimeframe;
         }
         return result;
     }

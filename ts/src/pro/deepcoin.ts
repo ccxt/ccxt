@@ -79,6 +79,14 @@ export default class deepcoin extends deepcoinRest {
             },
             'streaming': {
                 'ping': this.ping,
+                // the public stream drops the connection after 20 s without a
+                // text 'ping' from the client (https://www.deepcoin.com/docs/publicWS/public),
+                // and the base default of 30 s only sends the first one at
+                // 30 s. raw probes: no ping and a 20 s or 25 s cadence all
+                // died at 20.7 s with close 1000 'heartbeat timeout', a 10 s
+                // and a 15 s cadence stayed up. 15 s leaves the widest window
+                // that still fits under the 20 s cut-off
+                'keepAlive': 15000,
             },
         });
     }
@@ -168,16 +176,10 @@ export default class deepcoin extends deepcoinRest {
         this.checkRequiredCredentials ();
         const time = this.milliseconds ();
         // single-flight leader election on a never-dialed client, see
-        // https://github.com/ccxt/ccxt/issues/29393: the key rides the private
-        // ws url query string, so racing acquires mint several keys, the last
-        // write wins the cache and every loser dials a stream keyed to an
-        // orphaned credential that never delivers.
-        // the whole check-then-fetch is the critical section here: the
-        // acquire-vs-extend branch reads the very key and expiry the leader
-        // rewrites. the flight IS the entry in client.futures - registered
-        // before the first fetch and settled through client.resolve /
-        // client.reject, so every mutation of that registry happens inside the
-        // client, which is what keeps the go port's map access under one lock
+        // https://github.com/ccxt/ccxt/issues/29393: the key rides the private ws url query string, so racing
+        // acquires would mint several keys and losers dial streams keyed to orphaned credentials. the whole
+        // check-then-fetch (acquire vs extend) is the critical section; the flight IS the client.futures entry,
+        // settled through client.resolve / client.reject so the registry is only mutated inside the client (one lock in go)
         const messageHash = 'authenticate';
         const client = this.client ('authenticationFlights');
         if (messageHash in client.futures) {

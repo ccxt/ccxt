@@ -111,3 +111,23 @@ func (this *MercadoCore) V4PublicGetCoinCandle(args ...any) <-chan any {
 func (this *MercadoCore) V4PublicNetGetCandles(args ...any) <-chan any {
 	return this.callEndpointAsync("v4PublicNetGetCandles", args...)
 }
+
+// V4PrivatePostAccounts returns a channel that yields a JSON object.
+func (this *MercadoCore) V4PrivatePostAccounts(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostAccounts", args...)
+}
+
+// V4PrivatePostAccountsAccountIdSymbolTransfersInternal returns a channel that yields a JSON object.
+func (this *MercadoCore) V4PrivatePostAccountsAccountIdSymbolTransfersInternal(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostAccountsAccountIdSymbolTransfersInternal", args...)
+}
+
+// V4PrivatePostOauth2Token returns a channel that yields a JSON object.
+func (this *MercadoCore) V4PrivatePostOauth2Token(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePostOauth2Token", args...)
+}
+
+// V4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId returns a channel that yields a JSON object.
+func (this *MercadoCore) V4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId(args ...any) <-chan any {
+	return this.callEndpointAsync("v4PrivatePatchAccountsAccountIdWalletSymbolDepositsDepositId", args...)
+}

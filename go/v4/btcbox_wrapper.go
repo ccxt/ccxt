@@ -454,7 +454,7 @@ func (this *Btcbox) EditOrders(orders []OrderRequest, options ...EditOrdersOptio
 func (this *Btcbox) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Btcbox) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Btcbox) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Btcbox) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -499,7 +499,7 @@ func (this *Btcbox) FetchDepositAddress(code string, options ...FetchDepositAddr
 func (this *Btcbox) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Btcbox) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Btcbox) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Btcbox) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

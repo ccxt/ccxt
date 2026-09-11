@@ -284,6 +284,28 @@ public class WoofiproApi extends Exchange
     }
 
     /**
+     * Calls the v1PublicGetPublicPointsRankings endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetPublicPointsRankings (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PublicGetPublicPointsRankings", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PublicGetPublicPointsStages endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetPublicPointsStages (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PublicGetPublicPointsStages", optionalArgs);
+    }
+
+    /**
      * Calls the v1PublicGetPublicReferralCheckRefCode endpoint.
      *
      * @param optionalArgs the request parameters
@@ -427,6 +449,17 @@ public class WoofiproApi extends Exchange
     }
 
     /**
+     * Calls the v1PublicGetTvKlineHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetTvKlineHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PublicGetTvKlineHistory", optionalArgs);
+    }
+
+    /**
      * Calls the v1PublicGetPublicFundingRateHistory endpoint.
      *
      * @param optionalArgs the request parameters
@@ -523,6 +556,39 @@ public class WoofiproApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetPublicFuturesSymbol (Object... optionalArgs)
     {
         return this.callAsync ("v1PublicGetPublicFuturesSymbol", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PublicGetStakingValor2BatchInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetStakingValor2BatchInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PublicGetStakingValor2BatchInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PublicGetStakingValor2PoolInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetStakingValor2PoolInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PublicGetStakingValor2PoolInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PublicGetStakingValor2RevenueBuyback endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PublicGetStakingValor2RevenueBuyback (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PublicGetStakingValor2RevenueBuyback", optionalArgs);
     }
 
     /**
@@ -724,6 +790,17 @@ public class WoofiproApi extends Exchange
     }
 
     /**
+     * Calls the v1PrivateGetTransferNonce endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetTransferNonce (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetTransferNonce", optionalArgs);
+    }
+
+    /**
      * Calls the v1PrivateGetPnlSettlementHistory endpoint.
      *
      * @param optionalArgs the request parameters
@@ -878,6 +955,17 @@ public class WoofiproApi extends Exchange
     }
 
     /**
+     * Calls the v1PrivateGetBrokerDailyFeeRevenue endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetBrokerDailyFeeRevenue (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetBrokerDailyFeeRevenue", optionalArgs);
+    }
+
+    /**
      * Calls the v1PrivateGetOrderbookSymbol endpoint.
      *
      * @param optionalArgs the request parameters
@@ -908,6 +996,138 @@ public class WoofiproApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetClientMarginModes (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateGetClientMarginModes", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetClientLeverages endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetClientLeverages (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetClientLeverages", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetClientPointsUserStatistics endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetClientPointsUserStatistics (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetClientPointsUserStatistics", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetStakingValor2Redeem endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetStakingValor2Redeem (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetStakingValor2Redeem", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetReferralMultiLevelAdmin endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetReferralMultiLevelAdmin (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetReferralMultiLevelAdmin", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetReferralMultiLevelAdminInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetReferralMultiLevelAdminInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetReferralMultiLevelAdminInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetReferralMultiLevelAdminRefereeList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetReferralMultiLevelAdminRefereeList (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetReferralMultiLevelAdminRefereeList", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetReferralMultiLevelAdminSummary endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetReferralMultiLevelAdminSummary (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetReferralMultiLevelAdminSummary", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetReferralMultiLevelMaxRebateRate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetReferralMultiLevelMaxRebateRate (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetReferralMultiLevelMaxRebateRate", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetReferralMultiLevelRebateInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetReferralMultiLevelRebateInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetReferralMultiLevelRebateInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetReferralMultiLevelRefereeList endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetReferralMultiLevelRefereeList (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetReferralMultiLevelRefereeList", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetReferralMultiLevelStatistics endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetReferralMultiLevelStatistics (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetReferralMultiLevelStatistics", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivateGetReferralMultiLevelVolumePrerequisite endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateGetReferralMultiLevelVolumePrerequisite (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivateGetReferralMultiLevelVolumePrerequisite", optionalArgs);
     }
 
     /**
@@ -1051,6 +1271,17 @@ public class WoofiproApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostClientLeverage (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivatePostClientLeverage", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostClientLeverages endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostClientLeverages (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostClientLeverages", optionalArgs);
     }
 
     /**
@@ -1208,6 +1439,105 @@ public class WoofiproApi extends Exchange
     }
 
     /**
+     * Calls the v1PrivatePostReferralEditRefereeDescription endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostReferralEditRefereeDescription (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostReferralEditRefereeDescription", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostReferralMultiLevelAdmin endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostReferralMultiLevelAdmin (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostReferralMultiLevelAdmin", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostReferralMultiLevelAdminCreateAffiliate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostReferralMultiLevelAdminCreateAffiliate (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostReferralMultiLevelAdminCreateAffiliate", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostReferralMultiLevelAdminResetAffiliate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostReferralMultiLevelAdminResetAffiliate (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostReferralMultiLevelAdminResetAffiliate", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostReferralMultiLevelAdminUpdate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostReferralMultiLevelAdminUpdate (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostReferralMultiLevelAdminUpdate", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostReferralMultiLevelAdminUpdateAffiliate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostReferralMultiLevelAdminUpdateAffiliate (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostReferralMultiLevelAdminUpdateAffiliate", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostReferralMultiLevelClaimCode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostReferralMultiLevelClaimCode (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostReferralMultiLevelClaimCode", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostReferralMultiLevelRebateRateSetDefault endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostReferralMultiLevelRebateRateSetDefault (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostReferralMultiLevelRebateRateSetDefault", optionalArgs);
+    }
+
+    /**
+     * Calls the v1PrivatePostReferralMultiLevelRebateRateUpdate endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivatePostReferralMultiLevelRebateRateUpdate (Object... optionalArgs)
+    {
+        return this.callAsync ("v1PrivatePostReferralMultiLevelRebateRateUpdate", optionalArgs);
+    }
+
+    /**
      * Calls the v1PrivatePutOrder endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1315,6 +1645,17 @@ public class WoofiproApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v1PrivateDeleteClientBatchOrder (Object... optionalArgs)
     {
         return this.callAsync ("v1PrivateDeleteClientBatchOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the v2PrivatePostInternalTransfer endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PrivatePostInternalTransfer (Object... optionalArgs)
+    {
+        return this.callAsync ("v2PrivatePostInternalTransfer", optionalArgs);
     }
 
 }

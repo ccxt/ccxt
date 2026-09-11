@@ -1,5 +1,5 @@
 import Exchange from './abstract/paradex.js';
-import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, NullableDict, Status } from './base/types.js';
+import type { Str, Num, Dict, Int, Market, OrderType, OrderSide, Order, OrderBook, Strings, Ticker, Tickers, Trade, Balances, Currency, Transaction, OHLCV, Position, int, MarginMode, Leverage, Greeks, FundingRate, FundingRates, FundingRateHistory, FundingHistory, Liquidation, TradingFeeInterface, TradingFees, TransferEntry, OrderRequest, NullableDict, Status, AllGreeks } from './base/types.js';
 /**
  * @class paradex
  * @description Paradex is a decentralized exchange built on the StarkWare layer 2 scaling solution. To access private methods you can either use the ETH public key and private key by setting (exchange.privateKey and exchange.walletAddress)
@@ -93,6 +93,27 @@ export default class paradex extends Exchange {
      */
     fetchTicker(symbol: string, params?: {}): Promise<Ticker>;
     parseTicker(ticker: Dict, market?: Market): Ticker;
+    /**
+     * @method
+     * @name paradex#fetchFundingRates
+     * @description fetches the current funding rate for multiple markets
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    fetchFundingRates(symbols?: Strings, params?: {}): Promise<FundingRates>;
+    /**
+     * @method
+     * @name paradex#fetchFundingRate
+     * @description fetches the current funding rate
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    fetchFundingRate(symbol: string, params?: {}): Promise<FundingRate>;
+    parseFundingRate(contract: any, market?: Market): FundingRate;
     /**
      * @method
      * @name paradex#fetchOrderBook
@@ -449,9 +470,9 @@ export default class paradex extends Exchange {
      * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    fetchAllGreeks(symbols?: Strings, params?: {}): Promise<Greeks[]>;
+    fetchAllGreeks(symbols?: Strings, params?: {}): Promise<AllGreeks>;
     parseGreeks(greeks: Dict, market?: Market): Greeks;
     /**
      * @method

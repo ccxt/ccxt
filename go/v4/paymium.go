@@ -105,6 +105,9 @@ func (this *PaymiumCore) Describe() any {
 					"user/price_alerts": map[string]any{
 						"cost": 1,
 					},
+					"user/withdrawals": map[string]any{
+						"cost": 1,
+					},
 					"merchant/get_payment/{uuid}": map[string]any{
 						"cost": 1,
 					},
@@ -249,8 +252,8 @@ func (this *PaymiumCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes18912 := (<-this.LoadMarkets())
-		PanicOnError(retRes18912)
+		retRes19012 := (<-this.LoadMarkets())
+		PanicOnError(retRes19012)
 	}
 
 	response := (<-this.PrivateGetUser(params))
@@ -284,8 +287,8 @@ func (this *PaymiumCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes20712 := (<-this.LoadMarkets())
-		PanicOnError(retRes20712)
+		retRes20812 := (<-this.LoadMarkets())
+		PanicOnError(retRes20812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -370,8 +373,8 @@ func (this *PaymiumCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes27712 := (<-this.LoadMarkets())
-		PanicOnError(retRes27712)
+		retRes27812 := (<-this.LoadMarkets())
+		PanicOnError(retRes27812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -456,8 +459,8 @@ func (this *PaymiumCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes34312 := (<-this.LoadMarkets())
-		PanicOnError(retRes34312)
+		retRes34412 := (<-this.LoadMarkets())
+		PanicOnError(retRes34412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -492,8 +495,8 @@ func (this *PaymiumCore) createDepositAddressBody(ch chan any, code any, optiona
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes36412 := (<-this.LoadMarkets())
-		PanicOnError(retRes36412)
+		retRes36512 := (<-this.LoadMarkets())
+		PanicOnError(retRes36512)
 	}
 
 	response := (<-this.PrivatePostUserAddresses(params))
@@ -532,8 +535,8 @@ func (this *PaymiumCore) fetchDepositAddressBody(ch chan any, code any, optional
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes38912 := (<-this.LoadMarkets())
-		PanicOnError(retRes38912)
+		retRes39012 := (<-this.LoadMarkets())
+		PanicOnError(retRes39012)
 	}
 	var request map[string]any = map[string]any{
 		"address": code,
@@ -577,8 +580,8 @@ func (this *PaymiumCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes41712 := (<-this.LoadMarkets())
-		PanicOnError(retRes41712)
+		retRes41812 := (<-this.LoadMarkets())
+		PanicOnError(retRes41812)
 	}
 
 	response := (<-this.PrivateGetUserAddresses(params))
@@ -646,8 +649,8 @@ func (this *PaymiumCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes46812 := (<-this.LoadMarkets())
-		PanicOnError(retRes46812)
+		retRes46912 := (<-this.LoadMarkets())
+		PanicOnError(retRes46912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -729,8 +732,8 @@ func (this *PaymiumCore) transferBody(ch chan any, code any, amount any, fromAcc
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes52112 := (<-this.LoadMarkets())
-		PanicOnError(retRes52112)
+		retRes52212 := (<-this.LoadMarkets())
+		PanicOnError(retRes52212)
 	}
 	var currency any = this.Currency(code)
 	if IsTrue(IsLessThan(GetIndexOf(toAccount, "@"), 0)) {
@@ -875,7 +878,7 @@ func (this *PaymiumCore) Sign(path any, optionalArgs ...any) any {
 			}
 		} else {
 			if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
-				var queryString any = this.Urlencode(query)
+				var queryString string = this.Urlencode(query)
 				auth = Add(auth, queryString)
 				url = Add(url, Add("?", queryString))
 			}

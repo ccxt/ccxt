@@ -7,7 +7,7 @@ from ccxt.async_support.base.exchange import Exchange
 from ccxt.abstract.bybit import ImplicitAPI
 import asyncio
 import hashlib
-from ccxt.base.types import ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, FundingHistory, Greeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
+from ccxt.base.types import ADL, Balances, BorrowInterest, Conversion, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, FundingHistory, Greeks, AllGreeks, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, Liquidation, LongShortRatio, MarginMode, MarginLoan, Market, Num, Option, OptionChain, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Status, Str, Strings, Ticker, Tickers, FundingRate, OpenInterest, FundingRates, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction, MarketInterface, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -286,6 +286,13 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/ins-loan/ensure-tokens-convert': {'cost': 5},
                         # earn
                         'v5/earn/product': {'cost': 5},
+                        # spot-x
+                        'v5/spot-x/launchpool/project/list': {'cost': 5},
+                        'v5/spot-x/puzzle/project/list': {'cost': 5},
+                        'v5/spot-x/token-splash/project/list': {'cost': 5},
+                        # event trading
+                        'v5/event/instruments-info': {'cost': 5},
+                        'v5/event/orderbook': {'cost': 5},
                     },
                 },
                 'private': {
@@ -435,6 +442,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/user/submembers': {'cost': 5},
                         'v5/user/escrow_sub_members': {'cost': 5},
                         'v5/user/invitation/referrals': {'cost': 5},
+                        'v5/user/invitation/code': {'cost': 5},
                         # affilate
                         'v5/affiliate/aff-user-list': {'cost': 5},
                         'v5/affiliate/affiliate-sub-list': {'cost': 5},
@@ -442,6 +450,7 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/spot-lever-token/order-record': {'cost': 1},  # 50/s => cost = 50 / 50 = 1
                         # spot margin trade
                         'v5/spot-margin-trade/flexible-available-inventory': {'cost': 5},
+                        'v5/spot-margin-trade/fixed-available-inventory': {'cost': 5},
                         'v5/spot-margin-trade/interest-rate-history': {'cost': 5},
                         'v5/spot-margin-trade/state': {'cost': 5},
                         'v5/spot-margin-trade/max-borrowable': {'cost': 5},
@@ -478,6 +487,8 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/crypto-loan-fixed/renew-info': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
                         'v5/crypto-loan-fixed/supply-order-info': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
                         'v5/crypto-loan-fixed/repayment-history': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/available-inventory': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/available-inventory': {'cost': 10},  # 5/s => cost = 50 / 5 = 10
                         # institutional lending
                         'v5/ins-loan/product-infos': {'cost': 5},
                         'v5/ins-loan/ensure-tokens': {'cost': 5},  # deprecated
@@ -502,6 +513,21 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/earn/position': {'cost': 5},
                         'v5/earn/yield': {'cost': 5},
                         'v5/earn/hourly-yield': {'cost': 5},
+                        # event trading
+                        'v5/event/order-realtime': {'cost': 5},
+                        'v5/event/order-list': {'cost': 5},
+                        'v5/event/positions': {'cost': 5},
+                        'v5/event/trades': {'cost': 5},
+                        'v5/event/settlements': {'cost': 5},
+                        # spot-x
+                        'v5/spot-x/launchpool/user/current-staking': {'cost': 5},
+                        'v5/spot-x/token-splash/user/activity-params': {'cost': 5},
+                        # rfq
+                        'v5/rfq/rfq-detail-list': {'cost': 5},
+                        # alpha prediction market
+                        'v5/alpha/prediction/engine-status': {'cost': 5},
+                        'v5/alpha/prediction/pay-token-list': {'cost': 5},
+                        'v5/alpha/prediction/sports/timeline-stages': {'cost': 5},
                     },
                     'post': {
                         # spot
@@ -669,6 +695,27 @@ class bybit(Exchange, ImplicitAPI):
                         'v5/broker/award/distribution-record': {'cost': 5},
                         # earn
                         'v5/earn/place-order': {'cost': 5},
+                        # event trading
+                        'v5/event/quotes': {'cost': 5},
+                        'v5/event/cancel': {'cost': 5},
+                        # spot-x
+                        'v5/spot-x/launchpool/user/activity-log': {'cost': 5},
+                        'v5/spot-x/launchpool/user/history': {'cost': 5},
+                        # alpha prediction market
+                        'v5/alpha/prediction/event-detail': {'cost': 5},
+                        'v5/alpha/prediction/order-estimate': {'cost': 5},
+                        'v5/alpha/prediction/buy': {'cost': 5},
+                        'v5/alpha/prediction/sell': {'cost': 5},
+                        'v5/alpha/prediction/order-list': {'cost': 5},
+                        'v5/alpha/prediction/order-book': {'cost': 5},
+                        'v5/alpha/prediction/token-price': {'cost': 5},
+                        'v5/alpha/prediction/price-history': {'cost': 5},
+                        'v5/alpha/prediction/position-list': {'cost': 5},
+                        'v5/alpha/prediction/position-history': {'cost': 5},
+                        'v5/alpha/prediction/portfolio-summary': {'cost': 5},
+                        'v5/alpha/prediction/side-market-list': {'cost': 5},
+                        'v5/alpha/prediction/sports/match-list': {'cost': 5},
+                        'v5/alpha/prediction/sports/group-stage-detail': {'cost': 5},
                     },
                 },
             },
@@ -764,7 +811,7 @@ class bybit(Exchange, ImplicitAPI):
                     '110045': InsufficientFunds,  # Insufficient wallet balance
                     '110046': BadRequest,  # Any adjustments made will trigger immediate liquidation
                     '110047': BadRequest,  # Risk limit cannot be adjusted due to insufficient available margin
-                    '110048': BadRequest,  # Risk limit cannot be adjusted current/expected position value held exceeds the revised risk limit
+                    '110048': BadRequest,  # Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
                     '110049': BadRequest,  # Tick notes can only be numbers
                     '110050': BadRequest,  # Coin is not in the range of selected
                     '110051': InsufficientFunds,  # The user's available balance cannot cover the lowest price of the current market
@@ -809,7 +856,7 @@ class bybit(Exchange, ImplicitAPI):
                     '131208': ExchangeError,  # Forbid transfer
                     '131209': BadRequest,  # Get subMember relation error
                     '131210': BadRequest,  # Amount accuracy error
-                    '131211': BadRequest,  # fromAccountType can't be the same
+                    '131211': BadRequest,  # fromAccountType can't be the same as toAccountType
                     '131212': InsufficientFunds,  # Insufficient balance
                     '131213': BadRequest,  # TransferLTV check error
                     '131214': BadRequest,  # TransferId exist
@@ -881,7 +928,7 @@ class bybit(Exchange, ImplicitAPI):
                     '140045': InsufficientFunds,  # Insufficient wallet balance
                     '140046': BadRequest,  # Any adjustments made will trigger immediate liquidation
                     '140047': BadRequest,  # Risk limit cannot be adjusted due to insufficient available margin
-                    '140048': BadRequest,  # Risk limit cannot be adjusted current/expected position value held exceeds the revised risk limit
+                    '140048': BadRequest,  # Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
                     '140049': BadRequest,  # Tick notes can only be numbers
                     '140050': InvalidOrder,  # Coin is not in the range of selected
                     '140051': InsufficientFunds,  # The user's available balance cannot cover the lowest price of the current market
@@ -1075,8 +1122,8 @@ class bybit(Exchange, ImplicitAPI):
                     '30008': InvalidOrder,  # invalid order_type
                     '30009': ExchangeError,  # no position found
                     '30010': InsufficientFunds,  # insufficient wallet balance
-                    '30011': PermissionDenied,  # operation not allowed is undergoing liquidation
-                    '30012': PermissionDenied,  # operation not allowed is undergoing ADL
+                    '30011': PermissionDenied,  # operation not allowed as position is undergoing liquidation
+                    '30012': PermissionDenied,  # operation not allowed as position is undergoing ADL
                     '30013': PermissionDenied,  # position is in liq or adl status
                     '30014': InvalidOrder,  # invalid closing order, qty should not greater than size
                     '30015': InvalidOrder,  # invalid closing order, side should be opposite
@@ -1104,9 +1151,9 @@ class bybit(Exchange, ImplicitAPI):
                     '30037': InvalidOrder,  # order already cancelled
                     '30041': ExchangeError,  # no position found
                     '30042': InsufficientFunds,  # insufficient wallet balance
-                    '30043': InvalidOrder,  # operation not allowed is undergoing liquidation
-                    '30044': InvalidOrder,  # operation not allowed is undergoing AD
-                    '30045': InvalidOrder,  # operation not allowed is not normal status
+                    '30043': InvalidOrder,  # operation not allowed as position is undergoing liquidation
+                    '30044': InvalidOrder,  # operation not allowed as position is undergoing AD
+                    '30045': InvalidOrder,  # operation not allowed as position is not normal status
                     '30049': InsufficientFunds,  # insufficient available balance
                     '30050': ExchangeError,  # any adjustments made will trigger immediate liquidation
                     '30051': ExchangeError,  # due to risk limit, cannot adjust leverage
@@ -1135,7 +1182,7 @@ class bybit(Exchange, ImplicitAPI):
                     'Request timeout': RequestTimeout,  # {"retCode":10016,"retMsg":"Request timeout, please try again later","result":{},"retExtInfo":{},"time":1675307914985}
                     'unknown orderInfo': OrderNotFound,  # {"ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100}
                     'invalid api_key': AuthenticationError,  # {"ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797"}
-                    # the below two issues are caused: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
+                    # the below two issues are caused as described: issues/9149#issuecomment-1146559498, when response is such:  {"ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100}
                     'oc_diff': InsufficientFunds,
                     'new_oc': InsufficientFunds,
                     'openapi sign params error!': AuthenticationError,  # {"retCode":10001,"retMsg":"empty value: apiTimestamp[] apiKey[] apiSignature[xxxxxxxxxxxxxxxxxxxxxxx]: openapi sign params error!","result":null,"retExtInfo":null,"time":1664789597123}
@@ -2697,7 +2744,7 @@ class bybit(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch orders for
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOHLCV() requires a symbol argument')
@@ -4112,7 +4159,7 @@ class bybit(Exchange, ImplicitAPI):
         endpointIsTradingStop = method == 'privatePostV5PositionTradingStop'
         if (price is None) and (lowerCaseType == 'limit') and not endpointIsTradingStop:
             raise ArgumentsRequired(self.id + ' createOrder requires a price argument for limit orders')
-        # workaround, bcz for some langs we have to allow 0.0(bcz of type)
+        # workaround, bcz for some langs we have to allow 0.0 as input(bcz of type)
         if not Precise.string_gt(self.number_to_string(amount), '0'):
             amount = None
         amountString = self.get_amount(symbol, amount) if (amount is not None) else None
@@ -4163,7 +4210,7 @@ class bybit(Exchange, ImplicitAPI):
         else:
             request['side'] = self.capitalize(side)
             request['orderType'] = self.capitalize(lowerCaseType)
-            timeInForce = self.safe_string_lower(params, 'timeInForce')  # self is same specific param
+            timeInForce = self.safe_string_lower(params, 'timeInForce')  # self is same as exchange specific param
             postOnly = None
             postOnly, params = self.handle_post_only(isMarket, timeInForce == 'postonly', params)
             if postOnly is True:
@@ -5614,7 +5661,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'tag': tag,
         }
 
-    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
+    async def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -6857,7 +6904,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         #     }
         return response
 
-    async def fetch_derivatives_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}):
+    async def fetch_derivatives_open_interest_history(self, symbol: str, timeframe='1h', since: Int = None, limit: Int = None, params={}) -> list[OpenInterest]:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -7167,7 +7214,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         interest = self.parse_borrow_interests(rows)
         return self.filter_by_currency_since_limit(interest, code, since, limit)
 
-    async def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
 
@@ -7811,7 +7858,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         sorted = self.sort_by(settlements, 'timestamp')
         return self.filter_by_symbol_since_limit(sorted, self.safe_string(market, 'symbol'), since, limit)
 
-    async def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    async def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         fetches historical settlement records of the user
 
@@ -7935,7 +7982,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    async def fetch_volatility_history(self, code: str, params={}):
+    async def fetch_volatility_history(self, code: str, params={}) -> list[dict]:
         """
         fetch the historical volatility of an option market based on an underlying asset
 
@@ -8058,7 +8105,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
             'datetime': self.iso8601(timestamp),
         })
 
-    async def fetch_all_greeks(self, symbols: Strings = None, params={}) -> list[Greeks]:
+    async def fetch_all_greeks(self, symbols: Strings = None, params={}) -> AllGreeks:
         """
         fetches all option contracts greeks, financial metrics used to measure the factors that affect the price of an options contract
 
@@ -8067,7 +8114,7 @@ classic accounts only/ spot not supported*  fetches information on an order made
         :param str[] [symbols]: unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.baseCoin]: the baseCoin of the symbol, default is BTC
-        :returns dict: a `greeks structure <https://docs.ccxt.com/?id=greeks-structure>`
+        :returns dict: a dictionary of `greeks structures <https://docs.ccxt.com/?id=greeks-structure>` indexed by market symbol
         """
         if self.markets is None:
             await self.load_markets()

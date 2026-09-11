@@ -26,15 +26,12 @@ dependencies {
 
     testRuntimeOnly("org.junit.platform:junit-platform-launcher")
 
-    // This dependency is exported to consumers, that is to say found on their compile classpath.
-    api(libs.commons.math3)
-
-    // This dependency is used internally, and not exposed to consumers on their own compile classpath.
-    implementation(libs.guava)
-
     implementation(libs.jackson.databind)
 
-    implementation(libs.web3j.crypto)
+    // BouncyCastle for secp256k1 (RFC 6979 ECDSA + recovery id) and keccak-256 —
+    // neither is in the JDK. Was org.web3j:crypto, which is a thin layer over the
+    // same BC calls but drags 15 extra jars (kotlin-stdlib, tuweni, jc-kzg, ...).
+    implementation(libs.bcprov)
 
     // Netty for WebSocket support (high-performance async I/O)
     implementation(libs.netty.codec.http)

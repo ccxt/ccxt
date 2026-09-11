@@ -31,6 +31,14 @@ interface Exchange {
     spotV2PublicGetMarketDepth(params?: {}): Promise<Dict>;
     spotV2PublicGetMarketKline(params?: {}): Promise<Dict>;
     spotV2PublicGetTickerPrice(params?: {}): Promise<Dict>;
+    spotV2PublicGetQuoteBookTicker(params?: {}): Promise<Dict>;
+    spotV2PublicGetQuoteDepth(params?: {}): Promise<Dict>;
+    spotV2PublicGetQuoteHistoricalKlines(params?: {}): Promise<Dict>;
+    spotV2PublicGetQuoteHistoricalTrades(params?: {}): Promise<Dict>;
+    spotV2PublicGetQuoteKlines(params?: {}): Promise<Dict>;
+    spotV2PublicGetQuotePrice(params?: {}): Promise<Dict>;
+    spotV2PublicGetQuoteTicker(params?: {}): Promise<Dict>;
+    spotV2PublicGetQuoteTrades(params?: {}): Promise<Dict>;
     spotV3PrivateGetGetAssetTransfer(params?: {}): Promise<Dict>;
     spotV3PrivateGetAssetTransfer(params?: {}): Promise<Dict>;
     spotV3PrivateGetCapitalDepositHisrec(params?: {}): Promise<List>;
@@ -86,6 +94,7 @@ interface Exchange {
     swapV2PrivateGetTradeAllOrders(params?: {}): Promise<Dict>;
     swapV2PrivateGetTradeAllFillOrders(params?: {}): Promise<Dict>;
     swapV2PrivateGetTradeFillHistory(params?: {}): Promise<Dict>;
+    swapV2PrivateGetTradePositionHistory(params?: {}): Promise<Dict>;
     swapV2PrivateGetUserIncomeExport(params?: {}): Promise<Dict>;
     swapV2PrivateGetUserCommissionRate(params?: {}): Promise<Dict>;
     swapV2PrivateGetQuoteBookTicker(params?: {}): Promise<Dict>;
@@ -127,6 +136,7 @@ interface Exchange {
     cswapV1PrivatePostTradePositionMargin(params?: {}): Promise<Dict>;
     cswapV1PrivateDeleteTradeAllOpenOrders(params?: {}): Promise<Dict>;
     cswapV1PrivateDeleteTradeCancelOrder(params?: {}): Promise<Dict>;
+    cswapV2PrivatePostTradeOrder(params?: {}): Promise<Dict>;
     contractV1PrivateGetAllPosition(params?: {}): Promise<Dict>;
     contractV1PrivateGetAllOrders(params?: {}): Promise<Dict>;
     contractV1PrivateGetBalance(params?: {}): Promise<Dict>;
@@ -189,6 +199,11 @@ interface Exchange {
     agentV1PrivateGetAssetPartnerData(params?: {}): Promise<Dict>;
     agentV1PrivateGetCommissionDataListReferralCode(params?: {}): Promise<Dict>;
     agentV1PrivateGetAccountSuperiorCheck(params?: {}): Promise<Dict>;
+    wealthV1PrivateGetProductDualCurrencyPreOrder(params?: {}): Promise<Dict>;
+    wealthV1PrivateGetProductDualCurrencyPosition(params?: {}): Promise<Dict>;
+    wealthV1PrivateGetProductDualCurrencyOrderRecords(params?: {}): Promise<Dict>;
+    wealthV1PrivatePostProductDualCurrencyInvestAssetList(params?: {}): Promise<Dict>;
+    wealthV1PrivatePostProductDualCurrencyOrder(params?: {}): Promise<Dict>;
 }
 declare abstract class Exchange extends _Exchange {
 }

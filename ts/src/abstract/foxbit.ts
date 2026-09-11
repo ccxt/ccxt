@@ -16,6 +16,8 @@ interface Exchange {
     v3PublicGetMarketsMarketCandlesticks (params?: {}): Promise<List>;
     v3PublicGetMarketsMarketTradesHistory (params?: {}): Promise<Dict>;
     v3PublicGetMarketsMarketTicker24hr (params?: {}): Promise<Dict>;
+    v3PublicGetMarketsSparklineWindow (params?: {}): Promise<Dict>;
+    v3PublicGetTravelRuleOperationReasons (params?: {}): Promise<Dict>;
     v3PrivateGetAccounts (params?: {}): Promise<Dict>;
     v3PrivateGetAccountsSymbolTransactions (params?: {}): Promise<Dict>;
     v3PrivateGetOrders (params?: {}): Promise<Dict>;
@@ -25,10 +27,12 @@ interface Exchange {
     v3PrivateGetDeposits (params?: {}): Promise<Dict>;
     v3PrivateGetWithdrawals (params?: {}): Promise<Dict>;
     v3PrivateGetMeFeesTrading (params?: {}): Promise<Dict>;
+    v3PrivateGetPrimeDeskExecutionsQuoteId (params?: {}): Promise<Dict>;
     v3PrivatePostOrders (params?: {}): Promise<Dict>;
     v3PrivatePostOrdersBatch (params?: {}): Promise<Dict>;
     v3PrivatePostOrdersCancelReplace (params?: {}): Promise<Dict>;
     v3PrivatePostWithdrawals (params?: {}): Promise<Dict>;
+    v3PrivatePostDepositsDepositSnTravelRule (params?: {}): Promise<Dict>;
     v3PrivatePutOrdersCancel (params?: {}): Promise<Dict>;
     statusPublicGetStatus (params?: {}): Promise<Dict>;
 }

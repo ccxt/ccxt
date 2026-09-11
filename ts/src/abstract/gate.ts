@@ -45,6 +45,8 @@ interface Exchange {
     publicFuturesGetSettleIndexConstituentsIndex (params?: {}): Promise<Dict>;
     publicFuturesGetSettleLiqOrders (params?: {}): Promise<List>;
     publicFuturesGetSettleRiskLimitTiers (params?: {}): Promise<List>;
+    publicFuturesGetSettleAdlRiskStates (params?: {}): Promise<List>;
+    publicFuturesPostSettleFundingRates (params?: {}): Promise<List>;
     publicDeliveryGetSettleContracts (params?: {}): Promise<List>;
     publicDeliveryGetSettleContractsContract (params?: {}): Promise<Dict>;
     publicDeliveryGetSettleOrderBook (params?: {}): Promise<Dict>;
@@ -69,6 +71,9 @@ interface Exchange {
     publicEarnGetUniCurrenciesCurrency (params?: {}): Promise<Dict>;
     publicEarnGetDualInvestmentPlan (params?: {}): Promise<List>;
     publicEarnGetStructuredProducts (params?: {}): Promise<List>;
+    publicEarnGetDualProjectRecommend (params?: {}): Promise<List>;
+    publicEarnGetFixedTermProduct (params?: {}): Promise<List>;
+    publicEarnGetFixedTermProductAssetList (params?: {}): Promise<List>;
     publicLoanGetCollateralCurrencies (params?: {}): Promise<List>;
     publicLoanGetMultiCollateralCurrencies (params?: {}): Promise<Dict>;
     publicLoanGetMultiCollateralLtv (params?: {}): Promise<Dict>;
@@ -94,6 +99,7 @@ interface Exchange {
     privateWalletGetSmallBalanceHistory (params?: {}): Promise<List>;
     privateWalletGetPush (params?: {}): Promise<List>;
     privateWalletGetGetLowCapExchangeList (params?: {}): Promise<List>;
+    privateWalletGetTransfers (params?: {}): Promise<Dict>;
     privateWalletPostTransfers (params?: {}): Promise<Dict>;
     privateWalletPostSubAccountTransfers (params?: {}): Promise<Dict>;
     privateWalletPostSubAccountToSubAccount (params?: {}): Promise<Dict>;
@@ -123,11 +129,16 @@ interface Exchange {
     privateUnifiedGetLoanMarginTiers (params?: {}): Promise<List>;
     privateUnifiedGetLeverageUserCurrencyConfig (params?: {}): Promise<Dict>;
     privateUnifiedGetLeverageUserCurrencySetting (params?: {}): Promise<List>;
+    privateUnifiedGetDeltaNeutral (params?: {}): Promise<Dict>;
+    privateUnifiedGetEstimatedQuickRepayment (params?: {}): Promise<Dict>;
     privateUnifiedGetAccountMode (params?: {}): Promise<Dict>;
     privateUnifiedPostLoans (params?: {}): Promise<Dict>;
     privateUnifiedPostPortfolioCalculator (params?: {}): Promise<Dict>;
     privateUnifiedPostLeverageUserCurrencySetting (params?: {}): Promise<List>;
     privateUnifiedPostCollateralCurrencies (params?: {}): Promise<Dict>;
+    privateUnifiedPostDeltaNeutral (params?: {}): Promise<Dict>;
+    privateUnifiedPostLeverageUserSetting (params?: {}): Promise<Dict>;
+    privateUnifiedPostQuickRepayment (params?: {}): Promise<Dict>;
     privateUnifiedPostAccountMode (params?: {}): Promise<Dict>;
     privateUnifiedPutUnifiedMode (params?: {}): Promise<Dict>;
     privateSpotGetFee (params?: {}): Promise<Dict>;
@@ -140,6 +151,8 @@ interface Exchange {
     privateSpotGetMyTrades (params?: {}): Promise<List>;
     privateSpotGetPriceOrders (params?: {}): Promise<List>;
     privateSpotGetPriceOrdersOrderId (params?: {}): Promise<Dict>;
+    privateSpotGetPovOrders (params?: {}): Promise<List>;
+    privateSpotGetPovOrdersOrderId (params?: {}): Promise<Dict>;
     privateSpotPostBatchOrders (params?: {}): Promise<List>;
     privateSpotPostCrossLiquidateOrders (params?: {}): Promise<Dict>;
     privateSpotPostOrders (params?: {}): Promise<Dict>;
@@ -147,10 +160,13 @@ interface Exchange {
     privateSpotPostCountdownCancelAll (params?: {}): Promise<Dict>;
     privateSpotPostAmendBatchOrders (params?: {}): Promise<List>;
     privateSpotPostPriceOrders (params?: {}): Promise<Dict>;
+    privateSpotPostPovOrders (params?: {}): Promise<Dict>;
     privateSpotDeleteOrders (params?: {}): Promise<List>;
     privateSpotDeleteOrdersOrderId (params?: {}): Promise<Dict>;
     privateSpotDeletePriceOrders (params?: {}): Promise<List>;
     privateSpotDeletePriceOrdersOrderId (params?: {}): Promise<Dict>;
+    privateSpotDeletePovOrders (params?: {}): Promise<List>;
+    privateSpotDeletePovOrdersOrderId (params?: {}): Promise<Dict>;
     privateSpotPatchOrdersOrderId (params?: {}): Promise<Dict>;
     privateMarginGetAccounts (params?: {}): Promise<List>;
     privateMarginGetAccountBook (params?: {}): Promise<List>;
@@ -212,6 +228,11 @@ interface Exchange {
     privateFuturesGetSettleRiskLimitTable (params?: {}): Promise<List>;
     privateFuturesGetSettlePriceOrders (params?: {}): Promise<List>;
     privateFuturesGetSettlePriceOrdersOrderId (params?: {}): Promise<Dict>;
+    privateFuturesGetSettleAutoorderV1TrailList (params?: {}): Promise<List>;
+    privateFuturesGetSettleAutoorderV1TrailDetail (params?: {}): Promise<Dict>;
+    privateFuturesGetSettleAutoorderV1TrailChangeLog (params?: {}): Promise<List>;
+    privateFuturesGetSettleAutoorderV1ChaseList (params?: {}): Promise<List>;
+    privateFuturesGetSettleAutoorderV1ChaseDetail (params?: {}): Promise<Dict>;
     privateFuturesPostSettlePositionsContractMargin (params?: {}): Promise<Dict>;
     privateFuturesPostSettlePositionsContractLeverage (params?: {}): Promise<Dict>;
     privateFuturesPostSettlePositionsContractSetLeverage (params?: {}): Promise<Dict>;
@@ -230,6 +251,13 @@ interface Exchange {
     privateFuturesPostSettleBatchAmendOrders (params?: {}): Promise<List>;
     privateFuturesPostSettleBboOrders (params?: {}): Promise<Dict>;
     privateFuturesPostSettlePriceOrders (params?: {}): Promise<Dict>;
+    privateFuturesPostSettleAutoorderV1TrailCreate (params?: {}): Promise<Dict>;
+    privateFuturesPostSettleAutoorderV1TrailStop (params?: {}): Promise<Dict>;
+    privateFuturesPostSettleAutoorderV1TrailStopAll (params?: {}): Promise<List>;
+    privateFuturesPostSettleAutoorderV1TrailUpdate (params?: {}): Promise<Dict>;
+    privateFuturesPostSettleAutoorderV1ChaseCreate (params?: {}): Promise<Dict>;
+    privateFuturesPostSettleAutoorderV1ChaseStop (params?: {}): Promise<Dict>;
+    privateFuturesPostSettleAutoorderV1ChaseStopAll (params?: {}): Promise<List>;
     privateFuturesPutSettleOrdersOrderId (params?: {}): Promise<Dict>;
     privateFuturesPutSettlePriceOrdersOrderId (params?: {}): Promise<Dict>;
     privateFuturesDeleteSettleOrders (params?: {}): Promise<List>;
@@ -271,6 +299,7 @@ interface Exchange {
     privateOptionsPostCountdownCancelAll (params?: {}): Promise<Dict>;
     privateOptionsPostMmp (params?: {}): Promise<Dict>;
     privateOptionsPostMmpReset (params?: {}): Promise<Dict>;
+    privateOptionsPutOrdersOrderId (params?: {}): Promise<Dict>;
     privateOptionsDeleteOrders (params?: {}): Promise<List>;
     privateOptionsDeleteOrdersOrderId (params?: {}): Promise<Dict>;
     privateEarnGetUniLends (params?: {}): Promise<List>;
@@ -288,6 +317,15 @@ interface Exchange {
     privateEarnGetStakingOrderList (params?: {}): Promise<Dict>;
     privateEarnGetStakingAwardList (params?: {}): Promise<Dict>;
     privateEarnGetStakingAssets (params?: {}): Promise<List>;
+    privateEarnGetDualOrderRefundPreview (params?: {}): Promise<Dict>;
+    privateEarnGetFixedTermUserLend (params?: {}): Promise<List>;
+    privateEarnGetFixedTermUserHistory (params?: {}): Promise<List>;
+    privateEarnGetAutoinvestCoins (params?: {}): Promise<List>;
+    privateEarnGetAutoinvestConfig (params?: {}): Promise<List>;
+    privateEarnGetAutoinvestOrders (params?: {}): Promise<List>;
+    privateEarnGetAutoinvestPlansDetail (params?: {}): Promise<Dict>;
+    privateEarnGetAutoinvestPlansListInfo (params?: {}): Promise<List>;
+    privateEarnGetAutoinvestPlansRecords (params?: {}): Promise<List>;
     privateEarnGetUniCurrencies (params?: {}): Promise<List>;
     privateEarnGetUniCurrenciesCurrency (params?: {}): Promise<Dict>;
     privateEarnPostUniLends (params?: {}): Promise<List>;
@@ -295,6 +333,15 @@ interface Exchange {
     privateEarnPostDualOrders (params?: {}): Promise<Dict>;
     privateEarnPostStructuredOrders (params?: {}): Promise<List>;
     privateEarnPostStakingSwap (params?: {}): Promise<Dict>;
+    privateEarnPostDualOrderRefund (params?: {}): Promise<Dict>;
+    privateEarnPostDualModifyOrderReinvest (params?: {}): Promise<Dict>;
+    privateEarnPostFixedTermUserLend (params?: {}): Promise<Dict>;
+    privateEarnPostFixedTermUserPreRedeem (params?: {}): Promise<Dict>;
+    privateEarnPostAutoinvestMinInvestAmount (params?: {}): Promise<Dict>;
+    privateEarnPostAutoinvestPlansAddPosition (params?: {}): Promise<Dict>;
+    privateEarnPostAutoinvestPlansCreate (params?: {}): Promise<Dict>;
+    privateEarnPostAutoinvestPlansStop (params?: {}): Promise<Dict>;
+    privateEarnPostAutoinvestPlansUpdate (params?: {}): Promise<Dict>;
     privateEarnPutUniInterestReinvest (params?: {}): Promise<Dict>;
     privateEarnPatchUniLends (params?: {}): Promise<List>;
     privateLoanGetCollateralOrders (params?: {}): Promise<List>;
@@ -339,15 +386,24 @@ interface Exchange {
     privateRebateGetBrokerTransactionHistory (params?: {}): Promise<List>;
     privateRebateGetUserInfo (params?: {}): Promise<List>;
     privateRebateGetUserSubRelation (params?: {}): Promise<Dict>;
+    privateRebateGetPartnerDataAggregated (params?: {}): Promise<Dict>;
     privateOtcGetGetUserDefBank (params?: {}): Promise<Dict>;
     privateOtcGetOrderList (params?: {}): Promise<Dict>;
     privateOtcGetStableCoinOrderList (params?: {}): Promise<Dict>;
     privateOtcGetOrderDetail (params?: {}): Promise<Dict>;
+    privateOtcGetBankList (params?: {}): Promise<List>;
+    privateOtcGetBankBankSupplementChecklist (params?: {}): Promise<Dict>;
     privateOtcPostQuote (params?: {}): Promise<Dict>;
     privateOtcPostOrderCreate (params?: {}): Promise<Dict>;
     privateOtcPostStableCoinOrderCreate (params?: {}): Promise<Dict>;
     privateOtcPostOrderPaid (params?: {}): Promise<Dict>;
     privateOtcPostOrderCancel (params?: {}): Promise<Dict>;
+    privateOtcPostBankCreate (params?: {}): Promise<Dict>;
+    privateOtcPostBankDelete (params?: {}): Promise<Dict>;
+    privateOtcPostBankSetDefault (params?: {}): Promise<Dict>;
+    privateOtcPostBankPersonalBankSupplement (params?: {}): Promise<Dict>;
+    privateOtcPostBankEnterpriseBankSupplement (params?: {}): Promise<Dict>;
+    privateOtcPostUploadPreUpload (params?: {}): Promise<Dict>;
 }
 abstract class Exchange extends _Exchange {}
 

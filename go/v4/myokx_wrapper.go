@@ -145,7 +145,7 @@ func (this *Myokx) EditOrders(orders []OrderRequest, options ...EditOrdersOption
 func (this *Myokx) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Myokx) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Myokx) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Myokx) FetchBalance(params ...any) (Balances, error) {
@@ -193,7 +193,7 @@ func (this *Myokx) FetchDepositAddress(code string, options ...FetchDepositAddre
 func (this *Myokx) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Myokx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Myokx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Myokx) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

@@ -149,12 +149,14 @@ class hollaex extends Exchange {
                         'user/deposits' => array( 'cost' => 1 ),
                         'user/withdrawals' => array( 'cost' => 1 ),
                         'user/withdrawal/fee' => array( 'cost' => 1 ),
+                        'subaccounts' => array( 'cost' => 1 ),
                         'user/trades' => array( 'cost' => 1 ),
                         'orders' => array( 'cost' => 1 ),
                         'order' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'user/withdrawal' => array( 'cost' => 1 ),
+                        'subaccount/transfer' => array( 'cost' => 1 ),
                         'order' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
@@ -255,7 +257,7 @@ class hollaex extends Exchange {
                     'Invalid token' => '\\ccxt\\AuthenticationError',
                     'Order not found' => '\\ccxt\\OrderNotFound',
                     'Insufficient balance' => '\\ccxt\\InsufficientFunds',
-                    'Error 1001 - Order rejected. Order could not be submitted order was set to a post only order.' => '\\ccxt\\OrderImmediatelyFillable',
+                    'Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order.' => '\\ccxt\\OrderImmediatelyFillable',
                 ),
                 'exact' => array(
                     '400' => '\\ccxt\\BadRequest',
@@ -925,7 +927,7 @@ class hollaex extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch (max 500)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1348,7 +1350,7 @@ class hollaex extends Exchange {
             'size' => $this->amount_to_precision($symbol, $amount),
             'type' => $type,
             // 'stop' => floatval($this->price_to_precision($symbol, stopPrice)),
-            // 'meta' => array(), // other options such
+            // 'meta' => array(), // other options such as post_only
         );
         $triggerPrice = $this->safe_number_n($params, array( 'triggerPrice', 'stopPrice', 'stop' ));
         $meta = $this->safe_value($params, 'meta', array());
@@ -1680,7 +1682,7 @@ class hollaex extends Exchange {
         return $this->parse_transactions($data, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch $data on a $currency withdrawal via the withdrawal $id
          *
@@ -2104,7 +2106,7 @@ class hollaex extends Exchange {
             //
             // different errors return the same $code eg
             //
-            //  array( "message":"Error 1001 - Order rejected. Order could not be submitted order was set to a post only order." )
+            //  array( "message":"Error 1001 - Order rejected. Order could not be submitted as this order was set to a post only order." )
             //
             //  array( "message":"Error 1001 - POST ONLY order can not be of type market" )
             //

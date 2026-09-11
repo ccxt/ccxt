@@ -520,11 +520,8 @@ export default class btse extends Exchange {
                     // when position mode is wrong {"status":429,"errorCode":-1,"message":"Order not found","extraData":["117","0"]}
                     // {"status":400,"errorCode":-2,"message":"Invalid request parameters","extraData":null}
                     // {"status":400,"errorCode":-2,"message":"Can't support count more than 500","extraData":null}
-                    // code -1 is ambiguous across the api surfaces, the official api status
-                    // enum defines it as TIMEOUT while the legacy error envelope uses it as a
-                    // generic failure whose message varies, observed live both as Order not
-                    // found and as a plain Failed on a malformed request against an existing
-                    // order, so it is classified by message in the broad map instead
+                    // code -1 is ambiguous (TIMEOUT in the official status enum, generic failure with a
+                    // varying message in the legacy envelope), so it is classified by message in the broad map
                     '-2': BadRequest, // INVALID_REQUEST {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
                     '-7': AuthenticationError, // {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
                     '-7006': BadSymbol, // {"status":400,"errorCode":-7006,"message":"Unsupported symbol","extraData":null} observed live for a full contract id sent to the unified futures api
@@ -2360,7 +2357,7 @@ export default class btse extends Exchange {
      * @param {bool} [params.includeCancelled] *contract markets only* if true, cancelled orders are included in the lookup
      * @returns {object} An [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOpenOrder (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         await this.loadMarkets ();
         const request: Dict = {};
         const clientOrderId = this.safeString (params, 'clientOrderId');

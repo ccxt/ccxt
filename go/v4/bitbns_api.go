@@ -107,9 +107,19 @@ func (this *BitbnsCore) V1PostDepositHistoryAllSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PostDepositHistoryAllSymbol", args...)
 }
 
+// V1PostUserHistoryNew returns a channel that yields a JSON object.
+func (this *BitbnsCore) V1PostUserHistoryNew(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PostUserHistoryNew", args...)
+}
+
 // V1PostListOpenOrdersSymbol returns a channel that yields a JSON object.
 func (this *BitbnsCore) V1PostListOpenOrdersSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PostListOpenOrdersSymbol", args...)
+}
+
+// V1PostListOpenOrdersOtherSymbol returns a channel that yields a JSON object.
+func (this *BitbnsCore) V1PostListOpenOrdersOtherSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PostListOpenOrdersOtherSymbol", args...)
 }
 
 // V1PostListOpenStopOrdersSymbol returns a channel that yields a JSON object.
@@ -127,9 +137,19 @@ func (this *BitbnsCore) V1PostPlaceSellOrderSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PostPlaceSellOrderSymbol", args...)
 }
 
+// V1PostPlaceSellOrderOtherSymbol returns a channel that yields a JSON object.
+func (this *BitbnsCore) V1PostPlaceSellOrderOtherSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PostPlaceSellOrderOtherSymbol", args...)
+}
+
 // V1PostPlaceBuyOrderSymbol returns a channel that yields a JSON object.
 func (this *BitbnsCore) V1PostPlaceBuyOrderSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PostPlaceBuyOrderSymbol", args...)
+}
+
+// V1PostPlaceBuyOrderOtherSymbol returns a channel that yields a JSON object.
+func (this *BitbnsCore) V1PostPlaceBuyOrderOtherSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PostPlaceBuyOrderOtherSymbol", args...)
 }
 
 // V1PostBuyStopLossSymbol returns a channel that yields a JSON object.
@@ -145,6 +165,11 @@ func (this *BitbnsCore) V1PostSellStopLossSymbol(args ...any) <-chan any {
 // V1PostCancelOrderSymbol returns a channel that yields a JSON object.
 func (this *BitbnsCore) V1PostCancelOrderSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("v1PostCancelOrderSymbol", args...)
+}
+
+// V1PostCancelOrderOtherSymbol returns a channel that yields a JSON object.
+func (this *BitbnsCore) V1PostCancelOrderOtherSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v1PostCancelOrderOtherSymbol", args...)
 }
 
 // V1PostCancelStopLossOrderSymbol returns a channel that yields a JSON object.

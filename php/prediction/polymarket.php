@@ -288,7 +288,7 @@ class polymarket extends Exchange {
                     'invalid price' => '\\ccxt\\InvalidOrder',
                     'minimum tick size' => '\\ccxt\\InvalidOrder',
                     // a FAK/FOK order that finds no match is killed (a normal order outcome, not a
-                    // transport outage) — map it to OrderNotFillable so callers don't retry down
+                    // transport outage) — map it to OrderNotFillable so callers don't retry as if down
                     'no orders found to match' => '\\ccxt\\OrderNotFillable',
                     'could not be fully filled' => '\\ccxt\\OrderNotFillable',
                     'geoblocked' => '\\ccxt\\PermissionDenied',
@@ -442,7 +442,7 @@ class polymarket extends Exchange {
             $pagination = $this->safe_dict($first, 'pagination', array());
             $totalResults = $this->safe_integer($pagination, 'totalResults', $firstEventsLength);
             $totalPages = (int) ceil($totalResults / $pageSize);
-            // only page as `limit` needs (applyEventFetchParams slices to it afterwards);
+            // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
             // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
             if ($resultLimit !== null) {
                 $limitPages = (int) ceil($resultLimit / $pageSize);
@@ -729,7 +729,7 @@ class polymarket extends Exchange {
             // resolution => a closed/uma-resolved $market settles each outcome price to 0 or 1
             $marketResolved = ($closed === true) || ($this->safe_string_lower($market, 'umaResolutionStatus') === 'resolved');
             $resolvedOutcome = null;
-            // gamma exposes the order-book tick; minimumTickSize is the clob alias
+            // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
             $tickSize = $this->safe_number_2($market, 'orderPriceMinTickSize', 'minimumTickSize', 0.01);
             // real per-$market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
             $orderMinSize = $this->safe_number($market, 'orderMinSize', 1);
@@ -786,7 +786,7 @@ class polymarket extends Exchange {
                 if ($marketResolved && ($outcomePrice !== null)) {
                     // a genuinely-settled polymarket outcome is at 1 (won) or 0 (lost). a $market
                     // that is only $closed-for-trading (not yet UMA-resolved) still has fractional
-                    // prices — don't report a fractional mid final $settleFraction; leave the
+                    // prices — don't report a fractional mid as a final $settleFraction; leave the
                     // outcome-level fields null until a decisive price exists
                     if ($outcomePrice >= 0.99) {
                         $winnerRaw = true;
@@ -797,7 +797,7 @@ class polymarket extends Exchange {
                         $settleFractionRaw = 0;
                     }
                 }
-                // effectively-final copies => Java emits the object literal below anonymous
+                // effectively-final copies => Java emits the object literal below as an anonymous
                 // inner class, which cannot capture a reassigned local
                 $winner = $winnerRaw;
                 $settleFraction = $settleFractionRaw;
@@ -1299,7 +1299,7 @@ class polymarket extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest $candle to fetch
          * @param {int} [$limit] the maximum number of $candles to return
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} a list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} a list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if (!(is_array($this->timeframes) && array_key_exists($timeframe ?? '', $this->timeframes))) {
             // hoisted keys list => chaining join onto Object.keys breaks the python transpiler
@@ -2018,7 +2018,7 @@ class polymarket extends Exchange {
          * @see https://docs.polymarket.com/api-reference/trade/post-a-new-$order
          *
          * @param {string} $outcome unified $outcome or $outcome token id
-         * @param {string} $type 'market' or 'limit'; market orders default to FOK and, when no $price is given, use the outcome's current $price marketable reference
+         * @param {string} $type 'market' or 'limit'; market orders default to FOK and, when no $price is given, use the outcome's current $price as the marketable reference
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how many $outcome tokens to trade
          * @param {float} [$price] the $price per $outcome token between 0 and 1; required for limit orders, defaults to the outcome's current $price for market orders
@@ -2055,7 +2055,7 @@ class polymarket extends Exchange {
          *
          * @see https://docs.polymarket.com/api-reference/trade/post-$orders
          *
-         * @param {array[]} $orders a list of order $requests, each an object with outcome, type, side, amount, price and optional $params (same $params)
+         * @param {array[]} $orders a list of order $requests, each an object with outcome, type, side, amount, price and optional $params (same $params as createOrder)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @return {array[]} a list of [prediction order structures](https://docs.ccxt.com/#/?id=prediction-order-structure)
          */
@@ -2140,7 +2140,7 @@ class polymarket extends Exchange {
             if (!$isMarket) {
                 throw new ArgumentsRequired($this->id . ' createOrder() requires a $price for limit orders');
             }
-            // market order without an explicit $price => use the outcome's current $price marketable reference
+            // market order without an explicit $price => use the outcome's current $price as the marketable reference
             $price = $this->safe_number($outcomeObj, 'price');
             if ($price === null) {
                 throw new ArgumentsRequired($this->id . ' createOrder() could not determine a $price from the $outcome, pass an explicit price');
@@ -2197,7 +2197,7 @@ class polymarket extends Exchange {
         }
         // POLY_1271 ($type 3) => the order $signer is the deposit wallet itself — the exchange calls
         // wallet.isValidSignature and the inner ERC-7739 domain's verifyingContract is the wallet (the EOA
-        // still produces the $signature and is checked on-chain wallet $owner). Otherwise $signer = EOA.
+        // still produces the $signature and is checked on-chain as the wallet $owner). Otherwise $signer = EOA.
         $maker = $funder;
         $signer = ($signatureType === 3) ? $funder : $eoa;
         $message = array(
@@ -2242,7 +2242,7 @@ class polymarket extends Exchange {
             'orderType' => $orderTypeStr,
         );
         // the CLOB create response only echoes array(orderID, status); carry the submitted terms
-        // keyed fetchOrder response fields parsePredictionOrder reads, so createOrder can merge
+        // keyed as the fetchOrder response fields parsePredictionOrder reads, so createOrder can merge
         // them and return a fully-populated order instead of null side/price/amount
         $requestEcho = array(
             'side' => $sideStr,
@@ -2348,7 +2348,7 @@ class polymarket extends Exchange {
             array( 'name' => 'builder', 'type' => 'bytes32' ),
         );
         $orderDomain = array( 'name' => $domainName, 'version' => $domainVersion, 'chainId' => $chainIdValue, 'verifyingContract' => $exchangeAddress );
-        // parseToInt => php types the number param, and 3.0 !== 3 (int) is true under
+        // parseToInt => php types the number param as float, and 3.0 !== 3 (int) is true under
         // strict comparison, which would always wrongly select the EOA path
         if ($this->parse_to_int($sigType) !== 3) {
             // standard EOA EIP-712 order signature
@@ -2360,7 +2360,7 @@ class polymarket extends Exchange {
             return strtolower($eoaSignature);
         }
         // POLY_1271 — ERC-7739 wrapped signature validated on-chain by the deposit wallet.
-        // ethAbiEncode needs portable value types => bytes32, uint256
+        // ethAbiEncode needs portable value types => bytes32 as binary, uint256
         // raw hex/decimal strings encode in ethers/JS but throw in the python/php codecs
         $orderTypeHash = $this->hash($this->encode($orderTypeString), 'keccak', 'binary');
         $contentsData = $this->eth_abi_encode(
@@ -2594,7 +2594,7 @@ class polymarket extends Exchange {
         if ($queriesLength > 0) {
             // the gamma search endpoint is fuzzy, so default to refining by active status and a
             // title match (the caller can override); the other venues search exactly and need no
-            // such default. inject the defaults $params so the shared pipeline stays
+            // such default. inject the defaults as explicit $params so the shared pipeline stays
             // the single behaviour definition
             $effectiveParams = $this->extend(array(), $params);
             $effectiveParams['status'] = $this->safe_string($params, 'status', 'active');
@@ -2639,7 +2639,7 @@ class polymarket extends Exchange {
         //     "ticker" => "ukraine-agrees-not-to-join-nato-before-2027",
         //     "slug" => "ukraine-agrees-not-to-join-nato-before-2027",
         //     "title" => "Ukraine agrees not to join NATO before 2027? ",
-        //     "description" => "This market will resolve to \\"Yes\\" if Ukraine publicly agrees not to join NATO by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.\\n\\nAn official pledge by Ukraine not to join NATO will qualify for a “Yes” resolution whether unilateral announcement or part of an agreement with the Russian Federation.\\n\\nAny agreement or pledge made before the resolution date of this market will qualify, regardless of if/when the agreement goes into effect.\\n\\nAn agreement by Ukraine not to join NATO for any amount of time will count (e.g. If Ukraine not to join NATO for 10 years this will qualify).\\n\\nAn agreement by Ukraine not to join NATO precondition of a more comprehensive peace process or deal will qualify, even if the agreement is not finalized or part of a formalized peace deal. The September 8, 1995 “Agreed Basic Principles” between Bosnia and Yugoslavia which recognized the borders and sovereignty of Bosnia and Herzegovina, and was later formalized through the Dayton Peace Agreement is an example of a qualifying agreement. \\n\\nThe primary resolution source for this market will be an official announcement by the Ukraine, however an overwhelming consensus of credible reporting confirming a qualifying agreement has been reached will also count.",
+        //     "description" => "This market will resolve to \\"Yes\\" if Ukraine publicly agrees not to join NATO by December 31, 2026, 11:59 PM ET. Otherwise, this market will resolve to “No”.\\n\\nAn official pledge by Ukraine not to join NATO will qualify for a “Yes” resolution whether as a unilateral announcement or part of an agreement with the Russian Federation.\\n\\nAny agreement or pledge made before the resolution date of this market will qualify, regardless of if/when the agreement goes into effect.\\n\\nAn agreement by Ukraine not to join NATO for any amount of time will count (e.g. If Ukraine not to join NATO for 10 years this will qualify).\\n\\nAn agreement by Ukraine not to join NATO as a precondition of a more comprehensive peace process or deal will qualify, even if the agreement is not finalized or part of a formalized peace deal. The September 8, 1995 “Agreed Basic Principles” between Bosnia and Yugoslavia which recognized the borders and sovereignty of Bosnia and Herzegovina, and was later formalized through the Dayton Peace Agreement is an example of a qualifying agreement. \\n\\nThe primary resolution source for this market will be an official announcement by the Ukraine, however an overwhelming consensus of credible reporting confirming a qualifying agreement has been reached will also count.",
         //     "resolutionSource" => "",
         //     "startDate" => "2025-11-05T17:00:57.200353Z",
         //     "creationDate" => "2025-11-05T17:00:57.20035Z",
@@ -2706,7 +2706,7 @@ class polymarket extends Exchange {
         if ($rawActive !== null) {
             $active = ($rawActive === true) && ($closed !== true);
         }
-        // surface gamma's tag objects top-level stringarray() so the unified `tags` filter
+        // surface gamma's tag objects as a top-level stringarray() so the unified `tags` filter
         // — filterEventsByTags reads event['tags'], not event.info.tags — can actually match.
         // prefer the human-readable label ("Fed Rates") over the $slug — matching is
         // normalized (normalizeTagKey), so the display form is free to be the friendly one
@@ -2874,7 +2874,7 @@ class polymarket extends Exchange {
                 }
                 // the L2 $api $secret is base64url-encoded; decode it to raw bytes for the HMAC key.
                 // unchained replaceAll => the php transpiler only converts the outermost .replaceAll
-                // in a chain, leaving the inner call (invalid) $method call
+                // in a chain, leaving the inner call as an (invalid) $method call
                 $normalizedSecret = $secret;
                 $normalizedSecret = str_replace('-', '+', $normalizedSecret);
                 $normalizedSecret = str_replace('_', '/', $normalizedSecret);
@@ -3079,7 +3079,7 @@ class polymarket extends Exchange {
     public function handle_message(mixed $client, mixed $message) {
         // Polymarket keeps the ws alive with text PING/PONG (not protocol ping-pong frames), so the
         // client's onPong never fires; refresh $client->lastPong here on the "PONG" reply, otherwise the
-        // base keepalive treats the connection and times it out after maxPingPongMisses.
+        // base keepalive treats the connection as stale and times it out after maxPingPongMisses.
         if (gettype($message) === 'string') {
             $client->lastPong = $this->milliseconds();
             return;

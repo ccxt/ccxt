@@ -7,7 +7,7 @@ from ccxt.base.exchange import Exchange
 from ccxt.abstract.cryptocom import ImplicitAPI
 import hashlib
 import math
-from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction
+from ccxt.base.types import Account, Balances, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Market, Num, Order, OrderBook, OrderRequest, CancellationRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, TradingFees, DepositWithdrawFees, Transaction
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -228,6 +228,7 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/get-deposit-history': {'cost': 10 / 3},
                             'private/get-fee-rate': {'cost': 2},
                             'private/get-instrument-fee-rate': {'cost': 2},
+                            'private/get-fee-credit-balances': {'cost': 10 / 3},
                             'private/fiat/fiat-deposit-info': {'cost': 10 / 3},
                             'private/fiat/fiat-deposit-history': {'cost': 10 / 3},
                             'private/fiat/fiat-withdraw-history': {'cost': 10 / 3},
@@ -247,6 +248,13 @@ class cryptocom(Exchange, ImplicitAPI):
                             'private/staking/get-convert-history': {'cost': 2},
                             'private/create-isolated-margin-transfer': {'cost': 10 / 3},
                             'private/change-isolated-margin-leverage': {'cost': 10 / 3},
+                            'private/bot/create-trading-bot': {'cost': 10 / 3},
+                            'private/bot/update-trading-bot': {'cost': 10 / 3},
+                            'private/bot/terminate-trading-bot': {'cost': 10 / 3},
+                            'private/bot/pause-trading-bot': {'cost': 10 / 3},
+                            'private/bot/resume-trading-bot': {'cost': 10 / 3},
+                            'private/bot/get-trading-bots': {'cost': 10 / 3},
+                            'private/bot/get-trading-bot-executions': {'cost': 10 / 3},
                         },
                     },
                 },
@@ -1088,7 +1096,7 @@ class cryptocom(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -1965,7 +1973,7 @@ class cryptocom(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'result')
         return self.parse_transaction(result, currency)
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
         """
         fetch a dictionary of addresses for a currency, indexed by network
 
@@ -3413,7 +3421,7 @@ class cryptocom(Exchange, ImplicitAPI):
                 'nonce': nonce,
             })
             # fix issue https://github.com/ccxt/ccxt/issues/11179
-            # php always encodes dictionaries
+            # php always encodes dictionaries as arrays
             # if an array is empty, php will put it in square brackets
             # python and js will put it in curly brackets
             # the code below checks and replaces those brackets in empty requests

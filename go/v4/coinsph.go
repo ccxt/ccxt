@@ -393,6 +393,12 @@ func (this *CoinsphCore) Describe() any {
 					"openapi/fiat/v1/history": map[string]any{
 						"cost": 1,
 					},
+					"openapi/fiat/v2/history": map[string]any{
+						"cost": 1,
+					},
+					"openapi/fiat/v1/cancel_qr_code": map[string]any{
+						"cost": 1,
+					},
 					"openapi/migration/v4/sellorder": map[string]any{
 						"cost": 1,
 					},
@@ -1082,8 +1088,8 @@ func (this *CoinsphCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes89112 := (<-this.LoadMarkets())
-		PanicOnError(retRes89112)
+		retRes89312 := (<-this.LoadMarkets())
+		PanicOnError(retRes89312)
 	}
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
@@ -1140,8 +1146,8 @@ func (this *CoinsphCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes93012 := (<-this.LoadMarkets())
-		PanicOnError(retRes93012)
+		retRes93212 := (<-this.LoadMarkets())
+		PanicOnError(retRes93212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1273,8 +1279,8 @@ func (this *CoinsphCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes104112 := (<-this.LoadMarkets())
-		PanicOnError(retRes104112)
+		retRes104312 := (<-this.LoadMarkets())
+		PanicOnError(retRes104312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1337,8 +1343,8 @@ func (this *CoinsphCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes108412 := (<-this.LoadMarkets())
-		PanicOnError(retRes108412)
+		retRes108612 := (<-this.LoadMarkets())
+		PanicOnError(retRes108612)
 	}
 	var market any = this.Market(symbol)
 	var interval any = this.SafeString(this.Timeframes, timeframe)
@@ -1389,7 +1395,7 @@ func (this *CoinsphCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	//         ]
 	//     ]
 	//
-	var ohlcvs any = this.ToArray(response)
+	var ohlcvs []any = this.ToArray(response)
 
 	ch <- this.ParseOHLCVs(ohlcvs, market, timeframe, since, limit)
 	return nil
@@ -1427,8 +1433,8 @@ func (this *CoinsphCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes116112 := (<-this.LoadMarkets())
-		PanicOnError(retRes116112)
+		retRes116312 := (<-this.LoadMarkets())
+		PanicOnError(retRes116312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1495,8 +1501,8 @@ func (this *CoinsphCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes120812 := (<-this.LoadMarkets())
-		PanicOnError(retRes120812)
+		retRes121012 := (<-this.LoadMarkets())
+		PanicOnError(retRes121012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1552,9 +1558,9 @@ func (this *CoinsphCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs 
 		"orderId": id,
 	}
 
-	retRes124415 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes124415)
-	ch <- retRes124415
+	retRes124615 := (<-this.FetchMyTrades(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes124615)
+	ch <- retRes124615
 	return nil
 }
 func (this *CoinsphCore) ParseTrade(trade any, optionalArgs ...any) any {
@@ -1666,8 +1672,8 @@ func (this *CoinsphCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes134412 := (<-this.LoadMarkets())
-		PanicOnError(retRes134412)
+		retRes134612 := (<-this.LoadMarkets())
+		PanicOnError(retRes134612)
 	}
 
 	response := (<-this.PrivateGetOpenapiV1Account(params))
@@ -1748,8 +1754,8 @@ func (this *CoinsphCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes141012 := (<-this.LoadMarkets())
-		PanicOnError(retRes141012)
+		retRes141212 := (<-this.LoadMarkets())
+		PanicOnError(retRes141212)
 	}
 	var market any = this.Market(symbol)
 	var testOrder any = this.SafeBool(params, "test", false)
@@ -1880,8 +1886,8 @@ func (this *CoinsphCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes152212 := (<-this.LoadMarkets())
-		PanicOnError(retRes152212)
+		retRes152412 := (<-this.LoadMarkets())
+		PanicOnError(retRes152412)
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
@@ -1928,8 +1934,8 @@ func (this *CoinsphCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes154912 := (<-this.LoadMarkets())
-		PanicOnError(retRes154912)
+		retRes155112 := (<-this.LoadMarkets())
+		PanicOnError(retRes155112)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -1977,8 +1983,8 @@ func (this *CoinsphCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any)
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes157712 := (<-this.LoadMarkets())
-		PanicOnError(retRes157712)
+		retRes157912 := (<-this.LoadMarkets())
+		PanicOnError(retRes157912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2023,8 +2029,8 @@ func (this *CoinsphCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes160612 := (<-this.LoadMarkets())
-		PanicOnError(retRes160612)
+		retRes160812 := (<-this.LoadMarkets())
+		PanicOnError(retRes160812)
 	}
 	var request map[string]any = map[string]any{}
 	var clientOrderId any = this.SafeValue2(params, "origClientOrderId", "clientOrderId")
@@ -2068,8 +2074,8 @@ func (this *CoinsphCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes163412 := (<-this.LoadMarkets())
-		PanicOnError(retRes163412)
+		retRes163612 := (<-this.LoadMarkets())
+		PanicOnError(retRes163612)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -2285,8 +2291,8 @@ func (this *CoinsphCore) fetchTradingFeeBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes184112 := (<-this.LoadMarkets())
-		PanicOnError(retRes184112)
+		retRes184312 := (<-this.LoadMarkets())
+		PanicOnError(retRes184312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2330,8 +2336,8 @@ func (this *CoinsphCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes187112 := (<-this.LoadMarkets())
-		PanicOnError(retRes187112)
+		retRes187312 := (<-this.LoadMarkets())
+		PanicOnError(retRes187312)
 	}
 
 	response := (<-this.PrivateGetOpenapiV1AssetTradeFee(params))
@@ -2351,7 +2357,7 @@ func (this *CoinsphCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) 
 	//     ]
 	//
 	var result map[string]any = map[string]any{}
-	var fees any = this.ToArray(response)
+	var fees []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(fees)); i++ {
 		var fee any = this.ParseTradingFee(GetValue(fees, i))
 		var symbol any = GetValue(fee, "symbol")
@@ -2422,8 +2428,8 @@ func (this *CoinsphCore) withdrawBody(ch chan any, code any, amount any, address
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes194512 := (<-this.LoadMarkets())
-		PanicOnError(retRes194512)
+		retRes194712 := (<-this.LoadMarkets())
+		PanicOnError(retRes194712)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -2474,8 +2480,8 @@ func (this *CoinsphCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes197612 := (<-this.LoadMarkets())
-		PanicOnError(retRes197612)
+		retRes197812 := (<-this.LoadMarkets())
+		PanicOnError(retRes197812)
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}
@@ -2555,8 +2561,8 @@ func (this *CoinsphCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes203612 := (<-this.LoadMarkets())
-		PanicOnError(retRes203612)
+		retRes203812 := (<-this.LoadMarkets())
+		PanicOnError(retRes203812)
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}
@@ -2747,8 +2753,8 @@ func (this *CoinsphCore) fetchDepositAddressBody(ch chan any, code any, optional
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes221012 := (<-this.LoadMarkets())
-		PanicOnError(retRes221012)
+		retRes221212 := (<-this.LoadMarkets())
+		PanicOnError(retRes221212)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -2807,8 +2813,8 @@ func (this *CoinsphCore) UrlEncodeQuery(optionalArgs ...any) any {
 			encodedArrayParams = Add(encodedArrayParams, encodedArrayParam)
 		}
 	}
-	var encodedQuery any = this.Urlencode(query)
-	if IsTrue(!IsEqual(GetArrayLength(encodedQuery), 0)) {
+	var encodedQuery string = this.Urlencode(query)
+	if IsTrue(!IsEqual(GetLength(encodedQuery), 0)) {
 		return Add(Add(encodedQuery, "&"), encodedArrayParams)
 	} else {
 		return encodedArrayParams

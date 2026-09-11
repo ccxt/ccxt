@@ -122,6 +122,15 @@ func (this *ZaifCore) Describe() any {
 					"trades/{pair}": map[string]any{
 						"cost": 1,
 					},
+					"vasp_info/{vasp_master_id}": map[string]any{
+						"cost": 1,
+					},
+					"country_info/{code}": map[string]any{
+						"cost": 1,
+					},
+					"corp_type_id_info/{id}": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
@@ -444,8 +453,8 @@ func (this *ZaifCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes36612 := (<-this.LoadMarkets())
-		PanicOnError(retRes36612)
+		retRes36912 := (<-this.LoadMarkets())
+		PanicOnError(retRes36912)
 	}
 
 	response := (<-this.PrivatePostGetInfo(params))
@@ -479,8 +488,8 @@ func (this *ZaifCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes38412 := (<-this.LoadMarkets())
-		PanicOnError(retRes38412)
+		retRes38712 := (<-this.LoadMarkets())
+		PanicOnError(retRes38712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -557,8 +566,8 @@ func (this *ZaifCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes44612 := (<-this.LoadMarkets())
-		PanicOnError(retRes44612)
+		retRes44912 := (<-this.LoadMarkets())
+		PanicOnError(retRes44912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -649,8 +658,8 @@ func (this *ZaifCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes51812 := (<-this.LoadMarkets())
-		PanicOnError(retRes51812)
+		retRes52112 := (<-this.LoadMarkets())
+		PanicOnError(retRes52112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -671,7 +680,7 @@ func (this *ZaifCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	//          }, ...
 	//      ]
 	//
-	var trades any = this.ToArray(response)
+	var trades []any = this.ToArray(response)
 	var numTrades int = GetArrayLength(trades)
 	if IsTrue(IsEqual(numTrades, 1)) {
 		var firstTrade any = this.SafeDict(trades, 0, map[string]any{})
@@ -711,8 +720,8 @@ func (this *ZaifCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes56312 := (<-this.LoadMarkets())
-		PanicOnError(retRes56312)
+		retRes56612 := (<-this.LoadMarkets())
+		PanicOnError(retRes56612)
 	}
 	if IsTrue(!IsEqual(typeVar, "limit")) {
 		panic(ExchangeError(Add(this.Id, " createOrder() allows limit orders only")))
@@ -870,8 +879,8 @@ func (this *ZaifCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes68512 := (<-this.LoadMarkets())
-		PanicOnError(retRes68512)
+		retRes68812 := (<-this.LoadMarkets())
+		PanicOnError(retRes68812)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -917,8 +926,8 @@ func (this *ZaifCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes71412 := (<-this.LoadMarkets())
-		PanicOnError(retRes71412)
+		retRes71712 := (<-this.LoadMarkets())
+		PanicOnError(retRes71712)
 	}
 	var market any = nil
 	var request map[string]any = map[string]any{}
@@ -965,8 +974,8 @@ func (this *ZaifCore) withdrawBody(ch chan any, code any, amount any, address an
 	this.CheckAddress(address)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes75212 := (<-this.LoadMarkets())
-		PanicOnError(retRes75212)
+		retRes75512 := (<-this.LoadMarkets())
+		PanicOnError(retRes75512)
 	}
 	var currency any = this.Currency(code)
 	if IsTrue(IsEqual(code, "JPY")) {

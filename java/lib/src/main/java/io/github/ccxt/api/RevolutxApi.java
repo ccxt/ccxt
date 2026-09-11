@@ -152,6 +152,17 @@ public class RevolutxApi extends Exchange
     }
 
     /**
+     * Calls the privateGet10Transactions endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object or a JSON array, so this endpoint keeps Object
+     */
+    public java.util.concurrent.CompletableFuture<Object>  privateGet10Transactions (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGet10Transactions", optionalArgs);
+    }
+
+    /**
      * Calls the privatePost10Orders endpoint.
      *
      * @param optionalArgs the request parameters

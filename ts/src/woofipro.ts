@@ -202,6 +202,8 @@ export default class woofipro extends Exchange {
                             'client/points': { 'cost': 1 } as Endpoint<Dict>,
                             'public/points/epoch': { 'cost': 1 } as Endpoint<Dict>,
                             'public/points/epoch_dates': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/points/rankings': { 'cost': 1 } as Endpoint<Dict>,
+                            'public/points/stages': { 'cost': 1 } as Endpoint<Dict>,
                             'public/referral/check_ref_code': { 'cost': 1 } as Endpoint<Dict>,
                             'public/referral/verify_ref_code': { 'cost': 1 } as Endpoint<Dict>,
                             'referral/admin_info': { 'cost': 1 } as Endpoint<Dict>,
@@ -215,6 +217,7 @@ export default class woofipro extends Exchange {
                             'tv/config': { 'cost': 1 } as Endpoint<Dict>,
                             'tv/history': { 'cost': 1 } as Endpoint<Dict>,
                             'tv/symbol_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'tv/kline_history': { 'cost': 1 } as Endpoint<Dict>,
                             'public/funding_rate_history': { 'cost': 1 } as Endpoint<Dict>,
                             'public/funding_rate/{symbol}': { 'cost': 0.33 } as Endpoint<Dict>,
                             'public/funding_rates': { 'cost': 1 } as Endpoint<Dict>,
@@ -224,6 +227,9 @@ export default class woofipro extends Exchange {
                             'public/token': { 'cost': 1 } as Endpoint<Dict>,
                             'public/futures': { 'cost': 1 } as Endpoint<Dict>,
                             'public/futures/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'staking/valor2/batch_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'staking/valor2/pool_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'staking/valor2/revenue_buyback': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'register_account': { 'cost': 1 } as Endpoint<Dict>,
@@ -248,6 +254,7 @@ export default class woofipro extends Exchange {
                             'client/holding': { 'cost': 1 } as Endpoint<Dict>,
                             'withdraw_nonce': { 'cost': 1 } as Endpoint<Dict>,
                             'settle_nonce': { 'cost': 1 } as Endpoint<Dict>,
+                            'transfer_nonce': { 'cost': 1 } as Endpoint<Dict>,
                             'pnl_settlement/history': { 'cost': 1 } as Endpoint<Dict>,
                             'volume/user/daily': { 'cost': 60 } as Endpoint<Dict>,
                             'volume/user/stats': { 'cost': 60 } as Endpoint<Dict>,
@@ -262,9 +269,22 @@ export default class woofipro extends Exchange {
                             'volume/broker/daily': { 'cost': 60 } as Endpoint<Dict>,
                             'broker/fee_rate/default': { 'cost': 10 } as Endpoint<Dict>,
                             'broker/user_info': { 'cost': 10 } as Endpoint<Dict>,
+                            'broker/daily_fee_revenue': { 'cost': 10 } as Endpoint<Dict>,
                             'orderbook/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                             'kline': { 'cost': 1 } as Endpoint<Dict>,
                             'client/margin_modes': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/leverages': { 'cost': 1 } as Endpoint<Dict>,
+                            'client/points/user_statistics': { 'cost': 1 } as Endpoint<Dict>,
+                            'staking/valor2/redeem': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/referee_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/summary': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/max_rebate_rate': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/rebate_info': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/referee_list': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/statistics': { 'cost': 1 } as Endpoint<Dict>,
+                            'referral/multi_level/volume_prerequisite': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
                             'orderly_key': { 'cost': 1 } as Endpoint<Dict>,
@@ -280,6 +300,7 @@ export default class woofipro extends Exchange {
                             'notification/inbox/mark_read': { 'cost': 60 } as Endpoint<Dict>,
                             'notification/inbox/mark_read_all': { 'cost': 60 } as Endpoint<Dict>,
                             'client/leverage': { 'cost': 120 } as Endpoint<Dict>,
+                            'client/leverages': { 'cost': 120 } as Endpoint<Dict>,
                             'client/margin_mode': { 'cost': 1 } as Endpoint<Dict>,
                             'position_margin': { 'cost': 1 } as Endpoint<Dict>,
                             'client/maintenance_config': { 'cost': 60 } as Endpoint<Dict>,
@@ -294,6 +315,15 @@ export default class woofipro extends Exchange {
                             'referral/update': { 'cost': 10 } as Endpoint<Dict>,
                             'referral/bind': { 'cost': 10 } as Endpoint<Dict>,
                             'referral/edit_split': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/edit_referee_description': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/create/affiliate': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/reset/affiliate': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/update': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/admin/update/affiliate': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/claim_code': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/rebate_rate/set_default': { 'cost': 10 } as Endpoint<Dict>,
+                            'referral/multi_level/rebate_rate/update': { 'cost': 10 } as Endpoint<Dict>,
                         },
                         'put': {
                             'order': { 'cost': 1 } as Endpoint<Dict>,
@@ -308,6 +338,13 @@ export default class woofipro extends Exchange {
                             'orders': { 'cost': 1 } as Endpoint<List>,
                             'batch-order': { 'cost': 1 } as Endpoint<Dict>,
                             'client/batch-order': { 'cost': 1 } as Endpoint<Dict>,
+                        },
+                    },
+                },
+                'v2': {
+                    'private': {
+                        'post': {
+                            'internal_transfer': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1775,7 +1812,7 @@ export default class woofipro extends Exchange {
             };
             return this.safeString (statuses, status, status);
         }
-        return status;
+        return undefined;
     }
 
     parseOrderType (type: Str) {

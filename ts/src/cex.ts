@@ -163,6 +163,7 @@ export default class cex extends Exchange {
                         'do_cancel_my_order': { 'cost': 1 } as Endpoint<Dict>,
                         'do_cancel_all_orders': { 'cost': 5 } as Endpoint<Dict>,
                         'get_order_book': { 'cost': 1 } as Endpoint<Dict>,
+                        'get_ticker': { 'cost': 1 } as Endpoint<Dict>,
                         'get_candles': { 'cost': 1 } as Endpoint<Dict>,
                         'get_trade_history': { 'cost': 1 } as Endpoint<Dict>,
                         'get_my_transaction_history': { 'cost': 1 } as Endpoint<Dict>,

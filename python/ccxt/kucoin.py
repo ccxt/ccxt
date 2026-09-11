@@ -8,7 +8,7 @@ from ccxt.abstract.kucoin import ImplicitAPI
 import hashlib
 import math
 import json
-from ccxt.base.types import Account, ADL, Balances, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFee, DepositWithdrawFees, Transaction, TransferEntry
+from ccxt.base.types import Account, ADL, Balances, BorrowInterest, CrossBorrowRate, Currencies, Currency, CurrencyInterface, DepositAddress, DepositAddresses, Int, LedgerEntry, Leverage, LeverageTier, LeverageTiers, MarginMode, MarginModification, MarginLoan, Market, Num, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, PositionModeInfo, Status, Str, Strings, Ticker, Tickers, FundingRate, Trade, TradingFeeInterface, DepositWithdrawFee, DepositWithdrawFees, Transaction, TransferEntry
 from ccxt.base.errors import ExchangeError
 from ccxt.base.errors import AuthenticationError
 from ccxt.base.errors import PermissionDenied
@@ -200,6 +200,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'margin/config': {'cost': 25},
                         'announcements': {'cost': 20},
                         'margin/collateralRatio': {'cost': 10},
+                        'margin/available-inventory': {'cost': 10},
                         # convert
                         'convert/symbol': {'cost': 5},
                         'convert/currencies': {'cost': 5},
@@ -286,6 +287,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'margin/borrow': {'cost': 15},
                         'margin/repay': {'cost': 15},
                         'margin/interest': {'cost': 20},
+                        'margin/borrowRate': {'cost': 20},
                         'project/list': {'cost': 10},
                         'project/marketInterestRate': {'cost': 5},
                         'redeem/orders': {'cost': 10},
@@ -305,6 +307,11 @@ class kucoin(Exchange, ImplicitAPI):
                         'convert/limit/orders': {'cost': 5},
                         # affiliate
                         'affiliate/inviter/statistics': {'cost': 30},
+                        'affiliate/queryInvitees': {'cost': 30},
+                        'affiliate/queryMyCommission': {'cost': 30},
+                        'affiliate/queryTransactionByUid': {'cost': 30},
+                        'affiliate/queryTransactionByTime': {'cost': 30},
+                        'affiliate/queryKumining': {'cost': 30},
                     },
                     'post': {
                         # account
@@ -514,6 +521,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'broker/nd/account': {'cost': 4},
                         'broker/nd/account/apikey': {'cost': 4},
                         'broker/nd/rebase/download': {'cost': 4},
+                        'broker/nd/mark-up': {'cost': 4},
                         'asset/ndbroker/deposit/list': {'cost': 2},
                         'broker/nd/transfer/detail': {'cost': 2},
                         'broker/nd/deposit/detail': {'cost': 2},
@@ -524,6 +532,7 @@ class kucoin(Exchange, ImplicitAPI):
                         'broker/nd/account': {'cost': 6},
                         'broker/nd/account/apikey': {'cost': 6},
                         'broker/nd/account/update-apikey': {'cost': 6},
+                        'broker/nd/mark-up': {'cost': 6},
                     },
                     'delete': {
                         'broker/nd/account/apikey': {'cost': 6},
@@ -640,7 +649,7 @@ class kucoin(Exchange, ImplicitAPI):
                     'order not exist': OrderNotFound,
                     'order not exist.': OrderNotFound,  # duplicated error temporarily
                     'order_not_exist': OrderNotFound,  # {"code":"order_not_exist","msg":"order_not_exist"} ¯\_(ツ)_/¯
-                    'order_not_exist_or_not_allow_to_cancel': OrderNotFound,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}, same condition spaced variant above, see https://github.com/ccxt/ccxt/issues/24154
+                    'order_not_exist_or_not_allow_to_cancel': OrderNotFound,  # {"code":"400100","msg":"order_not_exist_or_not_allow_to_cancel"}, same condition as the spaced variant above, see https://github.com/ccxt/ccxt/issues/24154
                     'Order size below the minimum requirement.': InvalidOrder,  # {"code":"400100","msg":"Order size below the minimum requirement."}
                     'Order size increment invalid.': InvalidOrder,  # {"msg":"Order size increment invalid.","code":"600100"}
                     'The withdrawal amount is below the minimum requirement.': ExchangeError,  # {"code":"400100","msg":"The withdrawal amount is below the minimum requirement."}
@@ -970,6 +979,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'symbols': 'v2',
                             'mark-price/all-symbols': 'v3',
                             'announcements': 'v3',
+                            'margin/available-inventory': 'v3',
                         },
                     },
                     'private': {
@@ -1011,6 +1021,7 @@ class kucoin(Exchange, ImplicitAPI):
                             'margin/borrow': 'v3',
                             'margin/repay': 'v3',
                             'margin/interest': 'v3',
+                            'margin/borrowRate': 'v3',
                             'project/list': 'v3',
                             'project/marketInterestRate': 'v3',
                             'redeem/orders': 'v3',
@@ -1018,6 +1029,11 @@ class kucoin(Exchange, ImplicitAPI):
                             'migrate/user/account/status': 'v3',
                             'margin/symbols': 'v3',
                             'affiliate/inviter/statistics': 'v2',
+                            'affiliate/queryInvitees': 'v2',
+                            'affiliate/queryMyCommission': 'v2',
+                            'affiliate/queryTransactionByUid': 'v2',
+                            'affiliate/queryTransactionByTime': 'v2',
+                            'affiliate/queryKumining': 'v2',
                             'asset/ndbroker/deposit/list': 'v1',
                         },
                         'POST': {
@@ -1080,7 +1096,7 @@ class kucoin(Exchange, ImplicitAPI):
                     },
                 },
                 'partner': {
-                    # the support for spot and future exchanges settings
+                    # the support for spot and future exchanges as separate settings
                     'spot': {
                         'id': 'ccxt',
                         'key': '9e58cc35-5b5e-4133-92ec-166e3f077cb8',
@@ -1675,7 +1691,7 @@ class kucoin(Exchange, ImplicitAPI):
             #            "timestamp": 1719393213421,
             #            "items": [
             #                {
-            #                    # same object market, with one additional field:
+            #                    # same object as in market, with one additional field:
             #                    "minFunds": "0.1"
             #                },
             #
@@ -3231,7 +3247,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta), defaults to False
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -3260,7 +3276,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -3337,7 +3353,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -3391,7 +3407,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -3588,7 +3604,7 @@ class kucoin(Exchange, ImplicitAPI):
             'tag': self.safe_string(depositAddress, 'memo'),
         }
 
-    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> list[DepositAddress]:
+    def fetch_deposit_addresses_by_network(self, code: str, params={}) -> DepositAddresses:
         """
 
         https://www.kucoin.com/docs-new/rest/account-info/deposit/get-deposit-address-v3/en
@@ -3598,7 +3614,7 @@ class kucoin(Exchange, ImplicitAPI):
         :param str code: unified currency code
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.uta]: set to True for the unified trading account(uta) endpoint, defaults to False
-        :returns dict: an array of `address structures <https://docs.ccxt.com/?id=address-structure>`
+        :returns dict: a dictionary of `address structures <https://docs.ccxt.com/?id=address-structure>` indexed by the network
         """
         if self.markets is None:
             self.load_markets()
@@ -3853,7 +3869,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' createOrder() does not support market ' + market['type'])
 
-    def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_spot_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         helper method for creating spot orders
 
@@ -4021,7 +4037,7 @@ class kucoin(Exchange, ImplicitAPI):
             raise InvalidOrder(self.id + ' amount of ' + market['symbol'] + ' must be greater than minimum amount precision of ' + self.number_to_string(market['precision']['amount']))
         return result
 
-    def create_contract_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_contract_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         helper method for creating contract orders
 
@@ -4193,7 +4209,7 @@ class kucoin(Exchange, ImplicitAPI):
         params = self.omit(params, ['timeInForce', 'stopPrice', 'triggerPrice', 'stopLossPrice', 'takeProfitPrice', 'reduceOnly', 'hedged'])  # Time in force only valid for limit orders, exchange error when gtc for market orders
         return self.extend(request, params)
 
-    def create_uta_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}):
+    def create_uta_order(self, symbol: str, type: OrderType, side: OrderSide, amount: float, price: Num = None, params={}) -> Order:
         """
         helper method for creating uta orders
 
@@ -4879,7 +4895,7 @@ class kucoin(Exchange, ImplicitAPI):
         #
         return self.safe_order({'info': response})
 
-    def cancel_uta_order(self, id: str, symbol: Str = None, params={}):
+    def cancel_uta_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         helper method for cancelling uta orders
 
@@ -5059,7 +5075,7 @@ class kucoin(Exchange, ImplicitAPI):
         data = self.safe_dict(response, 'data')
         return [self.safe_order({'info': data})]
 
-    def cancel_all_uta_orders(self, symbol: Str = None, params={}):
+    def cancel_all_uta_orders(self, symbol: Str = None, params={}) -> list[Order]:
         """
         helper method for cancelling all uta orders
 
@@ -5160,7 +5176,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             return self.fetch_contract_orders_by_status(status, symbol, since, limit, params)
 
-    def fetch_spot_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_spot_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetch a list of spot orders
 
@@ -5286,7 +5302,7 @@ class kucoin(Exchange, ImplicitAPI):
         orders = self.safe_list(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_contract_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_contract_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
         fetches a list of contract orders placed on the exchange
 
@@ -5391,7 +5407,7 @@ class kucoin(Exchange, ImplicitAPI):
         orders = self.safe_list(responseData, 'items', [])
         return self.parse_orders(orders, market, since, limit)
 
-    def fetch_uta_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}):
+    def fetch_uta_orders_by_status(self, status: object, symbol: Str = None, since: Int = None, limit: Int = None, params: dict = {}) -> list[Order]:
         """
         helper method for fetching orders by status with uta endpoint
 
@@ -5619,7 +5635,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             return self.fetch_contract_order(id, symbol, params)
 
-    def fetch_spot_order(self, id: str, symbol: Str = None, params={}):
+    def fetch_spot_order(self, id: str, symbol: Str = None, params={}) -> Order:
         """
         fetch a spot order
 
@@ -5699,7 +5715,7 @@ class kucoin(Exchange, ImplicitAPI):
             responseData = self.safe_value(responseData, 0)
         return self.parse_order(responseData, market)
 
-    def fetch_contract_order(self, id: Str, symbol: Str = None, params={}):
+    def fetch_contract_order(self, id: Str, symbol: Str = None, params={}) -> Order:
         """
         fetc contract order
 
@@ -5772,7 +5788,7 @@ class kucoin(Exchange, ImplicitAPI):
         responseData = self.safe_dict(response, 'data', {})
         return self.parse_order(responseData, market)
 
-    def fetch_uta_order(self, id: Str, symbol: Str = None, params={}):
+    def fetch_uta_order(self, id: Str, symbol: Str = None, params={}) -> Order:
         """
         fetch uta order
 
@@ -6368,7 +6384,7 @@ class kucoin(Exchange, ImplicitAPI):
         else:
             return self.fetch_my_contract_trades(symbol, since, limit, params)
 
-    def fetch_my_spot_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_spot_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://www.kucoin.com/docs-new/rest/spot-trading/orders/get-trade-history
@@ -6430,7 +6446,7 @@ class kucoin(Exchange, ImplicitAPI):
         elif method == 'private_get_limit_fills':
             # does not return trades earlier than 2019-02-18T00:00:00Z
             # takes no params
-            # only returns first 1000 trades(not only "in the last 24 hours" in the docs)
+            # only returns first 1000 trades(not only "in the last 24 hours" as stated in the docs)
             parseResponseData = True
             response = self.privateGetLimitFills(self.extend(request, params))
         else:
@@ -6488,7 +6504,7 @@ class kucoin(Exchange, ImplicitAPI):
             tradesList = self.to_array(trades)
         return self.parse_trades(tradesList, market, since, limit)
 
-    def fetch_my_contract_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_contract_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://www.kucoin.com/docs-new/rest/futures-trading/orders/get-trade-history
@@ -6566,7 +6582,7 @@ class kucoin(Exchange, ImplicitAPI):
             tradesList = trades
         return self.parse_trades(tradesList, market, since, limit)
 
-    def fetch_my_uta_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_uta_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
 
         https://www.kucoin.com/docs-new/rest/ua/get-trade-history
@@ -7762,18 +7778,14 @@ class kucoin(Exchange, ImplicitAPI):
             assets = self.safe_value(data, 'assets', data)
             for i in range(0, len(assets)):
                 entry = assets[i]
-                marketId = self.safe_string(entry, 'symbol')
-                symbol = self.safe_symbol(marketId, None, '_')
                 base = self.safe_dict(entry, 'baseAsset', {})
                 quote = self.safe_dict(entry, 'quoteAsset', {})
                 baseCode = self.safe_currency_code(self.safe_string(base, 'currency'))
                 quoteCode = self.safe_currency_code(self.safe_string(quote, 'currency'))
-                subResult = {}
                 if baseCode is not None:
-                    subResult[baseCode] = self.parse_balance_helper(base)
+                    result = self.merge_balance_account(result, baseCode, self.parse_balance_helper(base))
                 if quoteCode is not None:
-                    subResult[quoteCode] = self.parse_balance_helper(quote)
-                result[symbol] = self.safe_balance(subResult)
+                    result = self.merge_balance_account(result, quoteCode, self.parse_balance_helper(quote))
         elif cross:
             data = self.safe_dict(response, 'data', {})
             accounts = self.safe_list(data, 'accounts', [])
@@ -7797,10 +7809,7 @@ class kucoin(Exchange, ImplicitAPI):
                     account['used'] = self.safe_string(balance, 'holds')
                     if codeInner2 is not None:
                         result[codeInner2] = account
-        returnType = result
-        if not isolated:
-            returnType = self.safe_balance(result)
-        return returnType
+        return self.safe_balance(result)
 
     def fetch_contract_balance(self, params={}) -> Balances:
         """
@@ -7963,17 +7972,13 @@ class kucoin(Exchange, ImplicitAPI):
         if isIsolated:
             for i in range(0, len(accounts)):
                 entry = accounts[i]
-                marketId = self.safe_string(entry, 'accountSubtype')
-                symbol = self.safe_symbol(marketId, None, '-')
-                subResult = {}
                 currencies = self.safe_list(entry, 'currencies', [])
                 for j in range(0, len(currencies)):
                     currencyEntry = self.safe_dict(currencies, j, {})
                     currencyId = self.safe_string(currencyEntry, 'currency')
                     currencyCode = self.safe_currency_code(currencyId)
                     if currencyCode is not None:
-                        subResult[currencyCode] = self.parse_balance_helper(currencyEntry)
-                result[symbol] = self.safe_balance(subResult)
+                        result = self.merge_balance_account(result, currencyCode, self.parse_balance_helper(currencyEntry))
         else:
             firstAccount = self.safe_dict(accounts, 0, {})
             currencies = self.safe_list(firstAccount, 'currencies', [])
@@ -7983,10 +7988,7 @@ class kucoin(Exchange, ImplicitAPI):
                 currencyCode = self.safe_currency_code(currencyId)
                 if currencyCode is not None:
                     result[currencyCode] = self.parse_balance_helper(currencyEntry)
-        returnType = result
-        if not isIsolated:
-            returnType = self.safe_balance(result)
-        return returnType
+        return self.safe_balance(result)
 
     def transfer(self, code: str, amount: float, fromAccount: str, toAccount: str, params={}) -> TransferEntry:
         """
@@ -8287,7 +8289,7 @@ class kucoin(Exchange, ImplicitAPI):
             'KuCoin Bonus': 'bonus',  # KuCoin Bonus
             'Referral Bonus': 'referral',  # Referral Bonus
             'Rewards': 'bonus',  # Activities Rewards
-            # 'Distribution': 'Distribution',  # Distribution, such GAS by holding NEO
+            # 'Distribution': 'Distribution',  # Distribution, such as get GAS by holding NEO
             'Airdrop/Fork': 'airdrop',  # Airdrop/Fork
             'Other rewards': 'bonus',  # Other rewards, except Vote, Airdrop, Fork
             'Fee Rebate': 'rebate',  # Fee Rebate
@@ -8363,7 +8365,7 @@ class kucoin(Exchange, ImplicitAPI):
         #     {
         #         "id": "611a1e7c6a053300067a88d9",  #unique key for each ledger entry
         #         "currency": "USDT",  #Currency
-        #         "amount": "10.00059547",  #The total amount of assets(fees included) involved in assets changes such, withdrawal and bonus distribution.
+        #         "amount": "10.00059547",  #The total amount of assets(fees included) involved in assets changes such as transaction, withdrawal and bonus distribution.
         #         "fee": "0",  #Deposit or withdrawal fee
         #         "balance": "0",  #Total assets of a currency remaining funds after transaction
         #         "accountType": "MAIN",  #Account Type
@@ -8918,7 +8920,7 @@ class kucoin(Exchange, ImplicitAPI):
         rows = self.safe_list(data, 'items', [])
         return self.parse_borrow_rate_histories(rows, codes, since, limit)
 
-    def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
+    def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
 
@@ -9328,7 +9330,7 @@ class kucoin(Exchange, ImplicitAPI):
             response = self.privatePostPositionUpdateUserLeverage(self.extend(request, params))
         return response
 
-    def set_contract_leverage(self, leverage: int, symbol: Str = None, params={}):
+    def set_contract_leverage(self, leverage: int, symbol: Str = None, params={}) -> Leverage:
         """
         set the level of leverage for a market
 
@@ -10830,7 +10832,7 @@ class kucoin(Exchange, ImplicitAPI):
 
         :param str symbol: Unified CCXT market symbol
         :param str timeframe: '5m', '15m', '30m', '1h', '4h' or '1d'
-        :param int [since]: the time(ms) of the earliest record to retrieve unix timestamp
+        :param int [since]: the time(ms) of the earliest record to retrieve as a unix timestamp
         :param int [limit]: default 30，max 200
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: the latest time in ms to fetch entries for

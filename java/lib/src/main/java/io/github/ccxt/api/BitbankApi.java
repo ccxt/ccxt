@@ -141,6 +141,17 @@ public class BitbankApi extends Exchange
     }
 
     /**
+     * Calls the privateGetUserMarginStatus endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUserMarginStatus (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUserMarginStatus", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetUserMarginPositions endpoint.
      *
      * @param optionalArgs the request parameters

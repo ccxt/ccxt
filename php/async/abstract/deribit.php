@@ -88,6 +88,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_get_apr_history($params = array()) {
+        return $this->request('get_apr_history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_get_get_book_summary_by_currency($params = array()) {
         return $this->request('get_book_summary_by_currency', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -118,6 +124,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function public_get_get_expirations($params = array()) {
+        return $this->request('get_expirations', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function public_get_get_funding_chart_data($params = array()) {
         return $this->request('get_funding_chart_data', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -144,6 +156,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function public_get_get_index($params = array()) {
         return $this->request('get_index', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_get_index_chart_data($params = array()) {
+        return $this->request('get_index_chart_data', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -216,6 +234,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function public_get_get_order_book($params = array()) {
         return $this->request('get_order_book', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function public_get_get_supported_index_names($params = array()) {
+        return $this->request('get_supported_index_names', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -364,6 +388,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_get_currencies($params = array()) {
+        return $this->request('get_currencies', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_get_email_language($params = array()) {
         return $this->request('get_email_language', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -448,6 +478,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_set_disabled_trading_products($params = array()) {
+        return $this->request('set_disabled_trading_products', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_set_email_for_subaccount($params = array()) {
         return $this->request('set_email_for_subaccount', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -466,6 +502,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_simulate_portfolio($params = array()) {
+        return $this->request('simulate_portfolio', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_toggle_notifications_from_subaccount($params = array()) {
         return $this->request('toggle_notifications_from_subaccount', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -474,6 +516,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function private_get_toggle_subaccount_login($params = array()) {
         return $this->request('toggle_subaccount_login', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_approve_block_trade($params = array()) {
+        return $this->request('approve_block_trade', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -490,6 +538,18 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_get_block_trade_requests($params = array()) {
+        return $this->request('get_block_trade_requests', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_get_block_trades($params = array()) {
+        return $this->request('get_block_trades', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_get_last_block_trades_by_currency($params = array()) {
         return $this->request('get_last_block_trades_by_currency', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -498,6 +558,18 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function private_get_invalidate_block_trade_signature($params = array()) {
         return $this->request('invalidate_block_trade_signature', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_reject_block_trade($params = array()) {
+        return $this->request('reject_block_trade', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_simulate_block_trade($params = array()) {
+        return $this->request('simulate_block_trade', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -562,6 +634,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_cancel_quotes($params = array()) {
+        return $this->request('cancel_quotes', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_close_position($params = array()) {
         return $this->request('close_position', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -580,6 +658,18 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_get_mmp_status($params = array()) {
+        return $this->request('get_mmp_status', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_get_open_orders($params = array()) {
+        return $this->request('get_open_orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_get_open_orders_by_currency($params = array()) {
         return $this->request('get_open_orders_by_currency', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -588,6 +678,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function private_get_get_open_orders_by_instrument($params = array()) {
         return $this->request('get_open_orders_by_instrument', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_get_open_orders_by_label($params = array()) {
+        return $this->request('get_open_orders_by_label', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -612,6 +708,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function private_get_get_order_state($params = array()) {
         return $this->request('get_order_state', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_get_order_state_by_label($params = array()) {
+        return $this->request('get_order_state_by_label', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -658,6 +760,18 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_mass_quote($params = array()) {
+        return $this->request('mass_quote', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_move_positions($params = array()) {
+        return $this->request('move_positions', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_reset_mmp($params = array()) {
         return $this->request('reset_mmp', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -682,6 +796,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_add_to_address_book($params = array()) {
+        return $this->request('add_to_address_book', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_cancel_transfer_by_id($params = array()) {
         return $this->request('cancel_transfer_by_id', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -700,6 +820,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_get_address_book($params = array()) {
+        return $this->request('get_address_book', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_get_current_deposit_address($params = array()) {
         return $this->request('get_current_deposit_address', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -708,6 +834,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function private_get_get_deposits($params = array()) {
         return $this->request('get_deposits', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_get_reward_eligibility($params = array()) {
+        return $this->request('get_reward_eligibility', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -724,6 +856,18 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function private_get_remove_from_address_book($params = array()) {
+        return $this->request('remove_from_address_book', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_set_clearance_originator($params = array()) {
+        return $this->request('set_clearance_originator', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function private_get_submit_transfer_to_subaccount($params = array()) {
         return $this->request('submit_transfer_to_subaccount', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -732,6 +876,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function private_get_submit_transfer_to_user($params = array()) {
         return $this->request('submit_transfer_to_user', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function private_get_update_in_address_book($params = array()) {
+        return $this->request('update_in_address_book', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -820,6 +970,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicGetGetAprHistory($params = array()) {
+        return $this->request('get_apr_history', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicGetGetBookSummaryByCurrency($params = array()) {
         return $this->request('get_book_summary_by_currency', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -850,6 +1006,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function publicGetGetExpirations($params = array()) {
+        return $this->request('get_expirations', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function publicGetGetFundingChartData($params = array()) {
         return $this->request('get_funding_chart_data', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -876,6 +1038,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function publicGetGetIndex($params = array()) {
         return $this->request('get_index', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetGetIndexChartData($params = array()) {
+        return $this->request('get_index_chart_data', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -948,6 +1116,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function publicGetGetOrderBook($params = array()) {
         return $this->request('get_order_book', 'public', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function publicGetGetSupportedIndexNames($params = array()) {
+        return $this->request('get_supported_index_names', 'public', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1096,6 +1270,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetGetCurrencies($params = array()) {
+        return $this->request('get_currencies', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetGetEmailLanguage($params = array()) {
         return $this->request('get_email_language', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1180,6 +1360,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetSetDisabledTradingProducts($params = array()) {
+        return $this->request('set_disabled_trading_products', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetSetEmailForSubaccount($params = array()) {
         return $this->request('set_email_for_subaccount', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1198,6 +1384,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetSimulatePortfolio($params = array()) {
+        return $this->request('simulate_portfolio', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetToggleNotificationsFromSubaccount($params = array()) {
         return $this->request('toggle_notifications_from_subaccount', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1206,6 +1398,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function privateGetToggleSubaccountLogin($params = array()) {
         return $this->request('toggle_subaccount_login', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetApproveBlockTrade($params = array()) {
+        return $this->request('approve_block_trade', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1222,6 +1420,18 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetGetBlockTradeRequests($params = array()) {
+        return $this->request('get_block_trade_requests', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetGetBlockTrades($params = array()) {
+        return $this->request('get_block_trades', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetGetLastBlockTradesByCurrency($params = array()) {
         return $this->request('get_last_block_trades_by_currency', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1230,6 +1440,18 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function privateGetInvalidateBlockTradeSignature($params = array()) {
         return $this->request('invalidate_block_trade_signature', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetRejectBlockTrade($params = array()) {
+        return $this->request('reject_block_trade', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetSimulateBlockTrade($params = array()) {
+        return $this->request('simulate_block_trade', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1294,6 +1516,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetCancelQuotes($params = array()) {
+        return $this->request('cancel_quotes', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetClosePosition($params = array()) {
         return $this->request('close_position', 'private', 'GET', $params, null, null, array("cost" => 4));
     }
@@ -1312,6 +1540,18 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetGetMmpStatus($params = array()) {
+        return $this->request('get_mmp_status', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetGetOpenOrders($params = array()) {
+        return $this->request('get_open_orders', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetGetOpenOrdersByCurrency($params = array()) {
         return $this->request('get_open_orders_by_currency', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1320,6 +1560,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function privateGetGetOpenOrdersByInstrument($params = array()) {
         return $this->request('get_open_orders_by_instrument', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetGetOpenOrdersByLabel($params = array()) {
+        return $this->request('get_open_orders_by_label', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1344,6 +1590,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function privateGetGetOrderState($params = array()) {
         return $this->request('get_order_state', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetGetOrderStateByLabel($params = array()) {
+        return $this->request('get_order_state_by_label', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1390,6 +1642,18 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetMassQuote($params = array()) {
+        return $this->request('mass_quote', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetMovePositions($params = array()) {
+        return $this->request('move_positions', 'private', 'GET', $params, null, null, array("cost" => 4));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetResetMmp($params = array()) {
         return $this->request('reset_mmp', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1414,6 +1678,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetAddToAddressBook($params = array()) {
+        return $this->request('add_to_address_book', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetCancelTransferById($params = array()) {
         return $this->request('cancel_transfer_by_id', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1432,6 +1702,12 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetGetAddressBook($params = array()) {
+        return $this->request('get_address_book', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetGetCurrentDepositAddress($params = array()) {
         return $this->request('get_current_deposit_address', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1440,6 +1716,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function privateGetGetDeposits($params = array()) {
         return $this->request('get_deposits', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetGetRewardEligibility($params = array()) {
+        return $this->request('get_reward_eligibility', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
@@ -1456,6 +1738,18 @@ abstract class deribit extends \ccxt\async\Exchange {
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>
      */
+    public function privateGetRemoveFromAddressBook($params = array()) {
+        return $this->request('remove_from_address_book', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetSetClearanceOriginator($params = array()) {
+        return $this->request('set_clearance_originator', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
     public function privateGetSubmitTransferToSubaccount($params = array()) {
         return $this->request('submit_transfer_to_subaccount', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
@@ -1464,6 +1758,12 @@ abstract class deribit extends \ccxt\async\Exchange {
      */
     public function privateGetSubmitTransferToUser($params = array()) {
         return $this->request('submit_transfer_to_user', 'private', 'GET', $params, null, null, array("cost" => 1));
+    }
+    /**
+     * @return \React\Promise\PromiseInterface<array<string, mixed>>
+     */
+    public function privateGetUpdateInAddressBook($params = array()) {
+        return $this->request('update_in_address_book', 'private', 'GET', $params, null, null, array("cost" => 1));
     }
     /**
      * @return \React\Promise\PromiseInterface<array<string, mixed>>

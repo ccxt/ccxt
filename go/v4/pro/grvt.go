@@ -607,7 +607,7 @@ func (this *GrvtCore) HandleOHLCV(client any, message any) {
 	var market any = this.SafeMarket(marketId)
 	var symbol any = ccxt.GetValue(market, "symbol")
 	var secondPart any = this.SafeString(parts, 1, "")
-	var timeframeId any = ccxt.Replace(secondPart, "-TRADE", "")
+	var timeframeId string = ccxt.Replace(secondPart, "-TRADE", "")
 	var timeframe any = this.FindTimeframe(timeframeId)
 	var messageHash any = ccxt.Add(ccxt.Add(ccxt.Add("ohlcv::", symbol), "::"), timeframe)
 	ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))

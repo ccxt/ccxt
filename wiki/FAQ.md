@@ -69,9 +69,9 @@
 
   ## Hey! The fix you've uploaded is in TypeScript, would you fix JavaScript / Python / PHP as well, please?
 
-  Our build system generates exchange-specific JavaScript, Python, PHP, C#, Go and Java code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
+  Our build system generates exchange-specific JavaScript, Python, PHP, C#, Go, Java and Rust code for us automatically, so it is transpiled from TypeScript, and there's no need to fix all languages separately one by one.
 
-  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go and Java as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
+  Thus, if it is fixed in TypeScript, it is fixed in JavaScript NPM, Python pip, PHP Composer, C# NuGet, Go, Java and Rust (crates.io) as well. The automatic build usually takes 15-20 minutes. Just upgrade your version with `npm`, `pip` or `composer` **after the new version arrives** and you'll be fine.
 
   More about it here:
 
@@ -569,3 +569,30 @@ exchange = ccxt.prediction.hyperliquid({
 ```
 
 The id `hyperliquid` exists both as a regular crypto DEX (`ccxt.hyperliquid`) and as a prediction exchange (`ccxt.prediction.hyperliquid`) — the prediction class only exposes the prediction markets, addressed by outcome handles. Public market data works without any credentials.
+
+## How to fetch an RPI orderbook?
+
+OKX publishes a second order book that merges its regular liquidity with RPI (Retail Price Improvement) liquidity. Pass `rpi` to `fetchOrderBook` — either per call or once in `options` — and CCXT routes to that endpoint instead of the regular one. Everything else is unchanged, the returned [order book structure](Manual.md#order-book-structure) is the same.
+
+```Python
+exchange = ccxt.okx()
+
+# per call
+orderbook = exchange.fetch_order_book('BTC/USDT', 5, {'rpi': True})
+
+# or for every call
+exchange.options['fetchOrderBook'] = {'rpi': True}
+orderbook = exchange.fetch_order_book('BTC/USDT', 5)
+
+print(orderbook['bids'][0], orderbook['asks'][0])
+```
+
+The RPI book is capped at 400 entries per side, a larger `limit` is reduced to it.
+
+Binance has one too, but only for linear (USDⓈ-M) futures, and only as a per-call parameter:
+
+```Python
+exchange = ccxt.binance()
+orderbook = exchange.fetch_order_book('BTC/USDT:USDT', 5, {'rpi': True})
+```
+

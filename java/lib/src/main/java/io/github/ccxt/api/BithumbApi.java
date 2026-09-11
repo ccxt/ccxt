@@ -328,6 +328,28 @@ public class BithumbApi extends Exchange
     }
 
     /**
+     * Calls the privateGetV2OrdersPending endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2OrdersPending (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2OrdersPending", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetV2OrdersHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetV2OrdersHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetV2OrdersHistory", optionalArgs);
+    }
+
+    /**
      * Calls the privateGetV1Twap endpoint.
      *
      * @param optionalArgs the request parameters
@@ -666,6 +688,17 @@ public class BithumbApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostV2OrdersCancel (Object... optionalArgs)
     {
         return this.callAsync ("privatePostV2OrdersCancel", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostV2OrdersSearch endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privatePostV2OrdersSearch (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostV2OrdersSearch", optionalArgs);
     }
 
     /**

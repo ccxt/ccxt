@@ -174,6 +174,9 @@ func (this *CryptomusCore) Describe() any {
 					"v2/user-api/exchange/market/price": map[string]any{
 						"cost": 1,
 					},
+					"v2/user-api/exchange/markets/price": map[string]any{
+						"cost": 1,
+					},
 					"v1/exchange/market/assets": map[string]any{
 						"cost": 1,
 					},
@@ -211,6 +214,30 @@ func (this *CryptomusCore) Describe() any {
 					"v2/user-api/transaction/list": map[string]any{
 						"cost": 1,
 					},
+					"v2/user-api/balance": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/convert/direction-list": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/convert/order-list": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/aml/check/balance": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/aml/check/currencies": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/aml/check/packages": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/aml/check/request": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/aml/check/request/{id}": map[string]any{
+						"cost": 1,
+					},
 				},
 				"post": map[string]any{
 					"v2/user-api/exchange/orders": map[string]any{
@@ -219,9 +246,27 @@ func (this *CryptomusCore) Describe() any {
 					"v2/user-api/exchange/orders/market": map[string]any{
 						"cost": 1,
 					},
+					"v2/user-api/convert": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/convert/calculate": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/convert/limit": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/aml/check/request": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/aml/check/request/{id}/report/send": map[string]any{
+						"cost": 1,
+					},
 				},
 				"delete": map[string]any{
 					"v2/user-api/exchange/orders/{orderId}": map[string]any{
+						"cost": 1,
+					},
+					"v2/user-api/convert/{orderUuid}": map[string]any{
 						"cost": 1,
 					},
 				},
@@ -462,7 +507,7 @@ func (this *CryptomusCore) fetchCurrenciesBody(ch chan any, optionalArgs ...any)
 	//
 	var coins any = this.SafeList(response, "result")
 	var groupedById map[string]any = this.GroupBy(coins, "currency_code")
-	var groupedArray any = ObjectValues(groupedById)
+	var groupedArray []any = ObjectValues(groupedById)
 
 	ch <- this.ParseCurrencies(groupedArray)
 	return nil
@@ -535,8 +580,8 @@ func (this *CryptomusCore) fetchTickersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes47412 := (<-this.LoadMarkets())
-		PanicOnError(retRes47412)
+		retRes48912 := (<-this.LoadMarkets())
+		PanicOnError(retRes48912)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -623,8 +668,8 @@ func (this *CryptomusCore) fetchOrderBookBody(ch chan any, symbol any, optionalA
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes54412 := (<-this.LoadMarkets())
-		PanicOnError(retRes54412)
+		retRes55912 := (<-this.LoadMarkets())
+		PanicOnError(retRes55912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -691,8 +736,8 @@ func (this *CryptomusCore) fetchTradesBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes59112 := (<-this.LoadMarkets())
-		PanicOnError(retRes59112)
+		retRes60612 := (<-this.LoadMarkets())
+		PanicOnError(retRes60612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -778,8 +823,8 @@ func (this *CryptomusCore) fetchBalanceBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes66212 := (<-this.LoadMarkets())
-		PanicOnError(retRes66212)
+		retRes67712 := (<-this.LoadMarkets())
+		PanicOnError(retRes67712)
 	}
 	var request map[string]any = map[string]any{}
 
@@ -856,8 +901,8 @@ func (this *CryptomusCore) createOrderBody(ch chan any, symbol any, typeVar any,
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes72412 := (<-this.LoadMarkets())
-		PanicOnError(retRes72412)
+		retRes73912 := (<-this.LoadMarkets())
+		PanicOnError(retRes73912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -946,8 +991,8 @@ func (this *CryptomusCore) cancelOrderBody(ch chan any, id any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes79112 := (<-this.LoadMarkets())
-		PanicOnError(retRes79112)
+		retRes80612 := (<-this.LoadMarkets())
+		PanicOnError(retRes80612)
 	}
 	var request map[string]any = map[string]any{}
 	AddElementToObject(request, "orderId", id)
@@ -1000,8 +1045,8 @@ func (this *CryptomusCore) fetchCanceledAndClosedOrdersBody(ch chan any, optiona
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes82212 := (<-this.LoadMarkets())
-		PanicOnError(retRes82212)
+		retRes83712 := (<-this.LoadMarkets())
+		PanicOnError(retRes83712)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1099,8 +1144,8 @@ func (this *CryptomusCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes90012 := (<-this.LoadMarkets())
-		PanicOnError(retRes90012)
+		retRes91512 := (<-this.LoadMarkets())
+		PanicOnError(retRes91512)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1407,18 +1452,18 @@ func (this *CryptomusCore) Sign(path any, optionalArgs ...any) any {
 			jsonParams = body
 			AddElementToObject(headers, "Content-Type", "application/json")
 		} else {
-			var query any = this.Urlencode(params)
-			if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
+			var query string = this.Urlencode(params)
+			if IsTrue(!IsEqual(GetLength(query), 0)) {
 				url = Add(url, Add("?", query))
 			}
 		}
-		var jsonParamsBase64 any = this.StringToBase64(jsonParams)
+		var jsonParamsBase64 string = this.StringToBase64(jsonParams)
 		var stringToSign any = Add(jsonParamsBase64, this.Secret)
 		var signature any = this.Hash(this.Encode(stringToSign), md5)
 		AddElementToObject(headers, "sign", signature)
 	} else {
-		var query any = this.Urlencode(params)
-		if IsTrue(!IsEqual(GetArrayLength(query), 0)) {
+		var query string = this.Urlencode(params)
+		if IsTrue(!IsEqual(GetLength(query), 0)) {
 			url = Add(url, Add("?", query))
 		}
 	}

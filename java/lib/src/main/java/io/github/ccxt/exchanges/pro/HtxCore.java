@@ -1509,7 +1509,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             return;
         }
         Object genericMessageHash = Helpers.replace((String)messageHash, (String)Helpers.add(".", Helpers.GetValue(market, "lowercaseId")), (String)"");
-        Object lowerCaseBaseId = this.safeStringLower(market, "baseId");
+        String lowerCaseBaseId = (String)this.safeStringLower(market, "baseId");
         genericMessageHash = Helpers.replace((String)genericMessageHash, (String)Helpers.add(".", lowerCaseBaseId), (String)"");
         client.resolve(this.orders, genericMessageHash);
     }
@@ -1714,7 +1714,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             type = this.safeString(order, "order_price_type");
         }
-        Object side = this.safeStringLower(typeSideParts, 0);
+        String side = (String)this.safeStringLower(typeSideParts, 0);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             side = this.safeString2(order, "direction", "side");
@@ -2395,7 +2395,6 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 messageHash = Helpers.add(messageHash, Helpers.add(".", ((String)currencyId).toLowerCase()));
                 subscription = this.safeValue(client.subscriptions, messageHash);
             }
-            Object type = this.safeString(subscription, "type");
             Object subType = this.safeString(subscription, "subType");
             if (Helpers.isTrue(Helpers.isEqual(topic, "accounts_unify")))
             {
@@ -2429,33 +2428,17 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 Object margin = this.safeString(subscription, "margin");
                 if (Helpers.isTrue(Helpers.isEqual(margin, "cross")))
                 {
-                    Object fieldName = ((Helpers.isTrue((Helpers.isEqual(type, "future"))))) ? "futures_contract_detail" : "contract_detail";
-                    Object balances = this.safeValue(first, fieldName, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    Object balancesLength = Helpers.getArrayLength(balances);
-                    if (Helpers.isTrue(Helpers.isGreaterThan(balancesLength, 0)))
+                    // the cross account is one shared margin balance, keyed by the settle currency
+                    Object currencyId = this.safeString2(first, "margin_asset", "margin_account");
+                    Object code = this.safeCurrencyCode(currencyId);
+                    if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                     {
-                        for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
-                        {
-                            Object balance = Helpers.GetValue(balances, i);
-                            Object marketId = this.safeString2(balance, "contract_code", "margin_account");
-                            Object market = this.safeMarket(marketId);
-                            Object currencyId = this.safeString(balance, "margin_asset");
-                            Object currency = this.safeCurrency(currencyId);
-                            Object code = this.safeString(market, "settle", Helpers.GetValue(currency, "code"));
-                            // the exchange outputs positions for delisted markets
-                            // https://www.huobi.com/support/en-us/detail/74882968522337
-                            // we skip it if the market was delisted
-                            if (Helpers.isTrue(!Helpers.isEqual(code, null)))
-                            {
-                                Object account = this.account();
-                                Helpers.addElementToObject(account, "free", this.safeString2(balance, "margin_balance", "margin_available"));
-                                Helpers.addElementToObject(account, "used", this.safeString(balance, "margin_frozen"));
-                                Object accountsByCode = new java.util.HashMap<String, Object>() {{}};
-                                Helpers.addElementToObject(accountsByCode, code, account);
-                                Object symbol = Helpers.GetValue(market, "symbol");
-                                Helpers.addElementToObject(this.balance, symbol, this.safeBalance(accountsByCode));
-                            }
-                        }
+                        Object account = this.account();
+                        Helpers.addElementToObject(account, "free", this.safeString2(first, "withdraw_available", "margin_available"));
+                        Helpers.addElementToObject(account, "used", this.safeString(first, "margin_frozen"));
+                        Helpers.addElementToObject(account, "total", this.safeString(first, "margin_balance"));
+                        Helpers.addElementToObject(this.balance, code, account);
+                        this.balance = this.safeBalance(this.balance);
                     }
                 } else
                 {
@@ -3154,7 +3137,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 // since this is a global sub, our messageHash does not specify any symbol (ex: orders_cross:trade)
                 // so we must remove it
                 Object genericOrderHash = Helpers.replace((String)messageHash, (String)Helpers.add(".", Helpers.GetValue(market, "lowercaseId")), (String)"");
-                Object lowerCaseBaseId = this.safeStringLower(market, "baseId");
+                String lowerCaseBaseId = (String)this.safeStringLower(market, "baseId");
                 genericOrderHash = Helpers.replace((String)genericOrderHash, (String)Helpers.add(".", lowerCaseBaseId), (String)"");
                 Object genericTradesHash = Helpers.add(Helpers.add(genericOrderHash, ":"), "trade");
                 client.resolve(this.myTrades, genericTradesHash);

@@ -172,7 +172,9 @@ class latoken(Exchange, ImplicitAPI):
                     'get': {
                         'auth/account': {'cost': 1},
                         'auth/account/currency/{currency}/{type}': {'cost': 1},
+                        'auth/account/filtered': {'cost': 1},
                         'auth/order': {'cost': 1},
+                        'auth/order/active': {'cost': 1},
                         'auth/order/getOrder/{id}': {'cost': 1},
                         'auth/order/pair/{currency}/{quote}': {'cost': 1},
                         'auth/order/pair/{currency}/{quote}/active': {'cost': 1},
@@ -193,7 +195,9 @@ class latoken(Exchange, ImplicitAPI):
                         'auth/order/cancel': {'cost': 1},
                         'auth/order/cancelAll': {'cost': 1},
                         'auth/order/cancelAll/{currency}/{quote}': {'cost': 1},
+                        'auth/order/cancelBulk': {'cost': 1},
                         'auth/order/place': {'cost': 1},
+                        'auth/order/placeBulk': {'cost': 1},
                         'auth/spot/deposit': {'cost': 1},
                         'auth/spot/withdraw': {'cost': 1},
                         'auth/stopOrder/cancel': {'cost': 1},
@@ -946,7 +950,7 @@ class latoken(Exchange, ImplicitAPI):
         else:
             raise NotSupported(self.id + ' not support self method')
 
-    async def fetch_public_trading_fee(self, symbol: str, params={}):
+    async def fetch_public_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)
@@ -972,7 +976,7 @@ class latoken(Exchange, ImplicitAPI):
             'tierBased': None,
         }
 
-    async def fetch_private_trading_fee(self, symbol: str, params={}):
+    async def fetch_private_trading_fee(self, symbol: str, params={}) -> TradingFeeInterface:
         if self.markets is None:
             await self.load_markets()
         market = self.market(symbol)

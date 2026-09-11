@@ -164,16 +164,34 @@ func (this *DeriveCore) Describe() any {
 					"deregister_session_key": map[string]any{
 						"cost": 1,
 					},
+					"get_wallets_from_session_key": map[string]any{
+						"cost": 1,
+					},
 					"login": map[string]any{
 						"cost": 1,
 					},
 					"statistics": map[string]any{
 						"cost": 1,
 					},
+					"all_statistics": map[string]any{
+						"cost": 1,
+					},
+					"user_statistics": map[string]any{
+						"cost": 1,
+					},
+					"all_user_statistics": map[string]any{
+						"cost": 1,
+					},
 					"get_all_currencies": map[string]any{
 						"cost": 1,
 					},
 					"get_currency": map[string]any{
+						"cost": 1,
+					},
+					"get_asset": map[string]any{
+						"cost": 1,
+					},
+					"get_assets": map[string]any{
 						"cost": 1,
 					},
 					"get_instrument": map[string]any{
@@ -188,6 +206,9 @@ func (this *DeriveCore) Describe() any {
 					"get_ticker": map[string]any{
 						"cost": 1,
 					},
+					"get_tickers": map[string]any{
+						"cost": 1,
+					},
 					"get_latest_signed_feeds": map[string]any{
 						"cost": 1,
 					},
@@ -198,6 +219,12 @@ func (this *DeriveCore) Describe() any {
 						"cost": 1,
 					},
 					"get_spot_feed_history_candles": map[string]any{
+						"cost": 1,
+					},
+					"get_index_chart_data": map[string]any{
+						"cost": 1,
+					},
+					"get_tradingview_chart_data": map[string]any{
 						"cost": 1,
 					},
 					"get_funding_rate_history": map[string]any{
@@ -215,6 +242,9 @@ func (this *DeriveCore) Describe() any {
 					"get_interest_rate_history": map[string]any{
 						"cost": 1,
 					},
+					"get_perp_impact_twap": map[string]any{
+						"cost": 1,
+					},
 					"get_transaction": map[string]any{
 						"cost": 1,
 					},
@@ -222,6 +252,9 @@ func (this *DeriveCore) Describe() any {
 						"cost": 1,
 					},
 					"margin_watch": map[string]any{
+						"cost": 1,
+					},
+					"order_quote": map[string]any{
 						"cost": 1,
 					},
 					"validate_invite_code": map[string]any{
@@ -243,6 +276,9 @@ func (this *DeriveCore) Describe() any {
 						"cost": 1,
 					},
 					"get_swell_percent_points": map[string]any{
+						"cost": 1,
+					},
+					"get_stdrv_snapshots": map[string]any{
 						"cost": 1,
 					},
 					"get_vault_assets": map[string]any{
@@ -269,10 +305,19 @@ func (this *DeriveCore) Describe() any {
 					"get_vault_balances": map[string]any{
 						"cost": 1,
 					},
+					"get_vault_pools": map[string]any{
+						"cost": 1,
+					},
+					"get_vault_rates": map[string]any{
+						"cost": 1,
+					},
 					"estimate_integrator_points": map[string]any{
 						"cost": 1,
 					},
 					"create_subaccount_debug": map[string]any{
+						"cost": 1,
+					},
+					"create_account_with_secret": map[string]any{
 						"cost": 1,
 					},
 					"deposit_debug": map[string]any{
@@ -293,6 +338,12 @@ func (this *DeriveCore) Describe() any {
 					"register_invite": map[string]any{
 						"cost": 1,
 					},
+					"get_all_referral_codes": map[string]any{
+						"cost": 1,
+					},
+					"get_referral_performance": map[string]any{
+						"cost": 1,
+					},
 					"get_time": map[string]any{
 						"cost": 1,
 					},
@@ -303,6 +354,12 @@ func (this *DeriveCore) Describe() any {
 						"cost": 1,
 					},
 					"get_maker_program_scores": map[string]any{
+						"cost": 1,
+					},
+					"get_detailed_maker_snapshot_history": map[string]any{
+						"cost": 1,
+					},
+					"getRateLimits": map[string]any{
 						"cost": 1,
 					},
 				},
@@ -328,6 +385,9 @@ func (this *DeriveCore) Describe() any {
 						"cost": 1,
 					},
 					"get_notificationsv": map[string]any{
+						"cost": 1,
+					},
+					"get_notifications": map[string]any{
 						"cost": 1,
 					},
 					"update_notifications": map[string]any{
@@ -366,6 +426,12 @@ func (this *DeriveCore) Describe() any {
 					"get_open_orders": map[string]any{
 						"cost": 1,
 					},
+					"get_trigger_orders": map[string]any{
+						"cost": 1,
+					},
+					"get_algo_orders": map[string]any{
+						"cost": 1,
+					},
 					"cancel": map[string]any{
 						"cost": 1,
 					},
@@ -382,6 +448,15 @@ func (this *DeriveCore) Describe() any {
 						"cost": 1,
 					},
 					"cancel_trigger_order": map[string]any{
+						"cost": 1,
+					},
+					"cancel_algo_order": map[string]any{
+						"cost": 1,
+					},
+					"cancel_all_algo_orders": map[string]any{
+						"cost": 1,
+					},
+					"cancel_all_trigger_orders": map[string]any{
 						"cost": 1,
 					},
 					"get_order_history": map[string]any{
@@ -429,6 +504,12 @@ func (this *DeriveCore) Describe() any {
 					"execute_quote": map[string]any{
 						"cost": 1,
 					},
+					"order_quote": map[string]any{
+						"cost": 1,
+					},
+					"replace_quote": map[string]any{
+						"cost": 1,
+					},
 					"rfq_get_best_quote": map[string]any{
 						"cost": 1,
 					},
@@ -474,6 +555,9 @@ func (this *DeriveCore) Describe() any {
 					"edit_session_key": map[string]any{
 						"cost": 1,
 					},
+					"change_session_key_label": map[string]any{
+						"cost": 1,
+					},
 					"register_scoped_session_key": map[string]any{
 						"cost": 1,
 					},
@@ -493,6 +577,18 @@ func (this *DeriveCore) Describe() any {
 						"cost": 1,
 					},
 					"register_invite": map[string]any{
+						"cost": 1,
+					},
+					"get_contact_info": map[string]any{
+						"cost": 1,
+					},
+					"create_contact_info": map[string]any{
+						"cost": 1,
+					},
+					"update_contact_info": map[string]any{
+						"cost": 1,
+					},
+					"delete_contact_info": map[string]any{
 						"cost": 1,
 					},
 				},
@@ -1051,8 +1147,8 @@ func (this *DeriveCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes75112 := (<-this.LoadMarkets())
-		PanicOnError(retRes75112)
+		retRes78312 := (<-this.LoadMarkets())
+		PanicOnError(retRes78312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1243,8 +1339,8 @@ func (this *DeriveCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes92312 := (<-this.LoadMarkets())
-		PanicOnError(retRes92312)
+		retRes95512 := (<-this.LoadMarkets())
+		PanicOnError(retRes95512)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1316,7 +1412,7 @@ func (this *DeriveCore) ParseTrades(trades any, optionalArgs ...any) any {
 	_ = limit
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
-	var tradesArray any = this.ToArray(trades)
+	var tradesArray []any = this.ToArray(trades)
 	var result any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(tradesArray)); i++ {
 		var rawTrade any = GetValue(tradesArray, i)
@@ -1419,8 +1515,8 @@ func (this *DeriveCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes107112 := (<-this.LoadMarkets())
-		PanicOnError(retRes107112)
+		retRes110312 := (<-this.LoadMarkets())
+		PanicOnError(retRes110312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1464,7 +1560,7 @@ func (this *DeriveCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -1541,8 +1637,8 @@ func (this *DeriveCore) HashOrderMessage(order any) any {
 	var accountHash any = this.Hash(this.EthAbiEncode([]any{"bytes32", "uint256", "uint256", "address", "bytes32", "uint256", "address", "address"}, order), keccak, "binary")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var DOMAIN_SEPARATOR any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "9bcf4dc06df5d8bf23af818d5716491b995020f377d3b7b64c29ed14e3dd1105", "d96e5f90797da7ec8dc4e276260c7f3f87fedf68775fbe1ef116e996fc60441b")
-	var binaryDomainSeparator any = this.Base16ToBinary(DOMAIN_SEPARATOR)
-	var prefix any = this.Base16ToBinary("1901")
+	var binaryDomainSeparator []byte = this.Base16ToBinary(DOMAIN_SEPARATOR)
+	var prefix []byte = this.Base16ToBinary("1901")
 	return this.Hash(this.BinaryConcat(prefix, binaryDomainSeparator, accountHash), keccak, "hex")
 }
 func (this *DeriveCore) SignOrder(order any, privateKey any) any {
@@ -1550,19 +1646,19 @@ func (this *DeriveCore) SignOrder(order any, privateKey any) any {
 	return this.SignHash(Slice(hashOrder, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil))
 }
 func (this *DeriveCore) HashMessage(message any) any {
-	var binaryMessage any = this.Encode(message)
-	var binaryMessageLength any = this.BinaryLength(binaryMessage)
-	var x19 any = this.Base16ToBinary("19")
-	var newline any = this.Base16ToBinary("0a")
-	var prefix any = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
+	var binaryMessage string = this.Encode(message)
+	var binaryMessageLength int = this.BinaryLength(binaryMessage)
+	var x19 []byte = this.Base16ToBinary("19")
+	var newline []byte = this.Base16ToBinary("0a")
+	var prefix []byte = this.BinaryConcat(x19, this.Encode("Ethereum Signed Message:"), newline, this.Encode(this.NumberToString(binaryMessageLength)))
 	return Add("0x", this.Hash(this.BinaryConcat(prefix, binaryMessage), keccak, "hex"))
 }
 func (this *DeriveCore) SignHash(hash any, privateKey any) any {
 	this.CheckRequiredCredentials()
-	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")
-	var v any = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
+	var v string = this.IntToBase16(this.Sum(27, GetValue(signature, "v")))
 	return Add(Add(Add("0x", PadStart(r, 64, "0")), PadStart(s, 64, "0")), v)
 }
 func (this *DeriveCore) SignMessage(message any, privateKey any) any {
@@ -1608,8 +1704,8 @@ func (this *DeriveCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes123512 := (<-this.LoadMarkets())
-		PanicOnError(retRes123512)
+		retRes126712 := (<-this.LoadMarkets())
+		PanicOnError(retRes126712)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(price, nil)) {
@@ -1629,7 +1725,7 @@ func (this *DeriveCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	var nonce int64 = this.Milliseconds()
 	// Order signature expiry must be between 2592000 and 7776000 sec from now
 	var signatureExpiry any = this.SafeInteger(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
-	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
+	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
 	var priceString any = this.NumberToString(price)
@@ -1812,8 +1908,8 @@ func (this *DeriveCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes143112 := (<-this.LoadMarkets())
-		PanicOnError(retRes143112)
+		retRes146312 := (<-this.LoadMarkets())
+		PanicOnError(retRes146312)
 	}
 	var market any = this.Market(symbol)
 	var subaccountId any = nil
@@ -1829,7 +1925,7 @@ func (this *DeriveCore) editOrderBody(ch chan any, id any, symbol any, typeVar a
 	var nonce int64 = this.Milliseconds()
 	var signatureExpiry any = this.SafeNumber(params, "signature_expiry_sec", Add(this.Seconds(), 7776000))
 	// TODO: subaccount id / trade module address
-	var ACTION_TYPEHASH any = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
+	var ACTION_TYPEHASH []byte = this.Base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17")
 	var sandboxMode any = this.SafeBool(this.Options, "sandboxMode", false)
 	var TRADE_MODULE_ADDRESS any = Ternary(IsTrue((IsEqual(sandboxMode, true))), "0x87F2863866D85E3192a35A73b388BD625D83f2be", "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b")
 	var priceString any = this.NumberToString(price)
@@ -1985,8 +2081,8 @@ func (this *DeriveCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes160212 := (<-this.LoadMarkets())
-		PanicOnError(retRes160212)
+		retRes163412 := (<-this.LoadMarkets())
+		PanicOnError(retRes163412)
 	}
 	var market any = this.Market(symbol)
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
@@ -2101,8 +2197,8 @@ func (this *DeriveCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes169312 := (<-this.LoadMarkets())
-		PanicOnError(retRes169312)
+		retRes172512 := (<-this.LoadMarkets())
+		PanicOnError(retRes172512)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -2178,8 +2274,8 @@ func (this *DeriveCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes174312 := (<-this.LoadMarkets())
-		PanicOnError(retRes174312)
+		retRes177512 := (<-this.LoadMarkets())
+		PanicOnError(retRes177512)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOrders", "paginate")
@@ -2187,9 +2283,9 @@ func (this *DeriveCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes174819 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes174819)
-		ch <- retRes174819
+		retRes178019 := (<-this.FetchPaginatedCallIncremental("fetchOrders", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes178019)
+		ch <- retRes178019
 		return nil
 	}
 	var isTrigger any = this.SafeBool2(params, "trigger", "stop", false)
@@ -2309,16 +2405,16 @@ func (this *DeriveCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes184312 := (<-this.LoadMarkets())
-		PanicOnError(retRes184312)
+		retRes187512 := (<-this.LoadMarkets())
+		PanicOnError(retRes187512)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "open",
 	})
 
-	retRes184615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-	PanicOnError(retRes184615)
-	ch <- retRes184615
+	retRes187815 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes187815)
+	ch <- retRes187815
 	return nil
 }
 
@@ -2352,16 +2448,16 @@ func (this *DeriveCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes186312 := (<-this.LoadMarkets())
-		PanicOnError(retRes186312)
+		retRes189512 := (<-this.LoadMarkets())
+		PanicOnError(retRes189512)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "filled",
 	})
 
-	retRes186615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-	PanicOnError(retRes186615)
-	ch <- retRes186615
+	retRes189815 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes189815)
+	ch <- retRes189815
 	return nil
 }
 
@@ -2395,16 +2491,16 @@ func (this *DeriveCore) fetchCanceledOrdersBody(ch chan any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes188312 := (<-this.LoadMarkets())
-		PanicOnError(retRes188312)
+		retRes191512 := (<-this.LoadMarkets())
+		PanicOnError(retRes191512)
 	}
 	var extendedParams map[string]any = this.Extend(params, map[string]any{
 		"status": "cancelled",
 	})
 
-	retRes188615 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
-	PanicOnError(retRes188615)
-	ch <- retRes188615
+	retRes191815 := (<-this.FetchOrders(symbol, since, limit, extendedParams))
+	PanicOnError(retRes191815)
+	ch <- retRes191815
 	return nil
 }
 func (this *DeriveCore) ParseTimeInForce(timeInForce any) any {
@@ -2427,7 +2523,7 @@ func (this *DeriveCore) ParseOrderStatus(status any) any {
 		}
 		return this.SafeString(statuses, status, status)
 	}
-	return status
+	return nil
 }
 func (this *DeriveCore) ParseOrder(rawOrder any, optionalArgs ...any) any {
 	//
@@ -2587,8 +2683,8 @@ func (this *DeriveCore) fetchOrderTradesBody(ch chan any, id any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes205312 := (<-this.LoadMarkets())
-		PanicOnError(retRes205312)
+		retRes208512 := (<-this.LoadMarkets())
+		PanicOnError(retRes208512)
 	}
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchOrderTrades", params)
@@ -2686,8 +2782,8 @@ func (this *DeriveCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes212912 := (<-this.LoadMarkets())
-		PanicOnError(retRes212912)
+		retRes216112 := (<-this.LoadMarkets())
+		PanicOnError(retRes216112)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2695,9 +2791,9 @@ func (this *DeriveCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes213419 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes213419)
-		ch <- retRes213419
+		retRes216619 := (<-this.FetchPaginatedCallIncremental("fetchMyTrades", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes216619)
+		ch <- retRes216619
 		return nil
 	}
 	var subaccountId any = nil
@@ -2798,8 +2894,8 @@ func (this *DeriveCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes221412 := (<-this.LoadMarkets())
-		PanicOnError(retRes221412)
+		retRes224612 := (<-this.LoadMarkets())
+		PanicOnError(retRes224612)
 	}
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchPositions", params)
@@ -2965,8 +3061,8 @@ func (this *DeriveCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes235712 := (<-this.LoadMarkets())
-		PanicOnError(retRes235712)
+		retRes238912 := (<-this.LoadMarkets())
+		PanicOnError(retRes238912)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingHistory", "paginate")
@@ -2974,9 +3070,9 @@ func (this *DeriveCore) fetchFundingHistoryBody(ch chan any, optionalArgs ...any
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes236219 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
-		PanicOnError(retRes236219)
-		ch <- retRes236219
+		retRes239419 := (<-this.FetchPaginatedCallIncremental("fetchFundingHistory", symbol, since, limit, params, "page", 500))
+		PanicOnError(retRes239419)
+		ch <- retRes239419
 		return nil
 	}
 	var subaccountId any = nil
@@ -3095,8 +3191,8 @@ func (this *DeriveCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes246112 := (<-this.LoadMarkets())
-		PanicOnError(retRes246112)
+		retRes249312 := (<-this.LoadMarkets())
+		PanicOnError(retRes249312)
 	}
 	var deriveWalletAddress any = nil
 	deriveWalletAddressparamsVariable := this.HandleDeriveWalletAddress("fetchBalance", params)
@@ -3217,8 +3313,8 @@ func (this *DeriveCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes256112 := (<-this.LoadMarkets())
-		PanicOnError(retRes256112)
+		retRes259312 := (<-this.LoadMarkets())
+		PanicOnError(retRes259312)
 	}
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchDeposits", params)
@@ -3289,8 +3385,8 @@ func (this *DeriveCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes261012 := (<-this.LoadMarkets())
-		PanicOnError(retRes261012)
+		retRes264212 := (<-this.LoadMarkets())
+		PanicOnError(retRes264212)
 	}
 	var subaccountId any = nil
 	subaccountIdparamsVariable := this.HandleDeriveSubaccountId("fetchWithdrawals", params)

@@ -283,6 +283,26 @@ func (this *DydxCore) Describe() any {
 					"historical-pnl/parentSubaccount": map[string]any{
 						"cost": 1,
 					},
+					"pnl": map[string]any{
+						"cost": 1,
+					},
+					"pnl/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+					"tradeHistory": map[string]any{
+						"cost": 1,
+					},
+					"tradeHistory/parentSubaccountNumber": map[string]any{
+						"cost": 1,
+					},
+				},
+				"post": map[string]any{
+					"turnkey/signin": map[string]any{
+						"cost": 1,
+					},
+					"turnkey/uploadAddress": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"nodeRpc": map[string]any{
@@ -740,7 +760,7 @@ func (this *DydxCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any {
 	// }
 	//
 	var data any = this.SafeDict(response, "markets", map[string]any{})
-	var markets any = ObjectValues(data)
+	var markets []any = ObjectValues(data)
 
 	ch <- this.ParseMarkets(markets)
 	return nil
@@ -809,8 +829,8 @@ func (this *DydxCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes67712 := (<-this.LoadMarkets())
-		PanicOnError(retRes67712)
+		retRes68512 := (<-this.LoadMarkets())
+		PanicOnError(retRes68512)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -896,8 +916,8 @@ func (this *DydxCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes74912 := (<-this.LoadMarkets())
-		PanicOnError(retRes74912)
+		retRes75712 := (<-this.LoadMarkets())
+		PanicOnError(retRes75712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -978,8 +998,8 @@ func (this *DydxCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes81012 := (<-this.LoadMarkets())
-		PanicOnError(retRes81012)
+		retRes81812 := (<-this.LoadMarkets())
+		PanicOnError(retRes81812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1022,7 +1042,7 @@ func (this *DydxCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...a
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, symbol, since, limit)
 	return nil
@@ -1155,8 +1175,8 @@ func (this *DydxCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes96812 := (<-this.LoadMarkets())
-		PanicOnError(retRes96812)
+		retRes97612 := (<-this.LoadMarkets())
+		PanicOnError(retRes97612)
 	}
 	var request map[string]any = map[string]any{
 		"orderId": id,
@@ -1208,8 +1228,8 @@ func (this *DydxCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(subAccountNumberparamsVariable, 1)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes99612 := (<-this.LoadMarkets())
-		PanicOnError(retRes99612)
+		retRes100412 := (<-this.LoadMarkets())
+		PanicOnError(retRes100412)
 	}
 	var request map[string]any = map[string]any{
 		"address":          userAddress,
@@ -1291,9 +1311,9 @@ func (this *DydxCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any 
 		"status": "OPEN",
 	}
 
-	retRes105815 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes105815)
-	ch <- retRes105815
+	retRes106615 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes106615)
+	ch <- retRes106615
 	return nil
 }
 
@@ -1330,9 +1350,9 @@ func (this *DydxCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) an
 		"status": "FILLED",
 	}
 
-	retRes107815 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
-	PanicOnError(retRes107815)
-	ch <- retRes107815
+	retRes108615 := (<-this.FetchOrders(symbol, since, limit, this.Extend(request, params)))
+	PanicOnError(retRes108615)
+	ch <- retRes108615
 	return nil
 }
 func (this *DydxCore) ParsePosition(position any, optionalArgs ...any) any {
@@ -1456,8 +1476,8 @@ func (this *DydxCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(subAccountNumberparamsVariable, 1)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes117112 := (<-this.LoadMarkets())
-		PanicOnError(retRes117112)
+		retRes117912 := (<-this.LoadMarkets())
+		PanicOnError(retRes117912)
 	}
 	var request map[string]any = map[string]any{
 		"address":          userAddress,
@@ -1500,7 +1520,7 @@ func (this *DydxCore) HashMessage(message any) any {
 	return this.Hash(message, keccak, "hex")
 }
 func (this *DydxCore) SignHash(hash any, privateKey any) any {
-	var signature any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
+	var signature map[string]any = Ecdsa(Slice(hash, OpNeg(64), nil), Slice(privateKey, OpNeg(64), nil), secp256k1, nil)
 	var r any = GetValue(signature, "r")
 	var s any = GetValue(signature, "s")
 	return map[string]any{
@@ -1569,8 +1589,8 @@ func (this *DydxCore) fetchDydxAccountBody(ch chan any) any {
 	defer ReturnPanicError(ch)
 	// required in js
 
-	retRes12718 := (<-this.LoadDydxProtos())
-	PanicOnError(retRes12718)
+	retRes12798 := (<-this.LoadDydxProtos())
+	PanicOnError(retRes12798)
 	var dydxAccount any = this.SafeDict(this.Options, "dydxAccount")
 	if IsTrue(!IsEqual(dydxAccount, nil)) {
 
@@ -1658,8 +1678,8 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 	var quantumConversionExponent any = GetValue(marketInfo, "quantumConversionExponent")
 	var priceScale any = this.Pow("10", Precise.StringSub(Precise.StringSub(atomicResolution, quantumConversionExponent), "-6"))
 	var subticks any = Precise.StringMul(priceStr, priceScale)
-	var clientMetadata any = 0
-	var conditionalType any = 0
+	var clientMetadata int = 0
+	var conditionalType int = 0
 	var conditionalOrderTriggerSubticks any = "0"
 	var orderFlag any = nil
 	var timeInForceNumber any = nil
@@ -1726,7 +1746,7 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 		goodTillBlockTime = Add(this.Seconds(), goodTillBlockTimeInSeconds)
 	}
 	var sideNumber any = Ternary(IsTrue((IsEqual(orderSide, "BUY"))), 1, 2)
-	var defaultClientOrderId any = this.RandNumber(9) // 2**32 - 1 is 10 digits, but it may overflow with 10
+	var defaultClientOrderId int64 = this.RandNumber(9) // 2**32 - 1 is 10 digits, but it may overflow with 10
 	var clientOrderId any = this.SafeInteger(params, "clientOrderId", defaultClientOrderId)
 	var orderPayload map[string]any = map[string]any{
 		"order": map[string]any{
@@ -1769,7 +1789,7 @@ func (this *DydxCore) CreateOrderRequest(symbol any, typeVar any, side any, amou
 func (this *DydxCore) CreateOrderIdFromParts(address any, subAccountNumber any, clientOrderId any, orderFlags any, clobPairId any) any {
 	var nameSp any = this.SafeString(this.Options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d")
 	var prefixAddress any = Add(Add(address, "-"), ToString(subAccountNumber))
-	var prefix any = this.Uuid5(nameSp, prefixAddress)
+	var prefix string = this.Uuid5(nameSp, prefixAddress)
 	var orderInfo any = Add(Add(Add(Add(Add(Add(prefix, "-"), this.NumberToString(clientOrderId)), "-"), this.NumberToString(clobPairId)), "-"), this.NumberToString(orderFlags))
 	return this.Uuid5(nameSp, orderInfo)
 }
@@ -1847,8 +1867,8 @@ func (this *DydxCore) createOrderBody(ch chan any, symbol any, typeVar any, side
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes151412 := (<-this.LoadMarkets())
-		PanicOnError(retRes151412)
+		retRes152212 := (<-this.LoadMarkets())
+		PanicOnError(retRes152212)
 	}
 	var credentials any = this.RetrieveCredentials()
 
@@ -1931,8 +1951,8 @@ func (this *DydxCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) 
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes157512 := (<-this.LoadMarkets())
-		PanicOnError(retRes157512)
+		retRes158312 := (<-this.LoadMarkets())
+		PanicOnError(retRes158312)
 	}
 	var market any = this.Market(symbol)
 	var clientOrderId any = this.SafeString2(params, "clientOrderId", "clientId", id)
@@ -2051,8 +2071,8 @@ func (this *DydxCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes167012 := (<-this.LoadMarkets())
-		PanicOnError(retRes167012)
+		retRes167812 := (<-this.LoadMarkets())
+		PanicOnError(retRes167812)
 	}
 	var market any = this.Market(symbol)
 	var clientOrderIds any = this.SafeList(params, "clientOrderIds")
@@ -2145,8 +2165,8 @@ func (this *DydxCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes174112 := (<-this.LoadMarkets())
-		PanicOnError(retRes174112)
+		retRes174912 := (<-this.LoadMarkets())
+		PanicOnError(retRes174912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2272,8 +2292,8 @@ func (this *DydxCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes184712 := (<-this.LoadMarkets())
-		PanicOnError(retRes184712)
+		retRes185512 := (<-this.LoadMarkets())
+		PanicOnError(retRes185512)
 	}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
@@ -2378,8 +2398,8 @@ func (this *DydxCore) transferBody(ch chan any, code any, amount any, fromAccoun
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes192612 := (<-this.LoadMarkets())
-		PanicOnError(retRes192612)
+		retRes193412 := (<-this.LoadMarkets())
+		PanicOnError(retRes193412)
 	}
 	var fromSubaccountId any = this.SafeInteger(params, "fromSubaccountId")
 	var toSubaccountId any = this.SafeInteger(params, "toSubaccountId")
@@ -2542,8 +2562,8 @@ func (this *DydxCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes206412 := (<-this.LoadMarkets())
-		PanicOnError(retRes206412)
+		retRes207212 := (<-this.LoadMarkets())
+		PanicOnError(retRes207212)
 	}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
@@ -2554,8 +2574,8 @@ func (this *DydxCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 		"methodName": "fetchTransfers",
 	})))
 	PanicOnError(response)
-	var transferIn any = this.FilterBy(response, "type", "TRANSFER_IN")
-	var transferOut any = this.FilterBy(response, "type", "TRANSFER_OUT")
+	var transferIn []any = this.FilterBy(response, "type", "TRANSFER_IN")
+	var transferOut []any = this.FilterBy(response, "type", "TRANSFER_OUT")
 	var rows any = this.ArrayConcat(transferIn, transferOut)
 
 	ch <- this.ParseTransfers(rows, currency, since, limit)
@@ -2645,8 +2665,8 @@ func (this *DydxCore) withdrawBody(ch chan any, code any, amount any, address an
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes214712 := (<-this.LoadMarkets())
-		PanicOnError(retRes214712)
+		retRes215512 := (<-this.LoadMarkets())
+		PanicOnError(retRes215512)
 	}
 	this.CheckAddress(address)
 	var subaccountId any = this.SafeInteger(params, "subaccountId")
@@ -2735,8 +2755,8 @@ func (this *DydxCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes221212 := (<-this.LoadMarkets())
-		PanicOnError(retRes221212)
+		retRes222012 := (<-this.LoadMarkets())
+		PanicOnError(retRes222012)
 	}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
@@ -2747,7 +2767,7 @@ func (this *DydxCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) any
 		"methodName": "fetchWithdrawals",
 	})))
 	PanicOnError(response)
-	var rows any = this.FilterBy(response, "type", "WITHDRAWAL")
+	var rows []any = this.FilterBy(response, "type", "WITHDRAWAL")
 
 	ch <- this.ParseTransactions(rows, currency, since, limit)
 	return nil
@@ -2784,8 +2804,8 @@ func (this *DydxCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes223812 := (<-this.LoadMarkets())
-		PanicOnError(retRes223812)
+		retRes224612 := (<-this.LoadMarkets())
+		PanicOnError(retRes224612)
 	}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
@@ -2796,7 +2816,7 @@ func (this *DydxCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 		"methodName": "fetchDeposits",
 	})))
 	PanicOnError(response)
-	var rows any = this.FilterBy(response, "type", "DEPOSIT")
+	var rows []any = this.FilterBy(response, "type", "DEPOSIT")
 
 	ch <- this.ParseTransactions(rows, currency, since, limit)
 	return nil
@@ -2833,8 +2853,8 @@ func (this *DydxCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes226412 := (<-this.LoadMarkets())
-		PanicOnError(retRes226412)
+		retRes227212 := (<-this.LoadMarkets())
+		PanicOnError(retRes227212)
 	}
 	var currency any = nil
 	if IsTrue(!IsEqual(code, nil)) {
@@ -2845,8 +2865,8 @@ func (this *DydxCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...
 		"methodName": "fetchDepositsWithdrawals",
 	})))
 	PanicOnError(response)
-	var withdrawals any = this.FilterBy(response, "type", "WITHDRAWAL")
-	var deposits any = this.FilterBy(response, "type", "DEPOSIT")
+	var withdrawals []any = this.FilterBy(response, "type", "WITHDRAWAL")
+	var deposits []any = this.FilterBy(response, "type", "DEPOSIT")
 	var rows any = this.ArrayConcat(withdrawals, deposits)
 
 	ch <- this.ParseTransactions(rows, currency, since, limit)
@@ -3024,8 +3044,8 @@ func (this *DydxCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes240112 := (<-this.LoadMarkets())
-		PanicOnError(retRes240112)
+		retRes240912 := (<-this.LoadMarkets())
+		PanicOnError(retRes240912)
 	}
 	var userAddress any = nil
 	userAddressparamsVariable := this.HandlePublicAddress("fetchBalance", params)

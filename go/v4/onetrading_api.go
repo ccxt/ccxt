@@ -47,6 +47,21 @@ func (this *OnetradingCore) PublicGetTime(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetTime", args...)
 }
 
+// PublicGetFundingRate returns a channel that yields a JSON array.
+func (this *OnetradingCore) PublicGetFundingRate(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetFundingRate", args...)
+}
+
+// PublicGetFundingRateHistory returns a channel that yields a JSON object.
+func (this *OnetradingCore) PublicGetFundingRateHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetFundingRateHistory", args...)
+}
+
+// PublicGetFundingRateSettings returns a channel that yields a JSON array.
+func (this *OnetradingCore) PublicGetFundingRateSettings(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetFundingRateSettings", args...)
+}
+
 // PrivateGetAccountBalances returns a channel that yields a JSON object.
 func (this *OnetradingCore) PrivateGetAccountBalances(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAccountBalances", args...)
@@ -87,9 +102,44 @@ func (this *OnetradingCore) PrivateGetAccountTradeTradeId(args ...any) <-chan an
 	return this.callEndpointAsync("privateGetAccountTradeTradeId", args...)
 }
 
+// PrivateGetAccountFuturesSummary returns a channel that yields a JSON object.
+func (this *OnetradingCore) PrivateGetAccountFuturesSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountFuturesSummary", args...)
+}
+
+// PrivateGetAccountFuturesPositions returns a channel that yields a JSON object.
+func (this *OnetradingCore) PrivateGetAccountFuturesPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountFuturesPositions", args...)
+}
+
+// PrivateGetAccountFuturesPositionsHistory returns a channel that yields a JSON object.
+func (this *OnetradingCore) PrivateGetAccountFuturesPositionsHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountFuturesPositionsHistory", args...)
+}
+
+// PrivateGetAccountFuturesPositionsPositionIdTrades returns a channel that yields a JSON object.
+func (this *OnetradingCore) PrivateGetAccountFuturesPositionsPositionIdTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountFuturesPositionsPositionIdTrades", args...)
+}
+
+// PrivateGetAccountFuturesPositionsPositionIdFundingPayments returns a channel that yields a JSON object.
+func (this *OnetradingCore) PrivateGetAccountFuturesPositionsPositionIdFundingPayments(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountFuturesPositionsPositionIdFundingPayments", args...)
+}
+
+// PrivateGetAccountFuturesFundingPayments returns a channel that yields a JSON object.
+func (this *OnetradingCore) PrivateGetAccountFuturesFundingPayments(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAccountFuturesFundingPayments", args...)
+}
+
 // PrivatePostAccountOrders returns a channel that yields a JSON object.
 func (this *OnetradingCore) PrivatePostAccountOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostAccountOrders", args...)
+}
+
+// PrivatePostSubaccountsTransfers returns a channel that yields a JSON object.
+func (this *OnetradingCore) PrivatePostSubaccountsTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostSubaccountsTransfers", args...)
 }
 
 // PrivateDeleteAccountOrders returns a channel that yields a JSON array.

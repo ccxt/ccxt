@@ -809,7 +809,7 @@ func (this *Apex) EditOrders(orders []OrderRequest, options ...EditOrdersOptions
 func (this *Apex) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Apex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Apex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Apex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -851,7 +851,7 @@ func (this *Apex) FetchDepositAddress(code string, options ...FetchDepositAddres
 func (this *Apex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Apex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Apex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Apex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

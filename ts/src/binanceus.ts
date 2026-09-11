@@ -132,16 +132,19 @@ export default class binanceus extends binance {
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 } as Endpoint<List>,
                         'ticker/24hr': { 'cost': 1, 'noSymbol': 40 } as Endpoint<Dict | List>,
                         'ticker': { 'cost': 2, 'noSymbol': 100 } as Endpoint<List>,
+                        'ticker/tradingDay': { 'cost': 4 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         'account': { 'cost': 10 } as Endpoint<Dict>,
+                        'account/commission': { 'cost': 20 } as Endpoint<Dict>,
                         'rateLimit/order': { 'cost': 20 } as Endpoint<List>,
                         'order': { 'cost': 2 } as Endpoint<Dict>,
                         'openOrders': { 'cost': 3, 'noSymbol': 40 } as Endpoint<List>,
                         'myTrades': { 'cost': 10 } as Endpoint<List>,
                         'myPreventedMatches': { 'cost': 10 } as Endpoint<List>, // with ID it has weight 1, but we don't have that complex handling yet
+                        'myFilters': { 'cost': 40 } as Endpoint<Dict>,
                         'allOrders': { 'cost': 10 } as Endpoint<List>,
                         'orderList': { 'cost': 2 } as Endpoint<Dict>,
                         'allOrderList': { 'cost': 10 } as Endpoint<List>,

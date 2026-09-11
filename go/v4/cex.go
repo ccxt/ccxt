@@ -196,6 +196,9 @@ func (this *CexCore) Describe() any {
 					"get_order_book": map[string]any{
 						"cost": 1,
 					},
+					"get_ticker": map[string]any{
+						"cost": 1,
+					},
 					"get_candles": map[string]any{
 						"cost": 1,
 					},
@@ -653,8 +656,8 @@ func (this *CexCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes56212 := (<-this.LoadMarkets())
-		PanicOnError(retRes56212)
+		retRes56312 := (<-this.LoadMarkets())
+		PanicOnError(retRes56312)
 	}
 
 	response := (<-this.FetchTickers([]any{symbol}, params))
@@ -687,8 +690,8 @@ func (this *CexCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes57912 := (<-this.LoadMarkets())
-		PanicOnError(retRes57912)
+		retRes58012 := (<-this.LoadMarkets())
+		PanicOnError(retRes58012)
 	}
 	var request map[string]any = map[string]any{}
 	if IsTrue(!IsEqual(symbols, nil)) {
@@ -784,8 +787,8 @@ func (this *CexCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes65612 := (<-this.LoadMarkets())
-		PanicOnError(retRes65612)
+		retRes65712 := (<-this.LoadMarkets())
+		PanicOnError(retRes65712)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -886,8 +889,8 @@ func (this *CexCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes73812 := (<-this.LoadMarkets())
-		PanicOnError(retRes73812)
+		retRes73912 := (<-this.LoadMarkets())
+		PanicOnError(retRes73912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -959,8 +962,8 @@ func (this *CexCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes78812 := (<-this.LoadMarkets())
-		PanicOnError(retRes78812)
+		retRes78912 := (<-this.LoadMarkets())
+		PanicOnError(retRes78912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1040,8 +1043,8 @@ func (this *CexCore) fetchTradingFeesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes85812 := (<-this.LoadMarkets())
-		PanicOnError(retRes85812)
+		retRes85912 := (<-this.LoadMarkets())
+		PanicOnError(retRes85912)
 	}
 
 	response := (<-this.PrivatePostGetMyCurrentFee(params))
@@ -1112,8 +1115,8 @@ func (this *CexCore) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes91412 := (<-this.LoadMarkets())
-		PanicOnError(retRes91412)
+		retRes91512 := (<-this.LoadMarkets())
+		PanicOnError(retRes91512)
 	}
 
 	response := (<-this.PrivatePostGetMyAccountStatusV3(params))
@@ -1140,7 +1143,7 @@ func (this *CexCore) fetchAccountsBody(ch chan any, optionalArgs ...any) any {
 	//
 	var data any = this.SafeDict(response, "data", map[string]any{})
 	var balances any = this.SafeDict(data, "balancesPerAccounts", map[string]any{})
-	var arrays any = this.ToArray(balances)
+	var arrays []any = this.ToArray(balances)
 
 	ch <- this.ParseAccounts(arrays, params)
 	return nil
@@ -1276,8 +1279,8 @@ func (this *CexCore) fetchOrdersByStatusBody(ch chan any, status any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes104012 := (<-this.LoadMarkets())
-		PanicOnError(retRes104012)
+		retRes104112 := (<-this.LoadMarkets())
+		PanicOnError(retRes104112)
 	}
 	var request map[string]any = map[string]any{}
 	var isClosedOrders bool = (IsEqual(status, "closed"))
@@ -1382,9 +1385,9 @@ func (this *CexCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) any
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes112315 := (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
-	PanicOnError(retRes112315)
-	ch <- retRes112315
+	retRes112415 := (<-this.FetchOrdersByStatus("closed", symbol, since, limit, params))
+	PanicOnError(retRes112415)
+	ch <- retRes112415
 	return nil
 }
 
@@ -1416,9 +1419,9 @@ func (this *CexCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes113815 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
-	PanicOnError(retRes113815)
-	ch <- retRes113815
+	retRes113915 := (<-this.FetchOrdersByStatus("open", symbol, since, limit, params))
+	PanicOnError(retRes113915)
+	ch <- retRes113915
 	return nil
 }
 
@@ -1446,8 +1449,8 @@ func (this *CexCore) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes115312 := (<-this.LoadMarkets())
-		PanicOnError(retRes115312)
+		retRes115412 := (<-this.LoadMarkets())
+		PanicOnError(retRes115412)
 	}
 	var request map[string]any = map[string]any{
 		"orderId": ParseInt(id),
@@ -1484,8 +1487,8 @@ func (this *CexCore) fetchClosedOrderBody(ch chan any, id any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes117412 := (<-this.LoadMarkets())
-		PanicOnError(retRes117412)
+		retRes117512 := (<-this.LoadMarkets())
+		PanicOnError(retRes117512)
 	}
 	var request map[string]any = map[string]any{
 		"orderId": ParseInt(id),
@@ -1629,8 +1632,8 @@ func (this *CexCore) createOrderBody(ch chan any, symbol any, typeVar any, side 
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes130012 := (<-this.LoadMarkets())
-		PanicOnError(retRes130012)
+		retRes130112 := (<-this.LoadMarkets())
+		PanicOnError(retRes130112)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(IsEqual(side, nil)) {
@@ -1743,8 +1746,8 @@ func (this *CexCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes139312 := (<-this.LoadMarkets())
-		PanicOnError(retRes139312)
+		retRes139412 := (<-this.LoadMarkets())
+		PanicOnError(retRes139412)
 	}
 	var request map[string]any = map[string]any{
 		"orderId":         ParseInt(id),
@@ -1786,8 +1789,8 @@ func (this *CexCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes141912 := (<-this.LoadMarkets())
-		PanicOnError(retRes141912)
+		retRes142012 := (<-this.LoadMarkets())
+		PanicOnError(retRes142012)
 	}
 
 	response := (<-this.PrivatePostDoCancelAllOrders(params))
@@ -1846,8 +1849,8 @@ func (this *CexCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes145612 := (<-this.LoadMarkets())
-		PanicOnError(retRes145612)
+		retRes145712 := (<-this.LoadMarkets())
+		PanicOnError(retRes145712)
 	}
 	var currency any = nil
 	var request map[string]any = map[string]any{}
@@ -1964,8 +1967,8 @@ func (this *CexCore) fetchDepositsWithdrawalsBody(ch chan any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes155112 := (<-this.LoadMarkets())
-		PanicOnError(retRes155112)
+		retRes155212 := (<-this.LoadMarkets())
+		PanicOnError(retRes155212)
 	}
 	var request map[string]any = map[string]any{}
 	var currency any = nil
@@ -2108,8 +2111,8 @@ func (this *CexCore) transferBetweenMainAndSubAccountBody(ch chan any, code any,
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes166412 := (<-this.LoadMarkets())
-		PanicOnError(retRes166412)
+		retRes166512 := (<-this.LoadMarkets())
+		PanicOnError(retRes166512)
 	}
 	var currency any = this.Currency(code)
 	var fromMain bool = (IsEqual(fromAccount, ""))
@@ -2161,8 +2164,8 @@ func (this *CexCore) transferBetweenSubAccountsBody(ch chan any, code any, amoun
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes170112 := (<-this.LoadMarkets())
-		PanicOnError(retRes170112)
+		retRes170212 := (<-this.LoadMarkets())
+		PanicOnError(retRes170212)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -2256,8 +2259,8 @@ func (this *CexCore) fetchDepositAddressBody(ch chan any, code any, optionalArgs
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes177812 := (<-this.LoadMarkets())
-		PanicOnError(retRes177812)
+		retRes177912 := (<-this.LoadMarkets())
+		PanicOnError(retRes177912)
 	}
 	var networkCode any = nil
 	networkCodeparamsVariable := this.HandleNetworkCodeAndParams(params)
@@ -2355,7 +2358,7 @@ func (this *CexCore) HandleErrors(code any, reason any, url any, method any, hea
 		if IsTrue(IsEqual(body, nil)) {
 			panic(NullResponse(Add(this.Id, " returned empty response")))
 		} else if IsTrue(IsEqual(GetValue(body, 0), "{")) {
-			var fixed any = this.FixStringifiedJsonMembers(body)
+			var fixed string = this.FixStringifiedJsonMembers(body)
 			response = this.ParseJson(fixed)
 		} else {
 			panic(NullResponse(Add(Add(this.Id, " returned unparsed response: "), body)))

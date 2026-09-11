@@ -208,7 +208,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "T", "createdAt")));
-        Object side = this.safeStringLower2(trade, "S", "side");
+        String side = (String)this.safeStringLower2(trade, "S", "side");
         Object price = this.safeString2(trade, "p", "price");
         Object amount = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("q", "v", "size")));
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
@@ -1224,6 +1224,13 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         {
             return;
         }
+        Object ret_msg = this.safeString(message, "ret_msg");
+        Object pong = this.safeInteger(message, "pong");
+        if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(ret_msg, "pong")) || Helpers.isTrue(!Helpers.isEqual(pong, null))))
+        {
+            this.handlePong(client, message);
+            return;
+        }
         Object topic = this.safeString2(message, "topic", "op", "");
         Object methods = new java.util.HashMap<String, Object>() {{
             put( "ws_zk_accounts_v3", "handleAccount");
@@ -1317,6 +1324,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
 
     public void handlePing(Client client, Object message)
     {
+        client.lastPong = ((Number)this.milliseconds()).longValue();
         this.spawn(() -> { try { this.pong(client, message); } catch(Exception _e) { throw new RuntimeException(_e); } });
     }
 

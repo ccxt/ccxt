@@ -751,8 +751,8 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str outcome: unified outcome or outcome id
         :param str type: 'limit' or 'market'(order book); ignored by the AMM path
         :param str side: 'buy' or 'sell'
-        :param float amount: number of outcome shares to trade(AMM 'buy' spends self value instead)
-        :param float [price]: price per share fraction in [0, 1](required for order-book limit orders)
+        :param float amount: number of outcome shares to trade(AMM 'buy' spends self as collateral value instead)
+        :param float [price]: price per share as a fraction in [0, 1](required for order-book limit orders)
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param str [params.tradingModel]: 'ob' to force the order book, 'amm' to force the on-chain AMM; defaults to the market's model
         :param str [params.timeInForce]: order-book time in force: 'GTC', 'GTD', 'FOK', 'FAK' or 'PO'
@@ -862,7 +862,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         priceWei = self.to_orderbook_wei(priceValue)
         if Precise.string_lt(priceWei, '1'):
             priceWei = '1'
-        # price is a fraction in(0, 1] encoded..1e18 wei(tick is 1 wei); reject out-of-range early
+        # price is a fraction in(0, 1] encoded as 1..1e18 wei(tick is 1 wei); reject out-of-range early
         if Precise.string_gt(priceWei, '1000000000000000000'):
             raise InvalidOrder(self.id + ' createOrder() price must be a fraction between 0 and 1')
         amountWei = self.to_orderbook_wei(amount)
@@ -934,10 +934,10 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str type: 'limit' or 'market'
         :param str side: 'buy' or 'sell'
         :param float amount: number of outcome shares for the new order
-        :param float [price]: price per share fraction in [0, 1]
+        :param float [price]: price per share as a fraction in [0, 1]
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.orderResponse]: a pre-fetched fetchOrder-style response for the order being replaced; avoids the internal lookup when already available, call fetchOrder to retrieve self data
-        :param dict [params.rawOrder]: the raw order payload to cancel alternative to params.orderResponse, call fetchOrder to retrieve self data
+        :param dict [params.rawOrder]: the raw order payload to cancel as an alternative to params.orderResponse, call fetchOrder to retrieve self data
         :param str [params.networkId]: the order-book network id, required when using params.rawOrder without an embedded network id
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
@@ -948,7 +948,7 @@ class myriad(PredictionExchange, ImplicitAPI):
     async def create_amm_order(self, outcome: str, type: Str, side: Str, amount: Num, price: Num = None, params={}) -> PredictionOrder:
         """
  @ignore
-        buys or sells outcome shares by submitting the quote's calldata on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
+        buys or sells outcome shares by submitting the quote's calldata as an on-chain AMM transaction. Requires a privateKey with gas + collateral on the market's network
         :param str outcome: unified outcome or outcome id
         :param str [type]: not used by the AMM path
         :param str side: 'buy' or 'sell'
@@ -962,9 +962,9 @@ class myriad(PredictionExchange, ImplicitAPI):
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
         # the AMM buy endpoint is priced in COLLATERAL, not shares — so a bare createOrder market buy
-        # would silently size `amount`(inconsistent with every other venue and the wiki).
+        # would silently size `amount` as dollars(inconsistent with every other venue and the wiki).
         # route dollar-sizing through createMarketBuyOrderWithCost(which sets costDenominated); a
-        # plain createOrder buy on the AMM is rejected so it can't misinterpret shares
+        # plain createOrder buy on the AMM is rejected so it can't misinterpret shares as collateral
         sideLower = side.lower() if (side is not None) else None
         isCostDenominated = self.safe_bool(params, 'costDenominated', False)
         if (sideLower == 'buy') and (isCostDenominated is not True):
@@ -1086,7 +1086,7 @@ class myriad(PredictionExchange, ImplicitAPI):
     def clob_order_message(self, rawOrder: dict) -> dict:
         """
  @ignore
-        normalises a fetched order-book order into a typed-data message(uint256 fields, uint8 fields)
+        normalises a fetched order-book order into a typed-data message(uint256 fields as strings, uint8 fields as ints)
         :returns dict: the typed-data message
         """
         signer = self.safe_string_2(rawOrder, 'trader', 'user')
@@ -1289,7 +1289,7 @@ class myriad(PredictionExchange, ImplicitAPI):
     async def fetch_amm_orders(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionOrder]:
         """
  @ignore
-        fetches executed AMM trades for a wallet from the user events feed and exposes them prediction orders
+        fetches executed AMM trades for a wallet from the user events feed and exposes them as closed prediction orders
         :param str [outcome]: unified outcome to filter by
         :param int [since]: timestamp in ms of the earliest order
         :param int [limit]: the maximum number of orders to return
@@ -1379,7 +1379,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param str [outcome]: unified outcome the order belongs to
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.orderResponse]: a pre-fetched fetchOrder-style response for the target order; avoids the internal order lookup when already available, call fetchOrder to retrieve self data
-        :param dict [params.rawOrder]: the raw order payload to sign alternative to params.orderResponse, call fetchOrder to retrieve self data
+        :param dict [params.rawOrder]: the raw order payload to sign as an alternative to params.orderResponse, call fetchOrder to retrieve self data
         :param str [params.networkId]: the order-book network id, required when using params.rawOrder without an embedded network id
         :returns dict: a [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure)
         """
@@ -1425,7 +1425,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             market = await self.load_outcome(outcome)
         return self.parse_prediction_order(wrapper, market)
 
-    async def cancel_all_orders(self, outcome: Str = None, params={}) -> object:
+    async def cancel_all_orders(self, outcome: Str = None, params={}) -> list[PredictionOrder]:
         """
         cancels all open order book orders for the wallet, optionally scoped to one market(gasless)
 
@@ -1433,7 +1433,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
         :param str [outcome]: unified outcome; when omitted cancels across all markets
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns dict: the raw response with the count of cancelled orders
+        :returns dict[]: a list with one [prediction order structure](https://docs.ccxt.com/#/?id=prediction-order-structure) whose `info` carries the cancelled count
         """
         if self.privateKey is None:
             raise ArgumentsRequired(self.id + ' cancelAllOrders() requires a privateKey to sign the cancellation')
@@ -1460,13 +1460,16 @@ class myriad(PredictionExchange, ImplicitAPI):
             'signature': signature,
             'network_id': self.parse_to_int(networkId),
         }
-        return await self.myriadPublicPostOrdersCancelAll(request)
+        response = await self.myriadPublicPostOrdersCancelAll(request)
         #
         #     {
         #         "cancelled_count": 2,
         #         "market_ids_affected": ["2cfe87e8-12df-4671-b9a9-0758898fd54b"]
         #     }
         #
+        # the endpoint returns a count, not the orders: hand back one canceled order
+        # structure carrying the raw response, like limitless does
+        return [self.safe_prediction_order({'info': response, 'status': 'canceled'})]
 
     async def cancel_orders(self, ids: list[str], outcome: Str = None, params={}) -> list[PredictionOrder]:
         """
@@ -1700,7 +1703,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
     async def fetch_my_trades(self, outcome: Str = None, since: Int = None, limit: Int = None, params={}) -> list[PredictionTrade]:
         """
-        fetches the wallet's filled order book orders. Note: Myriad's REST exposes the order's
+        fetches the wallet's filled order book orders as trades. Note: Myriad's REST exposes the order's
  limit price, not the per-fill execution price, so the price reflects the order's limit(exact for resting/limit
  fills, an upper/lower bound for market orders) — use watchTrades for live execution prices
 
@@ -2460,7 +2463,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum number of candles to return
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: a list of candles ordered, open, high, low, close, volume
+        :returns int[][]: a list of candles ordered as timestamp, open, high, low, close, volume
         """
         outcomeObj = await self.load_outcome(outcome)
         outcomeInfo = self.safe_dict(outcomeObj, 'info', {})
@@ -2556,7 +2559,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         parses a single myriad price chart data point into an ohlcv tuple
         :param dict ohlcv: the raw price chart data point
         :param dict [market]: the outcome object the candle belongs to
-        :returns int[]: a candle ordered, open, high, low, close, volume
+        :returns int[]: a candle ordered as timestamp, open, high, low, close, volume
         """
         #
         #     {
@@ -2739,7 +2742,7 @@ class myriad(PredictionExchange, ImplicitAPI):
         :param dict [params]: extra exchange-specific parameters
         :param str [params.query]: a single search term; an eventId does a direct lookup and tags map to server-side keyword searches
         :param str[] [params.queries]: multiple search terms(alternative to query)
-        :param str[] [params.tags]: tag slugs to scope by(searched, e.g. ['bitcoin', 'world-cup'])
+        :param str[] [params.tags]: tag slugs to scope by(searched as keywords, e.g. ['bitcoin', 'world-cup'])
         :param str [params.eventId]: direct lookup by unified event id(composite networkId:marketId) like '56:170145' or questions path like '793bfc47-ddcd-47d2-aad5-52c7002fc823'
         :param int [params.limit]: maximum number of markets per query, defaults to 50
         :param str [params.state]: 'open', 'closed' or 'resolved', defaults to 'open'
@@ -2918,7 +2921,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             self.options['wsConnected'] = False
             requestId = self.request_id(url)
             # give the anonymous connect a name so the params object is non-empty(PHP serialises an
-            # empty array JSON array, which Centrifugo rejects)
+            # empty array as a JSON array, which Centrifugo rejects)
             connectMsg = {'connect': {'name': 'ccxt'}, 'id': requestId}
             return await self.watch(url, 'centrifugoConnected', connectMsg, 'connect')
         if self.safe_bool(self.options, 'wsConnected', False):
@@ -2941,7 +2944,7 @@ class myriad(PredictionExchange, ImplicitAPI):
 
     def handle_message(self, client: object, message: object):
         # Centrifugo packs several commands per frame joined by \n; a multi-command frame fails the
-        # base json.loadsand arrives here raw string, a single command arrives already parsed
+        # base json.loadsand arrives here as a raw string, a single command arrives already parsed
         if isinstance(message, str):
             lines = message.split('\n')
             linesLength = len(lines)
@@ -3541,7 +3544,7 @@ class myriad(PredictionExchange, ImplicitAPI):
             'Accept': 'application/json',
             'Content-Type': 'application/json',
         }, existingHeaders)
-        # non-GET requests carry the params JSON body(public POSTs like markets/quote
+        # non-GET requests carry the params as a JSON body(public POSTs like markets/quote
         # included — the previous logic only sent a body for authenticated requests)
         if method != 'GET':
             queryKeys = list(query.keys())

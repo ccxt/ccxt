@@ -247,27 +247,42 @@ export default class xt extends Exchange {
                     },
                     'linear': {
                         'get': {
+                            'future/copytrade/user/v1/copy-trade/current-following-v2': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/copytrade/user/v1/copy-trade/follower-balance-bill': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/copytrade/user/v1/copy-trade/follower-position': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/plan-detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/plan-list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/plan-list-history': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/profit-detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/profit-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/profit-list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/reverse-plan-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/reverse-plan-list-history': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/track-detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/track-list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/track-list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order-entrust/list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/trade-history': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/position/list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/position/cross-margin/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/position/leverage/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/position/list/active': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/trade-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/trade-list-all': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/account/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/auto-deleverage/history': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/balance/bills': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/balance/detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/balance/funding-rate-list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/balance/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/compat/balance/{coin}': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/position/adl': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/position/break-list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/position/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/taker-over/list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/user/step-rate': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/user/collection/list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/user/listen-key': { 'cost': 1 } as Endpoint<Dict>,
@@ -305,22 +320,34 @@ export default class xt extends Exchange {
                             'future/trade/v1/entrust/plan-list-history': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/profit-detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/profit-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/profit-list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/reverse-plan-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/entrust/reverse-plan-list-history': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/track-detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/track-list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/entrust/track-list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order-entrust/list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/trade-history': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/position/list-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/position/cross-margin/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/position/leverage/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/position/list/active': { 'cost': 1 } as Endpoint<Dict>,
                             'future/trade/v1/order/trade-list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/trade/v1/order/trade-list-all': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/account/info': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/auto-deleverage/history': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/balance/bills': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/balance/detail': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/balance/funding-rate-list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/balance/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/compat/balance/{coin}': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/position/adl': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/position/break-list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/position/list': { 'cost': 1 } as Endpoint<Dict>,
+                            'future/user/v1/taker-over/list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/user/step-rate': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/user/collection/list': { 'cost': 1 } as Endpoint<Dict>,
                             'future/user/v1/user/listen-key': { 'cost': 1 } as Endpoint<Dict>,
@@ -1107,7 +1134,7 @@ export default class xt extends Exchange {
         return this.parseMarkets (symbols);
     }
 
-    async fetchSwapAndFutureMarkets (params = {}) {
+    async fetchSwapAndFutureMarkets (params = {}): Promise<Market[]> {
         const markets = await Promise.all ([ this.publicLinearGetFutureMarketV1PublicSymbolList (params), this.publicInverseGetFutureMarketV1PublicSymbolList (params) ]);
         //
         //     {
@@ -2581,7 +2608,7 @@ export default class xt extends Exchange {
         }
     }
 
-    async createSpotOrder (symbol: string, type: OrderType, side: any, amount: any, price: Num = undefined, params = {}) {
+    async createSpotOrder (symbol: string, type: OrderType, side: any, amount: any, price: Num = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2650,7 +2677,7 @@ export default class xt extends Exchange {
         return this.parseOrder (order, market);
     }
 
-    async createContractOrder (symbol: string, type: any, side: any, amount: any, price: Num = undefined, params = {}) {
+    async createContractOrder (symbol: string, type: any, side: any, amount: any, price: Num = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

@@ -141,6 +141,9 @@ func (this *BtcturkCore) Describe() any {
 					"ticker": map[string]any{
 						"cost": 0.1,
 					},
+					"ticker/currency": map[string]any{
+						"cost": 0.1,
+					},
 					"trades": map[string]any{
 						"cost": 1,
 					},
@@ -163,7 +166,19 @@ func (this *BtcturkCore) Describe() any {
 					"allOrders": map[string]any{
 						"cost": 1,
 					},
+					"order/{orderId}": map[string]any{
+						"cost": 1,
+					},
 					"users/transactions/trade": map[string]any{
+						"cost": 1,
+					},
+					"users/transactions/crypto": map[string]any{
+						"cost": 1,
+					},
+					"users/transactions/fiat": map[string]any{
+						"cost": 1,
+					},
+					"crypto-deposit-declarations": map[string]any{
 						"cost": 1,
 					},
 				},
@@ -178,6 +193,9 @@ func (this *BtcturkCore) Describe() any {
 						"cost": 1,
 					},
 					"cancelOrder": map[string]any{
+						"cost": 1,
+					},
+					"crypto-deposit-declarations/confirm": map[string]any{
 						"cost": 1,
 					},
 				},
@@ -465,8 +483,8 @@ func (this *BtcturkCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes41812 := (<-this.LoadMarkets())
-		PanicOnError(retRes41812)
+		retRes42412 := (<-this.LoadMarkets())
+		PanicOnError(retRes42412)
 	}
 
 	response := (<-this.PrivateGetUsersBalances(params))
@@ -516,8 +534,8 @@ func (this *BtcturkCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes45212 := (<-this.LoadMarkets())
-		PanicOnError(retRes45212)
+		retRes45812 := (<-this.LoadMarkets())
+		PanicOnError(retRes45812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -618,8 +636,8 @@ func (this *BtcturkCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes53612 := (<-this.LoadMarkets())
-		PanicOnError(retRes53612)
+		retRes54212 := (<-this.LoadMarkets())
+		PanicOnError(retRes54212)
 	}
 
 	response := (<-this.PublicGetTicker(params))
@@ -651,8 +669,8 @@ func (this *BtcturkCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes55412 := (<-this.LoadMarkets())
-		PanicOnError(retRes55412)
+		retRes56012 := (<-this.LoadMarkets())
+		PanicOnError(retRes56012)
 	}
 
 	tickers := (<-this.FetchTickers([]any{symbol}, params))
@@ -753,8 +771,8 @@ func (this *BtcturkCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes63612 := (<-this.LoadMarkets())
-		PanicOnError(retRes63612)
+		retRes64212 := (<-this.LoadMarkets())
+		PanicOnError(retRes64212)
 	}
 	var market any = this.Market(symbol)
 	// let maxCount = 50;
@@ -840,8 +858,8 @@ func (this *BtcturkCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes70812 := (<-this.LoadMarkets())
-		PanicOnError(retRes70812)
+		retRes71412 := (<-this.LoadMarkets())
+		PanicOnError(retRes71412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -940,7 +958,7 @@ func (this *BtcturkCore) ParseOHLCVs(ohlcvs any, optionalArgs ...any) any {
 		}
 		AppendToArray(&results, this.ParseOHLCV(ohlcv, market))
 	}
-	var sorted any = this.SortBy(results, 0)
+	var sorted []any = this.SortBy(results, 0)
 	return this.FilterBySinceLimit(sorted, since, limit, 0, tail)
 }
 
@@ -971,8 +989,8 @@ func (this *BtcturkCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes81312 := (<-this.LoadMarkets())
-		PanicOnError(retRes81312)
+		retRes81912 := (<-this.LoadMarkets())
+		PanicOnError(retRes81912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1069,8 +1087,8 @@ func (this *BtcturkCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes87512 := (<-this.LoadMarkets())
-		PanicOnError(retRes87512)
+		retRes88112 := (<-this.LoadMarkets())
+		PanicOnError(retRes88112)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1118,8 +1136,8 @@ func (this *BtcturkCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes90312 := (<-this.LoadMarkets())
-		PanicOnError(retRes90312)
+		retRes90912 := (<-this.LoadMarkets())
+		PanicOnError(retRes90912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1267,8 +1285,8 @@ func (this *BtcturkCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes103112 := (<-this.LoadMarkets())
-		PanicOnError(retRes103112)
+		retRes103712 := (<-this.LoadMarkets())
+		PanicOnError(retRes103712)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -1335,7 +1353,7 @@ func (this *BtcturkCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(api, "private")) {
 		this.CheckRequiredCredentials()
 		var nonce string = ToString(this.Nonce())
-		var secret any = this.Base64ToBinary(this.Secret)
+		var secret []byte = this.Base64ToBinary(this.Secret)
 		var auth any = Add(this.ApiKey, nonce)
 		headers = map[string]any{
 			"X-PCK":        this.ApiKey,

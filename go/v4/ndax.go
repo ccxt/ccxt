@@ -3388,7 +3388,7 @@ func (this *NdaxCore) Sign(path any, optionalArgs ...any) any {
 	if IsTrue(IsEqual(api, "public")) {
 		if IsTrue(IsEqual(path, "Authenticate")) {
 			var auth any = Add(Add(this.Login, ":"), this.Password)
-			var auth64 any = this.StringToBase64(auth)
+			var auth64 string = this.StringToBase64(auth)
 			headers = map[string]any{
 				"Authorization": Add("Basic ", auth64),
 			}

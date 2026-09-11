@@ -191,7 +191,7 @@ class bydfi(ccxt.async_support.bydfi):
         channel = '@ticker'
         if symbols is None:
             messageHashes.append(messageHash + 'all')
-            channels.append('not ticker@arr')
+            channels.append('!ticker@arr')
         else:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
@@ -235,7 +235,7 @@ class bydfi(ccxt.async_support.bydfi):
                     marketId = self.market_id(symbol)
                     channels.append(marketId + channel)
             messageHashes.append(messageHash)
-            channels.append('not ticker@arr')
+            channels.append('!ticker@arr')
         else:
             for i in range(0, len(symbols)):
                 symbol = symbols[i]
@@ -289,7 +289,7 @@ class bydfi(ccxt.async_support.bydfi):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         result = await self.watch_ohlcv_for_symbols([[symbol, timeframe]], since, limit, params)
         return result[symbol][timeframe]
@@ -303,7 +303,7 @@ class bydfi(ccxt.async_support.bydfi):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         return self.un_watch_ohlcv_for_symbols([[symbol, timeframe]], params)
 
@@ -317,7 +317,7 @@ class bydfi(ccxt.async_support.bydfi):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):
@@ -348,7 +348,7 @@ class bydfi(ccxt.async_support.bydfi):
 
         :param str[][] symbolsAndTimeframes: array of arrays containing unified symbols and timeframes to fetch OHLCV data for, example [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         symbolsLength = len(symbolsAndTimeframes)
         if symbolsLength == 0 or not isinstance(symbolsAndTimeframes[0], list):

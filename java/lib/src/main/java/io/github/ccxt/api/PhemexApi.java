@@ -273,6 +273,17 @@ public class PhemexApi extends Exchange
     }
 
     /**
+     * Calls the v2GetPublicIndexSources endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2GetPublicIndexSources (Object... optionalArgs)
+    {
+        return this.callAsync ("v2GetPublicIndexSources", optionalArgs);
+    }
+
+    /**
      * Calls the v2GetMdV2Orderbook endpoint.
      *
      * @param optionalArgs the request parameters
@@ -911,6 +922,94 @@ public class PhemexApi extends Exchange
     }
 
     /**
+     * Calls the privateGetPhemexLbPublicApiTraderPerformanceInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetPhemexLbPublicApiTraderPerformanceInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetPhemexLbPublicApiTraderPerformanceInfo", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUtaApiRiskRiskMode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUtaApiRiskRiskMode (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUtaApiRiskRiskMode", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUtaApiRiskRiskUnits endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUtaApiRiskRiskUnits (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUtaApiRiskRiskUnits", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUtaBizAssets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUtaBizAssets (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUtaBizAssets", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUtaFundsContractBorrow endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUtaFundsContractBorrow (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUtaFundsContractBorrow", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUtaFundsContractPayback endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUtaFundsContractPayback (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUtaFundsContractPayback", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUtaFundsContractBorrowInterests endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUtaFundsContractBorrowInterests (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUtaFundsContractBorrowInterests", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetUtaExchangerAssetsConvert endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privateGetUtaExchangerAssetsConvert (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetUtaExchangerAssetsConvert", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostSpotOrders endpoint.
      *
      * @param optionalArgs the request parameters
@@ -1095,6 +1194,28 @@ public class PhemexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPhemexWithdrawWalletsApiCancelWithdraw (Object... optionalArgs)
     {
         return this.callAsync ("privatePostPhemexWithdrawWalletsApiCancelWithdraw", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostUtaAccountSwitchMode endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUtaAccountSwitchMode (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostUtaAccountSwitchMode", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostUtaFundsContractPayback endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostUtaFundsContractPayback (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostUtaFundsContractPayback", optionalArgs);
     }
 
     /**

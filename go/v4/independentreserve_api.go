@@ -72,6 +72,16 @@ func (this *IndependentreserveCore) PublicGetGetOrderMinimumVolumes(args ...any)
 	return this.callEndpointAsync("publicGetGetOrderMinimumVolumes", args...)
 }
 
+// PublicGetGetDepositFees returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PublicGetGetDepositFees(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetDepositFees", args...)
+}
+
+// PublicGetGetFiatWithdrawalFees returns a channel that yields a JSON array.
+func (this *IndependentreserveCore) PublicGetGetFiatWithdrawalFees(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetGetFiatWithdrawalFees", args...)
+}
+
 // PublicGetGetCryptoWithdrawalFees returns a channel that yields a JSON object.
 func (this *IndependentreserveCore) PublicGetGetCryptoWithdrawalFees(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetGetCryptoWithdrawalFees", args...)
@@ -152,6 +162,11 @@ func (this *IndependentreserveCore) PrivatePostGetTrades(args ...any) <-chan any
 	return this.callEndpointAsync("privatePostGetTrades", args...)
 }
 
+// PrivatePostGetTradesByOrder returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetTradesByOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetTradesByOrder", args...)
+}
+
 // PrivatePostGetBrokerageFees returns a channel that yields a JSON array.
 func (this *IndependentreserveCore) PrivatePostGetBrokerageFees(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetBrokerageFees", args...)
@@ -160,6 +175,21 @@ func (this *IndependentreserveCore) PrivatePostGetBrokerageFees(args ...any) <-c
 // PrivatePostGetDigitalCurrencyWithdrawal returns a channel that yields a JSON object.
 func (this *IndependentreserveCore) PrivatePostGetDigitalCurrencyWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostGetDigitalCurrencyWithdrawal", args...)
+}
+
+// PrivatePostGetFiatWithdrawal returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetFiatWithdrawal(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetFiatWithdrawal", args...)
+}
+
+// PrivatePostGetDepositLimits returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetDepositLimits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetDepositLimits", args...)
+}
+
+// PrivatePostGetWithdrawalLimits returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostGetWithdrawalLimits(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostGetWithdrawalLimits", args...)
 }
 
 // PrivatePostPlaceLimitOrder returns a channel that yields a JSON object.
@@ -175,6 +205,11 @@ func (this *IndependentreserveCore) PrivatePostPlaceMarketOrder(args ...any) <-c
 // PrivatePostCancelOrder returns a channel that yields a JSON object.
 func (this *IndependentreserveCore) PrivatePostCancelOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostCancelOrder", args...)
+}
+
+// PrivatePostCancelOrders returns a channel that yields a JSON object.
+func (this *IndependentreserveCore) PrivatePostCancelOrders(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostCancelOrders", args...)
 }
 
 // PrivatePostSynchDigitalCurrencyDepositAddressWithBlockchain returns a channel that yields a JSON object.

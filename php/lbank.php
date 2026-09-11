@@ -169,6 +169,7 @@ class lbank extends Exchange {
                             'supplement/deposit_history' => array( 'cost' => 2.5 ),
                             'supplement/withdraws' => array( 'cost' => 2.5 ),
                             'supplement/get_deposit_address' => array( 'cost' => 2.5 ),
+                            'supplement/add_deposit_address' => array( 'cost' => 2.5 ),
                             'supplement/asset_detail' => array( 'cost' => 2.5 ),
                             'supplement/customer_trade_fee' => array( 'cost' => 2.5 ),
                             'supplement/api_Restrictions' => array( 'cost' => 2.5 ),
@@ -184,6 +185,12 @@ class lbank extends Exchange {
                             'supplement/orders_info_history' => array( 'cost' => 2.5 ),
                             'supplement/user_info_account' => array( 'cost' => 2.5 ),
                             'supplement/transaction_history' => array( 'cost' => 2.5 ),
+                            // new spot/wallet, spot/trade endpoints
+                            'spot/wallet/withdraw' => array( 'cost' => 2.5 ),
+                            'spot/wallet/deposit_history' => array( 'cost' => 2.5 ),
+                            'spot/wallet/withdraws' => array( 'cost' => 2.5 ),
+                            'spot/trade/orders_info' => array( 'cost' => 2.5 ),
+                            'spot/trade/orders_info_history' => array( 'cost' => 2.5 ),
                         ),
                     ),
                 ),
@@ -459,7 +466,7 @@ class lbank extends Exchange {
             $networkEntry = $networksRaw[$j];
             $networkId = $this->safe_string($networkEntry, 'chain');
             if ($networkId === null) {
-                $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type if $networkId is not present
+                $networkId = $this->safe_string($networkEntry, 'assetCode'); // use type as fallback if $networkId is not present
             }
             $networkCode = $this->network_id_to_code($networkId, $code);
             if ($networkCode !== null) {
@@ -1185,7 +1192,7 @@ class lbank extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         // endpoint doesnt work
         if ($this->markets === null) {
@@ -1696,7 +1703,7 @@ class lbank extends Exchange {
                 } else {
                     $quoteAmount = $this->cost_to_precision($symbol, $amount);
                 }
-                // $market buys require filling the $price param instead of the $amount param, for $market buys the $price is treated $cost by lbank
+                // $market buys require filling the $price param instead of the $amount param, for $market buys the $price is treated as the $cost by lbank
                 $request['price'] = $quoteAmount;
             }
         }
@@ -1914,7 +1921,7 @@ class lbank extends Exchange {
         return $this->fetch_order_default($id, $symbol, $params);
     }
 
-    public function fetch_order_supplement(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order_supplement(string $id, ?string $symbol = null, $params = array()): array {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');
         }
@@ -1952,7 +1959,7 @@ class lbank extends Exchange {
         return $this->parse_order($result);
     }
 
-    public function fetch_order_default(string $id, ?string $symbol = null, $params = array()) {
+    public function fetch_order_default(string $id, ?string $symbol = null, $params = array()): array {
         // Id can be a list of ids delimited by a comma
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOrder() requires a $symbol argument');

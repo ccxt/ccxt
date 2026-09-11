@@ -25,10 +25,9 @@ import WsClient from './ws/WsClient.js';
 import { Future } from './ws/Future.js';
 import { OrderBook as WsOrderBook, IndexedOrderBook, CountedOrderBook } from './ws/OrderBook.js';
 import { totp } from './functions/totp.js';
-import ethers from '../static_dependencies/ethers/index.js';
-import { TypedDataEncoder } from '../static_dependencies/ethers/hash/index.js';
+import { abiEncode, TypedDataEncoder } from './functions/ethabi.js';
 import init, * as zklink from '../static_dependencies/zklink/zklink-sdk-web.js';
-import * as Starknet from '../static_dependencies/starknet/index.js';
+import * as Starknet from './functions/starknet.js';
 import { Long } from '../static_dependencies/dydx-v4-client/helpers.js';
 const { isNode, isBun, selfIsDefined, deepExtend, extend, clone, unique, indexBy, sortBy, sortBy2, safeFloat2, groupBy, aggregate, uuid, unCamelCase, precisionFromString, Throttler, capitalize, now, decimalToPrecision, safeValue, safeValue2, safeString, safeString2, seconds, milliseconds, binaryToBase16, numberToBE, base16ToBinary, iso8601, omit, isJsonEncodedObject, safeInteger, sum, omitZero, implodeParams, extractParams, json, binaryConcat, hash, 
 // ecdsa,
@@ -57,7 +56,7 @@ const QUOTE_JSON_NUMBERS_REGEX = /":([+.0-9eE-]+)(?=[,}])/g;
  */
 export class BaseExchange {
     // this is updated by vss.js when building
-    static { this.ccxtVersion = '4.5.77'; }
+    static { this.ccxtVersion = '4.5.78'; }
     constructor(userConfig = {}) {
         this.isSandboxModeEnabled = false;
         this.certified = false;
@@ -662,17 +661,11 @@ export class BaseExchange {
                 }
                 // node: prefer the undici module for tunable pooling and proxy support
                 try {
-                    // undici is the engine behind node's built-in fetch - importing it directly gives us
-                    // tunable connection pooling (keep-alive), ProxyAgent support, and the low-level
-                    // undici.request api used in undiciRequest (~2x faster than undici.fetch, profiled
-                    // in bench-request.mjs: no WHATWG Response/Headers/web-streams machinery)
-                    //
-                    // note: undici is pinned to 7.27.x in package.json - starting with 7.28/8.x undici
-                    // unconditionally defers every write on an idle kept-alive socket behind a
-                    // setTimeout(0) tick ("idle socket validation", the mitigation for GHSA-35p6-xmwp-9g52),
-                    // which adds ~1.3ms to every sequential request; 7.27.x is the last line without that
-                    // penalty (profiled against a localhost server: 0.22ms/req on 7.27.2 vs 1.3ms/req on
-                    // 8.5.0) - see https://github.com/nodejs/undici/issues/5493 for the upstream fix
+                    // undici (the engine behind node's fetch) gives tunable keep-alive pooling, ProxyAgent,
+                    // and the low-level undici.request api used in undiciRequest (~2x faster than undici.fetch)
+                    // keep undici >= 7.29.1: 7.28.0-7.29.0 deferred every write on an idle kept-alive socket
+                    // behind setTimeout(0) (~1.3ms/request, p50 1.74ms vs 0.43ms), fixed upstream in
+                    // https://github.com/nodejs/undici/issues/5493 (PRs 5499 and 5707)
                     const undiciModule = await import(/* webpackIgnore: true */ 'undici');
                     this.undiciModule = undiciModule;
                     this.fetchImplementation = undiciModule.fetch;
@@ -719,7 +712,10 @@ export class BaseExchange {
             'pipelining': 1, // one in-flight request per socket - concurrent requests never share a socket, each opens (or reuses an idle) one
             'allowH2': false, // force HTTP/1.1 - h2 would multiplex concurrent requests over one shared socket
             'autoSelectFamily': true, // happy eyeballs (rfc 8305) - race ipv6 against ipv4 instead of relying on dns answer order, dual-stack instead of accidental ipv4-only
-            'autoSelectFamilyAttemptTimeout': 10, // ms before starting the parallel attempt to the next address family - 10ms is node's floor (lower values are clamped up, 0 is rejected), so the next family is raced almost immediately (near-parallel) instead of after a long serial stall
+            // the per-attempt timeout is deliberately not set here: node tries addresses sequentially,
+            // aborting each attempt at the timeout before advancing, so any value below a plausible wan
+            // handshake rtt makes every such origin unreachable - omitting it defers to
+            // net.getDefaultAutoSelectFamilyAttemptTimeout() (250ms, tunable per host)
         };
         if (!this.shouldValidateServerSsl()) {
             const tlsOptions = { 'rejectUnauthorized': false };
@@ -1229,15 +1225,9 @@ export class BaseExchange {
     onJsonResponse(responseBody) {
         // quotes json numbers in-place so JSON.parse preserves their exact source digits as strings
         // (doubles would silently lose precision on big order ids and >15-significant-digit prices)
-        //
-        // perf notes (benchmarked on node 22, real 0.3-1.9MB binance payloads, cpu-profiled):
-        // the quoting pass costs ~43% of parseJson (regex replace 12% + full-body copy + the
-        // string-heavy JSON.parse); JS reimplementations (indexOf scan, exec loop, split/join,
-        // rope or array builders) all lose to the single C++ replace end-to-end - keep the regex
-        //
-        // no quoteJsonNumbers guard needed here: parseJson returns early when
-        // quoteJsonNumbers is false, so this is only reached after an integer
-        // beyond Number.MAX_SAFE_INTEGER was detected in the parsed payload
+        // perf: this pass is ~43% of parseJson on 0.3-1.9MB payloads; JS scan/split/rope
+        // reimplementations all lose to the single C++ regex replace - keep the regex.
+        // no quoteJsonNumbers guard: parseJson only reaches this after finding an unsafe integer
         return responseBody.replace(QUOTE_JSON_NUMBERS_REGEX, '":"$1"');
     }
     async loadMarketsHelper(reload = false, params = {}) {
@@ -1508,21 +1498,9 @@ export class BaseExchange {
     }
     watchMultiple(url, messageHashes, message = undefined, subscribeHashes = undefined, subscription = undefined) {
         //
-        // Without comments the code of this method is short and easy:
-        //
-        //     const client = this.client (url)
-        //     const backoffDelay = 0
-        //     const future = client.future (messageHash)
-        //     const connected = client.connect (backoffDelay)
-        //     connected.then (() => {
-        //         if (message && !client.subscriptions[subscribeHash]) {
-        //             client.subscriptions[subscribeHash] = true
-        //             client.send (message)
-        //         }
-        //     }).catch ((error) => {})
-        //     return future
-        //
-        // The following is a longer version of this method with comments
+        // essentially: Future.race over client.future (hash) for each messageHash, then
+        // client.connect ().then (send subscribe message once per subscribeHash);
+        // the version below adds the bookkeeping around that
         //
         if (url === undefined) {
             throw new ArgumentsRequired(this.id + ' watchMultiple() requires a url argument');
@@ -1530,15 +1508,8 @@ export class BaseExchange {
         const clientExisted = (url in this.clients);
         const client = this.client(url);
         //
-        //  watchOrderBook ---- future ----+---------------+----→ user
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                              connect ......→ resolve
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                             subscribe -----→ receive
+        // flow: the future is handed to the caller first, then connect → subscribe;
+        // the future settles when the matching message is received and resolved
         //
         const future = Future.race(messageHashes.map((messageHash) => client.future(messageHash)));
         // read and write subscription, this is done before connecting the client
@@ -1609,21 +1580,8 @@ export class BaseExchange {
     }
     watch(url, messageHash, message = undefined, subscribeHash = undefined, subscription = undefined) {
         //
-        // Without comments the code of this method is short and easy:
-        //
-        //     const client = this.client (url)
-        //     const backoffDelay = 0
-        //     const future = client.future (messageHash)
-        //     const connected = client.connect (backoffDelay)
-        //     connected.then (() => {
-        //         if (message && !client.subscriptions[subscribeHash]) {
-        //             client.subscriptions[subscribeHash] = true
-        //             client.send (message)
-        //         }
-        //     }).catch ((error) => {})
-        //     return future
-        //
-        // The following is a longer version of this method with comments
+        // essentially: client.future (messageHash), then client.connect ().then (send subscribe
+        // message once per subscribeHash); the version below adds the bookkeeping around that
         //
         if (url === undefined) {
             throw new ArgumentsRequired(this.id + ' watch() requires a url argument');
@@ -1634,15 +1592,8 @@ export class BaseExchange {
         const clientExisted = (url in this.clients);
         const client = this.client(url);
         //
-        //  watchOrderBook ---- future ----+---------------+----→ user
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                              connect ......→ resolve
-        //                                 |               |
-        //                                 ↓               ↑
-        //                                 |               |
-        //                             subscribe -----→ receive
+        // flow: the future is handed to the caller first, then connect → subscribe;
+        // the future settles when the matching message is received and resolved
         //
         if ((subscribeHash === undefined) && (messageHash !== undefined) && (messageHash in client.futures)) {
             return client.futures[messageHash];
@@ -1783,7 +1734,7 @@ export class BaseExchange {
         return modifiedContent;
     }
     ethAbiEncode(types, args) {
-        return this.base16ToBinary(ethers.encode(types, args).slice(2));
+        return this.base16ToBinary(abiEncode(types, args).slice(2));
     }
     ethEncodeStructuredData(domain, messageTypes, messageData) {
         return this.base16ToBinary(TypedDataEncoder.encode(domain, messageTypes, messageData).slice(-132));
@@ -1808,15 +1759,15 @@ export class BaseExchange {
     retrieveStarkAccount(signature, accountClassHash, accountProxyClassHash) {
         const privateKey = ethSigToPrivate(signature);
         const publicKey = getStarkKey(privateKey);
-        const callData = Starknet.CallData.compile({
+        const callData = Starknet.compileCalldata({
             'implementation': accountClassHash,
-            'selector': Starknet.hash.getSelectorFromName('initialize'),
-            'calldata': Starknet.CallData.compile({
+            'selector': Starknet.getSelectorFromName('initialize'),
+            'calldata': Starknet.compileCalldata({
                 'signer': publicKey,
                 'guardian': '0',
             }),
         });
-        const address = Starknet.hash.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
+        const address = Starknet.calculateContractAddressFromHash(publicKey, accountProxyClassHash, callData, 0);
         return {
             privateKey,
             publicKey,
@@ -1840,7 +1791,7 @@ export class BaseExchange {
             }, messageTypes),
             'message': messageData,
         };
-        const msgHash = Starknet.typedData.getMessageHash(request, address);
+        const msgHash = Starknet.getMessageHash(request, address);
         return msgHash;
     }
     starknetSign(msgHash, pri) {
@@ -1853,10 +1804,10 @@ export class BaseExchange {
         return this.json([signature.r.toString(), signature.s.toString()]);
     }
     extendedStarknetGetSelectorFromName(name) {
-        return Starknet.hash.getSelectorFromName(name);
+        return Starknet.getSelectorFromName(name);
     }
     extendedStarknetComputePoseidonHashOnElements(data) {
-        return Starknet.hash.computePoseidonHashOnElements(data);
+        return Starknet.computePoseidonHashOnElements(data);
     }
     async getZKContractSignatureObj(seed, params = {}) {
         const formattedSlotId = BigInt('0x' + this.remove0xPrefix(this.hash(this.encode(this.safeString(params, 'slotId', '')), sha256, 'hex'))).toString();
@@ -2145,7 +2096,7 @@ export class BaseExchange {
                 'OrderExpiry': order['order_expiry'],
             });
         }
-        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, orders.length, 1, // skip nonce
+        const res = globalThis.SignCreateGroupedOrders(request['grouping_type'], ordersArr, this.safeInteger(request, 'integrator_account_index', 0), this.safeInteger(request, 'integrator_taker_fee', 0), this.safeInteger(request, 'integrator_maker_fee', 0), 1, // skip nonce
         request['nonce'], request['api_key_index'], request['account_index']);
         this.checkLighterSignedError(res);
         return [res.txType, res.txInfo];
@@ -6523,6 +6474,34 @@ export class BaseExchange {
             'total': undefined,
         };
     }
+    /**
+     * @ignore
+     * @method
+     * @description merges a per-market (isolated margin) account into a flat code-keyed balance dict, summing string fields when the code recurs across markets
+     * @param {object} result the code-keyed balance dict being built
+     * @param {string} code unified currency code
+     * @param {object} account a balance account with string free/used/total/debt
+     * @returns {object} result — callers MUST reassign (`result = this.mergeBalanceAccount (result, ...)`): PHP arrays are passed by value, so the mutation is not visible through the argument
+     */
+    mergeBalanceAccount(result, code, account) {
+        if (!(code in result)) {
+            result[code] = account;
+            return result;
+        }
+        const fields = ['free', 'used', 'total', 'debt'];
+        for (let i = 0; i < fields.length; i++) {
+            const field = fields[i];
+            const current = this.safeString(result[code], field);
+            const incoming = this.safeString(account, field);
+            if (current === undefined) {
+                result[code][field] = incoming;
+            }
+            else if (incoming !== undefined) {
+                result[code][field] = Precise.stringAdd(current, incoming);
+            }
+        }
+        return result;
+    }
     commonCurrencyCode(code) {
         if (!this.substituteCommonCurrencyCodes) {
             return code;
@@ -8054,7 +8033,9 @@ export class BaseExchange {
         const year = date.slice(0, 2);
         const month = date.slice(2, 4);
         const day = date.slice(4, 6);
-        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00Z';
+        // the milliseconds are spelled out because every caller writes the result into
+        // expiryDatetime, which types.ts documents in the ISO 8601 form with them
+        const reconstructedDate = '20' + year + '-' + month + '-' + day + 'T00:00:00.000Z';
         return reconstructedDate;
     }
     convertExpireDateToMarketIdDate(date) {

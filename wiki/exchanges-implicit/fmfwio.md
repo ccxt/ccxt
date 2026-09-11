@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official fmfwio API documentation:** [api.fmfw.io](https://api.fmfw.io/)
 
-> 111 implicit endpoints across 2 access groups.
+> 121 implicit endpoints across 2 access groups.
 
 ## public
 
@@ -118,6 +118,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetMarginHistoryTrade` | GET | `margin/history/trade` | 15 |
 | `privateGetMarginHistoryPositions` | GET | `margin/history/positions` | 15 |
 | `privateGetMarginHistoryClearing` | GET | `margin/history/clearing` | 15 |
+| `privateGetMarginSettings` | GET | `margin-settings` | 15 |
 | `privateGetFuturesBalance` | GET | `futures/balance` | 15 |
 | `privateGetFuturesBalanceCurrency` | GET | `futures/balance/{currency}` | 15 |
 | `privateGetFuturesAccount` | GET | `futures/account` | 1 |
@@ -131,8 +132,10 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetFuturesHistoryTrade` | GET | `futures/history/trade` | 15 |
 | `privateGetFuturesHistoryPositions` | GET | `futures/history/positions` | 15 |
 | `privateGetFuturesHistoryClearing` | GET | `futures/history/clearing` | 15 |
+| `privateGetUserApiKeys` | GET | `user/api-keys` | 15 |
 | `privateGetWalletBalance` | GET | `wallet/balance` | 30 |
 | `privateGetWalletBalanceCurrency` | GET | `wallet/balance/{currency}` | 30 |
+| `privateGetWalletCryptoAddressWhiteList` | GET | `wallet/crypto/address/white-list` | 30 |
 | `privateGetWalletCryptoAddress` | GET | `wallet/crypto/address` | 30 |
 | `privateGetWalletCryptoAddressRecentDeposit` | GET | `wallet/crypto/address/recent-deposit` | 30 |
 | `privateGetWalletCryptoAddressRecentWithdraw` | GET | `wallet/crypto/address/recent-withdraw` | 30 |
@@ -140,6 +143,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateGetWalletTransactions` | GET | `wallet/transactions` | 30 |
 | `privateGetWalletTransactionsTxId` | GET | `wallet/transactions/{tx_id}` | 30 |
 | `privateGetWalletCryptoFeeEstimate` | GET | `wallet/crypto/fee/estimate` | 30 |
+| `privateGetWalletCryptoFeeWithdrawHash` | GET | `wallet/crypto/fee/withdraw/hash` | 30 |
 | `privateGetWalletAirdrops` | GET | `wallet/airdrops` | 30 |
 | `privateGetWalletAmountLocks` | GET | `wallet/amount-locks` | 30 |
 | `privateGetSubAccount` | GET | `sub-account` | 15 |
@@ -159,10 +163,13 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privatePostWalletInternalWithdraw` | POST | `wallet/internal/withdraw` | 30 |
 | `privatePostWalletCryptoCheckOffchainAvailable` | POST | `wallet/crypto/check-offchain-available` | 30 |
 | `privatePostWalletCryptoFeesEstimate` | POST | `wallet/crypto/fees/estimate` | 30 |
+| `privatePostWalletCryptoFeeEstimateBulk` | POST | `wallet/crypto/fee/estimate/bulk` | 30 |
 | `privatePostWalletAirdropsIdClaim` | POST | `wallet/airdrops/{id}/claim` | 30 |
 | `privatePostSubAccountFreeze` | POST | `sub-account/freeze` | 15 |
 | `privatePostSubAccountActivate` | POST | `sub-account/activate` | 15 |
 | `privatePostSubAccountTransfer` | POST | `sub-account/transfer` | 15 |
+| `privatePostSubAccountTransferSubToSuper` | POST | `sub-account/transfer/sub-to-super` | 15 |
+| `privatePostSubAccountTransferSubToSub` | POST | `sub-account/transfer/sub-to-sub` | 15 |
 | `privatePostSubAccountAcl` | POST | `sub-account/acl` | 15 |
 | `privatePatchSpotOrderClientOrderId` | PATCH | `spot/order/{client_order_id}` | 1 |
 | `privatePatchMarginOrderClientOrderId` | PATCH | `margin/order/{client_order_id}` | 1 |
@@ -179,6 +186,9 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `privateDeleteFuturesOrderClientOrderId` | DELETE | `futures/order/{client_order_id}` | 1 |
 | `privateDeleteWalletCryptoWithdrawId` | DELETE | `wallet/crypto/withdraw/{id}` | 30 |
 | `privatePutMarginAccountIsolatedSymbol` | PUT | `margin/account/isolated/{symbol}` | 1 |
+| `privatePutMarginSettingsAmm` | PUT | `margin-settings/amm` | 15 |
+| `privatePutMarginMarginSettingsAmr` | PUT | `margin/margin-settings/amr` | 15 |
 | `privatePutFuturesAccountIsolatedSymbol` | PUT | `futures/account/isolated/{symbol}` | 1 |
+| `privatePutFuturesMarginSettingsAmr` | PUT | `futures/margin-settings/amr` | 15 |
 | `privatePutWalletCryptoWithdrawId` | PUT | `wallet/crypto/withdraw/{id}` | 30 |
 

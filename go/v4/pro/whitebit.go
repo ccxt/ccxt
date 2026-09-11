@@ -1208,19 +1208,12 @@ func (this *WhitebitCore) authenticateBody(ch chan any, optionalArgs ...any) any
 	// handleAuthenticate () resolves the handshake future with 1, so 1 is
 	// the authorized sentinel authenticate () has always returned - every
 	// path below hands back that same value
-	var authorized any = 1
-	// single-flight leader election, see
-	// https://github.com/ccxt/ccxt/issues/29393: the handshake is gated on
-	// subscriptions['authenticated'], which watch () only registers once
-	// the awaited v4PrivatePostProfileWebsocketToken () has resolved, so
-	// every concurrent cold caller used to pass that gate, burn a
-	// rate-limited private REST call for its own websocket_token and push
-	// its own authorize frame down the shared socket. the flight is
-	// registered in client.futures on the very client that carries the
-	// handshake, under a key that is not one of the exchange's own
-	// messageHashes, and is settled through client.resolve () /
-	// client.reject () so every write to that map goes through the
-	// client's own accessors
+	var authorized int = 1
+	// single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
+	// the handshake gate subscriptions['authenticated'] is only registered after the awaited
+	// token fetch, so concurrent cold callers would each burn a private REST call and push
+	// their own authorize frame. the flight lives in client.futures of the handshake client
+	// under a non-messageHash key and settles only via client.resolve () / client.reject ()
 	var messageHash string = "authenticateFlight"
 	if ccxt.IsTrue(ccxt.InOp(client.(ccxt.ClientInterface).GetFutures(), messageHash)) {
 		// a flight is already in progress - wake when the leader settles
@@ -1229,8 +1222,8 @@ func (this *WhitebitCore) authenticateBody(ch chan any, optionalArgs ...any) any
 		// subscriptions['authenticated'] immediately, long before the
 		// venue acks the authorize frame
 
-		retRes99912 := (<-client.(ccxt.ClientInterface).Future(messageHash))
-		ccxt.PanicOnError(retRes99912)
+		retRes99212 := (<-client.(ccxt.ClientInterface).Future(messageHash))
+		ccxt.PanicOnError(retRes99212)
 
 		ch <- authorized
 		return nil
@@ -1301,8 +1294,8 @@ func (this *WhitebitCore) authenticateBody(ch chan any, optionalArgs ...any) any
 				"method": this.HandleAuthenticate,
 			}
 
-			retRes103812 := (<-this.Watch(url, subscribeHash, request, subscribeHash, subscription))
-			ccxt.PanicOnError(retRes103812)
+			retRes103112 := (<-this.Watch(url, subscribeHash, request, subscribeHash, subscription))
+			ccxt.PanicOnError(retRes103112)
 			// settle the flight and wake every waiter - resolve () also drops
 			// the registry entry, so a later cold call can re-lead
 			client.(ccxt.ClientInterface).Resolve(authorized, messageHash)
@@ -1313,8 +1306,8 @@ func (this *WhitebitCore) authenticateBody(ch chan any, optionalArgs ...any) any
 	// rethrows the failure to the leader and attaches the handler that
 	// keeps an alone-leader rejection from crashing the process
 
-	retRes10628 := <-future.(*ccxt.Future).Await()
-	ccxt.PanicOnError(retRes10628)
+	retRes10558 := <-future.(*ccxt.Future).Await()
+	ccxt.PanicOnError(retRes10558)
 
 	ch <- authorized
 	return nil
@@ -1411,7 +1404,7 @@ func (this *WhitebitCore) HandleSubscriptionStatus(client any, message any, id a
 	// not every method stores its subscription
 	// as an object so we can't do indeById here
 	var subs any = client.(ccxt.ClientInterface).GetSubscriptions()
-	var values any = ccxt.ObjectValues(subs)
+	var values []any = ccxt.ObjectValues(subs)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(values)); i++ {
 		var subscription any = ccxt.GetValue(values, i)
 		if ccxt.IsTrue(!ccxt.IsEqual(subscription, true)) {

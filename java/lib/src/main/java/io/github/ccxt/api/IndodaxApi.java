@@ -196,6 +196,17 @@ public class IndodaxApi extends Exchange
     }
 
     /**
+     * Calls the privatePostGetOrderByClientOrderId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetOrderByClientOrderId (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetOrderByClientOrderId", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostCancelOrder endpoint.
      *
      * @param optionalArgs the request parameters
@@ -204,6 +215,17 @@ public class IndodaxApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelOrder (Object... optionalArgs)
     {
         return this.callAsync ("privatePostCancelOrder", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostCancelByClientOrderId endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostCancelByClientOrderId (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostCancelByClientOrderId", optionalArgs);
     }
 
     /**

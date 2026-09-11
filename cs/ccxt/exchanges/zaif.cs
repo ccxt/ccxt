@@ -115,6 +115,15 @@ public partial class zaif : Exchange
                         { "trades/{pair}", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
+                        { "vasp_info/{vasp_master_id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "country_info/{code}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "corp_type_id_info/{id}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
@@ -288,10 +297,10 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object markets = await this.publicGetCurrencyPairsAll(parameters);
+        List<object> markets = await this.publicGetCurrencyPairsAll(parameters);
         //
         //     [
         //         {
@@ -313,13 +322,13 @@ public partial class zaif : Exchange
         //         }
         //     ]
         //
-        return this.parseMarkets(markets);
+        return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(markets));
     }
 
     public override object parseMarket(object market)
     {
-        object id = this.safeString(market, "currency_pair");
-        object name = this.safeString(market, "name");
+        string? id = this.safeString(market, "currency_pair");
+        string? name = this.safeString(market, "name");
         if (isTrue(isEqual(name, null)))
         {
             throw new ExchangeError ((string)add(this.id, " parseMarket() missing name")) ;
@@ -328,7 +337,7 @@ public partial class zaif : Exchange
         var baseId = ((IList<object>) baseIdquoteIdVariable)[0];
         var quoteId = ((IList<object>) baseIdquoteIdVariable)[1];
         object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
+        string? quote = this.safeCurrencyCode(quoteId);
         object symbol = add(add(bs, "/"), quote);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", id },
@@ -385,18 +394,18 @@ public partial class zaif : Exchange
     {
         object balances = this.safeValue(response, "return", new Dictionary<string, object>() {});
         object deposit = this.safeValue(balances, "deposit");
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
             { "timestamp", null },
             { "datetime", null },
         };
         object funds = this.safeValue(balances, "funds", new Dictionary<string, object>() {});
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)funds).Keys);
-        for (object i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
         {
-            object currencyId = getValue(currencyIds, i);
-            object code = this.safeCurrencyCode(currencyId);
-            object balance = this.safeString(funds, currencyId);
+            string? currencyId = ((string)getValue(currencyIds, i));
+            string? code = this.safeCurrencyCode(currencyId);
+            string? balance = this.safeString(funds, currencyId);
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = balance;
             ((IDictionary<string,object>)account)["total"] = balance;
@@ -423,15 +432,15 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object response = await this.privatePostGetInfo(parameters);
-        return this.parseBalance(response);
+        Dictionary<string, object> response = await this.privatePostGetInfo(parameters);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     /**
@@ -444,19 +453,19 @@ public partial class zaif : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
-        object response = await this.publicGetDepthPair(this.extend(request, parameters));
-        return this.parseOrderBook(response, getValue(market, "symbol"));
+        Dictionary<string, object> response = await this.publicGetDepthPair(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol")));
     }
 
     public override object parseTicker(object ticker, object market = null)
@@ -472,11 +481,11 @@ public partial class zaif : Exchange
         //     "ask": 1e-07
         // }
         //
-        object symbol = this.safeSymbol(null, market);
-        object vwap = this.safeString(ticker, "vwap");
-        object baseVolume = this.safeString(ticker, "volume");
-        object quoteVolume = Precise.stringMul(baseVolume, vwap);
-        object last = this.safeString(ticker, "last");
+        string? symbol = this.safeSymbol(null, market);
+        string? vwap = this.safeString(ticker, "vwap");
+        string? baseVolume = this.safeString(ticker, "volume");
+        string? quoteVolume = Precise.stringMul(baseVolume, vwap);
+        string? last = this.safeString(ticker, "last");
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", null },
@@ -517,11 +526,11 @@ public partial class zaif : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
-        object ticker = await this.publicGetTickerPair(this.extend(request, parameters));
+        Dictionary<string, object> ticker = await this.publicGetTickerPair(this.extend(request, parameters));
         //
         // {
         //     "last": 9e-08,
@@ -550,14 +559,14 @@ public partial class zaif : Exchange
         //          "trade_type": "ask"
         //      }
         //
-        object side = this.safeString(trade, "trade_type");
+        string? side = this.safeString(trade, "trade_type");
         side = ((bool) isTrue((isEqual(side, "bid")))) ? "buy" : "sell";
         object timestamp = this.safeTimestamp(trade, "date");
-        object id = this.safeString2(trade, "id", "tid");
-        object priceString = this.safeString(trade, "price");
-        object amountString = this.safeString(trade, "amount");
-        object marketId = this.safeString(trade, "currency_pair");
-        object symbol = this.safeSymbol(marketId, market, "_");
+        string? id = this.safeString2(trade, "id", "tid");
+        string? priceString = this.safeString(trade, "price");
+        string? amountString = this.safeString(trade, "amount");
+        string? marketId = this.safeString(trade, "currency_pair");
+        string? symbol = this.safeSymbol(marketId, market, "_");
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "info", trade },
@@ -593,11 +602,11 @@ public partial class zaif : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "pair", getValue(market, "id") },
         };
-        object response = await this.publicGetTradesPair(this.extend(request, parameters));
+        List<object> response = await this.publicGetTradesPair(this.extend(request, parameters));
         //
         //      [
         //          {
@@ -610,11 +619,11 @@ public partial class zaif : Exchange
         //          }, ...
         //      ]
         //
-        object trades = this.toArray(response);
+        IList<object> trades = this.toArray(response);
         int numTrades = getArrayLength(trades);
         if (isTrue(isEqual(numTrades, 1)))
         {
-            object firstTrade = this.safeDict(trades, 0, new Dictionary<string, object>() {});
+            IDictionary<string, object> firstTrade = this.safeDict(trades, 0, new Dictionary<string, object>() {});
             if (isTrue(isEqual(getArrayLength(new List<object>(((IDictionary<string,object>)firstTrade).Keys)), 0)))
             {
                 trades = new List<object>() {};
@@ -647,15 +656,15 @@ public partial class zaif : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency_pair", getValue(market, "id") },
             { "action", ((bool) isTrue((isEqual(side, "buy")))) ? "bid" : "ask" },
             { "amount", amount },
             { "price", price },
         };
-        object response = await this.privatePostTrade(this.extend(request, parameters));
-        object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        Dictionary<string, object> response = await this.privatePostTrade(this.extend(request, parameters));
+        IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.safeOrder(new Dictionary<string, object>() {             { "info", response },             { "id", ((object)getValue(data, "order_id")).ToString() },         }, market));
     }
 
@@ -672,10 +681,10 @@ public partial class zaif : Exchange
     public async override Task<ccxt.Order> CancelOrder(string id, string symbol = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        object response = await this.privatePostCancelOrder(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostCancelOrder(this.extend(request, parameters));
         //
         //    {
         //        "success": 1,
@@ -690,7 +699,7 @@ public partial class zaif : Exchange
         //        }
         //    }
         //
-        object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
     }
 
@@ -718,14 +727,14 @@ public partial class zaif : Exchange
         //        }
         //    }
         //
-        object side = this.safeString(order, "action");
+        string? side = this.safeString(order, "action");
         side = ((bool) isTrue((isEqual(side, "bid")))) ? "buy" : "sell";
         object timestamp = this.safeTimestamp(order, "timestamp");
-        object marketId = this.safeString(order, "currency_pair");
-        object symbol = this.safeSymbol(marketId, market, "_");
-        object price = this.safeString(order, "price");
-        object amount = this.safeString(order, "amount");
-        object id = this.safeString2(order, "id", "order_id");
+        string? marketId = this.safeString(order, "currency_pair");
+        string? symbol = this.safeSymbol(marketId, market, "_");
+        string? price = this.safeString(order, "price");
+        string? amount = this.safeString(order, "amount");
+        string? id = this.safeString2(order, "id", "order_id");
         return this.safeOrder(new Dictionary<string, object>() {
             { "id", id },
             { "clientOrderId", null },
@@ -769,15 +778,15 @@ public partial class zaif : Exchange
         {
             await this.loadMarkets();
         }
-        object market = null;
-        object request = new Dictionary<string, object>() {};
+        IDictionary<string, object> market = null;
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
         }
-        object response = await this.privatePostActiveOrders(this.extend(request, parameters));
-        object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        Dictionary<string, object> response = await this.privatePostActiveOrders(this.extend(request, parameters));
+        IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
@@ -799,15 +808,15 @@ public partial class zaif : Exchange
         {
             await this.loadMarkets();
         }
-        object market = null;
-        object request = new Dictionary<string, object>() {};
+        IDictionary<string, object> market = null;
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol);
             ((IDictionary<string,object>)request)["currency_pair"] = getValue(market, "id");
         }
-        object response = await this.privatePostTradeHistory(this.extend(request, parameters));
-        object data = this.safeDict(response, "return", new Dictionary<string, object>() {});
+        Dictionary<string, object> response = await this.privatePostTradeHistory(this.extend(request, parameters));
+        IDictionary<string, object> data = this.safeDict(response, "return", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToOrderList(this.parseOrders(data, market, since, limit));
     }
 
@@ -827,7 +836,7 @@ public partial class zaif : Exchange
     {
         object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
@@ -835,12 +844,12 @@ public partial class zaif : Exchange
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(code);
+        Dictionary<string, object> currency = this.currency(((string)code));
         if (isTrue(isEqual(code, "JPY")))
         {
             throw new ExchangeError ((string)add(add(add(this.id, " withdraw() does not allow "), code), " withdrawals")) ;
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "amount", amount },
             { "address", address },
@@ -849,7 +858,7 @@ public partial class zaif : Exchange
         {
             ((IDictionary<string,object>)request)["message"] = tagVar;
         }
-        object result = await this.privatePostWithdraw(this.extend(request, parameters));
+        Dictionary<string, object> result = await this.privatePostWithdraw(this.extend(request, parameters));
         //
         //     {
         //         "success": 1,
@@ -866,7 +875,7 @@ public partial class zaif : Exchange
         //         }
         //     }
         //
-        object returnData = this.safeDict(result, "return", new Dictionary<string, object>() {});
+        IDictionary<string, object> returnData = this.safeDict(result, "return", new Dictionary<string, object>() {});
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(returnData, currency));
     }
 
@@ -886,7 +895,7 @@ public partial class zaif : Exchange
         //     }
         //
         currency = this.safeCurrency(null, currency);
-        object fee = null;
+        Dictionary<string, object> fee = null;
         object feeCost = this.safeValue(transaction, "fee");
         if (isTrue(!isEqual(feeCost, null)))
         {
@@ -921,7 +930,7 @@ public partial class zaif : Exchange
 
     public virtual object customNonce()
     {
-        object num = this.numberToString(divide(this.milliseconds(), 1000));
+        string? num = this.numberToString(divide(this.milliseconds(), 1000));
         object nonce = parseFloat(num);
         return toFixed(nonce, 8);
     }
@@ -979,15 +988,15 @@ public partial class zaif : Exchange
         //
         //     {"error": "unsupported currency_pair"}
         //
-        object feedback = add(add(this.id, " "), body);
-        object error = this.safeString(response, "error");
+        string feedback = add(add(this.id, " "), body);
+        string? error = this.safeString(response, "error");
         if (isTrue(!isEqual(error, null)))
         {
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), error, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), error, feedback);
             throw new ExchangeError ((string)feedback) ;
         }
-        object success = this.safeBool(response, "success", true);
+        bool? success = this.safeBool(response, "success", true);
         if (isTrue(!isEqual(success, true)))
         {
             throw new ExchangeError ((string)feedback) ;

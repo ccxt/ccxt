@@ -166,15 +166,22 @@ class bullish extends Exchange {
                         'v1/time' => array( 'cost' => 1 ),
                         'v1/assets' => array( 'cost' => 1 ),
                         'v1/assets/{symbol}' => array( 'cost' => 1 ),
+                        'v1/vol-grids' => array( 'cost' => 1 ),
+                        'v1/assets/{symbol}/vol-grid' => array( 'cost' => 1 ),
                         'v1/markets' => array( 'cost' => 1 ),
                         'v1/markets/{symbol}' => array( 'cost' => 1 ),
+                        'v1/history/markets' => array( 'cost' => 1 ),
                         'v1/history/markets/{symbol}' => array( 'cost' => 1 ),
                         'v1/markets/{symbol}/orderbook/hybrid' => array( 'cost' => 1 ),
                         'v1/markets/{symbol}/trades' => array( 'cost' => 1 ),
                         'v1/markets/{symbol}/tick' => array( 'cost' => 1 ),
                         'v1/markets/{symbol}/candle' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/auctions' => array( 'cost' => 1 ),
+                        'v1/markets/{symbol}/auctions/noii' => array( 'cost' => 1 ),
                         'v1/history/markets/{symbol}/trades' => array( 'cost' => 1 ),
                         'v1/history/markets/{symbol}/funding-rate' => array( 'cost' => 1 ),
+                        'v1/history/markets/{symbol}/auctions' => array( 'cost' => 1 ),
+                        'v1/history/option-trades' => array( 'cost' => 1 ),
                         'v1/index-prices' => array( 'cost' => 1 ),
                         'v1/index-prices/{assetSymbol}' => array( 'cost' => 1 ),
                         'v1/expiry-prices/{symbol}' => array( 'cost' => 1 ),
@@ -187,6 +194,7 @@ class bullish extends Exchange {
                         'v2/orders' => array( 'cost' => 1 ),
                         'v2/history/orders' => array( 'cost' => 1 ),
                         'v2/orders/{orderId}' => array( 'cost' => 1 ),
+                        'v2/orders/client-order-id/{clientOrderId}' => array( 'cost' => 1 ),
                         'v2/amm-instructions' => array( 'cost' => 1 ),
                         'v2/amm-instructions/{instructionId}' => array( 'cost' => 1 ),
                         'v1/wallets/transactions' => array( 'cost' => 1 ),
@@ -214,6 +222,9 @@ class bullish extends Exchange {
                         'v2/otc-trades' => array( 'cost' => 1 ),
                         'v2/otc-trades/{otcTradeId}' => array( 'cost' => 1 ),
                         'v2/otc-trades/unconfirmed-trade' => array( 'cost' => 1 ),
+                        'v2/otc-trades/delegated-accounts' => array( 'cost' => 1 ),
+                        'v2/idb/delegated-accounts' => array( 'cost' => 1 ),
+                        'v2/idb/otc-trades' => array( 'cost' => 1 ),
                     ),
                     'post' => array(
                         'v2/orders' => array( 'cost' => 5 ),
@@ -222,10 +233,13 @@ class bullish extends Exchange {
                         'v1/wallets/withdrawal' => array( 'cost' => 1 ),
                         'v2/users/login' => array( 'cost' => 1 ),
                         'v1/simulate-portfolio-margin' => array( 'cost' => 1 ),
+                        'v1/bulk-simulate-portfolio-margin' => array( 'cost' => 1 ),
                         'v1/wallets/self-hosted/initiate' => array( 'cost' => 1 ),
                         'v2/mmp-configuration' => array( 'cost' => 1 ),
                         'v2/otc-trades' => array( 'cost' => 1 ),
                         'v2/otc-command' => array( 'cost' => 1 ),
+                        'v2/idb/otc-trades' => array( 'cost' => 1 ),
+                        'v2/idb/otc-command' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -1389,7 +1403,7 @@ class bullish extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest entry
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -2901,7 +2915,7 @@ class bullish extends Exchange {
         return $this->safe_string($statuses, $status, $status);
     }
 
-    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_borrow_rate_history(...))($code, $since, $limit, $params);
     }
 

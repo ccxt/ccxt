@@ -209,7 +209,7 @@ export default class hibachi extends Exchange {
      * @description fetches all current open orders
      * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
      * @param {string} [symbol] unified market symbol to filter by
-     * @param {int} [since] milisecond timestamp of the earliest order
+     * @param {int} [since] millisecond timestamp of the earliest order
      * @param {int} [limit] the maximum number of open orders to return
      * @param {object} [params] extra parameters
      * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -374,7 +374,7 @@ export default class hibachi extends Exchange {
      * @param {int} [params.until] timestamp in ms of the latest settlement
      * @returns {object[]} a list of [settlement history objects]{@link https://docs.ccxt.com/#/?id=settlement-history-structure}
      */
-    fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<any>;
+    fetchMySettlementHistory(symbol?: Str, since?: Int, limit?: Int, params?: {}): Promise<Dict[]>;
     /**
      * @method
      * @name hibachi#fetchTime

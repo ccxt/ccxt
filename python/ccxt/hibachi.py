@@ -1176,7 +1176,7 @@ class hibachi(Exchange, ImplicitAPI):
         # Converting them to internal representation:
         # - Quantity: Internal = External * (10^6)
         # - maxFees: Internal = External * (10^6)
-        # We only have USDT currency time
+        # We only have USDT as our currency as self time
         USDTAssetId = 1
         USDTFactor = '1000000'
         amountStr = self.number_to_string(amount)
@@ -1419,7 +1419,7 @@ class hibachi(Exchange, ImplicitAPI):
         https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
 
         :param str [symbol]: unified market symbol to filter by
-        :param int [since]: milisecond timestamp of the earliest order
+        :param int [since]: millisecond timestamp of the earliest order
         :param int [limit]: the maximum number of open orders to return
         :param dict [params]: extra parameters
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -1574,7 +1574,7 @@ class hibachi(Exchange, ImplicitAPI):
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             self.load_markets()
@@ -2095,7 +2095,7 @@ class hibachi(Exchange, ImplicitAPI):
             result.append(self.parse_settlement(settlements[i], market))
         return result
 
-    def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
+    def fetch_my_settlement_history(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         fetches historical settlement records of the user
 

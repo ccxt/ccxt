@@ -49,6 +49,11 @@ interface Exchange {
     privateGetTravelRuleVasps (params?: {}): Promise<List>;
     privateGetStatusWallet (params?: {}): Promise<List>;
     privateGetApiKeys (params?: {}): Promise<List>;
+    privateGetPockets (params?: {}): Promise<List>;
+    privateGetPocketsApiKeys (params?: {}): Promise<List>;
+    privateGetPocketsAssets (params?: {}): Promise<List>;
+    privateGetPocketsUniversalTransfers (params?: {}): Promise<List>;
+    privateGetPocketsTransfers (params?: {}): Promise<List>;
     privatePostOrders (params?: {}): Promise<Dict>;
     privatePostOrdersTest (params?: {}): Promise<Dict>;
     privatePostOrdersCancelAndNew (params?: {}): Promise<Dict>;
@@ -58,6 +63,8 @@ interface Exchange {
     privatePostDepositsGenerateCoinAddress (params?: {}): Promise<Dict>;
     privatePostTravelRuleDepositUuid (params?: {}): Promise<Dict>;
     privatePostTravelRuleDepositTxid (params?: {}): Promise<Dict>;
+    privatePostPocketsUniversalTransfers (params?: {}): Promise<Dict>;
+    privatePostPocketsTransfers (params?: {}): Promise<Dict>;
     privateDeleteOrder (params?: {}): Promise<Dict>;
     privateDeleteOrdersOpen (params?: {}): Promise<Dict>;
     privateDeleteOrdersUuids (params?: {}): Promise<Dict>;

@@ -577,6 +577,16 @@ func (this *WooCore) V3PrivatePostSpotMarginInterestRepay(args ...any) <-chan an
 	return this.callEndpointAsync("v3PrivatePostSpotMarginInterestRepay", args...)
 }
 
+// V3PrivatePostFuturesDefaultMarginModeReset returns a channel that yields a JSON object.
+func (this *WooCore) V3PrivatePostFuturesDefaultMarginModeReset(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivatePostFuturesDefaultMarginModeReset", args...)
+}
+
+// V3PrivatePostIsolatedMarginMargin returns a channel that yields a JSON object.
+func (this *WooCore) V3PrivatePostIsolatedMarginMargin(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivatePostIsolatedMarginMargin", args...)
+}
+
 // V3PrivatePostAlgoOrder returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePostAlgoOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostAlgoOrder", args...)
@@ -605,6 +615,16 @@ func (this *WooCore) V3PrivatePutFuturesLeverage(args ...any) <-chan any {
 // V3PrivatePutFuturesPositionMode returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivatePutFuturesPositionMode(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePutFuturesPositionMode", args...)
+}
+
+// V3PrivatePutFuturesDefaultMarginMode returns a channel that yields a JSON object.
+func (this *WooCore) V3PrivatePutFuturesDefaultMarginMode(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivatePutFuturesDefaultMarginMode", args...)
+}
+
+// V3PrivatePutFuturesDefaultMarginModeSymbol returns a channel that yields a JSON object.
+func (this *WooCore) V3PrivatePutFuturesDefaultMarginModeSymbol(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivatePutFuturesDefaultMarginModeSymbol", args...)
 }
 
 // V3PrivatePutOrderOid returns a channel that yields a JSON object.
@@ -670,4 +690,9 @@ func (this *WooCore) V3PrivateDeleteAlgoOrdersPendingSymbol(args ...any) <-chan 
 // V3PrivateDeleteOrdersPending returns a channel that yields a JSON object.
 func (this *WooCore) V3PrivateDeleteOrdersPending(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateDeleteOrdersPending", args...)
+}
+
+// V3PrivateDeleteAssetWalletWithdrawWithdrawId returns a channel that yields a JSON object.
+func (this *WooCore) V3PrivateDeleteAssetWalletWithdrawWithdrawId(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateDeleteAssetWalletWithdrawWithdrawId", args...)
 }

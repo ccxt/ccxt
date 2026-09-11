@@ -177,6 +177,7 @@ export default class lbank extends Exchange {
                             'supplement/deposit_history': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/withdraws': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/get_deposit_address': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'supplement/add_deposit_address': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/asset_detail': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/customer_trade_fee': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/api_Restrictions': { 'cost': 2.5 } as Endpoint<Dict>,
@@ -192,6 +193,12 @@ export default class lbank extends Exchange {
                             'supplement/orders_info_history': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/user_info_account': { 'cost': 2.5 } as Endpoint<Dict>,
                             'supplement/transaction_history': { 'cost': 2.5 } as Endpoint<Dict>,
+                            // new spot/wallet, spot/trade endpoints
+                            'spot/wallet/withdraw': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'spot/wallet/deposit_history': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'spot/wallet/withdraws': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'spot/trade/orders_info': { 'cost': 2.5 } as Endpoint<Dict>,
+                            'spot/trade/orders_info_history': { 'cost': 2.5 } as Endpoint<Dict>,
                         },
                     },
                 },
@@ -1930,7 +1937,7 @@ export default class lbank extends Exchange {
         return await this.fetchOrderDefault (id, symbol, params);
     }
 
-    async fetchOrderSupplement (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOrderSupplement (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');
         }
@@ -1968,7 +1975,7 @@ export default class lbank extends Exchange {
         return this.parseOrder (result);
     }
 
-    async fetchOrderDefault (id: string, symbol: Str = undefined, params = {}) {
+    async fetchOrderDefault (id: string, symbol: Str = undefined, params = {}): Promise<Order> {
         // Id can be a list of ids delimited by a comma
         if (symbol === undefined) {
             throw new ArgumentsRequired (this.id + ' fetchOrder() requires a symbol argument');

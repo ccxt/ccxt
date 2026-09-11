@@ -193,7 +193,13 @@ func (this *LatokenCore) Describe() any {
 					"auth/account/currency/{currency}/{type}": map[string]any{
 						"cost": 1,
 					},
+					"auth/account/filtered": map[string]any{
+						"cost": 1,
+					},
 					"auth/order": map[string]any{
+						"cost": 1,
+					},
+					"auth/order/active": map[string]any{
 						"cost": 1,
 					},
 					"auth/order/getOrder/{id}": map[string]any{
@@ -252,7 +258,13 @@ func (this *LatokenCore) Describe() any {
 					"auth/order/cancelAll/{currency}/{quote}": map[string]any{
 						"cost": 1,
 					},
+					"auth/order/cancelBulk": map[string]any{
+						"cost": 1,
+					},
 					"auth/order/place": map[string]any{
+						"cost": 1,
+					},
+					"auth/order/placeBulk": map[string]any{
 						"cost": 1,
 					},
 					"auth/spot/deposit": map[string]any{
@@ -529,13 +541,13 @@ func (this *LatokenCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	//
 	if IsTrue(this.SafeBool(this.Options, "adjustForTimeDifference", false)) {
 
-		retRes40712 := (<-this.LoadTimeDifference())
-		PanicOnError(retRes40712)
+		retRes41112 := (<-this.LoadTimeDifference())
+		PanicOnError(retRes41112)
 	}
 	var currencies any = this.SafeDict(this.Options, "cachedCurrencies", map[string]any{})
 	var currenciesById map[string]any = this.IndexBy(currencies, "id")
 	var result any = []any{}
-	var rawMarkets any = this.ToArray(response)
+	var rawMarkets []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(rawMarkets)); i++ {
 		var market any = GetValue(rawMarkets, i)
 		var id any = this.SafeString(market, "id")
@@ -553,7 +565,7 @@ func (this *LatokenCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 				continue
 			}
 			var lowercaseQuote string = ToLower(quote)
-			var capitalizedQuote any = this.Capitalize(lowercaseQuote)
+			var capitalizedQuote string = this.Capitalize(lowercaseQuote)
 			var status any = this.SafeString(market, "status")
 			AppendToArray(&result, map[string]any{
 				"id":             id,
@@ -718,8 +730,8 @@ func (this *LatokenCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes57112 := (<-this.LoadMarkets())
-		PanicOnError(retRes57112)
+		retRes57512 := (<-this.LoadMarkets())
+		PanicOnError(retRes57512)
 	}
 
 	response := (<-this.PrivateGetAuthAccount(params))
@@ -808,8 +820,8 @@ func (this *LatokenCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes64412 := (<-this.LoadMarkets())
-		PanicOnError(retRes64412)
+		retRes64812 := (<-this.LoadMarkets())
+		PanicOnError(retRes64812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -943,8 +955,8 @@ func (this *LatokenCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes76012 := (<-this.LoadMarkets())
-		PanicOnError(retRes76012)
+		retRes76412 := (<-this.LoadMarkets())
+		PanicOnError(retRes76412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1002,8 +1014,8 @@ func (this *LatokenCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes80212 := (<-this.LoadMarkets())
-		PanicOnError(retRes80212)
+		retRes80612 := (<-this.LoadMarkets())
+		PanicOnError(retRes80612)
 	}
 
 	response := (<-this.PublicGetTicker(params))
@@ -1150,8 +1162,8 @@ func (this *LatokenCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes93012 := (<-this.LoadMarkets())
-		PanicOnError(retRes93012)
+		retRes93412 := (<-this.LoadMarkets())
+		PanicOnError(retRes93412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1202,15 +1214,15 @@ func (this *LatokenCore) fetchTradingFeeBody(ch chan any, symbol any, optionalAr
 	params = this.Omit(params, "method")
 	if IsTrue(IsEqual(method, "fetchPrivateTradingFee")) {
 
-		retRes96919 := (<-this.FetchPrivateTradingFee(symbol, params))
-		PanicOnError(retRes96919)
-		ch <- retRes96919
+		retRes97319 := (<-this.FetchPrivateTradingFee(symbol, params))
+		PanicOnError(retRes97319)
+		ch <- retRes97319
 		return nil
 	} else if IsTrue(IsEqual(method, "fetchPublicTradingFee")) {
 
-		retRes97119 := (<-this.FetchPublicTradingFee(symbol, params))
-		PanicOnError(retRes97119)
-		ch <- retRes97119
+		retRes97519 := (<-this.FetchPublicTradingFee(symbol, params))
+		PanicOnError(retRes97519)
+		ch <- retRes97519
 		return nil
 	} else {
 		panic(NotSupported(Add(this.Id, " not support this method")))
@@ -1228,8 +1240,8 @@ func (this *LatokenCore) fetchPublicTradingFeeBody(ch chan any, symbol any, opti
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes97912 := (<-this.LoadMarkets())
-		PanicOnError(retRes97912)
+		retRes98312 := (<-this.LoadMarkets())
+		PanicOnError(retRes98312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1270,8 +1282,8 @@ func (this *LatokenCore) fetchPrivateTradingFeeBody(ch chan any, symbol any, opt
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes100712 := (<-this.LoadMarkets())
-		PanicOnError(retRes100712)
+		retRes101112 := (<-this.LoadMarkets())
+		PanicOnError(retRes101112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1331,8 +1343,8 @@ func (this *LatokenCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes104712 := (<-this.LoadMarkets())
-		PanicOnError(retRes104712)
+		retRes105112 := (<-this.LoadMarkets())
+		PanicOnError(retRes105112)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1538,8 +1550,8 @@ func (this *LatokenCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes123812 := (<-this.LoadMarkets())
-		PanicOnError(retRes123812)
+		retRes124212 := (<-this.LoadMarkets())
+		PanicOnError(retRes124212)
 	}
 	var response any = nil
 	var isTrigger any = this.SafeValue2(params, "trigger", "stop")
@@ -1619,8 +1631,8 @@ func (this *LatokenCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes129612 := (<-this.LoadMarkets())
-		PanicOnError(retRes129612)
+		retRes130012 := (<-this.LoadMarkets())
+		PanicOnError(retRes130012)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1707,8 +1719,8 @@ func (this *LatokenCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes136612 := (<-this.LoadMarkets())
-		PanicOnError(retRes136612)
+		retRes137012 := (<-this.LoadMarkets())
+		PanicOnError(retRes137012)
 	}
 	var request map[string]any = map[string]any{
 		"id": id,
@@ -1783,8 +1795,8 @@ func (this *LatokenCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes142312 := (<-this.LoadMarkets())
-		PanicOnError(retRes142312)
+		retRes142712 := (<-this.LoadMarkets())
+		PanicOnError(retRes142712)
 	}
 	var market any = this.Market(symbol)
 	var uppercaseType string = ToUpper(typeVar)
@@ -1860,8 +1872,8 @@ func (this *LatokenCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes148312 := (<-this.LoadMarkets())
-		PanicOnError(retRes148312)
+		retRes148712 := (<-this.LoadMarkets())
+		PanicOnError(retRes148712)
 	}
 	var request map[string]any = map[string]any{
 		"id": id,
@@ -1917,8 +1929,8 @@ func (this *LatokenCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes152112 := (<-this.LoadMarkets())
-		PanicOnError(retRes152112)
+		retRes152512 := (<-this.LoadMarkets())
+		PanicOnError(retRes152512)
 	}
 	var request map[string]any = map[string]any{}
 	var market any = nil
@@ -1992,8 +2004,8 @@ func (this *LatokenCore) fetchTransactionsBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes157412 := (<-this.LoadMarkets())
-		PanicOnError(retRes157412)
+		retRes157812 := (<-this.LoadMarkets())
+		PanicOnError(retRes157812)
 	}
 	var request map[string]any = map[string]any{}
 
@@ -2147,8 +2159,8 @@ func (this *LatokenCore) fetchTransfersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes171212 := (<-this.LoadMarkets())
-		PanicOnError(retRes171212)
+		retRes171612 := (<-this.LoadMarkets())
+		PanicOnError(retRes171612)
 	}
 	var currency any = this.Currency(code)
 
@@ -2217,8 +2229,8 @@ func (this *LatokenCore) transferBody(ch chan any, code any, amount any, fromAcc
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes176712 := (<-this.LoadMarkets())
-		PanicOnError(retRes176712)
+		retRes177112 := (<-this.LoadMarkets())
+		PanicOnError(retRes177112)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -2330,7 +2342,7 @@ func (this *LatokenCore) Sign(path any, optionalArgs ...any) any {
 	var request any = Add(Add(Add("/", this.Version), "/"), this.ImplodeParams(path, params))
 	var requestString any = request
 	var query any = this.Omit(params, this.ExtractParams(path))
-	var urlencodedQuery any = this.Urlencode(query)
+	var urlencodedQuery string = this.Urlencode(query)
 	if IsTrue(IsEqual(method, "GET")) {
 		if IsTrue(IsGreaterThan(GetArrayLength(ObjectKeys(query)), 0)) {
 			requestString = Add(requestString, Add("?", urlencodedQuery))

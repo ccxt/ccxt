@@ -1146,7 +1146,7 @@ class bitvavo extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch entries for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1293,7 +1293,7 @@ class bitvavo extends Exchange {
             throw new ArgumentsRequired($this->id . ' transfer() requires either $fromAccount or $toAccount to be master');
         }
         if ($subaccountId === null) {
-            throw new ArgumentsRequired($this->id . ' transfer() requires a subaccount id (provide it/toAccount or $params->subaccountId)');
+            throw new ArgumentsRequired($this->id . ' transfer() requires a subaccount id (provide it as fromAccount/toAccount or $params->subaccountId)');
         }
         $request = array(
             'subaccountId' => $subaccountId,

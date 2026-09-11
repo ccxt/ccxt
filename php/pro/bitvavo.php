@@ -432,7 +432,7 @@ class bitvavo extends \ccxt\async\bitvavo {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -536,7 +536,7 @@ class bitvavo extends \ccxt\async\bitvavo {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of $candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a dictionary of [$symbol, $timeframe] keyed arrays of $candles ordered, open, high, low, close, volume
+         * @return {array} a dictionary of [$symbol, $timeframe] keyed arrays of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -947,9 +947,9 @@ class bitvavo extends \ccxt\async\bitvavo {
         }
         $this->orderbooks[$symbol] = $orderbook;
         $client->resolve($orderbook, $messageHash);
-        // getBook is a one-shot request but array($this, 'watch') tracks it persistent
+        // getBook is a one-shot request but array($this, 'watch') tracks it as a persistent
         // subscription - drop it so a later unsubscribe/subscribe re-fetches the $snapshot
-        // instead of suppressing the request already-active subscription
+        // instead of suppressing the request as an already-active subscription
         $snapshotHash = 'getBook@' . $marketId;
         if (is_array($client->subscriptions) && array_key_exists($snapshotHash ?? '', $client->subscriptions)) {
             unset($client->subscriptions[$snapshotHash]);
@@ -1541,7 +1541,7 @@ class bitvavo extends \ccxt\async\bitvavo {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

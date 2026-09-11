@@ -169,12 +169,18 @@ func (this *BinanceusCore) Describe() any {
 						"cost":     2,
 						"noSymbol": 100,
 					},
+					"ticker/tradingDay": map[string]any{
+						"cost": 4,
+					},
 				},
 			},
 			"private": map[string]any{
 				"get": map[string]any{
 					"account": map[string]any{
 						"cost": 10,
+					},
+					"account/commission": map[string]any{
+						"cost": 20,
 					},
 					"rateLimit/order": map[string]any{
 						"cost": 20,
@@ -191,6 +197,9 @@ func (this *BinanceusCore) Describe() any {
 					},
 					"myPreventedMatches": map[string]any{
 						"cost": 10,
+					},
+					"myFilters": map[string]any{
+						"cost": 40,
 					},
 					"allOrders": map[string]any{
 						"cost": 10,

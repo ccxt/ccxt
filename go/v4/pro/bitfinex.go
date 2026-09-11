@@ -958,7 +958,7 @@ func (this *BitfinexCore) HandleChecksum(client any, message any, subscription a
 	if ccxt.IsTrue(ccxt.IsEqual(book, nil)) {
 		return
 	}
-	var depth any = 25 // covers the first 25 bids and asks
+	var depth int = 25 // covers the first 25 bids and asks
 	var stringArray any = []any{}
 	var bids any = ccxt.GetValue(book, "bids")
 	var asks any = ccxt.GetValue(book, "asks")
@@ -979,8 +979,8 @@ func (this *BitfinexCore) HandleChecksum(client any, message any, subscription a
 			ccxt.AppendToArray(&stringArray, this.NumberToString(ccxt.OpNeg(aski1)))
 		}
 	}
-	var payload any = ccxt.Join(stringArray, ":")
-	var localChecksum any = this.Crc32(payload, true)
+	var payload string = ccxt.Join(stringArray, ":")
+	var localChecksum int64 = this.Crc32(payload, true)
 	var responseChecksum any = this.SafeInteger(message, 2)
 	if ccxt.IsTrue(!ccxt.IsEqual(responseChecksum, localChecksum)) {
 		ccxt.Remove(client.(ccxt.ClientInterface).GetSubscriptions(), messageHash)

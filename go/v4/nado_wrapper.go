@@ -48,7 +48,7 @@ func NewNadoFromCore(core *NadoCore) *Nado {
  * @param {float} [params.triggerPrice] *swap only* The price at which a trigger order is triggered at
  * @param {float} [params.stopLossPrice] *swap only* The price at which a stop loss order is triggered at
  * @param {float} [params.takeProfitPrice] *swap only* The price at which a take profit order is triggered at
- * @param {string} [params.triggerDirection] trigger direction, above, below
+ * @param {string} [params.triggerDirection] the direction of the trigger price, 'ascending' or 'descending', also accepts the 'above'/'up' and 'below'/'down' aliases
  * @param {int} [params.id] client-provided request id, returned by the exchange in the response
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
@@ -91,6 +91,7 @@ func (this *Nado) CreateOrder(symbol string, typeVar string, side string, amount
  * @param {boolean} [params.spotLeverage] whether leverage should be used for spot, defaults to true, exchange-specific alias params.spot_leverage
  * @param {boolean} [params.placeRequiresUnfilled] when true, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to true
  * @param {int} [params.id] client-provided request id, returned by the exchange in the response
+ * @param {float} [params.triggerPrice] not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/#/?id=order-structure}
  */
 func (this *Nado) EditOrder(id string, symbol string, typeVar string, side string, options ...EditOrderOptions) (Order, error) {
@@ -242,7 +243,7 @@ func (this *Nado) FetchOrder(id string, options ...FetchOrderOptions) (Order, er
  * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
  * @param {string} symbol unified market symbol of the market orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {Order[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
@@ -345,13 +346,12 @@ func (this *Nado) FetchClosedOrders(options ...FetchClosedOrdersOptions) ([]Orde
 /**
  * @method
  * @name nado#fetchCanceledOrders
- * @description fetches information on multiple canceled orders made by the user
+ * @description fetches information on multiple canceled trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
  * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
  * @param {string} symbol unified market symbol of the market the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Nado) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]Order, error) {
@@ -379,13 +379,12 @@ func (this *Nado) FetchCanceledOrders(options ...FetchCanceledOrdersOptions) ([]
 /**
  * @method
  * @name nado#fetchCanceledAndClosedOrders
- * @description fetches information on multiple canceled orders made by the user
+ * @description fetches information on multiple canceled and closed trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
  * @see https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
  * @param {string} symbol unified market symbol of the market the orders were made in
  * @param {int} [since] the earliest time in ms to fetch orders for
- * @param {int} [limit] the maximum number of order structures to retrieve
+ * @param {int} [limit] the maximum number of order structures to retrieve, max 500
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {boolean} [params.trigger] set to true if you would like to fetch portfolio margin account trigger or conditional orders
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Nado) FetchCanceledAndClosedOrders(options ...FetchCanceledAndClosedOrdersOptions) ([]Order, error) {
@@ -888,7 +887,7 @@ func (this *Nado) FetchTrades(symbol string, options ...FetchTradesOptions) ([]T
  * @param {string} symbol unified symbol of the market to fetch OHLCV data for
  * @param {string} timeframe the length of time each candle represents
  * @param {int} [since] timestamp in ms of the earliest candle to fetch
- * @param {int} [limit] the maximum amount of candles to fetch
+ * @param {int} [limit] the maximum amount of candles to fetch, max 500
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {int} [params.until] timestamp in ms of the latest candle to fetch
  * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
@@ -1019,7 +1018,7 @@ func (this *Nado) EditOrders(orders []OrderRequest, options ...EditOrdersOptions
 func (this *Nado) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Nado) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Nado) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Nado) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -1055,7 +1054,7 @@ func (this *Nado) FetchDepositAddress(code string, options ...FetchDepositAddres
 func (this *Nado) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Nado) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Nado) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Nado) FetchDepositsWithdrawals(options ...FetchDepositsWithdrawalsOptions) ([]Transaction, error) {

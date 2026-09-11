@@ -157,7 +157,61 @@ public class AlpacaCore extends AlpacaApi
                 put( "withdraw", true );
             }} );
             put( "api", new java.util.HashMap<String, Object>() {{
-                put( "broker", new java.util.HashMap<String, Object>() {{}} );
+                put( "broker", new java.util.HashMap<String, Object>() {{
+                    put( "private", new java.util.HashMap<String, Object>() {{
+                        put( "get", new java.util.HashMap<String, Object>() {{
+                            put( "v1/accounts/{account_id}/tokenization/requests", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/accounts/{account_id}/tokenization/requests/{tokenization_request_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/accounts/{account_id}/tokenization/requests:by_client_request_id", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/accounts/{account_id}/tokenization/requests:by_issuer_request_id", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/fpsl/analytics/{account_id}/loans", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/ipos", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/ipos/{offering_reference}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/wallets/travel-rule/vasps", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/acats", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/acats/contrabrokers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/acats/{account_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/acats/{account_id}/{acats_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/acats/{account_id}/{acats_id}/assets", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "post", new java.util.HashMap<String, Object>() {{
+                            put( "v1beta1/acats/{account_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                        put( "patch", new java.util.HashMap<String, Object>() {{
+                            put( "v1/accounts/{account_id}/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                        }} );
+                    }} );
+                }} );
                 put( "trader", new java.util.HashMap<String, Object>() {{
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
@@ -221,6 +275,27 @@ public class AlpacaCore extends AlpacaApi
                             put( "v2/wallets/transfers", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
+                            put( "v1/locates", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/locates/{locate_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/locates/quotes", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/tokenization/requests", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/tokenization/requests/{tokenization_request_id}", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/tokenization/requests:by_client_request_id", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/wallets/travel-rule/vasps", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
                         }} );
                         put( "post", new java.util.HashMap<String, Object>() {{
                             put( "v2/orders", new java.util.HashMap<String, Object>() {{
@@ -236,6 +311,9 @@ public class AlpacaCore extends AlpacaApi
                                 put( "cost", 1 );
                             }} );
                             put( "v2/wallets/transfers", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1/locates", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -255,6 +333,9 @@ public class AlpacaCore extends AlpacaApi
                                 put( "cost", 1 );
                             }} );
                             put( "v2/account/configurations", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v2/wallets/whitelists/{whitelisted_address_id}/travel-rule-info", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                         }} );
@@ -315,6 +396,12 @@ public class AlpacaCore extends AlpacaApi
                     put( "private", new java.util.HashMap<String, Object>() {{
                         put( "get", new java.util.HashMap<String, Object>() {{
                             put( "v1beta1/corporate-actions", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/fixed_income/latest/prices", new java.util.HashMap<String, Object>() {{
+                                put( "cost", 1 );
+                            }} );
+                            put( "v1beta1/fixed_income/latest/quotes", new java.util.HashMap<String, Object>() {{
                                 put( "cost", 1 );
                             }} );
                             put( "v1beta1/forex/latest/rates", new java.util.HashMap<String, Object>() {{
@@ -565,7 +652,7 @@ public class AlpacaCore extends AlpacaApi
             //         next_close: '2023-11-22T16:00:00-05:00'
             //     }
             //
-            Object timestamp = this.safeString(response, "timestamp");
+            String timestamp = this.safeString(response, "timestamp");
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
@@ -660,15 +747,15 @@ public class AlpacaCore extends AlpacaApi
         //         "price_increment": "1"
         //     }
         //
-        Object marketId = this.safeString(asset, "symbol");
+        String marketId = this.safeString(asset, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
         Object parts = Helpers.split(marketId, "/");
-        Object assetClass = this.safeString(asset, "class");
-        Object baseId = this.safeString(parts, 0);
-        Object quoteId = this.safeString(parts, 1);
+        String assetClass = this.safeString(asset, "class");
+        String baseId = this.safeString(parts, 0);
+        String quoteId = this.safeString(parts, 1);
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         // Us equity markets do not include quote in symbol.
@@ -678,7 +765,7 @@ public class AlpacaCore extends AlpacaApi
             quote = "USD";
         }
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object status = this.safeString(asset, "status");
+        String status = this.safeString(asset, "status");
         Object active = (Helpers.isEqual(status, "active"));
         Object minAmount = this.safeNumber(asset, "min_order_size");
         Object amount = this.safeNumber(asset, "min_trade_increment");
@@ -773,8 +860,8 @@ public class AlpacaCore extends AlpacaApi
             }
             Object market = this.market(symbol);
             Object marketId = Helpers.GetValue(market, "id");
-            Object loc = this.safeString(parameters, "loc", "us");
-            Object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
+            String loc = this.safeString(parameters, "loc", "us");
+            String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbols", marketId );
                 put( "loc", loc );
@@ -867,7 +954,7 @@ public class AlpacaCore extends AlpacaApi
             }
             Object market = this.market(symbol);
             Object id = Helpers.GetValue(market, "id");
-            Object loc = this.safeString(parameters, "loc", "us");
+            String loc = this.safeString(parameters, "loc", "us");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbols", id );
                 put( "loc", loc );
@@ -951,8 +1038,8 @@ public class AlpacaCore extends AlpacaApi
             }
             Object market = this.market(symbol);
             Object marketId = Helpers.GetValue(market, "id");
-            Object loc = this.safeString(parameters, "loc", "us");
-            Object method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
+            String loc = this.safeString(parameters, "loc", "us");
+            String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate", false);
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1019,7 +1106,7 @@ public class AlpacaCore extends AlpacaApi
                 if (Helpers.isTrue(paginate))
                 {
                     // the endpoint answers with a server-sized page plus a next_page_token regardless of the requested limit
-                    Object pageToken = this.safeString(response, "next_page_token");
+                    String pageToken = this.safeString(response, "next_page_token");
                     for (var i = 1; Helpers.isLessThan(i, paginationCalls); i++)
                     {
                         Object ohlcvsLength = Helpers.getArrayLength(ohlcvs);
@@ -1086,7 +1173,7 @@ public class AlpacaCore extends AlpacaApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object datetime = this.safeString(ohlcv, "t");
+        String datetime = this.safeString(ohlcv, "t");
         Object timestamp = this.parse8601(datetime);
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, this.safeNumber(ohlcv, "o"), this.safeNumber(ohlcv, "h"), this.safeNumber(ohlcv, "l"), this.safeNumber(ohlcv, "c"), this.safeNumber(ohlcv, "v")));
     }
@@ -1146,7 +1233,7 @@ public class AlpacaCore extends AlpacaApi
                 symbols = allSymbols;
             }
             symbols = this.marketSymbols(symbols);
-            Object loc = this.safeString(parameters, "loc", "us");
+            String loc = this.safeString(parameters, "loc", "us");
             Object ids = this.marketIds(symbols);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbols", String.join((String)",", (java.util.List<String>)ids) );
@@ -1218,7 +1305,7 @@ public class AlpacaCore extends AlpacaApi
                 Object prevDailyBar = this.safeDict(entry, "prevDailyBar", new java.util.HashMap<String, Object>() {{}});
                 Object latestQuote = this.safeDict(entry, "latestQuote", new java.util.HashMap<String, Object>() {{}});
                 Object latestTrade = this.safeDict(entry, "latestTrade", new java.util.HashMap<String, Object>() {{}});
-                Object datetime = this.safeString(latestQuote, "t");
+                String datetime = this.safeString(latestQuote, "t");
                 Object ticker = this.safeTicker(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
@@ -1250,14 +1337,14 @@ public class AlpacaCore extends AlpacaApi
 
     public Object generateClientOrderId(Object parameters)
     {
-        Object clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
+        String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
         Object uuid = this.uuid();
         Object parts = Helpers.split(uuid, "-");
         Object random_id = String.join((String)"", (java.util.List<String>)parts);
         Object defaultClientId = this.implodeParams(clientOrderIdprefix, new java.util.HashMap<String, Object>() {{
             put( "id", random_id );
         }});
-        Object clientOrderId = this.safeString(parameters, "clientOrderId", defaultClientId);
+        String clientOrderId = this.safeString(parameters, "clientOrderId", defaultClientId);
         return clientOrderId;
     }
 
@@ -1379,7 +1466,7 @@ public class AlpacaCore extends AlpacaApi
                 put( "side", side );
                 put( "type", type );
             }};
-            Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
+            String triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 Object newType = null;
@@ -1397,7 +1484,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 Helpers.addElementToObject(request, "limit_price", this.priceToPrecision(symbol, price));
             }
-            Object cost = this.safeString(parameters, "cost");
+            String cost = this.safeString(parameters, "cost");
             if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
             {
                 parameters = this.omit(parameters, "cost");
@@ -1547,7 +1634,7 @@ public class AlpacaCore extends AlpacaApi
                 put( "order_id", id );
             }};
             Object order = (this.traderPrivateGetV2OrdersOrderId(this.extend(request, parameters))).join();
-            Object marketId = this.safeString(order, "symbol");
+            String marketId = this.safeString(order, "symbol");
             Object market = this.safeMarket(marketId);
             return this.parseOrder(order, market);
         });
@@ -1747,7 +1834,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 Helpers.addElementToObject(request, "qty", this.amountToPrecision(symbol, amount));
             }
-            Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
+            String triggerPrice = this.safeString2(parameters, "triggerPrice", "stop_price");
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 Helpers.addElementToObject(request, "stop_price", this.priceToPrecision(symbol, triggerPrice));
@@ -1814,12 +1901,12 @@ public class AlpacaCore extends AlpacaApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString(order, "symbol");
+        String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object alpacaStatus = this.safeString(order, "status");
+        String alpacaStatus = this.safeString(order, "status");
         Object status = this.parseOrderStatus(alpacaStatus);
-        Object feeValue = this.safeString(order, "commission");
+        String feeValue = this.safeString(order, "commission");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeValue, null)))
         {
@@ -1829,7 +1916,7 @@ public class AlpacaCore extends AlpacaApi
                 put( "currency", "USD" );
             }};
         }
-        Object orderType = this.safeString(order, "order_type");
+        String orderType = this.safeString(order, "order_type");
         if (Helpers.isTrue(!Helpers.isEqual(orderType, null)))
         {
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(orderType, "limit"), 0)))
@@ -1838,7 +1925,7 @@ public class AlpacaCore extends AlpacaApi
                 orderType = "limit";
             }
         }
-        Object datetime = this.safeString(order, "submitted_at");
+        String datetime = this.safeString(order, "submitted_at");
         Object timestamp = this.parse8601(datetime);
         final Object finalOrderType = orderType;
         final Object finalFee = fee;
@@ -1997,12 +2084,12 @@ public class AlpacaCore extends AlpacaApi
         //     },
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketId = this.safeString2(trade, "S", "symbol");
+        String marketId = this.safeString2(trade, "S", "symbol");
         Object symbol = this.safeSymbol(marketId, market);
-        Object datetime = this.safeString2(trade, "t", "transaction_time");
+        String datetime = this.safeString2(trade, "t", "transaction_time");
         Object timestamp = this.parse8601(datetime);
-        Object alpacaSide = this.safeString(trade, "tks");
-        Object side = this.safeString(trade, "side");
+        String alpacaSide = this.safeString(trade, "tks");
+        String side = this.safeString(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(alpacaSide, "B")))
         {
             side = "buy";
@@ -2010,8 +2097,8 @@ public class AlpacaCore extends AlpacaApi
         {
             side = "sell";
         }
-        Object priceString = this.safeString2(trade, "p", "price");
-        Object amountString = this.safeString2(trade, "s", "qty");
+        String priceString = this.safeString2(trade, "p", "price");
+        String amountString = this.safeString2(trade, "s", "qty");
         final Object finalSide = side;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -2204,8 +2291,8 @@ public class AlpacaCore extends AlpacaApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ledger)); i++)
                 {
                     Object entry = Helpers.GetValue(ledger, i);
-                    Object activityType = this.safeString(entry, "activity_type");
-                    Object amount = this.safeString(entry, "net_amount");
+                    String activityType = this.safeString(entry, "activity_type");
+                    String amount = this.safeString(entry, "net_amount");
                     Object isIncoming = Helpers.isTrue((Helpers.isEqual(activityType, "CSD"))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(activityType, "TRANS"))) && !Helpers.isTrue(Precise.stringLt(amount, "0"))));
                     Object entryDirection = ((Helpers.isTrue(isIncoming))) ? "INCOMING" : "OUTGOING";
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "BOTH"))) || Helpers.isTrue((Helpers.isEqual(entryDirection, type)))))
@@ -2242,7 +2329,7 @@ public class AlpacaCore extends AlpacaApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transfers)); i++)
             {
                 Object entry = Helpers.GetValue(transfers, i);
-                Object direction = this.safeString(entry, "direction");
+                String direction = this.safeString(entry, "direction");
                 if (Helpers.isTrue(Helpers.isEqual(direction, type)))
                 {
                     ((java.util.List<Object>)results).add(entry);
@@ -2363,7 +2450,7 @@ public class AlpacaCore extends AlpacaApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object activityType = this.safeString(transaction, "activity_type");
+        String activityType = this.safeString(transaction, "activity_type");
         Object txid = null;
         Object timestamp = null;
         Object datetime = null;
@@ -2380,7 +2467,7 @@ public class AlpacaCore extends AlpacaApi
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(activityType, null)))
         {
-            Object netAmount = this.safeString(transaction, "net_amount");
+            String netAmount = this.safeString(transaction, "net_amount");
             Object isIncoming = Helpers.isTrue((Helpers.isEqual(activityType, "CSD"))) || Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(activityType, "TRANS"))) && !Helpers.isTrue(Precise.stringLt(netAmount, "0"))));
             timestamp = this.parse8601(Helpers.add(this.safeString(transaction, "date"), "T00:00:00Z"));
             datetime = this.iso8601(timestamp);
@@ -2389,7 +2476,7 @@ public class AlpacaCore extends AlpacaApi
             // cash ledger rows carry no per-entry asset field and are USD, while crypto
             // TRANS entries may carry symbol/asset - never blindly adopt the caller's
             // currency filter, see the review on https://github.com/ccxt/ccxt/pull/29580
-            Object activityCurrencyId = this.safeString2(transaction, "symbol", "asset");
+            String activityCurrencyId = this.safeString2(transaction, "symbol", "asset");
             if (Helpers.isTrue(!Helpers.isEqual(activityCurrencyId, null)))
             {
                 code = this.safeCurrencyCode(activityCurrencyId);
@@ -2414,11 +2501,11 @@ public class AlpacaCore extends AlpacaApi
             addressFrom = this.safeString(transaction, "from_address");
             type = this.parseTransactionType(this.safeString(transaction, "direction"));
             amount = this.safeNumber(transaction, "amount");
-            Object currencyId = this.safeString(transaction, "asset");
+            String currencyId = this.safeString(transaction, "asset");
             code = this.safeCurrencyCode(currencyId, currency);
             status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-            Object fees = this.safeString(transaction, "fees");
-            Object networkFee = this.safeString(transaction, "network_fee");
+            String fees = this.safeString(transaction, "fees");
+            String networkFee = this.safeString(transaction, "network_fee");
             Object totalFee = Precise.stringAdd(fees, networkFee);
             final Object finalCode = code;
             fee = new java.util.HashMap<String, Object>() {{
@@ -2564,7 +2651,7 @@ public class AlpacaCore extends AlpacaApi
             put( "info", response );
         }};
         Object account = this.account();
-        Object currencyId = this.safeString(response, "currency");
+        String currencyId = this.safeString(response, "currency");
         Object code = this.safeCurrencyCode(currencyId);
         Helpers.addElementToObject(account, "free", this.safeString(response, "cash"));
         Helpers.addElementToObject(account, "total", this.safeString(response, "equity"));
@@ -2627,12 +2714,12 @@ public class AlpacaCore extends AlpacaApi
         //     "message": "request is not authorized"
         // }
         Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
-        Object errorCode = this.safeString(response, "code");
+        String errorCode = this.safeString(response, "code");
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
         {
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
         }
-        Object message = this.safeString(response, "message");
+        String message = this.safeString(response, "message");
         if (Helpers.isTrue(!Helpers.isEqual(message, null)))
         {
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), message, feedback);

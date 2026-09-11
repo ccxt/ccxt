@@ -1234,7 +1234,7 @@ class hibachi extends Exchange {
         // Converting them to internal representation:
         // - Quantity => Internal = External * (10^6)
         // - $maxFees => Internal = External * (10^6)
-        // We only have USDT currency time
+        // We only have USDT as our currency as this time
         $USDTAssetId = 1;
         $USDTFactor = '1000000';
         $amountStr = $this->number_to_string($amount);
@@ -1489,7 +1489,7 @@ class hibachi extends Exchange {
          * @see https://api-doc.hibachi.xyz/#3243f8a0-086c-44c5-ab8a-71bbb7bab403
          *
          * @param {string} [$symbol] unified $market $symbol to filter by
-         * @param {int} [$since] milisecond timestamp of the earliest order
+         * @param {int} [$since] millisecond timestamp of the earliest order
          * @param {int} [$limit] the maximum number of open orders to return
          * @param {array} [$params] extra parameters
          * @return {Order[]} a list of ~@link https://docs.ccxt.com/?id=order-structure order structures~
@@ -1655,7 +1655,7 @@ class hibachi extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -2209,7 +2209,7 @@ class hibachi extends Exchange {
         return $result;
     }
 
-    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
          * fetches historical settlement records of the user
          *

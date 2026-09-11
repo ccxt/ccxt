@@ -78,7 +78,7 @@ public partial class testMainClass : BaseTest
                 int realLength = getArrayLength(entry);
                 int expectedLength = getArrayLength(format);
                 assert(isEqual(realLength, expectedLength), add(add("entry length is not equal to expected length of ", ((object)expectedLength).ToString()), logText));
-                for (object i = 0; isLessThan(i, getArrayLength(format)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(format)); postFixIncrement(ref i))
                 {
                     bool emptyAllowedForThisKey = isTrue((isEqual(emptyAllowedFor, null))) || isTrue(exchange.inArray(i, emptyAllowedFor));
                     object value = getValue(entry, i);
@@ -98,9 +98,9 @@ public partial class testMainClass : BaseTest
             {
                 assert(exchange.isDictionary(entry), add("entry is not a dict", logText));
                 List<object> keys = new List<object>(((IDictionary<string,object>)format).Keys);
-                for (object i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
                 {
-                    object key = getValue(keys, i);
+                    string? key = ((string)getValue(keys, i));
                     if (isTrue(inOp(skippedProperties, key)))
                     {
                         continue;
@@ -164,7 +164,7 @@ public partial class testMainClass : BaseTest
                 assert(isLessThan(ts, maxTs), add(add(add("timestamp more than ", ((object)maxTs).ToString()), " (19.01.2038)"), logText)); // 19 Jan 2038 - int32 overflows // 7258118400000  -> Jan 1 2200
                 if (isTrue(!isEqual(nowToCheck, null)))
                 {
-                    object maxMsOffset = 60000; // 1 min
+                    int maxMsOffset = 60000; // 1 min
                     assert(isLessThan(ts, add(nowToCheck, maxMsOffset)), add(add(add(add(add("returned item timestamp (", exchange.iso8601(ts)), ") is ahead of the current time ("), exchange.iso8601(nowToCheck)), ")"), logText));
                 }
             }
@@ -200,7 +200,7 @@ public partial class testMainClass : BaseTest
                     {
                         assert(false, add(add("datetime is not parseable: ", dt), logText));
                     }
-                    object diff = Math.Abs(Convert.ToDouble(subtract(dtParsed, tsMs)));
+                    double diff = Math.Abs(Convert.ToDouble(subtract(dtParsed, tsMs)));
                     if (isTrue(isGreaterThanOrEqual(diff, 500)))
                     {
                         object dtParsedString = exchange.iso8601(dtParsed);
@@ -245,7 +245,7 @@ public partial class testMainClass : BaseTest
             if (isTrue(definedValues))
             {
                 // check by code
-                object currencyByCode = exchange.currency(currencyCode);
+                object currencyByCode = exchange.currency(((string)currencyCode));
                 assert(isEqual(getValue(currencyByCode, "id"), currencyId), add(add(add(add(add("currencyId \"", stringValue(currencyId)), "\" does not match currency id from instance: \""), stringValue(getValue(currencyByCode, "id"))), "\""), logText));
                 // check by id
                 object currencyById = exchange.safeCurrency(currencyId);
@@ -425,8 +425,8 @@ public partial class testMainClass : BaseTest
                     object nextTs = getValue(getValue(items, i), "timestamp");
                     if (isTrue(isTrue(!isEqual(currentTs, null)) && isTrue(!isEqual(nextTs, null))))
                     {
-                        object ascendingOrDescending = ((bool) isTrue(ascending)) ? "ascending" : "descending";
-                        object comparison = ((bool) isTrue(ascending)) ? (isLessThanOrEqual(currentTs, nextTs)) : (isGreaterThanOrEqual(currentTs, nextTs));
+                        string ascendingOrDescending = ((bool) isTrue(ascending)) ? "ascending" : "descending";
+                        bool comparison = ((bool) isTrue(ascending)) ? (isLessThanOrEqual(currentTs, nextTs)) : (isGreaterThanOrEqual(currentTs, nextTs));
                         assert(comparison, add(add(add(add(add(add(add(add(add(add(add(add(exchange.id, " "), method), " "), stringValue(codeOrSymbol)), " must return a "), ascendingOrDescending), " sorted array of items by timestamp, but "), ((object)currentTs).ToString()), " is opposite with its next "), ((object)nextTs).ToString()), " "), exchange.json(items)));
                     }
                 }
@@ -462,15 +462,15 @@ public partial class testMainClass : BaseTest
                 // TICK_SIZE should be above zero
                 assertGreater(exchange, skippedProperties, method, entry, key, "0");
                 // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw error
-                object decimalNumbers = new List<object>() {"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"};
+                List<object> decimalNumbers = new List<object>() {"2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"};
                 if (isTrue(isTrue(isEqual(key, "amount")) && isTrue(inOp(skippedProperties, "precisionAmountAbnormal"))))
                 {
                     return;
                 }
-                for (object i = 0; isLessThan(i, getArrayLength(decimalNumbers)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(decimalNumbers)); postFixIncrement(ref i))
                 {
-                    object num = getValue(decimalNumbers, i);
-                    object numStr = num;
+                    string? num = ((string)getValue(decimalNumbers, i));
+                    string? numStr = num;
                     assertNonEqual(exchange, skippedProperties, method, entry, key, numStr);
                 }
             } else
@@ -487,7 +487,7 @@ public partial class testMainClass : BaseTest
             // find out best bid/ask price
             object bestBid = null;
             object bestAsk = null;
-            object usedMethod = null;
+            string? usedMethod = null;
             if (isTrue(isTrue((!isEqual(getValue(exchange.has, "fetchOrderBook"), null))) && isTrue((!isEqual(getValue(exchange.has, "fetchOrderBook"), false)))))
             {
                 usedMethod = "fetchOrderBook";
@@ -530,10 +530,10 @@ public partial class testMainClass : BaseTest
             // set 'since' to 5 minute ago for optimal results
             object sinceTime = subtract(exchange.milliseconds(), multiply(multiply(1000, 60), 5));
             // iterate
-            object methods_singular = new List<object>() {"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"};
-            for (object i = 0; isLessThan(i, getArrayLength(methods_singular)); postFixIncrement(ref i))
+            List<object> methods_singular = new List<object>() {"fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"};
+            for (int i = 0; isLessThan(i, getArrayLength(methods_singular)); postFixIncrement(ref i))
             {
-                object singularFetchName = getValue(methods_singular, i);
+                string? singularFetchName = ((string)getValue(methods_singular, i));
                 if (isTrue(isTrue((!isEqual(getValue(exchange.has, singularFetchName), null))) && isTrue((!isEqual(getValue(exchange.has, singularFetchName), false)))))
                 {
                     object currentOrder = await ((Task<object>)callDynamically(exchange, singularFetchName, new object[] { originalId, symbol }));
@@ -549,15 +549,15 @@ public partial class testMainClass : BaseTest
             // search through plural methods
             if (isTrue(isEqual(fetchedOrder, null)))
             {
-                object methods_plural = new List<object>() {"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"};
-                for (object i = 0; isLessThan(i, getArrayLength(methods_plural)); postFixIncrement(ref i))
+                List<object> methods_plural = new List<object>() {"fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"};
+                for (int i = 0; isLessThan(i, getArrayLength(methods_plural)); postFixIncrement(ref i))
                 {
-                    object pluralFetchName = getValue(methods_plural, i);
+                    string? pluralFetchName = ((string)getValue(methods_plural, i));
                     if (isTrue(isTrue((!isEqual(getValue(exchange.has, pluralFetchName), null))) && isTrue((!isEqual(getValue(exchange.has, pluralFetchName), false)))))
                     {
                         object orders = await ((Task<object>)callDynamically(exchange, pluralFetchName, new object[] { symbol, sinceTime }));
                         bool found = false;
-                        for (object j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
+                        for (int j = 0; isLessThan(j, getArrayLength(orders)); postFixIncrement(ref j))
                         {
                             object currentOrder = getValue(orders, j);
                             if (isTrue(isEqual(getValue(currentOrder, "id"), originalId)))
@@ -580,7 +580,7 @@ public partial class testMainClass : BaseTest
         {
             // note, `strictCheck` is `true` only from "fetchOrder" cases
             object logText = logTemplate(exchange, method, order);
-            object msg = add(add(add("order should be ", assertedStatus), ", but it was not asserted"), logText);
+            string msg = add(add(add("order should be ", assertedStatus), ", but it was not asserted"), logText);
             object filled = exchange.safeString(order, "filled");
             object amount = exchange.safeString(order, "amount");
             // shorthand variables
@@ -590,7 +590,7 @@ public partial class testMainClass : BaseTest
             bool statusClanceled = (isEqual(getValue(order, "status"), "canceled"));
             bool filledDefined = (!isEqual(filled, null));
             bool amountDefined = (!isEqual(amount, null));
-            object condition = null;
+            bool? condition = null;
             //
             // ### OPEN STATUS
             //
@@ -690,12 +690,12 @@ public partial class testMainClass : BaseTest
                 return a;
             } else
             {
-                object result = new List<object>() {};
-                for (object i = 0; isLessThan(i, getArrayLength(a)); postFixIncrement(ref i))
+                List<object> result = new List<object>() {};
+                for (int i = 0; isLessThan(i, getArrayLength(a)); postFixIncrement(ref i))
                 {
                     ((IList<object>)result).Add(getValue(a, i));
                 }
-                for (object j = 0; isLessThan(j, getArrayLength(b)); postFixIncrement(ref j))
+                for (int j = 0; isLessThan(j, getArrayLength(b)); postFixIncrement(ref j))
                 {
                     ((IList<object>)result).Add(getValue(b, j));
                 }
@@ -713,7 +713,7 @@ public partial class testMainClass : BaseTest
                 int responseLength = getArrayLength(response);
                 isEmptyArrayResponse = (isEqual(responseLength, 0));
             }
-            object hintText = "";
+            string hintText = "";
             if (isTrue(!isEqual(hint, null)))
             {
                 hintText = add(" ", hint);

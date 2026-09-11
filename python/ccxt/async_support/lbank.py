@@ -188,6 +188,7 @@ class lbank(Exchange, ImplicitAPI):
                             'supplement/deposit_history': {'cost': 2.5},
                             'supplement/withdraws': {'cost': 2.5},
                             'supplement/get_deposit_address': {'cost': 2.5},
+                            'supplement/add_deposit_address': {'cost': 2.5},
                             'supplement/asset_detail': {'cost': 2.5},
                             'supplement/customer_trade_fee': {'cost': 2.5},
                             'supplement/api_Restrictions': {'cost': 2.5},
@@ -203,6 +204,12 @@ class lbank(Exchange, ImplicitAPI):
                             'supplement/orders_info_history': {'cost': 2.5},
                             'supplement/user_info_account': {'cost': 2.5},
                             'supplement/transaction_history': {'cost': 2.5},
+                            # new spot/wallet, spot/trade endpoints
+                            'spot/wallet/withdraw': {'cost': 2.5},
+                            'spot/wallet/deposit_history': {'cost': 2.5},
+                            'spot/wallet/withdraws': {'cost': 2.5},
+                            'spot/trade/orders_info': {'cost': 2.5},
+                            'spot/trade/orders_info_history': {'cost': 2.5},
                         },
                     },
                 },
@@ -475,7 +482,7 @@ class lbank(Exchange, ImplicitAPI):
             networkEntry = networksRaw[j]
             networkId = self.safe_string(networkEntry, 'chain')
             if networkId is None:
-                networkId = self.safe_string(networkEntry, 'assetCode')  # use type if networkId is not present
+                networkId = self.safe_string(networkEntry, 'assetCode')  # use type as fallback if networkId is not present
             networkCode = self.network_id_to_code(networkId, code)
             if networkCode is not None:
                 networks[networkCode] = {
@@ -1164,7 +1171,7 @@ class lbank(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         # endpoint doesnt work
         if self.markets is None:
@@ -1639,7 +1646,7 @@ class lbank(Exchange, ImplicitAPI):
                         quoteAmount = self.cost_to_precision(symbol, costRequest)
                 else:
                     quoteAmount = self.cost_to_precision(symbol, amount)
-                # market buys require filling the price param instead of the amount param, for market buys the price is treated cost by lbank
+                # market buys require filling the price param instead of the amount param, for market buys the price is treated as the cost by lbank
                 request['price'] = quoteAmount
         if clientOrderId is not None:
             request['custom_id'] = clientOrderId
@@ -1842,7 +1849,7 @@ class lbank(Exchange, ImplicitAPI):
             return await self.fetch_order_supplement(id, symbol, params)
         return await self.fetch_order_default(id, symbol, params)
 
-    async def fetch_order_supplement(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order_supplement(self, id: str, symbol: Str = None, params={}) -> Order:
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')
         if self.markets is None:
@@ -1877,7 +1884,7 @@ class lbank(Exchange, ImplicitAPI):
         result = self.safe_dict(response, 'data', {})
         return self.parse_order(result)
 
-    async def fetch_order_default(self, id: str, symbol: Str = None, params={}):
+    async def fetch_order_default(self, id: str, symbol: Str = None, params={}) -> Order:
         # Id can be a list of ids delimited by a comma
         if symbol is None:
             raise ArgumentsRequired(self.id + ' fetchOrder() requires a symbol argument')

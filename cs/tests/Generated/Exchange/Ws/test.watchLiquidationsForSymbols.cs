@@ -12,7 +12,7 @@ public partial class testMainClass : BaseTest
     {
         string method = "watchLiquidationsForSymbols";
         // we have to skip some exchanges here due to the frequency of trading
-        object skippedExchanges = new List<object>() {};
+        List<object> skippedExchanges = new List<object>() {};
         if (isTrue(exchange.inArray(exchange.id, skippedExchanges)))
         {
             object m1 = (add(add(add(exchange.id, " "), method), "() test skipped"));
@@ -39,7 +39,7 @@ public partial class testMainClass : BaseTest
                 object m3 = (add(add(add(add(add(exchange.id, " "), method), "() returned "), getArrayLength(response)), " liquidations"));
                 Console.WriteLine(m3);
                 // log.noLocate (asTable (response))
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     testLiquidation(exchange, skippedProperties, method, getValue(response, i), symbol);
                 }

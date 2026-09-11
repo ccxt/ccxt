@@ -227,7 +227,7 @@ class poloniex extends \ccxt\async\poloniex {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->timeInForce] GTC (default), IOC, FOK
          * @param {string} [$params->clientOrderId] Maximum 64-character length.*
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->amount] quote units for the $order
@@ -398,7 +398,7 @@ class poloniex extends \ccxt\async\poloniex {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -944,7 +944,7 @@ class poloniex extends \ccxt\async\poloniex {
                     $trade = $this->parse_ws_trade($order);
                     $this->handle_my_trades($client, $trade);
                     if ($previousOrder === null) {
-                        // fill event for an $order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse fresh $order instead of aggregating
+                        // fill event for an $order missing from the cache (e.g. placed before subscribing or after a reconnect) - parse as a fresh $order instead of aggregating
                         $parsedOrder = $this->parse_ws_order($order);
                         $orders->append($parsedOrder);
                         $marketIds[] = $marketId;

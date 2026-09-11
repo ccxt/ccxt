@@ -176,6 +176,7 @@ class bittrade extends Exchange {
                         'common/timestamp' => array( 'cost' => 1 ), // 查询系统当前时间
                         'common/exchange' => array( 'cost' => 1 ), // order limits
                         'settings/currencys' => array( 'cost' => 1 ), // ?language=en-US
+                        'retail/maintain/time' => array( 'cost' => 1 ), // 零售维护时间
                     ),
                 ),
                 'private' => array(
@@ -206,6 +207,7 @@ class bittrade extends Exchange {
                         'subuser/aggregate-balance' => array( 'cost' => 10 ),
                         'stable-coin/exchange_rate' => array( 'cost' => 1 ),
                         'stable-coin/quote' => array( 'cost' => 1 ),
+                        'retail/order/list' => array( 'cost' => 1 ), // 零售订单历史
                     ),
                     'post' => array(
                         'account/transfer' => array( 'cost' => 1 ), // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
@@ -233,6 +235,7 @@ class bittrade extends Exchange {
                         'cross-margin/orders/{id}/repay' => array( 'cost' => 1 ), // 归还借币
                         'stable-coin/exchange' => array( 'cost' => 1 ),
                         'subuser/transfer' => array( 'cost' => 10 ),
+                        'retail/order/place' => array( 'cost' => 1 ), // 零售下单
                     ),
                 ),
             ),
@@ -1056,7 +1059,7 @@ class bittrade extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1251,7 +1254,7 @@ class bittrade extends Exchange {
         return $this->parse_balance($response);
     }
 
-    public function fetch_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_states(mixed $states, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -1356,7 +1359,7 @@ class bittrade extends Exchange {
         return $this->fetch_orders_by_states('filled,partial-canceled,canceled', $symbol, $since, $limit, $params);
     }
 
-    public function fetch_open_orders_v2(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_open_orders_v2(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

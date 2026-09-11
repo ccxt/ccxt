@@ -163,7 +163,9 @@ class latoken extends Exchange {
                     'get' => array(
                         'auth/account' => array( 'cost' => 1 ),
                         'auth/account/currency/{currency}/{type}' => array( 'cost' => 1 ),
+                        'auth/account/filtered' => array( 'cost' => 1 ),
                         'auth/order' => array( 'cost' => 1 ),
+                        'auth/order/active' => array( 'cost' => 1 ),
                         'auth/order/getOrder/{id}' => array( 'cost' => 1 ),
                         'auth/order/pair/{currency}/{quote}' => array( 'cost' => 1 ),
                         'auth/order/pair/{currency}/{quote}/active' => array( 'cost' => 1 ),
@@ -184,7 +186,9 @@ class latoken extends Exchange {
                         'auth/order/cancel' => array( 'cost' => 1 ),
                         'auth/order/cancelAll' => array( 'cost' => 1 ),
                         'auth/order/cancelAll/{currency}/{quote}' => array( 'cost' => 1 ),
+                        'auth/order/cancelBulk' => array( 'cost' => 1 ),
                         'auth/order/place' => array( 'cost' => 1 ),
+                        'auth/order/placeBulk' => array( 'cost' => 1 ),
                         'auth/spot/deposit' => array( 'cost' => 1 ),
                         'auth/spot/withdraw' => array( 'cost' => 1 ),
                         'auth/stopOrder/cancel' => array( 'cost' => 1 ),
@@ -1011,7 +1015,7 @@ class latoken extends Exchange {
         }
     }
 
-    public function fetch_public_trading_fee(string $symbol, $params = array()) {
+    public function fetch_public_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_public_trading_fee(...))($symbol, $params);
     }
 
@@ -1043,7 +1047,7 @@ class latoken extends Exchange {
         );
     }
 
-    public function fetch_private_trading_fee(string $symbol, $params = array()) {
+    public function fetch_private_trading_fee(string $symbol, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_private_trading_fee(...))($symbol, $params);
     }
 

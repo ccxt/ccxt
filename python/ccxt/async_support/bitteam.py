@@ -195,6 +195,7 @@ class bitteam(Exchange, ImplicitAPI):
                         'trade/api/pairs': {'cost': 1},  # not unified
                         'trade/api/pairs/precisions': {'cost': 1},  # not unified
                         'trade/api/rates': {'cost': 1},  # not unified
+                        'trade/api/stats': {'cost': 1},  # not unified
                         'trade/api/trade/{id}': {'cost': 1},  # not unified
                         'trade/api/trades': {'cost': 1},  # not unified
                         'trade/api/ccxt/pairs': {'cost': 1},
@@ -753,7 +754,7 @@ class bitteam(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()

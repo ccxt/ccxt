@@ -107,6 +107,7 @@ class mudrex extends Exchange {
                         'futures/{asset_id}' => array( 'cost' => 1 ),
                         'wallet/funds' => array( 'cost' => 5 ),
                         'futures/funds' => array( 'cost' => 5 ),
+                        'futures/transactions' => array( 'cost' => 1 ),
                         'futures/orders' => array( 'cost' => 1 ),
                         'futures/orders/history' => array( 'cost' => 1 ),
                         'futures/orders/{order_id}' => array( 'cost' => 1 ),
@@ -275,7 +276,7 @@ class mudrex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {string} [$params->price] "mark" to fetch mark price candles
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -348,7 +349,7 @@ class mudrex extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         return $this->fetch_ohlcv($symbol, $timeframe, $since, $limit, $this->extend($params, array( 'price' => 'mark' )));
     }
@@ -414,12 +415,11 @@ class mudrex extends Exchange {
         $ms = $this->safe_string($ticker, 'symbol');
         $market = $this->safe_market($ms, $market);
         $symbol = $market['symbol'];
-        $ts = $this->milliseconds();
         $pct = $this->safe_number($ticker, 'change_perc');
         return $this->safe_ticker(array(
             'symbol' => $symbol,
-            'timestamp' => $ts,
-            'datetime' => $this->iso8601($ts),
+            'timestamp' => null,
+            'datetime' => null,
             'high' => null,
             'low' => null,
             'bid' => null,
@@ -603,11 +603,8 @@ class mudrex extends Exchange {
     public function parse_balance(mixed $response): array {
         $data = $this->safe_dict($response, 'data', array());
         $currency = $this->safe_string($response, 'currency', 'USDT');
-        $timestamp = $this->milliseconds();
         $result = array(
             'info' => $response,
-            'timestamp' => $timestamp,
-            'datetime' => $this->iso8601($timestamp),
         );
         $account = $this->account();
         $futuresBalance = $this->safe_string($data, 'balance');
@@ -686,7 +683,7 @@ class mudrex extends Exchange {
 
     public function create_order(string $symbol, string $type, string $side, float $amount, ?float $price = null, $params = array()): array {
         /**
-         * create a trade order
+         * create a trade $order
          *
          * @see https://docs.trade.mudrex.com/docs
          *
@@ -694,19 +691,19 @@ class mudrex extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price to fulfill the order, in units of the quote currency (also required for $market orders on this exchange)
+         * @param {float} [$price] the $price to fulfill the $order, in units of the quote currency (also required for $market orders on this exchange)
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {int} [$params->leverage] leverage for the order, required if setLeverage() was not called beforehand
-         * @param {bool} [$params->reduceOnly] true if the order is reduce only
-         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the trigger $price of the take-profit order attached to this order
+         * @param {int} [$params->leverage] leverage for the $order, required if setLeverage() was not called beforehand
+         * @param {bool} [$params->reduceOnly] true if the $order is reduce only
+         * @param {array} [$params->takeProfit] *$takeProfit object in $params* containing the trigger $price of the take-profit $order attached to this $order
          * @param {float} [$params->takeProfit.triggerPrice] take profit trigger $price
-         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the trigger $price of the stop-loss order attached to this order
+         * @param {array} [$params->stopLoss] *$stopLoss object in $params* containing the trigger $price of the stop-loss $order attached to this $order
          * @param {float} [$params->stopLoss.triggerPrice] stop loss trigger $price
-         * @param {float} [$params->takeProfitPrice] the trigger $price for a standalone take-profit order on an existing position (requires $params->positionId)
-         * @param {float} [$params->stopLossPrice] the trigger $price for a standalone stop-loss order on an existing position (requires $params->positionId)
-         * @param {string} [$params->positionId] the id of the position the standalone stopLossPrice/takeProfitPrice order is attached to
-         * @param {string} [$params->trade_currency] the settlement currency for the order
-         * @return {array} an [order structure](https://docs.ccxt.com/#/?id=order-structure)
+         * @param {float} [$params->takeProfitPrice] the trigger $price for a standalone take-profit $order on an existing position (requires $params->positionId)
+         * @param {float} [$params->stopLossPrice] the trigger $price for a standalone stop-loss $order on an existing position (requires $params->positionId)
+         * @param {string} [$params->positionId] the id of the position the standalone stopLossPrice/takeProfitPrice $order is attached to
+         * @param {string} [$params->trade_currency] the settlement currency for the $order
+         * @return {array} an [$order structure](https://docs.ccxt.com/#/?id=$order-structure)
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -751,7 +748,7 @@ class mudrex extends Exchange {
             'trigger_type' => ($type === 'market') ? 'MARKET' : 'LIMIT',
             'reduce_only' => $this->safe_bool($params, 'reduceOnly', false),
         );
-        // mudrex only supports take-profit / stop-loss orders attached to the position-opening order
+        // mudrex only supports take-profit / stop-loss orders attached to the position-opening $order
         $takeProfit = $this->safe_dict($params, 'takeProfit');
         $stopLoss = $this->safe_dict($params, 'stopLoss');
         if ($takeProfit !== null) {
@@ -765,10 +762,11 @@ class mudrex extends Exchange {
         $params = $this->omit($params, array( 'leverage', 'reduceOnly', 'takeProfit', 'stopLoss' ));
         $response = $this->privatePostFuturesAssetIdOrder($this->extend($request, $params));
         $data = $this->safe_dict($response, 'data', $response);
-        // the create $response omits the order/trigger $type, so restore them from the $request
-        $data['order_type'] = $request['order_type'];
-        $data['trigger_type'] = $request['trigger_type'];
-        return $this->parse_order($data, $market);
+        // the create $response omits the order/trigger $type, so parse a $merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+        $merged = $this->extend($data, array( 'order_type' => $request['order_type'], 'trigger_type' => $request['trigger_type'] ));
+        $order = $this->parse_order($merged, $market);
+        $order['info'] = $data;
+        return $order;
     }
 
     public function edit_order(string $id, string $symbol, string $type, string $side, ?float $amount = null, ?float $price = null, $params = array()): array {
@@ -835,6 +833,22 @@ class mudrex extends Exchange {
         } elseif ($rawSide === 'SHORT') {
             $side = 'sell';
         }
+        // stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
+        $isRiskOrder = ($rawSide === 'STOPLOSS') || ($rawSide === 'TAKEPROFIT');
+        $priceString = $this->safe_string_2($order, 'price', 'order_price');
+        $orderPrice = $priceString;
+        $triggerPrice = null;
+        $stopLossPrice = null;
+        $takeProfitPrice = null;
+        if ($isRiskOrder) {
+            $triggerPrice = $priceString;
+            $orderPrice = null;
+            if ($rawSide === 'STOPLOSS') {
+                $stopLossPrice = $priceString;
+            } else {
+                $takeProfitPrice = $priceString;
+            }
+        }
         $trig = $this->safe_string_upper($order, 'trigger_type');
         $typ = null;
         if ($trig === 'MARKET') {
@@ -843,9 +857,6 @@ class mudrex extends Exchange {
             $typ = 'limit';
         }
         $ts = $this->parse8601($this->safe_string($order, 'created_at'));
-        if ($ts === null) {
-            $ts = $this->milliseconds();
-        }
         $status = $this->parse_order_status($this->safe_string_lower($order, 'status'));
         $sym = $market['symbol'];
         return $this->safe_order(array(
@@ -860,19 +871,20 @@ class mudrex extends Exchange {
             'timeInForce' => null,
             'postOnly' => null,
             'side' => $side,
-            'price' => $this->safe_number_2($order, 'price', 'order_price'),
-            'stopPrice' => null,
-            'triggerPrice' => null,
-            'amount' => $this->safe_number_2($order, 'quantity', 'amount'),
+            'price' => $orderPrice,
+            'triggerPrice' => $triggerPrice,
+            'stopLossPrice' => $stopLossPrice,
+            'takeProfitPrice' => $takeProfitPrice,
+            'amount' => $this->safe_string_2($order, 'quantity', 'amount'),
             'cost' => null,
-            'average' => null,
-            'filled' => null,
+            'average' => $this->safe_string($order, 'filled_price'),
+            'filled' => $this->safe_string($order, 'filled_quantity'),
             'remaining' => null,
             'status' => $status,
             'fee' => null,
             'trades' => array(),
             'fees' => array(),
-            'lastUpdateTimestamp' => null,
+            'lastUpdateTimestamp' => $this->parse8601($this->safe_string($order, 'updated_at')),
             'reduceOnly' => $this->safe_bool($order, 'reduce_only'),
         ), $market);
     }
@@ -1254,15 +1266,16 @@ class mudrex extends Exchange {
 
     public function fetch_my_trades(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         /**
-         * fetch all trades made by the user
+         * fetch all trades made by the user, derived from the TRANSACTION $rows of the fee history endpoint - FUNDING $rows are excluded and each fill's REBATE row is netted into the trade fee
          *
-         * @see https://docs.trade.mudrex.com/docs
+         * @see https://docs.trade.mudrex.com/docs/fees
          *
-         * @param {string} [$symbol] unified $market $symbol
-         * @param {int} [$since] the earliest time in ms to fetch trades for
-         * @param {int} [$limit] the maximum number of trade structures to retrieve
+         * @param {string} [$symbol] unified $market $symbol, applied client-side because the endpoint has no $symbol filter
+         * @param {int} [$since] the earliest time in ms to fetch trades for, applied client-side
+         * @param {int} [$limit] the maximum number of trade structures to retrieve, further pages are requested until the $limit is satisfied, the history ends or the page cap is reached
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {string} [$params->trade_currency] the settlement currency to filter trades by
+         * @param {string} [$params->trade_currency] the settlement currency to filter trades by, 'USDT' (default) or 'INR'
+         * @param {int} [$params->paginationCalls] the maximum number of pages to $request (default 10) - a $symbol with few or no recent fills can exhaust the cap and return fewer than $limit trades
          * @return {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
          */
         if ($this->markets === null) {
@@ -1272,43 +1285,127 @@ class mudrex extends Exchange {
         if ($symbol !== null) {
             $market = $this->market($symbol);
         }
-        $request = array();
+        $maxCalls = null;
+        list($maxCalls, $params) = $this->handle_option_and_params($params, 'fetchMyTrades', 'paginationCalls', 10);
+        $pageSize = 0;
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            // every fill produces a TRANSACTION row plus a REBATE row and funding $rows share the page, so over-$request and paginate until the unified $limit is satisfied
+            $pageSize = $limit * 2;
         }
-        $response = $this->privateGetFuturesFeeHistory($this->extend($request, $params));
-        $data = $this->safe_value($response, 'data', array());
-        $rows = $this->to_array($data);
+        $allRows = array();
+        $transactionsCount = 0;
+        $calls = 0;
+        $offset = 0;
+        $paging = true;
+        while ($paging === true) {
+            $request = array();
+            if ($pageSize > 0) {
+                $request['limit'] = $pageSize;
+                $request['offset'] = $offset;
+            }
+            $response = $this->privateGetFuturesFeeHistory($this->extend($request, $params));
+            $data = $this->safe_list($response, 'data', array());
+            $dataLength = count($data);
+            for ($i = 0; $i < $dataLength; $i++) {
+                $entry = $data[$i];
+                $allRows[] = $entry;
+                if ($this->safe_string($entry, 'fee_type') === 'TRANSACTION') {
+                    // count only $rows the client-side $symbol filter keeps, otherwise a $symbol-filtered call under-returns
+                    if (($market === null) || ($this->safe_string($entry, 'symbol') === $market['id'])) {
+                        $transactionsCount = $this->sum($transactionsCount, 1);
+                    }
+                }
+            }
+            $calls = $this->sum($calls, 1);
+            $paging = false;
+            // the page cap bounds the walk when the requested $symbol has few or no $rows anywhere near the top of the history
+            if (($limit !== null) && ($dataLength === $pageSize) && ($transactionsCount < $limit) && ($calls < $maxCalls)) {
+                // array($this, 'sum') keeps the $offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                $offset = $this->sum($offset, $pageSize);
+                $paging = true;
+            }
+        }
+        // a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by $symbol, time and notional - each $rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
+        $rebateKeys = array();
+        $rebateAmounts = array();
+        $transactions = array();
+        $transactionKeys = array();
+        for ($i = 0; $i < count($allRows); $i++) {
+            $entry = $allRows[$i];
+            $feeType = $this->safe_string($entry, 'fee_type');
+            $pairKey = $this->safe_string($entry, 'symbol', '') . ':' . $this->safe_string($entry, 'created_at', '') . ':' . $this->safe_string($entry, 'transaction_amount', '');
+            if ($feeType === 'TRANSACTION') {
+                $transactions[] = $entry;
+                $transactionKeys[] = $pairKey;
+            } elseif ($feeType === 'REBATE') {
+                $rebateKeys[] = $pairKey;
+                $rebateAmounts[] = $this->safe_string($entry, 'fee_amount', '0');
+            }
+        }
+        $rows = array();
+        for ($i = 0; $i < count($transactions); $i++) {
+            $rebate = null;
+            for ($j = 0; $j < count($rebateKeys); $j++) {
+                if ($rebateKeys[$j] === $transactionKeys[$i]) {
+                    $rebate = $rebateAmounts[$j];
+                    // blank the consumed key so the next equal fill matches the next $rebate, never the same one twice
+                    $rebateKeys[$j] = null;
+                    break;
+                }
+            }
+            if ($rebate === null) {
+                $rows[] = $transactions[$i];
+            } else {
+                $rows[] = $this->extend($transactions[$i], array( 'rebate_amount' => $rebate ));
+            }
+        }
         return $this->parse_trades($rows, $market, $since, $limit);
     }
 
     public function parse_trade(array $trade, ?array $market = null): array {
+        //
+        //     {
+        //         "id" => "019f21e1-9093-7333-866d-31f19c1300ed",
+        //         "symbol" => "APTUSDT",
+        //         "fee_amount" => "0.02468116",
+        //         "fee_perc" => "0.05900003",
+        //         "fee_type" => "TRANSACTION",
+        //         "created_at" => "2026-07-02T08:10:58Z",
+        //         "transaction_amount" => "41.83245",
+        //         "trade_currency" => "USDT",
+        //         "order_type" => "LONG",
+        //         "trigger_type" => "MARKET",
+        //         "gst_amount" => "0.00376492"
+        //     }
+        //
         $ms = $this->safe_string($trade, 'symbol');
         $market = $this->safe_market($ms, $market);
         $symbol = $market['symbol'];
         $ts = $this->parse8601($this->safe_string($trade, 'created_at'));
-        if ($ts === null) {
-            $ts = $this->safe_integer($trade, 'time');
-        }
-        $side = $this->safe_string_lower_2($trade, 'side', 'order_type');
+        // exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays null
+        $side = $this->safe_string_lower($trade, 'order_type');
         $tradeSide = null;
-        if ($side === 'buy' || $side === 'long') {
+        if ($side === 'long') {
             $tradeSide = 'buy';
-        } elseif ($side === 'sell' || $side === 'short') {
+        } elseif ($side === 'short') {
             $tradeSide = 'sell';
         }
-        $feeType = $this->safe_string_upper($trade, 'fee_type');
+        $trig = $this->safe_string_upper($trade, 'trigger_type');
         $takerOrMaker = null;
-        if ($feeType === 'TRANSACTION') {
+        if ($trig === 'MARKET') {
+            // a $market execution always takes liquidity, a limit execution can be either
             $takerOrMaker = 'taker';
-        } elseif ($feeType === 'REBATE') {
-            $takerOrMaker = 'maker';
         }
         $fee = null;
-        $feeCost = $this->safe_number($trade, 'fee_amount');
-        if ($feeCost !== null) {
+        $feeCostString = $this->safe_string($trade, 'fee_amount');
+        // rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported $fee is the net charge
+        $rebateString = $this->safe_string($trade, 'rebate_amount');
+        if (($feeCostString !== null) && ($rebateString !== null)) {
+            $feeCostString = Precise::string_sub($feeCostString, $rebateString);
+        }
+        if ($feeCostString !== null) {
             $fee = array(
-                'cost' => $feeCost,
+                'cost' => $feeCostString,
                 'currency' => $this->safe_string($trade, 'trade_currency'),
             );
         }
@@ -1317,14 +1414,14 @@ class mudrex extends Exchange {
             'timestamp' => $ts,
             'datetime' => $this->iso8601($ts),
             'symbol' => $symbol,
-            'id' => $this->safe_string_2($trade, 'execId', 'id'),
-            'order' => $this->safe_string($trade, 'order_id'),
+            'id' => $this->safe_string($trade, 'id'),
+            'order' => null,
             'type' => $this->safe_string_lower($trade, 'trigger_type'),
             'side' => $tradeSide,
             'takerOrMaker' => $takerOrMaker,
-            'price' => $this->safe_number($trade, 'price'),
-            'amount' => $this->safe_number_2($trade, 'size', 'quantity'),
-            'cost' => $this->safe_number($trade, 'transaction_amount'),
+            'price' => null,
+            'amount' => null,
+            'cost' => $this->safe_string($trade, 'transaction_amount'),
             'fee' => $fee,
         ), $market);
     }

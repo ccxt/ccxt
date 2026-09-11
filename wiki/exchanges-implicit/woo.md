@@ -55,7 +55,7 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 
 📚 **Official woo API documentation:** [developer.woox.io](https://developer.woox.io/) · [docs.woox.io](https://docs.woox.io/)
 
-> 133 implicit endpoints across 2 access groups.
+> 138 implicit endpoints across 2 access groups.
 
 ## v1
 
@@ -180,12 +180,16 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v3PrivatePostAssetWalletWithdraw` | POST | `asset/wallet/withdraw` | 60 |
 | `v3PrivatePostSpotMarginLeverage` | POST | `spotMargin/leverage` | 120 |
 | `v3PrivatePostSpotMarginInterestRepay` | POST | `spotMargin/interestRepay` | 60 |
+| `v3PrivatePostFuturesDefaultMarginModeReset` | POST | `futures/defaultMarginMode/reset` | 60 |
+| `v3PrivatePostIsolatedMarginMargin` | POST | `isolatedMargin/margin` | 60 |
 | `v3PrivatePostAlgoOrder` | POST | `algo/order` | 5 |
 | `v3PrivatePostConvertRft` | POST | `convert/rft` | 60 |
 | `v3PrivatePutTradeOrder` | PUT | `trade/order` | 2 |
 | `v3PrivatePutTradeAlgoOrder` | PUT | `trade/algoOrder` | 2 |
 | `v3PrivatePutFuturesLeverage` | PUT | `futures/leverage` | 60 |
 | `v3PrivatePutFuturesPositionMode` | PUT | `futures/positionMode` | 120 |
+| `v3PrivatePutFuturesDefaultMarginMode` | PUT | `futures/defaultMarginMode` | 60 |
+| `v3PrivatePutFuturesDefaultMarginModeSymbol` | PUT | `futures/defaultMarginMode/{symbol}` | 60 |
 | `v3PrivatePutOrderOid` | PUT | `order/{oid}` | 2 |
 | `v3PrivatePutOrderClientClientOrderId` | PUT | `order/client/{client_order_id}` | 2 |
 | `v3PrivatePutAlgoOrderOid` | PUT | `algo/order/{oid}` | 2 |
@@ -199,4 +203,5 @@ Path parameters wrapped in `{}` (e.g. `{pair}`) are substituted from `params`; e
 | `v3PrivateDeleteAlgoOrdersPending` | DELETE | `algo/orders/pending` | 1 |
 | `v3PrivateDeleteAlgoOrdersPendingSymbol` | DELETE | `algo/orders/pending/{symbol}` | 1 |
 | `v3PrivateDeleteOrdersPending` | DELETE | `orders/pending` | 1 |
+| `v3PrivateDeleteAssetWalletWithdrawWithdrawId` | DELETE | `asset/wallet/withdraw/{withdrawId}` | 60 |
 

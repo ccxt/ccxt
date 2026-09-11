@@ -317,6 +317,17 @@ public class CoinbaseApi extends Exchange
     }
 
     /**
+     * Calls the v2PrivateGetSubscriptionsCoinbaseOne endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PrivateGetSubscriptionsCoinbaseOne (Object... optionalArgs)
+    {
+        return this.callAsync ("v2PrivateGetSubscriptionsCoinbaseOne", optionalArgs);
+    }
+
+    /**
      * Calls the v2PrivatePostAccounts endpoint.
      *
      * @param optionalArgs the request parameters
@@ -790,6 +801,39 @@ public class CoinbaseApi extends Exchange
     }
 
     /**
+     * Calls the v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow", optionalArgs);
+    }
+
+    /**
+     * Calls the v3PrivateGetBrokerageCfmIntradayMarginSetting endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetBrokerageCfmIntradayMarginSetting (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PrivateGetBrokerageCfmIntradayMarginSetting", optionalArgs);
+    }
+
+    /**
+     * Calls the v3PrivateGetBrokerageIntxBalancesPortfolioUuid endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivateGetBrokerageIntxBalancesPortfolioUuid (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PrivateGetBrokerageIntxBalancesPortfolioUuid", optionalArgs);
+    }
+
+    /**
      * Calls the v3PrivateGetBrokerageIntxPortfolioPortfolioUuid endpoint.
      *
      * @param optionalArgs the request parameters
@@ -966,6 +1010,17 @@ public class CoinbaseApi extends Exchange
     }
 
     /**
+     * Calls the v3PrivatePostBrokerageCfmIntradayMarginSetting endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostBrokerageCfmIntradayMarginSetting (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PrivatePostBrokerageCfmIntradayMarginSetting", optionalArgs);
+    }
+
+    /**
      * Calls the v3PrivatePostBrokerageIntxAllocate endpoint.
      *
      * @param optionalArgs the request parameters
@@ -974,6 +1029,17 @@ public class CoinbaseApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostBrokerageIntxAllocate (Object... optionalArgs)
     {
         return this.callAsync ("v3PrivatePostBrokerageIntxAllocate", optionalArgs);
+    }
+
+    /**
+     * Calls the v3PrivatePostBrokerageIntxMultiAssetCollateral endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v3PrivatePostBrokerageIntxMultiAssetCollateral (Object... optionalArgs)
+    {
+        return this.callAsync ("v3PrivatePostBrokerageIntxMultiAssetCollateral", optionalArgs);
     }
 
     /**

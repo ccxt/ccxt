@@ -878,7 +878,7 @@ func (this *GateCore) HandleOrderBook(client any, message any) {
 	var storedOrderBook any = this.SafeValue(this.Orderbooks, symbol, this.OrderBook(map[string]any{}))
 	var nonce any = this.SafeInteger(storedOrderBook, "nonce")
 	if ccxt.IsTrue(ccxt.IsEqual(nonce, nil)) {
-		var cacheLength any = 0
+		var cacheLength int = 0
 		if ccxt.IsTrue(!ccxt.IsEqual(storedOrderBook, nil)) {
 			cacheLength = ccxt.GetArrayLength(storedOrderBook.(ccxt.OrderBookInterface).GetCache())
 		}
@@ -1467,7 +1467,7 @@ func (this *GateCore) HandleOHLCV(client any, message any) {
 		var timeframeId any = this.SafeString(parts, 0)
 		var timeframe any = this.FindTimeframe(timeframeId)
 		var prefix any = ccxt.Add(timeframe, "_")
-		var marketId any = ccxt.Replace(subscription, prefix, "")
+		var marketId string = ccxt.Replace(subscription, prefix, "")
 		var symbol any = this.SafeSymbol(marketId, nil, "_", marketType)
 		var parsed any = this.ParseOHLCV(ohlcv)
 		ccxt.AddElementToObject(this.Ohlcvs, symbol, this.SafeValue(this.Ohlcvs, symbol, map[string]any{}))
@@ -2915,7 +2915,7 @@ func (this *GateCore) requestPrivateBody(ch chan any, url any, reqParams any, ch
 	var messageHash any = requestId
 	var time int64 = this.Seconds()
 	// unfortunately, PHP demands double quotes for the escaped newline symbol
-	var signatureString any = ccxt.Join([]any{event, channel, this.Json(reqParams), ccxt.ToString(time)}, "\n") // eslint-disable-line quotes
+	var signatureString string = ccxt.Join([]any{event, channel, this.Json(reqParams), ccxt.ToString(time)}, "\n") // eslint-disable-line quotes
 	var signature string = this.Hmac(this.Encode(signatureString), this.Encode(this.Secret), ccxt.Sha512, "hex")
 	var payload map[string]any = map[string]any{
 		"req_id":    requestId,

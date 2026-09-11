@@ -145,7 +145,7 @@ func (this *Okxus) EditOrders(orders []OrderRequest, options ...EditOrdersOption
 func (this *Okxus) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Okxus) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Okxus) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Okxus) FetchBalance(params ...any) (Balances, error) {
@@ -193,7 +193,7 @@ func (this *Okxus) FetchDepositAddress(code string, options ...FetchDepositAddre
 func (this *Okxus) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Okxus) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Okxus) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Okxus) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

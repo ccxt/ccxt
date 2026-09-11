@@ -85,6 +85,7 @@ class paymium extends Exchange {
                         'user/orders' => array( 'cost' => 1 ),
                         'user/orders/{uuid}' => array( 'cost' => 1 ),
                         'user/price_alerts' => array( 'cost' => 1 ),
+                        'user/withdrawals' => array( 'cost' => 1 ),
                         'merchant/get_payment/{uuid}' => array( 'cost' => 1 ),
                     ),
                     'post' => array(

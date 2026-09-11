@@ -21,10 +21,10 @@ public partial class testMainClass : BaseTest
         {
             chosenTimeframeKey = getValue(timeframeKeys, 0);
         }
-        object limit = 10;
+        int limit = 10;
         object duration = exchange.parseTimeframe(chosenTimeframeKey);
         object since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
-        object maxIdleTime = 5000;
+        int maxIdleTime = 5000;
         bool idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
@@ -33,7 +33,7 @@ public partial class testMainClass : BaseTest
             object startTime = exchange.milliseconds();
             try
             {
-                response = await exchange.watchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}}, since, limit);
+                response = detypeForComparison(await exchange.WatchOHLCVForSymbols(new List<object>() {new List<object>() {symbol, chosenTimeframeKey}}, since, limit));
                 if (isTrue(isEqual(response, null)))
                 {
                     throw new Exception ((string)add(exchange.id, " watch returned undefined response")) ;
@@ -57,7 +57,7 @@ public partial class testMainClass : BaseTest
                 assert(inOp(symbolObj, chosenTimeframeKey), add("Response.symbol should contain the timeframe key. ", assertionMessage));
                 object ohlcvs = getValue(symbolObj, chosenTimeframeKey);
                 assert(((ohlcvs is IList<object>) || (ohlcvs.GetType().IsGenericType && ohlcvs.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add("Response.symbol.timeframe should be an array. ", assertionMessage));
-                for (object i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(ohlcvs)); postFixIncrement(ref i))
                 {
                     testOHLCV(exchange, skippedProperties, method, getValue(ohlcvs, i), symbol, now);
                 }

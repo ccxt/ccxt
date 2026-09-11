@@ -629,6 +629,7 @@ func (this *KrakenfuturesCore) ParseWsPosition(position any, optionalArgs ...any
  * @param {int} [since] not used by krakenfutures watchOrders
  * @param {int} [limit] not used by krakenfutures watchOrders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.verbose] whether to subscribe to the open_orders_verbose feed
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *KrakenfuturesCore) WatchOrders(optionalArgs ...any) <-chan any {
@@ -649,11 +650,27 @@ func (this *KrakenfuturesCore) watchOrdersBody(ch chan any, optionalArgs ...any)
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes44312 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes44312)
+		retRes44412 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes44412)
 	}
-	var name string = "open_orders"
+	var verbose any = false
+	verboseparamsVariable := this.HandleOptionAndParams(params, "watchOrders", "verbose", false)
+	verbose = ccxt.GetValue(verboseparamsVariable, 0)
+	params = ccxt.GetValue(verboseparamsVariable, 1)
+	var name any = "open_orders"
 	var messageHash any = "orders"
+	if ccxt.IsTrue(verbose) {
+		name = "open_orders_verbose"
+		messageHash = "orders:verbose"
+	}
+	var feed any = this.SafeString(params, "feed")
+	if ccxt.IsTrue(!ccxt.IsEqual(feed, nil)) {
+		name = feed
+		messageHash = "orders"
+		if ccxt.IsTrue(ccxt.IsEqual(feed, "open_orders_verbose")) {
+			messageHash = "orders:verbose"
+		}
+	}
 	if ccxt.IsTrue(!ccxt.IsEqual(symbol, nil)) {
 		var market any = this.Market(symbol)
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", ccxt.GetValue(market, "symbol")))
@@ -698,8 +715,8 @@ func (this *KrakenfuturesCore) watchMyTradesBody(ch chan any, optionalArgs ...an
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes47112 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes47112)
+		retRes48612 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes48612)
 	}
 	var name string = "fills"
 	var messageHash any = "myTrades"
@@ -739,8 +756,8 @@ func (this *KrakenfuturesCore) watchBalanceBody(ch chan any, optionalArgs ...any
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes49712 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes49712)
+		retRes51212 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes51212)
 	}
 	var name string = "balances"
 	var messageHash any = name
@@ -755,9 +772,9 @@ func (this *KrakenfuturesCore) watchBalanceBody(ch chan any, optionalArgs ...any
 		messageHash = ccxt.Add(messageHash, ccxt.Add(":", account))
 	}
 
-	retRes50915 := (<-this.SubscribePrivate(name, messageHash, params))
-	ccxt.PanicOnError(retRes50915)
-	ch <- retRes50915
+	retRes52415 := (<-this.SubscribePrivate(name, messageHash, params))
+	ccxt.PanicOnError(retRes52415)
+	ch <- retRes52415
 	return nil
 }
 func (this *KrakenfuturesCore) HandleTrade(client any, message any) {
@@ -1009,7 +1026,11 @@ func (this *KrakenfuturesCore) HandleOrder(client any, message any) any {
 	var order any = this.SafeValue(message, "order")
 	if ccxt.IsTrue(!ccxt.IsEqual(order, nil)) {
 		var marketId any = this.SafeString(order, "instrument")
+		var feed any = this.SafeString(message, "feed")
 		var messageHash string = "orders"
+		if ccxt.IsTrue(ccxt.IsEqual(feed, "open_orders_verbose")) {
+			messageHash = "orders:verbose"
+		}
 		var symbol any = this.SafeSymbol(marketId)
 		var orderId any = this.SafeString(order, "order_id")
 		var previousOrders any = this.SafeValue(orders.(*ccxt.ArrayCache).Hashmap, symbol, map[string]any{})
@@ -1025,8 +1046,8 @@ func (this *KrakenfuturesCore) HandleOrder(client any, message any) any {
 			if ccxt.IsTrue(ccxt.IsEqual(ccxt.GetValue(previousOrder, "trades"), nil)) {
 				ccxt.AddElementToObject(previousOrder, "trades", []any{})
 			}
-			retRes77616 := ccxt.GetValue(previousOrder, "trades")
-			ccxt.AppendToArray(&retRes77616, trade)
+			retRes79516 := ccxt.GetValue(previousOrder, "trades")
+			ccxt.AppendToArray(&retRes79516, trade)
 			ccxt.AddElementToObject(previousOrder, "lastTradeTimestamp", ccxt.GetValue(trade, "timestamp"))
 			var totalCost any = "0"
 			var totalAmount any = "0"
@@ -1076,6 +1097,11 @@ func (this *KrakenfuturesCore) HandleOrder(client any, message any) any {
 			if ccxt.IsTrue(ccxt.IsEqual(reason, "full_fill")) {
 				status = "closed"
 			}
+			var feed any = this.SafeString(message, "feed")
+			var messageHash string = "orders"
+			if ccxt.IsTrue(ccxt.IsEqual(feed, "open_orders_verbose")) {
+				messageHash = "orders:verbose"
+			}
 			// get order without symbol
 			for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(orders)); i++ {
 				var currentOrder any = ccxt.GetValue(orders, i)
@@ -1087,8 +1113,8 @@ func (this *KrakenfuturesCore) HandleOrder(client any, message any) any {
 						"status": status,
 						"info":   info,
 					}))
-					client.(ccxt.ClientInterface).Resolve(orders, "orders")
-					client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add("orders:", ccxt.GetValue(currentOrder, "symbol")))
+					client.(ccxt.ClientInterface).Resolve(orders, messageHash)
+					client.(ccxt.ClientInterface).Resolve(orders, ccxt.Add(ccxt.Add(messageHash, ":"), ccxt.GetValue(currentOrder, "symbol")))
 					break
 				}
 			}
@@ -1147,6 +1173,11 @@ func (this *KrakenfuturesCore) HandleOrderSnapshot(client any, message any) {
 	var orders any = this.SafeValue(message, "orders", []any{})
 	var limit any = this.SafeInteger(this.Options, "ordersLimit")
 	this.Orders = ccxt.NewArrayCacheBySymbolById(limit)
+	var feed any = this.SafeString(message, "feed")
+	var messageHash string = "orders"
+	if ccxt.IsTrue(ccxt.IsEqual(feed, "open_orders_verbose_snapshot")) {
+		messageHash = "orders:verbose"
+	}
 	var symbols map[string]any = map[string]any{}
 	var cachedOrders any = this.Orders
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(orders)); i++ {
@@ -1160,12 +1191,12 @@ func (this *KrakenfuturesCore) HandleOrderSnapshot(client any, message any) {
 	}
 	var length int = ccxt.GetArrayLength(this.Orders)
 	if ccxt.IsTrue(ccxt.IsGreaterThan(length, 0)) {
-		client.(ccxt.ClientInterface).Resolve(this.Orders, "orders")
+		client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
 		var keys []string = ccxt.ObjectKeys(symbols)
 		for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(keys)); i++ {
 			var symbol any = ccxt.GetValue(keys, i)
-			var messageHash any = ccxt.Add("orders:", symbol)
-			client.(ccxt.ClientInterface).Resolve(this.Orders, messageHash)
+			var symbolMessageHash any = ccxt.Add(ccxt.Add(messageHash, ":"), symbol)
+			client.(ccxt.ClientInterface).Resolve(this.Orders, symbolMessageHash)
 		}
 	}
 }
@@ -1837,8 +1868,8 @@ func (this *KrakenfuturesCore) watchMultiHelperBody(ch chan any, unifiedName any
 	_ = params
 	if ccxt.IsTrue(ccxt.IsEqual(this.Markets, nil)) {
 
-		retRes157812 := (<-this.LoadMarkets())
-		ccxt.PanicOnError(retRes157812)
+		retRes160712 := (<-this.LoadMarkets())
+		ccxt.PanicOnError(retRes160712)
 	}
 	var url any = ccxt.GetValue(ccxt.GetValue(this.Urls, "api"), "ws")
 	// symbols are required
@@ -1863,9 +1894,9 @@ func (this *KrakenfuturesCore) watchMultiHelperBody(ch chan any, unifiedName any
 		}
 	}
 
-	retRes160215 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
-	ccxt.PanicOnError(retRes160215)
-	ch <- retRes160215
+	retRes163115 := (<-this.WatchMultiple(url, messageHashes, this.Extend(request, params), messageHashes, subscriptionArgs))
+	ccxt.PanicOnError(retRes163115)
+	ch <- retRes163115
 	return nil
 }
 func (this *KrakenfuturesCore) SubscriptionExistsForHash(url any, hash any) any {
@@ -1988,7 +2019,7 @@ func (this *KrakenfuturesCore) HandleAuthenticate(client any, message any) any {
 	if ccxt.IsTrue(!ccxt.IsEqual(event, "error")) {
 		var challenge any = this.SafeValue(message, "message")
 		var hashedChallenge any = this.Hash(this.Encode(challenge), ccxt.Sha256, "binary")
-		var base64Secret any = this.Base64ToBinary(this.Secret)
+		var base64Secret []byte = this.Base64ToBinary(this.Secret)
 		var signature string = this.Hmac(hashedChallenge, base64Secret, ccxt.Sha512, "base64")
 		ccxt.AddElementToObject(this.Options, "challenge", challenge)
 		ccxt.AddElementToObject(this.Options, "signedChallenge", signature)

@@ -119,9 +119,9 @@ func (this *BackpackCore) watchPrivateBody(ch chan any, topics any, messageHashe
 	var method any = ccxt.Ternary(ccxt.IsTrue(unwatch), "UNSUBSCRIBE", "SUBSCRIBE")
 	var recvWindow any = this.SafeString2(this.Options, "recvWindow", "X-Window", "5000")
 	var payload any = ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add(ccxt.Add("instruction=", instruction), "&"), "timestamp="), ts), "&window="), recvWindow)
-	var secretBytes any = this.Base64ToBinary(this.Secret)
+	var secretBytes []byte = this.Base64ToBinary(this.Secret)
 	var seed any = this.ArraySlice(secretBytes, 0, 32)
-	var signature any = ccxt.Eddsa(this.Encode(payload), seed, ccxt.Ed25519)
+	var signature string = ccxt.Eddsa(this.Encode(payload), seed, ccxt.Ed25519)
 	var request map[string]any = map[string]any{
 		"method":    method,
 		"params":    topics,
@@ -144,15 +144,15 @@ func (this *BackpackCore) HandleUnsubscriptions(url any, messageHashes any, mess
 	this.WatchMultiple(url, messageHashes, message, messageHashes)
 	for i := 0; ccxt.IsLessThan(i, ccxt.GetArrayLength(messageHashes)); i++ {
 		var messageHash any = ccxt.GetValue(messageHashes, i)
-		var subMessageHash any = ccxt.Replace(messageHash, "unsubscribe:", "")
+		var subMessageHash string = ccxt.Replace(messageHash, "unsubscribe:", "")
 		this.CleanUnsubscription(ccxt.AsClient(client), subMessageHash, messageHash)
 		if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(messageHash, "ticker"), 0)) {
-			var symbol any = ccxt.Replace(messageHash, "unsubscribe:ticker:", "")
+			var symbol string = ccxt.Replace(messageHash, "unsubscribe:ticker:", "")
 			if ccxt.IsTrue(ccxt.InOp(this.Tickers, symbol)) {
 				ccxt.Remove(this.Tickers, symbol)
 			}
 		} else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(messageHash, "bidask"), 0)) {
-			var symbol any = ccxt.Replace(messageHash, "unsubscribe:bidask:", "")
+			var symbol string = ccxt.Replace(messageHash, "unsubscribe:bidask:", "")
 			if ccxt.IsTrue(ccxt.InOp(this.Bidsasks, symbol)) {
 				ccxt.Remove(this.Bidsasks, symbol)
 			}
@@ -166,12 +166,12 @@ func (this *BackpackCore) HandleUnsubscriptions(url any, messageHashes any, mess
 				}
 			}
 		} else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(messageHash, "orderbook"), 0)) {
-			var symbol any = ccxt.Replace(messageHash, "unsubscribe:orderbook:", "")
+			var symbol string = ccxt.Replace(messageHash, "unsubscribe:orderbook:", "")
 			if ccxt.IsTrue(ccxt.InOp(this.Orderbooks, symbol)) {
 				ccxt.Remove(this.Orderbooks, symbol)
 			}
 		} else if ccxt.IsTrue(ccxt.IsGreaterThanOrEqual(ccxt.GetIndexOf(messageHash, "trades"), 0)) {
-			var symbol any = ccxt.Replace(messageHash, "unsubscribe:trades:", "")
+			var symbol string = ccxt.Replace(messageHash, "unsubscribe:trades:", "")
 			if ccxt.IsTrue(ccxt.InOp(this.Trades, symbol)) {
 				ccxt.Remove(this.Trades, symbol)
 			}
@@ -186,7 +186,7 @@ func (this *BackpackCore) HandleUnsubscriptions(url any, messageHashes any, mess
 					}
 				}
 			} else {
-				var symbol any = ccxt.Replace(messageHash, "unsubscribe:orders:", "")
+				var symbol string = ccxt.Replace(messageHash, "unsubscribe:orders:", "")
 				var cache any = this.Orders
 				if ccxt.IsTrue(ccxt.IsTrue((!ccxt.IsEqual(cache, nil))) && ccxt.IsTrue((ccxt.InOp(cache, symbol)))) {
 					ccxt.Remove(cache, symbol)
@@ -201,7 +201,7 @@ func (this *BackpackCore) HandleUnsubscriptions(url any, messageHashes any, mess
 					ccxt.Remove(this.Positions, symbol)
 				}
 			} else {
-				var symbol any = ccxt.Replace(messageHash, "unsubscribe:positions:", "")
+				var symbol string = ccxt.Replace(messageHash, "unsubscribe:positions:", "")
 				if ccxt.IsTrue(ccxt.InOp(this.Positions, symbol)) {
 					ccxt.Remove(this.Positions, symbol)
 				}

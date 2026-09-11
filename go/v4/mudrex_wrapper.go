@@ -565,13 +565,14 @@ func (this *Mudrex) FetchPositionsHistory(options ...FetchPositionsHistoryOption
 /**
  * @method
  * @name mudrex#fetchMyTrades
- * @description fetch all trades made by the user
- * @see https://docs.trade.mudrex.com/docs
- * @param {string} [symbol] unified market symbol
- * @param {int} [since] the earliest time in ms to fetch trades for
- * @param {int} [limit] the maximum number of trade structures to retrieve
+ * @description fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
+ * @see https://docs.trade.mudrex.com/docs/fees
+ * @param {string} [symbol] unified market symbol, applied client-side because the endpoint has no symbol filter
+ * @param {int} [since] the earliest time in ms to fetch trades for, applied client-side
+ * @param {int} [limit] the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached
  * @param {object} [params] extra parameters specific to the exchange API endpoint
- * @param {string} [params.trade_currency] the settlement currency to filter trades by
+ * @param {string} [params.trade_currency] the settlement currency to filter trades by, 'USDT' (default) or 'INR'
+ * @param {int} [params.paginationCalls] the maximum number of pages to request (default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
  * @returns {Trade[]} a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
  */
 func (this *Mudrex) FetchMyTrades(options ...FetchMyTradesOptions) ([]Trade, error) {
@@ -734,7 +735,7 @@ func (this *Mudrex) EditOrders(orders []OrderRequest, options ...EditOrdersOptio
 func (this *Mudrex) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Mudrex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Mudrex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Mudrex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -776,7 +777,7 @@ func (this *Mudrex) FetchDepositAddress(code string, options ...FetchDepositAddr
 func (this *Mudrex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Mudrex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Mudrex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Mudrex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

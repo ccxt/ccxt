@@ -26,6 +26,9 @@ const languagePaths = {
     'csharp':     { src: './examples/cs/examples', dir: 'cs',   fence: 'csharp', ext: '.cs',   link: 'examples/cs' },
     'go':         { src: './examples/go',          dir: 'go',   fence: 'go',     ext: '.go',   link: 'examples/go' },
     'java':       { src: './java/examples',        dir: 'java', fence: 'java',   ext: '.java', recurse: true, link: 'examples/java' },
+    // Rust examples are cargo bins under examples/rust/src (the crate root holds
+    // Cargo.toml/Cargo.lock, which `ext` filters out).
+    'rust':       { src: './examples/rust/src',    dir: 'rust', fence: 'rust',   ext: '.rs',   link: 'examples/rust' },
 }
 
 const languages = Object.keys(languagePaths);

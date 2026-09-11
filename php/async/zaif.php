@@ -115,6 +115,9 @@ class zaif extends Exchange {
                         'last_price/{pair}' => array( 'cost' => 1 ),
                         'ticker/{pair}' => array( 'cost' => 1 ),
                         'trades/{pair}' => array( 'cost' => 1 ),
+                        'vasp_info/{vasp_master_id}' => array( 'cost' => 1 ),
+                        'country_info/{code}' => array( 'cost' => 1 ),
+                        'corp_type_id_info/{id}' => array( 'cost' => 1 ),
                     ),
                 ),
                 'private' => array(

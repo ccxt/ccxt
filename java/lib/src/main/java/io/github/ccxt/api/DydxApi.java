@@ -526,6 +526,72 @@ public class DydxApi extends Exchange
     }
 
     /**
+     * Calls the indexerGetPnl endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPnl (Object... optionalArgs)
+    {
+        return this.callAsync ("indexerGetPnl", optionalArgs);
+    }
+
+    /**
+     * Calls the indexerGetPnlParentSubaccountNumber endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetPnlParentSubaccountNumber (Object... optionalArgs)
+    {
+        return this.callAsync ("indexerGetPnlParentSubaccountNumber", optionalArgs);
+    }
+
+    /**
+     * Calls the indexerGetTradeHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTradeHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("indexerGetTradeHistory", optionalArgs);
+    }
+
+    /**
+     * Calls the indexerGetTradeHistoryParentSubaccountNumber endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerGetTradeHistoryParentSubaccountNumber (Object... optionalArgs)
+    {
+        return this.callAsync ("indexerGetTradeHistoryParentSubaccountNumber", optionalArgs);
+    }
+
+    /**
+     * Calls the indexerPostTurnkeySignin endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerPostTurnkeySignin (Object... optionalArgs)
+    {
+        return this.callAsync ("indexerPostTurnkeySignin", optionalArgs);
+    }
+
+    /**
+     * Calls the indexerPostTurnkeyUploadAddress endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  indexerPostTurnkeyUploadAddress (Object... optionalArgs)
+    {
+        return this.callAsync ("indexerPostTurnkeyUploadAddress", optionalArgs);
+    }
+
+    /**
      * Calls the nodeRpcGetAbciInfo endpoint.
      *
      * @param optionalArgs the request parameters

@@ -1012,7 +1012,7 @@ func (this *BithumbCore) authenticateBody(ch chan any, optionalArgs ...any) any 
 			"nonce":      this.Uuid(),
 			"timestamp":  this.Milliseconds(),
 		}
-		var jwtToken any = ccxt.Jwt(payload, this.Encode(this.Secret), ccxt.Sha256)
+		var jwtToken string = ccxt.Jwt(payload, this.Encode(this.Secret), ccxt.Sha256)
 		ccxt.AddElementToObject(wsOptions, "token", jwtToken)
 		ccxt.AddElementToObject(wsOptions, "options", map[string]any{
 			"headers": map[string]any{

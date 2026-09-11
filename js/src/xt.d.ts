@@ -36,7 +36,7 @@ export default class xt extends Exchange {
      */
     fetchMarkets(params?: {}): Promise<Market[]>;
     fetchSpotMarkets(params?: any): Promise<Market[]>;
-    fetchSwapAndFutureMarkets(params?: {}): Promise<List>;
+    fetchSwapAndFutureMarkets(params?: {}): Promise<Market[]>;
     parseMarkets(markets: any): List;
     parseMarket(market: Dict): Market;
     /**

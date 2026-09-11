@@ -218,6 +218,17 @@ public class MexcApi extends Exchange
     }
 
     /**
+     * Calls the spotPrivateGetApiKeyInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivateGetApiKeyInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivateGetApiKeyInfo", optionalArgs);
+    }
+
+    /**
      * Calls the spotPrivateGetOrder endpoint.
      *
      * @param optionalArgs the request parameters
@@ -875,6 +886,17 @@ public class MexcApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostStrategyGroup (Object... optionalArgs)
     {
         return this.callAsync ("spotPrivatePostStrategyGroup", optionalArgs);
+    }
+
+    /**
+     * Calls the spotPrivatePostStrategyGroupUid endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  spotPrivatePostStrategyGroupUid (Object... optionalArgs)
+    {
+        return this.callAsync ("spotPrivatePostStrategyGroupUid", optionalArgs);
     }
 
     /**

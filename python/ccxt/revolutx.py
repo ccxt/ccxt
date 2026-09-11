@@ -98,6 +98,7 @@ class revolutx(Exchange, ImplicitAPI):
                         '1.0/orders/{venue_order_id}': 1,
                         '1.0/orders/fills/{venue_order_id}': 1,
                         '1.0/trades/private/{symbol}': 1,
+                        '1.0/transactions': 1,
                     },
                     'post': {
                         '1.0/orders': 1,
@@ -740,7 +741,7 @@ class revolutx(Exchange, ImplicitAPI):
         elif since is not None:
             request['end_date'] = self.milliseconds()
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 1900)
         cursor = self.safe_string(params, 'cursor')
         if cursor is not None:
             request['cursor'] = cursor

@@ -6,7 +6,7 @@ import Exchange from './abstract/okx.js';
 import { ExchangeError, ExchangeNotAvailable, OnMaintenance, ArgumentsRequired, BadRequest, AccountSuspended, InvalidAddress, DDoSProtection, PermissionDenied, InsufficientFunds, InvalidNonce, InvalidOrder, OrderNotFound, AuthenticationError, RequestTimeout, BadSymbol, RateLimitExceeded, NetworkError, CancelPending, NotSupported, AccountNotEnabled, ContractUnavailable, ManualInteractionNeeded, OperationRejected, RestrictedLocation, NullResponse } from './base/errors.js';
 import { Precise } from './base/Precise.js';
 import { TICK_SIZE } from './base/functions/number.js';
-import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fee, FeeString, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, Bool, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, Endpoint } from './base/types.js';
+import type { TransferEntry, Int, OrderSide, OrderType, Trade, OHLCV, Order, Fee, FeeString, FundingRateHistory, OrderRequest, FundingHistory, Str, Transaction, Ticker, OrderBook, Balances, Tickers, Market, Greeks, Strings, MarketInterface, Currency, CurrencyInterface, Leverage, Num, Account, OptionChain, Option, MarginModification, TradingFeeInterface, Currencies, Conversion, CancellationRequest, Dict, NullableDict, List, Position, CrossBorrowRate, CrossBorrowRates, LeverageTier, int, LedgerEntry, FundingRate, FundingRates, DepositAddress, LongShortRatio, BorrowInterest, OpenInterests, Bool, DepositWithdrawFees, Status, PositionModeInfo, MarginLoan, Endpoint, AllGreeks, DepositAddresses } from './base/types.js';
 
 //  ---------------------------------------------------------------------------
 
@@ -201,6 +201,7 @@ export default class okx extends Exchange {
                         'market/ticker': { 'cost': 1 } as Endpoint<Dict>,
                         'market/books': { 'cost': 1 / 2 } as Endpoint<Dict>,
                         'market/books-full': { 'cost': 2 } as Endpoint<Dict>,
+                        'market/books-rpi': { 'cost': 1 / 2 } as Endpoint<Dict>,
                         'market/candles': { 'cost': 1 / 2 } as Endpoint<Dict>,
                         'market/history-candles': { 'cost': 1 } as Endpoint<Dict>,
                         'market/trades': { 'cost': 1 / 5 } as Endpoint<Dict>,
@@ -253,6 +254,8 @@ export default class okx extends Exchange {
                         'public/event-contract/markets': { 'cost': 1 } as Endpoint<Dict>,
                         'public/event-contract/series': { 'cost': 1 } as Endpoint<Dict>,
                         'public/vip-interest-rate-loan-quota': { 'cost': 10 } as Endpoint<Dict>, // not documented
+                        'public/mm-instrument-types': { 'cost': 4 } as Endpoint<Dict>,
+                        'public/delta-hedge-currencies': { 'cost': 1 } as Endpoint<Dict>,
                         // rubik
                         'rubik/stat/trading-data/support-coin': { 'cost': 4 } as Endpoint<Dict>,
                         'rubik/stat/contracts/open-interest-history': { 'cost': 2 } as Endpoint<Dict>,
@@ -463,6 +466,21 @@ export default class okx extends Exchange {
                         'finance/flexible-loan/loan-info': { 'cost': 4 } as Endpoint<Dict>,
                         'finance/flexible-loan/loan-history': { 'cost': 4 } as Endpoint<Dict>,
                         'finance/flexible-loan/interest-accrued': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/flexible-loan/emode-info': { 'cost': 4 } as Endpoint<Dict>,
+                        // okusd
+                        'finance/okusd/limits': { 'cost': 10 } as Endpoint<Dict>,
+                        'finance/okusd/account': { 'cost': 10 } as Endpoint<Dict>,
+                        'finance/okusd/subscribe/history': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/okusd/redeem/history': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/okusd/rewards/history': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/okusd/rate/history': { 'cost': 4 } as Endpoint<Dict>,
+                        // stable rewards
+                        'finance/stable-rewards/product-info': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/stable-rewards/balance': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/stable-rewards/apy-history': { 'cost': 5 / 3 } as Endpoint<Dict>,
+                        // glp
+                        'users/glp/todayperformance': { 'cost': 4 } as Endpoint<Dict>,
+                        'users/glp/historicalperformance': { 'cost': 4 } as Endpoint<Dict>,
                         // copytrading
                         'copytrading/current-subpositions': { 'cost': 1 } as Endpoint<Dict>,
                         'copytrading/subpositions-history': { 'cost': 1 } as Endpoint<Dict>,
@@ -498,6 +516,11 @@ export default class okx extends Exchange {
                         'finance/sfp/dcd/order-history': { 'cost': 2 } as Endpoint<Dict>,
                         // affiliate
                         'affiliate/invitee/detail': { 'cost': 1 } as Endpoint<Dict>,
+                        'affiliate/performance/summary': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'affiliate/invitee/list': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'affiliate/link/list': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'affiliate/co-inviter/list': { 'cost': 10 / 3 } as Endpoint<Dict>,
+                        'affiliate/sub-affiliate/list': { 'cost': 10 / 3 } as Endpoint<Dict>,
                         'users/partner/if-rebate': { 'cost': 1 } as Endpoint<Dict>, // not documented
                         'support/announcements': { 'cost': 4 } as Endpoint<Dict>,
                     },
@@ -652,6 +675,11 @@ export default class okx extends Exchange {
                         'finance/staking-defi/sol/cancel-redeem': { 'cost': 5 } as Endpoint<Dict>,
                         'finance/flexible-loan/max-loan': { 'cost': 4 } as Endpoint<Dict>,
                         'finance/flexible-loan/adjust-collateral': { 'cost': 4 } as Endpoint<Dict>,
+                        'finance/flexible-loan/borrow': { 'cost': 10 } as Endpoint<Dict>,
+                        'finance/flexible-loan/repay': { 'cost': 10 } as Endpoint<Dict>,
+                        // okusd
+                        'finance/okusd/subscribe': { 'cost': 20 } as Endpoint<Dict>,
+                        'finance/okusd/redeem': { 'cost': 20 } as Endpoint<Dict>,
                         // copytrading
                         'copytrading/algo-order': { 'cost': 1 } as Endpoint<Dict>,
                         'copytrading/close-subposition': { 'cost': 1 } as Endpoint<Dict>,
@@ -949,6 +977,7 @@ export default class okx extends Exchange {
                     '54008': InvalidOrder, // This operation is disabled by the 'mass cancel order' endpoint. Please enable it using this endpoint.
                     '54009': InvalidOrder, // The range of {param0} should be [{param1}, {param2}].
                     '54011': InvalidOrder, // 200 Pre-market trading contracts are only allowed to reduce the number of positions within 1 hour before delivery. Please modify or cancel the order.
+                    '54051': InvalidOrder, // RPI order rejected. The order value is below the minimum required
                     '54072': ExchangeError, // This contract is currently view-only and not tradable.
                     '54073': BadRequest, // Couldn’t place order, as {param0} is at risk of depegging. Switch settlement currencies and try again.
                     '54074': ExchangeError, // Your settings failed as you have positions, bot or open orders for USD contracts.
@@ -1921,7 +1950,7 @@ export default class okx extends Exchange {
         });
     }
 
-    async fetchMarketsByType (type: any, params = {}) {
+    async fetchMarketsByType (type: any, params = {}): Promise<Market[]> {
         const request: Dict = {
             'instType': this.convertToInstrumentType (type),
         };
@@ -2134,10 +2163,12 @@ export default class okx extends Exchange {
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+     * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-rpi-order-book
      * @param {string} symbol unified symbol of the market to fetch the order book for
      * @param {int} [limit] the maximum amount of order book entries to return
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+     * @param {bool} [params.rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
     override async fetchOrderBook (symbol: string, limit: Int = undefined, params = {}): Promise<OrderBook> {
@@ -2148,17 +2179,26 @@ export default class okx extends Exchange {
         const request: Dict = {
             'instId': market['id'],
         };
+        let rpi = false;
+        [ rpi, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'rpi');
         let method: Str = undefined;
         [ method, params ] = this.handleOptionAndParams (params, 'fetchOrderBook', 'method', 'publicGetMarketBooks');
         if (method === 'publicGetMarketBooksFull' && limit === undefined) {
             limit = 5000;
         }
         limit = (limit === undefined) ? 100 : limit;
+        if (rpi && (limit > 400)) {
+            // the rpi book hard-errors with 51000 "Parameter sz error." above 400,
+            // including the 5000 that publicGetMarketBooksFull defaults to
+            limit = 400;
+        }
         if (limit !== undefined) {
             request['sz'] = limit; // max 400
         }
         let response = undefined;
-        if ((method === 'publicGetMarketBooksFull') || (limit > 400)) {
+        if (rpi) {
+            response = await this.publicGetMarketBooksRpi (this.extend (request, params));
+        } else if ((method === 'publicGetMarketBooksFull') || (limit > 400)) {
             response = await this.publicGetMarketBooksFull (this.extend (request, params));
         } else {
             response = await this.publicGetMarketBooks (this.extend (request, params));
@@ -2183,6 +2223,10 @@ export default class okx extends Exchange {
         //             }
         //         ]
         //     }
+        //
+        // the rpi book has the same envelope, but each level is
+        // [ price, totalQty, nonRpiQty, count ] - totalQty already includes the
+        // rpi liquidity, so index 0 and 1 stay the price and the amount
         //
         const data = this.safeList (response, 'data', []);
         const first = this.safeDict (data, 0, {}) as Dict;
@@ -3466,7 +3510,7 @@ export default class okx extends Exchange {
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
      * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
      * @param {string} symbol unified symbol of the market to create an order in
-     * @param {string} type 'market' or 'limit'
+     * @param {string} type 'market' or 'limit', or 'rpi' for a retail price improvement maker order
      * @param {string} side 'buy' or 'sell'
      * @param {float} amount how much of currency you want to trade in units of base currency
      * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -3486,6 +3530,8 @@ export default class okx extends Exchange {
      * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
      * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
      * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
+     * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
+     * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     override async createOrder (symbol: string, type: OrderType, side: OrderSide, amount: number, price: Num = undefined, params = {}) {
@@ -3914,7 +3960,10 @@ export default class okx extends Exchange {
         //     }
         //
         const ordersData = this.safeList (response, 'data', []) as List;
-        return this.parseOrders (ordersData, market, undefined, undefined, params);
+        // the request-only keys must not be merged onto every parsed order: a clientOrderId[]
+        // request would otherwise come back as a list under the unified string field
+        const orderParams = this.omit (params, [ 'clOrdId', 'clientOrderId', 'algoId', 'stop', 'trigger', 'trailing', 'method' ]);
+        return this.parseOrders (ordersData, market, undefined, undefined, orderParams);
     }
 
     /**
@@ -4043,8 +4092,10 @@ export default class okx extends Exchange {
         const statuses: Dict = {
             'canceled': 'canceled',
             'order_failed': 'canceled',
+            'mmp_canceled': 'canceled',
             'live': 'open',
             'partially_filled': 'open',
+            'partially_effective': 'open',
             'filled': 'closed',
             'effective': 'closed',
         };
@@ -4264,6 +4315,10 @@ export default class okx extends Exchange {
         } else if (type === 'ioc') {
             timeInForce = 'IOC';
             type = 'limit';
+        } else if (type === 'rpi') {
+            // retail price improvement orders are maker-only limit orders
+            postOnly = true;
+            type = 'limit';
         }
         const marketId = this.safeString (order, 'instId');
         market = this.safeMarket (marketId, market);
@@ -4305,7 +4360,7 @@ export default class okx extends Exchange {
         const takeProfitPrice = this.safeNumber2 (order, 'tpTriggerPx', 'tpOrdPx');
         const reduceOnlyRaw = this.safeString (order, 'reduceOnly');
         let reduceOnly = false;
-        if (reduceOnly !== undefined) {
+        if (reduceOnlyRaw !== undefined) {
             reduceOnly = (reduceOnlyRaw === 'true');
         }
         return this.safeOrder ({
@@ -5452,7 +5507,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5485,7 +5540,7 @@ export default class okx extends Exchange {
         const data = this.safeList (response, 'data', []);
         const filtered = this.filterBy (data, 'selected', true);
         const parsed = this.parseDepositAddresses (filtered, [ currency['code'] ], false);
-        return this.indexBy (parsed, 'network') as DepositAddress[];
+        return this.indexBy (parsed, 'network') as DepositAddresses;
     }
 
     /**
@@ -5686,7 +5741,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchDeposit (id: string, code: Str = undefined, params = {}) {
+    async fetchDeposit (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -5790,7 +5845,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    async fetchWithdrawal (id: string, code: Str = undefined, params = {}) {
+    async fetchWithdrawal (id: string, code: Str = undefined, params = {}): Promise<Transaction> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -7462,7 +7517,7 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
      */
-    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchBorrowRateHistory (code: string, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Dict[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -8536,9 +8591,9 @@ export default class okx extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} params.uly Underlying, either uly or instFamily is required
      * @param {string} params.instFamily Instrument family, either uly or instFamily is required
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
-    override async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<Greeks[]> {
+    override async fetchAllGreeks (symbols: Strings = undefined, params = {}): Promise<AllGreeks> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

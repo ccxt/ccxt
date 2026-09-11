@@ -275,6 +275,13 @@ class bybit extends Exchange {
                         'v5/ins-loan/ensure-tokens-convert' => array( 'cost' => 5 ),
                         // earn
                         'v5/earn/product' => array( 'cost' => 5 ),
+                        // spot-x
+                        'v5/spot-x/launchpool/project/list' => array( 'cost' => 5 ),
+                        'v5/spot-x/puzzle/project/list' => array( 'cost' => 5 ),
+                        'v5/spot-x/token-splash/project/list' => array( 'cost' => 5 ),
+                        // event trading
+                        'v5/event/instruments-info' => array( 'cost' => 5 ),
+                        'v5/event/orderbook' => array( 'cost' => 5 ),
                     ),
                 ),
                 'private' => array(
@@ -424,6 +431,7 @@ class bybit extends Exchange {
                         'v5/user/submembers' => array( 'cost' => 5 ),
                         'v5/user/escrow_sub_members' => array( 'cost' => 5 ),
                         'v5/user/invitation/referrals' => array( 'cost' => 5 ),
+                        'v5/user/invitation/code' => array( 'cost' => 5 ),
                         // affilate
                         'v5/affiliate/aff-user-list' => array( 'cost' => 5 ),
                         'v5/affiliate/affiliate-sub-list' => array( 'cost' => 5 ),
@@ -431,6 +439,7 @@ class bybit extends Exchange {
                         'v5/spot-lever-token/order-record' => array( 'cost' => 1 ), // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
                         'v5/spot-margin-trade/flexible-available-inventory' => array( 'cost' => 5 ),
+                        'v5/spot-margin-trade/fixed-available-inventory' => array( 'cost' => 5 ),
                         'v5/spot-margin-trade/interest-rate-history' => array( 'cost' => 5 ),
                         'v5/spot-margin-trade/state' => array( 'cost' => 5 ),
                         'v5/spot-margin-trade/max-borrowable' => array( 'cost' => 5 ),
@@ -467,6 +476,8 @@ class bybit extends Exchange {
                         'v5/crypto-loan-fixed/renew-info' => array( 'cost' => 10 ), // 5/s => cost = 50 / 5 = 10
                         'v5/crypto-loan-fixed/supply-order-info' => array( 'cost' => 10 ), // 5/s => cost = 50 / 5 = 10
                         'v5/crypto-loan-fixed/repayment-history' => array( 'cost' => 10 ), // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/available-inventory' => array( 'cost' => 10 ), // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/available-inventory' => array( 'cost' => 10 ), // 5/s => cost = 50 / 5 = 10
                         // institutional lending
                         'v5/ins-loan/product-infos' => array( 'cost' => 5 ),
                         'v5/ins-loan/ensure-tokens' => array( 'cost' => 5 ), // deprecated
@@ -491,6 +502,21 @@ class bybit extends Exchange {
                         'v5/earn/position' => array( 'cost' => 5 ),
                         'v5/earn/yield' => array( 'cost' => 5 ),
                         'v5/earn/hourly-yield' => array( 'cost' => 5 ),
+                        // event trading
+                        'v5/event/order-realtime' => array( 'cost' => 5 ),
+                        'v5/event/order-list' => array( 'cost' => 5 ),
+                        'v5/event/positions' => array( 'cost' => 5 ),
+                        'v5/event/trades' => array( 'cost' => 5 ),
+                        'v5/event/settlements' => array( 'cost' => 5 ),
+                        // spot-x
+                        'v5/spot-x/launchpool/user/current-staking' => array( 'cost' => 5 ),
+                        'v5/spot-x/token-splash/user/activity-params' => array( 'cost' => 5 ),
+                        // rfq
+                        'v5/rfq/rfq-detail-list' => array( 'cost' => 5 ),
+                        // alpha prediction market
+                        'v5/alpha/prediction/engine-status' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/pay-token-list' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/sports/timeline-stages' => array( 'cost' => 5 ),
                     ),
                     'post' => array(
                         // spot
@@ -658,6 +684,27 @@ class bybit extends Exchange {
                         'v5/broker/award/distribution-record' => array( 'cost' => 5 ),
                         // earn
                         'v5/earn/place-order' => array( 'cost' => 5 ),
+                        // event trading
+                        'v5/event/quotes' => array( 'cost' => 5 ),
+                        'v5/event/cancel' => array( 'cost' => 5 ),
+                        // spot-x
+                        'v5/spot-x/launchpool/user/activity-log' => array( 'cost' => 5 ),
+                        'v5/spot-x/launchpool/user/history' => array( 'cost' => 5 ),
+                        // alpha prediction market
+                        'v5/alpha/prediction/event-detail' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/order-estimate' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/buy' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/sell' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/order-list' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/order-book' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/token-price' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/price-history' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/position-list' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/position-history' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/portfolio-summary' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/side-market-list' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/sports/match-list' => array( 'cost' => 5 ),
+                        'v5/alpha/prediction/sports/group-stage-detail' => array( 'cost' => 5 ),
                     ),
                 ),
             ),
@@ -753,7 +800,7 @@ class bybit extends Exchange {
                     '110045' => '\\ccxt\\InsufficientFunds', // Insufficient wallet balance
                     '110046' => '\\ccxt\\BadRequest', // Any adjustments made will trigger immediate liquidation
                     '110047' => '\\ccxt\\BadRequest', // Risk limit cannot be adjusted due to insufficient available margin
-                    '110048' => '\\ccxt\\BadRequest', // Risk limit cannot be adjusted current/expected position value held exceeds the revised risk limit
+                    '110048' => '\\ccxt\\BadRequest', // Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
                     '110049' => '\\ccxt\\BadRequest', // Tick notes can only be numbers
                     '110050' => '\\ccxt\\BadRequest', // Coin is not in the range of selected
                     '110051' => '\\ccxt\\InsufficientFunds', // The user's available balance cannot cover the lowest price of the current market
@@ -798,7 +845,7 @@ class bybit extends Exchange {
                     '131208' => '\\ccxt\\ExchangeError', // Forbid transfer
                     '131209' => '\\ccxt\\BadRequest', // Get subMember relation error
                     '131210' => '\\ccxt\\BadRequest', // Amount accuracy error
-                    '131211' => '\\ccxt\\BadRequest', // fromAccountType can't be the same
+                    '131211' => '\\ccxt\\BadRequest', // fromAccountType can't be the same as toAccountType
                     '131212' => '\\ccxt\\InsufficientFunds', // Insufficient balance
                     '131213' => '\\ccxt\\BadRequest', // TransferLTV check error
                     '131214' => '\\ccxt\\BadRequest', // TransferId exist
@@ -870,7 +917,7 @@ class bybit extends Exchange {
                     '140045' => '\\ccxt\\InsufficientFunds', // Insufficient wallet balance
                     '140046' => '\\ccxt\\BadRequest', // Any adjustments made will trigger immediate liquidation
                     '140047' => '\\ccxt\\BadRequest', // Risk limit cannot be adjusted due to insufficient available margin
-                    '140048' => '\\ccxt\\BadRequest', // Risk limit cannot be adjusted current/expected position value held exceeds the revised risk limit
+                    '140048' => '\\ccxt\\BadRequest', // Risk limit cannot be adjusted as the current/expected position value held exceeds the revised risk limit
                     '140049' => '\\ccxt\\BadRequest', // Tick notes can only be numbers
                     '140050' => '\\ccxt\\InvalidOrder', // Coin is not in the range of selected
                     '140051' => '\\ccxt\\InsufficientFunds', // The user's available balance cannot cover the lowest price of the current market
@@ -1064,8 +1111,8 @@ class bybit extends Exchange {
                     '30008' => '\\ccxt\\InvalidOrder', // invalid order_type
                     '30009' => '\\ccxt\\ExchangeError', // no position found
                     '30010' => '\\ccxt\\InsufficientFunds', // insufficient wallet balance
-                    '30011' => '\\ccxt\\PermissionDenied', // operation not allowed is undergoing liquidation
-                    '30012' => '\\ccxt\\PermissionDenied', // operation not allowed is undergoing ADL
+                    '30011' => '\\ccxt\\PermissionDenied', // operation not allowed as position is undergoing liquidation
+                    '30012' => '\\ccxt\\PermissionDenied', // operation not allowed as position is undergoing ADL
                     '30013' => '\\ccxt\\PermissionDenied', // position is in liq or adl status
                     '30014' => '\\ccxt\\InvalidOrder', // invalid closing order, qty should not greater than size
                     '30015' => '\\ccxt\\InvalidOrder', // invalid closing order, side should be opposite
@@ -1093,9 +1140,9 @@ class bybit extends Exchange {
                     '30037' => '\\ccxt\\InvalidOrder', // order already cancelled
                     '30041' => '\\ccxt\\ExchangeError', // no position found
                     '30042' => '\\ccxt\\InsufficientFunds', // insufficient wallet balance
-                    '30043' => '\\ccxt\\InvalidOrder', // operation not allowed is undergoing liquidation
-                    '30044' => '\\ccxt\\InvalidOrder', // operation not allowed is undergoing AD
-                    '30045' => '\\ccxt\\InvalidOrder', // operation not allowed is not normal status
+                    '30043' => '\\ccxt\\InvalidOrder', // operation not allowed as position is undergoing liquidation
+                    '30044' => '\\ccxt\\InvalidOrder', // operation not allowed as position is undergoing AD
+                    '30045' => '\\ccxt\\InvalidOrder', // operation not allowed as position is not normal status
                     '30049' => '\\ccxt\\InsufficientFunds', // insufficient available balance
                     '30050' => '\\ccxt\\ExchangeError', // any adjustments made will trigger immediate liquidation
                     '30051' => '\\ccxt\\ExchangeError', // due to risk limit, cannot adjust leverage
@@ -1124,7 +1171,7 @@ class bybit extends Exchange {
                     'Request timeout' => '\\ccxt\\RequestTimeout', // array("retCode":10016,"retMsg":"Request timeout, please try again later","result":array(),"retExtInfo":array(),"time":1675307914985)
                     'unknown orderInfo' => '\\ccxt\\OrderNotFound', // array("ret_code":-1,"ret_msg":"unknown orderInfo","ext_code":"","ext_info":"","result":null,"time_now":"1584030414.005545","rate_limit_status":99,"rate_limit_reset_ms":1584030414003,"rate_limit":100)
                     'invalid api_key' => '\\ccxt\\AuthenticationError', // array("ret_code":10003,"ret_msg":"invalid api_key","ext_code":"","ext_info":"","result":null,"time_now":"1599547085.415797")
-                    // the below two issues are caused => issues/9149#issuecomment-1146559498, when response is such =>  array("ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100)
+                    // the below two issues are caused as described => issues/9149#issuecomment-1146559498, when response is such =>  array("ret_code":130021,"ret_msg":"oc_diff[1707966351], new_oc[1707966351] with ob[....]+AB[....]","ext_code":"","ext_info":"","result":null,"time_now":"1658395300.872766","rate_limit_status":99,"rate_limit_reset_ms":1658395300855,"rate_limit":100)
                     'oc_diff' => '\\ccxt\\InsufficientFunds',
                     'new_oc' => '\\ccxt\\InsufficientFunds',
                     'openapi sign params error!' => '\\ccxt\\AuthenticationError', // array("retCode":10001,"retMsg":"empty value => apiTimestamparray() apiKeyarray() apiSignature[xxxxxxxxxxxxxxxxxxxxxxx] => openapi sign params error!","result":null,"retExtInfo":null,"time":1664789597123)
@@ -2821,7 +2868,7 @@ class bybit extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] the latest time in ms to fetch orders for
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' fetchOHLCV() requires a $symbol argument');
@@ -4366,7 +4413,7 @@ class bybit extends Exchange {
         if (($price === null) && ($lowerCaseType === 'limit') && !$endpointIsTradingStop) {
             throw new ArgumentsRequired($this->id . ' createOrder requires a $price argument for limit orders');
         }
-        // workaround, bcz for some langs we have to allow 0.0 (bcz of $type)
+        // workaround, bcz for some langs we have to allow 0.0 as input (bcz of $type)
         if (!Precise::string_gt($this->number_to_string($amount), '0')) {
             $amount = null;
         }
@@ -4428,7 +4475,7 @@ class bybit extends Exchange {
         } else {
             $request['side'] = $this->capitalize($side);
             $request['orderType'] = $this->capitalize($lowerCaseType);
-            $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // this is same specific param
+            $timeInForce = $this->safe_string_lower($params, 'timeInForce'); // this is same as exchange specific param
             $postOnly = null;
             list($postOnly, $params) = $this->handle_post_only($isMarket, $timeInForce === 'postonly', $params);
             if ($postOnly === true) {
@@ -7481,7 +7528,7 @@ class bybit extends Exchange {
         return $response;
     }
 
-    public function fetch_derivatives_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_derivatives_open_interest_history(string $symbol, $timeframe = '1h', ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_derivatives_open_interest_history(...))($symbol, $timeframe, $since, $limit, $params);
     }
 
@@ -7833,7 +7880,7 @@ class bybit extends Exchange {
         return $this->filter_by_currency_since_limit($interest, $code, $since, $limit);
     }
 
-    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_borrow_rate_history(string $code, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_borrow_rate_history(...))($code, $since, $limit, $params);
     }
 
@@ -8567,7 +8614,7 @@ class bybit extends Exchange {
         return $this->filter_by_symbol_since_limit($sorted, $this->safe_string($market, 'symbol'), $since, $limit);
     }
 
-    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_my_settlement_history(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_my_settlement_history(...))($symbol, $since, $limit, $params);
     }
 
@@ -8703,7 +8750,7 @@ class bybit extends Exchange {
         return $result;
     }
 
-    public function fetch_volatility_history(string $code, $params = array()) {
+    public function fetch_volatility_history(string $code, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_volatility_history(...))($code, $params);
     }
 
@@ -8853,7 +8900,7 @@ class bybit extends Exchange {
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->baseCoin] the $baseCoin of the symbol, default is BTC
-         * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=greeks-structure greeks structures~ indexed by $market symbol
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());

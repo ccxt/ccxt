@@ -32,6 +32,11 @@ func (this *BtcboxCore) PrivatePostBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostBalance", args...)
 }
 
+// PrivatePostOrderHistory returns a channel that yields a JSON array.
+func (this *BtcboxCore) PrivatePostOrderHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostOrderHistory", args...)
+}
+
 // PrivatePostTradeAdd returns a channel that yields a JSON object.
 func (this *BtcboxCore) PrivatePostTradeAdd(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTradeAdd", args...)

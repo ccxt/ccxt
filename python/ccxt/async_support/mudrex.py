@@ -118,6 +118,7 @@ class mudrex(Exchange, ImplicitAPI):
                         'futures/{asset_id}': {'cost': 1},
                         'wallet/funds': {'cost': 5},
                         'futures/funds': {'cost': 5},
+                        'futures/transactions': {'cost': 1},
                         'futures/orders': {'cost': 1},
                         'futures/orders/history': {'cost': 1},
                         'futures/orders/{order_id}': {'cost': 1},
@@ -268,7 +269,7 @@ class mudrex(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
         :param str [params.price]: "mark" to fetch mark price candles
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -334,7 +335,7 @@ class mudrex(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         return await self.fetch_ohlcv(symbol, timeframe, since, limit, self.extend(params, {'price': 'mark'}))
 
@@ -392,12 +393,11 @@ class mudrex(Exchange, ImplicitAPI):
         ms = self.safe_string(ticker, 'symbol')
         market = self.safe_market(ms, market)
         symbol = market['symbol']
-        ts = self.milliseconds()
         pct = self.safe_number(ticker, 'change_perc')
         return self.safe_ticker({
             'symbol': symbol,
-            'timestamp': ts,
-            'datetime': self.iso8601(ts),
+            'timestamp': None,
+            'datetime': None,
             'high': None,
             'low': None,
             'bid': None,
@@ -561,11 +561,8 @@ class mudrex(Exchange, ImplicitAPI):
     def parse_balance(self, response: object) -> Balances:
         data = self.safe_dict(response, 'data', {})
         currency = self.safe_string(response, 'currency', 'USDT')
-        timestamp = self.milliseconds()
         result = {
             'info': response,
-            'timestamp': timestamp,
-            'datetime': self.iso8601(timestamp),
         }
         account = self.account()
         futuresBalance = self.safe_string(data, 'balance')
@@ -708,10 +705,11 @@ class mudrex(Exchange, ImplicitAPI):
         params = self.omit(params, ['leverage', 'reduceOnly', 'takeProfit', 'stopLoss'])
         response = await self.privatePostFuturesAssetIdOrder(self.extend(request, params))
         data = self.safe_dict(response, 'data', response)
-        # the create response omits the order/trigger type, so restore them from the request
-        data['order_type'] = request['order_type']
-        data['trigger_type'] = request['trigger_type']
-        return self.parse_order(data, market)
+        # the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
+        merged = self.extend(data, {'order_type': request['order_type'], 'trigger_type': request['trigger_type']})
+        order = self.parse_order(merged, market)
+        order['info'] = data
+        return order
 
     async def edit_order(self, id: str, symbol: str, type: OrderType, side: OrderSide, amount: Num = None, price: Num = None, params={}) -> Order:
         """
@@ -770,6 +768,20 @@ class mudrex(Exchange, ImplicitAPI):
             side = 'buy'
         elif rawSide == 'SHORT':
             side = 'sell'
+        # stop-loss / take-profit rows attached to a position carry the trigger value under the "price" key
+        isRiskOrder = (rawSide == 'STOPLOSS') or (rawSide == 'TAKEPROFIT')
+        priceString = self.safe_string_2(order, 'price', 'order_price')
+        orderPrice = priceString
+        triggerPrice = None
+        stopLossPrice = None
+        takeProfitPrice = None
+        if isRiskOrder:
+            triggerPrice = priceString
+            orderPrice = None
+            if rawSide == 'STOPLOSS':
+                stopLossPrice = priceString
+            else:
+                takeProfitPrice = priceString
         trig = self.safe_string_upper(order, 'trigger_type')
         typ = None
         if trig == 'MARKET':
@@ -777,8 +789,6 @@ class mudrex(Exchange, ImplicitAPI):
         elif trig == 'LIMIT':
             typ = 'limit'
         ts = self.parse8601(self.safe_string(order, 'created_at'))
-        if ts is None:
-            ts = self.milliseconds()
         status = self.parse_order_status(self.safe_string_lower(order, 'status'))
         sym = market['symbol']
         return self.safe_order({
@@ -793,19 +803,20 @@ class mudrex(Exchange, ImplicitAPI):
             'timeInForce': None,
             'postOnly': None,
             'side': side,
-            'price': self.safe_number_2(order, 'price', 'order_price'),
-            'stopPrice': None,
-            'triggerPrice': None,
-            'amount': self.safe_number_2(order, 'quantity', 'amount'),
+            'price': orderPrice,
+            'triggerPrice': triggerPrice,
+            'stopLossPrice': stopLossPrice,
+            'takeProfitPrice': takeProfitPrice,
+            'amount': self.safe_string_2(order, 'quantity', 'amount'),
             'cost': None,
-            'average': None,
-            'filled': None,
+            'average': self.safe_string(order, 'filled_price'),
+            'filled': self.safe_string(order, 'filled_quantity'),
             'remaining': None,
             'status': status,
             'fee': None,
             'trades': [],
             'fees': [],
-            'lastUpdateTimestamp': None,
+            'lastUpdateTimestamp': self.parse8601(self.safe_string(order, 'updated_at')),
             'reduceOnly': self.safe_bool(order, 'reduce_only'),
         }, market)
 
@@ -1144,15 +1155,16 @@ class mudrex(Exchange, ImplicitAPI):
 
     async def fetch_my_trades(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Trade]:
         """
-        fetch all trades made by the user
+        fetch all trades made by the user, derived from the TRANSACTION rows of the fee history endpoint - FUNDING rows are excluded and each fill's REBATE row is netted into the trade fee
 
-        https://docs.trade.mudrex.com/docs
+        https://docs.trade.mudrex.com/docs/fees
 
-        :param str [symbol]: unified market symbol
-        :param int [since]: the earliest time in ms to fetch trades for
-        :param int [limit]: the maximum number of trade structures to retrieve
+        :param str [symbol]: unified market symbol, applied client-side because the endpoint has no symbol filter
+        :param int [since]: the earliest time in ms to fetch trades for, applied client-side
+        :param int [limit]: the maximum number of trade structures to retrieve, further pages are requested until the limit is satisfied, the history ends or the page cap is reached
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param str [params.trade_currency]: the settlement currency to filter trades by
+        :param str [params.trade_currency]: the settlement currency to filter trades by, 'USDT'(default) or 'INR'
+        :param int [params.paginationCalls]: the maximum number of pages to request(default 10) - a symbol with few or no recent fills can exhaust the cap and return fewer than limit trades
         :returns Trade[]: a list of [trade structures](https://docs.ccxt.com/#/?id=trade-structure)
         """
         if self.markets is None:
@@ -1160,38 +1172,110 @@ class mudrex(Exchange, ImplicitAPI):
         market = None
         if symbol is not None:
             market = self.market(symbol)
-        request = {}
+        maxCalls = None
+        maxCalls, params = self.handle_option_and_params(params, 'fetchMyTrades', 'paginationCalls', 10)
+        pageSize = 0
         if limit is not None:
-            request['limit'] = limit
-        response = await self.privateGetFuturesFeeHistory(self.extend(request, params))
-        data = self.safe_value(response, 'data', [])
-        rows = self.to_array(data)
+            # every fill produces a TRANSACTION row plus a REBATE row and funding rows share the page, so over-request and paginate until the unified limit is satisfied
+            pageSize = limit * 2
+        allRows = []
+        transactionsCount = 0
+        calls = 0
+        offset = 0
+        paging = True
+        while(paging is True):
+            request = {}
+            if pageSize > 0:
+                request['limit'] = pageSize
+                request['offset'] = offset
+            response = await self.privateGetFuturesFeeHistory(self.extend(request, params))
+            data = self.safe_list(response, 'data', [])
+            dataLength = len(data)
+            for i in range(0, dataLength):
+                entry = data[i]
+                allRows.append(entry)
+                if self.safe_string(entry, 'fee_type') == 'TRANSACTION':
+                    # count only rows the client-side symbol filter keeps, otherwise a symbol-filtered call under-returns
+                    if (market is None) or (self.safe_string(entry, 'symbol') == market['id']):
+                        transactionsCount = self.sum(transactionsCount, 1)
+            calls = self.sum(calls, 1)
+            paging = False
+            # the page cap bounds the walk when the requested symbol has few or no rows anywhere near the top of the history
+            if (limit is not None) and (dataLength == pageSize) and (transactionsCount < limit) and (calls < maxCalls):
+                # self.sum keeps the offset numeric across the php transpile, see https://github.com/ccxt/ccxt/pull/29684
+                offset = self.sum(offset, pageSize)
+                paging = True
+        # a REBATE row is a partial refund of one fill's TRANSACTION fee, matched by symbol, time and notional - each rebate is consumed once, so equal fills sharing a key net exactly one refund apiece
+        rebateKeys = []
+        rebateAmounts = []
+        transactions = []
+        transactionKeys = []
+        for i in range(0, len(allRows)):
+            entry = allRows[i]
+            feeType = self.safe_string(entry, 'fee_type')
+            pairKey = self.safe_string(entry, 'symbol', '') + ':' + self.safe_string(entry, 'created_at', '') + ':' + self.safe_string(entry, 'transaction_amount', '')
+            if feeType == 'TRANSACTION':
+                transactions.append(entry)
+                transactionKeys.append(pairKey)
+            elif feeType == 'REBATE':
+                rebateKeys.append(pairKey)
+                rebateAmounts.append(self.safe_string(entry, 'fee_amount', '0'))
+        rows = []
+        for i in range(0, len(transactions)):
+            rebate = None
+            for j in range(0, len(rebateKeys)):
+                if rebateKeys[j] == transactionKeys[i]:
+                    rebate = rebateAmounts[j]
+                    # blank the consumed key so the next equal fill matches the next rebate, never the same one twice
+                    rebateKeys[j] = None
+                    break
+            if rebate is None:
+                rows.append(transactions[i])
+            else:
+                rows.append(self.extend(transactions[i], {'rebate_amount': rebate}))
         return self.parse_trades(rows, market, since, limit)
 
     def parse_trade(self, trade: dict, market: Market = None) -> Trade:
+        #
+        #     {
+        #         "id": "019f21e1-9093-7333-866d-31f19c1300ed",
+        #         "symbol": "APTUSDT",
+        #         "fee_amount": "0.02468116",
+        #         "fee_perc": "0.05900003",
+        #         "fee_type": "TRANSACTION",
+        #         "created_at": "2026-07-02T08:10:58Z",
+        #         "transaction_amount": "41.83245",
+        #         "trade_currency": "USDT",
+        #         "order_type": "LONG",
+        #         "trigger_type": "MARKET",
+        #         "gst_amount": "0.00376492"
+        #     }
+        #
         ms = self.safe_string(trade, 'symbol')
         market = self.safe_market(ms, market)
         symbol = market['symbol']
         ts = self.parse8601(self.safe_string(trade, 'created_at'))
-        if ts is None:
-            ts = self.safe_integer(trade, 'time')
-        side = self.safe_string_lower_2(trade, 'side', 'order_type')
+        # exit fills carry STOPLOSS / TAKEPROFIT markers without the closing direction, so their unified direction stays None
+        side = self.safe_string_lower(trade, 'order_type')
         tradeSide = None
-        if side == 'buy' or side == 'long':
+        if side == 'long':
             tradeSide = 'buy'
-        elif side == 'sell' or side == 'short':
+        elif side == 'short':
             tradeSide = 'sell'
-        feeType = self.safe_string_upper(trade, 'fee_type')
+        trig = self.safe_string_upper(trade, 'trigger_type')
         takerOrMaker = None
-        if feeType == 'TRANSACTION':
+        if trig == 'MARKET':
+            # a market execution always takes liquidity, a limit execution can be either
             takerOrMaker = 'taker'
-        elif feeType == 'REBATE':
-            takerOrMaker = 'maker'
         fee = None
-        feeCost = self.safe_number(trade, 'fee_amount')
-        if feeCost is not None:
+        feeCostString = self.safe_string(trade, 'fee_amount')
+        # rebate_amount is attached by fetchMyTrades from the fill's REBATE row - the reported fee is the net charge
+        rebateString = self.safe_string(trade, 'rebate_amount')
+        if (feeCostString is not None) and (rebateString is not None):
+            feeCostString = Precise.string_sub(feeCostString, rebateString)
+        if feeCostString is not None:
             fee = {
-                'cost': feeCost,
+                'cost': feeCostString,
                 'currency': self.safe_string(trade, 'trade_currency'),
             }
         return self.safe_trade({
@@ -1199,14 +1283,14 @@ class mudrex(Exchange, ImplicitAPI):
             'timestamp': ts,
             'datetime': self.iso8601(ts),
             'symbol': symbol,
-            'id': self.safe_string_2(trade, 'execId', 'id'),
-            'order': self.safe_string(trade, 'order_id'),
+            'id': self.safe_string(trade, 'id'),
+            'order': None,
             'type': self.safe_string_lower(trade, 'trigger_type'),
             'side': tradeSide,
             'takerOrMaker': takerOrMaker,
-            'price': self.safe_number(trade, 'price'),
-            'amount': self.safe_number_2(trade, 'size', 'quantity'),
-            'cost': self.safe_number(trade, 'transaction_amount'),
+            'price': None,
+            'amount': None,
+            'cost': self.safe_string(trade, 'transaction_amount'),
             'fee': fee,
         }, market)
 

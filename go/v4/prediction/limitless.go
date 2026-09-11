@@ -1711,7 +1711,7 @@ func (this *LimitlessCore) fetchOHLCVBody(ch chan any, outcome any, optionalArgs
 	// otherwise candles come back descending and open/close are inverted within each bucket
 	// — the first point seen would be the latest, not the earliest. sortBy is stable, so equal
 	// timestamps keep their relative order consistently across languages
-	var sorted any = this.SortBy(pseudoTrades, "timestamp")
+	var sorted []any = this.SortBy(pseudoTrades, "timestamp")
 	var ms any = ccxt.Multiply(this.ParseTimeframe(timeframe), 1000)
 	var candles map[string]any = map[string]any{}
 	var bucketOrder any = []any{}
@@ -2690,12 +2690,12 @@ func (this *LimitlessCore) HashMessage(message any) any {
 	return ccxt.Add("0x", this.Hash(message, ccxt.Keccak, "hex"))
 }
 func (this *LimitlessCore) SignHash(hash any, privateKey any) any {
-	var signature any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
+	var signature map[string]any = ccxt.Ecdsa(ccxt.Slice(hash, ccxt.OpNeg(64), nil), ccxt.Slice(privateKey, ccxt.OpNeg(64), nil), ccxt.Secp256k1, nil)
 	var r any = ccxt.GetValue(signature, "r")
 	var s any = ccxt.GetValue(signature, "s")
-	var v any = this.IntToBase16(this.Sum(27, ccxt.GetValue(signature, "v")))
-	var rPadded any = ccxt.PadStart(r, 64, "0")
-	var sPadded any = ccxt.PadStart(s, 64, "0")
+	var v string = this.IntToBase16(this.Sum(27, ccxt.GetValue(signature, "v")))
+	var rPadded string = ccxt.PadStart(r, 64, "0")
+	var sPadded string = ccxt.PadStart(s, 64, "0")
 	var result any = ccxt.Add(ccxt.Add(ccxt.Add("0x", rPadded), sPadded), v)
 	return ccxt.ToLower(result)
 }
@@ -2708,7 +2708,7 @@ func (this *LimitlessCore) SignEvmTransaction(tx any, privateKey any) any {
 	var fields []any = []any{this.RlpEncodeBytes(this.IntToRlpHex(this.SafeInteger(tx, "chainId"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "nonce"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxPriorityFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "maxFeePerGas"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "gasLimit"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "to"))), this.RlpEncodeBytes(this.HexToRlpBytes(this.SafeString(tx, "value", "0x0"))), this.RlpEncodeBytes(this.Remove0xPrefix(this.SafeString(tx, "data", "0x"))), accessList}
 	var payload any = ccxt.Add("02", this.RlpEncodeList(fields))
 	var hashHex any = this.Hash(this.Base16ToBinary(payload), ccxt.Keccak, "hex")
-	var signature any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
+	var signature map[string]any = ccxt.Ecdsa(hashHex, this.Remove0xPrefix(privateKey), ccxt.Secp256k1, nil)
 	var rHex any = this.SafeString(signature, "r")
 	var sHex any = this.SafeString(signature, "s")
 	rHex = this.PadHexToEven(rHex)
@@ -2768,7 +2768,7 @@ func (this *LimitlessCore) approveBody(ch chan any, optionalArgs ...any) any {
 		// scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
 		var scaled any = ccxt.Precise.StringDiv(amount, this.ParsePrecision(this.NumberToString(decimals)))
 		var amountInt any = this.ParseToInt(scaled)
-		var amountBase16 any = this.IntToBase16(amountInt)
+		var amountBase16 string = this.IntToBase16(amountInt)
 		amountHex = ccxt.PadStart(amountBase16, 64, "0")
 	}
 	// approve(spender, amount) -> selector 0x095ea7b3
@@ -3019,7 +3019,7 @@ func (this *LimitlessCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) a
 		outcomeSymbol = this.SafeString(outcomeObj, "outcome")
 	}
 	var paginate any = false
-	var maxLimit any = 100
+	var maxLimit int = 100
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate", paginate)
 	paginate = ccxt.GetValue(paginateparamsVariable, 0)
 	params = ccxt.GetValue(paginateparamsVariable, 1)
@@ -3288,7 +3288,7 @@ func (this *LimitlessCore) fetchPositionsBody(ch chan any, optionalArgs ...any) 
 	_ = outcomes
 	params := ccxt.GetArg(optionalArgs, 1, map[string]any{})
 	_ = params
-	var symbolsLength any = 0
+	var symbolsLength int = 0
 	if ccxt.IsTrue(!ccxt.IsEqual(outcomes, nil)) {
 		symbolsLength = ccxt.GetArrayLength(outcomes)
 	}

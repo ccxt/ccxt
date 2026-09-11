@@ -182,6 +182,7 @@ export default class bittrade extends Exchange {
                         'common/timestamp': { 'cost': 1 } as Endpoint<Dict>, // 查询系统当前时间
                         'common/exchange': { 'cost': 1 } as Endpoint<Dict>, // order limits
                         'settings/currencys': { 'cost': 1 } as Endpoint<Dict>, // ?language=en-US
+                        'retail/maintain/time': { 'cost': 1 } as Endpoint<Dict>, // 零售维护时间
                     },
                 },
                 'private': {
@@ -212,6 +213,7 @@ export default class bittrade extends Exchange {
                         'subuser/aggregate-balance': { 'cost': 10 } as Endpoint<Dict>,
                         'stable-coin/exchange_rate': { 'cost': 1 } as Endpoint<Dict>,
                         'stable-coin/quote': { 'cost': 1 } as Endpoint<Dict>,
+                        'retail/order/list': { 'cost': 1 } as Endpoint<Dict>, // 零售订单历史
                     },
                     'post': {
                         'account/transfer': { 'cost': 1 } as Endpoint<Dict>, // 资产划转(该节点为母用户和子用户进行资产划转的通用接口。)
@@ -239,6 +241,7 @@ export default class bittrade extends Exchange {
                         'cross-margin/orders/{id}/repay': { 'cost': 1 } as Endpoint<Dict>, // 归还借币
                         'stable-coin/exchange': { 'cost': 1 } as Endpoint<Dict>,
                         'subuser/transfer': { 'cost': 10 } as Endpoint<Dict>,
+                        'retail/order/place': { 'cost': 1 } as Endpoint<Dict>, // 零售下单
                     },
                 },
             },
@@ -1281,7 +1284,7 @@ export default class bittrade extends Exchange {
         return this.parseBalance (response);
     }
 
-    async fetchOrdersByStates (states: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOrdersByStates (states: any, symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -1394,7 +1397,7 @@ export default class bittrade extends Exchange {
         return await this.fetchOrdersByStates ('filled,partial-canceled,canceled', symbol, since, limit, params);
     }
 
-    async fetchOpenOrdersV2 (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}) {
+    async fetchOpenOrdersV2 (symbol: Str = undefined, since: Int = undefined, limit: Int = undefined, params = {}): Promise<Order[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }

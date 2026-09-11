@@ -270,6 +270,13 @@ class bybit extends bybit$1["default"] {
                         'v5/ins-loan/ensure-tokens-convert': { 'cost': 5 },
                         // earn
                         'v5/earn/product': { 'cost': 5 },
+                        // spot-x
+                        'v5/spot-x/launchpool/project/list': { 'cost': 5 },
+                        'v5/spot-x/puzzle/project/list': { 'cost': 5 },
+                        'v5/spot-x/token-splash/project/list': { 'cost': 5 },
+                        // event trading
+                        'v5/event/instruments-info': { 'cost': 5 },
+                        'v5/event/orderbook': { 'cost': 5 },
                     },
                 },
                 'private': {
@@ -419,6 +426,7 @@ class bybit extends bybit$1["default"] {
                         'v5/user/submembers': { 'cost': 5 },
                         'v5/user/escrow_sub_members': { 'cost': 5 },
                         'v5/user/invitation/referrals': { 'cost': 5 },
+                        'v5/user/invitation/code': { 'cost': 5 },
                         // affilate
                         'v5/affiliate/aff-user-list': { 'cost': 5 },
                         'v5/affiliate/affiliate-sub-list': { 'cost': 5 },
@@ -426,6 +434,7 @@ class bybit extends bybit$1["default"] {
                         'v5/spot-lever-token/order-record': { 'cost': 1 }, // 50/s => cost = 50 / 50 = 1
                         // spot margin trade
                         'v5/spot-margin-trade/flexible-available-inventory': { 'cost': 5 },
+                        'v5/spot-margin-trade/fixed-available-inventory': { 'cost': 5 },
                         'v5/spot-margin-trade/interest-rate-history': { 'cost': 5 },
                         'v5/spot-margin-trade/state': { 'cost': 5 },
                         'v5/spot-margin-trade/max-borrowable': { 'cost': 5 },
@@ -462,6 +471,8 @@ class bybit extends bybit$1["default"] {
                         'v5/crypto-loan-fixed/renew-info': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
                         'v5/crypto-loan-fixed/supply-order-info': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
                         'v5/crypto-loan-fixed/repayment-history': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-fixed/available-inventory': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
+                        'v5/crypto-loan-flexible/available-inventory': { 'cost': 10 }, // 5/s => cost = 50 / 5 = 10
                         // institutional lending
                         'v5/ins-loan/product-infos': { 'cost': 5 },
                         'v5/ins-loan/ensure-tokens': { 'cost': 5 }, // deprecated
@@ -486,6 +497,21 @@ class bybit extends bybit$1["default"] {
                         'v5/earn/position': { 'cost': 5 },
                         'v5/earn/yield': { 'cost': 5 },
                         'v5/earn/hourly-yield': { 'cost': 5 },
+                        // event trading
+                        'v5/event/order-realtime': { 'cost': 5 },
+                        'v5/event/order-list': { 'cost': 5 },
+                        'v5/event/positions': { 'cost': 5 },
+                        'v5/event/trades': { 'cost': 5 },
+                        'v5/event/settlements': { 'cost': 5 },
+                        // spot-x
+                        'v5/spot-x/launchpool/user/current-staking': { 'cost': 5 },
+                        'v5/spot-x/token-splash/user/activity-params': { 'cost': 5 },
+                        // rfq
+                        'v5/rfq/rfq-detail-list': { 'cost': 5 },
+                        // alpha prediction market
+                        'v5/alpha/prediction/engine-status': { 'cost': 5 },
+                        'v5/alpha/prediction/pay-token-list': { 'cost': 5 },
+                        'v5/alpha/prediction/sports/timeline-stages': { 'cost': 5 },
                     },
                     'post': {
                         // spot
@@ -653,6 +679,27 @@ class bybit extends bybit$1["default"] {
                         'v5/broker/award/distribution-record': { 'cost': 5 },
                         // earn
                         'v5/earn/place-order': { 'cost': 5 },
+                        // event trading
+                        'v5/event/quotes': { 'cost': 5 },
+                        'v5/event/cancel': { 'cost': 5 },
+                        // spot-x
+                        'v5/spot-x/launchpool/user/activity-log': { 'cost': 5 },
+                        'v5/spot-x/launchpool/user/history': { 'cost': 5 },
+                        // alpha prediction market
+                        'v5/alpha/prediction/event-detail': { 'cost': 5 },
+                        'v5/alpha/prediction/order-estimate': { 'cost': 5 },
+                        'v5/alpha/prediction/buy': { 'cost': 5 },
+                        'v5/alpha/prediction/sell': { 'cost': 5 },
+                        'v5/alpha/prediction/order-list': { 'cost': 5 },
+                        'v5/alpha/prediction/order-book': { 'cost': 5 },
+                        'v5/alpha/prediction/token-price': { 'cost': 5 },
+                        'v5/alpha/prediction/price-history': { 'cost': 5 },
+                        'v5/alpha/prediction/position-list': { 'cost': 5 },
+                        'v5/alpha/prediction/position-history': { 'cost': 5 },
+                        'v5/alpha/prediction/portfolio-summary': { 'cost': 5 },
+                        'v5/alpha/prediction/side-market-list': { 'cost': 5 },
+                        'v5/alpha/prediction/sports/match-list': { 'cost': 5 },
+                        'v5/alpha/prediction/sports/group-stage-detail': { 'cost': 5 },
                     },
                 },
             },
@@ -8559,7 +8606,7 @@ class bybit extends bybit$1["default"] {
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @param {string} [params.baseCoin] the baseCoin of the symbol, default is BTC
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
     async fetchAllGreeks(symbols = undefined, params = {}) {
         if (this.markets === undefined) {

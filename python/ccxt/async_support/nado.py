@@ -114,6 +114,7 @@ class nado(Exchange, ImplicitAPI):
                         },
                         'post': {
                             'query': {'cost': 1},
+                            'edge/query': {'cost': 1},
                         },
                     },
                     'private': {
@@ -142,6 +143,7 @@ class nado(Exchange, ImplicitAPI):
                             'tickers': {'cost': 1},
                             'contracts': {'cost': 1},
                             'trades': {'cost': 1},
+                            'symbols': {'cost': 1},
                         },
                     },
                 },
@@ -200,6 +202,7 @@ class nado(Exchange, ImplicitAPI):
                     '1002': RestrictedLocation,
                     '1003': RestrictedLocation,
                     '1004': OnMaintenance,
+                    '1005': BadRequest,
                     '2000': InvalidOrder,
                     '2001': InvalidOrder,
                     '2002': InvalidOrder,
@@ -323,6 +326,7 @@ class nado(Exchange, ImplicitAPI):
                     '2123': BadRequest,
                     '2124': InvalidOrder,
                     '2125': OperationRejected,
+                    '2126': OrderNotFound,
                     '3000': BadRequest,
                     '3001': BadRequest,
                     '3002': ArgumentsRequired,
@@ -363,7 +367,7 @@ class nado(Exchange, ImplicitAPI):
         :param float [params.triggerPrice]: *swap only* The price at which a trigger order is triggered at
         :param float [params.stopLossPrice]: *swap only* The price at which a stop loss order is triggered at
         :param float [params.takeProfitPrice]: *swap only* The price at which a take profit order is triggered at
-        :param str [params.triggerDirection]: trigger direction, above, below
+        :param str [params.triggerDirection]: the direction of the trigger price, 'ascending' or 'descending', also accepts the 'above'/'up' and 'below'/'down' aliases
         :param int [params.id]: client-provided request id, returned by the exchange in the response
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
@@ -448,12 +452,12 @@ class nado(Exchange, ImplicitAPI):
         isStopOrder = triggerPrice is not None
         isTriggerOrder = isStopOrder or isStopLossOrder or isTakeProfitOrder
         if isStopOrder:
-            triggerDirection = self.safe_string_lower(params, 'triggerDirection')
-            if triggerDirection is None:
-                raise ArgumentsRequired(self.id + ' createOrder() requires triggerDirection for trigger order')
+            triggerDirection = None
+            triggerDirection, params = self.handle_trigger_direction_and_params(params)
+            directionSuffix = 'above' if (triggerDirection == 'ascending') else 'below'
             triggerPriceX18 = self.convert_to_x18(triggerPrice)
             priceRequirement = {}
-            priceRequirement['oracle_price_' + triggerDirection] = triggerPriceX18
+            priceRequirement['oracle_price_' + directionSuffix] = triggerPriceX18
             trigger = {
                 'price_trigger': {
                     'price_requirement': priceRequirement,
@@ -513,6 +517,7 @@ class nado(Exchange, ImplicitAPI):
         :param boolean [params.spotLeverage]: whether leverage should be used for spot, defaults to True, exchange-specific alias params.spot_leverage
         :param boolean [params.placeRequiresUnfilled]: when True, aborts the new order if the canceled order had partial fills or the cancel failed, exchange-specific alias params.place_requires_unfilled, defaults to True
         :param int [params.id]: client-provided request id, returned by the exchange in the response
+        :param float [params.triggerPrice]: not supported, editing trigger orders throws NotSupported, the same applies to params.stopPrice, params.stopLossPrice and params.takeProfitPrice
         :returns dict: an `order structure <https://docs.ccxt.com/#/?id=order-structure>`
         """
         self.check_required_credentials()
@@ -550,6 +555,9 @@ class nado(Exchange, ImplicitAPI):
         market = self.market(symbol)
         if type != 'limit':
             raise InvalidOrder(self.id + ' editOrder() supports limit orders only')
+        triggerPrice = self.safe_string_n(params, ['triggerPrice', 'stopPrice', 'stopLossPrice', 'takeProfitPrice'])
+        if triggerPrice is not None:
+            raise NotSupported(self.id + ' editOrder() and editOrderWs() do not support trigger orders, cancel the trigger order and create a new one instead')
         if amount is None:
             raise ArgumentsRequired(self.id + ' editOrder() requires an amount argument')
         if price is None:
@@ -913,7 +921,7 @@ class nado(Exchange, ImplicitAPI):
 
         :param str symbol: unified market symbol of the market orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve, max 500
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param boolean [params.trigger]: set to True if you would like to fetch portfolio margin account trigger or conditional orders
         :returns Order[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
@@ -943,7 +951,7 @@ class nado(Exchange, ImplicitAPI):
             'product_ids': productIds,
         }
         if limit is not None:
-            request['limit'] = limit
+            request['limit'] = min(limit, 500)
         contracts = await self.query_contracts()
         chainId = self.safe_string(contracts, 'chain_id')
         endpointAddress = self.safe_string(contracts, 'endpoint_addr')
@@ -1006,7 +1014,7 @@ class nado(Exchange, ImplicitAPI):
         sender = self.create_subaccount(self.walletAddress, subaccount)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         if trigger is True:
-            return await self.fetch_orders(symbol, since, None, self.extend(params, {
+            return await self.fetch_orders(symbol, since, limit, self.extend(params, {
                 'status_types': [
                     'waiting_price', 'waiting_dependency',
                 ],
@@ -1078,7 +1086,7 @@ class nado(Exchange, ImplicitAPI):
         sender = self.create_subaccount(self.walletAddress, subaccount)
         trigger = self.safe_bool_2(params, 'stop', 'trigger')
         if trigger is True:
-            return await self.fetch_orders(symbol, since, None, self.extend(params, {
+            return await self.fetch_orders(symbol, since, limit, self.extend(params, {
                 'status_types': [
                     'triggered', 'triggering', 'twap_executing', 'twap_completed',
                 ],
@@ -1126,18 +1134,18 @@ class nado(Exchange, ImplicitAPI):
 
     async def fetch_canceled_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}):
         """
-        fetches information on multiple canceled orders made by the user
+        fetches information on multiple canceled trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
 
         https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
 
         :param str symbol: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve, max 500
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.trigger]: set to True if you would like to fetch portfolio margin account trigger or conditional orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        return await self.fetch_orders(symbol, since, None, self.extend(params, {
+        return await self.fetch_orders(symbol, since, limit, self.extend(params, {
+            'trigger': True,
             'status_types': [
                 'cancelled', 'internal_error',
             ],
@@ -1145,18 +1153,18 @@ class nado(Exchange, ImplicitAPI):
 
     async def fetch_canceled_and_closed_orders(self, symbol: Str = None, since: Int = None, limit: Int = None, params={}) -> list[Order]:
         """
-        fetches information on multiple canceled orders made by the user
+        fetches information on multiple canceled and closed trigger orders made by the user, the exchange keeps canceled-order history for trigger orders only
 
         https://docs.nado.xyz/developer-resources/api/trigger/queries/list-trigger-orders
 
         :param str symbol: unified market symbol of the market the orders were made in
         :param int [since]: the earliest time in ms to fetch orders for
-        :param int [limit]: the maximum number of order structures to retrieve
+        :param int [limit]: the maximum number of order structures to retrieve, max 500
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :param boolean [params.trigger]: set to True if you would like to fetch portfolio margin account trigger or conditional orders
         :returns dict[]: a list of `order structures <https://docs.ccxt.com/?id=order-structure>`
         """
-        return await self.fetch_orders(symbol, since, None, self.extend(params, {
+        return await self.fetch_orders(symbol, since, limit, self.extend(params, {
+            'trigger': True,
             'status_types': [
                 'cancelled', 'internal_error', 'triggered', 'triggering', 'twap_executing', 'twap_completed',
             ],
@@ -1723,11 +1731,12 @@ class nado(Exchange, ImplicitAPI):
         """
         await self.load_markets()
         market = self.market(symbol)
+        symbol = market['symbol']
         tickers = await self.fetch_tickers([symbol], params)
         ticker = self.safe_dict(tickers, symbol)
         if ticker is None:
             raise BadSymbol(self.id + ' fetchTicker() ticker not found for ' + symbol)
-        return self.safe_ticker(ticker, market)
+        return ticker
 
     async def fetch_funding_rate(self, symbol: str, params={}) -> FundingRate:
         """
@@ -2044,10 +2053,10 @@ class nado(Exchange, ImplicitAPI):
         :param str symbol: unified symbol of the market to fetch OHLCV data for
         :param str timeframe: the length of time each candle represents
         :param int [since]: timestamp in ms of the earliest candle to fetch
-        :param int [limit]: the maximum amount of candles to fetch
+        :param int [limit]: the maximum amount of candles to fetch, max 500
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest candle to fetch
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         await self.load_markets()
         market = self.market(symbol)
@@ -2060,7 +2069,7 @@ class nado(Exchange, ImplicitAPI):
             },
         }
         if limit is not None:
-            request['candlesticks']['limit'] = limit
+            request['candlesticks']['limit'] = min(limit, 500)
         if until is not None:
             request['candlesticks']['max_time'] = self.parse_to_int(until / 1000)
         response = await self.archivePost(self.deep_extend(request, params))
@@ -2748,7 +2757,12 @@ class nado(Exchange, ImplicitAPI):
 
     def create_order_nonce(self, recvWindow: object):
         expires = self.sum(self.milliseconds(), recvWindow)
-        return Precise.string_mul(self.number_to_string(expires), '1048576')
+        highBits = Precise.string_mul(self.number_to_string(expires), '1048576')
+        # the exchange defines the nonce to be the recv time moved left by 20 bits
+        # plus a random value on the low bits, otherwise two orders created
+        # during the same millisecond would collide on the same nonce and get rejected
+        entropy = self.rand_number(6)
+        return Precise.string_add(highBits, self.number_to_string(entropy))
 
     def create_order_appendix(self, isTriggerOrder: object, params={}):
         # | value   | builder | builder fee rate | reserved | trigger | reduce only | order type | isolated | version |

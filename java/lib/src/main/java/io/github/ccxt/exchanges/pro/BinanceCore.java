@@ -823,42 +823,10 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             //
-            // todo add support for <levels>-snapshots (depth)
-            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams        // <symbol>@depth<levels>@100ms or <symbol>@depth<levels> (1000ms)
-            // valid <levels> are 5, 10, or 20
-            //
-            // default 100, max 1000, valid limits 5, 10, 20, 50, 100, 500, 1000
-            //
-            // notice the differences between trading futures and spot trading
-            // the algorithms use different urls in step 1
-            // delta caching and merging also differs in steps 4, 5, 6
-            //
-            // spot/margin
-            // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly
-            //
-            // 1. Open a stream to wss://stream.binance.com:9443/ws/bnbbtc@depth.
-            // 2. Buffer the events you receive from the stream.
-            // 3. Get a depth snapshot from https://www.binance.com/api/v1/depth?symbol=BNBBTC&limit=1000 .
-            // 4. Drop any event where u is <= lastUpdateId in the snapshot.
-            // 5. The first processed event should have U <= lastUpdateId+1 AND u >= lastUpdateId+1.
-            // 6. While listening to the stream, each new event's U should be equal to the previous event's u+1.
-            // 7. The data in each event is the absolute quantity for a price level.
-            // 8. If the quantity is 0, remove the price level.
-            // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-            //
-            // futures
-            // https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
-            //
-            // 1. Open a stream to wss://fstream.binance.com/stream?streams=btcusdt@depth.
-            // 2. Buffer the events you receive from the stream. For same price, latest received update covers the previous one.
-            // 3. Get a depth snapshot from https://fapi.binance.com/fapi/v1/depth?symbol=BTCUSDT&limit=1000 .
-            // 4. Drop any event where u is < lastUpdateId in the snapshot.
-            // 5. The first processed event should have U <= lastUpdateId AND u >= lastUpdateId
-            // 6. While listening to the stream, each new event's pu should be equal to the previous event's u, otherwise initialize the process from step 3.
-            // 7. The data in each event is the absolute quantity for a price level.
-            // 8. If the quantity is 0, remove the price level.
-            // 9. Receiving an event that removes a price level that is not in your local order book can happen and is normal.
-            //
+            // todo add support for <levels>-snapshots (depth): <symbol>@depth<levels>[@100ms], levels 5/10/20
+            // https://github.com/binance-exchange/binance-official-api-docs/blob/master/web-socket-streams.md#partial-book-depth-streams
+            // sync recipe differs between spot and futures (stream/snapshot urls, delta caching/merging, U/u/pu continuity check):
+            // https://binance-docs.github.io/apidocs/spot/en/#how-to-manage-a-local-order-book-correctly and https://binance-docs.github.io/apidocs/futures/en/#how-to-manage-a-local-order-book-correctly
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             return (this.watchOrderBookForSymbols(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), limit, parameters)).join();
@@ -1535,8 +1503,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     Object symbol = Helpers.GetValue(symbols, i);
                     Object market = this.market(symbol);
                     ((java.util.List<Object>)messageHashes).add(Helpers.add("trade::", symbol));
-                    Object baseIdLower = this.safeStringLower(market, "baseId", "");
-                    Object quoteIdLower = this.safeStringLower(market, "quoteId", "");
+                    String baseIdLower = (String)this.safeStringLower(market, "baseId", "");
+                    String quoteIdLower = (String)this.safeStringLower(market, "quoteId", "");
                     Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
                     if (!Helpers.isTrue((Helpers.inOp(seenUnderlyings, underlying))))
                     {
@@ -1642,8 +1610,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     Object market = this.market(symbol);
                     ((java.util.List<Object>)subMessageHashes).add(Helpers.add("trade::", symbol));
                     ((java.util.List<Object>)messageHashes).add(Helpers.add("unsubscribe:trade:", symbol));
-                    Object baseIdLower = this.safeStringLower(market, "baseId", "");
-                    Object quoteIdLower = this.safeStringLower(market, "quoteId", "");
+                    String baseIdLower = (String)this.safeStringLower(market, "baseId", "");
+                    String quoteIdLower = (String)this.safeStringLower(market, "quoteId", "");
                     Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
                     if (!Helpers.isTrue((Helpers.inOp(seenUnderlyings, underlying))))
                     {
@@ -1872,7 +1840,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object fallbackType = ((Helpers.isTrue((Helpers.inOp(trade, "ps"))))) ? "contract" : "spot";
         Object marketType = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "type") : fallbackType;
         Object symbol = this.safeSymbol(marketId, market, null, marketType);
-        Object side = this.safeStringLower(trade, "S");
+        String side = (String)this.safeStringLower(trade, "S");
         Object takerOrMaker = null;
         Object orderId = this.safeString(trade, "i");
         if (Helpers.isTrue(Helpers.inOp(trade, "m")))
@@ -1895,7 +1863,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 put( "currency", feeCurrencyCode );
             }};
         }
-        Object type = this.safeStringLower(trade, "o");
+        String type = (String)this.safeStringLower(trade, "o");
         final Object finalTakerOrMaker = takerOrMaker;
         final Object finalSide = side;
         final Object finalPrice = price;
@@ -2946,8 +2914,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     if (Helpers.isTrue(isOptionMarkPrice))
                     {
                         // subscribe per underlying, not per contract
-                        Object baseIdLower = this.safeStringLower(market, "baseId", "");
-                        Object quoteIdLower = this.safeStringLower(market, "quoteId", "");
+                        String baseIdLower = (String)this.safeStringLower(market, "baseId", "");
+                        String quoteIdLower = (String)this.safeStringLower(market, "quoteId", "");
                         Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
                         if (!Helpers.isTrue((Helpers.inOp(seenUnderlyings, underlying))))
                         {
@@ -2961,8 +2929,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         Object marketId = this.safeString(market, "id", "");
                         Object parts = Helpers.split(marketId, "-");
                         Object expiryDate = this.safeString(parts, 1);
-                        Object baseIdLower = this.safeStringLower(market, "baseId", "");
-                        Object quoteIdLower = this.safeStringLower(market, "quoteId", "");
+                        String baseIdLower = (String)this.safeStringLower(market, "baseId", "");
+                        String quoteIdLower = (String)this.safeStringLower(market, "quoteId", "");
                         Object underlying = Helpers.add(Helpers.add(baseIdLower, ""), quoteIdLower);
                         Object subscriptionArg = Helpers.add(Helpers.add(underlying, "@optionTicker@"), expiryDate);
                         if (!Helpers.isTrue((Helpers.inOp(seenUnderlyings, subscriptionArg))))
@@ -2980,7 +2948,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 if (Helpers.isTrue(Helpers.isEqual(marketType, "option")))
                 {
-                    Object underlying = this.safeStringLower(parameters, "underlying");
+                    String underlying = (String)this.safeStringLower(parameters, "underlying");
                     if (Helpers.isTrue(Helpers.isEqual(underlying, null)))
                     {
                         throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires either symbols or params[\"underlying\"] for eOptions")) ;
@@ -3181,7 +3149,28 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         }
         Object market = this.safeMarket(marketId, null, null, marketType);
         Object last = this.safeString2(message, "c", "price");
+        // A coin-margined stream counts `v` in contracts and puts the
+        // base asset in `q`, one field over from a linear stream, and
+        // `parseTicker` reads the same pair. Only the full ticker
+        // carries `w`, so a miniTicker uses the contract size.
+        Object baseVolume = this.safeString(message, "v");
+        Object quoteVolume = this.safeString(message, "q");
+        if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
+        {
+            Object contracts = baseVolume;
+            baseVolume = quoteVolume;
+            Object weightedAverage = this.safeString(message, "w");
+            if (Helpers.isTrue(Helpers.isEqual(weightedAverage, null)))
+            {
+                quoteVolume = Precise.stringMul(contracts, this.safeString(market, "contractSize"));
+            } else
+            {
+                quoteVolume = Precise.stringMul(baseVolume, weightedAverage);
+            }
+        }
         final Object finalTimestamp = timestamp;
+        final Object finalBaseVolume = baseVolume;
+        final Object finalQuoteVolume = quoteVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", finalTimestamp );
@@ -3200,8 +3189,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             put( "change", BinanceCore.this.safeString(message, "p") );
             put( "percentage", BinanceCore.this.safeString(message, "P") );
             put( "average", null );
-            put( "baseVolume", BinanceCore.this.safeString(message, "v") );
-            put( "quoteVolume", BinanceCore.this.safeString(message, "q") );
+            put( "baseVolume", finalBaseVolume );
+            put( "quoteVolume", finalQuoteVolume );
             put( "info", message );
         }}, market);
     }
@@ -5581,7 +5570,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object stockQuote = this.safeString(order, "q", "USDC");
             Object stockSymbol = this.getStockUnifiedSymbol(stockBaseSymbol, stockQuote);
-            Object stockRawStatus = this.safeStringLower(order, "s");
+            String stockRawStatus = (String)this.safeStringLower(order, "s");
             Object statuses = new java.util.HashMap<String, Object>() {{
                 put( "accepted", "open" );
                 put( "new", "open" );
@@ -6274,7 +6263,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object marketId = this.safeString(position, "s");
         Object contracts = this.safeString(position, "pa");
         Object contractsAbs = Precise.stringAbs(this.safeString(position, "pa"));
-        Object positionSide = this.safeStringLower(position, "ps");
+        String positionSide = (String)this.safeStringLower(position, "ps");
         Object hedged = true;
         if (Helpers.isTrue(Helpers.isEqual(positionSide, "both")))
         {

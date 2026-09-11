@@ -1068,8 +1068,8 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         Object timestamp = this.safeInteger(order, "O");
         Object marketId = this.safeString(order, "s");
         Object symbol = this.safeSymbol(marketId, market);
-        Object priceType = this.safeStringLower(order, "pt");
-        Object rawOrderType = this.safeStringLower(order, "o");
+        String priceType = (String)this.safeStringLower(order, "pt");
+        String rawOrderType = (String)this.safeStringLower(order, "o");
         Object orderType = null;
         if (Helpers.isTrue(Helpers.isEqual(priceType, "market")))
         {
@@ -1450,17 +1450,10 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             {
                 this.checkRequiredCredentials();
                 // single-flight leader election on a never-dialed client, see
-                // https://github.com/ccxt/ccxt/issues/29393. the election used to
-                // run on this.client ("getUserStreamUrl" ()), but that url
-                // embeds the listenKey it is about to mint, so the client the
-                // flight registers on is not the client the next caller looks at:
-                // the cold call elected on .../ws/undefined and every later call
-                // landed on .../ws/<key> with an empty subscriptions map, found
-                // the key still fresh, skipped the fetch and hung on a future
-                // nobody resolves. client.futures is the registry: client.future ()
-                // is the atomic check-and-insert and client.resolve () /
-                // client.reject () settle and remove the entry under the same lock
-                // in every port
+                // https://github.com/ccxt/ccxt/issues/29393: the user-stream url embeds the listenKey being minted,
+                // so the flight must not live on that client or later callers would look at a different one.
+                // client.futures is the registry: client.future () is the atomic check-and-insert and
+                // client.resolve () / client.reject () settle and remove the entry under the same lock in every port
                 Object messageHash = "authenticate";
                 Client client = this.client("authenticationFlights");
                 if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))

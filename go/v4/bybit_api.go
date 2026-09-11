@@ -342,6 +342,31 @@ func (this *BybitCore) PublicGetV5EarnProduct(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetV5EarnProduct", args...)
 }
 
+// PublicGetV5SpotXLaunchpoolProjectList returns a channel that yields a JSON object.
+func (this *BybitCore) PublicGetV5SpotXLaunchpoolProjectList(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5SpotXLaunchpoolProjectList", args...)
+}
+
+// PublicGetV5SpotXPuzzleProjectList returns a channel that yields a JSON object.
+func (this *BybitCore) PublicGetV5SpotXPuzzleProjectList(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5SpotXPuzzleProjectList", args...)
+}
+
+// PublicGetV5SpotXTokenSplashProjectList returns a channel that yields a JSON object.
+func (this *BybitCore) PublicGetV5SpotXTokenSplashProjectList(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5SpotXTokenSplashProjectList", args...)
+}
+
+// PublicGetV5EventInstrumentsInfo returns a channel that yields a JSON object.
+func (this *BybitCore) PublicGetV5EventInstrumentsInfo(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5EventInstrumentsInfo", args...)
+}
+
+// PublicGetV5EventOrderbook returns a channel that yields a JSON object.
+func (this *BybitCore) PublicGetV5EventOrderbook(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetV5EventOrderbook", args...)
+}
+
 // PrivateGetV5MarketInstrumentsInfo returns a channel that yields a JSON object.
 func (this *BybitCore) PrivateGetV5MarketInstrumentsInfo(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5MarketInstrumentsInfo", args...)
@@ -1012,6 +1037,11 @@ func (this *BybitCore) PrivateGetV5UserInvitationReferrals(args ...any) <-chan a
 	return this.callEndpointAsync("privateGetV5UserInvitationReferrals", args...)
 }
 
+// PrivateGetV5UserInvitationCode returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5UserInvitationCode(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5UserInvitationCode", args...)
+}
+
 // PrivateGetV5AffiliateAffUserList returns a channel that yields a JSON object.
 func (this *BybitCore) PrivateGetV5AffiliateAffUserList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5AffiliateAffUserList", args...)
@@ -1030,6 +1060,11 @@ func (this *BybitCore) PrivateGetV5SpotLeverTokenOrderRecord(args ...any) <-chan
 // PrivateGetV5SpotMarginTradeFlexibleAvailableInventory returns a channel that yields a JSON object.
 func (this *BybitCore) PrivateGetV5SpotMarginTradeFlexibleAvailableInventory(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5SpotMarginTradeFlexibleAvailableInventory", args...)
+}
+
+// PrivateGetV5SpotMarginTradeFixedAvailableInventory returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5SpotMarginTradeFixedAvailableInventory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotMarginTradeFixedAvailableInventory", args...)
 }
 
 // PrivateGetV5SpotMarginTradeInterestRateHistory returns a channel that yields a JSON object.
@@ -1202,6 +1237,16 @@ func (this *BybitCore) PrivateGetV5CryptoLoanFixedRepaymentHistory(args ...any) 
 	return this.callEndpointAsync("privateGetV5CryptoLoanFixedRepaymentHistory", args...)
 }
 
+// PrivateGetV5CryptoLoanFixedAvailableInventory returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5CryptoLoanFixedAvailableInventory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFixedAvailableInventory", args...)
+}
+
+// PrivateGetV5CryptoLoanFlexibleAvailableInventory returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5CryptoLoanFlexibleAvailableInventory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5CryptoLoanFlexibleAvailableInventory", args...)
+}
+
 // PrivateGetV5InsLoanProductInfos returns a channel that yields a JSON object.
 func (this *BybitCore) PrivateGetV5InsLoanProductInfos(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5InsLoanProductInfos", args...)
@@ -1300,6 +1345,61 @@ func (this *BybitCore) PrivateGetV5EarnYield(args ...any) <-chan any {
 // PrivateGetV5EarnHourlyYield returns a channel that yields a JSON object.
 func (this *BybitCore) PrivateGetV5EarnHourlyYield(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV5EarnHourlyYield", args...)
+}
+
+// PrivateGetV5EventOrderRealtime returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5EventOrderRealtime(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5EventOrderRealtime", args...)
+}
+
+// PrivateGetV5EventOrderList returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5EventOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5EventOrderList", args...)
+}
+
+// PrivateGetV5EventPositions returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5EventPositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5EventPositions", args...)
+}
+
+// PrivateGetV5EventTrades returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5EventTrades(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5EventTrades", args...)
+}
+
+// PrivateGetV5EventSettlements returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5EventSettlements(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5EventSettlements", args...)
+}
+
+// PrivateGetV5SpotXLaunchpoolUserCurrentStaking returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5SpotXLaunchpoolUserCurrentStaking(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotXLaunchpoolUserCurrentStaking", args...)
+}
+
+// PrivateGetV5SpotXTokenSplashUserActivityParams returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5SpotXTokenSplashUserActivityParams(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5SpotXTokenSplashUserActivityParams", args...)
+}
+
+// PrivateGetV5RfqRfqDetailList returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5RfqRfqDetailList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5RfqRfqDetailList", args...)
+}
+
+// PrivateGetV5AlphaPredictionEngineStatus returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5AlphaPredictionEngineStatus(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AlphaPredictionEngineStatus", args...)
+}
+
+// PrivateGetV5AlphaPredictionPayTokenList returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5AlphaPredictionPayTokenList(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AlphaPredictionPayTokenList", args...)
+}
+
+// PrivateGetV5AlphaPredictionSportsTimelineStages returns a channel that yields a JSON object.
+func (this *BybitCore) PrivateGetV5AlphaPredictionSportsTimelineStages(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV5AlphaPredictionSportsTimelineStages", args...)
 }
 
 // PrivatePostSpotV3PrivateOrder returns a channel that yields a JSON object.
@@ -2025,4 +2125,94 @@ func (this *BybitCore) PrivatePostV5BrokerAwardDistributionRecord(args ...any) <
 // PrivatePostV5EarnPlaceOrder returns a channel that yields a JSON object.
 func (this *BybitCore) PrivatePostV5EarnPlaceOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV5EarnPlaceOrder", args...)
+}
+
+// PrivatePostV5EventQuotes returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5EventQuotes(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5EventQuotes", args...)
+}
+
+// PrivatePostV5EventCancel returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5EventCancel(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5EventCancel", args...)
+}
+
+// PrivatePostV5SpotXLaunchpoolUserActivityLog returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5SpotXLaunchpoolUserActivityLog(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5SpotXLaunchpoolUserActivityLog", args...)
+}
+
+// PrivatePostV5SpotXLaunchpoolUserHistory returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5SpotXLaunchpoolUserHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5SpotXLaunchpoolUserHistory", args...)
+}
+
+// PrivatePostV5AlphaPredictionEventDetail returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionEventDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionEventDetail", args...)
+}
+
+// PrivatePostV5AlphaPredictionOrderEstimate returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionOrderEstimate(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionOrderEstimate", args...)
+}
+
+// PrivatePostV5AlphaPredictionBuy returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionBuy(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionBuy", args...)
+}
+
+// PrivatePostV5AlphaPredictionSell returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionSell(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionSell", args...)
+}
+
+// PrivatePostV5AlphaPredictionOrderList returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionOrderList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionOrderList", args...)
+}
+
+// PrivatePostV5AlphaPredictionOrderBook returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionOrderBook(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionOrderBook", args...)
+}
+
+// PrivatePostV5AlphaPredictionTokenPrice returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionTokenPrice(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionTokenPrice", args...)
+}
+
+// PrivatePostV5AlphaPredictionPriceHistory returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionPriceHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionPriceHistory", args...)
+}
+
+// PrivatePostV5AlphaPredictionPositionList returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionPositionList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionPositionList", args...)
+}
+
+// PrivatePostV5AlphaPredictionPositionHistory returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionPositionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionPositionHistory", args...)
+}
+
+// PrivatePostV5AlphaPredictionPortfolioSummary returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionPortfolioSummary(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionPortfolioSummary", args...)
+}
+
+// PrivatePostV5AlphaPredictionSideMarketList returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionSideMarketList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionSideMarketList", args...)
+}
+
+// PrivatePostV5AlphaPredictionSportsMatchList returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionSportsMatchList(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionSportsMatchList", args...)
+}
+
+// PrivatePostV5AlphaPredictionSportsGroupStageDetail returns a channel that yields a JSON object.
+func (this *BybitCore) PrivatePostV5AlphaPredictionSportsGroupStageDetail(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV5AlphaPredictionSportsGroupStageDetail", args...)
 }

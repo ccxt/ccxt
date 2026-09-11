@@ -132,6 +132,7 @@ func (this *MercadoCore) Describe() any {
 				"private":     "https://www.mercadobitcoin.net/tapi",
 				"v4Public":    "https://www.mercadobitcoin.com.br/v4",
 				"v4PublicNet": "https://api.mercadobitcoin.net/api/v4",
+				"v4Private":   "https://api.mercadobitcoin.net/api/v4",
 			},
 			"www": "https://www.mercadobitcoin.com.br",
 			"doc": []any{"https://www.mercadobitcoin.com.br/api-doc", "https://www.mercadobitcoin.com.br/trade-api"},
@@ -212,6 +213,24 @@ func (this *MercadoCore) Describe() any {
 			"v4PublicNet": map[string]any{
 				"get": map[string]any{
 					"candles": map[string]any{
+						"cost": 1,
+					},
+				},
+			},
+			"v4Private": map[string]any{
+				"post": map[string]any{
+					"accounts": map[string]any{
+						"cost": 1,
+					},
+					"accounts/{accountId}/{symbol}/transfers/internal": map[string]any{
+						"cost": 1,
+					},
+					"oauth2/token": map[string]any{
+						"cost": 1,
+					},
+				},
+				"patch": map[string]any{
+					"accounts/{accountId}/wallet/{symbol}/deposits/{depositId}": map[string]any{
 						"cost": 1,
 					},
 				},
@@ -348,7 +367,7 @@ func (this *MercadoCore) fetchMarketsBody(ch chan any, optionalArgs ...any) any 
 	//
 	var result any = []any{}
 	var amountLimits any = this.SafeValue(this.Options, "limits", map[string]any{})
-	var coins any = this.ToArray(response)
+	var coins []any = this.ToArray(response)
 	for i := 0; IsLessThan(i, GetArrayLength(coins)); i++ {
 		var coin any = GetValue(coins, i)
 		var baseId any = coin
@@ -437,8 +456,8 @@ func (this *MercadoCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes37712 := (<-this.LoadMarkets())
-		PanicOnError(retRes37712)
+		retRes38812 := (<-this.LoadMarkets())
+		PanicOnError(retRes38812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -513,8 +532,8 @@ func (this *MercadoCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes43712 := (<-this.LoadMarkets())
-		PanicOnError(retRes43712)
+		retRes44812 := (<-this.LoadMarkets())
+		PanicOnError(retRes44812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -603,8 +622,8 @@ func (this *MercadoCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes50712 := (<-this.LoadMarkets())
-		PanicOnError(retRes50712)
+		retRes51812 := (<-this.LoadMarkets())
+		PanicOnError(retRes51812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -674,8 +693,8 @@ func (this *MercadoCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes55812 := (<-this.LoadMarkets())
-		PanicOnError(retRes55812)
+		retRes56912 := (<-this.LoadMarkets())
+		PanicOnError(retRes56912)
 	}
 
 	response := (<-this.PrivatePostGetAccountInfo(params))
@@ -711,8 +730,8 @@ func (this *MercadoCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes57812 := (<-this.LoadMarkets())
-		PanicOnError(retRes57812)
+		retRes58912 := (<-this.LoadMarkets())
+		PanicOnError(retRes58912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -785,8 +804,8 @@ func (this *MercadoCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes62912 := (<-this.LoadMarkets())
-		PanicOnError(retRes62912)
+		retRes64012 := (<-this.LoadMarkets())
+		PanicOnError(retRes64012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -934,8 +953,8 @@ func (this *MercadoCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes76112 := (<-this.LoadMarkets())
-		PanicOnError(retRes76112)
+		retRes77212 := (<-this.LoadMarkets())
+		PanicOnError(retRes77212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -981,8 +1000,8 @@ func (this *MercadoCore) withdrawBody(ch chan any, code any, amount any, address
 	this.CheckAddress(address)
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes78912 := (<-this.LoadMarkets())
-		PanicOnError(retRes78912)
+		retRes80012 := (<-this.LoadMarkets())
+		PanicOnError(retRes80012)
 	}
 	var currency any = this.Currency(code)
 	var request map[string]any = map[string]any{
@@ -1113,8 +1132,8 @@ func (this *MercadoCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes90512 := (<-this.LoadMarkets())
-		PanicOnError(retRes90512)
+		retRes91612 := (<-this.LoadMarkets())
+		PanicOnError(retRes91612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1172,8 +1191,8 @@ func (this *MercadoCore) fetchOrdersBody(ch chan any, optionalArgs ...any) any {
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes94312 := (<-this.LoadMarkets())
-		PanicOnError(retRes94312)
+		retRes95412 := (<-this.LoadMarkets())
+		PanicOnError(retRes95412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1220,8 +1239,8 @@ func (this *MercadoCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes97012 := (<-this.LoadMarkets())
-		PanicOnError(retRes97012)
+		retRes98112 := (<-this.LoadMarkets())
+		PanicOnError(retRes98112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1269,8 +1288,8 @@ func (this *MercadoCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes99812 := (<-this.LoadMarkets())
-		PanicOnError(retRes99812)
+		retRes100912 := (<-this.LoadMarkets())
+		PanicOnError(retRes100912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{

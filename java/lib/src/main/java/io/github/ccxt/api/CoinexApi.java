@@ -1626,6 +1626,17 @@ public class CoinexApi extends Exchange
     }
 
     /**
+     * Calls the v2PublicGetAssetsInfo endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PublicGetAssetsInfo (Object... optionalArgs)
+    {
+        return this.callAsync ("v2PublicGetAssetsInfo", optionalArgs);
+    }
+
+    /**
      * Calls the v2PrivateGetAccountSubs endpoint.
      *
      * @param optionalArgs the request parameters
@@ -2778,6 +2789,28 @@ public class CoinexApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PrivatePostFuturesSetPositionTakeProfit (Object... optionalArgs)
     {
         return this.callAsync ("v2PrivatePostFuturesSetPositionTakeProfit", optionalArgs);
+    }
+
+    /**
+     * Calls the v2PrivatePostFuturesModifyPositionStopLoss endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PrivatePostFuturesModifyPositionStopLoss (Object... optionalArgs)
+    {
+        return this.callAsync ("v2PrivatePostFuturesModifyPositionStopLoss", optionalArgs);
+    }
+
+    /**
+     * Calls the v2PrivatePostFuturesModifyPositionTakeProfit endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2PrivatePostFuturesModifyPositionTakeProfit (Object... optionalArgs)
+    {
+        return this.callAsync ("v2PrivatePostFuturesModifyPositionTakeProfit", optionalArgs);
     }
 
 }

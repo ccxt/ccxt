@@ -107,6 +107,11 @@ func (this *ApexCore) PrivateGetV3Transfer(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV3Transfer", args...)
 }
 
+// PrivateGetV3StockAccount returns a channel that yields a JSON object.
+func (this *ApexCore) PrivateGetV3StockAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV3StockAccount", args...)
+}
+
 // PrivatePostV3DeleteOpenOrders returns a channel that yields a JSON object.
 func (this *ApexCore) PrivatePostV3DeleteOpenOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV3DeleteOpenOrders", args...)
@@ -140,4 +145,24 @@ func (this *ApexCore) PrivatePostV3TransferOut(args ...any) <-chan any {
 // PrivatePostV3ContractTransferOut returns a channel that yields a JSON object.
 func (this *ApexCore) PrivatePostV3ContractTransferOut(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV3ContractTransferOut", args...)
+}
+
+// PrivatePostV3ContractTransferTo returns a channel that yields a JSON object.
+func (this *ApexCore) PrivatePostV3ContractTransferTo(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV3ContractTransferTo", args...)
+}
+
+// PrivatePostV3SubmitWithdrawClaim returns a channel that yields a JSON object.
+func (this *ApexCore) PrivatePostV3SubmitWithdrawClaim(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV3SubmitWithdrawClaim", args...)
+}
+
+// PrivatePostV3StockRegisterAccount returns a channel that yields a JSON object.
+func (this *ApexCore) PrivatePostV3StockRegisterAccount(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV3StockRegisterAccount", args...)
+}
+
+// PrivatePostV3StockGenerateApi returns a channel that yields a JSON object.
+func (this *ApexCore) PrivatePostV3StockGenerateApi(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV3StockGenerateApi", args...)
 }

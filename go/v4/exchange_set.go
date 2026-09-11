@@ -54,6 +54,19 @@ func (this *BaseExchange) GetLastResponseHeaders() map[string]any {
 	return this.Last_response_headers.(map[string]any)
 }
 
+func (this *BaseExchange) SetFetchHistoryCacheSize(size any) {
+	if size == nil {
+		return
+	}
+	if intSize, ok := size.(int); ok {
+		this.FetchHistoryCacheSize = intSize
+	} else if i64, ok := size.(int64); ok {
+		this.FetchHistoryCacheSize = int(i64)
+	} else if f, ok := size.(float64); ok {
+		this.FetchHistoryCacheSize = int(f)
+	}
+}
+
 func (this *BaseExchange) GetId() string {
 	return this.Id
 }

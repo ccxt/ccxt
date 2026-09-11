@@ -224,7 +224,7 @@ class luno extends Exchange {
             ),
             'fees' => array(
                 'trading' => array(
-                    // Luno prices by PAIR CATEGORY 30-day volume tier:
+                    // Luno prices by PAIR CATEGORY as well as by 30-day volume tier:
                     // crypto/fiat, stablecoin/fiat and crypto/crypto each have their own
                     // ladder, and the maker side is a charge in one category and a rebate
                     // in another at the same tier. A single scalar cannot represent that,
@@ -344,7 +344,7 @@ class luno extends Exchange {
                     'ErrOrderCanceled' => '\\ccxt\\InvalidOrder', // Your post-only order was cancelled before trading
                     'ErrOrderNotFound' => '\\ccxt\\OrderNotFound', // Cannot find that order
                     'ErrPostOnlyMode' => '\\ccxt\\InvalidOrder', // Market is in post-only mode
-                    'ErrPostOnlyNotAllowed' => '\\ccxt\\InvalidOrder', // IOC and FOK time-in-force types are not supported-only orders
+                    'ErrPostOnlyNotAllowed' => '\\ccxt\\InvalidOrder', // IOC and FOK time-in-force types are not supported as post-only orders
                     'ErrPriceDenominationNotAllowed' => '\\ccxt\\InvalidOrder', // Price contains too many decimal places
                     'ErrPriceTooHigh' => '\\ccxt\\InvalidOrder', // Price is above the maximum
                     'ErrPriceTooLow' => '\\ccxt\\InvalidOrder', // Price is below the minimum
@@ -900,7 +900,7 @@ class luno extends Exchange {
         return $this->parse_order($response);
     }
 
-    public function fetch_orders_by_state(?string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_orders_by_state(?string $state, ?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): PromiseInterface {
         return Async\async(self::do_fetch_orders_by_state(...))($state, $symbol, $since, $limit, $params);
     }
 
@@ -1234,7 +1234,7 @@ class luno extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} $params extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -1419,7 +1419,7 @@ class luno extends Exchange {
         }
         if ($type === 'market') {
             $request['type'] = strtoupper($side);
-            // todo add createMarketBuyOrderRequires $price logic is implemented in the other exchanges
+            // todo add createMarketBuyOrderRequires $price logic as it is implemented in the other exchanges
             if ($side === 'buy') {
                 $request['counter_volume'] = $this->amount_to_precision($market['symbol'], $amount);
             } else {

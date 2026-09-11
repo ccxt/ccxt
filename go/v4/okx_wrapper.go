@@ -127,10 +127,12 @@ func (this *Okx) FetchCurrencies(params ...any) (Currencies, error) {
  * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
  * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-order-book
  * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-full-order-book
+ * @see https://www.okx.com/docs-v5/en/#order-book-trading-market-data-get-rpi-order-book
  * @param {string} symbol unified symbol of the market to fetch the order book for
  * @param {int} [limit] the maximum amount of order book entries to return
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} [params.method] 'publicGetMarketBooksFull' or 'publicGetMarketBooks' default is 'publicGetMarketBooks'
+ * @param {bool} [params.rpi] set to true to use the RPI order book, which consolidates organic and retail-price-improvement liquidity, capped at 400 entries
  * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
  */
 func (this *Okx) FetchOrderBook(symbol string, options ...FetchOrderBookOptions) (OrderBook, error) {
@@ -471,7 +473,7 @@ func (this *Okx) CreateMarketSellOrderWithCost(symbol string, cost float64, opti
  * @see https://www.okx.com/docs-v5/en/#order-book-trading-trade-post-place-multiple-orders
  * @see https://www.okx.com/docs-v5/en/#order-book-trading-algo-trading-post-place-algo-order
  * @param {string} symbol unified symbol of the market to create an order in
- * @param {string} type 'market' or 'limit'
+ * @param {string} type 'market' or 'limit', or 'rpi' for a retail price improvement maker order
  * @param {string} side 'buy' or 'sell'
  * @param {float} amount how much of currency you want to trade in units of base currency
  * @param {float} [price] the price at which the order is to be fulfilled, in units of the quote currency, ignored in market orders
@@ -491,6 +493,8 @@ func (this *Okx) CreateMarketSellOrderWithCost(symbol string, cost float64, opti
  * @param {string} [params.tpOrdKind] 'condition' or 'limit', the default is 'condition'
  * @param {bool} [params.hedged] *swap and future only* true for hedged mode, false for one way mode
  * @param {string} [params.marginMode] 'cross' or 'isolated', the default is 'cross'
+ * @param {bool} [params.rpiTakerAccess] true to let a taker order match against retail price improvement liquidity
+ * @param {bool} [params.rpiPxRound] *rpi orders only* true to round the price outward to the nearest placeable non-crossing level
  * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Okx) CreateOrder(symbol string, typeVar string, side string, amount float64, options ...CreateOrderOptions) (Order, error) {
@@ -968,7 +972,7 @@ func (this *Okx) FetchLedger(options ...FetchLedgerOptions) ([]LedgerEntry, erro
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
  */
-func (this *Okx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Okx) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 
 	opts := FetchDepositAddressesByNetworkOptionsStruct{}
 
@@ -979,9 +983,9 @@ func (this *Okx) FetchDepositAddressesByNetwork(code string, options ...FetchDep
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchDepositAddressesByNetwork(code, params)
 	if IsError(res) {
-		return nil, CreateReturnError(res)
+		return DepositAddresses{}, CreateReturnError(res)
 	}
-	return NewDepositAddressArray(res), nil
+	return NewDepositAddresses(res), nil
 }
 
 /**
@@ -1672,7 +1676,7 @@ func (this *Okx) FetchBorrowRateHistories(options ...FetchBorrowRateHistoriesOpt
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @returns {object[]} an array of [borrow rate structures]{@link https://docs.ccxt.com/?id=borrow-rate-structure}
  */
-func (this *Okx) FetchBorrowRateHistory(code string, options ...FetchBorrowRateHistoryOptions) (map[string]any, error) {
+func (this *Okx) FetchBorrowRateHistory(code string, options ...FetchBorrowRateHistoryOptions) ([]map[string]any, error) {
 
 	opts := FetchBorrowRateHistoryOptionsStruct{}
 
@@ -1687,9 +1691,9 @@ func (this *Okx) FetchBorrowRateHistory(code string, options ...FetchBorrowRateH
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchBorrowRateHistory(code, since, limit, params)
 	if IsError(res) {
-		return map[string]any{}, CreateReturnError(res)
+		return nil, CreateReturnError(res)
 	}
-	return res.(map[string]any), nil
+	return NewMapArray(res), nil
 }
 
 /**
@@ -1958,9 +1962,9 @@ func (this *Okx) FetchGreeks(symbol string, options ...FetchGreeksOptions) (Gree
  * @param {object} [params] extra parameters specific to the exchange API endpoint
  * @param {string} params.uly Underlying, either uly or instFamily is required
  * @param {string} params.instFamily Instrument family, either uly or instFamily is required
- * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+ * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
  */
-func (this *Okx) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Okx) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 
 	opts := FetchAllGreeksOptionsStruct{}
 
@@ -1973,9 +1977,9 @@ func (this *Okx) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, err
 	var params *map[string]any = opts.Params
 	res := <-this.Core.FetchAllGreeks(symbols, params)
 	if IsError(res) {
-		return nil, CreateReturnError(res)
+		return AllGreeks{}, CreateReturnError(res)
 	}
-	return NewGreeksArray(res), nil
+	return NewAllGreeks(res), nil
 }
 
 /**

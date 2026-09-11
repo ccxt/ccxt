@@ -185,6 +185,7 @@ class tokocrypto extends tokocrypto$1["default"] {
                         'ticker/price': { 'cost': 1, 'noSymbol': 2 },
                         'ticker/bookTicker': { 'cost': 1, 'noSymbol': 2 },
                         'exchangeInfo': { 'cost': 10 },
+                        'executionRules': { 'cost': 2, 'noSymbol': 40 },
                     },
                     'put': {
                         'userDataStream': { 'cost': 1 },
@@ -224,6 +225,7 @@ class tokocrypto extends tokocrypto$1["default"] {
                         'open/v1/orders/oco': { 'cost': 1 },
                         'open/v1/withdraws': { 'cost': 1 },
                         'open/v1/user-data-stream': { 'cost': 1 },
+                        'open/v1/user-listen-token': { 'cost': 1 },
                     },
                 },
             },
@@ -814,7 +816,6 @@ class tokocrypto extends tokocrypto$1["default"] {
                 'margin': (marginTradingEnable === '1'),
                 'swap': false,
                 'future': false,
-                'delivery': false,
                 'option': false,
                 'active': active,
                 'contract': false,

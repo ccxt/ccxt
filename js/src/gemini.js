@@ -157,11 +157,30 @@ export default class gemini extends Exchange {
                         'v2/derivatives/candles/{symbol}/{time_frame}': { 'cost': 5 },
                         'v2/fxrate/{symbol}/{timestamp}': { 'cost': 5 },
                         'v1/riskstats/{symbol}': { 'cost': 5 },
+                        'v1/prediction-markets/events': { 'cost': 5 },
+                        'v1/prediction-markets/events/{eventTicker}': { 'cost': 5 },
+                        'v1/prediction-markets/events/{eventTicker}/strike': { 'cost': 5 },
+                        'v1/prediction-markets/events/newly-listed': { 'cost': 5 },
+                        'v1/prediction-markets/events/recently-settled': { 'cost': 5 },
+                        'v1/prediction-markets/events/upcoming': { 'cost': 5 },
+                        'v1/prediction-markets/categories': { 'cost': 5 },
+                        'v1/prediction-markets/volume/{date}': { 'cost': 5 },
+                        'v1/prediction-markets/volume/{date}/hourly': { 'cost': 5 },
+                        'v1/prediction-markets/terms': { 'cost': 5 },
+                        'v1/prediction-markets/maker-rebate/rates': { 'cost': 5 },
+                        'v1/prediction-markets/liquidity-rewards/config': { 'cost': 5 },
+                        'v1/prediction-markets/liquidity-rewards/events': { 'cost': 5 },
                     },
                 },
                 'private': {
                     'get': {
                         'v1/perpetuals/fundingpaymentreport/records.xlsx': { 'cost': 1 },
+                        'v1/prediction-markets/terms/status': { 'cost': 1 },
+                        'v1/prediction-markets/maker-rebate/summary/total': { 'cost': 1 },
+                        'v1/prediction-markets/liquidity-rewards/summary/daily': { 'cost': 1 },
+                        'v1/prediction-markets/liquidity-rewards/summary/total': { 'cost': 1 },
+                        'v2/network/{token}': { 'cost': 1 },
+                        'v2/networks/{network}/assets': { 'cost': 1 },
                     },
                     'post': {
                         'v1/staking/unstake': { 'cost': 1 },
@@ -224,6 +243,20 @@ export default class gemini extends Exchange {
                         'v1/perpetuals/fundingPayment': { 'cost': 1 },
                         'v1/perpetuals/fundingpaymentreport/records.json': { 'cost': 1 },
                         'v1/positions': { 'cost': 1 },
+                        'v1/prediction-markets/order': { 'cost': 1 },
+                        'v1/prediction-markets/order/batch': { 'cost': 1 },
+                        'v1/prediction-markets/order/cancel': { 'cost': 1 },
+                        'v1/prediction-markets/order/batch/cancel': { 'cost': 1 },
+                        'v1/prediction-markets/orders/active': { 'cost': 1 },
+                        'v1/prediction-markets/orders/history': { 'cost': 1 },
+                        'v1/prediction-markets/positions': { 'cost': 1 },
+                        'v1/prediction-markets/positions/settled': { 'cost': 1 },
+                        'v1/prediction-markets/metrics/volume': { 'cost': 1 },
+                        'v1/prediction-markets/terms/accept': { 'cost': 1 },
+                        'v1/prediction-markets/maker-rebate/payouts': { 'cost': 1 },
+                        'v2/transfers': { 'cost': 1 },
+                        'v2/withdraw/{network}/{ticker}': { 'cost': 1 },
+                        'v2/withdraw/{network}/{ticker}/feeEstimate': { 'cost': 1 },
                     },
                 },
             },
@@ -1932,11 +1965,10 @@ export default class gemini extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets();
         }
-        const groupedByNetwork = await this.fetchDepositAddressesByNetwork(code, params);
+        const indexedByNetwork = await this.fetchDepositAddressesByNetwork(code, params);
         let networkCode = undefined;
         [networkCode, params] = this.handleNetworkCodeAndParams(params);
-        const networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), 'currency');
-        return this.safeValue(networkGroup, code);
+        return this.safeValue(indexedByNetwork, networkCode);
     }
     /**
      * @method
@@ -1965,7 +1997,9 @@ export default class gemini extends Exchange {
         };
         const response = await this.privatePostV1AddressesNetwork(this.extend(request, params));
         const results = this.parseDepositAddresses(response, [code], false, { 'network': networkCode, 'currency': code });
-        return this.groupBy(results, 'network');
+        // one address structure per network, like every other venue (the endpoint is scoped to a
+        // single network, so the last address the venue lists for it wins — same as before)
+        return this.indexBy(results, 'network');
     }
     sign(path, api = 'public', method = 'GET', params = {}, headers = undefined, body = undefined) {
         let url = '/' + this.implodeParams(path, params);

@@ -6,7 +6,7 @@ import Exchange from './abstract/mexc.js';
 import { BadRequest, InvalidNonce, BadSymbol, InvalidOrder, InvalidAddress, ExchangeError, ExchangeNotAvailable, RequestTimeout, ArgumentsRequired, NotSupported, InsufficientFunds, PermissionDenied, AuthenticationError, AccountSuspended, OnMaintenance, RateLimitExceeded } from './base/errors.js';
 import { TICK_SIZE } from './base/functions/number.js';
 import { Precise } from './base/Precise.js';
-import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo, Endpoint } from './base/types.js';
+import type { Account, Balances, Bool, Currencies, Currency, CurrencyInterface, DepositAddress, Dict, NullableDict, List, Fee, FeeString, FundingHistory, FundingRate, FundingRateHistory, IndexType, int, Int, Leverage, LeverageTier, LeverageTiers, MarginModification, Market, Num, OHLCV, Order, OrderBook, OrderRequest, OrderSide, OrderType, Position, Str, Strings, Ticker, Tickers, Trade, TradingFeeInterface, Transaction, TransferEntry, DepositWithdrawFees, Status, PositionModeInfo, Endpoint, DepositAddresses } from './base/types.js';
 
 // ---------------------------------------------------------------------------
 
@@ -195,6 +195,7 @@ export default class mexc extends Exchange {
                         'get': {
                             'kyc/status': { 'cost': 1 } as Endpoint<Dict>,
                             'uid': { 'cost': 1 } as Endpoint<Dict>,
+                            'apiKeyInfo': { 'cost': 1 } as Endpoint<Dict>,
                             'order': { 'cost': 2 } as Endpoint<Dict>,
                             'openOrders': { 'cost': 3 } as Endpoint<List>,
                             'allOrders': { 'cost': 10 } as Endpoint<List>,
@@ -257,6 +258,7 @@ export default class mexc extends Exchange {
                             'sub-account/margin': { 'cost': 1 } as Endpoint<Dict>,
                             'batchOrders': { 'cost': 10 } as Endpoint<List>,
                             'strategy/group': { 'cost': 20 } as Endpoint<Dict>,
+                            'strategy/group/uid': { 'cost': 20 } as Endpoint<Dict>,
                             'capital/withdraw/apply': { 'cost': 1 } as Endpoint<Dict>,
                             'capital/withdraw': { 'cost': 1 } as Endpoint<Dict>,
                             'capital/transfer': { 'cost': 50 } as Endpoint<Dict>,
@@ -727,18 +729,8 @@ export default class mexc extends Exchange {
                     'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
                     'BNB Smart Chain(BEP20)': 'BSC',
                     'Ethereum(ERC20)': 'ERC20',
-                    // TODO: uncomment below after deciding unified name
-                    // 'PEPE COIN BSC':
-                    // 'SMART BLOCKCHAIN':
-                    // 'f(x)Core':
-                    // 'Syscoin Rollux':
-                    // 'Syscoin UTXO':
-                    // 'zkSync Era':
-                    // 'zkSync Lite':
-                    // 'Darwinia Smart Chain':
-                    // 'Arbitrum One(ARB-Bridged)':
-                    // 'Optimism(OP-Bridged)':
-                    // 'Polygon(MATIC-Bridged)':
+                    // TODO: unified names undecided for PEPE COIN BSC, SMART BLOCKCHAIN, f(x)Core, Syscoin Rollux, Syscoin UTXO,
+                    // zkSync Era, zkSync Lite, Darwinia Smart Chain, Arbitrum One(ARB-Bridged), Optimism(OP-Bridged), Polygon(MATIC-Bridged)
                 },
                 'recvWindow': 5 * 1000, // 5 sec, default
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1, // 90 days
@@ -2461,7 +2453,7 @@ export default class mexc extends Exchange {
      * @param {bool} [params.postOnly] if true, the order will only be posted if it will be a maker order
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
-    async createSpotOrder (market: any, type: OrderType, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}) {
+    async createSpotOrder (market: any, type: OrderType, side: any, amount: any, price: Num = undefined, marginMode: Str = undefined, params = {}): Promise<Order> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -2570,16 +2562,7 @@ export default class mexc extends Exchange {
             'vol': parseFloat (volString),
             // 'leverage': int, // required for isolated margin
             // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
-            //
-            // supported order types
-            //
-            //     1 limit
-            //     2 post only maker (PO)
-            //     3 transact or cancel instantly (IOC)
-            //     4 transact completely or cancel completely (FOK)
-            //     5 market orders
-            //     6 convert market price to current price
-            //
+            // order types: 1 limit, 2 post only (PO), 3 IOC, 4 FOK, 5 market, 6 convert market price to current price
             'type': type,
             'openType': openType, // 1 isolated, 2 cross
             // 'positionId': 1394650, // long, filling in this parameter when closing a position is recommended
@@ -3820,7 +3803,11 @@ export default class mexc extends Exchange {
             //         ]
             //     }
             //
-            return this.safeValue (response, 'data');
+            // wrap the swap asset list so this helper always returns an account
+            // dict with a `balances` array — fetchAccounts reads response['balances']
+            return {
+                'balances': this.safeValue (response, 'data', []),
+            };
         }
         return undefined;
     }
@@ -3969,26 +3956,22 @@ export default class mexc extends Exchange {
         } else {
             wallet = this.safeValue (response, 'balances', []);
         }
-        const result: Dict = { 'info': response };
+        let result: Dict = { 'info': response };
         if (marketType === 'margin') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
-                const marketId = this.safeString (entry, 'symbol');
-                const symbol = this.safeSymbol (marketId);
                 const base = this.safeValue (entry, 'baseAsset', {});
                 const quote = this.safeValue (entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode (this.safeString (base, 'asset'));
                 const quoteCode = this.safeCurrencyCode (this.safeString (quote, 'asset'));
-                const subResult: Dict = {};
                 if (baseCode !== undefined) {
-                    subResult[baseCode] = this.parseBalanceHelper (base);
+                    result = this.mergeBalanceAccount (result, baseCode, this.parseBalanceHelper (base));
                 }
                 if (quoteCode !== undefined) {
-                    subResult[quoteCode] = this.parseBalanceHelper (quote);
+                    result = this.mergeBalanceAccount (result, quoteCode, this.parseBalanceHelper (quote));
                 }
-                result[symbol] = this.safeBalance (subResult);
             }
-            return result as Balances;
+            return this.safeBalance (result);
         } else if (marketType === 'swap') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
@@ -4869,7 +4852,7 @@ export default class mexc extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddress[]> {
+    override async fetchDepositAddressesByNetwork (code: string, params = {}): Promise<DepositAddresses> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -4908,7 +4891,7 @@ export default class mexc extends Exchange {
         //    ]
         //
         const addressStructures = this.parseDepositAddresses (response, undefined, false);
-        return this.indexBy (addressStructures, 'network') as DepositAddress[];
+        return this.indexBy (addressStructures, 'network') as DepositAddresses;
     }
 
     /**

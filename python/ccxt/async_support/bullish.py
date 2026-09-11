@@ -175,15 +175,22 @@ class bullish(Exchange, ImplicitAPI):
                         'v1/time': {'cost': 1},
                         'v1/assets': {'cost': 1},
                         'v1/assets/{symbol}': {'cost': 1},
+                        'v1/vol-grids': {'cost': 1},
+                        'v1/assets/{symbol}/vol-grid': {'cost': 1},
                         'v1/markets': {'cost': 1},
                         'v1/markets/{symbol}': {'cost': 1},
+                        'v1/history/markets': {'cost': 1},
                         'v1/history/markets/{symbol}': {'cost': 1},
                         'v1/markets/{symbol}/orderbook/hybrid': {'cost': 1},
                         'v1/markets/{symbol}/trades': {'cost': 1},
                         'v1/markets/{symbol}/tick': {'cost': 1},
                         'v1/markets/{symbol}/candle': {'cost': 1},
+                        'v1/markets/{symbol}/auctions': {'cost': 1},
+                        'v1/markets/{symbol}/auctions/noii': {'cost': 1},
                         'v1/history/markets/{symbol}/trades': {'cost': 1},
                         'v1/history/markets/{symbol}/funding-rate': {'cost': 1},
+                        'v1/history/markets/{symbol}/auctions': {'cost': 1},
+                        'v1/history/option-trades': {'cost': 1},
                         'v1/index-prices': {'cost': 1},
                         'v1/index-prices/{assetSymbol}': {'cost': 1},
                         'v1/expiry-prices/{symbol}': {'cost': 1},
@@ -196,6 +203,7 @@ class bullish(Exchange, ImplicitAPI):
                         'v2/orders': {'cost': 1},
                         'v2/history/orders': {'cost': 1},
                         'v2/orders/{orderId}': {'cost': 1},
+                        'v2/orders/client-order-id/{clientOrderId}': {'cost': 1},
                         'v2/amm-instructions': {'cost': 1},
                         'v2/amm-instructions/{instructionId}': {'cost': 1},
                         'v1/wallets/transactions': {'cost': 1},
@@ -223,6 +231,9 @@ class bullish(Exchange, ImplicitAPI):
                         'v2/otc-trades': {'cost': 1},
                         'v2/otc-trades/{otcTradeId}': {'cost': 1},
                         'v2/otc-trades/unconfirmed-trade': {'cost': 1},
+                        'v2/otc-trades/delegated-accounts': {'cost': 1},
+                        'v2/idb/delegated-accounts': {'cost': 1},
+                        'v2/idb/otc-trades': {'cost': 1},
                     },
                     'post': {
                         'v2/orders': {'cost': 5},
@@ -231,10 +242,13 @@ class bullish(Exchange, ImplicitAPI):
                         'v1/wallets/withdrawal': {'cost': 1},
                         'v2/users/login': {'cost': 1},
                         'v1/simulate-portfolio-margin': {'cost': 1},
+                        'v1/bulk-simulate-portfolio-margin': {'cost': 1},
                         'v1/wallets/self-hosted/initiate': {'cost': 1},
                         'v2/mmp-configuration': {'cost': 1},
                         'v2/otc-trades': {'cost': 1},
                         'v2/otc-command': {'cost': 1},
+                        'v2/idb/otc-trades': {'cost': 1},
+                        'v2/idb/otc-command': {'cost': 1},
                     },
                 },
             },
@@ -1321,7 +1335,7 @@ class bullish(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms of the latest entry
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -2655,7 +2669,7 @@ class bullish(Exchange, ImplicitAPI):
         }
         return self.safe_string(statuses, status, status)
 
-    async def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}):
+    async def fetch_borrow_rate_history(self, code: str, since: Int = None, limit: Int = None, params={}) -> list[dict]:
         """
         retrieves a history of a currencies borrow interest rate at specific time slots
 

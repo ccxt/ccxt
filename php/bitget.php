@@ -308,6 +308,38 @@ class bitget extends Exchange {
                             'v3/market/position-tier' => array( 'cost' => 1 ),
                             'v3/market/oi-limit' => array( 'cost' => 2 ),
                             'v3/market/index-components' => array( 'cost' => 2 ),
+                            'v3/market/risk-reserve-all' => array( 'cost' => 6.6667 ), // 3 times/1s (IP) => 20/3 = 6.6667
+                            'v3/market/risk-reserve-hour' => array( 'cost' => 1 ),
+                            'v3/market/score-weights' => array( 'cost' => 4 ),
+                            'v3/market/fee-group' => array( 'cost' => 4 ),
+                            'v3/market/cash-dividend-records' => array( 'cost' => 2 ),
+                            'v3/market/split-records' => array( 'cost' => 4 ),
+                            'v3/market/liquidations' => array( 'cost' => 4 ),
+                            'v3/market/rpi-orderbook' => array( 'cost' => 2 ),
+                            'v3/market/rpi-symbols' => array( 'cost' => 2 ),
+                            'v3/market/spot-whale-flow' => array( 'cost' => 20 ),
+                            'v3/market/spot-fund-flow' => array( 'cost' => 20 ),
+                            'v3/market/spot-net-flow' => array( 'cost' => 20 ),
+                            'v3/market/margin-long-short' => array( 'cost' => 20 ),
+                            'v3/market/margin-loan-growth' => array( 'cost' => 20 ),
+                            'v3/market/margin-isolated-borrow' => array( 'cost' => 20 ),
+                            'v3/market/futures-active-buy-sell' => array( 'cost' => 20 ),
+                            'v3/market/futures-long-short' => array( 'cost' => 20 ),
+                            'v3/market/futures-position-long-short' => array( 'cost' => 20 ),
+                            'v3/market/futures-account-long-short' => array( 'cost' => 20 ),
+                            'v3/reality/market/stock-info' => array( 'cost' => 20 ),
+                            'v3/reality/market/states' => array( 'cost' => 20 ),
+                            'v3/reality/market/calendar' => array( 'cost' => 20 ),
+                            'v3/reality/market/company-overview' => array( 'cost' => 20 ),
+                            'v3/reality/market/valuation-indicators' => array( 'cost' => 20 ),
+                            'v3/reality/market/earnings-forecast' => array( 'cost' => 20 ),
+                            'v3/reality/market/suspension-resumption-info' => array( 'cost' => 20 ),
+                            'v3/reality/market/dividends' => array( 'cost' => 20 ),
+                            'v3/reality/market/share-capital-change' => array( 'cost' => 20 ),
+                            'v3/reality/market/inner-trades' => array( 'cost' => 20 ),
+                            'v3/reality/market/executive-shareholdings' => array( 'cost' => 20 ),
+                            'v3/reality/market/sharehold-detail' => array( 'cost' => 20 ),
+                            'v3/account/custom-collateral-coins' => array( 'cost' => 2 ),
                         ),
                     ),
                 ),
@@ -568,6 +600,7 @@ class bitget extends Exchange {
                             'v2/user/batch-create-subaccount-and-apikey' => array( 'cost' => 20 ),
                             'v2/user/create-virtual-subaccount-apikey' => array( 'cost' => 4 ),
                             'v2/user/modify-virtual-subaccount-apikey' => array( 'cost' => 4 ),
+                            'v2/user/create-agent-subaccount' => array( 'cost' => 20 ),
                         ),
                     ),
                     'p2p' => array(
@@ -599,6 +632,13 @@ class bitget extends Exchange {
                             'v2/broker/account/subaccount-spot-assets' => array( 'cost' => 2 ),
                             'v2/broker/account/subaccount-future-assets' => array( 'cost' => 2 ),
                             'v2/broker/manage/subaccount-apikey-list' => array( 'cost' => 2 ),
+                            'v2/broker/sub-customer-list' => array( 'cost' => 2 ),
+                            'v2/broker/agent-commission' => array( 'cost' => 2 ),
+                            'v2/broker/customer-commissions' => array( 'cost' => 2 ),
+                            'v2/broker/customer-kyc-result' => array( 'cost' => 2 ),
+                            'v2/broker/order-commission' => array( 'cost' => 1 ),
+                            'v2/broker/rebate-info' => array( 'cost' => 1 ),
+                            'v2/broker/total-commission' => array( 'cost' => 1 ),
                         ),
                         'post' => array(
                             'broker/v1/account/sub-create' => array( 'cost' => 20 ), // 1 times/1s (UID) => 20/1 = 20
@@ -617,6 +657,10 @@ class bitget extends Exchange {
                             'v2/broker/account/set-subaccount-autotransfer' => array( 'cost' => 2 ),
                             'v2/broker/manage/create-subaccount-apikey' => array( 'cost' => 2 ),
                             'v2/broker/manage/modify-subaccount-apikey' => array( 'cost' => 2 ),
+                            'v2/broker/customer-asset' => array( 'cost' => 2 ),
+                            'v2/broker/customer-deposit' => array( 'cost' => 2 ),
+                            'v2/broker/customer-list' => array( 'cost' => 2 ),
+                            'v2/broker/customer-trade-volume' => array( 'cost' => 2 ),
                         ),
                     ),
                     'margin' => array(
@@ -806,6 +850,12 @@ class bitget extends Exchange {
                             'v2/earn/loan/debts' => array( 'cost' => 2 ),
                             'v2/earn/loan/reduces' => array( 'cost' => 2 ),
                             'v2/earn/account/assets' => array( 'cost' => 2 ),
+                            'v2/earn/elite/product' => array( 'cost' => 4 ),
+                            'v2/earn/elite/assets' => array( 'cost' => 4 ),
+                            'v2/earn/elite/records' => array( 'cost' => 4 ),
+                            'v2/earn/elite/subscribe-info' => array( 'cost' => 4 ),
+                            'v2/earn/elite/subscribe-result' => array( 'cost' => 4 ),
+                            'v2/earn/elite/redeem-info' => array( 'cost' => 4 ),
                         ),
                         'post' => array(
                             'v2/earn/savings/subscribe' => array( 'cost' => 2 ),
@@ -814,6 +864,8 @@ class bitget extends Exchange {
                             'v2/earn/loan/borrow' => array( 'cost' => 2 ),
                             'v2/earn/loan/repay' => array( 'cost' => 2 ),
                             'v2/earn/loan/revise-pledge' => array( 'cost' => 2 ),
+                            'v2/earn/elite/subscribe' => array( 'cost' => 4 ),
+                            'v2/earn/elite/redeem' => array( 'cost' => 4 ),
                         ),
                     ),
                     'common' => array(
@@ -875,6 +927,76 @@ class bitget extends Exchange {
                             'v3/trade/fills' => array( 'cost' => 1 ),
                             'v3/user/sub-list' => array( 'cost' => 2 ),
                             'v3/user/sub-api-list' => array( 'cost' => 2 ),
+                            'v3/account/info' => array( 'cost' => 4 ),
+                            'v3/account/all-fee-rate' => array( 'cost' => 6.6667 ), // 3 times/1s (UID) => 20/3 = 6.6667
+                            'v3/account/delta-info' => array( 'cost' => 1 ),
+                            'v3/account/withdraw-address' => array( 'cost' => 20 ),
+                            'v3/account/max-withdrawal' => array( 'cost' => 2 ),
+                            'v3/account/move-position-history' => array( 'cost' => 4 ),
+                            'v3/account/collateral-type' => array( 'cost' => 2 ),
+                            'v3/account/pre-set-leverage' => array( 'cost' => 2 ),
+                            'v3/account/eligible-symbols' => array( 'cost' => 2 ),
+                            'v3/account/eligible-margin-tier' => array( 'cost' => 2 ),
+                            'v3/account/eligible-loan-info' => array( 'cost' => 2 ),
+                            'v3/account/eligible-discount-rate' => array( 'cost' => 1 ),
+                            'v3/account/funding-financial-records' => array( 'cost' => 2 ),
+                            'v3/account/reality-orderbook' => array( 'cost' => 2 ),
+                            'v3/account/reality-fills' => array( 'cost' => 2 ),
+                            'v3/copy/futures/trading-pairs' => array( 'cost' => 4 ),
+                            'v3/copy/futures/position-summary' => array( 'cost' => 4 ),
+                            'v3/copy/futures/max-transferable' => array( 'cost' => 20 ),
+                            'v3/copy/futures/transfer-record' => array( 'cost' => 20 ),
+                            'v3/copy/futures/current-follower' => array( 'cost' => 20 ),
+                            'v3/copy/futures/history-follower' => array( 'cost' => 20 ),
+                            'v3/copy/futures/profit-summary' => array( 'cost' => 20 ),
+                            'v3/copy/futures/profit-details' => array( 'cost' => 20 ),
+                            'v3/convert/small-assets' => array( 'cost' => 2 ),
+                            'v3/convert/small-assets-history' => array( 'cost' => 2 ),
+                            'v3/earn/elite-product' => array( 'cost' => 4 ),
+                            'v3/earn/elite-assets' => array( 'cost' => 4 ),
+                            'v3/earn/elite-subscribe-info' => array( 'cost' => 4 ),
+                            'v3/earn/elite-records' => array( 'cost' => 4 ),
+                            'v3/earn/elite-subscribe-result' => array( 'cost' => 4 ),
+                            'v3/earn/elite-redeem-info' => array( 'cost' => 4 ),
+                            'v3/trade/loan-data' => array( 'cost' => 2 ),
+                            'v3/trade/strategy-sub-orders' => array( 'cost' => 2 ),
+                            'v3/trade/grid/bot-detail' => array( 'cost' => 2 ),
+                            'v3/trade/grid/list-details' => array( 'cost' => 20 ),
+                            'v3/trade/grid/neutral-bot-detail' => array( 'cost' => 2 ),
+                            'v3/trade/grid/neutral-list-details' => array( 'cost' => 20 ),
+                            'v3/user/rate-limit-quota' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/option-quote' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/option-chain-info' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/option-expiry-date' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/option-volume' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/depth' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/static' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/quote' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/trade' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/intraday' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/history-candlestick' => array( 'cost' => 2 ),
+                            'v3/stockplus/market/candlestick' => array( 'cost' => 2 ),
+                            'v3/stockplus/trade/today-orders' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/history-orders' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/order-detail' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/today-executions' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/history-executions' => array( 'cost' => 20 ),
+                            'v3/stockplus/asset/account' => array( 'cost' => 2 ),
+                            'v3/stockplus/asset/cash-flow' => array( 'cost' => 2 ),
+                            'v3/stockplus/asset/stock-position' => array( 'cost' => 2 ),
+                            'v3/stockplus/asset/transfer-records' => array( 'cost' => 2 ),
+                            'v3/p2p/ad-list' => array( 'cost' => 2 ),
+                            'v3/p2p/ad-info' => array( 'cost' => 2 ),
+                            'v3/p2p/ad-limit' => array( 'cost' => 2 ),
+                            'v3/p2p/my-ads' => array( 'cost' => 2 ),
+                            'v3/p2p/pending-orders' => array( 'cost' => 2 ),
+                            'v3/p2p/all-orders' => array( 'cost' => 2 ),
+                            'v3/p2p/order-info' => array( 'cost' => 2 ),
+                            'v3/p2p/user-info' => array( 'cost' => 2 ),
+                            'v3/p2p/currencies' => array( 'cost' => 2 ),
+                            'v3/p2p/pay-method' => array( 'cost' => 2 ),
+                            'v3/p2p/balance' => array( 'cost' => 2 ),
+                            'v3/p2p/exchange-rate' => array( 'cost' => 2 ),
                         ),
                         'post' => array(
                             'v3/account/set-leverage' => array( 'cost' => 2 ),
@@ -917,6 +1039,38 @@ class bitget extends Exchange {
                             'v3/user/create-sub-api' => array( 'cost' => 2 ),
                             'v3/user/update-sub-api' => array( 'cost' => 2 ),
                             'v3/user/delete-sub-api' => array( 'cost' => 2 ),
+                            'v3/account/move-positions' => array( 'cost' => 20 ),
+                            'v3/account/cancel-withdrawal' => array( 'cost' => 20 ),
+                            'v3/account/set-margin' => array( 'cost' => 2 ),
+                            'v3/account/set-collateral-type' => array( 'cost' => 10 ),
+                            'v3/copy/futures/transfer' => array( 'cost' => 20 ),
+                            'v3/convert/small-assets-trade' => array( 'cost' => 2 ),
+                            'v3/earn/elite-subscribe' => array( 'cost' => 4 ),
+                            'v3/earn/elite-redeem' => array( 'cost' => 4 ),
+                            'v3/trade/place-reality-order' => array( 'cost' => 2 ),
+                            'v3/trade/cancel-reality-order' => array( 'cost' => 2 ),
+                            'v3/trade/grid/validate' => array( 'cost' => 20 ),
+                            'v3/trade/grid/create-bot' => array( 'cost' => 20 ),
+                            'v3/trade/grid/modify-bot' => array( 'cost' => 20 ),
+                            'v3/trade/grid/modify-grid-interval' => array( 'cost' => 20 ),
+                            'v3/trade/grid/add-investment' => array( 'cost' => 20 ),
+                            'v3/trade/grid/close-bot' => array( 'cost' => 20 ),
+                            'v3/trade/grid/validate-neutral' => array( 'cost' => 20 ),
+                            'v3/trade/grid/create-neutral-bot' => array( 'cost' => 20 ),
+                            'v3/trade/grid/modify-neutral-bot' => array( 'cost' => 20 ),
+                            'v3/trade/grid/modify-neutral-grid-interval' => array( 'cost' => 20 ),
+                            'v3/user/set-rate-limit-quota' => array( 'cost' => 4 ),
+                            'v3/user/sub-account/agent-create' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/place-order' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/cancel-order' => array( 'cost' => 20 ),
+                            'v3/stockplus/trade/modify-order' => array( 'cost' => 20 ),
+                            'v3/stockplus/asset/transfer' => array( 'cost' => 4 ),
+                            'v3/p2p/ad-create' => array( 'cost' => 2 ),
+                            'v3/p2p/ad-update' => array( 'cost' => 2 ),
+                            'v3/p2p/ad-operate' => array( 'cost' => 2 ),
+                            'v3/p2p/fee-simulate' => array( 'cost' => 2 ),
+                            'v3/p2p/order-pay' => array( 'cost' => 2 ),
+                            'v3/p2p/order-release' => array( 'cost' => 2 ),
                         ),
                     ),
                 ),
@@ -1235,9 +1389,9 @@ class bitget extends Exchange {
                     '36103' => '\\ccxt\\AccountSuspended', // Account is suspended due to ongoing liquidation.
                     '36104' => '\\ccxt\\PermissionDenied', // Account is not enabled for options trading.
                     '36105' => '\\ccxt\\PermissionDenied', // Please enable the account for option contract.
-                    '36106' => '\\ccxt\\AccountSuspended', // Funds cannot be transferred in or out, is suspended.
+                    '36106' => '\\ccxt\\AccountSuspended', // Funds cannot be transferred in or out, as account is suspended.
                     '36107' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred out within 30 minutes after option exercising or settlement.
-                    '36108' => '\\ccxt\\InsufficientFunds', // Funds cannot be transferred in or out, of the account is less than zero.
+                    '36108' => '\\ccxt\\InsufficientFunds', // Funds cannot be transferred in or out, as equity of the account is less than zero.
                     '36109' => '\\ccxt\\PermissionDenied', // Funds cannot be transferred in or out during option exercising or settlement.
                     '36201' => '\\ccxt\\PermissionDenied', // New order function is blocked.
                     '36202' => '\\ccxt\\PermissionDenied', // Account does not have permission to short option.
@@ -1345,7 +1499,7 @@ class bitget extends Exchange {
                     '40502' => '\\ccxt\\ExchangeError', // If it is a copy user, you must pass the copy to whom
                     '40503' => '\\ccxt\\ExchangeError', // With the single type
                     '40504' => '\\ccxt\\ExchangeError', // Platform code must pass
-                    '40505' => '\\ccxt\\ExchangeError', // Not the same type
+                    '40505' => '\\ccxt\\ExchangeError', // Not the same as single type
                     '40506' => '\\ccxt\\AuthenticationError', // Platform signature error
                     '40507' => '\\ccxt\\AuthenticationError', // Api signature error
                     '40508' => '\\ccxt\\ExchangeError', // KOL is not authorized
@@ -1474,7 +1628,7 @@ class bitget extends Exchange {
                 'timeDifference' => 0, // the difference between system clock and exchange clock
                 'adjustForTimeDifference' => false, // controls the adjustment logic upon instantiation
                 'fetchMarkets' => array(
-                    'types' => array( 'spot', 'swap' ), // there is future markets but they use the same endpoints
+                    'types' => array( 'spot', 'swap' ), // there is future markets but they use the same endpoints as swap
                 ),
                 'defaultType' => 'spot', // 'spot', 'swap', 'future'
                 'defaultSubType' => 'linear', // 'linear', 'inverse'
@@ -1927,7 +2081,7 @@ class bitget extends Exchange {
             // use the api to determine if the account is $uta or not
             $accountIsUTa = false;
             try {
-                $this->privateUtaGetV3AccountSettings($params);
+                $this->privateUtaGetV3AccountSettings();
                 $accountIsUTa = true;
             } catch (Exception $e) {
                 $accountIsUTa = false;
@@ -2557,7 +2711,7 @@ class bitget extends Exchange {
     public function parse_currency(array $rawCurrency): array {
         $fiatCurrencies = $this->handle_option('fetchCurrencies', 'fiatCurrencies', array());
         $entry = $rawCurrency;
-        $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
+        $id = $this->safe_string($entry, 'coin'); // we don't use 'coinId' as it has no use. it is 'coin' field that needs to be used in currency related endpoints ($deposit, $withdraw, etc..)
         $code = $this->safe_currency_code($id);
         $chains = $this->safe_list($entry, 'chains', array());
         $networks = array();
@@ -3194,7 +3348,7 @@ class bitget extends Exchange {
         if ($txid === null) {
             $dest = $this->safe_string($transaction, 'dest');
             if ($dest === 'on_chain') {
-                $txid = $this->safe_string($transaction, 'recordId'); // uta on-chain rows expose the tx hash
+                $txid = $this->safe_string($transaction, 'recordId'); // uta on-chain rows expose the tx hash as recordId
             }
         }
         $feeCostString = $this->safe_string($transaction, 'fee');
@@ -4426,7 +4580,7 @@ class bitget extends Exchange {
          * @param {boolean} [$params->useHistoryEndpointForPagination] whether to force to use historical endpoint for pagination (default true)
          * @param {boolean} [$params->paginate] default false, when true will automatically $paginate by calling this endpoint multiple times. See in the docs all the [available parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-$params)
          * @param {string} [$params->price] *swap only* "mark" (to fetch mark price $candles) or "index" (to fetch index price $candles)
-         * @return {int[][]} A list of $candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of $candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -5248,7 +5402,7 @@ class bitget extends Exchange {
         $orderType = $this->safe_string($order, 'orderType');
         $isBuyMarket = ($side === 'buy') && ($orderType === 'market');
         if (($market['spot'] === true) && $isBuyMarket) {
-            // in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
+            // as noted in top comment, for 'buy market' the 'size' field is COST, not AMOUNT
             $size = $this->safe_string($order, 'baseVolume');
         }
         return $this->safe_order(array(
@@ -5324,7 +5478,7 @@ class bitget extends Exchange {
          * @param {string} $type 'market' or 'limit'
          * @param {string} $side 'buy' or 'sell'
          * @param {float} $amount how much you want to trade in units of the base currency
-         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders, and used execution $price for contract stop-loss / take-profit orders
+         * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders, and used as the execution $price for contract stop-loss / take-profit orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {float} [$params->cost] *spot only* how much you want to trade in units of the quote currency, for $market buy orders only
          * @param {float} [$params->triggerPrice] *swap only* The $price at which a trigger order is triggered at
@@ -5345,7 +5499,7 @@ class bitget extends Exchange {
          * @param {string} [$params->trailingPercent] *swap and future only* the percent to trail away from the current $market $price, rate can not be greater than 10
          * @param {string} [$params->trailingTriggerPrice] *swap and future only* the $price to trigger a trailing stop order, default uses the $price argument
          * @param {string} [$params->triggerType] *swap and future only* 'fill_price', 'mark_price' or 'index_price'
-         * @param {boolean} [$params->oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this in hedge_mode, can adjust the mode using the setPositionMode() method
+         * @param {boolean} [$params->oneWayMode] *swap and future only* required to set this to true in one_way_mode and you can leave this as null in hedge_mode, can adjust the mode using the setPositionMode() method
          * @param {bool} [$params->hedged] *swap and future only* true for hedged mode, false for one way mode, default is false
          * @param {bool} [$params->reduceOnly] true or false whether the order is reduce-only
          * @param {boolean} [$params->uta] set to true for the unified trading account ($uta), defaults to false
@@ -5785,7 +5939,7 @@ class bitget extends Exchange {
         return $this->extend($request, $params);
     }
 
-    public function create_uta_orders(array $orders, $params = array()) {
+    public function create_uta_orders(array $orders, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }
@@ -6347,7 +6501,7 @@ class bitget extends Exchange {
         return $this->parse_order($order, $market);
     }
 
-    public function cancel_uta_orders(mixed $ids, ?string $symbol = null, $params = array()) {
+    public function cancel_uta_orders(mixed $ids, ?string $symbol = null, $params = array()): array {
         if ($symbol === null) {
             throw new ArgumentsRequired($this->id . ' cancelOrders() requires a $symbol argument');
         }
@@ -6874,6 +7028,8 @@ class bitget extends Exchange {
             if ($type === 'spot') {
                 if ($marginMode !== null) {
                     $productType = 'MARGIN';
+                } else {
+                    $productType = 'SPOT';
                 }
             }
             $request['category'] = $productType;
@@ -7563,7 +7719,7 @@ class bitget extends Exchange {
         return $this->parse_orders($orders, $market, $since, $limit);
     }
 
-    public function fetch_uta_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()) {
+    public function fetch_uta_canceled_and_closed_orders(?string $symbol = null, ?int $since = null, ?int $limit = null, $params = array()): array {
         if ($this->markets === null) {
             $this->load_markets();
         }

@@ -137,6 +137,7 @@ public class MercadoCore extends MercadoApi
                     put( "private", "https://www.mercadobitcoin.net/tapi" );
                     put( "v4Public", "https://www.mercadobitcoin.com.br/v4" );
                     put( "v4PublicNet", "https://api.mercadobitcoin.net/api/v4" );
+                    put( "v4Private", "https://api.mercadobitcoin.net/api/v4" );
                 }} );
                 put( "www", "https://www.mercadobitcoin.com.br" );
                 put( "doc", new java.util.ArrayList<Object>(java.util.Arrays.asList("https://www.mercadobitcoin.com.br/api-doc", "https://www.mercadobitcoin.com.br/trade-api")) );
@@ -217,6 +218,24 @@ public class MercadoCore extends MercadoApi
                 put( "v4PublicNet", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
                         put( "candles", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                }} );
+                put( "v4Private", new java.util.HashMap<String, Object>() {{
+                    put( "post", new java.util.HashMap<String, Object>() {{
+                        put( "accounts", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "accounts/{accountId}/{symbol}/transfers/internal", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "oauth2/token", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                    }} );
+                    put( "patch", new java.util.HashMap<String, Object>() {{
+                        put( "accounts/{accountId}/wallet/{symbol}/deposits/{depositId}", new java.util.HashMap<String, Object>() {{
                             put( "cost", 1 );
                         }} );
                     }} );
@@ -464,7 +483,7 @@ public class MercadoCore extends MercadoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object symbol = this.safeSymbol(null, market);
         Object timestamp = this.safeTimestamp(ticker, "date");
-        Object last = this.safeString(ticker, "last");
+        String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -537,12 +556,12 @@ public class MercadoCore extends MercadoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeTimestamp2(trade, "date", "executed_timestamp");
         market = this.safeMarket(null, market);
-        Object id = this.safeString2(trade, "tid", "operation_id");
+        String id = this.safeString2(trade, "tid", "operation_id");
         Object type = null;
-        Object side = this.safeString(trade, "type");
-        Object price = this.safeString(trade, "price");
-        Object amount = this.safeString2(trade, "amount", "quantity");
-        Object feeCost = this.safeString(trade, "fee_rate");
+        String side = this.safeString(trade, "type");
+        String price = this.safeString(trade, "price");
+        String amount = this.safeString2(trade, "amount", "quantity");
+        String feeCost = this.safeString(trade, "fee_rate");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -836,15 +855,15 @@ public class MercadoCore extends MercadoApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object id = this.safeString(order, "order_id");
-        Object order_type = this.safeString(order, "order_type");
+        String id = this.safeString(order, "order_id");
+        String order_type = this.safeString(order, "order_type");
         Object side = null;
         if (Helpers.isTrue(Helpers.inOp(order, "order_type")))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(order_type, "1"))))) ? "buy" : "sell";
         }
         Object status = this.parseOrderStatus(this.safeString(order, "status"));
-        Object marketId = this.safeString(order, "coin_pair");
+        String marketId = this.safeString(order, "coin_pair");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeTimestamp(order, "created_timestamp");
         final Object finalMarket = market;
@@ -852,11 +871,11 @@ public class MercadoCore extends MercadoApi
             put( "cost", MercadoCore.this.safeString(order, "fee") );
             put( "currency", Helpers.GetValue(finalMarket, "quote") );
         }};
-        Object price = this.safeString(order, "limit_price");
+        String price = this.safeString(order, "limit_price");
         // price = this.safeNumber (order, 'executed_price_avg', price);
-        Object average = this.safeString(order, "executed_price_avg");
-        Object amount = this.safeString(order, "quantity");
-        Object filled = this.safeString(order, "executed_quantity");
+        String average = this.safeString(order, "executed_price_avg");
+        String amount = this.safeString(order, "quantity");
+        String filled = this.safeString(order, "executed_quantity");
         Object lastTradeTimestamp = this.safeTimestamp(order, "updated_timestamp");
         Object rawTrades = this.safeValue(order, "operations", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object symbol = Helpers.GetValue(market, "symbol");

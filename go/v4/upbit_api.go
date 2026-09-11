@@ -207,6 +207,31 @@ func (this *UpbitCore) PrivateGetApiKeys(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiKeys", args...)
 }
 
+// PrivateGetPockets returns a channel that yields a JSON array.
+func (this *UpbitCore) PrivateGetPockets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPockets", args...)
+}
+
+// PrivateGetPocketsApiKeys returns a channel that yields a JSON array.
+func (this *UpbitCore) PrivateGetPocketsApiKeys(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPocketsApiKeys", args...)
+}
+
+// PrivateGetPocketsAssets returns a channel that yields a JSON array.
+func (this *UpbitCore) PrivateGetPocketsAssets(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPocketsAssets", args...)
+}
+
+// PrivateGetPocketsUniversalTransfers returns a channel that yields a JSON array.
+func (this *UpbitCore) PrivateGetPocketsUniversalTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPocketsUniversalTransfers", args...)
+}
+
+// PrivateGetPocketsTransfers returns a channel that yields a JSON array.
+func (this *UpbitCore) PrivateGetPocketsTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetPocketsTransfers", args...)
+}
+
 // PrivatePostOrders returns a channel that yields a JSON object.
 func (this *UpbitCore) PrivatePostOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostOrders", args...)
@@ -250,6 +275,16 @@ func (this *UpbitCore) PrivatePostTravelRuleDepositUuid(args ...any) <-chan any 
 // PrivatePostTravelRuleDepositTxid returns a channel that yields a JSON object.
 func (this *UpbitCore) PrivatePostTravelRuleDepositTxid(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostTravelRuleDepositTxid", args...)
+}
+
+// PrivatePostPocketsUniversalTransfers returns a channel that yields a JSON object.
+func (this *UpbitCore) PrivatePostPocketsUniversalTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPocketsUniversalTransfers", args...)
+}
+
+// PrivatePostPocketsTransfers returns a channel that yields a JSON object.
+func (this *UpbitCore) PrivatePostPocketsTransfers(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostPocketsTransfers", args...)
 }
 
 // PrivateDeleteOrder returns a channel that yields a JSON object.

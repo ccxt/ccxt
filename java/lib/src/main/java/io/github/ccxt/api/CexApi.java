@@ -229,6 +229,17 @@ public class CexApi extends Exchange
     }
 
     /**
+     * Calls the privatePostGetTicker endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostGetTicker (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostGetTicker", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostGetCandles endpoint.
      *
      * @param optionalArgs the request parameters

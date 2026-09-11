@@ -30,7 +30,6 @@ SOFTWARE.
 
 namespace ccxt;
 
-use MessagePack\MessagePack;
 use kornrunner\Keccak;
 use Web3\Contracts\TypedDataEncoder;
 use StarkNet\Crypto\Curve;
@@ -41,7 +40,7 @@ use Lighter\Signer;
 use Elliptic\EC;
 use Elliptic\EdDSA;
 use BN\BN;
-use Sop\ASN1\Type\UnspecifiedType;
+use phpseclib\File\ASN1;
 use Exception;
 
 // import global functions so unqualified calls bind directly to the root
@@ -63,7 +62,7 @@ use function abs, array_change_key_case, array_filter, array_is_list, array_key_
     stripos, strlen, strpos, strtolower, strtotime, strtoupper, strtr, strval, substr, sys_get_temp_dir,
     time, trim, unpack, urldecode, urlencode, usleep, usort, var_export;
 
-$version = '4.5.77';
+$version = '4.5.78';
 
 // rounding mode
 const TRUNCATE = 0;
@@ -82,10 +81,10 @@ const PAD_WITH_ZERO = 6;
 
 class BaseExchange {
 
-    const VERSION = '4.5.77';
+    const VERSION = '4.5.78';
 
     // this is updated by build/vss.js
-    public static $ccxt_version = '4.5.77';
+    public static $ccxt_version = '4.5.78';
 
     private static $base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
     private static $base58_encoder = null;
@@ -473,21 +472,6 @@ class BaseExchange {
         return trim($string);
     }
 
-    public static function decimal($number) {
-        return '' + $number;
-    }
-
-    public static function valid_string($string) {
-        return isset($string) && $string !== '';
-    }
-
-    public static function valid_object_value($object, $key) {
-        if ($key === null) {
-            return false;
-        }
-        return isset($object[$key]) && $object[$key] !== '' && is_scalar($object[$key]);
-    }
-
     public static function safe_float($object, $key, $default_value = null) {
         if ($key === null) {
             return $default_value;
@@ -501,8 +485,10 @@ class BaseExchange {
         }
         $val = $object[$key] ?? null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') {
-                return $val;
+            if (is_string($val)) {
+                if ($val !== '') {
+                    return $val;
+                }
             } else if (is_numeric($val)) {
                 return (string)$val;
             }
@@ -516,8 +502,10 @@ class BaseExchange {
         }
         $val = $object[$key] ?? null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') {
-                return strtolower($val);
+            if (is_string($val)) {
+                if ($val !== '') {
+                    return strtolower($val);
+                }
             } else if (is_numeric($val)) {
                 return strtolower((string)$val);
             }
@@ -531,8 +519,10 @@ class BaseExchange {
         }
         $val = $object[$key] ?? null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') {
-                return strtoupper($val);
+            if (is_string($val)) {
+                if ($val !== '') {
+                    return strtoupper($val);
+                }
             } else if (is_numeric($val)) {
                 return strtoupper((string)$val);
             }
@@ -584,12 +574,12 @@ class BaseExchange {
     public static function safe_string_2($object, $key1, $key2, $default_value = null) {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return $val;
+            if (is_string($val)) { if ($val !== '') return $val; }
             else if (is_numeric($val)) return (string)$val;
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return $val;
+            if (is_string($val)) { if ($val !== '') return $val; }
             else if (is_numeric($val)) return (string)$val;
         }
         return $default_value;
@@ -598,12 +588,12 @@ class BaseExchange {
     public static function safe_string_lower_2($object, $key1, $key2, $default_value = null) {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return strtolower($val);
+            if (is_string($val)) { if ($val !== '') return strtolower($val); }
             else if (is_numeric($val)) return strtolower((string)$val);
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return strtolower($val);
+            if (is_string($val)) { if ($val !== '') return strtolower($val); }
             else if (is_numeric($val)) return strtolower((string)$val);
         }
         return $default_value;
@@ -612,12 +602,12 @@ class BaseExchange {
     public static function safe_string_upper_2($object, $key1, $key2, $default_value = null) {
         $val = ($key1 !== null) ? ($object[$key1] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return strtoupper($val);
+            if (is_string($val)) { if ($val !== '') return strtoupper($val); }
             else if (is_numeric($val)) return strtoupper((string)$val);
         }
         $val = ($key2 !== null) ? ($object[$key2] ?? null) : null;
         if ($val !== null) {
-            if (is_string($val) && $val !== '') return strtoupper($val);
+            if (is_string($val)) { if ($val !== '') return strtoupper($val); }
             else if (is_numeric($val)) return strtoupper((string)$val);
         }
         return $default_value;
@@ -666,7 +656,7 @@ class BaseExchange {
     public static function safe_string_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
-            if (is_string($value) && $value !== '') return $value;
+            if (is_string($value)) { if ($value !== '') return $value; }
             else if (is_numeric($value)) return (string)$value;
         }
         return $default_value;
@@ -675,7 +665,7 @@ class BaseExchange {
     public static function safe_string_lower_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
-            if (is_string($value) && $value !== '') return strtolower($value);
+            if (is_string($value)) { if ($value !== '') return strtolower($value); }
             else if (is_numeric($value)) return strtolower((string)$value);
         }
         return $default_value;
@@ -684,7 +674,7 @@ class BaseExchange {
     public static function safe_string_upper_n($object, $array, $default_value = null) {
         $value = static::get_object_value_from_key_array($object, $array);
         if ($value !== null) {
-            if (is_string($value) && $value !== '') return strtoupper($value);
+            if (is_string($value)) { if ($value !== '') return strtoupper($value); }
             else if (is_numeric($value)) return strtoupper((string)$value);
         }
         return $default_value;
@@ -812,6 +802,38 @@ class BaseExchange {
     }
 
     public static function round_timeframe($timeframe, $timestamp, $direction = ROUND_DOWN) {
+        $amount = (float) substr($timeframe, 0, -1);
+        $unit = substr($timeframe, -1);
+        $isIntegerAmount = $amount === floor($amount);
+        if ((($unit === 'w') || ($unit === 'M') || ($unit === 'y')) && ($amount >= 1) && $isIntegerAmount) {
+            $amount = (int) $amount;
+            $date = (new \DateTimeImmutable('@' . ($timestamp / 1000)))->setTimezone(new \DateTimeZone('UTC'));
+            if ($unit === 'w') {
+                $monday = $date->modify('monday this week')->setTime(0, 0, 0);
+                $epochMonday = new \DateTimeImmutable('1970-01-05T00:00:00Z');
+                $weeksSinceEpochMonday = (int) (($monday->getTimestamp() - $epochMonday->getTimestamp()) / 604800);
+                $rounded = $epochMonday->modify('+' . ((int) (floor($weeksSinceEpochMonday / $amount) * $amount)) . ' weeks');
+                if ($direction === ROUND_UP) {
+                    $rounded = $rounded->modify('+' . $amount . ' weeks');
+                }
+            } elseif ($unit === 'M') {
+                $monthsSinceYearZero = ((int) $date->format('Y')) * 12 + ((int) $date->format('n')) - 1;
+                $roundedMonths = ((int) floor($monthsSinceYearZero / $amount)) * $amount;
+                $year = (int) floor($roundedMonths / 12);
+                $month = ($roundedMonths % 12) + 1;
+                $rounded = $date->setDate($year, $month, 1)->setTime(0, 0, 0);
+                if ($direction === ROUND_UP) {
+                    $rounded = $rounded->modify('+' . $amount . ' months');
+                }
+            } else {
+                $year = ((int) floor(((int) $date->format('Y')) / $amount)) * $amount;
+                $rounded = $date->setDate($year, 1, 1)->setTime(0, 0, 0);
+                if ($direction === ROUND_UP) {
+                    $rounded = $rounded->modify('+' . $amount . ' years');
+                }
+            }
+            return ((int) $rounded->format('U')) * 1000;
+        }
         $ms = static::parse_timeframe($timeframe) * 1000;
         // Get offset based on timeframe in milliseconds
         $offset = $timestamp % $ms;
@@ -1125,15 +1147,25 @@ class BaseExchange {
         if (!isset($timestamp)) {
             return null;
         }
-        if (!is_numeric($timestamp) || intval($timestamp) != $timestamp) {
+        if (is_float($timestamp)) {
+            // reject NaN / +-INF (and out-of-range magnitudes) before the lossy int cast
+            if (!is_finite($timestamp) || $timestamp < 0 || $timestamp > 8640000000000000) {
+                return null;
+            }
+            $timestamp = (int) floor($timestamp);
+        }
+        else if (is_string($timestamp)) {
+            // only plain-integer strings are accepted, e.g. '1755432123456' (not '123abc' or '')
+            if (!preg_match('/^[0-9]+$/', $timestamp)) {
+                return null;
+            }
+            $timestamp = (int) $timestamp;
+        }
+        if (!is_int($timestamp) || $timestamp < 0 || $timestamp > 8640000000000000) {
             return null;
         }
-        $timestamp = (int) $timestamp;
-        if ($timestamp < 0) {
-            return null;
-        }
-        $result = gmdate('c', (int) floor($timestamp / 1000));
-        $msec = (int) $timestamp % 1000;
+        $result = gmdate('c', intdiv($timestamp, 1000));
+        $msec = $timestamp % 1000;
         $result = str_replace('+00:00', sprintf('.%03dZ', $msec), $result);
         return $result;
     }
@@ -1171,10 +1203,6 @@ class BaseExchange {
             $time += (int) str_pad($match['milliseconds'], 3, '0', STR_PAD_RIGHT);
         }
         return $time;
-    }
-
-    public static function dmy($timestamp, $infix = '-') {
-        return gmdate('m' . $infix . 'd' . $infix . 'Y', (int) round($timestamp / 1000));
     }
 
     public static function ymd($timestamp, $infix = '-', $fullYear = true) {
@@ -1539,17 +1567,25 @@ class BaseExchange {
         }
         if (preg_match('/^-----BEGIN EC PRIVATE KEY-----\s([\w\d+=\/\s]+)\s-----END EC PRIVATE KEY-----/', $secret, $match) >= 1) {
             $pemKey = $match[1];
-            $decodedPemKey = UnspecifiedType::fromDER(base64_decode($pemKey))->asSequence();
-            $secret = bin2hex($decodedPemKey->at(1)->asOctetString()->string());
-            if ($decodedPemKey->hasTagged(0)) {
-                $params = $decodedPemKey->getTagged(0)->asExplicit();
-                $oid = $params->asObjectIdentifier()->oid();
-                $supportedCurve = array(
-                    '1.3.132.0.10' => 'secp256k1',
-                    '1.2.840.10045.3.1.7' => 'p256',
-                );
-                if (!array_key_exists($oid, $supportedCurve)) throw new Exception('Unsupported curve');
-                $algorithm = $supportedCurve[$oid];
+            // SEC1 ECPrivateKey ::= SEQUENCE { version INTEGER, privateKey OCTET STRING,
+            //   parameters [0] EXPLICIT ECParameters OPTIONAL, publicKey [1] EXPLICIT BIT STRING OPTIONAL }
+            $decodedPemKey = (new ASN1())->decodeBER(base64_decode($pemKey))[0] ?? null;
+            if (!is_array($decodedPemKey) || $decodedPemKey['type'] !== ASN1::TYPE_SEQUENCE || !isset($decodedPemKey['content'][1]) || $decodedPemKey['content'][1]['type'] !== ASN1::TYPE_OCTET_STRING) {
+                throw new Exception('Invalid EC private key');
+            }
+            $secret = bin2hex($decodedPemKey['content'][1]['content']);
+            foreach ($decodedPemKey['content'] as $element) {
+                if (isset($element['constant']) && $element['constant'] === 0) {
+                    $params = $element['content'][0] ?? null;
+                    if (!is_array($params) || $params['type'] !== ASN1::TYPE_OBJECT_IDENTIFIER) throw new Exception('Unsupported curve');
+                    $oid = $params['content'];
+                    $supportedCurve = array(
+                        '1.3.132.0.10' => 'secp256k1',
+                        '1.2.840.10045.3.1.7' => 'p256',
+                    );
+                    if (!array_key_exists($oid, $supportedCurve)) throw new Exception('Unsupported curve');
+                    $algorithm = $supportedCurve[$oid];
+                }
             }
         }
         $ec = new EC(strtolower($algorithm));
@@ -1688,10 +1724,6 @@ class BaseExchange {
 
     public function extended_starknet_compute_poseidon_hash_on_elements($data) {
         return Hash::computePoseidonHashOnElements($data);
-    }
-
-    public function is_lighter_library_path_required() {
-        return true;
     }
 
     public function load_lighter_library_helper($path, $chainId, $privateKey, $apiKeyIndex, $accountIndex, $createClient = false) {
@@ -1929,7 +1961,44 @@ class BaseExchange {
     }
 
     public function packb($data) {
-        return MessagePack::pack($data);
+        // minimal MessagePack serializer (str/int/float64/bool/nil/array/map)
+        // mirrors the previously vendored rybakit/msgpack defaults FORCE_STR | DETECT_ARR_MAP | FORCE_FLOAT64
+        if (is_int($data)) {
+            if ($data >= 0) {
+                if ($data <= 0x7f) return chr($data);
+                if ($data <= 0xff) return "\xcc" . chr($data);
+                if ($data <= 0xffff) return "\xcd" . pack('n', $data);
+                if ($data <= 0xffffffff) return "\xce" . pack('N', $data);
+                return "\xcf" . pack('J', $data);
+            }
+            if ($data >= -0x20) return chr((0xe0 | $data) & 0xff);
+            if ($data >= -0x80) return "\xd0" . chr($data & 0xff);
+            if ($data >= -0x8000) return "\xd1" . pack('n', $data & 0xffff);
+            if ($data >= -0x80000000) return "\xd2" . pack('N', $data & 0xffffffff);
+            return "\xd3" . pack('J', $data);
+        }
+        if (is_string($data)) {
+            $length = strlen($data);
+            if ($length < 32) return chr(0xa0 | $length) . $data;
+            if ($length <= 0xff) return "\xd9" . chr($length) . $data;
+            if ($length <= 0xffff) return "\xda" . pack('n', $length) . $data;
+            return "\xdb" . pack('N', $length) . $data;
+        }
+        if (is_array($data)) {
+            $count = count($data);
+            if (array_values($data) === $data) { // list (also covers [])
+                $out = ($count < 16) ? chr(0x90 | $count) : (($count <= 0xffff) ? "\xdc" . pack('n', $count) : "\xdd" . pack('N', $count));
+                foreach ($data as $value) $out .= $this->packb($value);
+                return $out;
+            }
+            $out = ($count < 16) ? chr(0x80 | $count) : (($count <= 0xffff) ? "\xde" . pack('n', $count) : "\xdf" . pack('N', $count));
+            foreach ($data as $key => $value) $out .= $this->packb($key) . $this->packb($value);
+            return $out;
+        }
+        if ($data === null) return "\xc0";
+        if (is_bool($data)) return $data ? "\xc3" : "\xc2";
+        if (is_float($data)) return "\xcb" . pack('E', $data);
+        throw new Exception('packb: unsupported type ' . get_debug_type($data));
     }
 
     public function throttle($cost = null) {
@@ -2605,21 +2674,13 @@ class BaseExchange {
     // ------------------------------------------------------------------------
     // web3 / 0x methods
 
-    public static function has_web3() {
-        // PHP version of this function does nothing, as most of its
-        // dependencies are lightweight and don't eat a lot
-        return true;
-    }
-
     // returns the version of the ccxt library, e.g. "4.5.54"
     public function get_ccxt_version() {
         return static::VERSION;
     }
 
     public function check_required_dependencies() {
-        if (!static::has_web3()) {
-            throw new ExchangeError($this->id . ' requires web3 dependencies');
-        }
+        // no-op, mirrors ts/src/base/Exchange.ts checkRequiredDependencies()
     }
 
     public static function hashMessage($message) {
@@ -2640,11 +2701,6 @@ class BaseExchange {
 
     public static function signMessage($message, $privateKey) {
         return static::signHash(static::hashMessage($message), $privateKey);
-    }
-
-    public function sign_message_string($message, $privateKey) {
-        $signature = static::signMessage($message, $privateKey);
-        return $signature['r'] . $this->remove0x_prefix($signature['s']) . dechex($signature['v']);
     }
 
     public static function base32_decode($s) {
@@ -4194,8 +4250,8 @@ class BaseExchange {
 
     public function parse_to_int(mixed $number) {
         // Solve Common intvalmisuse ex => intval((since / (string) 1000))
-        // using a $number which is not valid in ts
-        // numberToString is typed under strictNullChecks; cast to string
+        // using a $number as parameter which is not valid in ts
+        // numberToString is typed as nullable under strictNullChecks; cast to string
         // the cast is erased at transpile-time, so output matches every target language, rather than
         // branching to a bare `NaN` literal, which has no symbol in Go/Java/C#
         $stringifiedNumber = $this->number_to_string($number);
@@ -4448,10 +4504,10 @@ class BaseExchange {
         }
         $dictionary = $this->safe_dict($methodDict, $parentKey);
         if ($dictionary === null) {
-            // if the value is not $dictionary but a scalar value (or null), return
+            // if the value is not $dictionary but a scalar value (or null), return as is
             return $methodDict[$parentKey];
         } else {
-            // return, when calling without $subKey eg => featureValueByType('spot', null, 'createOrder', 'stopLoss')
+            // return as is, when calling without $subKey eg => featureValueByType('spot', null, 'createOrder', 'stopLoss')
             if ($subKey === null) {
                 return $methodDict[$parentKey];
             }
@@ -4916,8 +4972,8 @@ class BaseExchange {
     }
 
     public function safe_order(array $order, ?array $market = null) {
-        // parses numbers
-        // * it is important pass the $trades $rawTrades
+        // parses numbers as strings
+        // * it is important pass the $trades as unparsed $rawTrades
         if ($order === null) {
             $order = array();
         }
@@ -4946,7 +5002,7 @@ class BaseExchange {
         if ($parseFilled || $parseCost || $shouldParseFees) {
             $rawTrades = $this->safe_value($order, 'trades', $trades);
             // $oldNumber = $this->number;
-            // we parse $trades here!
+            // we parse $trades as strings here!
             // $i don't think this is needed anymore
             // $this->number = 'strval';
             $firstTrade = $this->safe_value($rawTrades, 0);
@@ -4957,7 +5013,7 @@ class BaseExchange {
             } else {
                 $trades = $rawTrades;
             }
-            // $this->number = $oldNumber; why parse $trades if you read the value using `safeString` ?
+            // $this->number = $oldNumber; why parse $trades as strings if you read the value using `safeString` ?
             $tradesLength = 0;
             $isArray = (gettype($trades) === 'array' && array_keys($trades) === array_keys(array_keys($trades)));
             if ($isArray) {
@@ -5403,7 +5459,7 @@ class BaseExchange {
                 $fee = null;
             }
         }
-        // in case `$fee & $fees` are null, set `$fees` array
+        // in case `$fee & $fees` are null, set `$fees` as empty array
         if ($fee === null) {
             $fee = array(
                 'cost' => null,
@@ -5524,7 +5580,7 @@ class BaseExchange {
                 $rate = $this->safe_string($fee, 'rate');
                 $cost = $this->safe_string($fee, 'cost');
                 if ($cost === null) {
-                    // omit null $cost, does not make sense, however, don't omit '0' costs, still make sense
+                    // omit null $cost, as it does not make sense, however, don't omit '0' costs, as they still make sense
                     continue;
                 }
                 if (!(is_array($reduced) && array_key_exists($feeCurrencyCode ?? '', $reduced))) {
@@ -6153,7 +6209,7 @@ class BaseExchange {
             if ($responseNetworksLength === 0) {
                 throw new NotSupported($this->id . ' - ' . $networkCode . ' network did not return any result for ' . $currencyCode);
             } else {
-                // if $networkCode was provided by user, we should check it after response, referenced exchange doesn't support network-code during request
+                // if $networkCode was provided by user, we should check it after response, as the referenced exchange doesn't support network-code during request
                 $networkIdOrCode = $isIndexedByUnifiedNetworkCode ? $networkCode : $this->network_code_to_id($networkCode, $currencyCode);
                 if (is_array($indexedNetworkEntries) && array_key_exists($networkIdOrCode ?? '', $indexedNetworkEntries)) {
                     $chosenNetworkId = $networkIdOrCode;
@@ -6277,7 +6333,7 @@ class BaseExchange {
         //
         $percentage = $this->safe_value($position, 'percentage');
         if (($percentage === null) && ($unrealizedPnlString !== null) && ($initialMarginString !== null)) {
-            // was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
+            // as it was done in all implementations ( aax, btcex, bybit, deribit, gate, kucoinfutures, phemex )
             $percentageString = Precise::string_mul(Precise::string_div($unrealizedPnlString, $initialMarginString, 4), '100');
             $position['percentage'] = $this->parse_number($percentageString);
         }
@@ -7033,7 +7089,7 @@ class BaseExchange {
          * @param {Market} $market
          * @param {array} $params
          * @param {string} [$params->type] $type assigned by user
-         * @param {string} [$params->defaultType] same.type
+         * @param {string} [$params->defaultType] same as $params->type
          * @param {string} [$defaultValue] assigned programatically in the method calling handleMarketTypeAndParams
          * @return array([string, object]) the $market $type and $params with $type and $defaultType omitted
          */
@@ -7098,7 +7154,7 @@ class BaseExchange {
         /**
          * @ignore
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {Array} the marginMode in lowercase by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
+         * @return {Array} the marginMode in lowercase as specified by $params["marginMode"], $params["defaultMarginMode"] $this->options["marginMode"] or $this->options["defaultMarginMode"]
          */
         return $this->handle_option_and_params($params, $methodName, 'marginMode', $defaultValue);
     }
@@ -7393,6 +7449,33 @@ class BaseExchange {
             'used' => null,
             'total' => null,
         );
+    }
+
+    public function merge_balance_account(array $result, string $code, array $account) {
+        /**
+         * @ignore
+         * merges a per-market (isolated margin) $account into a flat $code-keyed balance dict, summing string $fields when the $code recurs across markets
+         * @param {array} $result the $code-keyed balance dict being built
+         * @param {string} $code unified currency $code
+         * @param {array} $account a balance $account with string free/used/total/debt
+         * @return {array} $result — callers MUST reassign (`$result = $this->merge_balance_account($result, ...)`) => PHP arrays are passed by value, so the mutation is not visible through the argument
+         */
+        if (!(is_array($result) && array_key_exists($code ?? '', $result))) {
+            $result[$code] = $account;
+            return $result;
+        }
+        $fields = array( 'free', 'used', 'total', 'debt' );
+        for ($i = 0; $i < count($fields); $i++) {
+            $field = $fields[$i];
+            $current = $this->safe_string($result[$code], $field);
+            $incoming = $this->safe_string($account, $field);
+            if ($current === null) {
+                $result[$code][$field] = $incoming;
+            } elseif ($incoming !== null) {
+                $result[$code][$field] = Precise::string_add($current, $incoming);
+            }
+        }
+        return $result;
     }
 
     public function common_currency_code(string $code) {
@@ -8091,7 +8174,7 @@ class BaseExchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {float[][]} A list of candles ordered, open, high, low, close, null
+         * @return {float[][]} A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchMarkOHLCV'] !== null && $this->has['fetchMarkOHLCV'] !== false) {
             $request = array(
@@ -8111,7 +8194,7 @@ class BaseExchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return array() A list of candles ordered, open, high, low, close, null
+         * @return array() A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchIndexOHLCV'] !== null && $this->has['fetchIndexOHLCV'] !== false) {
             $request = array(
@@ -8131,7 +8214,7 @@ class BaseExchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {float[][]} A list of candles ordered, open, high, low, close, null
+         * @return {float[][]} A list of candles ordered as timestamp, open, high, low, close, null
          */
         if ($this->has['fetchPremiumIndexOHLCV'] !== null && $this->has['fetchPremiumIndexOHLCV'] !== false) {
             $request = array(
@@ -8961,7 +9044,9 @@ class BaseExchange {
         $year = mb_substr($date, 0, 2 - 0);
         $month = mb_substr($date, 2, 4 - 2);
         $day = mb_substr($date, 4, 6 - 4);
-        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00Z';
+        // the milliseconds are spelled out because every caller writes the result into
+        // expiryDatetime, which types.ts documents in the ISO 8601 form with them
+        $reconstructedDate = '20' . $year . '-' . $month . '-' . $day . 'T00:00:00.000Z';
         return $reconstructedDate;
     }
 
@@ -9090,7 +9175,7 @@ class BaseExchange {
          * @param {string} $symbol unified $symbol of the market to fetch OHLCV data for
          * @param {string} $timeframe the length of time each candle represents
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         throw new NotSupported($this->id . ' unWatchOHLCV () is not supported yet');
     }

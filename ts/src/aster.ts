@@ -267,6 +267,13 @@ export default class aster extends Exchange {
                         // builder
                         'v3/agent': { 'cost': 1 } as Endpoint<List>,
                         'v3/builder': { 'cost': 1 } as Endpoint<List>,
+                        'v3/builder/userTrades': { 'cost': 5 } as Endpoint<Dict>,
+                        'v3/builder/approvedUserList': { 'cost': 5 } as Endpoint<Dict>,
+                        'v3/stpMode': { 'cost': 30 } as Endpoint<Dict>,
+                        'v3/asset/migrateUser/history': { 'cost': 50 } as Endpoint<Dict>,
+                        // strategy
+                        'v3/strategyOpenOrder': { 'cost': 5 } as Endpoint<Dict>,
+                        'v3/strategyHistoryOrder': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'post': {
                         'v1/positionSide/dual': { 'cost': 1 } as Endpoint<Dict>,
@@ -300,6 +307,13 @@ export default class aster extends Exchange {
                         'v3/updateAgent': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/approveBuilder': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/updateBuilder': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/registerAndApproveAgent': { 'cost': 50 } as Endpoint<Dict>,
+                        'v3/asset/migrateUser': { 'cost': 50 } as Endpoint<Dict>,
+                        'v3/chase': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/stpMode': { 'cost': 1 } as Endpoint<Dict>,
+                        // strategy
+                        'v3/placeStrategyOrder': { 'cost': 50 } as Endpoint<Dict>,
+                        'v3/updateStrategyOrder': { 'cost': 50 } as Endpoint<List>,
                     },
                     'put': {
                         'v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
@@ -312,6 +326,8 @@ export default class aster extends Exchange {
                         'v3/allOpenOrders': { 'cost': 1 } as Endpoint<Dict>,
                         'v1/batchOrders': { 'cost': 1 } as Endpoint<List>,
                         'v3/batchOrders': { 'cost': 1 } as Endpoint<List>,
+                        'v3/guardedCancelOrder': { 'cost': 1 } as Endpoint<Dict>,
+                        'v3/guardedBatchOrders': { 'cost': 1 } as Endpoint<List>,
                         'v3/mmp': { 'cost': 1 } as Endpoint<List>,
                         'v1/listenKey': { 'cost': 1 } as Endpoint<Dict>,
                         'v3/listenKey': { 'cost': 1 } as Endpoint<Dict>,
@@ -2806,20 +2822,11 @@ export default class aster extends Exchange {
         if (postOnly) {
             request['timeInForce'] = 'GTX';
         }
-        //
-        // spot
-        // LIMIT timeInForce, quantity, price
-        // MARKET quantity or quoteOrderQty
-        // STOP and TAKE_PROFIT quantity, price, stopPrice
-        // STOP_MARKET and TAKE_PROFIT_MARKET quantity, stopPrice
-        // future
-        // LIMIT timeInForce, quantity, price
-        // MARKET quantity
-        // STOP/TAKE_PROFIT quantity, price, stopPrice
-        // STOP_MARKET/TAKE_PROFIT_MARKET stopPrice
-        // TRAILING_STOP_MARKET callbackRate
-        //
-        // additional required fields depending on the order type
+        // additional required fields per order type
+        // spot: LIMIT timeInForce, quantity, price; MARKET quantity or quoteOrderQty;
+        //       STOP/TAKE_PROFIT quantity, price, stopPrice; STOP_MARKET/TAKE_PROFIT_MARKET quantity, stopPrice
+        // future: LIMIT timeInForce, quantity, price; MARKET quantity; STOP/TAKE_PROFIT quantity, price, stopPrice;
+        //       STOP_MARKET/TAKE_PROFIT_MARKET stopPrice; TRAILING_STOP_MARKET callbackRate
         const closePosition = this.safeBool (params, 'closePosition', false);
         let timeInForceIsRequired = false;
         let priceIsRequired = false;
@@ -4019,7 +4026,7 @@ export default class aster extends Exchange {
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} data on account positions
      */
-    async fetchAccountPositions (symbols: Strings = undefined, params = {}) {
+    async fetchAccountPositions (symbols: Strings = undefined, params = {}): Promise<Position[]> {
         if (symbols !== undefined) {
             if (!Array.isArray (symbols)) {
                 throw new ArgumentsRequired (this.id + ' fetchPositions() requires an array argument for symbols');

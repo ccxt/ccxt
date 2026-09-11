@@ -172,11 +172,68 @@ public partial class gemini : Exchange
                         { "v1/riskstats/{symbol}", new Dictionary<string, object>() {
                             { "cost", 5 },
                         } },
+                        { "v1/prediction-markets/events", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/events/{eventTicker}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/events/{eventTicker}/strike", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/events/newly-listed", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/events/recently-settled", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/events/upcoming", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/categories", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/volume/{date}", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/volume/{date}/hourly", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/terms", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/maker-rebate/rates", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/liquidity-rewards/config", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
+                        { "v1/prediction-markets/liquidity-rewards/events", new Dictionary<string, object>() {
+                            { "cost", 5 },
+                        } },
                     } },
                 } },
                 { "private", new Dictionary<string, object>() {
                     { "get", new Dictionary<string, object>() {
                         { "v1/perpetuals/fundingpaymentreport/records.xlsx", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/terms/status", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/maker-rebate/summary/total", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/liquidity-rewards/summary/daily", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/liquidity-rewards/summary/total", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/network/{token}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/networks/{network}/assets", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -359,6 +416,48 @@ public partial class gemini : Exchange
                             { "cost", 1 },
                         } },
                         { "v1/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/order", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/order/batch", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/order/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/order/batch/cancel", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/orders/active", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/orders/history", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/positions", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/positions/settled", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/metrics/volume", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/terms/accept", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v1/prediction-markets/maker-rebate/payouts", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/transfers", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/withdraw/{network}/{ticker}", new Dictionary<string, object>() {
+                            { "cost", 1 },
+                        } },
+                        { "v2/withdraw/{network}/{ticker}/feeEstimate", new Dictionary<string, object>() {
                             { "cost", 1 },
                         } },
                     } },
@@ -550,7 +649,7 @@ public partial class gemini : Exchange
     public async override Task<object> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        return await this.fetchCurrenciesFromWeb(parameters);
+        return ccxt.BaseExchange.FromCurrencies(await this.FetchCurrenciesFromWeb(parameters));
     }
 
     /**
@@ -561,13 +660,13 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async virtual Task<object> fetchCurrenciesFromWeb(object parameters = null)
+    public async virtual Task<ccxt.Currencies> FetchCurrenciesFromWeb(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object data = await this.fetchWebEndpoint("fetchCurrencies", "webExchangeGet", true, "=\"currencyData\">", "</script>");
         if (isTrue(isEqual(data, null)))
         {
-            return new Dictionary<string, object>() {};
+            return ccxt.BaseExchange.ToCurrencies(new Dictionary<string, object>() {});
         }
         //
         //    {
@@ -591,19 +690,19 @@ public partial class gemini : Exchange
         //
         ((IDictionary<string,object>)this.options)["tradingPairs"] = this.safeList(data, "tradingPairs");
         object currenciesArray = this.safeValue(data, "currencies", new List<object>() {});
-        return this.parseCurrencies(currenciesArray);
+        return ccxt.BaseExchange.ToCurrencies(this.parseCurrencies(currenciesArray));
     }
 
     public override object parseCurrency(object rawCurrency)
     {
-        object id = this.safeString(rawCurrency, 0);
-        object code = this.safeCurrencyCode(id);
-        object fiatFlag = this.safeString(rawCurrency, 7);
+        string? id = this.safeString(rawCurrency, 0);
+        string? code = this.safeCurrencyCode(id);
+        string? fiatFlag = this.safeString(rawCurrency, 7);
         bool isFiat = isTrue((!isEqual(fiatFlag, null))) && isTrue((!isEqual(fiatFlag, "")));
-        object type = ((bool) isTrue(isFiat)) ? "fiat" : "crypto";
-        object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
-        object networks = new Dictionary<string, object>() {};
-        object networkId = this.safeString(rawCurrency, 9);
+        string type = ((bool) isTrue(isFiat)) ? "fiat" : "crypto";
+        double? precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
+        Dictionary<string, object> networks = new Dictionary<string, object>() {};
+        string? networkId = this.safeString(rawCurrency, 9);
         object networkCode = null;
         if (isTrue(!isEqual(networkId, null)))
         {
@@ -665,26 +764,26 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object[]} an array of objects representing market data
      */
-    public async override Task<object> fetchMarkets(object parameters = null)
+    public async override Task<List<ccxt.MarketInterface>> FetchMarkets(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object method = this.safeValue(this.options, "fetchMarketsMethod", "fetch_markets_from_api");
         if (isTrue(isEqual(method, "fetch_markets_from_web")))
         {
-            object promises = new List<object>() {};
-            ((IList<object>)promises).Add(this.fetchMarketsFromWeb(parameters)); // get usd markets
-            ((IList<object>)promises).Add(this.fetchUSDTMarkets(parameters)); // get usdt markets
+            List<object> promises = new List<object>() {};
+            ((IList<object>)promises).Add(this.FetchMarketsFromWeb(parameters)); // get usd markets
+            ((IList<object>)promises).Add(this.FetchUSDTMarkets(parameters)); // get usdt markets
             object promisesResult = await promiseAll(promises);
-            return this.arrayConcat(getValue(promisesResult, 0), getValue(promisesResult, 1));
+            return ccxt.BaseExchange.ToMarketInterfaceList(this.arrayConcat(getValue(promisesResult, 0), getValue(promisesResult, 1)));
         }
-        return await this.fetchMarketsFromAPI(parameters);
+        return await this.FetchMarketsFromAPI(parameters);
     }
 
-    public async virtual Task<object> fetchMarketsFromWeb(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsFromWeb(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object data = await this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>");
-        object error = add(this.id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
+        string error = add(this.id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
         List<object> tables = ((string)data).Split(new [] {((string)"tbody>")}, StringSplitOptions.None).ToList<object>();
         int numTables = getArrayLength(tables);
         if (isTrue(isLessThan(numTables, 2)))
@@ -697,11 +796,11 @@ public partial class gemini : Exchange
         {
             throw new NotSupported ((string)error) ;
         }
-        object result = new List<object>() {};
+        List<object> result = new List<object>() {};
         // skip the first element (empty string)
-        for (object i = 1; isLessThan(i, numRows); postFixIncrement(ref i))
+        for (int i = 1; isLessThan(i, numRows); postFixIncrement(ref i))
         {
-            object row = getValue(rows, i);
+            string? row = ((string)getValue(rows, i));
             List<object> cells = ((string)row).Split(new [] {((string)"</td>\n")}, StringSplitOptions.None).ToList<object>(); // eslint-disable-line quotes
             int numCells = getArrayLength(cells);
             if (isTrue(isLessThan(numCells, 5)))
@@ -720,17 +819,17 @@ public partial class gemini : Exchange
             // const base = this.safeCurrencyCode (baseId);
             string minAmountString = ((string)getValue(cells, 1)).Replace((string)"<td>", (string)"");
             List<object> minAmountParts = ((string)minAmountString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-            object minAmount = this.safeNumber(minAmountParts, 0);
+            double? minAmount = this.safeNumber(minAmountParts, 0);
             string amountPrecisionString = ((string)getValue(cells, 2)).Replace((string)"<td>", (string)"");
             List<object> amountPrecisionParts = ((string)amountPrecisionString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
             object idLength = subtract(getArrayLength(marketId), 0);
             object startingIndex = subtract(idLength, 3);
             string pricePrecisionString = ((string)getValue(cells, 3)).Replace((string)"<td>", (string)"");
             List<object> pricePrecisionParts = ((string)pricePrecisionString).Split(new [] {((string)" ")}, StringSplitOptions.None).ToList<object>();
-            object quoteId = this.safeStringLower(pricePrecisionParts, 1, slice(marketId, startingIndex, idLength));
-            object baseId = this.safeStringLower(amountPrecisionParts, 1, ((string)marketId).Replace((string)quoteId, (string)""));
+            string? quoteId = this.safeStringLower(pricePrecisionParts, 1, slice(marketId, startingIndex, idLength));
+            string? baseId = this.safeStringLower(amountPrecisionParts, 1, ((string)marketId).Replace((string)quoteId, (string)""));
             object bs = this.safeCurrencyCode(baseId);
-            object quote = this.safeCurrencyCode(quoteId);
+            string? quote = this.safeCurrencyCode(quoteId);
             ((IList<object>)result).Add(new Dictionary<string, object>() {
                 { "id", marketId },
                 { "symbol", add(add(bs, "/"), quote) },
@@ -781,12 +880,12 @@ public partial class gemini : Exchange
                 { "info", row },
             });
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public virtual object parseMarketActive(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "open", true },
             { "closed", false },
             { "cancel_only", true },
@@ -800,34 +899,34 @@ public partial class gemini : Exchange
         return this.safeBool(statuses, status, true);
     }
 
-    public async virtual Task<object> fetchUSDTMarkets(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchUSDTMarkets(object parameters = null)
     {
         // these markets can't be scrapped and fetchMarketsFrom api does an extra call
         // to load market ids which we don't need here
         parameters ??= new Dictionary<string, object>();
         if (isTrue(inOp(this.urls, "test")))
         {
-            return new List<object>() {};  // sandbox does not have usdt markets
+            return ccxt.BaseExchange.ToMarketInterfaceList(new List<object>() {});  // sandbox does not have usdt markets
         }
         object fetchUsdtMarkets = this.safeValue(this.options, "fetchUsdtMarkets", new List<object>() {});
-        object result = new List<object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(fetchUsdtMarkets)); postFixIncrement(ref i))
+        List<object> result = new List<object>() {};
+        for (int i = 0; isLessThan(i, getArrayLength(fetchUsdtMarkets)); postFixIncrement(ref i))
         {
             object marketId = getValue(fetchUsdtMarkets, i);
-            object request = new Dictionary<string, object>() {
+            Dictionary<string, object> request = new Dictionary<string, object>() {
                 { "symbol", marketId },
             };
             // don't use Promise.all here, for some reason the exchange can't handle it and crashes
-            object rawResponse = await this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters));
+            Dictionary<string, object> rawResponse = await this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters));
             ((IList<object>)result).Add(this.parseMarket(rawResponse));
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
-    public async virtual Task<object> fetchMarketsFromAPI(object parameters = null)
+    public async virtual Task<List<ccxt.MarketInterface>> FetchMarketsFromAPI(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
-        object marketIdsRaw = await this.publicGetV1Symbols(parameters);
+        List<object> marketIdsRaw = await this.publicGetV1Symbols(parameters);
         //
         //     [
         //         "btcusd",
@@ -835,16 +934,16 @@ public partial class gemini : Exchange
         //         ...
         //     ]
         //
-        object result = new List<object>() {};
-        object options = this.safeDict(this.options, "fetchMarketsFromAPI", new Dictionary<string, object>() {});
-        object brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
-        object marketIds = new List<object>() {};
-        object allMarketIds = new List<object>() {};
+        List<object> result = new List<object>() {};
+        IDictionary<string, object> options = this.safeDict(this.options, "fetchMarketsFromAPI", new Dictionary<string, object>() {});
+        List<object> brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
+        List<object> marketIds = new List<object>() {};
+        List<object> allMarketIds = new List<object>() {};
         if (isTrue(((marketIdsRaw is IList<object>) || (marketIdsRaw.GetType().IsGenericType && marketIdsRaw.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             allMarketIds = marketIdsRaw;
         }
-        for (object i = 0; isLessThan(i, getArrayLength(allMarketIds)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(allMarketIds)); postFixIncrement(ref i))
         {
             if (!isTrue(this.inArray(getValue(allMarketIds, i), brokenPairs)))
             {
@@ -853,31 +952,31 @@ public partial class gemini : Exchange
         }
         if (isTrue(this.safeBool(options, "fetchDetailsForAllSymbols", false)))
         {
-            object promises = new List<object>() {};
-            for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+            List<object> promises = new List<object>() {};
+            for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
             {
                 object marketId = getValue(marketIds, i);
-                object request = new Dictionary<string, object>() {
+                Dictionary<string, object> request = new Dictionary<string, object>() {
                     { "symbol", marketId },
                 };
                 ((IList<object>)promises).Add(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters)));
             }
             object responses = await promiseAll(promises);
-            for (object i = 0; isLessThan(i, getArrayLength(responses)); postFixIncrement(ref i))
+            for (int i = 0; isLessThan(i, getArrayLength(responses)); postFixIncrement(ref i))
             {
                 ((IList<object>)result).Add(this.parseMarket(getValue(responses, i)));
             }
         } else
         {
             // use trading-pairs info, if it was fetched
-            object tradingPairs = this.safeList(this.options, "tradingPairs");
+            List<object> tradingPairs = this.safeList(this.options, "tradingPairs");
             if (isTrue(!isEqual(tradingPairs, null)))
             {
                 Dictionary<string, object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
-                for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
                     object marketId = getValue(marketIds, i);
-                    object pairInfo = this.safeList(indexedTradingPairs, ((string)marketId).ToUpper());
+                    List<object> pairInfo = this.safeList(indexedTradingPairs, ((string)marketId).ToUpper());
                     if (isTrue(isTrue(!isEqual(pairInfo, null)) && !isTrue(this.inArray(marketId, brokenPairs))))
                     {
                         ((IList<object>)result).Add(this.parseMarket(pairInfo));
@@ -885,7 +984,7 @@ public partial class gemini : Exchange
                 }
             } else
             {
-                for (object i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(marketIds)); postFixIncrement(ref i))
                 {
                     if (!isTrue(this.inArray(getValue(marketIds, i), brokenPairs)))
                     {
@@ -894,7 +993,7 @@ public partial class gemini : Exchange
                 }
             }
         }
-        return result;
+        return ccxt.BaseExchange.ToMarketInterfaceList(result);
     }
 
     public override object parseMarket(object response)
@@ -935,14 +1034,14 @@ public partial class gemini : Exchange
         object baseId = null;
         object quoteId = null;
         object settleId = null;
-        object tickSize = null;
-        object amountPrecision = null;
-        object minSize = null;
+        double? tickSize = null;
+        double? amountPrecision = null;
+        double? minSize = null;
         object status = null;
         bool swap = false;
-        object contractSize = null;
-        object linear = null;
-        object inverse = null;
+        double? contractSize = null;
+        bool? linear = null;
+        bool? inverse = null;
         bool isString = ((response is string));
         bool isArray = (((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))));
         if (isTrue(!isTrue(isString) && !isTrue(isArray)))
@@ -971,7 +1070,7 @@ public partial class gemini : Exchange
             string marketIdUpper = ((string)((string)marketId)).ToUpper();
             bool isPerp = (isGreaterThanOrEqual(getIndexOf(marketIdUpper, "PERP"), 0));
             string marketIdWithoutPerp = ((string)marketIdUpper).Replace((string)"PERP", (string)"");
-            object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new Dictionary<string, object>() {});
+            IDictionary<string, object> conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new Dictionary<string, object>() {});
             string lowerCaseId = ((string)marketIdWithoutPerp).ToLower();
             if (isTrue(inOp(conflictingMarkets, lowerCaseId)))
             {
@@ -985,12 +1084,12 @@ public partial class gemini : Exchange
             } else
             {
                 object quoteCurrencies = this.handleOption("fetchMarketsFromAPI", "quoteCurrencies", new List<object>() {});
-                for (object i = 0; isLessThan(i, getArrayLength(quoteCurrencies)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(quoteCurrencies)); postFixIncrement(ref i))
                 {
                     object quoteCurrency = getValue(quoteCurrencies, i);
                     if (isTrue(((string)marketIdWithoutPerp).EndsWith(((string)quoteCurrency))))
                     {
-                        object quoteLength = this.parseToInt(multiply(-1, getArrayLength(quoteCurrency)));
+                        Int64? quoteLength = this.parseToInt(multiply(-1, getArrayLength(quoteCurrency)));
                         baseId = slice(marketIdWithoutPerp, 0, quoteLength);
                         quoteId = quoteCurrency;
                         if (isTrue(isPerp))
@@ -1003,8 +1102,8 @@ public partial class gemini : Exchange
             }
         }
         object bs = this.safeCurrencyCode(baseId);
-        object quote = this.safeCurrencyCode(quoteId);
-        object settle = this.safeCurrencyCode(settleId);
+        string? quote = this.safeCurrencyCode(quoteId);
+        string? settle = this.safeCurrencyCode(settleId);
         object symbol = add(add(bs, "/"), quote);
         if (isTrue(!isEqual(settleId, null)))
         {
@@ -1014,7 +1113,7 @@ public partial class gemini : Exchange
             linear = true; // always linear
             inverse = false;
         }
-        object type = ((bool) isTrue(swap)) ? "swap" : "spot";
+        string type = ((bool) isTrue(swap)) ? "swap" : "spot";
         bool isSpot = !isTrue(swap);
         return this.safeMarketStructure(new Dictionary<string, object>() {
             { "id", marketId },
@@ -1077,15 +1176,15 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an [order book structure]{@link https://docs.ccxt.com/?id=order-book-structure}
      */
-    public async override Task<object> fetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
+    public async override Task<ccxt.OrderBook> FetchOrderBook(string symbol, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         if (isTrue(!isEqual(limit, null)))
@@ -1093,8 +1192,8 @@ public partial class gemini : Exchange
             ((IDictionary<string,object>)request)["limit_bids"] = limit;
             ((IDictionary<string,object>)request)["limit_asks"] = limit;
         }
-        object response = await this.publicGetV1BookSymbol(this.extend(request, parameters));
-        return this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount");
+        Dictionary<string, object> response = await this.publicGetV1BookSymbol(this.extend(request, parameters));
+        return ccxt.BaseExchange.ToOrderBook(this.parseOrderBook(response, getValue(market, "symbol"), null, "bids", "asks", "price", "amount"));
     }
 
     public async virtual Task<ccxt.Ticker> FetchTickerV1(string symbol, object parameters = null)
@@ -1104,11 +1203,11 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.publicGetV1PubtickerSymbol(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetV1PubtickerSymbol(this.extend(request, parameters));
         //
         //     {
         //         "bid":"9117.95",
@@ -1131,11 +1230,11 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.publicGetV2TickerSymbol(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetV2TickerSymbol(this.extend(request, parameters));
         //
         //     {
         //         "symbol":"BTCUSD",
@@ -1228,14 +1327,14 @@ public partial class gemini : Exchange
         //     }
         //
         object volume = this.safeValue(ticker, "volume", new Dictionary<string, object>() {});
-        object timestamp = this.safeInteger(volume, "timestamp");
+        Int64? timestamp = this.safeInteger(volume, "timestamp");
         object symbol = null;
-        object marketId = this.safeStringLower(ticker, "pair");
+        string? marketId = this.safeStringLower(ticker, "pair");
         market = this.safeMarket(marketId, market);
-        object baseId = null;
-        object quoteId = null;
+        string? baseId = null;
+        string? quoteId = null;
         object bs = null;
-        object quote = null;
+        string? quote = null;
         if (isTrue(isTrue((!isEqual(marketId, null))) && isTrue((isEqual(market, null)))))
         {
             object idLength = subtract(((string)marketId).Length, 0);
@@ -1258,12 +1357,12 @@ public partial class gemini : Exchange
             baseId = this.safeStringUpper(market, "baseId");
             quoteId = this.safeStringUpper(market, "quoteId");
         }
-        object price = this.safeString(ticker, "price");
-        object last = this.safeString2(ticker, "last", "close", price);
-        object percentage = this.safeString(ticker, "percentChange24h");
-        object open = this.safeString(ticker, "open");
-        object baseVolume = this.safeString(volume, baseId);
-        object quoteVolume = this.safeString(volume, quoteId);
+        string? price = this.safeString(ticker, "price");
+        string? last = this.safeString2(ticker, "last", "close", price);
+        string? percentage = this.safeString(ticker, "percentChange24h");
+        string? open = this.safeString(ticker, "open");
+        string? baseVolume = this.safeString(volume, baseId);
+        string? quoteVolume = this.safeString(volume, quoteId);
         return this.safeTicker(new Dictionary<string, object>() {
             { "symbol", symbol },
             { "timestamp", timestamp },
@@ -1297,14 +1396,14 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [ticker structures]{@link https://docs.ccxt.com/?id=ticker-structure}
      */
-    public async override Task<object> fetchTickers(object symbols = null, object parameters = null)
+    public async override Task<ccxt.Tickers> FetchTickers(object symbols = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object response = await this.publicGetV1Pricefeed(parameters);
+        List<object> response = await this.publicGetV1Pricefeed(parameters);
         //
         //     [
         //         {
@@ -1320,8 +1419,8 @@ public partial class gemini : Exchange
         //     ]
         //
         object result = this.parseTickers(response, symbols);
-        object brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
-        return this.removeKeysFromDict(result, brokenPairs);
+        List<object> brokenPairs = this.safeList(this.options, "brokenPairs", new List<object>() {});
+        return ccxt.BaseExchange.ToTickers(this.removeKeysFromDict(result, brokenPairs));
     }
 
     public override object parseTrade(object trade, object market = null)
@@ -1359,19 +1458,19 @@ public partial class gemini : Exchange
         //          "client_order_id":"1638891171610"
         //      }
         //
-        object timestamp = this.safeInteger(trade, "timestampms");
-        object id = this.safeString(trade, "tid");
-        object orderId = this.safeString(trade, "order_id");
-        object feeCurrencyId = this.safeString(trade, "fee_currency");
-        object feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
-        object fee = new Dictionary<string, object>() {
+        Int64? timestamp = this.safeInteger(trade, "timestampms");
+        string? id = this.safeString(trade, "tid");
+        string? orderId = this.safeString(trade, "order_id");
+        string? feeCurrencyId = this.safeString(trade, "fee_currency");
+        string? feeCurrencyCode = this.safeCurrencyCode(feeCurrencyId);
+        Dictionary<string, object> fee = new Dictionary<string, object>() {
             { "cost", this.safeString(trade, "fee_amount") },
             { "currency", feeCurrencyCode },
         };
-        object priceString = this.safeString(trade, "price");
-        object amountString = this.safeString(trade, "amount");
-        object side = this.safeStringLower(trade, "type");
-        object symbol = this.safeSymbol(null, market);
+        string? priceString = this.safeString(trade, "price");
+        string? amountString = this.safeString(trade, "amount");
+        string? side = this.safeStringLower(trade, "type");
+        string? symbol = this.safeSymbol(null, market);
         return this.safeTrade(new Dictionary<string, object>() {
             { "id", id },
             { "order", orderId },
@@ -1407,8 +1506,8 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         if (isTrue(!isEqual(limit, null)))
@@ -1419,7 +1518,7 @@ public partial class gemini : Exchange
         {
             ((IDictionary<string,object>)request)["timestamp"] = since;
         }
-        object response = await this.publicGetV1TradesSymbol(this.extend(request, parameters));
+        List<object> response = await this.publicGetV1TradesSymbol(this.extend(request, parameters));
         //
         //     [
         //         {
@@ -1438,14 +1537,14 @@ public partial class gemini : Exchange
 
     public override object parseBalance(object response)
     {
-        object result = new Dictionary<string, object>() {
+        Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
-        for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
         {
             object balance = getValue(response, i);
-            object currencyId = this.safeString(balance, "currency");
-            object code = this.safeCurrencyCode(currencyId);
+            string? currencyId = this.safeString(balance, "currency");
+            string? code = this.safeCurrencyCode(currencyId);
             object account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "amount");
@@ -1465,14 +1564,14 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a dictionary of [fee structures]{@link https://docs.ccxt.com/?id=fee-structure} indexed by market symbols
      */
-    public async override Task<object> fetchTradingFees(object parameters = null)
+    public async override Task<ccxt.TradingFees> FetchTradingFees(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object response = await this.privatePostV1Notionalvolume(parameters);
+        Dictionary<string, object> response = await this.privatePostV1Notionalvolume(parameters);
         //
         //      {
         //          "web_maker_fee_bps": 25,
@@ -1501,15 +1600,15 @@ public partial class gemini : Exchange
         //          ]
         //     }
         //
-        object makerBps = this.safeString(response, "api_maker_fee_bps");
-        object takerBps = this.safeString(response, "api_taker_fee_bps");
-        object makerString = Precise.stringDiv(makerBps, "10000");
-        object takerString = Precise.stringDiv(takerBps, "10000");
-        object maker = this.parseNumber(makerString);
-        object taker = this.parseNumber(takerString);
-        object result = new Dictionary<string, object>() {};
+        string? makerBps = this.safeString(response, "api_maker_fee_bps");
+        string? takerBps = this.safeString(response, "api_taker_fee_bps");
+        string? makerString = Precise.stringDiv(makerBps, "10000");
+        string? takerString = Precise.stringDiv(takerBps, "10000");
+        double? maker = this.parseNumber(makerString);
+        double? taker = this.parseNumber(takerString);
+        Dictionary<string, object> result = new Dictionary<string, object>() {};
         object symbols = this.symbols;
-        for (object i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(symbols)); postFixIncrement(ref i))
         {
             object symbol = getValue(symbols, i);
             ((IDictionary<string,object>)result)[(string)symbol] = new Dictionary<string, object>() {
@@ -1521,7 +1620,7 @@ public partial class gemini : Exchange
                 { "tierBased", true },
             };
         }
-        return result;
+        return ccxt.BaseExchange.ToTradingFees(result);
     }
 
     /**
@@ -1532,15 +1631,15 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a [balance structure]{@link https://docs.ccxt.com/?id=balance-structure}
      */
-    public async override Task<object> fetchBalance(object parameters = null)
+    public async override Task<ccxt.Balances> FetchBalance(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object response = await this.privatePostV1Balances(parameters);
-        return this.parseBalance(response);
+        Dictionary<string, object> response = await this.privatePostV1Balances(parameters);
+        return ccxt.BaseExchange.ToBalances(this.parseBalance(response));
     }
 
     public override object parseOrder(object order, object market = null)
@@ -1643,10 +1742,10 @@ public partial class gemini : Exchange
         //          "remaining_amount":"0.01"
         //      }
         //
-        object timestamp = this.safeInteger(order, "timestampms");
-        object amount = this.safeString(order, "original_amount");
-        object remaining = this.safeString(order, "remaining_amount");
-        object filled = this.safeString(order, "executed_amount");
+        Int64? timestamp = this.safeInteger(order, "timestampms");
+        string? amount = this.safeString(order, "original_amount");
+        string? remaining = this.safeString(order, "remaining_amount");
+        string? filled = this.safeString(order, "executed_amount");
         string status = "closed";
         if (isTrue(isEqual(getValue(order, "is_live"), true)))
         {
@@ -1656,8 +1755,8 @@ public partial class gemini : Exchange
         {
             status = "canceled";
         }
-        object price = this.safeString(order, "price");
-        object average = this.safeString(order, "avg_execution_price");
+        string? price = this.safeString(order, "price");
+        string? average = this.safeString(order, "avg_execution_price");
         object type = this.safeString(order, "type");
         if (isTrue(isEqual(type, "exchange limit")))
         {
@@ -1670,13 +1769,13 @@ public partial class gemini : Exchange
             type = getValue(order, "type");
         }
         object fee = null;
-        object marketId = this.safeString(order, "symbol");
-        object symbol = this.safeSymbol(marketId, market);
-        object id = this.safeString(order, "order_id");
-        object side = this.safeStringLower(order, "side");
-        object clientOrderId = this.safeString(order, "client_order_id");
+        string? marketId = this.safeString(order, "symbol");
+        string? symbol = this.safeSymbol(marketId, market);
+        string? id = this.safeString(order, "order_id");
+        string? side = this.safeStringLower(order, "side");
+        string? clientOrderId = this.safeString(order, "client_order_id");
         object optionsArray = this.safeValue(order, "options", new List<object>() {});
-        object option = this.safeString(optionsArray, 0);
+        string? option = this.safeString(optionsArray, 0);
         string timeInForce = "GTC";
         bool postOnly = false;
         if (isTrue(!isEqual(option, null)))
@@ -1735,10 +1834,10 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        object response = await this.privatePostV1OrderStatus(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostV1OrderStatus(this.extend(request, parameters));
         //
         //      {
         //          "order_id":"106028543717",
@@ -1783,7 +1882,7 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object response = await this.privatePostV1Orders(parameters);
+        List<object> response = await this.privatePostV1Orders(parameters);
         //
         //      [
         //          {
@@ -1809,7 +1908,7 @@ public partial class gemini : Exchange
         //          }
         //      ]
         //
-        object market = null;
+        IDictionary<string, object> market = null;
         if (isTrue(!isEqual(symbol, null)))
         {
             market = this.market(symbol); // throws on non-existent symbol
@@ -1842,16 +1941,16 @@ public partial class gemini : Exchange
         {
             throw new ExchangeError ((string)add(this.id, " createOrder() allows limit orders only")) ;
         }
-        object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
+        string? clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id");
         parameters = this.omit(parameters, new List<object>() {"clientOrderId", "client_order_id"});
         if (isTrue(isEqual(clientOrderId, null)))
         {
             clientOrderId = ((object)this.milliseconds()).ToString();
         }
-        object market = this.market(symbol);
-        object amountString = this.amountToPrecision(symbol, amount);
-        object priceString = this.priceToPrecision(symbol, price);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        string? amountString = this.amountToPrecision(symbol, amount);
+        string? priceString = this.priceToPrecision(symbol, price);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "client_order_id", clientOrderId },
             { "symbol", getValue(market, "id") },
             { "amount", amountString },
@@ -1861,7 +1960,7 @@ public partial class gemini : Exchange
         };
         typeVar = this.safeString(parameters, "type", typeVar);
         parameters = this.omit(parameters, "type");
-        object triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice"});
+        string? triggerPrice = this.safeStringN(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice"});
         parameters = this.omit(parameters, new List<object>() {"triggerPrice", "stop_price", "stopPrice", "type"});
         if (isTrue(isEqual(typeVar, "stopLimit")))
         {
@@ -1874,7 +1973,7 @@ public partial class gemini : Exchange
         } else
         {
             // No options can be applied to stop-limit orders at this time.
-            object timeInForce = this.safeString(parameters, "timeInForce");
+            string? timeInForce = this.safeString(parameters, "timeInForce");
             parameters = this.omit(parameters, "timeInForce");
             if (isTrue(!isEqual(timeInForce, null)))
             {
@@ -1889,20 +1988,20 @@ public partial class gemini : Exchange
                     ((IDictionary<string,object>)request)["options"] = new List<object>() {"maker-or-cancel"};
                 }
             }
-            object postOnly = this.safeBool(parameters, "postOnly", false);
+            bool? postOnly = this.safeBool(parameters, "postOnly", false);
             parameters = this.omit(parameters, "postOnly");
             if (isTrue(isEqual(postOnly, true)))
             {
                 ((IDictionary<string,object>)request)["options"] = new List<object>() {"maker-or-cancel"};
             }
             // allowing override for auction-only and indication-of-interest order options
-            object options = this.safeString(parameters, "options");
+            string? options = this.safeString(parameters, "options");
             if (isTrue(!isEqual(options, null)))
             {
                 ((IDictionary<string,object>)request)["options"] = new List<object>() {options};
             }
         }
-        object response = await this.privatePostV1OrderNew(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostV1OrderNew(this.extend(request, parameters));
         //
         //      {
         //          "order_id":"106027397702",
@@ -1946,10 +2045,10 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "order_id", id },
         };
-        object response = await this.privatePostV1OrderCancel(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostV1OrderCancel(this.extend(request, parameters));
         //
         //      {
         //          "order_id":"106028543717",
@@ -1999,8 +2098,8 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
         if (isTrue(!isEqual(limit, null)))
@@ -2011,7 +2110,7 @@ public partial class gemini : Exchange
         {
             ((IDictionary<string,object>)request)["timestamp"] = this.parseToInt(divide(since, 1000));
         }
-        object response = await this.privatePostV1Mytrades(this.extend(request, parameters));
+        List<object> response = await this.privatePostV1Mytrades(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(response, market, since, limit));
     }
 
@@ -2031,7 +2130,7 @@ public partial class gemini : Exchange
     {
         object tagVar = tag;
         parameters ??= new Dictionary<string, object>();
-        var tagparametersVariable = this.handleWithdrawTagAndParams(tagVar, parameters);
+        IList<object> tagparametersVariable = (IList<object>)this.handleWithdrawTagAndParams(tagVar, parameters);
         tagVar = ((IList<object>)tagparametersVariable)[0];
         parameters = ((IList<object>)tagparametersVariable)[1];
         this.checkAddress(address);
@@ -2039,13 +2138,13 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
             { "amount", amount },
             { "address", address },
         };
-        object response = await this.privatePostV1WithdrawCurrency(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.privatePostV1WithdrawCurrency(this.extend(request, parameters));
         //
         //   for BTC
         //     {
@@ -2069,7 +2168,7 @@ public partial class gemini : Exchange
         //         "message":"Cryptocurrency withdrawal address whitelists are not enabled for account 24. Please contact support@gemini.com for information on setting up a withdrawal address whitelist."
         //     }
         //
-        object result = this.safeString(response, "result");
+        string? result = this.safeString(response, "result");
         if (isTrue(isEqual(result, "error")))
         {
             throw new ExchangeError ((string)add(add(this.id, " withdraw() failed: "), this.json(response))) ;
@@ -2077,9 +2176,9 @@ public partial class gemini : Exchange
         return ccxt.BaseExchange.ToTransaction(this.parseTransaction(response, currency));
     }
 
-    public override object nonce()
+    public override Int64 nonce()
     {
-        object nonceMethod = this.safeString(this.options, "nonce", "milliseconds");
+        string? nonceMethod = this.safeString(this.options, "nonce", "milliseconds");
         if (isTrue(isEqual(nonceMethod, "milliseconds")))
         {
             return this.milliseconds();
@@ -2098,14 +2197,14 @@ public partial class gemini : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} a list of [transaction structure]{@link https://docs.ccxt.com/?id=transaction-structure}
      */
-    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(object code = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.Transaction>> FetchDepositsWithdrawals(string code = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (isTrue(isEqual(this.markets, null)))
         {
             await this.loadMarkets();
         }
-        object request = new Dictionary<string, object>() {};
+        Dictionary<string, object> request = new Dictionary<string, object>() {};
         if (isTrue(!isEqual(limit, null)))
         {
             ((IDictionary<string,object>)request)["limit_transfers"] = limit;
@@ -2114,7 +2213,7 @@ public partial class gemini : Exchange
         {
             ((IDictionary<string,object>)request)["timestamp"] = since;
         }
-        object response = await this.privatePostV1Transfers(this.extend(request, parameters));
+        List<object> response = await this.privatePostV1Transfers(this.extend(request, parameters));
         return ccxt.BaseExchange.ToTransactionList(this.parseTransactions(response));
     }
 
@@ -2138,15 +2237,15 @@ public partial class gemini : Exchange
         //         "txHash":"0x28267179f92926d85c5516bqc063b2631935573d8915258e95d9572eedcc8cc"
         //     }
         //
-        object timestamp = this.safeInteger(transaction, "timestampms");
-        object currencyId = this.safeString(transaction, "currency");
-        object code = this.safeCurrencyCode(currencyId, currency);
-        object address = this.safeString(transaction, "destination");
-        object type = this.safeStringLower(transaction, "type");
+        Int64? timestamp = this.safeInteger(transaction, "timestampms");
+        string? currencyId = this.safeString(transaction, "currency");
+        string? code = this.safeCurrencyCode(currencyId, currency);
+        string? address = this.safeString(transaction, "destination");
+        string? type = this.safeStringLower(transaction, "type");
         // if status field is available, then it's complete
-        object statusRaw = this.safeString(transaction, "status");
-        object fee = null;
-        object feeAmount = this.safeNumber(transaction, "feeAmount");
+        string? statusRaw = this.safeString(transaction, "status");
+        Dictionary<string, object> fee = null;
+        double? feeAmount = this.safeNumber(transaction, "feeAmount");
         if (isTrue(!isEqual(feeAmount, null)))
         {
             fee = new Dictionary<string, object>() {
@@ -2178,9 +2277,9 @@ public partial class gemini : Exchange
         };
     }
 
-    public virtual object parseTransactionStatus(object status)
+    public virtual string? parseTransactionStatus(object status)
     {
-        object statuses = new Dictionary<string, object>() {
+        Dictionary<string, object> statuses = new Dictionary<string, object>() {
             { "Advanced", "ok" },
             { "Complete", "ok" },
         };
@@ -2196,8 +2295,8 @@ public partial class gemini : Exchange
         //          "addressVersion": "eV1"                                         }
         //      }
         //
-        object address = this.safeString(depositAddress, "address");
-        object code = this.safeCurrencyCode(null, currency);
+        string? address = this.safeString(depositAddress, "address");
+        string? code = this.safeCurrencyCode(null, currency);
         return new Dictionary<string, object>() {
             { "currency", code },
             { "network", null },
@@ -2224,13 +2323,12 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object groupedByNetwork = await this.fetchDepositAddressesByNetwork(((string)code), parameters);
+        object indexedByNetwork = ccxt.BaseExchange.FromDepositAddresses(await this.FetchDepositAddressesByNetwork(((string)code), parameters));
         object networkCode = null;
-        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
-        Dictionary<string, object> networkGroup = this.indexBy(this.safeValue(groupedByNetwork, networkCode), "currency");
-        return ccxt.BaseExchange.ToDepositAddress(this.safeValue(networkGroup, code));
+        return ccxt.BaseExchange.ToDepositAddress(this.safeValue(indexedByNetwork, networkCode));
     }
 
     /**
@@ -2243,7 +2341,7 @@ public partial class gemini : Exchange
      * @param {string} [params.network]  *required* The chain of currency
      * @returns {object} a dictionary of [address structures]{@link https://docs.ccxt.com/?id=address-structure} indexed by the network
      */
-    public async override Task<object> fetchDepositAddressesByNetwork(string code, object parameters = null)
+    public async override Task<ccxt.DepositAddresses> FetchDepositAddressesByNetwork(string code, object parameters = null)
     {
         object codeVar = code;
         parameters ??= new Dictionary<string, object>();
@@ -2251,10 +2349,10 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(codeVar);
+        Dictionary<string, object> currency = this.currency(((string)codeVar));
         codeVar = getValue(currency, "code");
         object networkCode = null;
-        var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
+        IList<object> networkCodeparametersVariable = (IList<object>)this.handleNetworkCodeAndParams(parameters);
         networkCode = ((IList<object>)networkCodeparametersVariable)[0];
         parameters = ((IList<object>)networkCodeparametersVariable)[1];
         if (isTrue(isEqual(networkCode, null)))
@@ -2262,15 +2360,17 @@ public partial class gemini : Exchange
             throw new ArgumentsRequired ((string)add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
         }
         object networkId = this.networkCodeToId(networkCode, getValue(currency, "code"));
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "network", networkId },
         };
-        object response = await this.privatePostV1AddressesNetwork(this.extend(request, parameters));
+        List<object> response = await this.privatePostV1AddressesNetwork(this.extend(request, parameters));
         object results = this.parseDepositAddresses(response, new List<object>() {codeVar}, false, new Dictionary<string, object>() {
             { "network", networkCode },
             { "currency", codeVar },
         });
-        return this.groupBy(results, "network");
+        // one address structure per network, like every other venue (the endpoint is scoped to a
+        // single network, so the last address the venue lists for it wins — same as before)
+        return ccxt.BaseExchange.ToDepositAddresses(this.indexBy(results, "network"));
     }
 
     public override object sign(object path, object api = null, object method = null, object parameters = null, object headers = null, object body = null)
@@ -2294,7 +2394,7 @@ public partial class gemini : Exchange
                 { "request", finalUrl },
                 { "nonce", nonce },
             }, query);
-            object payload = this.json(request);
+            string payload = this.json(request);
             payload = this.stringToBase64(payload);
             string signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384);
             headers = new Dictionary<string, object>() {
@@ -2329,7 +2429,7 @@ public partial class gemini : Exchange
         {
             if (isTrue((body is string)))
             {
-                object feedback = add(add(this.id, " "), body);
+                string feedback = add(add(this.id, " "), body);
                 this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), body, feedback);
             }
             return null;  // fallback to default error handler
@@ -2341,12 +2441,12 @@ public partial class gemini : Exchange
         //         "message": "Out-of-sequence nonce <1234> precedes previously used nonce <2345>"
         //     }
         //
-        object result = this.safeString(response, "result");
+        string? result = this.safeString(response, "result");
         if (isTrue(isEqual(result, "error")))
         {
-            object reasonInner = this.safeString(response, "reason");
-            object message = this.safeString(response, "message");
-            object feedback = add(add(this.id, " "), message);
+            string? reasonInner = this.safeString(response, "reason");
+            string? message = this.safeString(response, "message");
+            string feedback = add(add(this.id, " "), message);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), reasonInner, feedback);
             this.throwExactlyMatchedException(getValue(this.exceptions, "exact"), message, feedback);
             this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), message, feedback);
@@ -2371,12 +2471,12 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object currency = this.currency(code);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> currency = this.currency(((string)code));
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "currency", getValue(currency, "id") },
         };
-        object response = await this.privatePostV1DepositCurrencyNewAddress(this.extend(request, parameters));
-        object address = this.safeString(response, "address");
+        Dictionary<string, object> response = await this.privatePostV1DepositCurrencyNewAddress(this.extend(request, parameters));
+        string? address = this.safeString(response, "address");
         this.checkAddress(address);
         return ccxt.BaseExchange.ToDepositAddress(new Dictionary<string, object>() {             { "currency", code },             { "address", address },             { "tag", null },             { "network", null },             { "info", response },         });
     }
@@ -2402,13 +2502,13 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object timeframeId = this.safeString(this.timeframes, timeframeVar, timeframeVar);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        string? timeframeId = this.safeString(this.timeframes, timeframeVar, timeframeVar);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "timeframe", timeframeId },
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.publicGetV2CandlesSymbolTimeframe(this.extend(request, parameters));
+        List<object> response = await this.publicGetV2CandlesSymbolTimeframe(this.extend(request, parameters));
         //
         //     [
         //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
@@ -2416,12 +2516,12 @@ public partial class gemini : Exchange
         //         [1591514400000,0.02503,0.02503,0.02503,0.02503,0],
         //     ]
         //
-        object candles = new List<object>() {};
+        List<object> candles = new List<object>() {};
         if (isTrue(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>))))))
         {
             candles = response;
         }
-        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market, timeframeVar, since, limit));
+        return ccxt.BaseExchange.ToOHLCVList(this.parseOHLCVs(candles, market,((string)timeframeVar), since, limit));
     }
 
     /**
@@ -2440,11 +2540,11 @@ public partial class gemini : Exchange
         {
             await this.loadMarkets();
         }
-        object market = this.market(symbol);
-        object request = new Dictionary<string, object>() {
+        Dictionary<string, object> market = this.market(symbol);
+        Dictionary<string, object> request = new Dictionary<string, object>() {
             { "symbol", getValue(market, "id") },
         };
-        object response = await this.publicGetV1RiskstatsSymbol(this.extend(request, parameters));
+        Dictionary<string, object> response = await this.publicGetV1RiskstatsSymbol(this.extend(request, parameters));
         //
         //    {
         //        product_type: 'PerpetualSwapContract',

@@ -146,6 +146,11 @@ class upbit extends Exchange {
                         'travel_rule/vasps' => array( 'cost' => 0.67 ),
                         'status/wallet' => array( 'cost' => 0.67 ),
                         'api_keys' => array( 'cost' => 0.67 ), // Upbit KR only
+                        'pockets' => array( 'cost' => 0.67 ),
+                        'pockets/api_keys' => array( 'cost' => 0.67 ),
+                        'pockets/assets' => array( 'cost' => 0.67 ),
+                        'pockets/universal_transfers' => array( 'cost' => 0.67 ),
+                        'pockets/transfers' => array( 'cost' => 0.67 ),
                     ),
                     'post' => array(
                         'orders' => array( 'cost' => 2.5 ), // RPS => 8
@@ -157,6 +162,8 @@ class upbit extends Exchange {
                         'deposits/generate_coin_address' => array( 'cost' => 0.67 ),
                         'travel_rule/deposit/uuid' => array( 'cost' => 0.67 ), // RPS => 30, but each deposit can only be queried once every 10 minutes
                         'travel_rule/deposit/txid' => array( 'cost' => 0.67 ), // RPS => 30, but each deposit can only be queried once every 10 minutes
+                        'pockets/universal_transfers' => array( 'cost' => 0.67 ),
+                        'pockets/transfers' => array( 'cost' => 0.67 ),
                     ),
                     'delete' => array(
                         'order' => array( 'cost' => 0.67 ),
@@ -1155,7 +1162,7 @@ class upbit extends Exchange {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1257,7 +1264,7 @@ class upbit extends Exchange {
          * @param {float} $amount how much you want to trade in units of the base currency
          * @param {float} [$price] the $price at which the order is to be fulfilled, in units of the quote currency, ignored in $market orders
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @param {float} [$params->cost] for $market buy and best buy orders, the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] for $market buy and best buy orders, the quote quantity that can be used as an alternative for the $amount
          * @param {string} [$params->ordType] this field can be used to place a ‘best’ $type order
          * @param {string} [$params->timeInForce] 'IOC' or 'FOK' for limit or best $type orders, 'PO' for limit orders. this field is required when the order $type is 'best'.
          * @param {string} [$params->selfTradePrevention] 'reduce', 'cancel_maker', 'cancel_taker' array(@link https://global-docs.upbit.com/docs/smp)
@@ -1418,16 +1425,16 @@ class upbit extends Exchange {
          * @see https://docs.upbit.com/kr/reference/cancel-and-new-order
          * @see https://global-docs.upbit.com/reference/cancel-and-new-order
          *
-         * canceled existing order and create new order. It's only generated same $side and $symbol canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
+         * canceled existing order and create new order. It's only generated same $side and $symbol as the canceled order. it returns the data of the canceled order, except for `new_order_uuid` and `new_identifier`. to get the details of the new order, use `fetchOrder(new_order_uuid)`.
          * @param {string} $id the uuid of the previous order you want to edit.
-         * @param {string} $symbol the $symbol of the new order. it must be the same $symbol of the previous order.
+         * @param {string} $symbol the $symbol of the new order. it must be the same as the $symbol of the previous order.
          * @param {string} $type the $type of the new order. only limit or market is accepted. if $params->newOrdType is set to best, a best-$type order will be created regardless of the value of $type->
-         * @param {string} $side the $side of the new order. it must be the same $side of the previous order.
+         * @param {string} $side the $side of the new order. it must be the same as the $side of the previous order.
          * @param {number} $amount the $amount of the asset you want to buy or sell. It could be overridden by specifying the new_volume parameter in $params->
          * @param {number} $price the $price of the asset you want to buy or sell. It could be overridden by specifying the new_price parameter in $params->
          * @param {array} [$params] extra parameters specific to the exchange API endpoint.
          * @param {string} [$params->clientOrderId] to identify the previous order, either the $id or this field is property_exists($this, required) method.
-         * @param {float} [$params->cost] for market buy and best buy orders, the quote quantity that can be used alternative for the $amount->
+         * @param {float} [$params->cost] for market buy and best buy orders, the quote quantity that can be used as an alternative for the $amount->
          * @param {string} [$params->newTimeInForce] 'IOC' or 'FOK' for limit or best $type orders, 'PO' for limit orders. this field is required when the order $type is 'best'.
          * @param {string} [$params->newClientOrderId] the order ID that the user can define.
          * @param {string} [$params->newOrdType] this field only accepts limit, $price, market, or best. You can refer to the Upbit developer documentation for details on how to use this field.
@@ -1589,7 +1596,7 @@ class upbit extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_deposit(string $id, ?string $code = null, $params = array()) {
+    public function fetch_deposit(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch information on a deposit
          *
@@ -1680,7 +1687,7 @@ class upbit extends Exchange {
         return $this->parse_transactions($response, $currency, $since, $limit);
     }
 
-    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()) {
+    public function fetch_withdrawal(string $id, ?string $code = null, $params = array()): array {
         /**
          * fetch data on a $currency withdrawal via the withdrawal $id
          *

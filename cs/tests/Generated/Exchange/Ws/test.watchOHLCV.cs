@@ -21,10 +21,10 @@ public partial class testMainClass : BaseTest
         {
             chosenTimeframeKey = getValue(timeframeKeys, 0);
         }
-        object limit = 10;
+        int limit = 10;
         object duration = exchange.parseTimeframe(chosenTimeframeKey);
         object since = subtract(subtract(exchange.milliseconds(), multiply(multiply(duration, limit), 1000)), 1000);
-        object maxIdleTime = 5000;
+        int maxIdleTime = 5000;
         bool idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
@@ -50,7 +50,7 @@ public partial class testMainClass : BaseTest
             if (isTrue(isTrue((isEqual(success, true))) && isTrue((!isEqual(response, null)))))
             {
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, response, symbol);
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     testOHLCV(exchange, skippedProperties, method, getValue(response, i), symbol, now);
                 }

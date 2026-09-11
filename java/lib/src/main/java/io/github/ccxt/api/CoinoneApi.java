@@ -712,4 +712,26 @@ public class CoinoneApi extends Exchange
         return this.callAsync ("v2_1PrivatePostTransactionCoinWithdrawalLimit", optionalArgs);
     }
 
+    /**
+     * Calls the v2_1PrivatePostEventOrderRewardPrograms endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2_1PrivatePostEventOrderRewardPrograms (Object... optionalArgs)
+    {
+        return this.callAsync ("v2_1PrivatePostEventOrderRewardPrograms", optionalArgs);
+    }
+
+    /**
+     * Calls the v2_1PrivatePostEventOrderRewardHistory endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  v2_1PrivatePostEventOrderRewardHistory (Object... optionalArgs)
+    {
+        return this.callAsync ("v2_1PrivatePostEventOrderRewardHistory", optionalArgs);
+    }
+
 }

@@ -20,7 +20,7 @@ public partial class testMainClass : BaseTest
         string method = "watchBidsAsks";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        object maxIdleTime = 5000;
+        int maxIdleTime = 5000;
         bool idle = false;
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
@@ -62,7 +62,7 @@ public partial class testMainClass : BaseTest
                     checkedSymbol = getValue(argSymbols, 0);
                 }
                 testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, values, checkedSymbol);
-                for (object i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(values)); postFixIncrement(ref i))
                 {
                     object ticker = getValue(values, i);
                     testTicker(exchange, skippedProperties, method, ticker, checkedSymbol);

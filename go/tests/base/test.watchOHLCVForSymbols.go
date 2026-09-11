@@ -23,10 +23,10 @@ func testWatchOHLCVForSymbolsBody(ch chan any, exchange ccxt.ICoreExchange, skip
 	if !IsTrue(exchange.InArray(chosenTimeframeKey, timeframeKeys)) {
 		chosenTimeframeKey = GetValue(timeframeKeys, 0)
 	}
-	var limit any = 10
+	var limit int = 10
 	var duration any = exchange.ParseTimeframe(chosenTimeframeKey)
 	var since any = Subtract(Subtract(exchange.Milliseconds(), Multiply(Multiply(duration, limit), 1000)), 1000)
-	var maxIdleTime any = 5000
+	var maxIdleTime int = 5000
 	var idle bool = false
 	for IsTrue((IsLessThan(now, ends))) && !IsTrue(idle) {
 		var response any = nil

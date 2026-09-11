@@ -168,6 +168,16 @@ export default class toobit extends Exchange {
                         'api/v1/agent/user/export': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/agent/export-list': { 'cost': 1 } as Endpoint<Dict>,
                         'api/v1/agent/export-url': { 'cost': 1 } as Endpoint<Dict>,
+                        // v2
+                        'api/v2/account/balance-flow': { 'cost': 5 } as Endpoint<List>,
+                        'api/v2/futures/order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
+                        'api/v2/futures/open-orders': { 'cost': 1 * 1.67 } as Endpoint<List>,
+                        'api/v2/futures/history-orders': { 'cost': 5 * 1.67 } as Endpoint<List>,
+                        'api/v2/futures/user-trades': { 'cost': 5 * 1.67 } as Endpoint<List>,
+                        'api/v2/futures/algo-order': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
+                        'api/v2/futures/open-algo-orders': { 'cost': 1 * 1.67 } as Endpoint<List>,
+                        'api/v2/futures/history-algo-orders': { 'cost': 5 * 1.67 } as Endpoint<List>,
+                        'api/v2/futures/voucher/list': { 'cost': 5 } as Endpoint<Dict>,
                     },
                     'post': {
                         'api/v1/spot/orderTest': { 'cost': 1 * 1.67 } as Endpoint<Dict>,
@@ -2772,7 +2782,7 @@ export default class toobit extends Exchange {
         return await this.fetchDepositsOrWithdrawalsHelper ('withdrawals', code, since, limit, params);
     }
 
-    async fetchDepositsOrWithdrawalsHelper (type: any, code: any, since: any, limit: any, params = {}) {
+    async fetchDepositsOrWithdrawalsHelper (type: any, code: any, since: any, limit: any, params = {}): Promise<Transaction[]> {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
@@ -3208,12 +3218,12 @@ export default class toobit extends Exchange {
             'info': position,
             'id': this.safeString (position, 'id'),
             'symbol': market['symbol'],
-            'entryPrice': this.safeString (position, 'avgPrice'),
-            'markPrice': this.safeString (position, 'markPrice'),
-            'lastPrice': this.safeString (position, 'lastPrice'),
-            'notional': this.safeString (position, 'positionValue'),
+            'entryPrice': this.safeNumber (position, 'avgPrice'),
+            'markPrice': this.safeNumber (position, 'markPrice'),
+            'lastPrice': this.safeNumber (position, 'lastPrice'),
+            'notional': this.safeNumber (position, 'positionValue'),
             'collateral': undefined,
-            'unrealizedPnl': this.safeString (position, 'unrealizedPnL'),
+            'unrealizedPnl': this.safeNumber (position, 'unrealizedPnL'),
             'side': side,
             'contracts': this.parseNumber (quantity),
             'contractSize': undefined,
@@ -3222,7 +3232,7 @@ export default class toobit extends Exchange {
             'hedged': undefined,
             'maintenanceMargin': undefined,
             'maintenanceMarginPercentage': undefined,
-            'initialMargin': this.safeString (position, 'margin'),
+            'initialMargin': this.safeNumber (position, 'margin'),
             'initialMarginPercentage': undefined,
             'leverage': leverage,
             'liquidationPrice': undefined,

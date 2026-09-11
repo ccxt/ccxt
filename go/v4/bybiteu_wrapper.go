@@ -145,7 +145,7 @@ func (this *Bybiteu) EditOrders(orders []OrderRequest, options ...EditOrdersOpti
 func (this *Bybiteu) FetchAccounts(params ...any) ([]Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Bybiteu) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Bybiteu) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Bybiteu) FetchBalance(params ...any) (Balances, error) {
@@ -193,7 +193,7 @@ func (this *Bybiteu) FetchDepositAddress(code string, options ...FetchDepositAdd
 func (this *Bybiteu) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Bybiteu) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Bybiteu) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Bybiteu) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

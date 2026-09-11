@@ -14,7 +14,7 @@ public partial class testMainClass : BaseTest
         testSharedMethods.assertDictionaryResponse(exchange, method, markets);
         List<object> marketValues = new List<object>(((IDictionary<string,object>)markets).Values);
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
-        for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
         {
             testMarket(exchange, skippedProperties, method, getValue(marketValues, i));
         }
@@ -24,8 +24,8 @@ public partial class testMainClass : BaseTest
     public static object detectMarketConflicts(BaseExchange exchange, object marketValues)
     {
         // detect if there are markets with different ids for the same symbol
-        object ids = new Dictionary<string, object>() {};
-        for (object i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
+        Dictionary<string, object> ids = new Dictionary<string, object>() {};
+        for (int i = 0; isLessThan(i, getArrayLength(marketValues)); postFixIncrement(ref i))
         {
             object market = getValue(marketValues, i);
             object symbol = getValue(market, "symbol");

@@ -460,6 +460,61 @@ public class UpbitApi extends Exchange
     }
 
     /**
+     * Calls the privateGetPockets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetPockets (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetPockets", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetPocketsApiKeys endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetPocketsApiKeys (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetPocketsApiKeys", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetPocketsAssets endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetPocketsAssets (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetPocketsAssets", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetPocketsUniversalTransfers endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetPocketsUniversalTransfers (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetPocketsUniversalTransfers", optionalArgs);
+    }
+
+    /**
+     * Calls the privateGetPocketsTransfers endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON array
+     */
+    public java.util.concurrent.CompletableFuture<java.util.List<Object>>  privateGetPocketsTransfers (Object... optionalArgs)
+    {
+        return this.callAsync ("privateGetPocketsTransfers", optionalArgs);
+    }
+
+    /**
      * Calls the privatePostOrders endpoint.
      *
      * @param optionalArgs the request parameters
@@ -556,6 +611,28 @@ public class UpbitApi extends Exchange
     public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostTravelRuleDepositTxid (Object... optionalArgs)
     {
         return this.callAsync ("privatePostTravelRuleDepositTxid", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostPocketsUniversalTransfers endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPocketsUniversalTransfers (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostPocketsUniversalTransfers", optionalArgs);
+    }
+
+    /**
+     * Calls the privatePostPocketsTransfers endpoint.
+     *
+     * @param optionalArgs the request parameters
+     * @return a JSON object
+     */
+    public java.util.concurrent.CompletableFuture<java.util.Map<String, Object>>  privatePostPocketsTransfers (Object... optionalArgs)
+    {
+        return this.callAsync ("privatePostPocketsTransfers", optionalArgs);
     }
 
     /**

@@ -117,6 +117,36 @@ func (this *BydfiCore) PrivateGetV1FapiTradePositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1FapiTradePositions", args...)
 }
 
+// PrivateGetV2FapiTradeOpenOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV2FapiTradeOpenOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2FapiTradeOpenOrder", args...)
+}
+
+// PrivateGetV2FapiTradePlanOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV2FapiTradePlanOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2FapiTradePlanOrder", args...)
+}
+
+// PrivateGetV2FapiTradeHistoryOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV2FapiTradeHistoryOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2FapiTradeHistoryOrder", args...)
+}
+
+// PrivateGetV2FapiTradeHistoryTrade returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV2FapiTradeHistoryTrade(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2FapiTradeHistoryTrade", args...)
+}
+
+// PrivateGetV2FapiTradePositionHistory returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV2FapiTradePositionHistory(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2FapiTradePositionHistory", args...)
+}
+
+// PrivateGetV2FapiTradePositions returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivateGetV2FapiTradePositions(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetV2FapiTradePositions", args...)
+}
+
 // PrivateGetV1FapiAccountBalance returns a channel that yields a JSON object.
 func (this *BydfiCore) PrivateGetV1FapiAccountBalance(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetV1FapiAccountBalance", args...)
@@ -215,6 +245,41 @@ func (this *BydfiCore) PrivatePostV1FapiTradeLeverage(args ...any) <-chan any {
 // PrivatePostV1FapiTradeBatchLeverageMargin returns a channel that yields a JSON object.
 func (this *BydfiCore) PrivatePostV1FapiTradeBatchLeverageMargin(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostV1FapiTradeBatchLeverageMargin", args...)
+}
+
+// PrivatePostV2FapiTradePlaceOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV2FapiTradePlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2FapiTradePlaceOrder", args...)
+}
+
+// PrivatePostV2FapiTradeBatchPlaceOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV2FapiTradeBatchPlaceOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2FapiTradeBatchPlaceOrder", args...)
+}
+
+// PrivatePostV2FapiTradeEditOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV2FapiTradeEditOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2FapiTradeEditOrder", args...)
+}
+
+// PrivatePostV2FapiTradeBatchEditOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV2FapiTradeBatchEditOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2FapiTradeBatchEditOrder", args...)
+}
+
+// PrivatePostV2FapiTradeCancelOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV2FapiTradeCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2FapiTradeCancelOrder", args...)
+}
+
+// PrivatePostV2FapiTradeBatchCancelOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV2FapiTradeBatchCancelOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2FapiTradeBatchCancelOrder", args...)
+}
+
+// PrivatePostV2FapiTradeCancelAllOrder returns a channel that yields a JSON object.
+func (this *BydfiCore) PrivatePostV2FapiTradeCancelAllOrder(args ...any) <-chan any {
+	return this.callEndpointAsync("privatePostV2FapiTradeCancelAllOrder", args...)
 }
 
 // PrivatePostV1FapiUserDataMarginType returns a channel that yields a JSON object.

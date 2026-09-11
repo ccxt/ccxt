@@ -345,7 +345,7 @@ class htx(ccxt.async_support.htx):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -371,7 +371,7 @@ class htx(ccxt.async_support.htx):
         :param str timeframe: the length of time each candle represents
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param dict [params.timezone]: if provided, kline intervals are interpreted in that timezone instead of UTC, example '+08:00'
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1941,7 +1941,6 @@ class htx(ccxt.async_support.htx):
                     return
                 messageHash += '.' + currencyId.lower()
                 subscription = self.safe_value(client.subscriptions, messageHash)
-            type = self.safe_string(subscription, 'type')
             subType = self.safe_string(subscription, 'subType')
             if topic == 'accounts_unify':
                 # {
@@ -1970,28 +1969,16 @@ class htx(ccxt.async_support.htx):
             elif subType == 'linear':
                 margin = self.safe_string(subscription, 'margin')
                 if margin == 'cross':
-                    fieldName = 'futures_contract_detail' if (type == 'future') else 'contract_detail'
-                    balances = self.safe_value(first, fieldName, [])
-                    balancesLength = len(balances)
-                    if balancesLength > 0:
-                        for i in range(0, len(balances)):
-                            balance = balances[i]
-                            marketId = self.safe_string_2(balance, 'contract_code', 'margin_account')
-                            market = self.safe_market(marketId)
-                            currencyId = self.safe_string(balance, 'margin_asset')
-                            currency = self.safe_currency(currencyId)
-                            code = self.safe_string(market, 'settle', currency['code'])
-                            # the exchange outputs positions for delisted markets
-                            # https://www.huobi.com/support/en-us/detail/74882968522337
-                            # we skip it if the market was delisted
-                            if code is not None:
-                                account = self.account()
-                                account['free'] = self.safe_string_2(balance, 'margin_balance', 'margin_available')
-                                account['used'] = self.safe_string(balance, 'margin_frozen')
-                                accountsByCode = {}
-                                accountsByCode[code] = account
-                                symbol = market['symbol']
-                                self.balance[symbol] = self.safe_balance(accountsByCode)
+                    # the cross account is one shared margin balance, keyed by the settle currency
+                    currencyId = self.safe_string_2(first, 'margin_asset', 'margin_account')
+                    code = self.safe_currency_code(currencyId)
+                    if code is not None:
+                        account = self.account()
+                        account['free'] = self.safe_string_2(first, 'withdraw_available', 'margin_available')
+                        account['used'] = self.safe_string(first, 'margin_frozen')
+                        account['total'] = self.safe_string(first, 'margin_balance')
+                        self.balance[code] = account
+                        self.balance = self.safe_balance(self.balance)
                 else:
                     # isolated margin
                     for i in range(0, len(data)):
@@ -2064,7 +2051,7 @@ class htx(ccxt.async_support.htx):
     def handle_system_status(self, client: Client, message: object):
         #
         # todo: answer the question whether handleSystemStatus should be renamed
-        # and unified for any usage pattern that
+        # and unified as handleStatus for any usage pattern that
         # involves system status and maintenance updates
         #
         #     {

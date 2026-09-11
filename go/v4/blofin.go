@@ -19,7 +19,7 @@ func (this *BlofinCore) Describe() any {
 		"name":      "BloFin",
 		"countries": []any{"US"},
 		"version":   "v1",
-		"rateLimit": 100,
+		"rateLimit": 200,
 		"pro":       true,
 		"has": map[string]any{
 			"CORS":                                 nil,
@@ -177,6 +177,9 @@ func (this *BlofinCore) Describe() any {
 					"market/instruments": map[string]any{
 						"cost": 1,
 					},
+					"market/instruments-history": map[string]any{
+						"cost": 1,
+					},
 					"market/tickers": map[string]any{
 						"cost": 1,
 					},
@@ -207,6 +210,21 @@ func (this *BlofinCore) Describe() any {
 					"market/position-tiers": map[string]any{
 						"cost": 1,
 					},
+					"spot/market/instruments": map[string]any{
+						"cost": 1,
+					},
+					"spot/market/tickers": map[string]any{
+						"cost": 1,
+					},
+					"spot/market/books": map[string]any{
+						"cost": 1,
+					},
+					"spot/market/trades": map[string]any{
+						"cost": 1,
+					},
+					"spot/market/candles": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 			"private": map[string]any{
@@ -221,6 +239,9 @@ func (this *BlofinCore) Describe() any {
 						"cost": 1,
 					},
 					"asset/deposit-history": map[string]any{
+						"cost": 1,
+					},
+					"asset/deposit-address": map[string]any{
 						"cost": 1,
 					},
 					"account/config": map[string]any{
@@ -238,6 +259,9 @@ func (this *BlofinCore) Describe() any {
 					"account/positions-history": map[string]any{
 						"cost": 1,
 					},
+					"account/funding-fees": map[string]any{
+						"cost": 1,
+					},
 					"account/margin-mode": map[string]any{
 						"cost": 1,
 					},
@@ -251,34 +275,34 @@ func (this *BlofinCore) Describe() any {
 						"cost": 1,
 					},
 					"trade/orders-pending": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/order-detail": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/orders-tpsl-pending": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/order-tpsl-detail": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/orders-algo-pending": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/orders-history": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/orders-tpsl-history": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/orders-algo-history": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/fills-history": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/order/price-range": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"affiliate/basic": map[string]any{
 						"cost": 1,
@@ -323,25 +347,43 @@ func (this *BlofinCore) Describe() any {
 						"cost": 1,
 					},
 					"copytrading/trade/orders-pending": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/pending-tpsl-by-contract": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/position-history-by-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/orders-history": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/pending-tpsl-by-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"user/query-apikey": map[string]any{
 						"cost": 1,
 					},
 					"spot/trade/fills-history": map[string]any{
 						"cost": 1,
+					},
+					"spot/trade/orders-pending": map[string]any{
+						"cost": 1.67,
+					},
+					"spot/trade/order-detail": map[string]any{
+						"cost": 1.67,
+					},
+					"spot/trade/orders-algo-pending": map[string]any{
+						"cost": 1.67,
+					},
+					"spot/trade/orders-history": map[string]any{
+						"cost": 1.67,
+					},
+					"spot/trade/orders-algo-history": map[string]any{
+						"cost": 1.67,
+					},
+					"spot/trade/order/price-range": map[string]any{
+						"cost": 1.67,
 					},
 				},
 				"post": map[string]any{
@@ -351,71 +393,104 @@ func (this *BlofinCore) Describe() any {
 					"asset/demo-apply-money": map[string]any{
 						"cost": 1,
 					},
-					"account/set-margin-mode": map[string]any{
+					"asset/withdrawal-apply": map[string]any{
 						"cost": 1,
+					},
+					"account/set-margin-mode": map[string]any{
+						"cost": 1.67,
 					},
 					"account/set-position-mode": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"account/set-leverage": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/batch-orders": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/order-tpsl": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/order-algo": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/cancel-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/cancel-batch-orders": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/cancel-tpsl": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"trade/cancel-algo": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
+					},
+					"trade/amend-order": map[string]any{
+						"cost": 1.67,
+					},
+					"trade/amend-batch-orders": map[string]any{
+						"cost": 1.67,
+					},
+					"trade/amend-tpsl": map[string]any{
+						"cost": 1.67,
+					},
+					"trade/amend-algo": map[string]any{
+						"cost": 1.67,
 					},
 					"trade/close-position": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
+					},
+					"spot/trade/order": map[string]any{
+						"cost": 1.67,
+					},
+					"spot/trade/batch-orders": map[string]any{
+						"cost": 1.67,
+					},
+					"spot/trade/order-algo": map[string]any{
+						"cost": 1.67,
+					},
+					"spot/trade/cancel-order": map[string]any{
+						"cost": 1.67,
+					},
+					"spot/trade/cancel-batch-orders": map[string]any{
+						"cost": 1.67,
+					},
+					"spot/trade/cancel-algo": map[string]any{
+						"cost": 1.67,
 					},
 					"copytrading/account/set-position-mode": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/account/set-leverage": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/place-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/cancel-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/place-tpsl-by-contract": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/cancel-tpsl-by-contract": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/place-tpsl-by-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/cancel-tpsl-by-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/close-position-by-order": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 					"copytrading/trade/close-position-by-contract": map[string]any{
-						"cost": 1,
+						"cost": 1.67,
 					},
 				},
 			},
@@ -775,8 +850,8 @@ func (this *BlofinCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes60812 := (<-this.LoadMarkets())
-		PanicOnError(retRes60812)
+		retRes63612 := (<-this.LoadMarkets())
+		PanicOnError(retRes63612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -897,8 +972,8 @@ func (this *BlofinCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes71412 := (<-this.LoadMarkets())
-		PanicOnError(retRes71412)
+		retRes74212 := (<-this.LoadMarkets())
+		PanicOnError(retRes74212)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -936,8 +1011,8 @@ func (this *BlofinCore) fetchMarkPriceBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes73812 := (<-this.LoadMarkets())
-		PanicOnError(retRes73812)
+		retRes76612 := (<-this.LoadMarkets())
+		PanicOnError(retRes76612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -976,8 +1051,8 @@ func (this *BlofinCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes76112 := (<-this.LoadMarkets())
-		PanicOnError(retRes76112)
+		retRes78912 := (<-this.LoadMarkets())
+		PanicOnError(retRes78912)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -1128,8 +1203,8 @@ func (this *BlofinCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes89312 := (<-this.LoadMarkets())
-		PanicOnError(retRes89312)
+		retRes92112 := (<-this.LoadMarkets())
+		PanicOnError(retRes92112)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTrades", "paginate")
@@ -1137,9 +1212,9 @@ func (this *BlofinCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ..
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes89819 := (<-this.FetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
-		PanicOnError(retRes89819)
-		ch <- retRes89819
+		retRes92619 := (<-this.FetchPaginatedCallCursor("fetchTrades", symbol, since, limit, params, "tradeId", "after", nil, 100))
+		PanicOnError(retRes92619)
+		ch <- retRes92619
 		return nil
 	}
 	var market any = this.Market(symbol)
@@ -1215,8 +1290,8 @@ func (this *BlofinCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes95712 := (<-this.LoadMarkets())
-		PanicOnError(retRes95712)
+		retRes98512 := (<-this.LoadMarkets())
+		PanicOnError(retRes98512)
 	}
 	var market any = this.Market(symbol)
 	var paginate any = false
@@ -1225,9 +1300,9 @@ func (this *BlofinCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes96319 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 100))
-		PanicOnError(retRes96319)
-		ch <- retRes96319
+		retRes99119 := (<-this.FetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, params, 100))
+		PanicOnError(retRes99119)
+		ch <- retRes99119
 		return nil
 	}
 	if IsTrue(IsEqual(limit, nil)) {
@@ -1286,8 +1361,8 @@ func (this *BlofinCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes100112 := (<-this.LoadMarkets())
-		PanicOnError(retRes100112)
+		retRes102912 := (<-this.LoadMarkets())
+		PanicOnError(retRes102912)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchFundingRateHistory", "paginate")
@@ -1295,9 +1370,9 @@ func (this *BlofinCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes100619 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
-		PanicOnError(retRes100619)
-		ch <- retRes100619
+		retRes103419 := (<-this.FetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", params, 100))
+		PanicOnError(retRes103419)
+		ch <- retRes103419
 		return nil
 	}
 	var market any = this.Market(symbol)
@@ -1331,7 +1406,7 @@ func (this *BlofinCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ..
 			"datetime":    this.Iso8601(timestamp),
 		})
 	}
-	var sorted any = this.SortBy(rates, "timestamp")
+	var sorted []any = this.SortBy(rates, "timestamp")
 
 	ch <- this.FilterBySymbolSinceLimit(sorted, GetValue(market, "symbol"), since, limit)
 	return nil
@@ -1393,8 +1468,8 @@ func (this *BlofinCore) fetchFundingRateBody(ch chan any, symbol any, optionalAr
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes108612 := (<-this.LoadMarkets())
-		PanicOnError(retRes108612)
+		retRes111412 := (<-this.LoadMarkets())
+		PanicOnError(retRes111412)
 	}
 	var market any = this.Market(symbol)
 	if IsTrue(!IsEqual(GetValue(market, "swap"), true)) {
@@ -1559,8 +1634,8 @@ func (this *BlofinCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes123612 := (<-this.LoadMarkets())
-		PanicOnError(retRes123612)
+		retRes126412 := (<-this.LoadMarkets())
+		PanicOnError(retRes126412)
 	}
 	var accountType any = nil
 	accountTypeparamsVariable := this.HandleOptionAndParams2(params, "fetchBalance", "accountType", "type")
@@ -1842,8 +1917,8 @@ func (this *BlofinCore) createOrderBody(ch chan any, symbol any, typeVar any, si
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes149212 := (<-this.LoadMarkets())
-		PanicOnError(retRes149212)
+		retRes152012 := (<-this.LoadMarkets())
+		PanicOnError(retRes152012)
 	}
 	var market any = this.Market(symbol)
 	var isStopLossPriceDefined any = !IsEqual(this.SafeString(params, "stopLossPrice"), nil)
@@ -1981,8 +2056,8 @@ func (this *BlofinCore) cancelOrderBody(ch chan any, id any, optionalArgs ...any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes160112 := (<-this.LoadMarkets())
-		PanicOnError(retRes160112)
+		retRes162912 := (<-this.LoadMarkets())
+		PanicOnError(retRes162912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2051,8 +2126,8 @@ func (this *BlofinCore) createOrdersBody(ch chan any, orders any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes164812 := (<-this.LoadMarkets())
-		PanicOnError(retRes164812)
+		retRes167612 := (<-this.LoadMarkets())
+		PanicOnError(retRes167612)
 	}
 	var ordersRequests any = []any{}
 	for i := 0; IsLessThan(i, GetArrayLength(orders)); i++ {
@@ -2109,8 +2184,8 @@ func (this *BlofinCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes168512 := (<-this.LoadMarkets())
-		PanicOnError(retRes168512)
+		retRes171312 := (<-this.LoadMarkets())
+		PanicOnError(retRes171312)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOpenOrders", "paginate")
@@ -2118,9 +2193,9 @@ func (this *BlofinCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) an
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes169019 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
-		PanicOnError(retRes169019)
-		ch <- retRes169019
+		retRes171819 := (<-this.FetchPaginatedCallDynamic("fetchOpenOrders", symbol, since, limit, params))
+		PanicOnError(retRes171819)
+		ch <- retRes171819
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -2193,8 +2268,8 @@ func (this *BlofinCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes173712 := (<-this.LoadMarkets())
-		PanicOnError(retRes173712)
+		retRes176512 := (<-this.LoadMarkets())
+		PanicOnError(retRes176512)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchMyTrades", "paginate")
@@ -2202,9 +2277,9 @@ func (this *BlofinCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any 
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes174219 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
-		PanicOnError(retRes174219)
-		ch <- retRes174219
+		retRes177019 := (<-this.FetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, params))
+		PanicOnError(retRes177019)
+		ch <- retRes177019
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2292,8 +2367,8 @@ func (this *BlofinCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes180412 := (<-this.LoadMarkets())
-		PanicOnError(retRes180412)
+		retRes183212 := (<-this.LoadMarkets())
+		PanicOnError(retRes183212)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchDeposits", "paginate")
@@ -2301,9 +2376,9 @@ func (this *BlofinCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any 
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes180919 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
-		PanicOnError(retRes180919)
-		ch <- retRes180919
+		retRes183719 := (<-this.FetchPaginatedCallDynamic("fetchDeposits", code, since, limit, params))
+		PanicOnError(retRes183719)
+		ch <- retRes183719
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2361,8 +2436,8 @@ func (this *BlofinCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes184512 := (<-this.LoadMarkets())
-		PanicOnError(retRes184512)
+		retRes187312 := (<-this.LoadMarkets())
+		PanicOnError(retRes187312)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchWithdrawals", "paginate")
@@ -2370,9 +2445,9 @@ func (this *BlofinCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) a
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes185019 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
-		PanicOnError(retRes185019)
-		ch <- retRes185019
+		retRes187819 := (<-this.FetchPaginatedCallDynamic("fetchWithdrawals", code, since, limit, params))
+		PanicOnError(retRes187819)
+		ch <- retRes187819
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2431,8 +2506,8 @@ func (this *BlofinCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes188712 := (<-this.LoadMarkets())
-		PanicOnError(retRes188712)
+		retRes191512 := (<-this.LoadMarkets())
+		PanicOnError(retRes191512)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchLedger", "paginate")
@@ -2440,9 +2515,9 @@ func (this *BlofinCore) fetchLedgerBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes189219 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
-		PanicOnError(retRes189219)
-		ch <- retRes189219
+		retRes192019 := (<-this.FetchPaginatedCallDynamic("fetchLedger", code, since, limit, params))
+		PanicOnError(retRes192019)
+		ch <- retRes192019
 		return nil
 	}
 	var request any = map[string]any{}
@@ -2659,8 +2734,8 @@ func (this *BlofinCore) cancelOrdersBody(ch chan any, ids any, optionalArgs ...a
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes209312 := (<-this.LoadMarkets())
-		PanicOnError(retRes209312)
+		retRes212112 := (<-this.LoadMarkets())
+		PanicOnError(retRes212112)
 	}
 	var market any = this.Market(symbol)
 	var request any = []any{}
@@ -2742,8 +2817,8 @@ func (this *BlofinCore) transferBody(ch chan any, code any, amount any, fromAcco
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes215912 := (<-this.LoadMarkets())
-		PanicOnError(retRes215912)
+		retRes218712 := (<-this.LoadMarkets())
+		PanicOnError(retRes218712)
 	}
 	var currency any = this.Currency(code)
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
@@ -2802,8 +2877,8 @@ func (this *BlofinCore) fetchPositionBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes220312 := (<-this.LoadMarkets())
-		PanicOnError(retRes220312)
+		retRes223112 := (<-this.LoadMarkets())
+		PanicOnError(retRes223112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2846,8 +2921,8 @@ func (this *BlofinCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes223012 := (<-this.LoadMarkets())
-		PanicOnError(retRes223012)
+		retRes225812 := (<-this.LoadMarkets())
+		PanicOnError(retRes225812)
 	}
 	symbols = this.MarketSymbols(symbols)
 
@@ -2892,8 +2967,8 @@ func (this *BlofinCore) fetchPositionsHistoryBody(ch chan any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes225512 := (<-this.LoadMarkets())
-		PanicOnError(retRes225512)
+		retRes228312 := (<-this.LoadMarkets())
+		PanicOnError(retRes228312)
 	}
 	var request any = map[string]any{}
 	var market any = nil
@@ -3115,8 +3190,8 @@ func (this *BlofinCore) fetchLeveragesBody(ch chan any, optionalArgs ...any) any
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes245812 := (<-this.LoadMarkets())
-		PanicOnError(retRes245812)
+		retRes248612 := (<-this.LoadMarkets())
+		PanicOnError(retRes248612)
 	}
 	if IsTrue(IsEqual(symbols, nil)) {
 		panic(ArgumentsRequired(Add(this.Id, " fetchLeverages() requires a symbols argument")))
@@ -3191,8 +3266,8 @@ func (this *BlofinCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes251712 := (<-this.LoadMarkets())
-		PanicOnError(retRes251712)
+		retRes254512 := (<-this.LoadMarkets())
+		PanicOnError(retRes254512)
 	}
 	var marginMode any = nil
 	marginModeparamsVariable := this.HandleMarginModeAndParams("fetchLeverage", params)
@@ -3276,8 +3351,8 @@ func (this *BlofinCore) setLeverageBody(ch chan any, leverage any, optionalArgs 
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes258212 := (<-this.LoadMarkets())
-		PanicOnError(retRes258212)
+		retRes261012 := (<-this.LoadMarkets())
+		PanicOnError(retRes261012)
 	}
 	var market any = this.Market(symbol)
 	var marginMode any = nil
@@ -3331,8 +3406,8 @@ func (this *BlofinCore) closePositionBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes261812 := (<-this.LoadMarkets())
-		PanicOnError(retRes261812)
+		retRes264612 := (<-this.LoadMarkets())
+		PanicOnError(retRes264612)
 	}
 	var market any = this.Market(symbol)
 	var clientOrderId any = this.SafeString(params, "clientOrderId")
@@ -3387,8 +3462,8 @@ func (this *BlofinCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes265112 := (<-this.LoadMarkets())
-		PanicOnError(retRes265112)
+		retRes267912 := (<-this.LoadMarkets())
+		PanicOnError(retRes267912)
 	}
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchClosedOrders", "paginate")
@@ -3396,9 +3471,9 @@ func (this *BlofinCore) fetchClosedOrdersBody(ch chan any, optionalArgs ...any) 
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes265619 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
-		PanicOnError(retRes265619)
-		ch <- retRes265619
+		retRes268419 := (<-this.FetchPaginatedCallDynamic("fetchClosedOrders", symbol, since, limit, params))
+		PanicOnError(retRes268419)
+		ch <- retRes268419
 		return nil
 	}
 	var request map[string]any = map[string]any{}
@@ -3456,8 +3531,8 @@ func (this *BlofinCore) fetchMarginModeBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes269612 := (<-this.LoadMarkets())
-		PanicOnError(retRes269612)
+		retRes272412 := (<-this.LoadMarkets())
+		PanicOnError(retRes272412)
 	}
 	var market any = this.Market(symbol)
 
@@ -3512,8 +3587,8 @@ func (this *BlofinCore) setMarginModeBody(ch chan any, marginMode any, optionalA
 	this.CheckRequiredArgument("setMarginMode", marginMode, "marginMode", []any{"cross", "isolated"})
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes273412 := (<-this.LoadMarkets())
-		PanicOnError(retRes273412)
+		retRes276212 := (<-this.LoadMarkets())
+		PanicOnError(retRes276212)
 	}
 	var market any = nil
 	if IsTrue(!IsEqual(symbol, nil)) {
@@ -3609,8 +3684,8 @@ func (this *BlofinCore) setPositionModeBody(ch chan any, hedged any, optionalArg
 		"positionMode": Ternary(IsTrue(hedged), "long_short_mode", "net_mode"),
 	}
 
-	retRes280815 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
-	PanicOnError(retRes280815)
+	retRes283615 := (<-this.PrivatePostAccountSetPositionMode(this.Extend(request, params)))
+	PanicOnError(retRes283615)
 	//
 	//     {
 	//         "code": "0",
@@ -3620,7 +3695,7 @@ func (this *BlofinCore) setPositionModeBody(ch chan any, hedged any, optionalArg
 	//         }
 	//     }
 	//
-	ch <- retRes280815
+	ch <- retRes283615
 	return nil
 }
 
@@ -3647,8 +3722,8 @@ func (this *BlofinCore) fetchPositionsADLRankBody(ch chan any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes282212 := (<-this.LoadMarkets())
-		PanicOnError(retRes282212)
+		retRes285012 := (<-this.LoadMarkets())
+		PanicOnError(retRes285012)
 	}
 	symbols = this.MarketSymbols(symbols, nil, true, true, true)
 
@@ -3806,7 +3881,7 @@ func (this *BlofinCore) Sign(path any, optionalArgs ...any) any {
 			AddElementToObject(headers, "Content-Type", "application/json")
 		}
 		var auth any = Add(Add(Add(Add(request, method), timestamp), timestamp), sign_body)
-		var signature any = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
+		var signature string = this.StringToBase64(this.Hmac(this.Encode(auth), this.Encode(this.Secret), sha256))
 		AddElementToObject(headers, "ACCESS-SIGN", signature)
 	}
 	return map[string]any{

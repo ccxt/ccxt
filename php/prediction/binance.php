@@ -351,7 +351,7 @@ class binance extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {string} [$params->query] a free-text search resolved against the semantic market search endpoint
          * @param {string[]} [$params->queries] multiple free-text searches (alternative to query)
-         * @param {string[]} [$params->tags] treated free-text searches (binance has no tag taxonomy)
+         * @param {string[]} [$params->tags] treated as additional free-text searches (binance has no tag taxonomy)
          * @param {string} [$params->eventId] a marketTopicId, fetched directly via the $detail endpoint
          * @param {string} [$params->l1Category] scope the listing server-side by a level-1 category id
          * @param {string} [$params->l2Category] scope the listing server-side by a level-2 category id
@@ -799,7 +799,7 @@ class binance extends Exchange {
     public function parse_prediction_ticker(array $raw, ?array $market = null): array {
         /**
          * @ignore
-         * parses a $last-trade-price response into a unified ticker object; the venue quotes the market's primary (YES) token, so a NO outcome mirrors - price
+         * parses a $last-trade-price response into a unified ticker object; the venue quotes the market's primary (YES) token, so a NO outcome mirrors as 1 - price
          * @param {array} $raw the $raw $last-trade-price object
          * @param {array} [$market] the outcome object the ticker belongs to
          * @return {array} a [ticker structure](https://docs.ccxt.com/#/?id=ticker-structure)
@@ -810,7 +810,7 @@ class binance extends Exchange {
         $marketAny = $market;
         $outcomeObj = $this->safe_outcome($this->safe_string($marketAny, 'outcome'), $marketAny);
         // the venue quotes the market's primary token (outcome index 0, e.g. YES or UP),
-        // any other outcome of a binary $market mirrors - price
+        // any other outcome of a binary $market mirrors as 1 - price
         $outcomeInfo = $this->safe_dict($outcomeObj, 'info', array());
         $outcomeIndex = $this->safe_string($outcomeInfo, 'index');
         $isMirrored = false;

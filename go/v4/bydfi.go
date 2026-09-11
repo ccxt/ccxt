@@ -267,6 +267,24 @@ func (this *BydfiCore) Describe() any {
 					"v1/fapi/trade/positions": map[string]any{
 						"cost": 1,
 					},
+					"v2/fapi/trade/open_order": map[string]any{
+						"cost": 1,
+					},
+					"v2/fapi/trade/plan_order": map[string]any{
+						"cost": 1,
+					},
+					"v2/fapi/trade/history_order": map[string]any{
+						"cost": 1,
+					},
+					"v2/fapi/trade/history_trade": map[string]any{
+						"cost": 1,
+					},
+					"v2/fapi/trade/position_history": map[string]any{
+						"cost": 1,
+					},
+					"v2/fapi/trade/positions": map[string]any{
+						"cost": 1,
+					},
 					"v1/fapi/account/balance": map[string]any{
 						"cost": 1,
 					},
@@ -327,6 +345,27 @@ func (this *BydfiCore) Describe() any {
 						"cost": 1,
 					},
 					"v1/fapi/trade/batch_leverage_margin": map[string]any{
+						"cost": 1,
+					},
+					"v2/fapi/trade/place_order": map[string]any{
+						"cost": 1,
+					},
+					"v2/fapi/trade/batch_place_order": map[string]any{
+						"cost": 1,
+					},
+					"v2/fapi/trade/edit_order": map[string]any{
+						"cost": 1,
+					},
+					"v2/fapi/trade/batch_edit_order": map[string]any{
+						"cost": 1,
+					},
+					"v2/fapi/trade/cancel_order": map[string]any{
+						"cost": 1,
+					},
+					"v2/fapi/trade/batch_cancel_order": map[string]any{
+						"cost": 1,
+					},
+					"v2/fapi/trade/cancel_all_order": map[string]any{
 						"cost": 1,
 					},
 					"v1/fapi/user_data/margin_type": map[string]any{
@@ -681,8 +720,8 @@ func (this *BydfiCore) fetchOrderBookBody(ch chan any, symbol any, optionalArgs 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes57312 := (<-this.LoadMarkets())
-		PanicOnError(retRes57312)
+		retRes58612 := (<-this.LoadMarkets())
+		PanicOnError(retRes58612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -771,8 +810,8 @@ func (this *BydfiCore) fetchTradesBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes64512 := (<-this.LoadMarkets())
-		PanicOnError(retRes64512)
+		retRes65812 := (<-this.LoadMarkets())
+		PanicOnError(retRes65812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -840,12 +879,12 @@ func (this *BydfiCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes69312 := (<-this.LoadMarkets())
-		PanicOnError(retRes69312)
+		retRes70612 := (<-this.LoadMarkets())
+		PanicOnError(retRes70612)
 	}
 	var paginate any = this.SafeBool(params, "paginate", false)
 	if IsTrue(IsEqual(paginate, true)) {
-		var maxLimit any = 500
+		var maxLimit int = 500
 		params = this.Omit(params, "paginate")
 		params = this.Extend(params, map[string]any{
 			"paginationDirection": "backward",
@@ -1014,10 +1053,10 @@ func (this *BydfiCore) fetchOHLCVBody(ch chan any, symbol any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes83812 := (<-this.LoadMarkets())
-		PanicOnError(retRes83812)
+		retRes85112 := (<-this.LoadMarkets())
+		PanicOnError(retRes85112)
 	}
-	var maxLimit any = 500 // docs says max 1500, but in practice only 500 works
+	var maxLimit int = 500 // docs says max 1500, but in practice only 500 works
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchOHLCV", "paginate")
 	paginate = GetValue(paginateparamsVariable, 0)
@@ -1128,8 +1167,8 @@ func (this *BydfiCore) fetchTickersBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes93512 := (<-this.LoadMarkets())
-		PanicOnError(retRes93512)
+		retRes94812 := (<-this.LoadMarkets())
+		PanicOnError(retRes94812)
 	}
 
 	response := (<-this.PublicGetV1FapiMarketTicker24hr(params))
@@ -1179,8 +1218,8 @@ func (this *BydfiCore) fetchTickerBody(ch chan any, symbol any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes97112 := (<-this.LoadMarkets())
-		PanicOnError(retRes97112)
+		retRes98412 := (<-this.LoadMarkets())
+		PanicOnError(retRes98412)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1261,8 +1300,8 @@ func (this *BydfiCore) fetchFundingRateBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes103712 := (<-this.LoadMarkets())
-		PanicOnError(retRes103712)
+		retRes105012 := (<-this.LoadMarkets())
+		PanicOnError(retRes105012)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1359,8 +1398,8 @@ func (this *BydfiCore) fetchFundingRateHistoryBody(ch chan any, optionalArgs ...
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes111312 := (<-this.LoadMarkets())
-		PanicOnError(retRes111312)
+		retRes112612 := (<-this.LoadMarkets())
+		PanicOnError(retRes112612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1463,8 +1502,8 @@ func (this *BydfiCore) createOrderBody(ch chan any, symbol any, typeVar any, sid
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes119712 := (<-this.LoadMarkets())
-		PanicOnError(retRes119712)
+		retRes121012 := (<-this.LoadMarkets())
+		PanicOnError(retRes121012)
 	}
 	var market any = this.Market(symbol)
 	var orderRequest any = this.CreateOrderRequest(symbol, typeVar, side, amount, price, params)
@@ -1653,8 +1692,8 @@ func (this *BydfiCore) createOrdersBody(ch chan any, orders any, optionalArgs ..
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes137012 := (<-this.LoadMarkets())
-		PanicOnError(retRes137012)
+		retRes138312 := (<-this.LoadMarkets())
+		PanicOnError(retRes138312)
 	}
 	var length int = GetArrayLength(orders)
 	if IsTrue(IsGreaterThan(length, 5)) {
@@ -1721,8 +1760,8 @@ func (this *BydfiCore) editOrderBody(ch chan any, id any, symbol any, typeVar an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes141712 := (<-this.LoadMarkets())
-		PanicOnError(retRes141712)
+		retRes143012 := (<-this.LoadMarkets())
+		PanicOnError(retRes143012)
 	}
 	var request any = this.CreateEditOrderRequest(id, symbol, "limit", side, amount, price, params)
 	var wallet any = "W001"
@@ -1761,8 +1800,8 @@ func (this *BydfiCore) editOrdersBody(ch chan any, orders any, optionalArgs ...a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes144012 := (<-this.LoadMarkets())
-		PanicOnError(retRes144012)
+		retRes145312 := (<-this.LoadMarkets())
+		PanicOnError(retRes145312)
 	}
 	var length int = GetArrayLength(orders)
 	if IsTrue(IsGreaterThan(length, 5)) {
@@ -1851,8 +1890,8 @@ func (this *BydfiCore) cancelAllOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes150612 := (<-this.LoadMarkets())
-		PanicOnError(retRes150612)
+		retRes151912 := (<-this.LoadMarkets())
+		PanicOnError(retRes151912)
 	}
 	var market any = this.Market(symbol)
 	var wallet any = "W001"
@@ -1939,8 +1978,8 @@ func (this *BydfiCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes157112 := (<-this.LoadMarkets())
-		PanicOnError(retRes157112)
+		retRes158412 := (<-this.LoadMarkets())
+		PanicOnError(retRes158412)
 	}
 	var market any = this.Market(symbol)
 	var wallet any = "W001"
@@ -2034,8 +2073,8 @@ func (this *BydfiCore) fetchOpenOrderBody(ch chan any, id any, optionalArgs ...a
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes164312 := (<-this.LoadMarkets())
-		PanicOnError(retRes164312)
+		retRes165612 := (<-this.LoadMarkets())
+		PanicOnError(retRes165612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -2106,12 +2145,12 @@ func (this *BydfiCore) fetchCanceledAndClosedOrdersBody(ch chan any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes168812 := (<-this.LoadMarkets())
-		PanicOnError(retRes168812)
+		retRes170112 := (<-this.LoadMarkets())
+		PanicOnError(retRes170112)
 	}
 	var paginate any = this.SafeBool(params, "paginate", false)
 	if IsTrue(IsEqual(paginate, true)) {
-		var maxLimit any = 500
+		var maxLimit int = 500
 		params = this.Omit(params, "paginate")
 		params = this.Extend(params, map[string]any{
 			"paginationDirection": "backward",
@@ -2407,8 +2446,8 @@ func (this *BydfiCore) setLeverageBody(ch chan any, leverage any, optionalArgs .
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes196112 := (<-this.LoadMarkets())
-		PanicOnError(retRes196112)
+		retRes197412 := (<-this.LoadMarkets())
+		PanicOnError(retRes197412)
 	}
 	var market any = this.Market(symbol)
 	var wallet any = "W001"
@@ -2454,8 +2493,8 @@ func (this *BydfiCore) fetchLeverageBody(ch chan any, symbol any, optionalArgs .
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes199112 := (<-this.LoadMarkets())
-		PanicOnError(retRes199112)
+		retRes200412 := (<-this.LoadMarkets())
+		PanicOnError(retRes200412)
 	}
 	var market any = this.Market(symbol)
 	var wallet any = "W001"
@@ -2524,8 +2563,8 @@ func (this *BydfiCore) fetchPositionsBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes204112 := (<-this.LoadMarkets())
-		PanicOnError(retRes204112)
+		retRes205412 := (<-this.LoadMarkets())
+		PanicOnError(retRes205412)
 	}
 	var contractType any = "FUTURE"
 	contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositions", "contractType", contractType)
@@ -2588,8 +2627,8 @@ func (this *BydfiCore) fetchPositionsForSymbolBody(ch chan any, symbol any, opti
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes208812 := (<-this.LoadMarkets())
-		PanicOnError(retRes208812)
+		retRes210112 := (<-this.LoadMarkets())
+		PanicOnError(retRes210112)
 	}
 	var market any = this.Market(symbol)
 	var contractType any = "FUTURE"
@@ -2752,8 +2791,8 @@ func (this *BydfiCore) fetchPositionHistoryBody(ch chan any, symbol any, optiona
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes223112 := (<-this.LoadMarkets())
-		PanicOnError(retRes223112)
+		retRes224412 := (<-this.LoadMarkets())
+		PanicOnError(retRes224412)
 	}
 	var market any = this.Market(symbol)
 	var contractType any = "FUTURE"
@@ -2812,8 +2851,8 @@ func (this *BydfiCore) fetchPositionsHistoryBody(ch chan any, optionalArgs ...an
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes226812 := (<-this.LoadMarkets())
-		PanicOnError(retRes226812)
+		retRes228112 := (<-this.LoadMarkets())
+		PanicOnError(retRes228112)
 	}
 	var contractType any = "FUTURE"
 	contractTypeparamsVariable := this.HandleOptionAndParams(params, "fetchPositionsHistory", "contractType", contractType)
@@ -2901,8 +2940,8 @@ func (this *BydfiCore) fetchMarginModeBody(ch chan any, symbol any, optionalArgs
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes234012 := (<-this.LoadMarkets())
-		PanicOnError(retRes234012)
+		retRes235312 := (<-this.LoadMarkets())
+		PanicOnError(retRes235312)
 	}
 	var market any = this.Market(symbol)
 	var contractType any = "FUTURE"
@@ -2982,8 +3021,8 @@ func (this *BydfiCore) setMarginModeBody(ch chan any, marginMode any, optionalAr
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes239912 := (<-this.LoadMarkets())
-		PanicOnError(retRes239912)
+		retRes241212 := (<-this.LoadMarkets())
+		PanicOnError(retRes241212)
 	}
 	var market any = this.Market(symbol)
 	var contractType any = "FUTURE"
@@ -3001,9 +3040,9 @@ func (this *BydfiCore) setMarginModeBody(ch chan any, marginMode any, optionalAr
 		"wallet":       wallet,
 	}
 
-	retRes241215 := (<-this.PrivatePostV1FapiUserDataMarginType(this.Extend(request, params)))
-	PanicOnError(retRes241215)
-	ch <- retRes241215
+	retRes242515 := (<-this.PrivatePostV1FapiUserDataMarginType(this.Extend(request, params)))
+	PanicOnError(retRes242515)
+	ch <- retRes242515
 	return nil
 }
 
@@ -3037,8 +3076,8 @@ func (this *BydfiCore) setPositionModeBody(ch chan any, hedged any, optionalArgs
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes243312 := (<-this.LoadMarkets())
-		PanicOnError(retRes243312)
+		retRes244612 := (<-this.LoadMarkets())
+		PanicOnError(retRes244612)
 	}
 	var positionType any = Ternary(IsTrue(hedged), "HEDGE", "ONEWAY")
 	var wallet any = "W001"
@@ -3060,8 +3099,8 @@ func (this *BydfiCore) setPositionModeBody(ch chan any, hedged any, optionalArgs
 		"settleCoin":   settleCoin,
 	}
 
-	retRes245515 := (<-this.PrivatePostV1FapiUserDataPositionSideDual(this.Extend(request, params)))
-	PanicOnError(retRes245515)
+	retRes246815 := (<-this.PrivatePostV1FapiUserDataPositionSideDual(this.Extend(request, params)))
+	PanicOnError(retRes246815)
 	//
 	//     {
 	//         "code": 200,
@@ -3069,7 +3108,7 @@ func (this *BydfiCore) setPositionModeBody(ch chan any, hedged any, optionalArgs
 	//         "success": true
 	//     }
 	//
-	ch <- retRes245515
+	ch <- retRes246815
 	return nil
 }
 
@@ -3099,8 +3138,8 @@ func (this *BydfiCore) fetchPositionModeBody(ch chan any, optionalArgs ...any) a
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes247212 := (<-this.LoadMarkets())
-		PanicOnError(retRes247212)
+		retRes248512 := (<-this.LoadMarkets())
+		PanicOnError(retRes248512)
 	}
 	var wallet any = "W001"
 	walletparamsVariable := this.HandleOptionAndParams(params, "fetchPositionMode", "wallet", wallet)
@@ -3178,8 +3217,8 @@ func (this *BydfiCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any {
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes253012 := (<-this.LoadMarkets())
-		PanicOnError(retRes253012)
+		retRes254312 := (<-this.LoadMarkets())
+		PanicOnError(retRes254312)
 	}
 	var typeVar any = nil
 	typeVarparamsVariable := this.HandleMarketTypeAndParams("fetchBalance", nil, params)
@@ -3298,8 +3337,8 @@ func (this *BydfiCore) transferBody(ch chan any, code any, amount any, fromAccou
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes263012 := (<-this.LoadMarkets())
-		PanicOnError(retRes263012)
+		retRes264312 := (<-this.LoadMarkets())
+		PanicOnError(retRes264312)
 	}
 	var currency any = this.Currency(code)
 	var accountsByType any = this.SafeDict(this.Options, "accountsByType", map[string]any{})
@@ -3371,13 +3410,13 @@ func (this *BydfiCore) fetchTransfersBody(ch chan any, optionalArgs ...any) any 
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes268212 := (<-this.LoadMarkets())
-		PanicOnError(retRes268212)
+		retRes269512 := (<-this.LoadMarkets())
+		PanicOnError(retRes269512)
 	}
 	var currency any = this.Currency(code)
 	var paginate any = this.SafeBool(params, "paginate", false)
 	if IsTrue(IsEqual(paginate, true)) {
-		var maxLimit any = 50
+		var maxLimit int = 50
 		params = this.Omit(params, "paginate")
 		params = this.Extend(params, map[string]any{
 			"paginationDirection": "backward",
@@ -3514,9 +3553,9 @@ func (this *BydfiCore) fetchDepositsBody(ch chan any, optionalArgs ...any) any {
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes279615 := (<-this.FetchTransactionsHelper("deposit", code, since, limit, params))
-	PanicOnError(retRes279615)
-	ch <- retRes279615
+	retRes280915 := (<-this.FetchTransactionsHelper("deposit", code, since, limit, params))
+	PanicOnError(retRes280915)
+	ch <- retRes280915
 	return nil
 }
 
@@ -3548,9 +3587,9 @@ func (this *BydfiCore) fetchWithdrawalsBody(ch chan any, optionalArgs ...any) an
 	params := GetArg(optionalArgs, 3, map[string]any{})
 	_ = params
 
-	retRes281115 := (<-this.FetchTransactionsHelper("withdrawal", code, since, limit, params))
-	PanicOnError(retRes281115)
-	ch <- retRes281115
+	retRes282415 := (<-this.FetchTransactionsHelper("withdrawal", code, since, limit, params))
+	PanicOnError(retRes282415)
+	ch <- retRes282415
 	return nil
 }
 func (this *BydfiCore) FetchTransactionsHelper(typeVar any, code any, since any, limit any, params any) <-chan any {
@@ -3567,13 +3606,13 @@ func (this *BydfiCore) fetchTransactionsHelperBody(ch chan any, typeVar any, cod
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes282012 := (<-this.LoadMarkets())
-		PanicOnError(retRes282012)
+		retRes283312 := (<-this.LoadMarkets())
+		PanicOnError(retRes283312)
 	}
 	var currency any = this.Currency(code)
 	var paginate any = this.SafeBool(params, "paginate", false)
 	if IsTrue(IsEqual(paginate, true)) {
-		var maxLimit any = 50
+		var maxLimit int = 50
 		params = this.Omit(params, "paginate")
 		params = this.Extend(params, map[string]any{
 			"paginationDirection": "backward",
@@ -3735,7 +3774,7 @@ func (this *BydfiCore) Sign(path any, optionalArgs ...any) any {
 	_ = body
 	var url any = GetValue(GetValue(this.Urls, "api"), api)
 	var endpoint any = Add("/", path)
-	var query any = ""
+	var query string = ""
 	var sortedParams map[string]any = this.Keysort(params)
 	if IsTrue(IsEqual(method, "GET")) {
 		query = this.Urlencode(sortedParams)

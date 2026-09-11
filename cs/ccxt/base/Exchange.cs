@@ -142,7 +142,10 @@ public partial class BaseExchange
         }
     }
 
-    public void handleHttpStatusCode(object code, object reason, object url, object method, object body)
+    // params are concretely typed: the only call site (in fetch below) passes an int
+    // status code, the reason/url/method strings it already resolved from `as String` casts,
+    // and the raw response body string — every use in the body behaves identically
+    public void handleHttpStatusCode(int code, string? reason, string? url, string? method, string body)
     {
         var codeString = code.ToString();
         var codeInHttpExceptions = safeValue(this.httpExceptions, codeString);
@@ -548,7 +551,7 @@ public partial class BaseExchange
             currencies = await this.fetchCurrencies();
             this.options.TryAdd("cachedCurrencies", currencies);
         }
-        var markets = await this.fetchMarkets();
+        var markets = await this.FetchMarkets();
         this.options.TryRemove("cachedCurrencies", out _);
         return this.setMarkets(markets, currencies);
     }
@@ -572,14 +575,14 @@ public partial class BaseExchange
         return marketsLoading;
     }
 
-    public virtual async Task<object> fetchMarkets(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarkets(object parameters = null)
     {
-        return this.toArray(this.markets);
+        return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
-    public virtual async Task<object> fetchMarketsWs(object parameters = null)
+    public virtual async Task<List<MarketInterface>> FetchMarketsWs(object parameters = null)
     {
-        return this.toArray(this.markets);
+        return ToMarketInterfaceList(this.toArray(this.markets));
     }
 
     public virtual async Task<object> fetchCurrencies(object parameters = null)
@@ -785,10 +788,15 @@ public partial class BaseExchange
         await this.Close();
     }
 
-    public virtual object parseNumber(object value, object defaultValue = null)
+    // TS `parseNumber (value, d)`: returns the parsed number, or `d` when the value is
+    // missing/does not parse. The C# signature is `double?` — the box every successful
+    // path already produces (Convert.ToDouble) — so a TS-valid `Num` default is
+    // converted the same way SafeFloatN converts its default; returning the default
+    // unchanged would erase the declared type (and box an Int64 default).
+    public virtual double? parseNumber(object value, object defaultValue = null)
     {
         if (value == null || (value.GetType() == typeof(string) && value.ToString().Trim() == ""))
-            return defaultValue;
+            return ParseNumberDefault(defaultValue);
 
 
         try
@@ -797,13 +805,18 @@ public partial class BaseExchange
         }
         catch (Exception e)
         {
-            return defaultValue;
+            return ParseNumberDefault(defaultValue);
         }
         // if (this.number.GetType() == typeof(float).GetType())
         // {
         //     return double.Parse(value.ToString(), CultureInfo.InvariantCulture);
         // }
         // return value;
+    }
+
+    private static double? ParseNumberDefault(object defaultValue)
+    {
+        return (defaultValue == null) ? null : Convert.ToDouble(defaultValue, CultureInfo.InvariantCulture);
     }
 
     public object convertToBigInt(object value)
@@ -855,7 +868,23 @@ public partial class BaseExchange
             return byteArray[firstInt..secondInt2];
         }
 
-        var parsedArray = ((IList<object>)array);
+        // a typed core hands back List<Dictionary<string, object>> / List<string> / List<T>;
+        // List<T> is invariant so none of those IS an IList<object> - re-box through the
+        // non-generic IList instead of throwing InvalidCastException
+        IList<object> parsedArray;
+        if (array is IList<object> objectList)
+        {
+            parsedArray = objectList;
+        }
+        else
+        {
+            var boxed = new List<object>();
+            foreach (var item in (System.Collections.IList)array)
+            {
+                boxed.Add(item);
+            }
+            parsedArray = boxed;
+        }
         var isArrayCache = array is ccxt.pro.ArrayCache;
         // var typedArray = (array is ArrayCache) ? (ArrayCache)array : (IList<object>array);
         if (second == null)
@@ -1124,16 +1153,6 @@ public partial class BaseExchange
         var encodedFromRaw = new TypedData().EncodeTypedDataRaw((typeRaw), address);
 
         return encodedFromRaw;
-    }
-
-    public ECDSA.ECSignature Stark()
-    {
-        // debug only remove later
-        var msgHash = "111111";
-        var bytes = Exchange.StringToByteArray(msgHash);
-        var bigInt = new BigInteger(bytes);
-        var res = ECDSA.Sign(bigInt, bigInt);
-        return res;
     }
 
     public object spawn(object action, object[] args = null)

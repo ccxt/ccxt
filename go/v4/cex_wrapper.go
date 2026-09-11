@@ -751,7 +751,7 @@ func (this *Cex) EditOrderWithClientOrderId(clientOrderId string, symbol string,
 func (this *Cex) EditOrders(orders []OrderRequest, options ...EditOrdersOptions) ([]Order, error) {
 	return this.exchangeTyped.EditOrders(orders, options...)
 }
-func (this *Cex) FetchAllGreeks(options ...FetchAllGreeksOptions) ([]Greeks, error) {
+func (this *Cex) FetchAllGreeks(options ...FetchAllGreeksOptions) (AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Cex) FetchBidsAsks(options ...FetchBidsAsksOptions) (Tickers, error) {
@@ -787,7 +787,7 @@ func (this *Cex) FetchCrossBorrowRates(params ...any) (CrossBorrowRates, error) 
 func (this *Cex) FetchDepositAddresses(options ...FetchDepositAddressesOptions) ([]DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Cex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) ([]DepositAddress, error) {
+func (this *Cex) FetchDepositAddressesByNetwork(code string, options ...FetchDepositAddressesByNetworkOptions) (DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Cex) FetchDeposits(options ...FetchDepositsOptions) ([]Transaction, error) {

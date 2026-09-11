@@ -72,9 +72,9 @@ class paradex extends paradex$1["default"] {
                 'fetchDepositWithdrawFee': false,
                 'fetchDepositWithdrawFees': false,
                 'fetchFundingHistory': true,
-                'fetchFundingRate': false,
+                'fetchFundingRate': true,
                 'fetchFundingRateHistory': true,
-                'fetchFundingRates': false,
+                'fetchFundingRates': true,
                 'fetchGreeks': true,
                 'fetchIndexOHLCV': true,
                 'fetchIsolatedBorrowRate': false,
@@ -165,6 +165,7 @@ class paradex extends paradex$1["default"] {
                         'jwks.json': { 'cost': 1 },
                         'onboarding': { 'cost': 1 },
                         'referrals/config': { 'cost': 1 },
+                        'staking/balance/history/global': { 'cost': 1 },
                         'staking/config': { 'cost': 1 },
                         'system/announcements': { 'cost': 1 },
                         'system/config': { 'cost': 1 },
@@ -174,6 +175,7 @@ class paradex extends paradex$1["default"] {
                         'system/volume-tiers': { 'cost': 1 },
                         'trades': { 'cost': 1 },
                         'vaults': { 'cost': 1 },
+                        'vaults/analytics': { 'cost': 1 },
                         'vaults/balance': { 'cost': 1 },
                         'vaults/config': { 'cost': 1 },
                         'vaults/history': { 'cost': 1 },
@@ -219,6 +221,11 @@ class paradex extends paradex$1["default"] {
                         'orders/{order_id}': { 'cost': 1 },
                         'referrals/qr-code': { 'cost': 1 },
                         'referrals/summary': { 'cost': 1 },
+                        'rfqs': { 'cost': 1 },
+                        'rfqs/drafts': { 'cost': 1 },
+                        'rfqs/markets': { 'cost': 1 },
+                        'rfqs/{rfq_id}/bbo': { 'cost': 1 },
+                        'staking/balance/history': { 'cost': 1 },
                         'staking/history': { 'cost': 1 },
                         'staking/summary': { 'cost': 1 },
                         'transfers': { 'cost': 1 },
@@ -240,6 +247,8 @@ class paradex extends paradex$1["default"] {
                         'account/profile/username': { 'cost': 1 },
                         'account/referrer': { 'cost': 1 },
                         'account/settings/trading_value_display': { 'cost': 1 },
+                        'account/paradigm/enable': { 'cost': 1 },
+                        'account/terminal-token': { 'cost': 1 },
                         'account/keys/subkeys/activate': { 'cost': 1 },
                         'account/keys/subkeys': { 'cost': 1 },
                         'account/tokens': { 'cost': 1 },
@@ -252,6 +261,9 @@ class paradex extends paradex$1["default"] {
                         'onboarding': { 'cost': 1 },
                         'orders': { 'cost': 1 },
                         'orders/batch': { 'cost': 1 },
+                        'rfqs': { 'cost': 1 },
+                        'rfqs/drafts': { 'cost': 1 },
+                        'rfqs/{rfq_id}/execute': { 'cost': 1 },
                         'v2/auth': { 'cost': 1 },
                         'v2/onboarding': { 'cost': 1 },
                         'vaults': { 'cost': 1 },
@@ -261,6 +273,8 @@ class paradex extends paradex$1["default"] {
                     'put': {
                         'account/profile': { 'cost': 1 },
                         'account/keys/subkeys/{public_key}': { 'cost': 1 },
+                        'account/keys/subkeys/{public_key}/allowed-cidrs': { 'cost': 1 },
+                        'account/tokens/{lookup_id}/allowed-cidrs': { 'cost': 1 },
                         'orders/{order_id}': { 'cost': 1 },
                     },
                     'delete': {
@@ -273,6 +287,8 @@ class paradex extends paradex$1["default"] {
                         'orders/batch': { 'cost': 1 },
                         'orders/by_client_id/{client_id}': { 'cost': 1 },
                         'orders/{order_id}': { 'cost': 1 },
+                        'rfqs/drafts/{draft_id}': { 'cost': 1 },
+                        'rfqs/{rfq_id}': { 'cost': 1 },
                     },
                 },
             },
@@ -1027,6 +1043,114 @@ class paradex extends paradex$1["default"] {
     }
     /**
      * @method
+     * @name paradex#fetchFundingRates
+     * @description fetches the current funding rate for multiple markets
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+     * @param {string[]} [symbols] unified market symbols
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object[]} a list of [funding rate structures]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async fetchFundingRates(symbols = undefined, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        symbols = this.marketSymbols(symbols);
+        // the endpoint takes one market id, and ALL answers for every product on
+        // the venue: a single symbol is asked for by name, which is 544 bytes
+        // against 1.6 MB
+        let target = 'ALL';
+        if (symbols !== undefined) {
+            const symbolsLength = symbols.length;
+            if (symbolsLength === 1) {
+                target = this.market(symbols[0])['id'];
+            }
+        }
+        const request = {
+            'market': target,
+        };
+        const response = await this.publicGetMarketsSummary(this.extend(request, params));
+        const data = this.safeList(response, 'results', []);
+        return this.parseFundingRates(data, symbols);
+    }
+    /**
+     * @method
+     * @name paradex#fetchFundingRate
+     * @description fetches the current funding rate
+     * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+     * @param {string} symbol unified market symbol
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {object} a [funding rate structure]{@link https://docs.ccxt.com/?id=funding-rate-structure}
+     */
+    async fetchFundingRate(symbol, params = {}) {
+        if (this.markets === undefined) {
+            await this.loadMarkets();
+        }
+        const market = this.market(symbol);
+        const rates = await this.fetchFundingRates([market['symbol']], params);
+        const rate = this.safeDict(rates, market['symbol']);
+        if (rate === undefined) {
+            throw new errors.BadSymbol(this.id + ' fetchFundingRate() could not find a funding rate for ' + symbol);
+        }
+        return rate;
+    }
+    parseFundingRate(contract, market = undefined) {
+        //
+        //     {
+        //         "symbol": "BTC-USD-PERP",
+        //         "oracle_price": "68465.17449906",
+        //         "mark_price": "68465.17449906",
+        //         "last_traded_price": "68495.1",
+        //         "bid": "68477.6",
+        //         "ask": "69578.2",
+        //         "volume_24h": "5815541.397939004",
+        //         "total_volume": "584031465.525259686",
+        //         "created_at": 1718170156580,
+        //         "underlying_price": "67367.37268422",
+        //         "open_interest": "162.272",
+        //         "funding_rate": "0.01629574927887",
+        //         "price_change_rate_24h": "0.009032"
+        //     }
+        //
+        const marketId = this.safeString(contract, 'symbol');
+        market = this.safeMarket(marketId, market, undefined, 'swap');
+        const timestamp = this.safeInteger(contract, 'created_at');
+        // the summary answers for every product, and only a perpetual funds: an
+        // option row carries an empty funding_rate and a period of zero. left
+        // without a symbol, parseFundingRates drops the row
+        const rate = this.safeString(contract, 'funding_rate');
+        const funds = (market['swap'] === true) && (rate !== undefined) && (rate !== '');
+        // the funding period belongs to the market and is not always eight hours:
+        // fetchMarkets documents one on twenty four. funding accrues each second
+        // against an index, and this rate is the amount for a whole period
+        const hours = this.safeString(this.safeDict(market, 'info', {}), 'funding_period_hours');
+        // zero hours is not an interval, and a caller annualising a rate divides by it
+        let interval = undefined;
+        if ((hours !== undefined) && Precise["default"].stringGt(hours, '0')) {
+            interval = hours + 'h';
+        }
+        return {
+            'info': contract,
+            'symbol': funds ? market['symbol'] : undefined,
+            'markPrice': this.safeNumber(contract, 'mark_price'),
+            'indexPrice': this.safeNumber(contract, 'underlying_price'),
+            'interestRate': undefined,
+            'estimatedSettlePrice': undefined,
+            'timestamp': timestamp,
+            'datetime': this.iso8601(timestamp),
+            'fundingRate': this.safeNumber(contract, 'funding_rate'),
+            'fundingTimestamp': undefined,
+            'fundingDatetime': undefined,
+            'nextFundingRate': undefined,
+            'nextFundingTimestamp': undefined,
+            'nextFundingDatetime': undefined,
+            'previousFundingRate': undefined,
+            'previousFundingTimestamp': undefined,
+            'previousFundingDatetime': undefined,
+            'interval': interval,
+        };
+    }
+    /**
+     * @method
      * @name paradex#fetchOrderBook
      * @description fetches information on open orders with bid (buy) and ask (sell) prices, volumes and other data
      * @see https://docs.paradex.trade/api/prod/markets/get-orderbook
@@ -1531,7 +1655,7 @@ class paradex extends paradex$1["default"] {
             };
             return this.safeString(statuses, status, status);
         }
-        return status;
+        return undefined;
     }
     parseOrderType(type) {
         const types = {
@@ -3011,7 +3135,7 @@ class paradex extends paradex$1["default"] {
      * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
      * @param {string[]} [symbols] unified symbols of the markets to fetch greeks for, all markets are returned if not assigned
      * @param {object} [params] extra parameters specific to the exchange API endpoint
-     * @returns {object} a [greeks structure]{@link https://docs.ccxt.com/?id=greeks-structure}
+     * @returns {object} a dictionary of [greeks structures]{@link https://docs.ccxt.com/?id=greeks-structure} indexed by market symbol
      */
     async fetchAllGreeks(symbols = undefined, params = {}) {
         if (this.markets === undefined) {
@@ -3261,6 +3385,9 @@ class paradex extends paradex$1["default"] {
         //     ]
         // }
         //
+        // every row is one observation of a rate quoted for a whole funding period,
+        // not a settled payment: paradex recomputes it each second and accrues it
+        // into funding_index, so the series cannot be summed
         const results = this.safeList(response, 'results', []);
         const rates = [];
         for (let i = 0; i < results.length; i++) {

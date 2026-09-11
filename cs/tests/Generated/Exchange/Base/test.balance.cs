@@ -9,7 +9,7 @@ public partial class testMainClass : BaseTest
 {
     public static void testBalance(BaseExchange exchange, object skippedProperties, object method, object entry)
     {
-        object format = new Dictionary<string, object>() {
+        Dictionary<string, object> format = new Dictionary<string, object>() {
             { "free", new Dictionary<string, object>() {} },
             { "used", new Dictionary<string, object>() {} },
             { "total", new Dictionary<string, object>() {} },
@@ -30,7 +30,7 @@ public partial class testMainClass : BaseTest
         int freeLength = getArrayLength(codesFree);
         int usedLength = getArrayLength(codesUsed);
         assert(isTrue((isEqual(codesLength, freeLength))) || isTrue((isEqual(codesLength, usedLength))), add("free and total and used codes have different lengths", logText));
-        for (object i = 0; isLessThan(i, getArrayLength(allCodes)); postFixIncrement(ref i))
+        for (int i = 0; isLessThan(i, getArrayLength(allCodes)); postFixIncrement(ref i))
         {
             object code = getValue(allCodes, i);
             // testSharedMethods.assertCurrencyCode (exchange, skippedProperties, method, entry, code);
@@ -46,7 +46,7 @@ public partial class testMainClass : BaseTest
             assert(Precise.stringGe(total, "0"), add("total is not positive", logText));
             assert(Precise.stringGe(free, "0"), add("free is not positive", logText));
             assert(Precise.stringGe(used, "0"), add("used is not positive", logText));
-            object sumFreeUsed = Precise.stringAdd(free, used);
+            string? sumFreeUsed = Precise.stringAdd(free, used);
             assert(Precise.stringEq(total, sumFreeUsed), add("free and used do not sum to total", logText));
         }
     }

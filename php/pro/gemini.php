@@ -207,7 +207,7 @@ class gemini extends \ccxt\async\gemini {
         //             array( "buy", '22252.37', "0.02" ),
         //             array( "buy", '22251.61', "0.04" ),
         //             array( "buy", '22251.60', "0.04" ),
-        //             // some asks
+        //             // some asks as well
         //         ),
         //         "trades" => array(
         //             array( type => 'trade', $symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => "0.00004473", side => "buy" ),
@@ -300,7 +300,7 @@ class gemini extends \ccxt\async\gemini {
          * @param {int} [$since] timestamp in ms of the earliest candle to fetch
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             Async\await($this->load_markets());
@@ -649,7 +649,7 @@ class gemini extends \ccxt\async\gemini {
         //             array( "buy", '22252.37', "0.02" ),
         //             array( "buy", '22251.61', "0.04" ),
         //             array( "buy", '22251.60', "0.04" ),
-        //             // some asks
+        //             // some asks as well
         //         ),
         //         "trades" => array(
         //             array( type => 'trade', symbol => 'BTCUSD', event_id => 122258166738, timestamp => 1655330221424, price => '22269.14', quantity => "0.00004473", side => "buy" ),

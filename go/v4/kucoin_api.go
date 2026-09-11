@@ -107,6 +107,11 @@ func (this *KucoinCore) PublicGetMarginCollateralRatio(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetMarginCollateralRatio", args...)
 }
 
+// PublicGetMarginAvailableInventory returns a channel that yields a JSON object.
+func (this *KucoinCore) PublicGetMarginAvailableInventory(args ...any) <-chan any {
+	return this.callEndpointAsync("publicGetMarginAvailableInventory", args...)
+}
+
 // PublicGetConvertSymbol returns a channel that yields a JSON object.
 func (this *KucoinCore) PublicGetConvertSymbol(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetConvertSymbol", args...)
@@ -477,6 +482,11 @@ func (this *KucoinCore) PrivateGetMarginInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetMarginInterest", args...)
 }
 
+// PrivateGetMarginBorrowRate returns a channel that yields a JSON object.
+func (this *KucoinCore) PrivateGetMarginBorrowRate(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetMarginBorrowRate", args...)
+}
+
 // PrivateGetProjectList returns a channel that yields a JSON object.
 func (this *KucoinCore) PrivateGetProjectList(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetProjectList", args...)
@@ -555,6 +565,31 @@ func (this *KucoinCore) PrivateGetConvertLimitOrders(args ...any) <-chan any {
 // PrivateGetAffiliateInviterStatistics returns a channel that yields a JSON object.
 func (this *KucoinCore) PrivateGetAffiliateInviterStatistics(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetAffiliateInviterStatistics", args...)
+}
+
+// PrivateGetAffiliateQueryInvitees returns a channel that yields a JSON object.
+func (this *KucoinCore) PrivateGetAffiliateQueryInvitees(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateQueryInvitees", args...)
+}
+
+// PrivateGetAffiliateQueryMyCommission returns a channel that yields a JSON object.
+func (this *KucoinCore) PrivateGetAffiliateQueryMyCommission(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateQueryMyCommission", args...)
+}
+
+// PrivateGetAffiliateQueryTransactionByUid returns a channel that yields a JSON object.
+func (this *KucoinCore) PrivateGetAffiliateQueryTransactionByUid(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateQueryTransactionByUid", args...)
+}
+
+// PrivateGetAffiliateQueryTransactionByTime returns a channel that yields a JSON object.
+func (this *KucoinCore) PrivateGetAffiliateQueryTransactionByTime(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateQueryTransactionByTime", args...)
+}
+
+// PrivateGetAffiliateQueryKumining returns a channel that yields a JSON object.
+func (this *KucoinCore) PrivateGetAffiliateQueryKumining(args ...any) <-chan any {
+	return this.callEndpointAsync("privateGetAffiliateQueryKumining", args...)
 }
 
 // PrivatePostSubUserCreated returns a channel that yields a JSON object.
@@ -1377,6 +1412,11 @@ func (this *KucoinCore) BrokerGetBrokerNdRebaseDownload(args ...any) <-chan any 
 	return this.callEndpointAsync("brokerGetBrokerNdRebaseDownload", args...)
 }
 
+// BrokerGetBrokerNdMarkUp returns a channel that yields a JSON object.
+func (this *KucoinCore) BrokerGetBrokerNdMarkUp(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerGetBrokerNdMarkUp", args...)
+}
+
 // BrokerGetAssetNdbrokerDepositList returns a channel that yields a JSON object.
 func (this *KucoinCore) BrokerGetAssetNdbrokerDepositList(args ...any) <-chan any {
 	return this.callEndpointAsync("brokerGetAssetNdbrokerDepositList", args...)
@@ -1415,6 +1455,11 @@ func (this *KucoinCore) BrokerPostBrokerNdAccountApikey(args ...any) <-chan any 
 // BrokerPostBrokerNdAccountUpdateApikey returns a channel that yields a JSON object.
 func (this *KucoinCore) BrokerPostBrokerNdAccountUpdateApikey(args ...any) <-chan any {
 	return this.callEndpointAsync("brokerPostBrokerNdAccountUpdateApikey", args...)
+}
+
+// BrokerPostBrokerNdMarkUp returns a channel that yields a JSON object.
+func (this *KucoinCore) BrokerPostBrokerNdMarkUp(args ...any) <-chan any {
+	return this.callEndpointAsync("brokerPostBrokerNdMarkUp", args...)
 }
 
 // BrokerDeleteBrokerNdAccountApikey returns a channel that yields a JSON object.

@@ -872,7 +872,7 @@ class bitopro(Exchange, ImplicitAPI):
         :param int [since]: timestamp in ms of the earliest candle to fetch
         :param int [limit]: the maximum amount of candles to fetch
         :param dict [params]: extra parameters specific to the exchange API endpoint
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         if self.markets is None:
             await self.load_markets()
@@ -1661,7 +1661,7 @@ class bitopro(Exchange, ImplicitAPI):
         #
         return self.parse_transactions(result, currency, since, limit, {'type': 'withdrawal'})
 
-    async def fetch_withdrawal(self, id: str, code: Str = None, params={}):
+    async def fetch_withdrawal(self, id: str, code: Str = None, params={}) -> Transaction:
         """
         fetch data on a currency withdrawal via the withdrawal id
 

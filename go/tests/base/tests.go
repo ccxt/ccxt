@@ -297,7 +297,7 @@ func (this *testMainClass) ExpandSettings(exchange ccxt.ICoreExchange) {
 func (this *testMainClass) AddPadding(message any, size any) any {
 	// has to be transpilable
 	var res any = ""
-	var messageLength any = GetLength(message)                        // avoid php transpilation issue
+	var messageLength int = GetLength(message)                        // avoid php transpilation issue
 	var missingSpace any = Subtract(Subtract(size, messageLength), 0) // - 0 is added just to trick transpile to treat the .length as a string for php
 	if IsTrue(IsGreaterThan(missingSpace, 0)) {
 		for i := 0; IsLessThan(i, missingSpace); i++ {
@@ -456,7 +456,7 @@ func (this *testMainClass) testSafeBody(ch chan any, methodName any, exchange cc
 	_ = args
 	isPublic := GetArg(optionalArgs, 1, false)
 	_ = isPublic
-	var maxRetries any = 3
+	var maxRetries int = 3
 	var argsStringified any = exchange.Json(args) // args.join() breaks when we provide a list of symbols or multidimensional array; "args.toString()" breaks bcz of "array to string conversion"
 	for i := 0; IsLessThan(i, maxRetries); i++ {
 
@@ -672,7 +672,7 @@ func (this *testMainClass) runTestsBody(ch chan any, exchange ccxt.ICoreExchange
 	}
 	var testPrefixString any = Ternary(IsTrue(isPublicTest), "PUBLIC_TESTS", "PRIVATE_TESTS")
 	if IsTrue(IsGreaterThan(GetArrayLength(failedMethods), 0)) {
-		var errorsString any = Join(failedMethods, ", ")
+		var errorsString string = Join(failedMethods, ", ")
 		Dump("[TEST_FAILURE]", exchange.GetId(), testPrefixString, Add("Failed methods : ", errorsString))
 	}
 	if IsTrue(this.Info) {
@@ -790,7 +790,7 @@ func (this *testMainClass) GetValidSymbol(exchange ccxt.ICoreExchange, optionalA
 		symbol = this.GetTestSymbol(exchange, spot, activeSymbols)
 	}
 	if IsTrue(IsEqual(symbol, nil)) {
-		var values any = ObjectValues(currentTypeMarkets)
+		var values []any = ObjectValues(currentTypeMarkets)
 		var valuesLength int = GetArrayLength(values)
 		if IsTrue(IsGreaterThan(valuesLength, 0)) {
 			var first any = GetValue(values, 0)
@@ -968,7 +968,7 @@ func (this *testMainClass) testExchangeBody(ch chan any, exchange ccxt.ICoreExch
 		if IsTrue(hasSpot) {
 			var primarySymbol any = this.GetValidSymbol(exchange, true)
 			if IsTrue(!IsEqual(primarySymbol, nil)) {
-				var secondarySymbol any = Replace(primarySymbol, "BTC", "ETH") // this should work any exchange
+				var secondarySymbol string = Replace(primarySymbol, "BTC", "ETH") // this should work any exchange
 				spotSymbols = []any{primarySymbol, secondarySymbol}
 			}
 		}
@@ -980,7 +980,7 @@ func (this *testMainClass) testExchangeBody(ch chan any, exchange ccxt.ICoreExch
 			// getValidSymbol returns undefined in that case — skip swap
 			// tests rather than crashing on `undefined.replace(...)`.
 			if IsTrue(!IsEqual(primarySymbol, nil)) {
-				var secondarySymbol any = Replace(primarySymbol, "BTC", "ETH") // this should work any exchange
+				var secondarySymbol string = Replace(primarySymbol, "BTC", "ETH") // this should work any exchange
 				swapSymbols = []any{primarySymbol, secondarySymbol}
 			}
 		}
@@ -1171,7 +1171,7 @@ func (this *testMainClass) runPredictionTestsBody(ch chan any, exchange ccxt.ICo
 					var handleParts []string = Split(outcomeSymbol, ":")
 					var marketPart any = GetValue(handleParts, 0)
 					var lowerPart string = ToLower(marketPart)
-					var dedashed any = Replace(lowerPart, "-", " ")
+					var dedashed string = Replace(lowerPart, "-", " ")
 					eventQuery = Replace(dedashed, "_", " ")
 				}
 				var eventParams map[string]any = map[string]any{}
@@ -1643,7 +1643,7 @@ func (this *testMainClass) testProxiesBody(ch chan any, exchange ccxt.ICoreExcha
 		return nil
 	}
 	// try proxy several times
-	var maxRetries any = 3
+	var maxRetries int = 3
 	var exceptionMessageString any = nil
 	for j := 0; IsLessThan(j, maxRetries); j++ {
 
@@ -1723,7 +1723,7 @@ func (this *testMainClass) testReturnResponseHeadersBody(ch chan any, exchange c
 	var headers any = GetValue(info, "responseHeaders")
 	var headersKeys []string = ObjectKeys(headers)
 	Assert(IsGreaterThan(GetArrayLength(headersKeys), 0), "Response headers should not be empty")
-	var headerValues any = ObjectValues(headers)
+	var headerValues []any = ObjectValues(headers)
 	Assert(IsGreaterThan(GetArrayLength(headerValues), 0), "Response headers values should not be empty")
 	exchange.SetReturnResponseHeaders(false)
 
@@ -1893,7 +1893,7 @@ func (this *testMainClass) LoadStaticData(folder any, optionalArgs ...any) any {
 		if IsTrue(IsEqual(file, "prediction")) {
 			continue
 		}
-		var exchangeName any = Replace(file, ".json", "")
+		var exchangeName string = Replace(file, ".json", "")
 		var content any = IoFileRead(Add(folder, file))
 		AddElementToObject(result, exchangeName, content)
 	}

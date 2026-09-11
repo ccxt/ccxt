@@ -1347,7 +1347,7 @@ class bigone extends Exchange {
          * @param {int} [$limit] the maximum amount of candles to fetch
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the earliest candle to fetch
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1584,7 +1584,7 @@ class bigone extends Exchange {
          * @param {float} [$params->triggerPrice] the $price at which a trigger $order is triggered at
          * @param {bool} [$params->postOnly] if true, the $order will only be posted to the $order book and not executed immediately
          * @param {string} [$params->timeInForce] "GTC", "IOC", or "PO"
-         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used alternative for the $amount
+         * @param {float} [$params->cost] *spot $market buy only* the quote quantity that can be used as an alternative for the $amount
          *
          * EXCHANGE SPECIFIC PARAMETERS
          * @param {string} [$params->operator] *stop $order only* GTE or LTE (default)
@@ -2008,7 +2008,7 @@ class bigone extends Exchange {
         list($networkCode, $paramsOmitted) = $this->handle_network_code_and_params($params);
         $response = $this->privateGetAssetsAssetSymbolAddress($this->extend($request, $paramsOmitted));
         //
-        // the actual $response format is not the same documented one
+        // the actual $response format is not the same as the documented one
         // the $data key contains an array in the actual $response
         //
         //     {

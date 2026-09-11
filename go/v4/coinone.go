@@ -339,6 +339,12 @@ func (this *CoinoneCore) Describe() any {
 					"transaction/coin/withdrawal/limit": map[string]any{
 						"cost": 1,
 					},
+					"event/order-reward/programs": map[string]any{
+						"cost": 1,
+					},
+					"event/order-reward/history": map[string]any{
+						"cost": 1,
+					},
 				},
 			},
 		},
@@ -660,8 +666,8 @@ func (this *CoinoneCore) fetchBalanceBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes50612 := (<-this.LoadMarkets())
-		PanicOnError(retRes50612)
+		retRes50812 := (<-this.LoadMarkets())
+		PanicOnError(retRes50812)
 	}
 
 	response := (<-this.V2PrivatePostAccountBalance(params))
@@ -695,8 +701,8 @@ func (this *CoinoneCore) fetchOrderBookBody(ch chan any, symbol any, optionalArg
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes52412 := (<-this.LoadMarkets())
-		PanicOnError(retRes52412)
+		retRes52612 := (<-this.LoadMarkets())
+		PanicOnError(retRes52612)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -762,8 +768,8 @@ func (this *CoinoneCore) fetchTickersBody(ch chan any, optionalArgs ...any) any 
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes57412 := (<-this.LoadMarkets())
-		PanicOnError(retRes57412)
+		retRes57612 := (<-this.LoadMarkets())
+		PanicOnError(retRes57612)
 	}
 	symbols = this.MarketSymbols(symbols)
 	var request map[string]any = map[string]any{
@@ -844,8 +850,8 @@ func (this *CoinoneCore) fetchTickerBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes63912 := (<-this.LoadMarkets())
-		PanicOnError(retRes63912)
+		retRes64112 := (<-this.LoadMarkets())
+		PanicOnError(retRes64112)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1047,8 +1053,8 @@ func (this *CoinoneCore) fetchTradesBody(ch chan any, symbol any, optionalArgs .
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes82112 := (<-this.LoadMarkets())
-		PanicOnError(retRes82112)
+		retRes82312 := (<-this.LoadMarkets())
+		PanicOnError(retRes82312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1120,8 +1126,8 @@ func (this *CoinoneCore) createOrderBody(ch chan any, symbol any, typeVar any, s
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes87712 := (<-this.LoadMarkets())
-		PanicOnError(retRes87712)
+		retRes87912 := (<-this.LoadMarkets())
+		PanicOnError(retRes87912)
 	}
 	var market any = this.Market(symbol)
 	// the v1 order/limit_buy and order/limit_sell endpoints were retired by
@@ -1176,8 +1182,8 @@ func (this *CoinoneCore) fetchOrderBody(ch chan any, id any, optionalArgs ...any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes91612 := (<-this.LoadMarkets())
-		PanicOnError(retRes91612)
+		retRes91812 := (<-this.LoadMarkets())
+		PanicOnError(retRes91812)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1378,8 +1384,8 @@ func (this *CoinoneCore) fetchOpenOrdersBody(ch chan any, optionalArgs ...any) a
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes109712 := (<-this.LoadMarkets())
-		PanicOnError(retRes109712)
+		retRes109912 := (<-this.LoadMarkets())
+		PanicOnError(retRes109912)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1443,8 +1449,8 @@ func (this *CoinoneCore) fetchMyTradesBody(ch chan any, optionalArgs ...any) any
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes114112 := (<-this.LoadMarkets())
-		PanicOnError(retRes114112)
+		retRes114312 := (<-this.LoadMarkets())
+		PanicOnError(retRes114312)
 	}
 	var market any = this.Market(symbol)
 	var request map[string]any = map[string]any{
@@ -1511,8 +1517,8 @@ func (this *CoinoneCore) cancelOrderBody(ch chan any, id any, optionalArgs ...an
 	}
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes119212 := (<-this.LoadMarkets())
-		PanicOnError(retRes119212)
+		retRes119412 := (<-this.LoadMarkets())
+		PanicOnError(retRes119412)
 	}
 	var request map[string]any = map[string]any{
 		"order_id": id,
@@ -1557,8 +1563,8 @@ func (this *CoinoneCore) fetchDepositAddressesBody(ch chan any, optionalArgs ...
 	_ = params
 	if IsTrue(IsEqual(this.Markets, nil)) {
 
-		retRes122112 := (<-this.LoadMarkets())
-		PanicOnError(retRes122112)
+		retRes122312 := (<-this.LoadMarkets())
+		PanicOnError(retRes122312)
 	}
 
 	response := (<-this.V2PrivatePostAccountDepositAddress(params))
@@ -1657,7 +1663,7 @@ func (this *CoinoneCore) Sign(path any, optionalArgs ...any) any {
 			"access_token": this.ApiKey,
 			"nonce":        nonce,
 		}, params))
-		var payload any = this.StringToBase64(json)
+		var payload string = this.StringToBase64(json)
 		body = payload
 		var secret string = ToUpper(this.Secret)
 		var signature string = this.Hmac(this.Encode(payload), this.Encode(secret), sha512)

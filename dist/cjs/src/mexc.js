@@ -195,6 +195,7 @@ class mexc extends mexc$1["default"] {
                         'get': {
                             'kyc/status': { 'cost': 1 },
                             'uid': { 'cost': 1 },
+                            'apiKeyInfo': { 'cost': 1 },
                             'order': { 'cost': 2 },
                             'openOrders': { 'cost': 3 },
                             'allOrders': { 'cost': 10 },
@@ -257,6 +258,7 @@ class mexc extends mexc$1["default"] {
                             'sub-account/margin': { 'cost': 1 },
                             'batchOrders': { 'cost': 10 },
                             'strategy/group': { 'cost': 20 },
+                            'strategy/group/uid': { 'cost': 20 },
                             'capital/withdraw/apply': { 'cost': 1 },
                             'capital/withdraw': { 'cost': 1 },
                             'capital/transfer': { 'cost': 50 },
@@ -727,18 +729,8 @@ class mexc extends mexc$1["default"] {
                     'BNB Smart Chain(BEP20-RACAV2)': 'BSC',
                     'BNB Smart Chain(BEP20)': 'BSC',
                     'Ethereum(ERC20)': 'ERC20',
-                    // TODO: uncomment below after deciding unified name
-                    // 'PEPE COIN BSC':
-                    // 'SMART BLOCKCHAIN':
-                    // 'f(x)Core':
-                    // 'Syscoin Rollux':
-                    // 'Syscoin UTXO':
-                    // 'zkSync Era':
-                    // 'zkSync Lite':
-                    // 'Darwinia Smart Chain':
-                    // 'Arbitrum One(ARB-Bridged)':
-                    // 'Optimism(OP-Bridged)':
-                    // 'Polygon(MATIC-Bridged)':
+                    // TODO: unified names undecided for PEPE COIN BSC, SMART BLOCKCHAIN, f(x)Core, Syscoin Rollux, Syscoin UTXO,
+                    // zkSync Era, zkSync Lite, Darwinia Smart Chain, Arbitrum One(ARB-Bridged), Optimism(OP-Bridged), Polygon(MATIC-Bridged)
                 },
                 'recvWindow': 5 * 1000, // 5 sec, default
                 'maxTimeTillEnd': 90 * 86400 * 1000 - 1, // 90 days
@@ -2575,16 +2567,7 @@ class mexc extends mexc$1["default"] {
             'vol': parseFloat(volString),
             // 'leverage': int, // required for isolated margin
             // 'side': side, // 1 open long, 2 close short, 3 open short, 4 close long
-            //
-            // supported order types
-            //
-            //     1 limit
-            //     2 post only maker (PO)
-            //     3 transact or cancel instantly (IOC)
-            //     4 transact completely or cancel completely (FOK)
-            //     5 market orders
-            //     6 convert market price to current price
-            //
+            // order types: 1 limit, 2 post only (PO), 3 IOC, 4 FOK, 5 market, 6 convert market price to current price
             'type': type,
             'openType': openType, // 1 isolated, 2 cross
             // 'positionId': 1394650, // long, filling in this parameter when closing a position is recommended
@@ -3834,7 +3817,11 @@ class mexc extends mexc$1["default"] {
             //         ]
             //     }
             //
-            return this.safeValue(response, 'data');
+            // wrap the swap asset list so this helper always returns an account
+            // dict with a `balances` array — fetchAccounts reads response['balances']
+            return {
+                'balances': this.safeValue(response, 'data', []),
+            };
         }
         return undefined;
     }
@@ -3982,26 +3969,22 @@ class mexc extends mexc$1["default"] {
         else {
             wallet = this.safeValue(response, 'balances', []);
         }
-        const result = { 'info': response };
+        let result = { 'info': response };
         if (marketType === 'margin') {
             for (let i = 0; i < wallet.length; i++) {
                 const entry = wallet[i];
-                const marketId = this.safeString(entry, 'symbol');
-                const symbol = this.safeSymbol(marketId);
                 const base = this.safeValue(entry, 'baseAsset', {});
                 const quote = this.safeValue(entry, 'quoteAsset', {});
                 const baseCode = this.safeCurrencyCode(this.safeString(base, 'asset'));
                 const quoteCode = this.safeCurrencyCode(this.safeString(quote, 'asset'));
-                const subResult = {};
                 if (baseCode !== undefined) {
-                    subResult[baseCode] = this.parseBalanceHelper(base);
+                    result = this.mergeBalanceAccount(result, baseCode, this.parseBalanceHelper(base));
                 }
                 if (quoteCode !== undefined) {
-                    subResult[quoteCode] = this.parseBalanceHelper(quote);
+                    result = this.mergeBalanceAccount(result, quoteCode, this.parseBalanceHelper(quote));
                 }
-                result[symbol] = this.safeBalance(subResult);
             }
-            return result;
+            return this.safeBalance(result);
         }
         else if (marketType === 'swap') {
             for (let i = 0; i < wallet.length; i++) {

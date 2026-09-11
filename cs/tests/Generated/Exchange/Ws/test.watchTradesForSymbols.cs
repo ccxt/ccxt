@@ -13,9 +13,9 @@ public partial class testMainClass : BaseTest
         string method = "watchTradesForSymbols";
         object now = exchange.milliseconds();
         object ends = add(now, 15000);
-        object maxIdleTime = 5000;
+        int maxIdleTime = 5000;
         bool idle = false;
-        object returnedSymbols = new List<object>() {};
+        List<object> returnedSymbols = new List<object>() {};
         while (isTrue((isLessThan(now, ends))) && !isTrue(idle))
         {
             object response = null;
@@ -37,7 +37,7 @@ public partial class testMainClass : BaseTest
             {
                 assert(((response is IList<object>) || (response.GetType().IsGenericType && response.GetType().GetGenericTypeDefinition().IsAssignableFrom(typeof(List<>)))), add(add(add(add(add(add(exchange.id, " "), method), " "), exchange.json(symbols)), " must return an array. "), exchange.json(response)));
                 object symbol = null;
-                for (object i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
+                for (int i = 0; isLessThan(i, getArrayLength(response)); postFixIncrement(ref i))
                 {
                     object trade = getValue(response, i);
                     symbol = getValue(trade, "symbol");

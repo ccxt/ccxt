@@ -424,6 +424,69 @@ public partial class toobit : Exchange
         return await this.callAsync<Dictionary<string, object>> ("privateGetApiV1AgentExportUrl",parameters);
     }
 
+    /// <summary>Calls the privateGetApiV2AccountBalanceFlow endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV2AccountBalanceFlow (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetApiV2AccountBalanceFlow",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV2FuturesOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV2FuturesOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV2FuturesOrder",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV2FuturesOpenOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV2FuturesOpenOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetApiV2FuturesOpenOrders",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV2FuturesHistoryOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV2FuturesHistoryOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetApiV2FuturesHistoryOrders",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV2FuturesUserTrades endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV2FuturesUserTrades (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetApiV2FuturesUserTrades",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV2FuturesAlgoOrder endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV2FuturesAlgoOrder (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV2FuturesAlgoOrder",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV2FuturesOpenAlgoOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV2FuturesOpenAlgoOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetApiV2FuturesOpenAlgoOrders",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV2FuturesHistoryAlgoOrders endpoint.</summary>
+    /// <returns>a JSON array</returns>
+    public async Task<List<object>> privateGetApiV2FuturesHistoryAlgoOrders (object parameters = null)
+    {
+        return await this.callAsync<List<object>> ("privateGetApiV2FuturesHistoryAlgoOrders",parameters);
+    }
+
+    /// <summary>Calls the privateGetApiV2FuturesVoucherList endpoint.</summary>
+    /// <returns>a JSON object</returns>
+    public async Task<Dictionary<string, object>> privateGetApiV2FuturesVoucherList (object parameters = null)
+    {
+        return await this.callAsync<Dictionary<string, object>> ("privateGetApiV2FuturesVoucherList",parameters);
+    }
+
     /// <summary>Calls the privatePostApiV1SpotOrderTest endpoint.</summary>
     /// <returns>a JSON object</returns>
     public async Task<Dictionary<string, object>> privatePostApiV1SpotOrderTest (object parameters = null)

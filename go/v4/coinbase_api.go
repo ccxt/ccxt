@@ -142,6 +142,11 @@ func (this *CoinbaseCore) V2PrivateGetUserAuth(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivateGetUserAuth", args...)
 }
 
+// V2PrivateGetSubscriptionsCoinbaseOne returns a channel that yields a JSON object.
+func (this *CoinbaseCore) V2PrivateGetSubscriptionsCoinbaseOne(args ...any) <-chan any {
+	return this.callEndpointAsync("v2PrivateGetSubscriptionsCoinbaseOne", args...)
+}
+
 // V2PrivatePostAccounts returns a channel that yields a JSON object.
 func (this *CoinbaseCore) V2PrivatePostAccounts(args ...any) <-chan any {
 	return this.callEndpointAsync("v2PrivatePostAccounts", args...)
@@ -357,6 +362,21 @@ func (this *CoinbaseCore) V3PrivateGetBrokerageCfmSweeps(args ...any) <-chan any
 	return this.callEndpointAsync("v3PrivateGetBrokerageCfmSweeps", args...)
 }
 
+// V3PrivateGetBrokerageCfmIntradayCurrentMarginWindow returns a channel that yields a JSON object.
+func (this *CoinbaseCore) V3PrivateGetBrokerageCfmIntradayCurrentMarginWindow(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetBrokerageCfmIntradayCurrentMarginWindow", args...)
+}
+
+// V3PrivateGetBrokerageCfmIntradayMarginSetting returns a channel that yields a JSON object.
+func (this *CoinbaseCore) V3PrivateGetBrokerageCfmIntradayMarginSetting(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetBrokerageCfmIntradayMarginSetting", args...)
+}
+
+// V3PrivateGetBrokerageIntxBalancesPortfolioUuid returns a channel that yields a JSON object.
+func (this *CoinbaseCore) V3PrivateGetBrokerageIntxBalancesPortfolioUuid(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivateGetBrokerageIntxBalancesPortfolioUuid", args...)
+}
+
 // V3PrivateGetBrokerageIntxPortfolioPortfolioUuid returns a channel that yields a JSON object.
 func (this *CoinbaseCore) V3PrivateGetBrokerageIntxPortfolioPortfolioUuid(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivateGetBrokerageIntxPortfolioPortfolioUuid", args...)
@@ -437,9 +457,19 @@ func (this *CoinbaseCore) V3PrivatePostBrokerageCfmSweepsSchedule(args ...any) <
 	return this.callEndpointAsync("v3PrivatePostBrokerageCfmSweepsSchedule", args...)
 }
 
+// V3PrivatePostBrokerageCfmIntradayMarginSetting returns a channel that yields a JSON object.
+func (this *CoinbaseCore) V3PrivatePostBrokerageCfmIntradayMarginSetting(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivatePostBrokerageCfmIntradayMarginSetting", args...)
+}
+
 // V3PrivatePostBrokerageIntxAllocate returns a channel that yields a JSON object.
 func (this *CoinbaseCore) V3PrivatePostBrokerageIntxAllocate(args ...any) <-chan any {
 	return this.callEndpointAsync("v3PrivatePostBrokerageIntxAllocate", args...)
+}
+
+// V3PrivatePostBrokerageIntxMultiAssetCollateral returns a channel that yields a JSON object.
+func (this *CoinbaseCore) V3PrivatePostBrokerageIntxMultiAssetCollateral(args ...any) <-chan any {
+	return this.callEndpointAsync("v3PrivatePostBrokerageIntxMultiAssetCollateral", args...)
 }
 
 // V3PrivatePostBrokerageOrdersClosePosition returns a channel that yields a JSON object.

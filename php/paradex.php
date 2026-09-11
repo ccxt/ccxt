@@ -62,9 +62,9 @@ class paradex extends Exchange {
                 'fetchDepositWithdrawFee' => false,
                 'fetchDepositWithdrawFees' => false,
                 'fetchFundingHistory' => true,
-                'fetchFundingRate' => false,
+                'fetchFundingRate' => true,
                 'fetchFundingRateHistory' => true,
-                'fetchFundingRates' => false,
+                'fetchFundingRates' => true,
                 'fetchGreeks' => true,
                 'fetchIndexOHLCV' => true,
                 'fetchIsolatedBorrowRate' => false,
@@ -155,6 +155,7 @@ class paradex extends Exchange {
                         'jwks.json' => array( 'cost' => 1 ),
                         'onboarding' => array( 'cost' => 1 ),
                         'referrals/config' => array( 'cost' => 1 ),
+                        'staking/balance/history/global' => array( 'cost' => 1 ),
                         'staking/config' => array( 'cost' => 1 ),
                         'system/announcements' => array( 'cost' => 1 ),
                         'system/config' => array( 'cost' => 1 ),
@@ -164,6 +165,7 @@ class paradex extends Exchange {
                         'system/volume-tiers' => array( 'cost' => 1 ),
                         'trades' => array( 'cost' => 1 ),
                         'vaults' => array( 'cost' => 1 ),
+                        'vaults/analytics' => array( 'cost' => 1 ),
                         'vaults/balance' => array( 'cost' => 1 ),
                         'vaults/config' => array( 'cost' => 1 ),
                         'vaults/history' => array( 'cost' => 1 ),
@@ -209,6 +211,11 @@ class paradex extends Exchange {
                         'orders/{order_id}' => array( 'cost' => 1 ),
                         'referrals/qr-code' => array( 'cost' => 1 ),
                         'referrals/summary' => array( 'cost' => 1 ),
+                        'rfqs' => array( 'cost' => 1 ),
+                        'rfqs/drafts' => array( 'cost' => 1 ),
+                        'rfqs/markets' => array( 'cost' => 1 ),
+                        'rfqs/{rfq_id}/bbo' => array( 'cost' => 1 ),
+                        'staking/balance/history' => array( 'cost' => 1 ),
                         'staking/history' => array( 'cost' => 1 ),
                         'staking/summary' => array( 'cost' => 1 ),
                         'transfers' => array( 'cost' => 1 ),
@@ -230,6 +237,8 @@ class paradex extends Exchange {
                         'account/profile/username' => array( 'cost' => 1 ),
                         'account/referrer' => array( 'cost' => 1 ),
                         'account/settings/trading_value_display' => array( 'cost' => 1 ),
+                        'account/paradigm/enable' => array( 'cost' => 1 ),
+                        'account/terminal-token' => array( 'cost' => 1 ),
                         'account/keys/subkeys/activate' => array( 'cost' => 1 ),
                         'account/keys/subkeys' => array( 'cost' => 1 ),
                         'account/tokens' => array( 'cost' => 1 ),
@@ -242,6 +251,9 @@ class paradex extends Exchange {
                         'onboarding' => array( 'cost' => 1 ),
                         'orders' => array( 'cost' => 1 ),
                         'orders/batch' => array( 'cost' => 1 ),
+                        'rfqs' => array( 'cost' => 1 ),
+                        'rfqs/drafts' => array( 'cost' => 1 ),
+                        'rfqs/{rfq_id}/execute' => array( 'cost' => 1 ),
                         'v2/auth' => array( 'cost' => 1 ),
                         'v2/onboarding' => array( 'cost' => 1 ),
                         'vaults' => array( 'cost' => 1 ),
@@ -251,6 +263,8 @@ class paradex extends Exchange {
                     'put' => array(
                         'account/profile' => array( 'cost' => 1 ),
                         'account/keys/subkeys/{public_key}' => array( 'cost' => 1 ),
+                        'account/keys/subkeys/{public_key}/allowed-cidrs' => array( 'cost' => 1 ),
+                        'account/tokens/{lookup_id}/allowed-cidrs' => array( 'cost' => 1 ),
                         'orders/{order_id}' => array( 'cost' => 1 ),
                     ),
                     'delete' => array(
@@ -263,6 +277,8 @@ class paradex extends Exchange {
                         'orders/batch' => array( 'cost' => 1 ),
                         'orders/by_client_id/{client_id}' => array( 'cost' => 1 ),
                         'orders/{order_id}' => array( 'cost' => 1 ),
+                        'rfqs/drafts/{draft_id}' => array( 'cost' => 1 ),
+                        'rfqs/{rfq_id}' => array( 'cost' => 1 ),
                     ),
                 ),
             ),
@@ -813,7 +829,7 @@ class paradex extends Exchange {
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
          * @param {int} [$params->until] timestamp in ms of the latest candle to fetch
          * @param {string} [$params->price] "last", "mark", "index", default is "last"
-         * @return {int[][]} A list of candles ordered, open, high, low, close, volume
+         * @return {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -1023,6 +1039,117 @@ class paradex extends Exchange {
             'markPrice' => $this->safe_string($ticker, 'mark_price'),
             'info' => $ticker,
         ), $market);
+    }
+
+    public function fetch_funding_rates(?array $symbols = null, $params = array()): array {
+        /**
+         * fetches the current funding rate for multiple markets
+         *
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+         *
+         * @param {string[]} [$symbols] unified market $symbols
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array[]} a list of ~@link https://docs.ccxt.com/?id=funding-rate-structure funding rate structures~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $symbols = $this->market_symbols($symbols);
+        // the endpoint takes one market id, and ALL answers for every product on
+        // the venue => a single symbol is asked for by name, which is 544 bytes
+        // against 1.6 MB
+        $target = 'ALL';
+        if ($symbols !== null) {
+            $symbolsLength = count($symbols);
+            if ($symbolsLength === 1) {
+                $target = $this->market($symbols[0])['id'];
+            }
+        }
+        $request = array(
+            'market' => $target,
+        );
+        $response = $this->publicGetMarketsSummary($this->extend($request, $params));
+        $data = $this->safe_list($response, 'results', array());
+        return $this->parse_funding_rates($data, $symbols);
+    }
+
+    public function fetch_funding_rate(string $symbol, $params = array()): array {
+        /**
+         * fetches the current funding $rate
+         *
+         * @see https://docs.paradex.trade/api/prod/markets/get-markets-summary
+         *
+         * @param {string} $symbol unified $market $symbol
+         * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @return {array} a ~@link https://docs.ccxt.com/?id=funding-$rate-structure funding $rate structure~
+         */
+        if ($this->markets === null) {
+            $this->load_markets();
+        }
+        $market = $this->market($symbol);
+        $rates = $this->fetch_funding_rates(array( $market['symbol'] ), $params);
+        $rate = $this->safe_dict($rates, $market['symbol']);
+        if ($rate === null) {
+            throw new BadSymbol($this->id . ' fetchFundingRate() could not find a funding $rate for ' . $symbol);
+        }
+        return $rate;
+    }
+
+    public function parse_funding_rate(mixed $contract, ?array $market = null): array {
+        //
+        //     {
+        //         "symbol" => "BTC-USD-PERP",
+        //         "oracle_price" => "68465.17449906",
+        //         "mark_price" => "68465.17449906",
+        //         "last_traded_price" => "68495.1",
+        //         "bid" => "68477.6",
+        //         "ask" => "69578.2",
+        //         "volume_24h" => "5815541.397939004",
+        //         "total_volume" => "584031465.525259686",
+        //         "created_at" => 1718170156580,
+        //         "underlying_price" => "67367.37268422",
+        //         "open_interest" => "162.272",
+        //         "funding_rate" => "0.01629574927887",
+        //         "price_change_rate_24h" => "0.009032"
+        //     }
+        //
+        $marketId = $this->safe_string($contract, 'symbol');
+        $market = $this->safe_market($marketId, $market, null, 'swap');
+        $timestamp = $this->safe_integer($contract, 'created_at');
+        // the summary answers for every product, and only a perpetual $funds => an
+        // option row carries an empty funding_rate and a period of zero. left
+        // without a symbol, parseFundingRates drops the row
+        $rate = $this->safe_string($contract, 'funding_rate');
+        $funds = ($market['swap'] === true) && ($rate !== null) && ($rate !== '');
+        // the funding period belongs to the $market and is not always eight $hours:
+        // fetchMarkets documents one on twenty four. funding accrues each second
+        // against an index, and this $rate is the amount for a whole period
+        $hours = $this->safe_string($this->safe_dict($market, 'info', array()), 'funding_period_hours');
+        // zero $hours is not an $interval, and a caller annualising a $rate divides by it
+        $interval = null;
+        if (($hours !== null) && Precise::string_gt($hours, '0')) {
+            $interval = $hours . 'h';
+        }
+        return array(
+            'info' => $contract,
+            'symbol' => $funds ? $market['symbol'] : null,
+            'markPrice' => $this->safe_number($contract, 'mark_price'),
+            'indexPrice' => $this->safe_number($contract, 'underlying_price'),
+            'interestRate' => null,
+            'estimatedSettlePrice' => null,
+            'timestamp' => $timestamp,
+            'datetime' => $this->iso8601($timestamp),
+            'fundingRate' => $this->safe_number($contract, 'funding_rate'),
+            'fundingTimestamp' => null,
+            'fundingDatetime' => null,
+            'nextFundingRate' => null,
+            'nextFundingTimestamp' => null,
+            'nextFundingDatetime' => null,
+            'previousFundingRate' => null,
+            'previousFundingTimestamp' => null,
+            'previousFundingDatetime' => null,
+            'interval' => $interval,
+        );
     }
 
     public function fetch_order_book(string $symbol, ?int $limit = null, $params = array()): array {
@@ -1549,7 +1676,7 @@ class paradex extends Exchange {
             );
             return $this->safe_string($statuses, $status, $status);
         }
-        return $status;
+        return null;
     }
 
     public function parse_order_type(?string $type) {
@@ -3050,7 +3177,7 @@ class paradex extends Exchange {
          *
          * @param {string[]} [$symbols] unified $symbols of the markets to fetch greeks for, all markets are returned if not assigned
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
-         * @return {array} a ~@link https://docs.ccxt.com/?id=greeks-structure greeks structure~
+         * @return {array} a dictionary of ~@link https://docs.ccxt.com/?id=greeks-structure greeks structures~ indexed by market symbol
          */
         if ($this->markets === null) {
             $this->load_markets();
@@ -3301,6 +3428,9 @@ class paradex extends Exchange {
         //     )
         // }
         //
+        // every row is one observation of a $rate quoted for a whole funding period,
+        // not a settled payment => paradex recomputes it each second and accrues it
+        // into funding_index, so the series cannot be summed
         $results = $this->safe_list($response, 'results', array());
         $rates = array();
         for ($i = 0; $i < count($results); $i++) {

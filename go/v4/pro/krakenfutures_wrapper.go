@@ -261,6 +261,7 @@ func (this *Krakenfutures) WatchPositions(options ...ccxt.WatchPositionsOptions)
  * @param {int} [since] not used by krakenfutures watchOrders
  * @param {int} [limit] not used by krakenfutures watchOrders
  * @param {object} [params] extra parameters specific to the exchange API endpoint
+ * @param {boolean} [params.verbose] whether to subscribe to the open_orders_verbose feed
  * @returns {object[]} a list of [order structures]{@link https://docs.ccxt.com/?id=order-structure}
  */
 func (this *Krakenfutures) WatchOrders(options ...ccxt.WatchOrdersOptions) ([]ccxt.Order, error) {
@@ -454,7 +455,7 @@ func (this *Krakenfutures) EditOrders(orders []ccxt.OrderRequest, options ...ccx
 func (this *Krakenfutures) FetchAccounts(params ...any) ([]ccxt.Account, error) {
 	return this.exchangeTyped.FetchAccounts(params...)
 }
-func (this *Krakenfutures) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) ([]ccxt.Greeks, error) {
+func (this *Krakenfutures) FetchAllGreeks(options ...ccxt.FetchAllGreeksOptions) (ccxt.AllGreeks, error) {
 	return this.exchangeTyped.FetchAllGreeks(options...)
 }
 func (this *Krakenfutures) FetchBalance(params ...any) (ccxt.Balances, error) {
@@ -502,7 +503,7 @@ func (this *Krakenfutures) FetchDepositAddress(code string, options ...ccxt.Fetc
 func (this *Krakenfutures) FetchDepositAddresses(options ...ccxt.FetchDepositAddressesOptions) ([]ccxt.DepositAddress, error) {
 	return this.exchangeTyped.FetchDepositAddresses(options...)
 }
-func (this *Krakenfutures) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) ([]ccxt.DepositAddress, error) {
+func (this *Krakenfutures) FetchDepositAddressesByNetwork(code string, options ...ccxt.FetchDepositAddressesByNetworkOptions) (ccxt.DepositAddresses, error) {
 	return this.exchangeTyped.FetchDepositAddressesByNetwork(code, options...)
 }
 func (this *Krakenfutures) FetchDeposits(options ...ccxt.FetchDepositsOptions) ([]ccxt.Transaction, error) {

@@ -113,9 +113,22 @@ class grvt(Exchange, ImplicitAPI):
             'api': {
                 # RL : https://help.grvt.io/en/articles/9636566-what-are-the-rate-limitations-on-grvt
                 'privateEdge': {
+                    'get': {
+                        'api/v1/deposit/addresses': {'cost': rlOthers},
+                        'api/v1/bridge/withdrawal-info': {'cost': rlOthers},
+                        'api/v1/bridge/withdrawal-status': {'cost': rlOthers},
+                        'api/v1/referral/epochs': {'cost': rlOthers},
+                        'api/v1/referral/points': {'cost': rlOthers},
+                        'api/v1/referral/data': {'cost': rlOthers},
+                        'api/v1/referral/indirect_data': {'cost': rlOthers},
+                    },
                     'post': {
                         'auth/api_key/login': {'cost': 100},
                         'auth/wallet/login': {'cost': 100},
+                        'auth/builder/authorize': {'cost': 100},
+                        'api/v1/deposit/generate-address': {'cost': 100},
+                        'api/v1/bridge/withdrawal-quote': {'cost': 100},
+                        'api/v1/bridge/withdraw': {'cost': 100},
                     },
                 },
                 'publicMarket': {
@@ -132,6 +145,8 @@ class grvt(Exchange, ImplicitAPI):
                         'full/v1/trade_history': {'cost': 12},
                         'full/v1/kline': {'cost': 12},
                         'full/v1/funding': {'cost': 12},
+                        'full/v1/supported_assets': {'cost': 12},
+                        'full/v1/get_all_collateral_asset_info': {'cost': 12},
                     },
                 },
                 'privateTrading': {
@@ -172,6 +187,16 @@ class grvt(Exchange, ImplicitAPI):
                         'full/v1/authorize_builder': {'cost': rlOthers},  # https://pastebin(dot)com/0Mb8cFhN
                         'full/v1/get_authorized_builders': {'cost': rlOthers},
                         'full/v1/builder_fill_history': {'cost': rlOthers},
+                        'full/v1/create_rfq': {'cost': 5},
+                        'full/v1/cancel_rfq': {'cost': 5},
+                        'full/v1/ecn_from_broker': {'cost': rlOthers},
+                        'full/v2/bulk_orders': {'cost': 50},
+                        'full/v1/position_history': {'cost': rlOrders},
+                        'full/v1/interest_payment_history': {'cost': rlOthers},
+                        'full/v1/get_collateral_preference': {'cost': rlOthers},
+                        'full/v1/spot_account_summary': {'cost': rlOthers},
+                        'full/v1/set_indicative_prices': {'cost': rlOthers},
+                        'full/v1/withdrawal_fee': {'cost': 100},
                     },
                 },
             },
@@ -1106,7 +1131,7 @@ class grvt(Exchange, ImplicitAPI):
         :param dict [params]: extra parameters specific to the exchange API endpoint
         :param int [params.until]: timestamp in ms for the ending date filter, default is the current time
         :param boolean [params.paginate]: default False, when True will automatically paginate by calling self endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
-        :returns int[][]: A list of candles ordered, open, high, low, close, volume
+        :returns int[][]: A list of candles ordered as timestamp, open, high, low, close, volume
         """
         maxLimit = 1000
         if self.markets is None:
@@ -1709,7 +1734,7 @@ class grvt(Exchange, ImplicitAPI):
             fundingAccountId = None
             fundingAccountId, params = self.handle_option_and_params(params, 'transfer', 'fundingAccountId')
             if tradingAccountId is None or fundingAccountId is None:
-                raise ArgumentsRequired(self.id + ' transfer(): you should set(in the options or params) "tradingAccountId" and "fundingAccountId"(you can use "0" main funding account id)')
+                raise ArgumentsRequired(self.id + ' transfer(): you should set(in the options or params) "tradingAccountId" and "fundingAccountId"(you can use "0" as a main funding account id)')
             fromAccount = tradingAccountId if (fromAccount == 'trading') else fundingAccountId
             toAccount = tradingAccountId if (toAccount == 'trading') else fundingAccountId
         request = {
@@ -3131,7 +3156,7 @@ class grvt(Exchange, ImplicitAPI):
             headers = {
                 'Content-Type': 'application/json',
             }
-            # an empty params dict must serialize empty json object, not an empty json array,
+            # an empty params dict must serialize as an empty json object, not an empty json array,
             # php json_encode would produce [] here which the venue rejects with the same 1003 error
             paramsKeys = list(params.keys())
             paramsKeysLength = len(paramsKeys)
