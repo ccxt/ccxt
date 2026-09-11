@@ -42,31 +42,23 @@ async function testFetchTrades (exchange: Exchange, skippedProperties: object, s
 
 async function helperTestFetchTradesSideSequence (exchange: Exchange, skippedProperties: object, symbol: string, method: string, trades: any[]) {
     //
-    // Check whether a side is correct. This can be found out deterministically,
-    // by checking an order that has been filled with multiple trades at the
-    // same time (but on different prices). The price between first and last
-    // trade will definitely be directional. for example, an order with 3 fills:
-    //     - 1600000000073 : ...
-    //     - 1600000000111 : 0.4 ETH at 1750.40
-    //     - 1600000000111 : 0.9 ETH at 1750.41
-    //     - 1600000000111 : 0.33 ETH at 1750.42
-    //     - 1600000000252 : ...
-    // Here it's definitely visible that the trades have been `buy` as it happened
-    // on same timestamp and trades are increasing in price. if it was `sell` the
-    // prices would have been in decreasing order. it's nearly impossible to happen
-    // otherwie (if such rare event happens ever, the test can be restarted and
-    // the new run would not meet such exceptional case)
+    // Check whether returned trades are sorted correctly by side - multi-trade orders at the same
+    // timestamp would definitely have an increasing (in case of buy) price. For instance, if we
+    // have trades like:
+    //     [ 1600000000003 ] 1.4 ETH at 1750.41
+    //     [ 1600000000111 ] 0.2 ETH at 1750.40
+    //     [ 1600000000111 ] 0.3 ETH at 1750.41
+    //     [ 1600000000111 ] 0.9 ETH at 1750.42
+    //     [ 1600000000555 ] 2.4 ETH at 1750.40
+    // it's obviously `buy` order on same timestamp.
+    // In case any specific exchange does not return correctly sorted results, either implementation
+    // might need a fix, or the exchange needs `timestampSort` skip to be added.
     //
-    // the heuristic only holds for ascending-by-timestamp input, which is not guaranteed by
-    // every exchange (see the `timestampSort` skip), so scan a locally-sorted copy instead of
-    // relying on the order `trades` was actually returned in
-    //
-    const sortedTrades = exchange.sortBy (trades, 'timestamp');
     let lastTs = undefined;
     let lastPrice = undefined;
     let lastSide = undefined;
-    for (let i = 0; i < sortedTrades.length; i++) {
-        const trade = sortedTrades[i];
+    for (let i = 0; i < trades.length; i++) {
+        const trade = trades[i];
         const ts = trade['timestamp'];
         const price = exchange.safeString (trade, 'price');
         const side = trade['side'];
