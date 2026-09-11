@@ -390,8 +390,11 @@ function resolvesToBaseAccessor (printer, node, name) {
 // the resolved TS declaration of an admitted helper call must live under ts/src/base/ —
 // a venue override (its own file) transpiles with its own `Object` signature and must
 // never classify. `hash` / `encode` / `binaryToString` are absent by construction (the
-// table check at the top of the module throws for them).
-const HELPER_SOURCE_FILE = /[\\/]ts[\\/]src[\\/]base[\\/]/;
+// table check at the top of the module throws for them). The BASE stage resolves calls
+// inside ts/src/base/Exchange.ts to the stripped `Exchange.nooverloads.<pid>.ts` variant
+// (build/stripOverloads.ts), whose recorded fileName is RELATIVE (`ts/src/base/...`) —
+// accept a leading `ts/src/base/` as well or every base-stage candidate dies there.
+const HELPER_SOURCE_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/]/;
 
 // env-gated calibration trace: JAVA_STRING_HELPERS_DEBUG=1 prints the resolved
 // declaration file of every candidate helper call, accepted or not
@@ -724,7 +727,7 @@ function isPlainSafeStringBaseCall (printer, node) {
         return false;
     }
     const file = resolvedSignatureFile (printer, node);
-    return file !== undefined && /[\\/]base[\\/]functions[\\/]type\.ts$/.test (file);
+    return file !== undefined && /(^|[\\/])base[\\/]functions[\\/]type\.ts$/.test (file);
 }
 
 // true when the TYPE the checker gives `node` could hold a Java-`Double` box at runtime

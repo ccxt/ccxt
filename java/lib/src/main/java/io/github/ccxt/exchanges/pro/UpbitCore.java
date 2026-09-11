@@ -66,7 +66,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
                 symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
             Object marketIds = this.marketIds(symbols);
-            Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), new java.util.HashMap<String, Object>() {{
+            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), new java.util.HashMap<String, Object>() {{
                 put( "hostname", UpbitCore.this.hostname );
             }});
             Client client = this.client(url);
@@ -442,7 +442,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
                     put( "access_key", UpbitCore.this.apiKey );
                     put( "nonce", UpbitCore.this.uuid() );
                 }};
-                Object token = jwt(auth, this.encode(this.secret), sha256(), false);
+                String token = jwt(auth, this.encode(this.secret), sha256(), false);
                 Helpers.addElementToObject(wsOptions, "token", token);
                 Helpers.addElementToObject(wsOptions, "options", new java.util.HashMap<String, Object>() {{
         put( "headers", new java.util.HashMap<String, Object>() {{
@@ -483,7 +483,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
                 Helpers.addElementToObject(request, "codes", marketIds);
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
             }
-            Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), new java.util.HashMap<String, Object>() {{
+            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), new java.util.HashMap<String, Object>() {{
                 put( "hostname", UpbitCore.this.hostname );
             }});
             url = Helpers.add(url, "/private");

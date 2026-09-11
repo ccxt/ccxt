@@ -3818,8 +3818,8 @@ public class CoinbaseCore extends CoinbaseApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             Object costRequest = Precise.stringMul(amountString, priceString);
                             total = this.costToPrecision(symbol, costRequest);
                         }
@@ -6466,7 +6466,7 @@ public class CoinbaseCore extends CoinbaseApi
                     Object timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
                     Object timestampString = String.valueOf(timestamp);
                     Object auth = Helpers.add(Helpers.add(Helpers.add(timestampString, method), savedPath), payload);
-                    Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                    String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                     final Object finalTimestampString = timestampString;
                     headers = new java.util.HashMap<String, Object>() {{
                         put( "CB-ACCESS-KEY", CoinbaseCore.this.apiKey );

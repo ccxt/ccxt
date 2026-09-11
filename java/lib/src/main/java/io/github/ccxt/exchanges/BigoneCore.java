@@ -1872,8 +1872,8 @@ public class BigoneCore extends BigoneApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             Object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
                             Object costRequest = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                             Helpers.addElementToObject(request, "amount", this.costToPrecision(symbol, costRequest));
@@ -2285,7 +2285,7 @@ public class BigoneCore extends BigoneApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object query = this.omit(parameters, this.extractParams(path));
-        Object baseUrl = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api));
+        String baseUrl = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api));
         Object url = Helpers.add(Helpers.add(baseUrl, "/"), this.implodeParams(path, parameters));
         headers = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "public")) || Helpers.isTrue(Helpers.isEqual(api, "webExchange"))) || Helpers.isTrue(Helpers.isEqual(api, "contractPublic"))))
@@ -2303,7 +2303,7 @@ public class BigoneCore extends BigoneApi
                 put( "sub", BigoneCore.this.apiKey );
                 put( "nonce", nonce );
             }};
-            Object token = jwt(request, this.encode(this.secret), sha256());
+            String token = jwt(request, this.encode(this.secret), sha256());
             Helpers.addElementToObject(headers, "Authorization", Helpers.add("Bearer ", token));
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
