@@ -172,7 +172,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object subscriptionHash = "MARKET_TICKER";
+            String subscriptionHash = "MARKET_TICKER";
             String messageHash = (String) Helpers.add("ticker.", symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
@@ -211,7 +211,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             {
                 symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            Object subscriptionHash = "MARKET_TICKER";
+            String subscriptionHash = "MARKET_TICKER";
             String messageHash = (String) "tickers";
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
@@ -382,7 +382,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             String messageHash = (String) Helpers.add("book:", symbol);
-            Object subscriptionHash = "ORDER_BOOK";
+            String subscriptionHash = "ORDER_BOOK";
             Object depth = 0;
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -1082,7 +1082,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object previousOrder = this.safeDict(previousOrderArray, 0, new java.util.HashMap<String, Object>() {{}});
             symbol = Helpers.GetValue(previousOrder, "symbol");
             Object filled = this.safeString(update, "filled_amount");
-            Object status = this.parseWsOrderStatus(updateType);
+            String status = (String) this.parseWsOrderStatus(updateType);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(updateType, "ORDER_CLOSED")) && Helpers.isTrue(Precise.stringEq(filled, "0"))))
             {
                 status = "canceled";

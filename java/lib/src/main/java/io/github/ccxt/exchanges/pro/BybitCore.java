@@ -462,7 +462,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 throw new BadRequest((String)Helpers.add(this.id, " watchTicker() only supports name tickers for contract markets")) ;
             }
             topic = Helpers.add(topic, Helpers.add(".", Helpers.GetValue(market, "id")));
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList(topic));
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList(topic));
             return (this.watchTopics(url, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), topics, parameters)).join();
         });
 
@@ -490,13 +490,13 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 (this.loadMarkets()).join();
             }
             symbols = (java.util.List<String>)(this.marketSymbols(symbols, null, false));
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object url = (this.getUrlByMarketType(Helpers.GetValue(symbols, 0), false, "watchTickers", parameters)).join();
             parameters = this.cleanParams(parameters);
             Object options = this.safeValue(this.options, "watchTickers", new java.util.HashMap<String, Object>() {{}});
             Object topic = this.safeString(options, "name", "tickers");
             Object marketIds = this.marketIds(symbols);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -539,10 +539,10 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             symbols = (java.util.List<String>)(this.marketSymbols(symbols, null, false));
             Object options = this.safeValue(this.options, "watchTickers", new java.util.HashMap<String, Object>() {{}});
             Object topic = this.safeString(options, "name", "tickers");
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object marketIds = this.marketIds(symbols);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -751,11 +751,11 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 (this.loadMarkets()).join();
             }
             symbols = (java.util.List<String>)(this.marketSymbols(symbols, null, false));
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object url = (this.getUrlByMarketType(Helpers.GetValue(symbols, 0), false, "watchBidsAsks", parameters)).join();
             parameters = this.cleanParams(parameters);
             Object marketIds = this.marketIds(symbols);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -850,8 +850,8 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object marketSymbols = this.marketSymbols(symbols, null, false, true, true);
             Object firstSymbol = Helpers.GetValue(marketSymbols, 0);
             Object url = (this.getUrlByMarketType(firstSymbol, false, "watchOHLCVForSymbols", parameters)).join();
-            Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
@@ -900,9 +900,9 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object marketSymbols = this.marketSymbols(symbols, null, false, true, true);
             Object firstSymbol = Helpers.GetValue(marketSymbols, 0);
             Object url = (this.getUrlByMarketType(firstSymbol, false, "watchOHLCVForSymbols", parameters)).join();
-            Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
@@ -1101,8 +1101,8 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                     throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " watchOrderBookForSymbols(): for "), Helpers.GetValue(market, "type")), " markets limit can be one of: "), this.json(selectedLimits))) ;
                 }
             }
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -1150,9 +1150,9 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 limit = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(firstMarket, "spot"), true))))) ? 50 : 500;
             }
             channel = Helpers.add(channel, String.valueOf(limit));
-            Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -1337,8 +1337,8 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             }
             parameters = this.cleanParams(parameters);
             Object url = (this.getUrlByMarketType(Helpers.GetValue(symbols, 0), false, "watchTrades", parameters)).join();
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -1381,9 +1381,9 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             }
             symbols = this.marketSymbols(symbols, null, false, true);
             Object url = (this.getUrlByMarketType(Helpers.GetValue(symbols, 0), false, "unWatchTradesForSymbols", parameters)).join();
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -1580,7 +1580,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object method = "watchMyTrades";
+            String method = "watchMyTrades";
             String messageHash = (String) "myTrades";
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
@@ -1636,7 +1636,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object method = "watchMyTrades";
+            String method = "watchMyTrades";
             String messageHash = (String) "unsubscribe:myTrades";
             String subHash = "myTrades";
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1852,7 +1852,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object method = "watchPositions";
+            String method = "watchPositions";
             String messageHash = (String) "";
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
@@ -1873,7 +1873,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
             }
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList("position"));
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList("position"));
             Object newPositions = (this.watchTopics(url, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), topics, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -2050,7 +2050,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object method = "watchPositions";
+            String method = "watchPositions";
             String messageHash = (String) "unsubscribe:positions";
             String subHash = "positions";
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
@@ -2059,7 +2059,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             }
             Object url = (this.getUrlByMarketType(null, true, method, parameters)).join();
             (this.authenticate(url)).join();
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList("position"));
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList("position"));
             return (this.unWatchTopics(url, "positions", symbols, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), new java.util.ArrayList<Object>(java.util.Arrays.asList(subHash)), topics, parameters)).join();
         });
 
@@ -2241,7 +2241,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object method = "watchOrders";
+            String method = "watchOrders";
             String messageHash = (String) "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -2287,7 +2287,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object method = "watchOrders";
+            String method = "watchOrders";
             String messageHash = (String) "unsubscribe:orders";
             String subHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -2479,7 +2479,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object method = "watchBalance";
+            String method = "watchBalance";
             String messageHash = (String) "balances";
             Object type = null;
             java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams("watchBalance", null, parameters);
@@ -2537,7 +2537,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                     }
                 }
             }
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeValue(topicByMarket, this.getPrivateType(url))));
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeValue(topicByMarket, this.getPrivateType(url))));
             return (this.watchTopics(url, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), topics, parameters)).join();
         });
 

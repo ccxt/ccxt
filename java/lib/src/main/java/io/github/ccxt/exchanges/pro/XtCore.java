@@ -743,7 +743,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "order";
+            String name = "order";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -784,7 +784,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "trade";
+            String name = "trade";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -819,7 +819,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "balance";
+            String name = "balance";
             return (this.subscribe(name, "private", "watchBalance", null, null, parameters)).join();
         });
 
@@ -860,7 +860,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
             }
-            Object name = "position";
+            String name = "position";
             Object newPositions = (this.subscribe(name, "private", "watchPositions", null, null, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {

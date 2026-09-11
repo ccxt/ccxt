@@ -2811,11 +2811,11 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object filled = this.safeString2(details, "filledSize", "filled", "0.0");
         Object remaining = this.safeString(details, "unfilledSize");
         String average = null;
-        Object filled2 = "0.0";
+        String filled2 = "0.0";
         Object tradesLength = Helpers.getArrayLength(trades);
         if (Helpers.isTrue(Helpers.isGreaterThan(tradesLength, 0)))
         {
-            Object vwapSum = "0.0";
+            String vwapSum = "0.0";
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
             {
                 Object trade = Helpers.GetValue(trades, i);

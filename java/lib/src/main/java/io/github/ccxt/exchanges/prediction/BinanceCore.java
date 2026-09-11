@@ -1194,7 +1194,7 @@ final Object finalMarketSymbol = marketSymbol;
         // }
         //
         Object outcomeObj = Helpers.getArg(optionalArgs, 0, null);
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String status = (String) this.parseOrderStatus(this.safeString(order, "status"));
         if (Helpers.isTrue(Helpers.isEqual(outcomeObj, null)))
         {
             Object marketId = this.safeString(order, "marketId");

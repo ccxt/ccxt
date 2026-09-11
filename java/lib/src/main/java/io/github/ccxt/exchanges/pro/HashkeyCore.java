@@ -231,7 +231,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object topic = "realtimes";
+            String topic = "realtimes";
             String messageHash = (String) Helpers.add("ticker:", symbol);
             return (this.wathPublic(market, topic, messageHash, parameters)).join();
         });
@@ -302,7 +302,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object topic = "trade";
+            String topic = "trade";
             String messageHash = (String) Helpers.add("trades:", symbol);
             Object trades = (this.wathPublic(market, topic, messageHash, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -387,7 +387,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object topic = "depth";
+            String topic = "depth";
             String messageHash = (String) Helpers.add("orderbook:", symbol);
             Object orderbook = (this.wathPublic(market, topic, messageHash, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -468,7 +468,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHash = "orders";
+            String messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 symbol = this.symbol(symbol);

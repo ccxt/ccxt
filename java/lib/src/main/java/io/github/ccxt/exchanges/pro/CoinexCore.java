@@ -1303,7 +1303,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         }
         Object orders = this.orders;
         Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
-        Object messageHash = "orders";
+        String messageHash = "orders";
         Object messageWithType = Helpers.add(Helpers.add(messageHash, ":"), Helpers.GetValue(market, "type"));
         client.resolve(this.orders, messageWithType);
         messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));

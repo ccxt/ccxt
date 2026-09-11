@@ -117,8 +117,8 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             Object url = this.getWsPublicUrl();
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -278,8 +278,8 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             }
             symbols = this.marketSymbols(symbols);
             Object url = this.getWsPublicUrl();
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -466,7 +466,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object url = this.getWsPublicUrl();
             String messageHash = (String) Helpers.add("ticker:", symbol);
             Object topic = Helpers.add(Helpers.add("instrumentInfo", ".H."), Helpers.GetValue(market, "id2"));
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList(topic));
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList(topic));
             return (this.watchTopics(url, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), topics, parameters)).join();
         });
 
@@ -493,9 +493,9 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object url = this.getWsPublicUrl();
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(symbols))); i++)
             {
                 Object symbol = Helpers.GetValue((java.util.List<String>)(symbols), i);
@@ -621,8 +621,8 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 (this.loadMarkets()).join();
             }
             Object url = this.getWsPublicUrl();
-            Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
@@ -808,7 +808,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
                 Object snapshot = client.future("fetchPositionsSnapshot").getFuture().join();
                 return this.filterBySymbolsSinceLimit(snapshot, symbols, since, limit, true);
             }
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList("positions"));
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList("positions"));
             Object newPositions = (this.watchTopics(url, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), topics, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -851,7 +851,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             }
             Object url = this.getWsPrivateUrl();
             (this.authenticate(url)).join();
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList("orders"));
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList("orders"));
             Object orders = (this.watchTopics(url, new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)), topics, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {

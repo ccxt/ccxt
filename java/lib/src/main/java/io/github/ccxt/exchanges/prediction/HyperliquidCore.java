@@ -688,7 +688,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object significantDigits = Helpers.mathMax(5, ((String)intPart).length());
         Object maxDecimals = Helpers.subtract(8, szDecimals);
         Object pricePrecisionDecimals = Helpers.mathMax(1, Helpers.mathMin(maxDecimals, Helpers.subtract(significantDigits, ((String)intPart).length())));
-        Object zeros = "";
+        String zeros = "";
         Object zeroCount = Helpers.subtract(pricePrecisionDecimals, 1);
         for (var zi = 0; Helpers.isLessThan(zi, zeroCount); zi++)
         {
@@ -1972,7 +1972,7 @@ public class HyperliquidCore extends HyperliquidApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object entry = this.safeDict(order, "order", order); // eslint-disable-line
-        Object status = this.parseOrderStatus(this.safeString2(order, "ccxtStatus", "status"));
+        String status = (String) this.parseOrderStatus(this.safeString2(order, "ccxtStatus", "status"));
         Object coin = this.safeString(entry, "coin");
         Object outcomeObj = this.safeOutcome(coin, market);
         Object marketSymbol = this.safeString(outcomeObj, "outcome");
@@ -1988,7 +1988,7 @@ public class HyperliquidCore extends HyperliquidApi
         }
         Long timestamp = this.safeInteger(entry, "timestamp");
         Object tifRaw = this.safeString(entry, "tif");
-        Object tif = this.parseTimeInForce(tifRaw);
+        String tif = (String) this.parseTimeInForce(tifRaw);
         Boolean postOnly = (Helpers.isEqual(tif, "PO"));
         Boolean isTrigger = (Helpers.isEqual(this.safeBool(entry, "isTrigger"), true));
         Object triggerPrice = ((Helpers.isTrue(isTrigger))) ? this.safeNumber(entry, "triggerPx") : null;
@@ -2428,7 +2428,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object title = parentSymbol;
         if (Helpers.isTrue(!Helpers.isEqual(underlying, null)))
         {
-            Object titleSuffix = "";
+            String titleSuffix = "";
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(targetPrice, null))) && Helpers.isTrue((!Helpers.isEqual(targetPrice, "")))))
             {
                 titleSuffix = Helpers.add(Helpers.add(titleSuffix, " ABOVE "), targetPrice);

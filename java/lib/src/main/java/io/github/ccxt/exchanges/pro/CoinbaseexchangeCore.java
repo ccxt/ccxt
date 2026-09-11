@@ -160,7 +160,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object name = "ticker";
+            String name = "ticker";
             return (this.subscribe(name, symbol, name, parameters)).join();
         });
 
@@ -195,7 +195,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " watchTickers requires a non-empty symbols array")) ;
             }
-            Object channel = "ticker";
+            String channel = "ticker";
             String messageHash = (String) "ticker";
             Object ticker = (this.subscribeMultiple(channel, symbols, messageHash, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -232,7 +232,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object name = "matches";
+            String name = "matches";
             Object trades = (this.subscribe(name, symbol, name, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -271,7 +271,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object name = "matches";
+            String name = "matches";
             Object trades = (this.subscribeMultiple(name, symbols, name, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -312,7 +312,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object name = "user";
+            String name = "user";
             String messageHash = (String) "myTrades";
             Object authentication = this.authenticate();
             Object trades = (this.subscribe(name, symbol, messageHash, this.extend(parameters, authentication))).join();
@@ -348,7 +348,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "user";
+            String name = "user";
             String messageHash = (String) "myTrades";
             Object authentication = this.authenticate();
             Object trades = (this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication))).join();
@@ -386,7 +386,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object name = "user";
+            String name = "user";
             String messageHash = (String) "orders";
             Object authentication = this.authenticate();
             Object orders = (this.subscribeMultiple(name, symbols, messageHash, this.extend(parameters, authentication))).join();
@@ -429,7 +429,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object name = "user";
+            String name = "user";
             String messageHash = (String) "orders";
             Object authentication = this.authenticate();
             Object orders = (this.subscribe(name, symbol, messageHash, this.extend(parameters, authentication))).join();
@@ -921,7 +921,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         Object time = this.safeString(order, "time");
         Long timestamp = this.parse8601(time);
         Object reason = this.safeString(order, "reason");
-        Object status = this.parseWsOrderStatus(reason);
+        String status = (String) this.parseWsOrderStatus(reason);
         Object orderType = this.safeString(order, "order_type");
         Object remaining = this.safeString(order, "remaining_size");
         Object type = this.safeString(order, "type");

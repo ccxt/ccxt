@@ -243,8 +243,8 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object dataType = Helpers.add(Helpers.GetValue(market, "id"), "@ticker");
             Object subMessageHash = this.getMessageHash("ticker", Helpers.GetValue(market, "symbol"));
             String messageHash = (String) Helpers.add("unsubscribe::", subMessageHash);
-            Object topic = "ticker";
-            Object methodName = "unWatchTicker";
+            String topic = "ticker";
+            String methodName = "unWatchTicker";
             return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters)).join();
         });
 
@@ -515,8 +515,8 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object dataType = Helpers.add(Helpers.GetValue(market, "id"), "@trade");
             Object subMessageHash = this.getMessageHash("trade", Helpers.GetValue(market, "symbol"));
             String messageHash = (String) Helpers.add("unsubscribe::", subMessageHash);
-            Object topic = "trades";
-            Object methodName = "unWatchTrades";
+            String topic = "trades";
+            String methodName = "unWatchTrades";
             return (this.unWatch(messageHash, subMessageHash, messageHash, dataType, topic, market, methodName, parameters)).join();
         });
 
@@ -740,8 +740,8 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Long depth = this.safeInteger(options, "depth", 100);
             Object subMessageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), "depth"), this.numberToString(depth));
             String messageHash = (String) Helpers.add("unsubscribe::", subMessageHash);
-            Object topic = "orderbook";
-            Object methodName = "unWatchOrderBook";
+            String topic = "orderbook";
+            String methodName = "unWatchOrderBook";
             return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters)).join();
         });
 
@@ -1126,8 +1126,8 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             Object rawTimeframe = this.safeString(timeframes, timeframe, timeframe);
             Object subMessageHash = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), rawTimeframe);
             String messageHash = (String) Helpers.add("unsubscribe::", subMessageHash);
-            Object topic = "ohlcv";
-            Object methodName = "unWatchOHLCV";
+            String topic = "ohlcv";
+            String methodName = "unWatchOHLCV";
             java.util.List<Object> symbolsAndTimeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"), timeframe))));
             Helpers.addElementToObject(parameters, "symbolsAndTimeframes", symbolsAndTimeframes);
             return (this.unWatch(messageHash, subMessageHash, messageHash, subMessageHash, topic, market, methodName, parameters)).join();
@@ -1182,7 +1182,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             String subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotHash : swapHash;
             String spotMessageHash = "spot:order";
             String swapMessageHash = "swap:order";
-            Object messageHash = ((Helpers.isTrue(isSpot))) ? spotMessageHash : swapMessageHash;
+            String messageHash = ((Helpers.isTrue(isSpot))) ? spotMessageHash : swapMessageHash;
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
@@ -1268,7 +1268,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             String subscriptionHash = ((Helpers.isTrue(isSpot))) ? spotHash : swapHash;
             String spotMessageHash = "spot:mytrades";
             String swapMessageHash = "swap:mytrades";
-            Object messageHash = ((Helpers.isTrue(isSpot))) ? spotMessageHash : swapMessageHash;
+            String messageHash = ((Helpers.isTrue(isSpot))) ? spotMessageHash : swapMessageHash;
             if (Helpers.isTrue(!Helpers.isEqual(market, null)))
             {
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));

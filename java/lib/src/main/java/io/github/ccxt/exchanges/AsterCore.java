@@ -5405,7 +5405,7 @@ public class AsterCore extends AsterApi
 
     public String encodeValuesWithJson(Object values)
     {
-        Object encodedString = "";
+        String encodedString = "";
         Object keys = Helpers.objectKeys(values);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {

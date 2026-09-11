@@ -1220,7 +1220,7 @@ public class MyriadCore extends MyriadApi
             put( "nonce", nonce );
             put( "expiration", expiration );
         }};
-        Object signature = this.signClobOrder(order, networkId);
+        String signature = (String) this.signClobOrder(order, networkId);
         return new java.util.HashMap<String, Object>() {{
             put( "order", order );
             put( "signature", signature );
@@ -1663,7 +1663,7 @@ public class MyriadCore extends MyriadApi
         Object price = ((Helpers.isTrue((Helpers.isEqual(priceWei, null))))) ? null : this.parseNumber(Precise.stringDiv(priceWei, "1000000000000000000"));
         Object filled = ((Helpers.isTrue((Helpers.isEqual(filledWei, null))))) ? null : this.parseNumber(Precise.stringDiv(filledWei, "1000000000000000000"));
         String statusRaw = (String)this.safeStringLower(order, "status");
-        Object status = this.parseOrderStatus(statusRaw);
+        String status = (String) this.parseOrderStatus(statusRaw);
         Long timestamp = this.parse8601(this.safeString(order, "createdAt"));
         String tif = (String)this.safeStringUpper(order, "timeInForce");
         Boolean isMarketTif = Helpers.isTrue((Helpers.isEqual(tif, "FOK"))) || Helpers.isTrue((Helpers.isEqual(tif, "FAK")));
@@ -1969,7 +1969,7 @@ public class MyriadCore extends MyriadApi
                 networkId = this.safeString(this.options, "defaultNetworkId", "56");
             }
             Object message = this.clobOrderMessage(rawOrder);
-            Object signature = this.signClobOrder(message, networkId);
+            String signature = (String) this.signClobOrder(message, networkId);
             final Object finalNetworkId = networkId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "hash", id );
@@ -2037,7 +2037,7 @@ public class MyriadCore extends MyriadApi
                 put( "marketId", finalMarketId );
                 put( "timestamp", timestamp );
             }};
-            Object signature = this.signCancelAll(message, networkId);
+            String signature = (String) this.signCancelAll(message, networkId);
             final Object finalNetworkId = networkId;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "trader", trader );
@@ -2125,7 +2125,7 @@ public class MyriadCore extends MyriadApi
                     networkId = fetchedNetworkId;
                 }
                 Object message = this.clobOrderMessage(rawOrder);
-                Object signature = this.signClobOrder(message, networkId);
+                String signature = (String) this.signClobOrder(message, networkId);
                 ((java.util.List<Object>)signedOrders).add(new java.util.HashMap<String, Object>() {{
                     put( "order", message );
                     put( "signature", signature );
@@ -2494,7 +2494,7 @@ public class MyriadCore extends MyriadApi
             }
             Object currency = this.safeString(parameters, "currency", this.safeString(chainConfig, "collateralCurrency", "USD1"));
             Long decimals = this.safeInteger(parameters, "decimals", this.safeInteger(chainConfig, "collateralDecimals", 18));
-            Object owner = this.walletAddressFromKeys();
+            String owner = (String) this.walletAddressFromKeys();
             // ERC20 balanceOf(owner) = selector 0x70a08231 + the 32-byte left-padded owner address
             Object callData = Helpers.add("0x70a08231", this.padHexAddress(owner));
             final Object finalToken = token;
@@ -2503,7 +2503,7 @@ public class MyriadCore extends MyriadApi
         put( "data", callData );
     }}, "latest"));
             Object raw = (this.ethRpc(rpcUrl, "eth_call", callParams)).join();
-            Object balanceString = this.fromWeiWithDecimals(raw, decimals);
+            String balanceString = (String) this.fromWeiWithDecimals(raw, decimals);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", new java.util.HashMap<String, Object>() {{
                     put( "balanceHex", raw );
@@ -2552,7 +2552,7 @@ public class MyriadCore extends MyriadApi
         {
             return null;
         }
-        Object scale = "1";
+        String scale = "1";
         if (Helpers.isTrue(Helpers.isEqual(decimals, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " fromWeiWithDecimals() missing decimals")) ;
@@ -4120,7 +4120,7 @@ final Object finalNetworkId = networkId;
         {
             Object change = Helpers.GetValue(changes, i);
             Object outcomeId = this.safeString(change, "outcome");
-            Object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+            String sym = (String) this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
             if (Helpers.isTrue(Helpers.isEqual(sym, null)))
             {
                 continue;
@@ -4240,7 +4240,7 @@ final Object finalNetworkId = networkId;
         Object txHash = this.safeString(data, "txHash");
         Object taker = this.safeDict(data, "taker", new java.util.HashMap<String, Object>() {{}});
         Object outcomeId = this.safeString(taker, "outcome");
-        Object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        String sym = (String) this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
         if (Helpers.isTrue(Helpers.isEqual(sym, null)))
         {
             return;
@@ -4285,7 +4285,7 @@ final Object finalNetworkId = networkId;
         Helpers.callDynamically(stored, "append", new Object[]{trade});
         client.resolve(stored, Helpers.add("trades::", sym));
         // also surface the wallet's own fills (taker or maker leg) with their real execution prices
-        Object myWallet = this.walletAddressOrUndefined();
+        String myWallet = (String) this.walletAddressOrUndefined();
         if (Helpers.isTrue(!Helpers.isEqual(myWallet, null)))
         {
             java.util.List<Object> myLegs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -4302,7 +4302,7 @@ final Object finalNetworkId = networkId;
                 String makerTrader = (String)this.safeStringLower(maker, "trader");
                 if (Helpers.isTrue(Helpers.isEqual(makerTrader, myWallet)))
                 {
-                    Object makerSym = this.marketOutcomeToSymbol(networkId, marketId, this.safeString(maker, "outcome"));
+                    String makerSym = (String) this.marketOutcomeToSymbol(networkId, marketId, this.safeString(maker, "outcome"));
                     java.util.Map<String, Object> makerMarket = (java.util.Map<String, Object>) this.safeMarket(makerSym);
                     Object makerOutcomeObj = this.safeOutcome(makerSym);
                     Object makerFees = this.safeDict(maker, "fees", new java.util.HashMap<String, Object>() {{}});
@@ -4480,7 +4480,7 @@ final Object finalNetworkId = networkId;
         {
             Object oc = Helpers.GetValue(outcomes, i);
             Object outcomeId = this.safeString(oc, "outcome");
-            Object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+            String sym = (String) this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
             if (Helpers.isTrue(Helpers.isEqual(sym, null)))
             {
                 continue;
@@ -4540,7 +4540,7 @@ final Object finalNetworkId = networkId;
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object trader = this.walletAddressFromKeys();
+            String trader = (String) this.walletAddressFromKeys();
             Object networkId = this.safeString(this.options, "defaultNetworkId", "56");
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
@@ -4567,12 +4567,12 @@ final Object finalNetworkId = networkId;
         Object networkId = this.safeString(data, "networkId");
         Object marketId = this.safeString(data, "marketId");
         Object outcomeId = this.safeString(data, "outcome");
-        Object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        String sym = (String) this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
         Object outcomeObj = this.safeOutcome(sym);
         Object price = this.fromWei(this.safeString(data, "price"));
         Object amount = this.fromWei(this.safeString(data, "amount"));
         Object filled = this.fromWei(this.safeString(data, "filledAmount"));
-        Object status = this.parseOrderStatus(this.safeStringLower(data, "status"));
+        String status = (String) this.parseOrderStatus(this.safeStringLower(data, "status"));
         String tif = (String)this.safeStringUpper(data, "timeInForce");
         Boolean isMarketTif = Helpers.isTrue((Helpers.isEqual(tif, "FOK"))) || Helpers.isTrue((Helpers.isEqual(tif, "FAK")));
         Long timestamp = this.parse8601(this.safeString2(data, "updatedAt", "createdAt"));
@@ -4634,7 +4634,7 @@ final Object finalNetworkId = networkId;
             {
                 (this.loadOutcomes(outcomes)).join();
             }
-            Object trader = this.walletAddressFromKeys();
+            String trader = (String) this.walletAddressFromKeys();
             Object networkId = this.safeString(this.options, "defaultNetworkId", "56");
             Object channel = Helpers.add(Helpers.add(Helpers.add("positions:", networkId), ":"), trader);
             String messageHash = "positions";
@@ -4700,7 +4700,7 @@ final Object finalNetworkId = networkId;
         Object networkId = this.safeString(data, "networkId");
         Object marketId = this.safeString(data, "marketId");
         Object outcomeId = this.safeString(data, "outcome");
-        Object sym = this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
+        String sym = (String) this.marketOutcomeToSymbol(networkId, marketId, outcomeId);
         Object outcomeObj = this.safeOutcome(sym);
         Long ts = this.safeInteger(data, "ts");
         // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);

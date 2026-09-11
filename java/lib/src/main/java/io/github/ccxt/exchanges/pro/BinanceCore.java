@@ -436,7 +436,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             java.util.List<Object> subscriptionHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object streamHash = "liquidations";
+            String streamHash = "liquidations";
             symbols = this.marketSymbols(symbols, null, true, true);
             if (Helpers.isTrue(this.isEmpty(symbols)))
             {
@@ -873,7 +873,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 type = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(firstMarket, "linear"), true))))) ? "future" : "delivery";
             }
             String name = "depth";
-            Object streamHash = "multipleOrderbook";
+            String streamHash = "multipleOrderbook";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object symbolsLength = Helpers.getArrayLength(symbols);
@@ -973,7 +973,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 type = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(firstMarket, "linear"), true))))) ? "future" : "delivery";
             }
             String name = "depth";
-            Object streamHash = "multipleOrderbook";
+            String streamHash = "multipleOrderbook";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 streamHash = Helpers.add(streamHash, Helpers.add("::", String.join((String)",", (java.util.List<String>)symbols)));
@@ -1466,7 +1466,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            Object streamHash = "multipleTrades";
+            String streamHash = "multipleTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object symbolsLength = Helpers.getArrayLength(symbols);
@@ -1571,7 +1571,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            Object streamHash = "multipleTrades";
+            String streamHash = "multipleTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object symbolsLength = Helpers.getArrayLength(symbols);

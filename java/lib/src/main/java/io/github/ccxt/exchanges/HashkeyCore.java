@@ -1160,7 +1160,7 @@ public class HashkeyCore extends HashkeyApi
         String marketType = "spot";
         Boolean isSpot = true;
         Boolean isSwap = false;
-        Object suffix = "";
+        String suffix = "";
         Object parts = Helpers.split(((String)marketId), "-");
         String secondPart = this.safeString(parts, 1);
         if (Helpers.isTrue(Helpers.isEqual(secondPart, "PERPETUAL")))

@@ -226,7 +226,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object subHash = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), method);
-            Object topic = "orderbook";
+            String topic = "orderbook";
             return (this.unwatchPublic(subHash, Helpers.GetValue(market, "symbol"), topic, parameters)).join();
         });
 
@@ -472,7 +472,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object subHash = Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), method);
-            Object topic = "ticker";
+            String topic = "ticker";
             return (this.unwatchPublic(subHash, Helpers.GetValue(market, "symbol"), topic, parameters)).join();
         });
 
@@ -570,7 +570,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             }
             symbols = this.marketSymbols(symbols);
             String name = "tickers";
-            Object topic = name;
+            String topic = name;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -606,8 +606,8 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchTickers() does not support a symbols argument. Only unwatch all tickers at once")) ;
             }
-            Object topic = "ticker";
-            Object subHash = "tickers";
+            String topic = "ticker";
+            String subHash = "tickers";
             return (this.unwatchPublic(subHash, null, topic, parameters)).join();
         });
 
@@ -683,7 +683,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             }
             symbols = this.marketSymbols(symbols);
             String name = "bbos";
-            Object topic = name;
+            String topic = name;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -723,8 +723,8 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchBidsAsks() does not support a symbols argument. Only unwatch all bidsAsks at once")) ;
             }
-            Object subHash = "bbos";
-            Object topic = "bidsasks";
+            String subHash = "bbos";
+            String topic = "bidsasks";
             return (this.unwatchPublic(subHash, null, topic, parameters)).join();
         });
 
@@ -864,7 +864,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object topic = "ohlcv";
+            String topic = "ohlcv";
             String name = "kline";
             Object subHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), name), "_"), interval);
             Helpers.addElementToObject(parameters, "symbolsAndTimeframes", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"), timeframe)))));
@@ -977,7 +977,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object topic = "trades";
+            String topic = "trades";
             Object subHash = Helpers.add(Helpers.GetValue(market, "id"), "@trade");
             return (this.unwatchPublic(subHash, Helpers.GetValue(market, "symbol"), topic, parameters)).join();
         });
@@ -1220,7 +1220,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
             String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreportv2" : "executionreport";
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            Object messageHash = topic;
+            String messageHash = topic;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -1583,7 +1583,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             symbols = this.marketSymbols(symbols);
             if (!Helpers.isTrue(this.isEmpty(symbols)))
             {
@@ -1744,7 +1744,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 (this.loadMarkets()).join();
             }
             String topic = "balance";
-            Object messageHash = topic;
+            String messageHash = topic;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );

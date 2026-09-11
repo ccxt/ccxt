@@ -3892,7 +3892,7 @@ public class BithumbCore extends BithumbApi
     public Object urlencodeWithArrayBrackets(Object query)
     {
         Object keys = Helpers.objectKeys(query);
-        Object result = "";
+        String result = "";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

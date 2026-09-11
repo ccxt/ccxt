@@ -1363,7 +1363,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object market = null;
-            Object messageHash = "order";
+            String messageHash = "order";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);

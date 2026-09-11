@@ -818,7 +818,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             }
             Object market = this.market(symbol);
             String messageHash = (String) Helpers.add(Helpers.add("orderbook", "::"), Helpers.GetValue(market, "symbol"));
-            Object suffix = "_0.1";
+            String suffix = "_0.1";
             Object orderbook = (this.watchPublic(market, messageHash, "25", parameters, suffix)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -846,7 +846,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             }
             Object market = this.market(symbol);
             String messageHash = (String) Helpers.add(Helpers.add("orderbook", "::"), Helpers.GetValue(market, "symbol"));
-            Object suffix = "_0.1";
+            String suffix = "_0.1";
             Object subscription = new java.util.HashMap<String, Object>() {{
                 put( "topic", "orderbook" );
             }};

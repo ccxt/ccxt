@@ -2735,7 +2735,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object request = Helpers.add("/", this.implodeParams(path, parameters));
+        String request = Helpers.add("/", this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {

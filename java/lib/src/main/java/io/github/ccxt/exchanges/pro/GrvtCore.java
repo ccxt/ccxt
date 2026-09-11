@@ -214,8 +214,8 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -386,8 +386,8 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -517,8 +517,8 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             {
                 (this.loadMarkets()).join();
             }
-            Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
@@ -672,8 +672,8 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             parameters = ((java.util.List<Object>) intervalparametersVariable).get(1);
             symbols = this.marketSymbols(symbols);
             Object extraPart = ((Helpers.isTrue(isSnapshot))) ? (Helpers.add(Helpers.add(String.valueOf(interval), "-"), String.valueOf(limit))) : String.valueOf(interval);
-            Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -829,7 +829,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             }
             (this.authenticate()).join();
             Object subAccountId = this.getSubAccountId(parameters);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -937,8 +937,8 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             }
             Object subAccountId = this.getSubAccountId(parameters);
             symbols = this.marketSymbols(symbols);
-            Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -1044,8 +1044,8 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             }
             (this.authenticate()).join();
             Object subAccountId = this.getSubAccountId(parameters);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 ((java.util.List<Object>)messageHashes).add("orders");

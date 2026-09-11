@@ -10573,7 +10573,7 @@ public Object describe()
                 return null;
             }
             Object positivePrecision = Helpers.parseInt(positivePrecisionString);
-            Object parsedPrecision = "1";
+            String parsedPrecision = "1";
             for (var i = 0; Helpers.isLessThan(i, Helpers.subtract(positivePrecision, 1)); i++)
             {
                 parsedPrecision = Helpers.add(parsedPrecision, "0");

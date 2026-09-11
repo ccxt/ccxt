@@ -2504,7 +2504,7 @@ public class FoxbitCore extends FoxbitApi
         parameters = this.omit(parameters, this.extractParams(path));
         Long timestamp = this.milliseconds();
         Object query = "";
-        Object signatureQuery = "";
+        String signatureQuery = "";
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             Object paramKeys = Helpers.objectKeys(parameters);

@@ -1643,7 +1643,7 @@ public class HyperliquidCore extends io.github.ccxt.exchanges.Hyperliquid
             userAddress = this.safeString(userAddressResult, 0);
             parameters = this.safeDict(userAddressResult, 1, parameters);
             Object market = null;
-            Object messageHash = "order";
+            String messageHash = "order";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);

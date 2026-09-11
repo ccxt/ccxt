@@ -156,8 +156,8 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(limit, null))) || Helpers.isTrue((Helpers.isEqual(limit, 0)))))
             {
                 limit = 50;
@@ -226,9 +226,9 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Long limit = this.safeInteger(parameters, "limit", 50);
             Object topicParams = this.safeValue(parameters, "params");
             if (Helpers.isTrue(Helpers.isEqual(topicParams, null)))
@@ -456,7 +456,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -496,8 +496,8 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -732,8 +732,8 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object marketIds = this.marketIds(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {

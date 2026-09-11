@@ -210,7 +210,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object topic = "ticker";
+            String topic = "ticker";
             Object options = this.safeDict(this.options, "watchTicker", new java.util.HashMap<String, Object>() {{}});
             Object channel = this.safeString(options, "name", "market.{marketId}.detail");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(channel, "market.{marketId}.ticker")) && Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), "spot"))))
@@ -342,7 +342,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object topic = "trades";
+            String topic = "trades";
             Object options = this.safeDict(this.options, "watchTrades", new java.util.HashMap<String, Object>() {{}});
             Object channel = this.safeString(options, "name", "market.{marketId}.trade.detail");
             Object subMessageHash = this.implodeParams(channel, new java.util.HashMap<String, Object>() {{
@@ -471,7 +471,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object market = this.market(symbol);
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object subMessageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
-            Object topic = "ohlcv";
+            String topic = "ohlcv";
             Helpers.addElementToObject(parameters, "symbolsAndTimeframes", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"), timeframe)))));
             return (this.unsubscribePublic(market, subMessageHash, topic, parameters)).join();
         });
@@ -608,7 +608,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object topic = "orderbook";
+            String topic = "orderbook";
             Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
             Long depth = this.safeInteger(options, "depth", 150);
             Object subMessageHash = null;

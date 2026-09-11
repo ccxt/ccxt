@@ -8574,7 +8574,7 @@ final Object finalRebate = rebate;
         String initialMarginUnit = Precise.stringDiv("1", leverageMax);
         Object maintenanceMarginRate = maintenanceMarginUnit;
         String initialMarginRatio = initialMarginUnit;
-        Object floor = "0";
+        String floor = "0";
         java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         while (Precise.stringLt(floor, riskLimitMax))
         {

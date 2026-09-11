@@ -522,7 +522,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "ticker";
+            String name = "ticker";
             symbols = this.marketSymbols(symbols);
             Object newTickers = (this.subscribe(name, name, false, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -668,13 +668,13 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "orders";
+            String name = "orders";
             (this.authenticate()).join();
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 symbol = this.symbol(symbol);
             }
-            Object symbols = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol));
+            java.util.List<Object> symbols = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol));
             Object orders = (this.subscribe(name, name, true, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -709,14 +709,14 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "orders";
+            String name = "orders";
             String messageHash = (String) "myTrades";
             (this.authenticate()).join();
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 symbol = this.symbol(symbol);
             }
-            Object symbols = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol));
+            java.util.List<Object> symbols = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol));
             Object trades = (this.subscribe(name, messageHash, true, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -745,7 +745,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "balances";
+            String name = "balances";
             (this.authenticate()).join();
             return (this.subscribe(name, name, true, null, parameters)).join();
         });
@@ -1132,7 +1132,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                         Helpers.addElementToObject(Helpers.GetValue(previousOrder, "fee"), "cost", Precise.stringAdd(stringOrderCost, stringTradeCost));
                     }
                     Object rawState = this.safeString(order, "state");
-                    Object state = this.parseStatus(rawState);
+                    String state = (String) this.parseStatus(rawState);
                     Helpers.addElementToObject(previousOrder, "status", state);
                     // update the newUpdates count
                     Helpers.callDynamically(orders, "append", new Object[]{previousOrder});

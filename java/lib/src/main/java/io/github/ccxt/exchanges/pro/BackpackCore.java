@@ -291,8 +291,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -327,8 +327,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -439,8 +439,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -474,8 +474,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -629,8 +629,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             {
                 (this.loadMarkets()).join();
             }
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
@@ -679,8 +679,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             {
                 (this.loadMarkets()).join();
             }
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
@@ -836,8 +836,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -883,8 +883,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -1050,8 +1050,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object marketIds = this.marketIds(symbols);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -1106,8 +1106,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object marketIds = this.marketIds(symbols);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -1394,13 +1394,13 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
         Object clientOrderId = this.safeString(order, "c");
         Long microseconds = this.safeInteger(order, "E", 0);
         Long timestamp = this.parseToInt(Helpers.divide(microseconds, 1000));
-        Object status = this.parseWsOrderStatus(this.safeString(order, "X"), market);
+        String status = (String) this.parseWsOrderStatus(this.safeString(order, "X"), market);
         Object marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         String type = (String)this.safeStringLower(order, "o");
         Object timeInForce = this.safeString(order, "f");
-        Object side = this.parseWsOrderSide(this.safeString(order, "S"));
+        String side = (String) this.parseWsOrderSide(this.safeString(order, "S"));
         Object price = this.safeString(order, "p");
         Double triggerPrice = this.safeNumber(order, "P");
         Object amount = this.safeString(order, "q");
@@ -1491,8 +1491,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -1537,8 +1537,8 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)

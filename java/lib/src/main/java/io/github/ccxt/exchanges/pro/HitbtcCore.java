@@ -710,7 +710,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object name = "trades";
+            String name = "trades";
             Object trades = (this.subscribePublic(name, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), this.deepExtend(request, parameters))).join();
             if (Helpers.isTrue(this.newUpdates))
             {

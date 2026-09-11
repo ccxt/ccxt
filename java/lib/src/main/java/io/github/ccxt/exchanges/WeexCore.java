@@ -2302,7 +2302,7 @@ public class WeexCore extends WeexApi
         String symbol = (String) this.safeSymbol(marketId, market, null, "swap");
         Long timestamp = this.safeInteger(contract, "time");
         Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
-        Object interval = null;
+        String interval = null;
         String collectCycle = this.safeString(contract, "collectCycle");
         if (Helpers.isTrue(!Helpers.isEqual(collectCycle, null)))
         {

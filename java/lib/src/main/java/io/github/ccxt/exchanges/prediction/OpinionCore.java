@@ -1142,7 +1142,7 @@ final Object finalTokenId = tokenId;
 
     public Object opinionOrderRawAmounts(Object isMarket, Object side, Object amount, Object price, Object decimals)
     {
-        Object decimalsStr = "1";
+        String decimalsStr = "1";
         for (var i = 0; Helpers.isLessThan(i, decimals); i++)
         {
             decimalsStr = Helpers.add(decimalsStr, "0");
@@ -1400,7 +1400,7 @@ final Object finalTokenId = tokenId;
         Object id = this.safeString(order, "orderId");
         Object marketAny = ((Object)market);
         Object statusEnum = this.safeString(order, "statusEnum");
-        Object status = this.parseOrderStatus(statusEnum);
+        String status = (String) this.parseOrderStatus(statusEnum);
         String sideEnum = (String)this.safeStringLower(order, "sideEnum");
         String tradingMethodEnum = (String)this.safeStringLower(order, "tradingMethodEnum");
         Object timestamp = this.safeTimestamp(order, "createdAt");
