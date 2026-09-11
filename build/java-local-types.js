@@ -5133,14 +5133,35 @@ export function installJavaNumericLocalTypes (transpiler) {
 //      (The `Object... optionalArgs` varargs convention is untouched: optional parameters
 //      keep printing into it, and optionalArgs itself is synthesised, never a Parameter
 //      node.)
-//   4. CALL SITES: every `this.<method>(...)` call in the generated tree must pass a
-//      statically String argument at that position, and every wrapper `super.<method>(...)`
-//      must pass a String-typed wrapper parameter (the ws wrappers cast `(Object) id` and
-//      are therefore excluded).
+//   4. CALL SITES: every call site in the WHOLE generated tree (java/lib + java/tests +
+//      java/cli + java/examples — gradle compileJava builds all four) must pass a statically
+//      String argument at that position.  The classifier resolves a bare identifier against
+//      the ENCLOSING method's parameter list first (a wrapper passes its own typed params),
+//      then falls back to the file-level declaration scan; a `(Object)`-casted ws call or an
+//      Object-typed local rejects the position.  Every declaration whose method exists only
+//      in the TS test harness (ts/src/test/**) is skipped entirely.
 //   5. BOXED ONLY: `String` is a reference type — null stays null and the box is unchanged.
 //
+// MEASURED (2026-09-11, base 853ab685540): 2586 printed-parameter positions tree-wide;
+// 994 consistent + unassigned (990 with safe `+` rights); 685 of them String; 264 positions
+// over 219 methods admitted -> 856 parameter declarations / 785 signatures retyped, all
+// declaration-only.  The 421 String positions the call-site gate rejected (fetchOrderBook[0]
+// 100 decls, fetchOHLCV[0] 87, setMargin[0], closePosition[0], the `*Ws` family, ...) pass
+// Object-typed locals/`(Object)` casts into the call; they need the CALLER's parameters
+// typed too (a fixpoint the closure pass below already exploits where it can).
+// A second slice could take the 127 remaining Map/List positions the census proved
+// (`parseLeverage[0] leverage`, `parseBorrowInterest[0] info`, `parseTrades[0] trades`, ...).
+//
+// SECOND-ORDER WIN IS ZERO, measured: no TS local is initialised from a bare read of a
+// narrowed parameter (build/java-param-locals.mjs; 689 initializers mention one, but as a
+// call argument (475) or an object-literal value (167), which names no type).  The 250
+// java `Object x = <param>;` sites are printer-synthesised (183 `finalX` lambda captures,
+// 62 ReassignedVars `x3 = x2` snapshots) and are not TS locals.  The slice's value is the
+// typed public surface, not new locals.
+//
 // Reproduce the table with: node build/java-param-census.mjs && node build/java-param-sites.mjs
-// && node build/java-param-table.mjs --write.  The emitted diff is declaration-only.
+// && node build/java-param-table.mjs --write (then re-splice the literal into this file).
+// The emitted diff is declaration-only.
 
 const JAVA_PARAM_STRING_TYPES = {
     "addMargin": { 0: 'String' }, // 23 decls

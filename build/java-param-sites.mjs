@@ -54,6 +54,36 @@ function argLooksStringLiteral(text) {
     return /^"(?:[^"\\]|\\.)*"$/.test(t) || t.startsWith('(String)') || t.startsWith('((String)');
 }
 
+// index every method header in a file: `public/private ... name(Type a, Type b, ...)` on
+// one line (the generated code never wraps a signature). The header's param name -> type.
+function methodHeaders(text) {
+    const headers = [];
+    const re = /^[ \t]*(?:public|private|protected|final|static|synchronized|abstract|@[A-Za-z]+)[^;={}\n]*\(([^;={}\n]*)\)[ \t]*\{?[ \t]*$/gm;
+    let m;
+    while ((m = re.exec(text)) !== null) {
+        const params = new Map();
+        const bodyStart = text.indexOf('\n', m.index);
+        for (const param of splitArgs(m[1])) {
+            const pm = /^\s*([\w.<>,\s\[\]]+?)\s+(\w+)\s*$/.exec(param);
+            if (pm) {
+                params.set(pm[2], pm[1].trim());
+            }
+        }
+        headers.push({ start: m.index, bodyStart: bodyStart === -1 ? text.length : bodyStart, params });
+    }
+    headers.sort((a, b) => a.start - b.start);
+    return headers;
+}
+
+function enclosingHeader(headers, offset) {
+    let found;
+    for (const h of headers) {
+        if (h.start >= offset) break;
+        found = h;
+    }
+    return found;
+}
+
 // every declared type of `name` in one file: local declarations and method parameters
 function declaredTypes(fileText, name) {
     const types = new Set();
@@ -90,15 +120,31 @@ function argIsProvablyString(file, text, site, cand) {
     if (identifier === null) {
         return false;
     }
-    if (site.receiver === 'super') {
-        const declared = wrappingMethodArgType(text, cand.name, identifier[1]);
-        return declared === 'String' || declared === 'String[]';
+    const name = identifier[1];
+    const header = enclosingHeader(site.headers, site.offset);
+    if (header !== undefined && header.params.has(name)) {
+        return header.params.get(name) === 'String'; // a parameter of the enclosing method
     }
-    const types = declaredTypes(text, identifier[1]);
+    if (site.receiver === 'super') {
+        const declared = wrappingMethodArgType(text, cand.name, name);
+        if (declared === 'String' || declared === 'String[]') {
+            return true;
+        }
+    }
+    // a local of the enclosing method (or an unresolvable name): only safe when every
+    // declaration of that name in the file is a String
+    const types = declaredTypes(text, name);
     return types.size > 0 && [...types].every((t) => t === 'String');
 }
 
 const candidates = rows.filter((r) => r.consistent && !r.assignedAny && r.javaType === 'String');
+const headerCache = new Map();
+function headersFor(file) {
+    if (!headerCache.has(file)) {
+        headerCache.set(file, methodHeaders(contents.get(file)));
+    }
+    return headerCache.get(file);
+}
 const report = [];
 for (const cand of candidates) {
     const needle = cand.name + '(';
@@ -120,7 +166,7 @@ for (const cand of candidates) {
                     i++;
                 }
                 const args = splitArgs(text.slice(open, i - 1));
-                sites.push({ file: path.relative('.', f), receiver: recv.slice(0, -1), arg: args[cand.position] ?? '', argc: args.length });
+                sites.push({ file: path.relative('.', f), receiver: recv.slice(0, -1), arg: args[cand.position] ?? '', argc: args.length, offset: idx, headers: headersFor(f) });
                 idx = i;
             }
         }
