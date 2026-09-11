@@ -2550,11 +2550,11 @@ final Object finalOi = oi;
                 defaultTif = "good_till_canceled";
             }
             Object timeInForce = null;
-            var timeInForceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "time_in_force", defaultTif);
+            java.util.List<Object> timeInForceparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "time_in_force", defaultTif);
             timeInForce = ((java.util.List<Object>) timeInForceparametersVariable).get(0);
             parameters = ((java.util.List<Object>) timeInForceparametersVariable).get(1);
             Object stp = null;
-            var stpparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "self_trade_prevention_type", "taker_at_cross");
+            java.util.List<Object> stpparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "self_trade_prevention_type", "taker_at_cross");
             stp = ((java.util.List<Object>) stpparametersVariable).get(0);
             parameters = ((java.util.List<Object>) stpparametersVariable).get(1);
             final Object finalBookSide = bookSide;
