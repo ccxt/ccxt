@@ -3444,6 +3444,10 @@ export default class binance extends Exchange {
         const sandboxMode = this.safeBool (this.options, 'sandboxMode', false);
         const demoMode = this.safeBool (this.options, 'enableDemoTrading', false);
         const isDemoEnv = (demoMode === true) || (sandboxMode === true);
+        const canFetchStockMarkets = (isDemoEnv !== true) && (this.apiKey !== undefined && this.apiKey !== '');
+        if (canFetchStockMarkets && this.inArray ('spot', rawFetchMarkets) && this.inArray ('stock', rawFetchMarkets)) {
+            throw new ExchangeError (this.id + ' fetchMarkets() cannot load spot and stock markets together because they share the same symbol namespace');
+        }
         const fetchMarkets: List = [];
         for (let i = 0; i < rawFetchMarkets.length; i++) {
             const type = rawFetchMarkets[i];
@@ -3468,7 +3472,7 @@ export default class binance extends Exchange {
             } else if (marketType === 'option') {
                 promisesRaw.push (this.eapiPublicGetExchangeInfo (params));
             } else if (marketType === 'stock') {
-                if ((isDemoEnv !== true) && (this.apiKey !== undefined && this.apiKey !== '')) {
+                if (canFetchStockMarkets) {
                     promisesRaw.push (this.sapiGetEquityMarketExchangeInfo (params));
                 }
             } else {
