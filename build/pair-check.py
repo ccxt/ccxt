@@ -6,7 +6,7 @@ retype (or an injected checkcast on the same expression). Usage:
 import re, subprocess, sys
 
 root = sys.argv[1]
-rev = 'HEAD'
+rev = sys.argv[2] if len(sys.argv) > 2 else 'HEAD'
 
 out = subprocess.run(['git', '-C', root, 'diff', rev, '--', 'java/'], capture_output=True, text=True).stdout
 
