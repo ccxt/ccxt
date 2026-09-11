@@ -1228,7 +1228,7 @@ class limitless extends Exchange {
             'slug' => $slug,
         );
         if ($limit !== null) {
-            $request['limit'] = $limit;
+            $request['limit'] = min($limit, 100);
         }
         $response = Async\await($this->limitlessPublicGetMarketsSlugEvents($this->extend($request, $params)));
         //
@@ -2694,9 +2694,9 @@ class limitless extends Exchange {
         if (mb_strpos($rawSide, 'limit') !== false) {
             $type = 'limit';
             $takerOrMaker = 'maker';
-        if ($rawSide === null) {
-            throw new ExchangeError($this->id . ' method() missing rawSide');
-        }
+            if ($rawSide === null) {
+                throw new ExchangeError($this->id . ' method() missing rawSide');
+            }
         } elseif (mb_strpos($rawSide, 'market') !== false) {
             $type = 'market';
             $takerOrMaker = 'taker';

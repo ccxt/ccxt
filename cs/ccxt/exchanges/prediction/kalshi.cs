@@ -1554,7 +1554,7 @@ public partial class kalshi : PredictionExchange
         };
         if (isTrue(!isEqual(limit, null)))
         {
-            ((IDictionary<string,object>)request)["limit"] = limit;
+            ((IDictionary<string,object>)request)["limit"] = mathMin(limit, 1000);
         }
         Dictionary<string, object> response = await this.kalshiPublicGetMarketsTrades(this.extend(request, parameters));
         List<object> trades = this.safeList(response, "trades", new List<object>() {});
