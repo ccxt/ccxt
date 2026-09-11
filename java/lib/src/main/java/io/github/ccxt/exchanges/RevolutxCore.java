@@ -78,29 +78,53 @@ public class RevolutxCore extends RevolutxApi
             put( "api", new java.util.HashMap<String, Object>() {{
                 put( "public", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
-                        put( "2.0/public/order-book/{symbol}", 1 );
-                        put( "1.0/public/tickers", 1 );
-                        put( "1.0/public/candles/{symbol}", 1 );
-                        put( "1.0/public/trades/all", 1 );
-                        put( "1.0/public/configuration/currencies", 1 );
-                        put( "1.0/public/configuration/pairs", 1 );
+                        put( "2.0/public/order-book/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/public/tickers", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/public/candles/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/public/trades/all", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/public/configuration/currencies", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/public/configuration/pairs", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                 }} );
                 put( "private", new java.util.HashMap<String, Object>() {{
                     put( "get", new java.util.HashMap<String, Object>() {{
                         put( "1.0/balances", 1 );
-                        put( "1.0/orders/active", 1 );
-                        put( "1.0/orders/historical", 1 );
-                        put( "1.0/orders/{venue_order_id}", 1 );
+                        put( "1.0/orders/active", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/orders/historical", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
+                        put( "1.0/orders/{venue_order_id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "1.0/orders/fills/{venue_order_id}", 1 );
-                        put( "1.0/trades/private/{symbol}", 1 );
+                        put( "1.0/trades/private/{symbol}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                         put( "1.0/transactions", 1 );
                     }} );
                     put( "post", new java.util.HashMap<String, Object>() {{
-                        put( "1.0/orders", 1 );
+                        put( "1.0/orders", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "put", new java.util.HashMap<String, Object>() {{
-                        put( "1.0/orders/{venue_order_id}", 1 );
+                        put( "1.0/orders/{venue_order_id}", new java.util.HashMap<String, Object>() {{
+                            put( "cost", 1 );
+                        }} );
                     }} );
                     put( "delete", new java.util.HashMap<String, Object>() {{
                         put( "1.0/orders", 1 );
@@ -399,7 +423,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "region", region);
             }
-            Object response = (this.publicGet10PublicConfigurationPairs(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGet10PublicConfigurationPairs(this.extend(request, parameters))).join();
             //
             //     {
             //         "BTC/USD": {
@@ -499,7 +523,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "region", region);
             }
-            Object response = (this.publicGet10PublicConfigurationCurrencies(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGet10PublicConfigurationCurrencies(this.extend(request, parameters))).join();
             //
             //     {
             //         "BTC": { "symbol": "BTC", "name": "Bitcoin", "scale": 8, "asset_type": "crypto", "status": "active" },
@@ -628,7 +652,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "region", region);
             }
-            Object response = (this.publicGet10PublicTickers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGet10PublicTickers(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -739,7 +763,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "region", region);
             }
-            Object response = (this.publicGet20PublicOrderBookSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGet20PublicOrderBookSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": {
@@ -827,7 +851,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "region", region);
             }
-            Object response = (this.publicGet10PublicCandlesSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGet10PublicCandlesSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -944,7 +968,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "cursor", cursor);
             }
-            Object response = (this.publicGet10PublicTradesAll(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGet10PublicTradesAll(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": [
@@ -1214,7 +1238,7 @@ public class RevolutxCore extends RevolutxApi
                 put( "side", side );
                 put( "order_configuration", orderConfiguration );
             }};
-            Object response = (this.privatePost10Orders(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
+            java.util.Map<String, Object> response = (this.privatePost10Orders(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cost", "quote_size", "clientOrderId", "client_order_id", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
             //
             //     {
             //         "data": [
@@ -1323,7 +1347,7 @@ public class RevolutxCore extends RevolutxApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "venue_order_id", id );
             }};
-            Object response = (this.privateGet10OrdersVenueOrderId(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGet10OrdersVenueOrderId(this.extend(request, parameters))).join();
             //
             //     {
             //         "data": {
@@ -1406,7 +1430,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "side", side);
             }
-            Object response = (this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cursor", "orderStates", "order_states", "orderTypes", "order_types", "side")))))).join();
+            java.util.Map<String, Object> response = (this.privateGet10OrdersActive(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cursor", "orderStates", "order_states", "orderTypes", "order_types", "side")))))).join();
             //
             //     {
             //         "data": [ { "id": "uuid", "client_order_id": "uuid", "symbol": "BTC/USD", ... } ],
@@ -1496,7 +1520,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "order_types", String.join((String)",", (java.util.List<String>)orderTypes));
             }
-            Object response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types")))))).join();
+            java.util.Map<String, Object> response = (this.privateGet10OrdersHistorical(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "cursor", "orderStates", "order_states", "orderTypes", "order_types")))))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -1646,7 +1670,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "cursor", cursor);
             }
-            Object response = (this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")))))).join();
+            java.util.Map<String, Object> response = (this.privateGet10TradesPrivateSymbol(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")))))).join();
             //
             //     {
             //         "data": [
@@ -1728,7 +1752,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Helpers.addElementToObject(request, "execution_instructions", executionInstructions);
             }
-            Object response = (this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
+            java.util.Map<String, Object> response = (this.privatePut10OrdersVenueOrderId(this.extend(request, this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_order_id", "cost", "quote_size", "timeInForce", "time_in_force", "executionInstructions", "execution_instructions")))))).join();
             //
             //     {
             //         "data": [

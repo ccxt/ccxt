@@ -47,6 +47,13 @@ const KNOWN_TYPES = new Set([
     'IsolatedBorrowRate', 'IsolatedBorrowRates',
     'FundingHistory', 'DepositWithdrawFee', 'DepositWithdrawFees',
     'OrderBooks',
+    // `fetchAllGreeks(): Promise<AllGreeks>` and
+    // `fetchDepositAddressesByNetwork(): Promise<DepositAddresses>` are already
+    // annotated in ts/src/base/Exchange.ts and every venue's flattened .d.ts agrees;
+    // both classes exist in io.github.ccxt.types with the Object-raw constructor the
+    // wrapper's `new X(res)` conversion needs. Without these entries the parser read
+    // the shapes and dropped them, leaving the two methods on the untyped surface.
+    'AllGreeks', 'DepositAddresses',
     'OrderRequest', 'CancellationRequest', 'WithdrawalResponse',
     // native dedicated prediction-market types (io.github.ccxt.types.Prediction*)
     'PredictionTicker', 'PredictionTickers', 'PredictionOrder', 'PredictionTrade', 'PredictionPosition', 'PredictionOrderBook', 'PredictionTradingFee', 'PredictionOpenInterest', 'PredictionSettlement',
@@ -115,6 +122,20 @@ function tsReturnTypeToJava(methodName: string, tsReturnType: string): { javaTyp
         const className = KNOWN_TYPE_ALIASES[inner] ?? inner;
         if (KNOWN_TYPES.has(className)) return { javaType: className, isArray: false, elementType: null };
     }
+    // `Promise<Dict>` is a declared `Map<String, Object>` contract, not an unknown: the
+    // loader builds every decoded JSON object as a LinkedHashMap, so the joinUnwrapped
+    // result is castable (`genReturnExpr` has the `(Map<String, Object>) res` arm for
+    // exactly this). Five unified methods whose every venue override resolves to Dict
+    // (setMarginMode/setPositionMode/cancelAllOrdersAfter/createSubAccount/
+    // fetchPaymentMethods — see ts/src/base/Exchange.ts) plus fetchTradingLimits carried
+    // no typed wrapper before, so their user-facing surface was the inherited
+    // `CompletableFuture<Object>` / `Object... optionalArgs` varargs.
+    //
+    // Deliberately Dict-ONLY: `{}` (a non-null T of ANY shape), `any`/`unknown` and
+    // `Dictionary<...>` (a keyed nominal shape the wrapper cannot build without a class)
+    // keep the permissive Object type — a Map cast on a `{}` return would be a real CCE
+    // on an endpoint that answers with a bare string or list.
+    if (inner === 'Dict') return { javaType: 'Map<String, Object>', isArray: false, elementType: null };
     if (isIntegerType(inner) || inner === 'number' && methodName === 'fetchTime') return { javaType: 'Long', isArray: false, elementType: null };
     if (isNumberType(inner)) return { javaType: 'Double', isArray: false, elementType: null };
     if (isStringType(inner)) return { javaType: 'String', isArray: false, elementType: null };

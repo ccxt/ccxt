@@ -3,7 +3,7 @@
 import { ed25519 } from '@noble/curves/ed25519.js';
 import Exchange from './abstract/revolutx.js';
 import { BadRequest, InvalidOrder, InvalidNonce, OrderNotFound, ExchangeError, ArgumentsRequired, PermissionDenied, InsufficientFunds, RateLimitExceeded } from './base/errors.js';
-import type { Balances, Currencies, Currency, Dict, Int, int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
+import type { Balances, Currencies, Currency, Dict, Endpoint, Int, int, List, Market, MarketInterface, NullableDict, Num, OHLCV, Order, OrderBook, OrderSide, OrderType, Str, Strings, Ticker, Tickers, Trade } from './base/types.js';
 import { Precise } from './base/Precise.js';
 import { eddsa } from './base/functions/crypto.js';
 import { TICK_SIZE } from './base/functions/number.js';
@@ -75,29 +75,29 @@ export default class revolutx extends Exchange {
             'api': {
                 'public': {
                     'get': {
-                        '2.0/public/order-book/{symbol}': 1,
-                        '1.0/public/tickers': 1,
-                        '1.0/public/candles/{symbol}': 1,
-                        '1.0/public/trades/all': 1,
-                        '1.0/public/configuration/currencies': 1,
-                        '1.0/public/configuration/pairs': 1,
+                        '2.0/public/order-book/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/tickers': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/candles/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/trades/all': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/configuration/currencies': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/public/configuration/pairs': { 'cost': 1 } as Endpoint<Dict>,
                     },
                 },
                 'private': {
                     'get': {
                         '1.0/balances': 1,
-                        '1.0/orders/active': 1,
-                        '1.0/orders/historical': 1,
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/active': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/orders/historical': { 'cost': 1 } as Endpoint<Dict>,
+                        '1.0/orders/{venue_order_id}': { 'cost': 1 } as Endpoint<Dict>,
                         '1.0/orders/fills/{venue_order_id}': 1,
-                        '1.0/trades/private/{symbol}': 1,
+                        '1.0/trades/private/{symbol}': { 'cost': 1 } as Endpoint<Dict>,
                         '1.0/transactions': 1,
                     },
                     'post': {
-                        '1.0/orders': 1,
+                        '1.0/orders': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'put': {
-                        '1.0/orders/{venue_order_id}': 1,
+                        '1.0/orders/{venue_order_id}': { 'cost': 1 } as Endpoint<Dict>,
                     },
                     'delete': {
                         '1.0/orders': 1,

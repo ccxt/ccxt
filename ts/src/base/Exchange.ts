@@ -3916,7 +3916,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchLeverages() is not supported yet');
     }
 
-    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<{}> {
+    async setPositionMode (hedged: boolean, symbol: Str = undefined, params = {}): Promise<Dict> {
         throw new NotSupported (this.id + ' setPositionMode() is not supported yet');
     }
 
@@ -3955,7 +3955,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' fetchMarginAdjustmentHistory() is not supported yet');
     }
 
-    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<{}> {
+    async setMarginMode (marginMode: string, symbol: Str = undefined, params = {}): Promise<Dict> {
         throw new NotSupported (this.id + ' setMarginMode() is not supported yet');
     }
 
@@ -3975,7 +3975,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' signIn() is not supported yet');
     }
 
-    async fetchPaymentMethods (params = {}): Promise<{}> {
+    async fetchPaymentMethods (params = {}): Promise<Dict> {
         throw new NotSupported (this.id + ' fetchPaymentMethods() is not supported yet');
     }
 
@@ -7111,7 +7111,7 @@ export class BaseExchange {
         throw new NotSupported (this.id + ' cancelAllContractOrders() is not supported yet');
     }
 
-    async cancelAllOrdersAfter (timeout: Int, params = {}): Promise<{}> {
+    async cancelAllOrdersAfter (timeout: Int, params = {}): Promise<Dict> {
         throw new NotSupported (this.id + ' cancelAllOrdersAfter() is not supported yet');
     }
 
@@ -7522,7 +7522,7 @@ export class BaseExchange {
         }
     }
 
-    async createSubAccount (name: string, params = {}): Promise<{}> {
+    async createSubAccount (name: string, params = {}): Promise<Dict> {
         throw new NotSupported (this.id + ' createSubAccount() is not supported yet');
     }
 
