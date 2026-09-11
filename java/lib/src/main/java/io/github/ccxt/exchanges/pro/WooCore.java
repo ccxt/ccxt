@@ -1008,7 +1008,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         Object trade = this.parseWsTrade(this.extend(data, new java.util.HashMap<String, Object>() {{
             put( "timestamp", timestamp );
         }}), market);
-        Object tradesArray = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

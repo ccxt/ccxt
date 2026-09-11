@@ -621,7 +621,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         {
             trades = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseTrade(data, market)));
         }
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

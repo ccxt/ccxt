@@ -1176,12 +1176,12 @@ final Object finalTokenId = tokenId;
         Object takerAmount = null;
         if (Helpers.isTrue(Helpers.isEqual(side, "BUY")))
         {
-            Object k = Precise.stringDiv(makerAmountWei, priceNum, 0);
+            String k = Precise.stringDiv(makerAmountWei, priceNum, 0);
             makerAmount = Precise.stringMul(k, priceNum);
             takerAmount = Precise.stringMul(k, priceDenom);
         } else
         {
-            Object k = Precise.stringDiv(makerAmountWei, priceDenom, 0);
+            String k = Precise.stringDiv(makerAmountWei, priceDenom, 0);
             makerAmount = Precise.stringMul(k, priceDenom);
             takerAmount = Precise.stringMul(k, priceNum);
         }
@@ -1231,7 +1231,7 @@ final Object finalTokenId = tokenId;
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price for market sell orders")) ;
                 }
             }
-            Object marketOrderPrice = "0";
+            String marketOrderPrice = "0";
             if (Helpers.isTrue(Helpers.isTrue(isMarket) && Helpers.isTrue((Helpers.isEqual(sideStr, "SELL")))))
             {
                 marketOrderPrice = this.numberToString(price);

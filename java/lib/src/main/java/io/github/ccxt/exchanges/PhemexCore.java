@@ -1440,7 +1440,7 @@ public class PhemexCore extends PhemexApi
         Object precision = null;
         if (Helpers.isTrue(!Helpers.isEqual(valueScale, null)))
         {
-            Object precisionString = this.parsePrecision(valueScaleString);
+            String precisionString = (String) this.parsePrecision(valueScaleString);
             precision = this.parseNumber(precisionString);
             minAmount = this.parseNumber(Precise.stringMul(minValueEv, precisionString));
             maxAmount = this.parseNumber(Precise.stringMul(maxValueEv, precisionString));
@@ -1604,7 +1604,7 @@ public class PhemexCore extends PhemexApi
         {
             return null;
         }
-        Object stringN = this.numberToString(n);
+        String stringN = this.numberToString(n);
         var precise = new Precise(((String)stringN));
         precise.decimals = Helpers.subtract(precise.decimals, scale);
         precise.reduce();
@@ -3249,8 +3249,8 @@ public class PhemexCore extends PhemexApi
                     {
                         if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             String quoteAmount = Precise.stringMul(amountString, priceString);
                             cost = this.parseNumber(quoteAmount);
                         } else if (Helpers.isTrue(Helpers.isEqual(cost, null)))
@@ -3391,7 +3391,7 @@ public class PhemexCore extends PhemexApi
                     Helpers.addElementToObject(request, "priceRp", this.priceToPrecision(symbol, price));
                 } else
                 {
-                    Object priceString = this.numberToString(price);
+                    String priceString = this.numberToString(price);
                     Helpers.addElementToObject(request, "priceEp", this.toEp(priceString, market));
                 }
             }
@@ -4900,7 +4900,7 @@ public class PhemexCore extends PhemexApi
         String markPriceString = this.safeString2(position, "markPrice", "markPriceRp");
         String contracts = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("size", "sizeRq", "closedSizeRq")));
         Object contractSize = this.safeValue(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         Object leverage = this.parseNumber(Precise.stringAbs((this.safeString2(position, "leverage", "leverageRr"))));
         String entryPriceString = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("avgEntryPrice", "avgEntryPriceRp", "openPrice")));
         String rawSide = this.safeString(position, "side");
@@ -5086,7 +5086,7 @@ public class PhemexCore extends PhemexApi
         {
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrency(currencyCode);
             String scale = this.safeString(Helpers.GetValue(currency, "info"), "valueScale");
-            Object tickPrecision = this.parsePrecision(scale);
+            String tickPrecision = (String) this.parsePrecision(scale);
             value = Precise.stringMul(value, tickPrecision);
         }
         return value;

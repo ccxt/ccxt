@@ -560,7 +560,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = (String) Helpers.add("myTrades:", symbol);
         Object messageWithType = Helpers.add("myTrades:", Helpers.GetValue(market, "type"));
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -623,7 +623,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, defaultType);
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = (String) Helpers.add("trades:", symbol);
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

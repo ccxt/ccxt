@@ -1758,7 +1758,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = (String) Helpers.add("trade:", symbol);
-        Object trades = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(trades, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

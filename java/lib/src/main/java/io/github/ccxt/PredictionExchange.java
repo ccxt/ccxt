@@ -312,7 +312,7 @@ public Object describe()
         Boolean pendingSep = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
-            Object ch = Helpers.GetValue(chars, i);
+            String ch = (String) Helpers.GetValue(chars, i);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
             {
                 if (Helpers.isTrue(Helpers.isTrue(pendingSep) && Helpers.isTrue((!Helpers.isEqual(s, "")))))
@@ -635,7 +635,7 @@ public Object describe()
         Boolean lastDash = true; // start true to drop leading separators
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
-            Object ch = Helpers.GetValue(chars, i);
+            String ch = (String) Helpers.GetValue(chars, i);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
             {
                 s = Helpers.add(s, ch);
@@ -709,7 +709,7 @@ public Object describe()
         Boolean pendingSep = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
-            Object ch = Helpers.GetValue(chars, i);
+            String ch = (String) Helpers.GetValue(chars, i);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
             {
                 if (Helpers.isTrue(Helpers.isTrue(pendingSep) && Helpers.isTrue((!Helpers.isEqual(label, "")))))

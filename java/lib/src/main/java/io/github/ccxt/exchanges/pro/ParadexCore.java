@@ -185,7 +185,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object parsedTrade = this.parseTrade(data);
         Object symbol = Helpers.GetValue(parsedTrade, "symbol");
         Object messageHash = this.safeString(parameters, "channel");
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             stored = new ArrayCache(((Number)this.safeInteger(this.options, "tradesLimit", 1000)).intValue());

@@ -2872,8 +2872,8 @@ public class MexcCore extends MexcApi
                     Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
                 } else
                 {
-                    Object amountString = this.numberToString(amount);
-                    Object priceString = this.numberToString(price);
+                    String amountString = this.numberToString(amount);
+                    String priceString = this.numberToString(price);
                     String quoteAmount = Precise.stringMul(amountString, priceString);
                     amount = quoteAmount;
                     Helpers.addElementToObject(request, "quoteOrderQty", this.costToPrecision(symbol, amount));

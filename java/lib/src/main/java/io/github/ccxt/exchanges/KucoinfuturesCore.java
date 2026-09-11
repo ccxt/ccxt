@@ -94,7 +94,7 @@ public class KucoinfuturesCore extends KucoinfuturesApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object amountToPrecision = this.currencyToPrecision(code, amount);
+            String amountToPrecision = (String) this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", KucoinfuturesCore.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );

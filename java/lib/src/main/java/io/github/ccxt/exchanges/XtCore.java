@@ -3270,8 +3270,8 @@ public class XtCore extends XtApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a price argument or cost in params for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option to false and pass in the cost to spend into the amount parameter")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             Object costCalculated = null;
                             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                             {
@@ -6841,7 +6841,7 @@ final Object finalMarket = market;
             java.util.Map<String, Object> accountsByType = (java.util.Map<String, Object>) this.safeDict(this.options, "accountsById");
             String fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toAccountId = this.safeString(accountsByType, toAccount, toAccount);
-            Object amountString = this.currencyToPrecision(code, amount);
+            String amountString = (String) this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "bizId", XtCore.this.uuid() );
                 put( "currency", Helpers.GetValue(currency, "id") );
@@ -7165,7 +7165,7 @@ final Object finalMarket = market;
             this.checkRequiredCredentials();
             String defaultRecvWindow = this.safeString(this.options, "recvWindow");
             String recvWindow = this.safeString(query, "recvWindow", defaultRecvWindow);
-            Object timestamp = this.numberToString(this.nonce());
+            String timestamp = this.numberToString(this.nonce());
             body = query;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(payload, "/v4/order"))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/order/create")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/entrust/create-plan")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/entrust/create-profit")))) || Helpers.isTrue((Helpers.isEqual(payload, "/future/trade/v1/order/create-batch")))))
             {

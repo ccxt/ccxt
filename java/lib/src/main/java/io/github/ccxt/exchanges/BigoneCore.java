@@ -595,7 +595,7 @@ public class BigoneCore extends BigoneApi
         String name = this.safeString(rawCurrency, "name");
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList(rawCurrency, "binding_gateways", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object currencyMaxPrecision = this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
+        String currencyMaxPrecision = (String) this.parsePrecision(this.safeString2(rawCurrency, "withdrawal_scale", "scale"));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -606,7 +606,7 @@ public class BigoneCore extends BigoneApi
             String minDepositAmount = this.safeString(chain, "min_deposit_amount");
             String minWithdrawalAmount = this.safeString(chain, "min_withdrawal_amount");
             String withdrawalFee = this.safeString(chain, "withdrawal_fee");
-            Object precision = this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
+            String precision = (String) this.parsePrecision(this.safeString2(chain, "withdrawal_scale", "scale"));
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 final Object finalNetworkCode = networkCode;
@@ -1872,8 +1872,8 @@ public class BigoneCore extends BigoneApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             Object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
                             Object costRequest = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                             Helpers.addElementToObject(request, "amount", this.costToPrecision(symbol, costRequest));

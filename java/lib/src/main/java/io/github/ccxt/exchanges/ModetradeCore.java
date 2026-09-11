@@ -1022,14 +1022,14 @@ public class ModetradeCore extends ModetradeApi
         String currencyId = this.safeString(rawCurrency, "token");
         Object networks = this.safeList(rawCurrency, "chain_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String code = (String) this.safeCurrencyCode(currencyId);
-        Object minPrecision = null;
+        String minPrecision = null;
         java.util.Map<String, Object> resultingNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networks)); j++)
         {
             Object network = Helpers.GetValue(networks, j);
             // TODO: transform chain id to human readable name
             String networkId = this.safeString(network, "chain_id", "");
-            Object precision = this.parsePrecision(this.safeString(network, "decimals"));
+            String precision = (String) this.parsePrecision(this.safeString(network, "decimals"));
             if (Helpers.isTrue(!Helpers.isEqual(precision, null)))
             {
                 minPrecision = ((Helpers.isTrue((Helpers.isEqual(minPrecision, null))))) ? precision : Precise.stringMin(precision, minPrecision);

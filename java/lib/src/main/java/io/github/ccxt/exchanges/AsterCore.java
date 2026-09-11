@@ -3507,8 +3507,8 @@ public class AsterCore extends AsterApi
                         Helpers.addElementToObject(request, "quoteOrderQty", this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode));
                     } else if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String quoteOrderQuantity = Precise.stringMul(amountString, priceString);
                         Helpers.addElementToObject(request, "quoteOrderQty", this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode));
                     } else
@@ -4427,7 +4427,7 @@ public class AsterCore extends AsterApi
         String entryPriceString = this.safeString(position, "entryPrice");
         Object entryPrice = this.parseNumber(entryPriceString);
         Object contractSize = this.safeValue(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         Boolean linear = (Helpers.inOp(position, "notional"));
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
@@ -4453,8 +4453,8 @@ public class AsterCore extends AsterApi
                         onePlusMaintenanceMarginPercentageString = Precise.stringAdd("-1", maintenanceMarginPercentageString);
                     }
                     String inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
-                    Object leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                    Object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
+                    String leftSide = Precise.stringAdd(inner, entryPriceSignString);
+                    Integer quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
                     if (Helpers.isTrue(!Helpers.isEqual(quotePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
@@ -4472,9 +4472,9 @@ public class AsterCore extends AsterApi
                         onePlusMaintenanceMarginPercentageString = Precise.stringSub("-1", maintenanceMarginPercentageString);
                         entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
                     }
-                    Object leftSide = Precise.stringMul(contractsAbs, contractSizeString);
+                    String leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     String rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    Object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
+                    Integer basePrecision = this.precisionFromString(this.safeString(precision, "base"));
                     if (Helpers.isTrue(!Helpers.isEqual(basePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);
@@ -4494,7 +4494,7 @@ public class AsterCore extends AsterApi
             timestamp = null;
         }
         Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
-        Object maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
+        String maintenanceMarginString = Precise.stringMul(maintenanceMarginPercentageString, notionalStringAbs);
         if (Helpers.isTrue(Helpers.isEqual(maintenanceMarginString, null)))
         {
             // for a while, this new value was a backup to the existing calculations, but in future we might prioritize this
@@ -4513,12 +4513,12 @@ public class AsterCore extends AsterApi
             {
                 initialMarginPercentageString = Precise.stringAdd(initialMarginPercentageString, "1e-8");
             }
-            Object unrounded = Precise.stringMul(notionalStringAbs, initialMarginPercentageString);
+            String unrounded = Precise.stringMul(notionalStringAbs, initialMarginPercentageString);
             initialMarginString = Precise.stringDiv(unrounded, "1", 8);
         } else
         {
             initialMarginString = this.safeString(position, "initialMargin");
-            Object unrounded = Precise.stringMul(initialMarginString, "1");
+            String unrounded = Precise.stringMul(initialMarginString, "1");
             initialMarginPercentageString = Precise.stringDiv(unrounded, notionalStringAbs, 8);
         }
         Object marginRatio = null;
@@ -4814,7 +4814,7 @@ public class AsterCore extends AsterApi
         String liquidationPriceStringRaw = null;
         Object liquidationPrice = null;
         Object contractSize = this.safeValue(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         if (Helpers.isTrue(Precise.stringEquals(notionalString, "0")))
         {
             entryPrice = null;
@@ -4842,8 +4842,8 @@ public class AsterCore extends AsterApi
                     onePlusMaintenanceMarginPercentageString = Precise.stringAdd("-1", maintenanceMarginPercentageString);
                     entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
                 }
-                Object leftSide = Precise.stringDiv(walletBalance, Precise.stringMul(contractsStringAbs, onePlusMaintenanceMarginPercentageString));
-                Object rightSide = Precise.stringDiv(entryPriceSignString, onePlusMaintenanceMarginPercentageString);
+                String leftSide = Precise.stringDiv(walletBalance, Precise.stringMul(contractsStringAbs, onePlusMaintenanceMarginPercentageString));
+                String rightSide = Precise.stringDiv(entryPriceSignString, onePlusMaintenanceMarginPercentageString);
                 liquidationPriceStringRaw = Precise.stringAdd(leftSide, rightSide);
             } else
             {
@@ -4862,11 +4862,11 @@ public class AsterCore extends AsterApi
                     entryPriceSignString = Precise.stringMul("-1", entryPriceSignString);
                 }
                 String size = Precise.stringMul(contractsStringAbs, contractSizeString);
-                Object leftSide = Precise.stringMul(size, onePlusMaintenanceMarginPercentageString);
-                Object rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
+                String leftSide = Precise.stringMul(size, onePlusMaintenanceMarginPercentageString);
+                String rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            Object pricePrecision = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "price"));
+            Integer pricePrecision = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "price"));
             Object pricePrecisionPlusOne = Helpers.add(pricePrecision, 1);
             String pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
@@ -5229,7 +5229,7 @@ public class AsterCore extends AsterApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " transfer() requires fromAccount and toAccount parameters to be either SPOT or FUTURE")) ;
             }
-            Object defaultClientTranId = this.numberToString(this.milliseconds());
+            String defaultClientTranId = this.numberToString(this.milliseconds());
             String clientTranId = this.safeString(parameters, "clientTranId", defaultClientTranId);
             Helpers.addElementToObject(request, "kindType", type);
             Helpers.addElementToObject(request, "clientTranId", clientTranId);

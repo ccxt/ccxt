@@ -206,7 +206,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         Object trade = this.parseWsTrade(message);
         Object symbol = Helpers.GetValue(trade, "symbol");
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-        Object stored = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
             stored = new ArrayCache(((Number)tradesLimit).intValue());
@@ -266,7 +266,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         {
             Object symbol = Helpers.GetValue(market, "symbol");
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
-            Object stored = this.safeValue(this.trades, symbol);
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
                 stored = new ArrayCache(((Number)tradesLimit).intValue());
@@ -296,7 +296,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 Object trade = this.parseWsTrade(Helpers.GetValue(trades, i), market);
                 Helpers.addElementToObject(trade, "timestamp", timestamp);
                 Helpers.addElementToObject(trade, "datetime", this.iso8601(timestamp));
-                Object stored = this.safeValue(this.trades, symbol);
+                io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
                 if (Helpers.isTrue(Helpers.isEqual(stored, null)))
                 {
                     stored = new ArrayCache(((Number)tradesLimit).intValue());

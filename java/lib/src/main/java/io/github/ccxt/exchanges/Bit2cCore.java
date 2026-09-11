@@ -736,8 +736,8 @@ public class Bit2cCore extends Bit2cApi
             } else
             {
                 Helpers.addElementToObject(request, "Price", price);
-                Object amountString = this.numberToString(amount);
-                Object priceString = this.numberToString(price);
+                String amountString = this.numberToString(amount);
+                String priceString = this.numberToString(price);
                 Helpers.addElementToObject(request, "Total", this.parseToNumeric(Precise.stringMul(amountString, priceString)));
                 Helpers.addElementToObject(request, "IsBid", (Helpers.isEqual(side, "buy")));
                 response = (this.privatePostOrderAddOrder(this.extend(request, parameters))).join();

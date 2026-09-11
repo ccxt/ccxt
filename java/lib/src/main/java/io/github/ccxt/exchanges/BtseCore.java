@@ -1563,7 +1563,7 @@ public class BtseCore extends BtseApi
         {
             // for contract markets the amount field is denominated in contracts, verified live -
             // scaling by contractSize converts it into base currency units
-            Object contractSizeString = this.numberToString(Helpers.GetValue(market, "contractSize"));
+            String contractSizeString = this.numberToString(Helpers.GetValue(market, "contractSize"));
             if (Helpers.isTrue(!Helpers.isEqual(contractSizeString, null)))
             {
                 baseVolume = Precise.stringMul(baseVolume, contractSizeString);
@@ -2358,8 +2358,8 @@ public class BtseCore extends BtseApi
                         throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend, alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         quoteAmount = this.costToPrecision(symbol, Precise.stringMul(amountString, priceString));
                     }
                 } else

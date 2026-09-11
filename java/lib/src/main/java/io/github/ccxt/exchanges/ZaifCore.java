@@ -1018,7 +1018,7 @@ public class ZaifCore extends ZaifApi
 
     public Object customNonce()
     {
-        Object num = this.numberToString(Helpers.divide(this.milliseconds(), 1000));
+        String num = this.numberToString(Helpers.divide(this.milliseconds(), 1000));
         Object nonce = Helpers.parseFloat(num);
         return toFixed(nonce, 8);
     }

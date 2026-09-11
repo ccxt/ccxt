@@ -2567,7 +2567,7 @@ public class BybitCore extends BybitApi
         // and we shouldn't crash in those cases
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Boolean emptyPrecisionAmount = (Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), null));
-        Object amountString = this.numberToString(amount);
+        String amountString = this.numberToString(amount);
         if (Helpers.isTrue(!Helpers.isTrue(emptyPrecisionAmount) && Helpers.isTrue((!Helpers.isEqual(amountString, "0")))))
         {
             return this.amountToPrecision(symbol, amount);
@@ -5711,7 +5711,7 @@ public class BybitCore extends BybitApi
                     orderCost = cost;
                 } else
                 {
-                    Object quoteAmount = Precise.stringMul(amountString, priceString);
+                    String quoteAmount = Precise.stringMul(amountString, priceString);
                     orderCost = quoteAmount;
                 }
                 Helpers.addElementToObject(request, "qty", this.getCost(symbol, orderCost));
@@ -5735,7 +5735,7 @@ public class BybitCore extends BybitApi
                     throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                 } else
                 {
-                    Object quoteAmount = Precise.stringMul(this.numberToString(amount), priceString);
+                    String quoteAmount = Precise.stringMul(this.numberToString(amount), priceString);
                     Object costRequest = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                     Helpers.addElementToObject(request, "qty", this.getCost(symbol, costRequest));
                 }
@@ -8792,7 +8792,7 @@ public class BybitCore extends BybitApi
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 Object useMarkPrice = this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
                 Object price = ((Helpers.isTrue(useMarkPrice))) ? markPrice : entryPrice;
-                Object difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
+                String difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
             } else
             {
@@ -8816,7 +8816,7 @@ public class BybitCore extends BybitApi
                     // Contracts * (1 / Entry price - 1 / Liq price) = Collateral - Maintenance Margin
                     // Maintenance Margin = Contracts * (1 / Liq price - 1 / Bust price)
                     // Maintenance Margin = Contracts * (Bust price - Liq price) / (Liq price x Bust price)
-                    Object difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
+                    String difference = Precise.stringAbs(Precise.stringSub(bustPrice, liquidationPrice));
                     String multiply = Precise.stringMul(bustPrice, liquidationPrice);
                     maintenanceMarginString = Precise.stringDiv(Precise.stringMul(size, difference), multiply);
                     // Initial Margin = Leverage x Contracts / EntryPrice
@@ -9080,7 +9080,7 @@ public class BybitCore extends BybitApi
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             // engage in leverage setting
             // we reuse the code here instead of having two methods
-            Object leverageString = this.numberToString(leverage);
+            String leverageString = this.numberToString(leverage);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "buyLeverage", leverageString );
@@ -9697,7 +9697,7 @@ public class BybitCore extends BybitApi
             String fromId = this.safeString(accountTypes, fromAccount, fromAccount);
             String toId = this.safeString(accountTypes, toAccount, toAccount);
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object amountToPrecision = this.currencyToPrecision(code, amount);
+            String amountToPrecision = (String) this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "transferId", transferId );
                 put( "fromAccountType", fromId );

@@ -2853,7 +2853,7 @@ public class OkxCore extends OkxApi
         String maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Object maxSpotCost = this.safeNumber(market, "maxMktSz");
-        Object leverageAboveOne = Precise.stringGt(maxLeverage, "1");
+        Boolean leverageAboveOne = Precise.stringGt(maxLeverage, "1");
         Object quoteEqualSettle = (Helpers.isEqual(quoteId, settleId));
         Object baseEqualSettle = (Helpers.isEqual(baseId, settleId));
         String status = this.safeString(market, "state");
@@ -4537,8 +4537,8 @@ public class OkxCore extends OkxApi
                         {
                             if (Helpers.isTrue(Helpers.isEqual(notional, null)))
                             {
-                                Object amountString = this.numberToString(amount);
-                                Object priceString = this.numberToString(price);
+                                String amountString = this.numberToString(amount);
+                                String priceString = this.numberToString(price);
                                 String quoteAmount = Precise.stringMul(amountString, priceString);
                                 notional = this.parseNumber(quoteAmount);
                             }
@@ -8083,7 +8083,7 @@ public class OkxCore extends OkxApi
             }
         }
         Double contractSize = this.safeNumber(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         String markPriceString = this.safeString(position, "markPx");
         String notionalString = this.safeString(position, "notionalUsd");
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
@@ -8117,7 +8117,7 @@ public class OkxCore extends OkxApi
         {
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "linear"), true)))
             {
-                Object initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+                String initialMarginPercentageString = this.numberToString(initialMarginPercentage);
                 initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
             } else
             {

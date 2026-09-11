@@ -1900,7 +1900,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = (String) Helpers.add("trade::", symbol);
         Object trade = this.parseWsTrade(message, market);
-        Object tradesArray = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -6685,7 +6685,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(orderFee, "currency"), Helpers.GetValue(tradeFee, "currency"))))
                                 {
                                     Object feeCost = this.sum(Helpers.GetValue(tradeFee, "cost"), Helpers.GetValue(orderFee, "cost"));
-                                    Object feeCostString = this.currencyToPrecision(Helpers.GetValue(tradeFee, "currency"), feeCost);
+                                    String feeCostString = (String) this.currencyToPrecision(Helpers.GetValue(tradeFee, "currency"), feeCost);
                                     if (Helpers.isTrue(Helpers.isEqual(feeCostString, null)))
                                     {
                                         feeCostString = "0";
@@ -6704,7 +6704,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(fee, "currency"), Helpers.GetValue(tradeFee, "currency"))))
                             {
                                 Object feeCost = this.sum(Helpers.GetValue(fee, "cost"), Helpers.GetValue(tradeFee, "cost"));
-                                Object feeCostString = this.currencyToPrecision(Helpers.GetValue(tradeFee, "currency"), feeCost);
+                                String feeCostString = (String) this.currencyToPrecision(Helpers.GetValue(tradeFee, "currency"), feeCost);
                                 if (Helpers.isTrue(Helpers.isEqual(feeCostString, null)))
                                 {
                                     feeCostString = "0";

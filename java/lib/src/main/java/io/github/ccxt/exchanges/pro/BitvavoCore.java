@@ -347,7 +347,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         String name = "trades";
         Object messageHash = Helpers.add(Helpers.add(name, "@"), marketId);
         Object trade = this.parseTrade(message, market);
-        Object tradesArray = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

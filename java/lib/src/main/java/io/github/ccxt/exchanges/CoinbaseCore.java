@@ -2940,7 +2940,7 @@ public class CoinbaseCore extends CoinbaseApi
                     String code = (String) this.safeCurrencyCode(currencyId);
                     String used = this.safeString(hold, "value");
                     String free = this.safeString(available, "value");
-                    Object total = Precise.stringAdd(used, free);
+                    String total = Precise.stringAdd(used, free);
                     Object account = this.safeDict(result, code);
                     if (Helpers.isTrue(Helpers.isEqual(account, null)))
                     {
@@ -3818,8 +3818,8 @@ public class CoinbaseCore extends CoinbaseApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             String costRequest = Precise.stringMul(amountString, priceString);
                             total = this.costToPrecision(symbol, costRequest);
                         }
@@ -4694,7 +4694,7 @@ public class CoinbaseCore extends CoinbaseApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             int duration = this.parseTimeframe(timeframe);
             Object requestedDuration = Helpers.multiply(limit, duration);
-            Object sinceString = null;
+            String sinceString = null;
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 sinceString = this.numberToString(this.parseToInt(Helpers.divide(since, 1000)));

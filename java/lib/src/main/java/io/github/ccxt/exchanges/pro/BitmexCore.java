@@ -737,7 +737,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add(Helpers.add(table, ":"), symbol);
             java.util.List<Object> trades = this.parseTrades(Helpers.GetValue(dataByMarketIds, marketId), market);
-            Object stored = this.safeValue(this.trades, symbol);
+            io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
                 Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

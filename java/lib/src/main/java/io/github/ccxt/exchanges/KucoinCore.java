@@ -5024,7 +5024,7 @@ public class KucoinCore extends KucoinApi
     public Object marketOrderAmountToPrecision(Object symbol, Object amount)
     {
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "info"), "quoteIncrement"), this.precisionMode, this.paddingMode);
+        String result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "info"), "quoteIncrement"), this.precisionMode, this.paddingMode);
         if (Helpers.isTrue(Helpers.isEqual(result, "0")))
         {
             throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " amount of "), Helpers.GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount")))) ;
@@ -9228,7 +9228,7 @@ public class KucoinCore extends KucoinApi
                     Helpers.addElementToObject(request, "chain", ((String)_netIdTmp).toLowerCase());
                 }
             }
-            Object amountString = this.currencyToPrecision(code, amount, networkCode);
+            String amountString = (String) this.currencyToPrecision(code, amount, networkCode);
             if (Helpers.isTrue(!Helpers.isEqual(amountString, null)))
             {
                 Helpers.addElementToObject(request, "amount", Helpers.parseFloat(amountString));
@@ -10335,7 +10335,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object requestedAmount = this.currencyToPrecision(code, amount);
+            String requestedAmount = (String) this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", requestedAmount );
@@ -10448,7 +10448,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object requestedAmount = this.currencyToPrecision(code, amount);
+            String requestedAmount = (String) this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", requestedAmount );

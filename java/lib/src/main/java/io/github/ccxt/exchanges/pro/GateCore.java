@@ -1274,7 +1274,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         {
             Object trade = Helpers.GetValue(parsedTrades, i);
             Object symbol = Helpers.GetValue(trade, "symbol");
-            Object cachedTrades = this.safeValue(this.trades, symbol);
+            io.github.ccxt.ws.ArrayCache cachedTrades = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(cachedTrades, null)))
             {
                 Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

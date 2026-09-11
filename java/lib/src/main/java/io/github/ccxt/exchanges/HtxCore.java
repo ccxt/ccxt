@@ -6638,8 +6638,8 @@ public class HtxCore extends HtxApi
                         // https://github.com/ccxt/ccxt/pull/4395
                         // https://github.com/ccxt/ccxt/issues/7611
                         // we use amountToPrecision here because the exchange requires cost in base precision
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         quoteAmount = this.amountToPrecision(symbol, Precise.stringMul(amountString, priceString));
                     }
                 } else
@@ -8535,7 +8535,7 @@ public class HtxCore extends HtxApi
             {
                 Helpers.addElementToObject(request, "chain", this.networkCodeToId(networkCode, code));
             }
-            Object amountPrecision = this.currencyToPrecision(code, amount, networkCode);
+            String amountPrecision = (String) this.currencyToPrecision(code, amount, networkCode);
             if (Helpers.isTrue(Helpers.isEqual(amountPrecision, null)))
             {
                 amountPrecision = "0";
@@ -8557,9 +8557,9 @@ public class HtxCore extends HtxApi
                     }
                 }
                 // fee needs to be deducted from whole amount
-                Object feeString = this.currencyToPrecision(code, fee, networkCode);
+                String feeString = (String) this.currencyToPrecision(code, fee, networkCode);
                 parameters = this.omit(parameters, "fee");
-                Object amountString = this.numberToString(amount);
+                String amountString = this.numberToString(amount);
                 String amountSubtractedString = Precise.stringSub(amountString, feeString);
                 String amountSubtractedParsed = amountSubtractedString;
                 if (Helpers.isTrue(Helpers.isEqual(amountSubtractedParsed, null)))
@@ -8567,13 +8567,13 @@ public class HtxCore extends HtxApi
                     amountSubtractedParsed = "0";
                 }
                 Object amountSubtracted = Helpers.parseFloat(amountSubtractedParsed);
-                Object feeParsed = feeString;
+                String feeParsed = feeString;
                 if (Helpers.isTrue(Helpers.isEqual(feeParsed, null)))
                 {
                     feeParsed = "0";
                 }
                 Helpers.addElementToObject(request, "fee", Helpers.parseFloat(feeParsed));
-                Object amountAfterFee = this.currencyToPrecision(code, amountSubtracted, networkCode);
+                String amountAfterFee = (String) this.currencyToPrecision(code, amountSubtracted, networkCode);
                 if (Helpers.isTrue(Helpers.isEqual(amountAfterFee, null)))
                 {
                     amountAfterFee = "0";
@@ -8686,7 +8686,7 @@ public class HtxCore extends HtxApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object transferAmount = this.currencyToPrecision(code, amount);
+            String transferAmount = (String) this.currencyToPrecision(code, amount);
             if (Helpers.isTrue(Helpers.isEqual(transferAmount, null)))
             {
                 transferAmount = "0";
@@ -9946,7 +9946,7 @@ public class HtxCore extends HtxApi
         Object symbol = Helpers.GetValue(market, "symbol");
         String contracts = this.safeString(position, "volume");
         Object contractSize = this.safeValue(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         Double entryPrice = this.safeNumber2(position, "cost_open", "open_avg_price");
         String initialMargin = this.safeString2(position, "position_margin", "initial_margin");
         String rawSide = this.safeString(position, "direction");

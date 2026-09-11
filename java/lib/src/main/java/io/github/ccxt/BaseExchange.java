@@ -6726,7 +6726,7 @@ public Object describe()
         }
         // ensure that the average field is calculated correctly
         Object inverse = this.safeBool(market, "inverse", false);
-        Object contractSize = this.numberToString(this.safeValue(market, "contractSize", 1));
+        String contractSize = this.numberToString(this.safeValue(market, "contractSize", 1));
         // inverse
         // price = filled * contract size / cost
         //
@@ -6736,7 +6736,7 @@ public Object describe()
         {
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(filled, null))) && Helpers.isTrue((!Helpers.isEqual(cost, null)))) && Helpers.isTrue(Precise.stringGt(filled, "0"))))
             {
-                Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
+                String filledTimesContractSize = Precise.stringMul(filled, contractSize);
                 if (Helpers.isTrue(Helpers.isEqual(inverse, true)))
                 {
                     average = Precise.stringDiv(filledTimesContractSize, cost);
@@ -6764,7 +6764,7 @@ public Object describe()
                 multiplyPrice = average;
             }
             // contract trading
-            Object filledTimesContractSize = Precise.stringMul(filled, contractSize);
+            String filledTimesContractSize = Precise.stringMul(filled, contractSize);
             if (Helpers.isTrue(Helpers.isEqual(inverse, true)))
             {
                 cost = Precise.stringDiv(filledTimesContractSize, multiplyPrice);
@@ -6963,11 +6963,11 @@ public Object describe()
             // the fee is always in feeSide currency
             useQuote = Helpers.isEqual(feeSide, "quote");
         }
-        Object cost = this.numberToString(amount);
+        String cost = this.numberToString(amount);
         String key = null;
         if (Helpers.isTrue(useQuote))
         {
-            Object priceString = this.numberToString(price);
+            String priceString = this.numberToString(price);
             cost = Precise.stringMul(cost, priceString);
             key = "quote";
         } else
@@ -10422,7 +10422,7 @@ public Object describe()
             return null;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object result = this.decimalToPrecision(price, ROUND, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+        String result = this.decimalToPrecision(price, ROUND, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
         if (Helpers.isTrue(Helpers.isEqual(result, "0")))
         {
             throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " price of "), Helpers.GetValue(market, "symbol")), " must be greater than minimum price precision of "), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "price")))) ;
@@ -10437,7 +10437,7 @@ public Object describe()
             return null;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
+        String result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), this.precisionMode, this.paddingMode);
         if (Helpers.isTrue(Helpers.isEqual(result, "0")))
         {
             throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " amount of "), Helpers.GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount")))) ;

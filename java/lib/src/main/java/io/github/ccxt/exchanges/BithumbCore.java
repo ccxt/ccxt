@@ -2020,8 +2020,8 @@ public class BithumbCore extends BithumbApi
                         throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         cost = Precise.stringMul(amountString, priceString);
                     }
                 } else
@@ -2208,7 +2208,7 @@ public class BithumbCore extends BithumbApi
                 throw new BadRequest((String)Helpers.add(this.id, " createTwapOrder() is only supported for the generation 2 API")) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object durationString = this.numberToString(duration);
+            String durationString = this.numberToString(duration);
             String durationSeconds = Precise.stringDiv(durationString, "1000");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "market", BithumbCore.this.getGen2MarketId(market) );

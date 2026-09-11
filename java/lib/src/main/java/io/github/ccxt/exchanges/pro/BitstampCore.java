@@ -328,7 +328,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         String messageHash = (String) Helpers.add("trades:", symbol);
         Object data = this.safeValue(message, "data");
         Object trade = this.parseWsTrade(data, market);
-        Object tradesArray = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

@@ -2344,8 +2344,8 @@ public class DigifinexCore extends DigifinexApi
                         throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires a price argument for market buy orders on spot markets to calculate the total amount to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         Object costRequest = this.parseNumber(Precise.stringMul(amountString, priceString));
                         quantity = this.costToPrecision(symbol, costRequest);
                     }
@@ -3823,7 +3823,7 @@ public class DigifinexCore extends DigifinexApi
             Boolean fromSwap = (Helpers.isEqual(fromAccount, "swap"));
             Boolean toSwap = (Helpers.isEqual(toAccount, "swap"));
             Object response = null;
-            Object amountString = this.currencyToPrecision(code, amount);
+            String amountString = (String) this.currencyToPrecision(code, amount);
             if (Helpers.isTrue(Helpers.isTrue(fromSwap) || Helpers.isTrue(toSwap)))
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fromId, "1"))) && Helpers.isTrue((!Helpers.isEqual(toId, "1")))))
