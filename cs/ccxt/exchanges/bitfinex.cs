@@ -1528,8 +1528,13 @@ public partial class bitfinex : Exchange
         //     ]
         //
         int length = getArrayLength(ticker);
-        double? firstValue = this.safeNumber(ticker, 0);
-        bool isFetchTicker = !isEqual(firstValue, null); // if it's Nan, then it's string (symbol)
+        // the list shapes (fetchTickers) carry the market id in slot 0, the singular
+        // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
+        // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
+        // look like a number and the whole array would be read off by one.
+        string? firstValue = this.safeString(ticker, 0);
+        bool hasMarketId = isTrue((!isEqual(firstValue, null))) && isTrue((isTrue(((string)firstValue).StartsWith(((string)"t"))) || isTrue(((string)firstValue).StartsWith(((string)"f")))));
+        bool isFetchTicker = !isTrue(hasMarketId);
         string? symbol = null;
         object minusIndex = 0;
         if (isTrue(isFetchTicker))
@@ -1557,7 +1562,9 @@ public partial class bitfinex : Exchange
             bid = this.safeString(ticker, subtract(2, minusIndex));
             ask = this.safeString(ticker, subtract(5, minusIndex));
             change = this.safeString(ticker, subtract(8, minusIndex));
-            percentage = this.safeString(ticker, subtract(9, minusIndex));
+            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
+            // branch reads at index 6 and scales
+            percentage = Precise.stringMul(this.safeString(ticker, subtract(9, minusIndex)), "100");
             volume = this.safeString(ticker, subtract(11, minusIndex));
             high = this.safeString(ticker, subtract(12, minusIndex));
             low = this.safeString(ticker, subtract(13, minusIndex));
