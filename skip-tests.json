@@ -805,8 +805,12 @@
                 "withdraw": "not provided",
                 "activeMajorCurrencies": "todo"
             },
+            "watchOHLCV": "the candles channel only streams 5m buckets, the test asks for 1m",
             "fetchTickers": {
                 "checkActiveSymbols": "todo"
+            },
+            "watchTicker": {
+                "compareOHLC": "24h high/low can lag the latest price, so close occasionally falls outside the 24h range"
             },
             "watchTickers": {
                 "compareOHLC": "24h high/low can lag the latest price, so close occasionally falls outside the 24h range"

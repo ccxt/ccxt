@@ -2,9 +2,9 @@ import type { Market } from './../base/types.js';
 //  ---------------------------------------------------------------------------
 import { sha256 } from '@noble/hashes/sha2.js';
 import coinbaseRest from '../coinbase.js';
-import { ArgumentsRequired, ExchangeError } from '../base/errors.js';
-import { ArrayCacheBySymbolById } from '../base/ws/Cache.js';
-import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict } from '../base/types.js';
+import { ArgumentsRequired, ExchangeError, NotSupported } from '../base/errors.js';
+import { ArrayCacheBySymbolById, ArrayCacheByTimestamp } from '../base/ws/Cache.js';
+import { Strings, Tickers, Ticker, Int, Trade, OrderBook, Order, Str, Dict, OHLCV } from '../base/types.js';
 import type Client from '../base/ws/Client.js';
 
 //  ---------------------------------------------------------------------------
@@ -25,7 +25,7 @@ export default class coinbase extends coinbaseRest {
                 'fetchTradesWs': false,
                 'watchBalance': false,
                 'watchMyTrades': false,
-                'watchOHLCV': false,
+                'watchOHLCV': true,
                 'watchOrderBook': true,
                 'watchOrderBookForSymbols': true,
                 'watchOrders': true,
@@ -533,6 +533,91 @@ export default class coinbase extends coinbaseRest {
 
     /**
      * @method
+     * @name coinbase#watchOHLCV
+     * @description watches historical candlestick data containing the open, high, low, close price, and volume of a market
+     * @see https://docs.cdp.coinbase.com/coinbase-app/advanced-trade-apis/websocket/websocket-channels#candles-channel
+     * @param {string} symbol unified symbol of the market to fetch OHLCV data for
+     * @param {string} timeframe the length of time each candle represents, only 5m is supported
+     * @param {int} [since] timestamp in ms of the earliest candle to fetch
+     * @param {int} [limit] the maximum amount of candles to fetch
+     * @param {object} [params] extra parameters specific to the exchange API endpoint
+     * @returns {int[][]} A list of candles ordered as timestamp, open, high, low, close, volume
+     */
+    override async watchOHLCV (symbol: string, timeframe: string = '5m', since: Int = undefined, limit: Int = undefined, params = {}): Promise<OHLCV[]> {
+        if (timeframe !== '5m') {
+            throw new NotSupported (this.id + ' watchOHLCV() only supports the 5m timeframe');
+        }
+        if (this.markets === undefined) {
+            await this.loadMarkets ();
+        }
+        symbol = this.symbol (symbol);
+        const name = 'candles';
+        const ohlcv = await this.subscribe (name, false, symbol, params);
+        if (this.newUpdates) {
+            limit = ohlcv.getLimit (symbol, limit);
+        }
+        return this.filterBySinceLimit (ohlcv, since, limit, 0, true);
+    }
+
+    handleOHLCV (client: Client, message: any) {
+        //
+        //     {
+        //         "channel": "candles",
+        //         "timestamp": "2023-06-09T20:19:35.39625135Z",
+        //         "sequence_num": 0,
+        //         "events": [
+        //             {
+        //                 "type": "snapshot",
+        //                 "candles": [
+        //                     {
+        //                         "start": "1688998200",
+        //                         "high": "1867.72",
+        //                         "low": "1865.63",
+        //                         "open": "1867.38",
+        //                         "close": "1866.81",
+        //                         "volume": "0.20269406",
+        //                         "product_id": "ETH-USD"
+        //                     }
+        //                 ]
+        //             }
+        //         ]
+        //     }
+        //
+        const events = this.safeList (message, 'events', []);
+        const timeframe = '5m';
+        for (let i = 0; i < events.length; i++) {
+            const event = events[i];
+            const candles = this.safeList (event, 'candles', []);
+            for (let j = 0; j < candles.length; j++) {
+                const candle = candles[j];
+                const marketId = this.safeString (candle, 'product_id');
+                const market = this.safeMarket (marketId);
+                const symbol = market['symbol'];
+                const parsed = [
+                    this.safeTimestamp (candle, 'start'),
+                    this.safeNumber (candle, 'open'),
+                    this.safeNumber (candle, 'high'),
+                    this.safeNumber (candle, 'low'),
+                    this.safeNumber (candle, 'close'),
+                    this.safeNumber (candle, 'volume'),
+                ];
+                this.ohlcvs[symbol] = this.safeValue (this.ohlcvs, symbol, {});
+                let stored = this.safeValue (this.ohlcvs[symbol], timeframe);
+                if (stored === undefined) {
+                    const limit = this.safeInteger (this.options, 'OHLCVLimit', 1000);
+                    stored = new ArrayCacheByTimestamp (limit);
+                    this.ohlcvs[symbol][timeframe] = stored;
+                }
+                stored.append (parsed);
+                const messageHash = 'candles::' + symbol;
+                client.resolve (stored, messageHash);
+                this.tryResolveUsdc (client, messageHash, stored);
+            }
+        }
+    }
+
+    /**
+     * @method
      * @name coinbase#watchTrades
      * @description get the list of most recent trades for a particular symbol
      * @see https://docs.cloud.coinbase.com/advanced-trade-api/docs/ws-channels#market-trades-channel
@@ -1033,6 +1118,7 @@ export default class coinbase extends coinbaseRest {
             'subscriptions': this.handleSubscriptionStatus,
             'ticker': this.handleTickers,
             'ticker_batch': this.handleTickers,
+            'candles': this.handleOHLCV,
             'market_trades': this.handleTrade,
             'user': this.handleOrder,
             'l2_data': this.handleOrderBook,
