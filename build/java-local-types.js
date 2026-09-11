@@ -127,6 +127,41 @@
 // local that feeds an inherited async call keeps Object (the typed-rest-wrapper overload
 // resolution trap, see patchJavaLocalTypes).
 //
+// ===== 4. locals fed by string/array method calls and Math builtins =====
+//
+// A second, independent table family narrows a local whose initializer is a WHOLE
+// non-`this` call the printer rewrites to a known Java shape (the full list, with the
+// printed form and the preconditions, sits above RECEIVER_METHOD_LOCAL_ENTRIES):
+// `x.split(sep)` -> java.util.List<Object> (Helpers.split is declared Object -> the
+// declaration carries the checkcast), `x.join(sep)`/`x.toUpperCase()`/`toLowerCase()`/
+// `trim()`/`replace`/`replaceAll`/`slice`/`padStart`/`padEnd`/`x.toString()` -> String,
+// `x.indexOf(y)`/`x.search(y)`/`x.length` -> Integer, `x.includes/startsWith/endsWith` ->
+// Boolean, `Math.abs/pow/floor/ceil` -> Double, `Math.round` -> Long.
+//
+// The printed value must start with the prefix (or match the regex) the entry records —
+// defense in depth against a printer that lowered the call differently — and the TS
+// argument count must be one the printer's dispatch accepts. Math.min/Math.max (the
+// helper hands the original operand back), x.concat (mixed box), String(x)/Number(x)
+// (no printer rule, no call site) and x.substring (never rewritten) are deliberately
+// absent; the reasons are in the block comment above the table.
+//
+// Two extra guards exist for the shapes a narrowed box changes at COMPILE time beyond
+// the receiver whitelists (probe-verified with javac 21):
+//   * argument positions the printer hard-casts — `(String)` for startsWith/endsWith
+//     arg 0, replace/replaceAll args 1+2, join arg 0, padEnd/padStart arg 1; `(Number)`
+//     for the pad length: `(String) integerBox` and `(Number) stringBox` are
+//     inconvertible, so a local in one of those slots is rejected unless it is castable
+//     to the cast type;
+//   * `join` was removed from LIST_RECEIVER_METHODS: `String.join(sep, x)` casts the
+//     receiver to `java.util.List<String>`, and `(java.util.List<String>) listOfObject`
+//     is inconvertible (javac).
+//   * a nullable String family (slice/replace/replaceAll) on the LEFT of `+` is left
+//     Object: the print `Helpers.add(x, y)` would switch to the add(String, Object)
+//     overload, which returns "nullnull" where add(Object, Object) returned null when
+//     both operands are null. The non-null families (toUpperCase/toLowerCase/trim/
+//     join/padEnd/padStart/toString: every returning path yields a String or throws)
+//     keep their type — for every input the String overloads agree with the Object one.
+//
 // The declaration keep the printer's shape: only the type token is replaced; the value
 // expression is untouched except for the explicit checkcasts above, which move no box.
 
