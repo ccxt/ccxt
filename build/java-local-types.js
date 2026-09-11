@@ -216,6 +216,75 @@ for (const name of JAVA_LIST_RETURN_METHODS) {
     }
 }
 
+// ===== 4. string/crypto/url helper locals (JAVA-RE-6) =====
+//
+// `Object <name> = this.<helper>(...)` for the base string/crypto/url helpers the
+// generated sign()/url-building bodies lean on. Every entry was audited return-path by
+// return-path against the hand-written Java implementation (BaseExchange.java,
+// base/{Encode,Crypto,Misc,NumberHelpers,String,Time}.java):
+//
+//   plain  — the Java method is declared `String`, so the retyped declaration needs no
+//            cast (a String/null box on every path):
+//              json / urlencode / urlencodeNested / urlencodeWithArrayRepeat /
+//              urlencodeBase64 / rawencode / stringToBase64 / binaryToBase64 /
+//              binaryToBase16 / intToBase16 / jwt / rsa / totp / decode / uuid /
+//              uuidv1 / uuid16 / uuid22 / uuid5 (every overload throws — a throw path is
+//              fine) / capitalize / numberToString / decimalToPrecision;
+//   cast   — declared `Object` while every return path yields a String or null (or
+//            throws), so the declaration and every same-family reassignment carry a
+//            `(String)` checkcast (free on String/null):
+//              implodeParams / implodeHostname (Misc.implodeParams hands back the
+//                  `(String) path2` — a non-String path throws ClassCastException and a
+//                  null path returns null),
+//              hmac (Crypto.Hmac boxes binaryToHex or BinaryToBase64; an unsupported
+//                  algo throws),
+//              eddsa (Crypto.Eddsa base64-encodes its single return; failures throw).
+//
+// EXCLUDED on purpose (the C# port's rationale, re-verified against the Java bodies):
+//   * hash   — Crypto.Hash returns the raw byte[] for digest "binary" (hyperliquid /
+//              kraken / polymarket sign() call it), so its box is not always a String;
+//   * encode — BaseExchange.encode returns the UTF-8 byte[] on every path;
+//   * binaryToString — no Java implementation exists in the base (0 call sites).
+//
+// Bare `name(...)` calls (a plain Identifier callee, no `this.`): the generated bodies
+// call four of these helpers WITHOUT a receiver and Java binds them to the inherited
+// BaseExchange method, exactly like `this.<name>(...)` — Java's implicit this. The set is
+// limited to the names a tree census actually found in that shape (all four resolve to
+// their ts/src/base/functions/* declarations; a venue-local shadow would resolve to the
+// venue file and never classify — no ts/src file outside base/ declares any of them).
+export const JAVA_STRING_HELPER_PLAIN = new Set ([
+    'json', 'urlencode', 'urlencodeNested', 'urlencodeWithArrayRepeat', 'urlencodeBase64',
+    'rawencode', 'stringToBase64', 'binaryToBase64', 'binaryToBase16', 'intToBase16',
+    'jwt', 'rsa', 'totp', 'decode', 'uuid', 'uuidv1', 'uuid16', 'uuid22', 'uuid5',
+    'capitalize', 'numberToString', 'decimalToPrecision',
+]);
+
+// declared `Object` in Java, String-or-null on every audited path — (String) checkcast
+export const JAVA_STRING_HELPER_CAST = new Set ([
+    'implodeParams', 'implodeHostname', 'hmac', 'eddsa',
+]);
+
+// bare-callable names (see the paragraph above): the generated tree calls exactly these
+// four without a receiver, and each resolves to a base helper
+export const JAVA_STRING_HELPER_BARE = new Set ([ 'jwt', 'rsa', 'eddsa', 'totp' ]);
+
+for (const name of JAVA_STRING_HELPER_CAST) {
+    if (JAVA_STRING_HELPER_PLAIN.has (name)) {
+        throw new Error ('java-local-types: ' + name + ' listed as both plain and cast helper');
+    }
+}
+if (JAVA_STRING_HELPER_PLAIN.has ('hash') || JAVA_STRING_HELPER_CAST.has ('hash')
+    || JAVA_STRING_HELPER_PLAIN.has ('encode') || JAVA_STRING_HELPER_PLAIN.has ('binaryToString')) {
+    throw new Error ('java-local-types: hash/encode/binaryToString must never be retyped');
+}
+
+// helpers whose locals additionally run the guarded-string scan (the add-left rule and
+// the += rule below); the safeString family and the parse*/accessor families keep the
+// original scan untouched
+export function isGuardedStringHelper (name) {
+    return JAVA_STRING_HELPER_PLAIN.has (name) || JAVA_STRING_HELPER_CAST.has (name);
+}
+
 // this.<name>(...) -> Java type the call sites print for the LOCALS. Declared return
 // types of the hand-written Java base (`cast` entries are declared Object but hand back
 // the named box on every path).
@@ -225,6 +294,36 @@ const LOCAL_THIS_RETURN_TYPES = {
     'safeInteger2': { type: 'Long', cast: '(Long)' },
     'safeSymbol': { type: 'String', cast: '(String)' },
     'safeCurrencyCode': { type: 'String', cast: '(String)' },
+    // JAVA-RE-6 string/crypto/url helpers — see the section-4 header. `plain` entries are
+    // declared String in Java; `cast` entries are declared Object but String-or-null on
+    // every audited path. The classifier (classifyStringHelperCall) applies the
+    // ts/src/base file gate on top of this table.
+    'json': { type: 'String' },
+    'urlencode': { type: 'String' },
+    'urlencodeNested': { type: 'String' },
+    'urlencodeWithArrayRepeat': { type: 'String' },
+    'urlencodeBase64': { type: 'String' },
+    'rawencode': { type: 'String' },
+    'stringToBase64': { type: 'String' },
+    'binaryToBase64': { type: 'String' },
+    'binaryToBase16': { type: 'String' },
+    'intToBase16': { type: 'String' },
+    'jwt': { type: 'String' },
+    'rsa': { type: 'String' },
+    'totp': { type: 'String' },
+    'decode': { type: 'String' },
+    'uuid': { type: 'String' },
+    'uuidv1': { type: 'String' },
+    'uuid16': { type: 'String' },
+    'uuid22': { type: 'String' },
+    'uuid5': { type: 'String' },
+    'capitalize': { type: 'String' },
+    'numberToString': { type: 'String' },
+    'decimalToPrecision': { type: 'String' },
+    'implodeParams': { type: 'String', cast: '(String)' },
+    'implodeHostname': { type: 'String', cast: '(String)' },
+    'hmac': { type: 'String', cast: '(String)' },
+    'eddsa': { type: 'String', cast: '(String)' },
 };
 
 // ===== market/currency structure locals =====
@@ -891,6 +990,77 @@ function resolvesToBaseAccessor (printer, node, name) {
     return ACCESSOR_SOURCE_FILES.some ((re) => re.test (file));
 }
 
+// ===== string/crypto/url helper classification (JAVA-RE-6) =====
+//
+// the resolved TS declaration of an admitted helper call must live under ts/src/base/ —
+// a venue override (its own file) transpiles with its own `Object` signature and must
+// never classify. `hash` / `encode` / `binaryToString` are absent by construction (the
+// table check at the top of the module throws for them). The BASE stage resolves calls
+// inside ts/src/base/Exchange.ts to the stripped `Exchange.nooverloads.<pid>.ts` variant
+// (build/stripOverloads.ts), whose recorded fileName is RELATIVE (`ts/src/base/...`) —
+// accept a leading `ts/src/base/` as well or every base-stage candidate dies there.
+const HELPER_SOURCE_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/]/;
+
+// env-gated calibration trace: JAVA_STRING_HELPERS_DEBUG=1 prints the resolved
+// declaration file of every candidate helper call, accepted or not
+const HELPER_DEBUG = !!process.env.JAVA_STRING_HELPERS_DEBUG;
+
+function resolvedSignatureFile (printer, node) {
+    try {
+        const declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+        return declaration === undefined ? undefined : declaration.getSourceFile ()?.fileName;
+    } catch (e) {
+        return undefined;
+    }
+}
+
+function helperDebug (message, node) {
+    if (!HELPER_DEBUG) {
+        return;
+    }
+    let text = '';
+    try {
+        text = (node === undefined) ? '' : String (node.getText ()).slice (0, 110);
+    } catch (e) {
+        text = '<no text>';
+    }
+    console.error ('[java-string-helpers] ' + message + ' | ' + text);
+}
+
+// `this.<name>(...)` / bare `name(...)` -> { type, cast, kind } for the helper families.
+// Bare calls only for the four names the generated tree actually calls that way; Java
+// binds them to the inherited BaseExchange method (implicit this).
+function classifyStringHelperCall (printer, node) {
+    if (node === undefined || !ts.isCallExpression (node)) {
+        return undefined;
+    }
+    const callee = node.expression;
+    let name;
+    if (isThisCall (node)) {
+        name = String (callee.name.escapedText);
+    } else if (ts.isIdentifier (callee) && JAVA_STRING_HELPER_BARE.has (callee.escapedText)) {
+        name = String (callee.escapedText);
+    } else {
+        return undefined;
+    }
+    const accessor = LOCAL_THIS_RETURN_TYPES[name];
+    if (accessor === undefined || !isGuardedStringHelper (name)) {
+        return undefined;
+    }
+    const bare = !isThisCall (node);
+    const file = resolvedSignatureFile (printer, node);
+    if (file === undefined) {
+        helperDebug ('no resolved declaration for ' + name, node);
+        return undefined;
+    }
+    if (!HELPER_SOURCE_FILE.test (file)) {
+        helperDebug ('non-base declaration ' + file + ' for ' + name, node);
+        return undefined;
+    }
+    helperDebug ((accessor.cast === undefined ? 'plain ' : 'cast ') + name + ' <- ' + file, node);
+    return { type: accessor.type, cast: accessor.cast, kind: 'guarded-string', bare: bare ? name : undefined };
+}
+
 // a `this.<name>(...)` call that resolves to a real method declaration of that name
 // (the signature hook retypes those); fields holding functions do not
 function resolvesToMethodNamed (printer, node, name) {
@@ -1130,6 +1300,21 @@ function isProvablyOfType (printer, node, javaType, selfName) {
             return isWsType (javaType) && wsMapReadType (node) === javaType;
         case ts.SyntaxKind.CallExpression: {
             const callee = node.expression;
+            if (ts.isIdentifier (callee)) {
+                // bare helper call (`jwt(...)` / `eddsa(...)` / `rsa(...)` / `totp(...)`):
+                // Java binds it to the inherited BaseExchange method; its box is the same
+                // the `this.<name>(...)` form hands back
+                if (!JAVA_STRING_HELPER_BARE.has (callee.escapedText) || javaType !== 'String') {
+                    return false;
+                }
+                const helper = classifyStringHelperCall (printer, node);
+                if (helper === undefined) {
+                    return false;
+                }
+                // a cast-family bare write (`x = eddsa(...)`) is admitted — the
+                // reassignment hook injects the same (String) checkcast the declaration got
+                return true;
+            }
             if (!ts.isPropertyAccessExpression (callee) || callee.expression.kind !== ts.SyntaxKind.ThisKeyword) {
                 return false;
             }
@@ -1150,6 +1335,12 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 }
                 if (name === 'iso8601') {
                     return resolvesToBaseAccessor (printer, node, name);
+                }
+                if (isGuardedStringHelper (name)) {
+                    // plain families hand back a String (no cast needed); the cast family
+                    // needs the (String) checkcast the reassignment hook injects
+                    const helper = classifyStringHelperCall (printer, node);
+                    return helper !== undefined;
                 }
                 if (name === 'safeSymbol' || name === 'safeCurrencyCode') {
                     return resolvesToBaseAccessor (printer, node, name);
@@ -1190,6 +1381,188 @@ function isProvablyOfType (printer, node, javaType, selfName) {
         default:
             return false;
     }
+}
+
+// ===== guarded-string provability (JAVA-RE-6) =====
+//
+// The `+` rule: `x + y` prints `Helpers.add (x, y)` and the LEFT operand's static type
+// selects the overload family (add(Object,Object) vs add(String,String) / add(String,Object)).
+// `add(Object,Object)` returns the SAME String value only when the right operand is a
+// non-null String (a Long/Double/null right side moves it to the numeric/null branches),
+// and `add(String,*)` always concatenates. So a guarded local used as the LEFT operand of
+// `+` is accepted only when the direct right operand is a provably non-null String and no
+// deeper add of the same left spine has a possibly-numeric right operand.
+
+// true when the printed Java for `node` is statically a String (or null): literals, the
+// `undefined`/self identifiers, parenthesized/conditional combos, a `+` chain with a
+// statically-String left operand (add(String, ..) -> String), a plain helper call and the
+// base-declared safeString accessors. Cast-family helpers are NOT statically String (they
+// print an Object-typed call; only the reassignment hook's explicit cast names the box).
+function isStaticallyStringExpression (printer, node, selfName) {
+    if (node === undefined) {
+        return false;
+    }
+    switch (node.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        case ts.SyntaxKind.NullKeyword:
+            return true;
+        case ts.SyntaxKind.Identifier:
+            return node.escapedText === 'undefined' || node.escapedText === selfName;
+        case ts.SyntaxKind.ParenthesizedExpression:
+            return isStaticallyStringExpression (printer, node.expression, selfName);
+        case ts.SyntaxKind.ConditionalExpression:
+            return isStaticallyStringExpression (printer, node.whenTrue, selfName)
+                && isStaticallyStringExpression (printer, node.whenFalse, selfName);
+        case ts.SyntaxKind.BinaryExpression:
+            // `'lit' + r` prints Helpers.add(String, ..) -> String on every path
+            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
+                && isStaticallyStringExpression (printer, node.left, selfName);
+        case ts.SyntaxKind.CallExpression: {
+            if (isThisCall (node)
+                && (node.expression.name.escapedText === 'safeString'
+                    || node.expression.name.escapedText === 'safeString2'
+                    || node.expression.name.escapedText === 'safeStringN')
+                && isPlainSafeStringBaseCall (printer, node)) {
+                return true; // declared String in BaseExchange
+            }
+            const helper = classifyStringHelperCall (printer, node);
+            return helper !== undefined && helper.cast === undefined;
+        }
+        default:
+            return false;
+    }
+}
+
+// `this.safeString*` resolving to the base accessor in ts/src/base/functions/type.ts
+function isPlainSafeStringBaseCall (printer, node) {
+    if (!isThisCall (node)) {
+        return false;
+    }
+    const name = node.expression.name.escapedText;
+    if (name !== 'safeString' && name !== 'safeString2' && name !== 'safeStringN') {
+        return false;
+    }
+    const file = resolvedSignatureFile (printer, node);
+    return file !== undefined && /(^|[\\/])base[\\/]functions[\\/]type\.ts$/.test (file);
+}
+
+// true when the TYPE the checker gives `node` could hold a Java-`Double` box at runtime
+// (number / bigint members, or an `any`/`unknown`/error type we cannot rule out).
+// Helpers.add's branch order tests `a instanceof Double || b instanceof Double` BEFORE
+// its String branches; a number-typed operand can be such a Double, which would turn a
+// string-literal-led `+` chain into a numeric box.
+function isPossiblyNumericExpression (printer, node) {
+    try {
+        const type = printer.getChecker ().getTypeAtLocation (node);
+        return typeIsPossiblyNumeric (type);
+    } catch (e) {
+        return true; // unprovable — treat as possibly numeric
+    }
+}
+
+function typeIsPossiblyNumeric (type) {
+    if (type === undefined) {
+        return true;
+    }
+    const flags = type.flags;
+    if (flags & (ts.TypeFlags.Any | ts.TypeFlags.Unknown)) {
+        return true;
+    }
+    if (flags & (ts.TypeFlags.NumberLike | ts.TypeFlags.BigIntLike)) {
+        return true;
+    }
+    if (flags & ts.TypeFlags.Union) {
+        return type.types.some ((member) => typeIsPossiblyNumeric (member));
+    }
+    if (flags & ts.TypeFlags.Intersection) {
+        return type.types.some ((member) => typeIsPossiblyNumeric (member));
+    }
+    return false;
+}
+
+// true when any operand of the `+` chain (through parentheses) could be a Java Double
+// box: Helpers.add tests `a instanceof Double || b instanceof Double` BEFORE its String
+// branches and toDouble never throws (it returns 0.0), so a single Double operand
+// silently turns the whole call numeric — even when the composite is typed `string` in
+// TypeScript. The walk must reach every leaf.
+function isPossiblyNumericDeep (printer, node) {
+    if (node === undefined) {
+        return true;
+    }
+    let current = node;
+    while (ts.isParenthesizedExpression (current)) {
+        current = current.expression;
+    }
+    if (ts.isBinaryExpression (current) && current.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        return isPossiblyNumericDeep (printer, current.left) || isPossiblyNumericDeep (printer, current.right);
+    }
+    return isPossiblyNumericExpression (printer, current);
+}
+
+// true when the printed Java for `node` is a String GUARANTEED non-null at runtime
+// (given the named local holds String-or-null). Used only by the add-left rule: with the
+// local declared String, `Helpers.add (local, r)` resolves to add(String, ..) while the
+// Object-typed call resolved to add(Object, Object) — which returns the same non-null
+// String only when `r` is a non-null String and returns null for Long / Double / null /
+// other boxes. Accepted forms:
+//   1. `l + r` with a statically-String LEFT operand: the call resolves to add(String, *)
+//      — `l + String.valueOf (r)` — a non-null String for every possible r;
+//   2. `l + r` where one side is itself provably a non-null String and the other side is
+//      not possibly numeric anywhere (isPossiblyNumericDeep): the String branches pick
+//      `valueOf (l) + valueOf (r)` with a provably non-null String on one side.
+// Plain literals/templates and ternaries of these qualify; calls do NOT (even an audited
+// non-null call is only proven for the narrowed local, not for arbitrary call sites).
+function isProvablyNonNullStringExpression (printer, node, selfName) {
+    if (node === undefined) {
+        return false;
+    }
+    switch (node.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+            return true;
+        case ts.SyntaxKind.ParenthesizedExpression:
+            return isProvablyNonNullStringExpression (printer, node.expression, selfName);
+        case ts.SyntaxKind.ConditionalExpression:
+            return isProvablyNonNullStringExpression (printer, node.whenTrue, selfName)
+                && isProvablyNonNullStringExpression (printer, node.whenFalse, selfName);
+        case ts.SyntaxKind.BinaryExpression: {
+            if (node.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+                return false;
+            }
+            return isStaticallyStringExpression (printer, node.left, selfName)
+                || (isProvablyNonNullStringExpression (printer, node.left, selfName) && !isPossiblyNumericDeep (printer, node.right))
+                || (isProvablyNonNullStringExpression (printer, node.right, selfName) && !isPossiblyNumericDeep (printer, node.left));
+        }
+        default:
+            return false;
+    }
+}
+
+// every right operand of the `+` chain whose left spine contains the read `n` (through
+// parentheses). `Helpers.add (n, r1)` is the first entry; each later entry belongs to an
+// enclosing add whose left operand is the previous (already retyped) chain — the local's
+// static type change reaches those too, but there only a possibly-numeric right operand
+// can move the result (see the guard in isSafeToNarrow).
+function addChainRights (n) {
+    const rights = [];
+    let node = n;
+    let parent = n.parent;
+    while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+        node = parent;
+        parent = parent.parent;
+    }
+    while (parent !== undefined && ts.isBinaryExpression (parent)
+        && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && parent.left === node) {
+        rights.push (parent.right);
+        node = parent;
+        parent = parent.parent;
+        while (parent !== undefined && ts.isParenthesizedExpression (parent)) {
+            node = parent;
+            parent = parent.parent;
+        }
+    }
+    return rights;
 }
 
 // method calls on the local whose printed receiver cast is the SAME type (or Object):
@@ -1383,10 +1756,34 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
             return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
+        if (kind === 'guarded-string' && (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent))) {
+            // a TS cast on the local prints a Java cast of the asserted type; for the
+            // narrowed type the spelled cast can be inconvertible (String -> Double is a
+            // compile error) — keep Object (the C# campaign's reject family, reused here)
+            return false;
+        }
         if (ts.isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {
-                if (!isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName)) {
+                let ok;
+                if (kind === 'guarded-string') {
+                    // the narrowed declaration can only take writes whose printed Java is
+                    // statically String (isStaticallyStringExpression) or a same-family
+                    // helper call the reassignment hook casts
+                    ok = isStaticallyStringExpression (printer, unwrapParens (parent.right), sourceName)
+                        || isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName);
+                } else {
+                    ok = isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName);
+                }
+                if (!ok) {
+                    return false;
+                }
+            } else if (op === ts.SyntaxKind.PlusEqualsToken && kind === 'guarded-string') {
+                // `x += r` lowers to `x = Helpers.add (x, r)` (generated Java never keeps
+                // a raw `+=` on these locals): the same non-null String right operand the
+                // direct-add rule needs; the read of x in this statement is this very node,
+                // so addChainRights has no first entry for it
+                if (!isProvablyNonNullStringExpression (printer, parent.right, sourceName)) {
                     return false;
                 }
             } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
@@ -1914,7 +2311,9 @@ export function installJavaLocalTypes (transpiler) {
         return printed.slice (0, at) + `${iden}${info.type} ${printer.printNode (declaration.name)} = ${cast}${value}`;
     };
     // `x = this.safeSymbol(...)` etc. on a narrowed local: an Object-declared accessor
-    // needs the same cast the declaration got; a call to a retyped signature needs none
+    // needs the same cast the declaration got; a call to a retyped signature needs none.
+    // JAVA-RE-6: the same for the cast-family helpers, whose bare form (`x = eddsa(...)`)
+    // prints without a `this.` prefix.
     const originalBinary = printer.printBinaryExpression.bind (printer);
     printer.printBinaryExpression = function (node, identation) {
         const printed = originalBinary (node, identation);
@@ -1973,12 +2372,16 @@ export function installJavaLocalTypes (transpiler) {
         if (cast === '') {
             return printed;
         }
-        const marker = `${printer.printNode (node.left, 0)} = this.`;
+        const leftText = printer.printNode (node.left, 0);
+        const callee = right.expression;
+        const bare = ts.isIdentifier (callee);
+        const callName = String (bare ? callee.escapedText : callee.name.escapedText);
+        const marker = `${leftText} = ${bare ? '' : 'this.'}${callName}(`;
         const at = printed.indexOf (marker);
         if (at === -1) {
             return printed;
         }
-        const head = at + marker.length - 'this.'.length;
+        const head = at + leftText.length + ' = '.length;
         return printed.slice (0, head) + cast + ' ' + printed.slice (head);
     };
     // (5) collection/dict helper locals (JAVA-RE-5, additive slice): a second,

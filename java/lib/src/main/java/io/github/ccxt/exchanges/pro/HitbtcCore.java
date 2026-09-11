@@ -113,7 +113,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 Object timestamp = this.milliseconds();
                 Object timestampString = this.numberToString(timestamp);
                 Object timestampEncoded = ((Helpers.isTrue((Helpers.isEqual(timestampString, null))))) ? "" : timestampString;
-                Object signature = this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256(), "hex");
+                String signature = (String) this.hmac(this.encode(timestampEncoded), this.encode(this.secret), sha256(), "hex");
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "method", "login" );
                     put( "params", new java.util.HashMap<String, Object>() {{

@@ -373,7 +373,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             }};
         }
         Object isMaker = this.safeValue(trade, "isMaker");
-        String takerOrMaker = null;
+        Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
             if (Helpers.isTrue(Helpers.isEqual(isMaker, true)))
@@ -483,8 +483,8 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             put( "identity", BitoproCore.this.login );
         }});
         Object payload = this.stringToBase64(rawData);
-        Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
-        java.util.Map<String, Object> defaultOptions = new java.util.HashMap<String, Object>() {{
+        String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+        Object defaultOptions = new java.util.HashMap<String, Object>() {{
             put( "ws", new java.util.HashMap<String, Object>() {{
                 put( "options", new java.util.HashMap<String, Object>() {{
                     put( "headers", new java.util.HashMap<String, Object>() {{}} );
@@ -494,7 +494,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         // this.options = this.extend (defaultOptions, this.options);
         this.extendExchangeOptions(defaultOptions);
         Object originalHeaders = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.options, "ws"), "options"), "headers");
-        java.util.Map<String, Object> headers = new java.util.HashMap<String, Object>() {{
+        Object headers = new java.util.HashMap<String, Object>() {{
             put( "X-BITOPRO-API", "ccxt" );
             put( "X-BITOPRO-APIKEY", BitoproCore.this.apiKey );
             put( "X-BITOPRO-PAYLOAD", payload );
@@ -525,7 +525,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             {
                 (this.loadMarkets()).join();
             }
-            String messageHash = "ACCOUNT_BALANCE";
+            Object messageHash = "ACCOUNT_BALANCE";
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "ws"), "private"), "/"), "account-balance");
             this.authenticate(url);
             return (this.watch(url, messageHash, null, messageHash, null)).join();
@@ -556,7 +556,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object timestamp = this.safeInteger(message, "timestamp");
         Object datetime = this.safeString(message, "datetime");
         Object currencies = Helpers.objectKeys(data);
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object result = new java.util.HashMap<String, Object>() {{
             put( "info", data );
             put( "timestamp", timestamp );
             put( "datetime", datetime );
@@ -581,7 +581,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
 
     public void handleMessage(Client client, Object message)
     {
-        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
+        Object methods = new java.util.HashMap<String, Object>() {{
             put( "TRADE", "handleTrade");
             put( "TICKER", "handleTicker");
             put( "ORDER_BOOK", "handleOrderBook");

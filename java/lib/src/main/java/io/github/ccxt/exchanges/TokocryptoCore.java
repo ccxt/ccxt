@@ -2151,8 +2151,8 @@ public class TokocryptoCore extends TokocryptoApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             quoteAmount = Precise.stringMul(amountString, priceString);
                         }
                     } else
@@ -3072,7 +3072,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 query = this.urlencode(extendedParams);
             }
-            Object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(query), this.encode(this.secret), sha256());
             query = Helpers.add(query, Helpers.add(Helpers.add("&", "signature="), signature));
             headers = new java.util.HashMap<String, Object>() {{
                 put( "X-MBX-APIKEY", TokocryptoCore.this.apiKey );

@@ -1810,7 +1810,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                 Object expiryDelta = this.safeInteger(this.options, "expires", 120);
                 Object expiration = Helpers.add(this.seconds(), expiryDelta);
                 Object payload = Helpers.add(this.apiKey, String.valueOf(expiration));
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 Object method = "user.auth";
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "method", method );

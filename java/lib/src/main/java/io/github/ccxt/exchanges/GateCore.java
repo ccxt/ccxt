@@ -2030,9 +2030,9 @@ public class GateCore extends GateApi
         // support expired option contracts
         Object quote = "USDT";
         Object settle = quote;
-        java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(symbol, "-");
-        java.util.List<Object> symbolBase = (java.util.List<Object>) Helpers.split(symbol, "/");
-        java.util.List<Object> marketIdBase = (java.util.List<Object>) Helpers.split(symbol, "_");
+        Object optionParts = Helpers.split(symbol, "-");
+        Object symbolBase = Helpers.split(symbol, "/");
+        Object marketIdBase = Helpers.split(symbol, "_");
         Object base = null;
         Object expiry = this.safeString(optionParts, 1);
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
@@ -2176,7 +2176,7 @@ public class GateCore extends GateApi
             var marginResponsespotMarketsResponseVariable = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(marginPromise, spotMarketsPromise)))).join();
             var marginResponse = ((java.util.List<Object>) marginResponsespotMarketsResponseVariable).get(0);
             var spotMarketsResponse = ((java.util.List<Object>) marginResponsespotMarketsResponseVariable).get(1);
-            java.util.Map<String, Object> marginMarkets = this.indexBy(marginResponse, "id");
+            Object marginMarkets = this.indexBy(marginResponse, "id");
             //
             //  Spot
             //
@@ -2221,7 +2221,7 @@ public class GateCore extends GateApi
                 Object spotMarket = this.safeDict(spotMarketsResponse, i, new java.util.HashMap<String, Object>() {{}});
                 String id = this.safeString(spotMarket, "id");
                 Object marginMarket = this.safeValue(marginMarkets, id);
-                java.util.Map<String, Object> market = this.deepExtend(marginMarket, spotMarket);
+                Object market = this.deepExtend(marginMarket, spotMarket);
                 var baseIdquoteIdVariable = Helpers.split(((String)id), "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
@@ -2464,7 +2464,7 @@ public class GateCore extends GateApi
         //    }
         //
         String id = this.safeString(market, "name");
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)id), "_");
+        Object parts = Helpers.split(((String)id), "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String date = this.safeString(parts, 2);
@@ -2566,7 +2566,7 @@ public class GateCore extends GateApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(underlyings)); i++)
             {
                 Object underlying = Helpers.GetValue(underlyings, i);
-                java.util.Map<String, Object> query = this.extend(new java.util.HashMap<String, Object>() {{}}, parameters);
+                Object query = this.extend(new java.util.HashMap<String, Object>() {{}}, parameters);
                 Helpers.addElementToObject(query, "underlying", underlying);
                 Object response = (this.publicOptionsGetContracts(query)).join();
                 //
@@ -2611,7 +2611,7 @@ public class GateCore extends GateApi
                 {
                     Object market = this.safeDict(response, j, new java.util.HashMap<String, Object>() {{}});
                     String id = this.safeString(market, "name");
-                    java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)underlying), "_");
+                    Object parts = Helpers.split(((String)underlying), "_");
                     String baseId = this.safeString(parts, 0);
                     String quoteId = this.safeString(parts, 1);
                     String base = (String) this.safeCurrencyCode(baseId);
@@ -3795,7 +3795,7 @@ public class GateCore extends GateApi
             Object funding = this.parseFundingHistory(entry);
             ((java.util.List<Object>)result).add(funding);
         }
-        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
+        Object sorted = this.sortBy(result, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
@@ -4013,7 +4013,7 @@ public class GateCore extends GateApi
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 Object marketId = Helpers.GetValue(market, "id");
-                java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(((String)marketId), "-");
+                Object optionParts = Helpers.split(((String)marketId), "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 response = (this.publicOptionsGetTickers(this.extend(request, query))).join();
             } else
@@ -4217,7 +4217,7 @@ public class GateCore extends GateApi
             {
                 this.checkRequiredArgument("fetchTickers", symbols, "symbols");
                 String marketId = this.safeString(market, "id");
-                java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(((String)marketId), "-");
+                Object optionParts = Helpers.split(((String)marketId), "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 response = (this.publicOptionsGetTickers(this.extend(request, requestParams))).join();
             } else
@@ -4782,7 +4782,7 @@ public class GateCore extends GateApi
                     put( "datetime", GateCore.this.iso8601(timestamp) );
                 }});
             }
-            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
+            Object sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -5873,7 +5873,7 @@ final Object finalPointFee = pointFee;
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object orderSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Integer ordersLength = Helpers.getArrayLength(orders);
+        Object ordersLength = Helpers.getArrayLength(orders);
         if (Helpers.isTrue(Helpers.isEqual(ordersLength, 0)))
         {
             throw new BadRequest((String)Helpers.add(this.id, " createOrders() requires at least one order")) ;
@@ -5892,7 +5892,7 @@ final Object finalPointFee = pointFee;
             Object amount = this.safeValue(rawOrder, "amount");
             Object price = this.safeValue(rawOrder, "price");
             Object orderParams = this.safeValue(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            Object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             Object triggerValue = this.safeValueN(orderParams, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")));
             if (Helpers.isTrue(!Helpers.isEqual(triggerValue, null)))
             {
@@ -6092,8 +6092,8 @@ final Object finalPointFee = pointFee;
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             Object costRequest = Precise.stringMul(amountString, priceString);
                             quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
@@ -6772,7 +6772,7 @@ final Object finalRebate = rebate;
                 put( "cost", Precise.stringNeg(finalRebate) );
             }});
         }
-        Integer numFeeCurrencies = Helpers.getArrayLength(fees);
+        Object numFeeCurrencies = Helpers.getArrayLength(fees);
         Object multipleFeeCurrencies = Helpers.isGreaterThan(numFeeCurrencies, 1);
         String status = this.parseOrderStatus(rawStatus);
         Object remaining = Precise.stringAbs(remainingString);
@@ -8154,7 +8154,7 @@ final Object finalRebate = rebate;
             var requestparametersVariable = this.prepareRequest(market, Helpers.GetValue(market, "type"), parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            java.util.Map<String, Object> extendedRequest = this.extend(request, parameters);
+            Object extendedRequest = this.extend(request, parameters);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -8259,7 +8259,7 @@ final Object finalRebate = rebate;
             symbols = this.marketSymbols(symbols, null, true, true, true);
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Integer symbolsLength = Helpers.getArrayLength(symbols);
+                Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -8279,7 +8279,7 @@ final Object finalRebate = rebate;
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
                     String marketId = this.safeString(market, "id");
-                    java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(((String)marketId), "-");
+                    Object optionParts = Helpers.split(((String)marketId), "-");
                     Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 }
             } else
@@ -9018,7 +9018,7 @@ final Object finalI = i;
             path = this.implodeParams(path, settle);
             // remove the first element from params
             Object newParams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> anyParams = this.toArray(parameters);
+            Object anyParams = this.toArray(parameters);
             for (var i = 1; Helpers.isLessThan(i, Helpers.getArrayLength(anyParams)); i++)
             {
                 ((java.util.List<Object>)newParams).add(Helpers.GetValue(parameters, i));
@@ -9062,7 +9062,7 @@ final Object finalI = i;
             Object requiresURLEncoding = false;
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(type, "futures"))) || Helpers.isTrue((Helpers.isEqual(type, "delivery"))))) && Helpers.isTrue(Helpers.isEqual(method, "POST"))))
             {
-                java.util.List<Object> pathParts = (java.util.List<Object>) Helpers.split(path, "/");
+                Object pathParts = Helpers.split(path, "/");
                 Object secondPart = ((String)this.safeString(pathParts, 1, ""));
                 requiresURLEncoding = Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secondPart, "dual"), 0))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secondPart, "positions"), 0)));
             }
@@ -9099,12 +9099,12 @@ final Object finalI = i;
             Object bodySignature = this.hash(this.encode(bodyPayload), sha512());
             Object nonce = this.nonce();
             Object timestamp = this.parseToInt(Helpers.divide(nonce, 1000));
-            String timestampString = String.valueOf(timestamp);
+            Object timestampString = String.valueOf(timestamp);
             Object signaturePath = Helpers.add(Helpers.add("/api/", this.version), entirePath);
             Object payloadArray = new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)method).toUpperCase(), signaturePath, rawQueryString, bodySignature, timestampString));
             // eslint-disable-next-line quotes
-            String payload = String.join((String)"\n", (java.util.List<String>)payloadArray);
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512());
+            Object payload = String.join((String)"\n", (java.util.List<String>)payloadArray);
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha512());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "KEY", GateCore.this.apiKey );
                 put( "Timestamp", timestampString );
@@ -9396,7 +9396,7 @@ final Object finalI = i;
                 throw new NotSupported((String)Helpers.add(this.id, " fetchSettlementHistory() supports option markets only")) ;
             }
             Object marketId = Helpers.GetValue(market, "id");
-            java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(((String)marketId), "-");
+            Object optionParts = Helpers.split(((String)marketId), "-");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "underlying", GateCore.this.safeString(optionParts, 0) );
             }};
@@ -9422,7 +9422,7 @@ final Object finalI = i;
             //     ]
             //
             Object settlements = this.parseSettlements(response, market);
-            java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
+            Object sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -9511,7 +9511,7 @@ final Object finalI = i;
                 } else
                 {
                     Object marketId = Helpers.GetValue(market, "id");
-                    java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(((String)marketId), "-");
+                    Object optionParts = Helpers.split(((String)marketId), "-");
                     Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 }
                 //
@@ -9534,7 +9534,7 @@ final Object finalI = i;
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeValue(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
-            java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
+            Object sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -10107,7 +10107,7 @@ final Object finalI = i;
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 Object marketId = Helpers.GetValue(market, "id");
-                java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(((String)marketId), "-");
+                Object optionParts = Helpers.split(((String)marketId), "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
             }
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
@@ -10753,7 +10753,7 @@ final Object finalI = i;
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Integer symbolsLength = Helpers.getArrayLength(symbols);
+                Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));

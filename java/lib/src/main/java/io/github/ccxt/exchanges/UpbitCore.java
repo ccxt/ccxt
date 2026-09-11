@@ -1543,8 +1543,8 @@ public class UpbitCore extends UpbitApi
             {
                 throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price and amount argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
             }
-            Object amountString = this.numberToString(amount);
-            Object priceString = this.numberToString(price);
+            String amountString = this.numberToString(amount);
+            String priceString = this.numberToString(price);
             Object costRequest = Precise.stringMul(amountString, priceString);
             quoteAmount = this.costToPrecision(symbol, costRequest);
         } else
@@ -2991,7 +2991,7 @@ public class UpbitCore extends UpbitApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), new java.util.HashMap<String, Object>() {{
+        String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), new java.util.HashMap<String, Object>() {{
             put( "hostname", UpbitCore.this.hostname );
         }});
         url = Helpers.add(url, Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters)));
@@ -3007,7 +3007,7 @@ public class UpbitCore extends UpbitApi
         {
             this.checkRequiredCredentials();
             headers = new java.util.HashMap<String, Object>() {{}};
-            Object nonce = this.uuid();
+            String nonce = this.uuid();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "access_key", UpbitCore.this.apiKey );
                 put( "nonce", nonce );
@@ -3029,7 +3029,7 @@ public class UpbitCore extends UpbitApi
                 Helpers.addElementToObject(request, "query_hash", hash);
                 Helpers.addElementToObject(request, "query_hash_alg", "SHA512");
             }
-            Object token = jwt(request, this.encode(this.secret), sha256());
+            String token = jwt(request, this.encode(this.secret), sha256());
             Helpers.addElementToObject(headers, "Authorization", Helpers.add("Bearer ", token));
         }
         final Object finalUrl = url;

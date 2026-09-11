@@ -110,7 +110,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
             Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("instruction=", instruction), "&"), "timestamp="), ts), "&window="), recvWindow);
             Object secretBytes = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(secretBytes, 0, 32);
-            Object signature = eddsa(this.encode(payload), seed, ed25519());
+            String signature = (String) eddsa(this.encode(payload), seed, ed25519());
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", method );
                 put( "params", topics );

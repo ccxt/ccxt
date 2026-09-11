@@ -1232,7 +1232,7 @@ public class BackpackCore extends BackpackApi
                 parameters = this.omit(parameters, "price");
             }
             Object response = (this.publicGetApiV1Klines(this.extend(request, parameters))).join();
-            java.util.List<Object> ohlcvs = this.toArray(response);
+            Object ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
 
@@ -1437,7 +1437,7 @@ public class BackpackCore extends BackpackApi
             //     ]
             //
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> rawRates = this.toArray(response);
+            Object rawRates = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawRates)); i++)
             {
                 Object rate = Helpers.GetValue(rawRates, i);
@@ -1451,7 +1451,7 @@ public class BackpackCore extends BackpackApi
                     put( "datetime", datetime );
                 }});
             }
-            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
+            Object sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -1499,7 +1499,7 @@ public class BackpackCore extends BackpackApi
             {
                 response = (this.publicGetApiV1Trades(this.extend(request, parameters))).join();
             }
-            java.util.List<Object> responseList = this.toArray(response);
+            Object responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
         });
 
@@ -1558,7 +1558,7 @@ public class BackpackCore extends BackpackApi
                 Helpers.addElementToObject(request, "fillType", "User"); // default
             }
             Object response = (this.privateGetWapiV1HistoryFills(this.extend(request, parameters))).join();
-            java.util.List<Object> responseList = this.toArray(response);
+            Object responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
         });
 
@@ -2201,7 +2201,7 @@ public class BackpackCore extends BackpackApi
                 Object amount = this.safeNumber(rawOrder, "amount");
                 Object price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                java.util.Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+                Object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
@@ -2910,7 +2910,7 @@ public class BackpackCore extends BackpackApi
                 payload = this.generateBatchPayload(sortedParams, ts, recvWindow, instruction);
             } else
             {
-                Object queryString = this.urlencode(sortedParams);
+                String queryString = this.urlencode(sortedParams);
                 if (Helpers.isTrue(Helpers.isGreaterThan(((String)queryString).length(), 0)))
                 {
                     queryString = Helpers.add(queryString, "&");
@@ -2919,7 +2919,7 @@ public class BackpackCore extends BackpackApi
             }
             Object secretBytes = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(secretBytes, 0, 32);
-            Object signature = eddsa(this.encode(payload), seed, ed25519());
+            String signature = (String) eddsa(this.encode(payload), seed, ed25519());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "X-Timestamp", ts );
                 put( "X-Window", recvWindow );
@@ -2935,7 +2935,7 @@ public class BackpackCore extends BackpackApi
         }
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            Object query = this.urlencode(sortedParams);
+            String query = this.urlencode(sortedParams);
             if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
             {
                 endpoint = Helpers.add(endpoint, Helpers.add("?", query));
@@ -2960,8 +2960,8 @@ public class BackpackCore extends BackpackApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parameters)); i++)
         {
             Object order = this.safeDict(parameters, i, new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> sortedOrder = this.keysort(order);
-            Object orderQuery = this.urlencode(sortedOrder);
+            Object sortedOrder = this.keysort(order);
+            String orderQuery = this.urlencode(sortedOrder);
             payload = Helpers.add(payload, Helpers.add(Helpers.add(Helpers.add(Helpers.add("instruction=", instruction), "&"), orderQuery), "&"));
             if (Helpers.isTrue(Helpers.isEqual(i, (Helpers.subtract(Helpers.getArrayLength(parameters), 1)))))
             {

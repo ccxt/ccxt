@@ -480,7 +480,7 @@ public class CoinoneCore extends CoinoneApi
         String code = (String) this.safeCurrencyCode(id);
         Object isWithdrawEnabled = Helpers.isEqual(this.safeString(rawCurrency, "withdraw_status", ""), "normal");
         Object isDepositEnabled = Helpers.isEqual(this.safeString(rawCurrency, "deposit_status", ""), "normal");
-        String type = ((Helpers.isTrue((!Helpers.isEqual(code, "KRW"))))) ? "crypto" : "fiat";
+        Object type = ((Helpers.isTrue((!Helpers.isEqual(code, "KRW"))))) ? "crypto" : "fiat";
         final Object finalCode = code;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
             put( "id", id );
@@ -559,7 +559,7 @@ public class CoinoneCore extends CoinoneApi
             //     }
             //
             Object tickers = this.safeList(response, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 Object entry = this.safeValue(tickers, i);
@@ -965,7 +965,7 @@ public class CoinoneCore extends CoinoneApi
         Object timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(null, market);
         Object isSellerMaker = this.safeBool(trade, "is_seller_maker");
-        String side = null;
+        Object side = null;
         if (Helpers.isTrue(!Helpers.isEqual(isSellerMaker, null)))
         {
             side = ((Helpers.isTrue(isSellerMaker))) ? "sell" : "buy";
@@ -1086,8 +1086,8 @@ public class CoinoneCore extends CoinoneApi
 
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            String orderType = ((String)((String)type)).toUpperCase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
-            String orderSide = ((String)((String)side)).toUpperCase(); // unified lowercase order sides, same override rule
+            Object orderType = ((String)((String)type)).toUpperCase(); // unified lowercase order types, uppercase exchange-specific overrides accepted as-is
+            Object orderSide = ((String)((String)side)).toUpperCase(); // unified lowercase order sides, same override rule
             if (Helpers.isTrue(!Helpers.isEqual(orderType, "LIMIT")))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
@@ -1552,7 +1552,7 @@ public class CoinoneCore extends CoinoneApi
                 {
                     continue;
                 }
-                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(key, "_");
+                Object parts = Helpers.split(key, "_");
                 Object currencyId = this.safeValue(parts, 0);
                 Object secondPart = this.safeValue(parts, 1);
                 String code = (String) this.safeCurrencyCode(currencyId);
@@ -1595,7 +1595,7 @@ public class CoinoneCore extends CoinoneApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object request = this.implodeParams(path, parameters);
+        String request = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), "/");
         if (Helpers.isTrue(Helpers.isEqual(api, "v2Public")))
@@ -1630,14 +1630,14 @@ public class CoinoneCore extends CoinoneApi
                 nonce = String.valueOf(this.nonce());
             }
             final Object finalNonce = nonce;
-            Object json = this.json(this.extend(new java.util.HashMap<String, Object>() {{
+            String json = this.json(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "access_token", CoinoneCore.this.apiKey );
                 put( "nonce", finalNonce );
             }}, parameters));
-            Object payload = this.stringToBase64(json);
+            String payload = this.stringToBase64(json);
             body = payload;
-            String secret = ((String)this.secret).toUpperCase();
-            Object signature = this.hmac(this.encode(payload), this.encode(secret), sha512());
+            Object secret = ((String)this.secret).toUpperCase();
+            String signature = (String) this.hmac(this.encode(payload), this.encode(secret), sha512());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "X-COINONE-PAYLOAD", payload );

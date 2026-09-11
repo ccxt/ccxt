@@ -2008,7 +2008,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
             Object challenge = this.safeValue(message, "message");
             Object hashedChallenge = this.hash(this.encode(challenge), sha256(), "binary");
             Object base64Secret = this.base64ToBinary(this.secret);
-            Object signature = this.hmac(hashedChallenge, base64Secret, sha512(), "base64");
+            String signature = (String) this.hmac(hashedChallenge, base64Secret, sha512(), "base64");
             Helpers.addElementToObject(this.options, "challenge", challenge);
             Helpers.addElementToObject(this.options, "signedChallenge", signature);
             Object future = this.safeValue(client.futures, messageHash);

@@ -607,7 +607,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
             String timestamp = String.valueOf(this.milliseconds());
             Object payload = Helpers.add(this.apiKey, timestamp);
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "method", channel );
                 put( "param", new java.util.HashMap<String, Object>() {{

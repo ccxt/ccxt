@@ -2767,7 +2767,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 throw new AuthenticationError((String)Helpers.add(this.id, " sign() invalid base64 secret")) ;
             }
-            Object signature = this.hmac(this.encode(what), secret, sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(what), secret, sha256(), "base64");
             final Object finalNonce = nonce;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "CB-ACCESS-KEY", CoinbaseexchangeCore.this.apiKey );

@@ -422,7 +422,7 @@ public class ApexCore extends ApexApi
             put( "timestamp", timestamp );
             put( "datetime", ApexCore.this.iso8601(timestamp) );
         }};
-        String code = "USDT";
+        Object code = "USDT";
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(response, "availableBalance"));
         Helpers.addElementToObject(account, "total", this.safeString(response, "totalEquityValue"));
@@ -655,7 +655,7 @@ public class ApexCore extends ApexApi
             }
         }
         Object networkKeys = Helpers.objectKeys(networks);
-        Integer networksLength = Helpers.getArrayLength(networkKeys);
+        Object networksLength = Helpers.getArrayLength(networkKeys);
         Object emptyChains = Helpers.isEqual(networksLength, 0); // non-functional coins
         Object valueForEmpty = ((Helpers.isTrue(emptyChains))) ? false : null;
         return this.safeCurrencyStructure(new java.util.HashMap<String, Object>() {{
@@ -1320,7 +1320,7 @@ public class ApexCore extends ApexApi
             //     "totalSize": 11
             // }
             //
-            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object resultList = this.safeList(data, "historyFunds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(resultList)); i++)
@@ -1336,7 +1336,7 @@ public class ApexCore extends ApexApi
                     put( "datetime", ApexCore.this.iso8601(timestamp) );
                 }});
             }
-            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
+            Object sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -1509,7 +1509,7 @@ public class ApexCore extends ApexApi
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketsById, null))) && Helpers.isTrue((Helpers.inOp(marketsById, newMarketId)))))
                 {
                     Object markets = Helpers.GetValue(marketsById, newMarketId);
-                    Integer numMarkets = Helpers.getArrayLength(markets);
+                    Object numMarkets = Helpers.getArrayLength(markets);
                     if (Helpers.isTrue(Helpers.isGreaterThan(numMarkets, 0)))
                     {
                         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(marketsById, newMarketId), 0), "id2"), marketId)))
@@ -1532,8 +1532,8 @@ public class ApexCore extends ApexApi
 
     public Object addHyphenBeforeUsdt(Object symbol)
     {
-        String uppercaseSymbol = ((String)symbol).toUpperCase();
-        Integer index = Helpers.getIndexOf(uppercaseSymbol, "USDT");
+        Object uppercaseSymbol = ((String)symbol).toUpperCase();
+        Object index = Helpers.getIndexOf(uppercaseSymbol, "USDT");
         String symbolChar = this.safeString(symbol, Helpers.subtract(index, 1));
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThan(index, 0)) && Helpers.isTrue(!Helpers.isEqual(symbolChar, "-"))))
         {
@@ -1605,7 +1605,7 @@ public class ApexCore extends ApexApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
-            String orderSide = ((String)side).toUpperCase();
+            Object orderSide = ((String)side).toUpperCase();
             Object orderSize = this.amountToPrecision(symbol, amount);
             Object orderPrice = "0";
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
@@ -1615,7 +1615,7 @@ public class ApexCore extends ApexApi
             Object fees = this.safeDict(this.fees, "swap", new java.util.HashMap<String, Object>() {{}});
             String taker = this.safeString(fees, "taker", "0.0005");
             String maker = this.safeString(fees, "maker", "0.0002");
-            Object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"))), TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+            String limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"))), TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
             Object timeNow = this.milliseconds();
             Object triggerPrice = this.safeString(parameters, "triggerPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
@@ -1784,8 +1784,8 @@ public class ApexCore extends ApexApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId", "client_order_id")));
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fromAccount, null)) && Helpers.isTrue(Helpers.isEqual(((String)fromAccount).toLowerCase(), "contract"))))
             {
-                String formattedUint32 = "4294967295";
-                String zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
+                Object formattedUint32 = "4294967295";
+                Object zkSignAccountId = Precise.stringMod(accountId, formattedUint32);
                 Object expireTime = Helpers.add(timestampSeconds, Helpers.multiply(Helpers.multiply(3600, 24), 28));
                 Object orderToSign = new java.util.HashMap<String, Object>() {{
                     put( "zkAccountId", zkSignAccountId );
@@ -1835,7 +1835,7 @@ public class ApexCore extends ApexApi
                     put( "timestampSeconds", finalTimestampSeconds );
                 }};
                 Object signature = (this.getZKTransferSignatureObj(this.remove0xPrefix(this.getSeeds()), orderToSign)).join();
-                String amountStr = String.valueOf(amount);
+                Object amountStr = String.valueOf(amount);
                 Object ts = timestampSeconds; // java req
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "amount", amountStr );
@@ -2266,7 +2266,7 @@ public class ApexCore extends ApexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
-        String code = "USDT";
+        Object code = "USDT";
         Object timestamp = this.safeInteger(income, "fundingTime");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
@@ -2307,8 +2307,8 @@ public class ApexCore extends ApexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object leverageString = this.numberToString(leverage);
-            String initialMarginRate = Precise.stringDiv("1", leverageString, 4);
+            String leverageString = this.numberToString(leverage);
+            Object initialMarginRate = Precise.stringDiv("1", leverageString, 4);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "initialMarginRate", initialMarginRate );
@@ -2430,19 +2430,19 @@ public class ApexCore extends ApexApi
             }
         } else
         {
-            java.util.Map<String, Object> sortedQuery = this.keysort(parameters);
+            Object sortedQuery = this.keysort(parameters);
             signBody = this.rawencode(sortedQuery);
         }
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            String timestamp = String.valueOf(this.milliseconds());
+            Object timestamp = String.valueOf(this.milliseconds());
             Object messageString = Helpers.add(Helpers.add(timestamp, ((String)method).toUpperCase()), signPath);
             if (Helpers.isTrue(!Helpers.isEqual(signBody, null)))
             {
                 messageString = Helpers.add(messageString, signBody);
             }
-            Object signature = this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(messageString), this.encode(this.stringToBase64(this.secret)), sha256(), "base64");
             Helpers.addElementToObject(headers, "APEX-SIGNATURE", signature);
             Helpers.addElementToObject(headers, "APEX-API-KEY", this.apiKey);
             Helpers.addElementToObject(headers, "APEX-TIMESTAMP", timestamp);
@@ -2475,7 +2475,7 @@ public class ApexCore extends ApexApi
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             String message = this.safeString2(response, "key", "msg");
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
-            String status = String.valueOf(code);
+            Object status = String.valueOf(code);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), status, feedback);
             throw new ExchangeError((String)feedback) ;
         }

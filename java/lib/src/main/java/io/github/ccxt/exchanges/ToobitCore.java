@@ -3770,7 +3770,7 @@ public class ToobitCore extends ToobitApi
             {
                 payload = Helpers.add(body, payload);
             }
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
             if (Helpers.isTrue(!Helpers.isEqual(queryString, "")))
             {
                 queryString = Helpers.add(queryString, Helpers.add("&signature=", signature));

@@ -580,7 +580,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object auth = Helpers.add(Helpers.add("CONNECT", "/stream"), expires);
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalExpires = expires;
             java.util.Map<String, Object> authParams = new java.util.HashMap<String, Object>() {{
                 put( "api-key", HollaexCore.this.apiKey );

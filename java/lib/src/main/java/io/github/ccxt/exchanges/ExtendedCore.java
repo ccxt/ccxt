@@ -3087,7 +3087,7 @@ public class ExtendedCore extends ExtendedApi
     public Object getExtendedStarkAmount(Object amount, Object resolution, Object... optionalArgs)
     {
         Object roundUp = Helpers.getArg(optionalArgs, 0, false);
-        Object resolutionString = this.numberToString(resolution);
+        String resolutionString = this.numberToString(resolution);
         Object precise = Precise.stringMul(amount, resolutionString);
         Object result = this.decimalToPrecision(precise, TRUNCATE, 0, DECIMAL_PLACES, NO_PADDING);
         if (Helpers.isTrue(Helpers.isTrue(roundUp) && Helpers.isTrue(Precise.stringGt(precise, result))))
@@ -3307,7 +3307,7 @@ public class ExtendedCore extends ExtendedApi
             Object now = this.milliseconds();
             Object expiryEpochMillis = this.safeInteger(parameters, "expiryEpochMillis", Helpers.add(now, 3600000));
             Object settlementExpiration = this.safeInteger(parameters, "settlementExpiration", Helpers.add(this.parseToInt(Helpers.divide((Helpers.add(expiryEpochMillis, 999)), 1000)), 1209600));
-            Object nonce = this.numberToString(this.nonce());
+            String nonce = this.numberToString(this.nonce());
             Object account = (this.fetchExtendedAccount()).join();
             String starkKey = this.safeString(account, "l2Key");
             String collateralPosition = this.safeString(account, "l2Vault");
@@ -4248,7 +4248,7 @@ public class ExtendedCore extends ExtendedApi
     {
         // Cairo prime offset for i64 negative encoding.
         Object prime = "3618502788666131213697322783095070105623107215331596699973092056135872020481";
-        Object valueString = this.numberToString(value);
+        String valueString = this.numberToString(value);
         if (Helpers.isTrue(Precise.stringLt(valueString, "0")))
         {
             return Precise.stringAdd(prime, valueString);
@@ -4381,7 +4381,7 @@ public class ExtendedCore extends ExtendedApi
         Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object queryPost = (Helpers.isEqual(path, "user/deadmanswitch"));
-        Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"));
+        String url = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"));
         if (Helpers.isTrue(Helpers.isEqual(accessibility, "private")))
         {
             // this.checkRequiredCredentials ();

@@ -2875,7 +2875,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 Object expires = this.numberToString(expiresInt);
                 Object path = "GET/realtime";
                 Object auth = Helpers.add(path, expires);
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "hex");
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "hex");
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "op", "auth" );
                     put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(BybitCore.this.apiKey, expires, signature)) );

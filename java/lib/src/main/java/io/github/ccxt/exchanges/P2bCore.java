@@ -1551,7 +1551,7 @@ public class P2bCore extends P2bApi
         {
             Helpers.addElementToObject(parameters, "request", Helpers.add("/api/v2/", path));
             Helpers.addElementToObject(parameters, "nonce", String.valueOf(this.nonce()));
-            Object payload = this.stringToBase64(this.json(parameters)); // Body json encoded in base64
+            String payload = this.stringToBase64(this.json(parameters)); // Body json encoded in base64
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "X-TXC-APIKEY", P2bCore.this.apiKey );

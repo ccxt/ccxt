@@ -222,7 +222,7 @@ public class RevolutxCore extends RevolutxApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object implodedPath = this.implodeParams(path, parameters);
+        String implodedPath = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         Object queryKeys = Helpers.objectKeys(query);
         Integer queryLength = Helpers.getArrayLength(queryKeys);
@@ -257,7 +257,7 @@ public class RevolutxCore extends RevolutxApi
                 bodyString = body;
             }
             Object message = Helpers.add(Helpers.add(Helpers.add(Helpers.add(timestamp, ((String)method).toUpperCase()), requestPath), queryString), bodyString);
-            Object signature = eddsa(this.encode(message), this.privateKey, ed25519());
+            String signature = (String) eddsa(this.encode(message), this.privateKey, ed25519());
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "X-Revx-API-Key", RevolutxCore.this.apiKey );

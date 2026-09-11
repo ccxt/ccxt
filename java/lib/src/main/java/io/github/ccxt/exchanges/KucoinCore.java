@@ -5024,7 +5024,7 @@ public class KucoinCore extends KucoinApi
     public Object marketOrderAmountToPrecision(Object symbol, Object amount)
     {
         Object market = this.market(symbol);
-        Object result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "info"), "quoteIncrement"), this.precisionMode, this.paddingMode);
+        String result = this.decimalToPrecision(amount, TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "info"), "quoteIncrement"), this.precisionMode, this.paddingMode);
         if (Helpers.isTrue(Helpers.isEqual(result, "0")))
         {
             throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " amount of "), Helpers.GetValue(market, "symbol")), " must be greater than minimum amount precision of "), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount")))) ;
@@ -13148,7 +13148,7 @@ public class KucoinCore extends KucoinApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object uuid = this.uuid();
+            String uuid = this.uuid();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "margin", KucoinCore.this.amountToPrecision(symbol, amount) );
@@ -14020,14 +14020,14 @@ final Object finalMarket = market;
             String apiKeyVersion = this.safeString(headers, "KC-API-KEY-VERSION");
             if (Helpers.isTrue(Helpers.isEqual(apiKeyVersion, "2")))
             {
-                Object passphrase = this.hmac(this.encode(this.password), this.encode(this.secret), sha256(), "base64");
+                String passphrase = (String) this.hmac(this.encode(this.password), this.encode(this.secret), sha256(), "base64");
                 Helpers.addElementToObject(headers, "KC-API-PASSPHRASE", passphrase);
             } else
             {
                 Helpers.addElementToObject(headers, "KC-API-PASSPHRASE", this.password);
             }
             Object payload = Helpers.add(Helpers.add(Helpers.add(timestamp, method), endpoint), endpart);
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             Helpers.addElementToObject(headers, "KC-API-SIGN", signature);
             Object partner = this.safeDict(this.options, "partner", new java.util.HashMap<String, Object>() {{}});
             Object isUtaFuturePrivate = Helpers.isTrue(isUtaPrivate) && Helpers.isTrue((Helpers.isEqual(tradeType, "FUTURES")));
@@ -14038,7 +14038,7 @@ final Object finalMarket = market;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(partnerId, null))) && Helpers.isTrue((!Helpers.isEqual(partnerSecret, null)))))
             {
                 Object partnerPayload = Helpers.add(Helpers.add(timestamp, partnerId), this.apiKey);
-                Object partnerSignature = this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256(), "base64");
+                String partnerSignature = (String) this.hmac(this.encode(partnerPayload), this.encode(partnerSecret), sha256(), "base64");
                 Helpers.addElementToObject(headers, "KC-API-PARTNER-SIGN", partnerSignature);
                 Helpers.addElementToObject(headers, "KC-API-PARTNER", partnerId);
                 Helpers.addElementToObject(headers, "KC-API-PARTNER-VERIFY", "true");

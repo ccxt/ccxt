@@ -877,7 +877,7 @@ public class HitbtcCore extends HitbtcApi
             //         },
             //     }
             //
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object ids = Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
@@ -889,13 +889,13 @@ public class HitbtcCore extends HitbtcApi
                 Object market = this.safeValue(response, id);
                 String marketType = this.safeString(market, "type");
                 Object expiry = this.safeInteger(market, "expiry");
-                Boolean contract = (Helpers.isEqual(marketType, "futures"));
-                Boolean spot = (Helpers.isEqual(marketType, "spot"));
+                Object contract = (Helpers.isEqual(marketType, "futures"));
+                Object spot = (Helpers.isEqual(marketType, "spot"));
                 Object marginTrading = this.safeBool(market, "margin_trading", false);
-                Boolean margin = Helpers.isTrue(spot) && Helpers.isTrue(marginTrading);
-                Boolean future = (!Helpers.isEqual(expiry, null));
-                Boolean swap = (Helpers.isTrue(contract) && !Helpers.isTrue(future));
-                Boolean option = false;
+                Object margin = Helpers.isTrue(spot) && Helpers.isTrue(marginTrading);
+                Object future = (!Helpers.isEqual(expiry, null));
+                Object swap = (Helpers.isTrue(contract) && !Helpers.isTrue(future));
+                Object option = false;
                 String baseId = this.safeString2(market, "base_currency", "underlying");
                 String quoteId = this.safeString(market, "quote_currency");
                 String feeCurrencyId = this.safeString(market, "fee_currency");
@@ -905,7 +905,7 @@ public class HitbtcCore extends HitbtcApi
                 Object settleId = null;
                 Object settle = null;
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-                String type = "spot";
+                Object type = "spot";
                 Object contractSize = null;
                 Object linear = null;
                 Object inverse = null;
@@ -1069,7 +1069,7 @@ public class HitbtcCore extends HitbtcApi
         String code = (String) this.safeCurrencyCode(currencyId);
         Object entry = currency;
         Object rawNetworks = this.safeList(entry, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
+        Object networks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(rawNetworks)); j++)
         {
             Object rawNetwork = Helpers.GetValue(rawNetworks, j);
@@ -1138,7 +1138,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             String network = (String)this.safeStringUpper(parameters, "network");
@@ -1188,7 +1188,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object currency = this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             String network = (String)this.safeStringUpper(parameters, "network");
@@ -1224,7 +1224,7 @@ public class HitbtcCore extends HitbtcApi
 
     public Object parseBalance(Object response)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
@@ -1314,7 +1314,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetPublicTickerSymbol(this.extend(request, parameters))).join();
@@ -1357,11 +1357,11 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object marketIds = this.marketIds(symbols);
-                String delimited = String.join((String)",", (java.util.List<String>)marketIds);
+                Object delimited = String.join((String)",", (java.util.List<String>)marketIds);
                 Helpers.addElementToObject(request, "symbols", delimited);
             }
             Object response = (this.publicGetPublicTicker(this.extend(request, parameters))).join();
@@ -1380,7 +1380,7 @@ public class HitbtcCore extends HitbtcApi
             //       }
             //     }
             //
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Object result = new java.util.HashMap<String, Object>() {{}};
             Object keys = Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
@@ -1465,7 +1465,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
@@ -1526,7 +1526,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -1699,7 +1699,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "types", types );
             }};
             Object currency = null;
@@ -1748,7 +1748,7 @@ public class HitbtcCore extends HitbtcApi
 
     public String parseTransactionStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Object statuses = new java.util.HashMap<String, Object>() {{
             put( "CREATED", "pending" );
             put( "PENDING", "pending" );
             put( "FAILED", "failed" );
@@ -1764,7 +1764,7 @@ public class HitbtcCore extends HitbtcApi
 
     public String parseTransactionType(Object type)
     {
-        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
+        Object types = new java.util.HashMap<String, Object>() {{
             put( "DEPOSIT", "deposit" );
             put( "WITHDRAW", "withdrawal" );
         }};
@@ -1823,9 +1823,9 @@ public class HitbtcCore extends HitbtcApi
         String addressFrom = this.safeString(sender, 0);
         Object amount = this.safeNumber(nativeVar, "amount");
         String subType = this.safeString(transaction, "subtype");
-        Boolean intern = Helpers.isEqual(subType, "OFFCHAIN");
+        Object intern = Helpers.isEqual(subType, "OFFCHAIN");
         // https://api.hitbtc.com/#check-if-offchain-is-available
-        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
+        Object fee = new java.util.HashMap<String, Object>() {{
             put( "currency", null );
             put( "cost", null );
             put( "rate", null );
@@ -1957,7 +1957,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object marketIdsInner = this.marketIds(symbols);
@@ -1968,7 +1968,7 @@ public class HitbtcCore extends HitbtcApi
                 Helpers.addElementToObject(request, "depth", limit);
             }
             Object response = (this.publicGetPublicOrderbook(this.extend(request, parameters))).join();
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Object result = new java.util.HashMap<String, Object>() {{}};
             Object marketIds = Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
@@ -2005,7 +2005,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2064,7 +2064,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = null;
@@ -2131,7 +2131,7 @@ public class HitbtcCore extends HitbtcApi
             //         }
             //     ]
             //
-            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 Object fee = this.parseTradingFee(Helpers.GetValue(response, i));
@@ -2243,7 +2243,7 @@ public class HitbtcCore extends HitbtcApi
             //         },
             //     ]
             //
-            java.util.List<Object> ohlcvs = this.toArray(response);
+            Object ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
 
@@ -2307,7 +2307,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -2386,7 +2386,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "client_order_id", id );
             }};
             Object marketType = null;
@@ -2477,7 +2477,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
             Object marketType = null;
@@ -2581,7 +2581,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -2670,7 +2670,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 market = this.market(symbol);
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "client_order_id", id );
             }};
             Object marketType = null;
@@ -2732,7 +2732,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -2798,7 +2798,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "client_order_id", id );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -2855,7 +2855,7 @@ public class HitbtcCore extends HitbtcApi
             }
             Object market = null;
             final Object finalSymbol = symbol;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "client_order_id", id );
                 put( "quantity", HitbtcCore.this.amountToPrecision(finalSymbol, amount) );
             }};
@@ -2970,13 +2970,13 @@ public class HitbtcCore extends HitbtcApi
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object marginMode = Helpers.getArg(optionalArgs, 1, null);
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-        Boolean isLimit = (Helpers.isEqual(type, "limit"));
+        Object isLimit = (Helpers.isEqual(type, "limit"));
         Object reduceOnly = this.safeValue(parameters, "reduceOnly");
         String timeInForce = this.safeString(parameters, "timeInForce");
         Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
         Object isPostOnly = this.isPostOnly(Helpers.isEqual(type, "market"), null, parameters);
         final Object finalType = type;
-        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+        Object request = new java.util.HashMap<String, Object>() {{
             put( "type", finalType );
             put( "side", side );
             put( "quantity", HitbtcCore.this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount) );
@@ -3046,7 +3046,7 @@ public class HitbtcCore extends HitbtcApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Object statuses = new java.util.HashMap<String, Object>() {{
             put( "new", "open" );
             put( "suspended", "open" );
             put( "partiallyFilled", "open" );
@@ -3280,7 +3280,7 @@ public class HitbtcCore extends HitbtcApi
                 throw new BadRequest((String)Helpers.add(this.id, " transfer() fromAccount and toAccount arguments cannot be the same account")) ;
             }
             final Object finalFromId = fromId;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", requestAmount );
                 put( "source", finalFromId );
@@ -3354,7 +3354,7 @@ public class HitbtcCore extends HitbtcApi
             final Object finalFromNetwork = fromNetwork;
             final Object finalToNetwork = toNetwork;
             final Object finalCode = code;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "from_currency", finalFromNetwork );
                 put( "to_currency", finalToNetwork );
                 put( "amount", HitbtcCore.this.currencyToPrecision(finalCode, amount) );
@@ -3396,7 +3396,7 @@ public class HitbtcCore extends HitbtcApi
             }
             this.checkAddress(address);
             Object currency = this.currency(code);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
                 put( "address", address );
@@ -3454,7 +3454,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 symbols = this.marketSymbols(symbols);
@@ -3489,7 +3489,7 @@ public class HitbtcCore extends HitbtcApi
             //     }
             //
             Object marketIds = Helpers.objectKeys(response);
-            java.util.Map<String, Object> fundingRates = new java.util.HashMap<String, Object>() {{}};
+            Object fundingRates = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 String marketId = this.safeString(marketIds, i);
@@ -3578,7 +3578,7 @@ public class HitbtcCore extends HitbtcApi
             //    }
             //
             Object contracts = Helpers.objectKeys(response);
-            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(contracts)); i++)
             {
                 Object marketId = Helpers.GetValue(contracts, i);
@@ -3599,7 +3599,7 @@ public class HitbtcCore extends HitbtcApi
                     }});
                 }
             }
-            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
+            Object sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -3628,7 +3628,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             Object marketType = null;
             Object marginMode = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("fetchPositions", null, parameters);
@@ -3691,7 +3691,7 @@ public class HitbtcCore extends HitbtcApi
             //         },
             //     ]
             //
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parsePosition(Helpers.GetValue(response, i)));
@@ -3724,7 +3724,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object marketType = null;
@@ -3935,7 +3935,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
+            Object request = new java.util.HashMap<String, Object>() {{}};
             symbols = this.marketSymbols(symbols);
             Object marketIds = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
@@ -3961,7 +3961,7 @@ public class HitbtcCore extends HitbtcApi
             //         }
             //     }
             //
-            java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object markets = Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
@@ -3999,7 +3999,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetPublicFuturesInfoSymbol(this.extend(request, parameters))).join();
@@ -4047,7 +4047,7 @@ public class HitbtcCore extends HitbtcApi
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
             }
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object response = (this.publicGetPublicFuturesInfoSymbol(this.extend(request, parameters))).join();
@@ -4132,7 +4132,7 @@ public class HitbtcCore extends HitbtcApi
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " modifyMarginHelper() requires a leverage parameter for swap markets")) ;
                 }
             }
-            Object stringAmount = this.numberToString(amount);
+            String stringAmount = this.numberToString(amount);
             if (Helpers.isTrue(!Helpers.isEqual(stringAmount, "0")))
             {
                 amount = this.amountToPrecision(symbol, stringAmount);
@@ -4141,7 +4141,7 @@ public class HitbtcCore extends HitbtcApi
                 amount = "0";
             }
             final Object finalAmount = amount;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "margin_balance", finalAmount );
             }};
@@ -4310,7 +4310,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             Object marginMode = null;
@@ -4429,7 +4429,7 @@ public class HitbtcCore extends HitbtcApi
             }
             final Object finalLeverage = leverage;
             final Object finalSymbol = symbol;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "leverage", String.valueOf(finalLeverage) );
                 put( "margin_balance", HitbtcCore.this.amountToPrecision(finalSymbol, amount) );
@@ -4528,7 +4528,7 @@ public class HitbtcCore extends HitbtcApi
             Object withdrawFee = this.safeNumber(networkEntry, "payout_fee");
             Object isDefault = this.safeValue(networkEntry, "default");
             final Object finalWithdrawFee = withdrawFee;
-            java.util.Map<String, Object> withdrawResult = new java.util.HashMap<String, Object>() {{
+            Object withdrawResult = new java.util.HashMap<String, Object>() {{
                 put( "fee", finalWithdrawFee );
                 put( "percentage", ((Helpers.isTrue((!Helpers.isEqual(finalWithdrawFee, null))))) ? false : null );
             }};
@@ -4579,7 +4579,7 @@ public class HitbtcCore extends HitbtcApi
             parameters = ((java.util.List<Object>) marginModeparametersVariable).get(1);
             Object market = this.market(symbol);
             final Object finalMarginMode = marginMode;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "margin_mode", finalMarginMode );
             }};
@@ -4670,11 +4670,11 @@ public class HitbtcCore extends HitbtcApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object query = this.omit(parameters, this.extractParams(path));
-        Object implodedPath = this.implodeParams(path, parameters);
+        String implodedPath = (String) this.implodeParams(path, parameters);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), implodedPath);
-        String getRequest = null;
+        Object getRequest = null;
         Object keys = Helpers.objectKeys(query);
-        Integer queryLength = Helpers.getArrayLength(keys);
+        Object queryLength = Helpers.getArrayLength(keys);
         headers = new java.util.HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );
         }};
@@ -4692,7 +4692,7 @@ public class HitbtcCore extends HitbtcApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            String timestamp = String.valueOf(this.nonce());
+            Object timestamp = String.valueOf(this.nonce());
             Object payload = new java.util.ArrayList<Object>(java.util.Arrays.asList(method, Helpers.add("/api/3/", implodedPath)));
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
@@ -4708,10 +4708,10 @@ public class HitbtcCore extends HitbtcApi
                 }
             }
             ((java.util.List<Object>)payload).add(timestamp);
-            String payloadString = String.join((String)"", (java.util.List<String>)payload);
-            Object signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
+            Object payloadString = String.join((String)"", (java.util.List<String>)payload);
+            String signature = (String) this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
             Object secondPayload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.apiKey, ":"), signature), ":"), timestamp);
-            Object encoded = this.stringToBase64(secondPayload);
+            String encoded = this.stringToBase64(secondPayload);
             Helpers.addElementToObject(headers, "Authorization", Helpers.add("HS256 ", encoded));
         }
         final Object finalUrl = url;

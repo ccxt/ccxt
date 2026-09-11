@@ -1419,7 +1419,7 @@ public class BitstampCore extends BitstampApi
         // because the shared scratch key raced between concurrent
         // fetchCurrencies invocations in the multi threaded runtimes
         Object result = new java.util.HashMap<String, Object>() {{}};
-        java.util.List<Object> arr = this.toArray(rawCurrencies);
+        Object arr = this.toArray(rawCurrencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
             Object market = Helpers.GetValue(arr, i);
@@ -1441,7 +1441,7 @@ public class BitstampCore extends BitstampApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " parseCurrencies() missing minimumOrder")) ;
             }
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(minimumOrder, " ");
+            Object parts = Helpers.split(minimumOrder, " ");
             Object cost = Helpers.GetValue(parts, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && !Helpers.isTrue((Helpers.inOp(result, base)))))
             {
@@ -1689,7 +1689,7 @@ public class BitstampCore extends BitstampApi
     {
         trade = this.omit(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side")));
         Object currencyIds = Helpers.objectKeys(trade);
-        Integer numCurrencyIds = Helpers.getArrayLength(currencyIds);
+        Object numCurrencyIds = Helpers.getArrayLength(currencyIds);
         if (Helpers.isTrue(Helpers.isGreaterThan(numCurrencyIds, 2)))
         {
             throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " getMarketFromTrade() too many keys: "), this.json(currencyIds)), " in the trade: "), this.json(trade))) ;
@@ -2128,7 +2128,7 @@ public class BitstampCore extends BitstampApi
             //         ...
             //     ]
             //
-            java.util.Map<String, Object> tradingFeesByMarketId = this.indexBy(response, "currency_pair");
+            Object tradingFeesByMarketId = this.indexBy(response, "currency_pair");
             Object tradingFee = this.safeDict(tradingFeesByMarketId, Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(Helpers.isEqual(tradingFee, null)))
             {
@@ -2251,7 +2251,7 @@ public class BitstampCore extends BitstampApi
     {
         Object codes = Helpers.getArg(optionalArgs, 0, null);
         Object result = new java.util.HashMap<String, Object>() {{}};
-        java.util.Map<String, Object> currencies = this.indexBy(response, "currency");
+        Object currencies = this.indexBy(response, "currency");
         Object ids = Helpers.objectKeys(currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
         {
@@ -2305,7 +2305,7 @@ public class BitstampCore extends BitstampApi
             //         ...
             //     ]
             //
-            java.util.Map<String, Object> responseByCurrencyId = this.groupBy(response, "currency");
+            Object responseByCurrencyId = this.groupBy(response, "currency");
             return this.parseDepositWithdrawFees(responseByCurrencyId, codes);
         });
 
@@ -2384,7 +2384,7 @@ public class BitstampCore extends BitstampApi
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
             }
             Object response = null;
-            Object capitalizedSide = this.capitalize(side);
+            String capitalizedSide = this.capitalize(side);
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 if (Helpers.isTrue(Helpers.isEqual(capitalizedSide, "Buy")))
@@ -2709,7 +2709,7 @@ public class BitstampCore extends BitstampApi
             {
                 response = (this.privatePostUserTransactions(this.extend(request, parameters))).join();
             }
-            java.util.List<Object> result = this.filterBy(response, "type", "2");
+            Object result = this.filterBy(response, "type", "2");
             return this.parseTrades(result, market, since, limit);
         });
 
@@ -3026,8 +3026,8 @@ public class BitstampCore extends BitstampApi
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
             // dt (destination tag) is embedded into the address field
-            java.util.List<Object> addressParts = (java.util.List<Object>) Helpers.split(address, "?dt=");
-            Integer numParts = Helpers.getArrayLength(addressParts);
+            Object addressParts = Helpers.split(address, "?dt=");
+            Object numParts = Helpers.getArrayLength(addressParts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
                 address = Helpers.GetValue(addressParts, 0);
@@ -3253,7 +3253,7 @@ public class BitstampCore extends BitstampApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(Helpers.GetValue(keys, i), "_"), 0)))
                 {
-                    String marketId = Helpers.replace((String)Helpers.GetValue(keys, i), (String)"_", (String)"");
+                    Object marketId = Helpers.replace((String)Helpers.GetValue(keys, i), (String)"_", (String)"");
                     market = this.safeMarket(marketId, market);
                 }
             }
@@ -3721,8 +3721,8 @@ public class BitstampCore extends BitstampApi
         {
             this.checkRequiredCredentials();
             Object xAuth = Helpers.add("BITSTAMP ", this.apiKey);
-            Object xAuthNonce = this.uuid();
-            String xAuthTimestamp = String.valueOf(this.milliseconds());
+            String xAuthNonce = this.uuid();
+            Object xAuthTimestamp = String.valueOf(this.milliseconds());
             Object xAuthVersion = "v2";
             Object contentType = "";
             final Object finalXAuth = xAuth;
@@ -3754,7 +3754,7 @@ public class BitstampCore extends BitstampApi
             }
             Object authBody = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(body, null)) && Helpers.isTrue(!Helpers.isEqual(body, "")))))) ? body : "";
             Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(xAuth, method), Helpers.replace((String)url, (String)"https://", (String)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Helpers.addElementToObject(headers, "X-Auth-Signature", signature);
         }
         final Object finalUrl = url;

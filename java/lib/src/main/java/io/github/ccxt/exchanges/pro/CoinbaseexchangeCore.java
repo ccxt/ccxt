@@ -59,7 +59,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         String path = "/users/self/verify";
         Object nonce = this.nonce();
         Object payload = Helpers.add(Helpers.add(String.valueOf(nonce), "GET"), path);
-        Object signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
+        String signature = (String) this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
         return new java.util.HashMap<String, Object>() {{
             put( "timestamp", nonce );
             put( "key", CoinbaseexchangeCore.this.apiKey );

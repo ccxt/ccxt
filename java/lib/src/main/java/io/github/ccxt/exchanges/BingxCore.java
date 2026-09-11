@@ -3937,7 +3937,7 @@ public class BingxCore extends BingxApi
             }
             if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)))
             {
-                Object stringifiedAmount = this.numberToString(amount);
+                String stringifiedAmount = this.numberToString(amount);
                 if (Helpers.isTrue(hasStopLoss))
                 {
                     String slTriggerPrice = this.safeString2(stopLossDict, "triggerPrice", "stopPrice");
@@ -7642,7 +7642,7 @@ final Object finalMarket = market;
         Object version = Helpers.GetValue(section, 1);
         Object access = Helpers.GetValue(section, 2);
         Object isSandbox = this.safeBool(this.options, "sandboxMode", false);
-        Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type));
+        String url = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), type));
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isSandbox, true))) && Helpers.isTrue(Helpers.isEqual(url, null))))
         {
             throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " does not have a testnet/sandbox URL for "), type), " endpoints")) ;
@@ -7698,7 +7698,7 @@ final Object finalMarket = market;
                 encodeRequest = this.rawencode(parsedParams, true);
             }
             Object encodeRequestSafe = ((Helpers.isTrue((Helpers.isEqual(encodeRequest, null))))) ? "" : encodeRequest;
-            Object signature = this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(encodeRequestSafe), this.encode(this.secret), sha256());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "X-BX-APIKEY", BingxCore.this.apiKey );
                 put( "X-SOURCE-KEY", BingxCore.this.safeString(BingxCore.this.options, "broker", "CCXT") );
@@ -7710,7 +7710,7 @@ final Object finalMarket = market;
                 body = this.json(parameters);
             } else
             {
-                Object query = this.urlencode(parsedParams, true);
+                String query = this.urlencode(parsedParams, true);
                 url = Helpers.add(url, Helpers.add(Helpers.add(Helpers.add(Helpers.add("?", query), "&"), "signature="), signature));
             }
         }
