@@ -33,7 +33,7 @@ const KNOWN_TYPES = new Set([
     'LeverageTier', 'LeverageTiers', 'Leverage', 'Leverages',
     'MarginMode', 'MarginModes', 'MarginModification', 'MarginLoan',
     'Status', 'PositionModeInfo',
-    'Transaction', 'DepositAddress', 'TransferEntry',
+    'Transaction', 'DepositAddress', 'DepositAddresses', 'TransferEntry',
     'LedgerEntry', 'TradingFeeInterface', 'TradingFees',
     'Greeks', 'Option', 'OptionChain', 'Conversion',
     'LastPrice', 'LastPrices', 'LongShortRatio',

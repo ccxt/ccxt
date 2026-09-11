@@ -318,6 +318,18 @@ public class Gemini extends GeminiCore {
     }
 
     @SuppressWarnings("unchecked")
+    public DepositAddresses fetchDepositAddressesByNetwork(String code, Map<String, Object> params) {
+        Object res = Helpers.joinUnwrapped(super.fetchDepositAddressesByNetwork(code, params));
+        return new DepositAddresses(res);
+    }
+    public DepositAddresses fetchDepositAddressesByNetwork(String code) { return fetchDepositAddressesByNetwork(code, (Map<String, Object>) null); }
+    @SuppressWarnings("unchecked")
+    public CompletableFuture<DepositAddresses> fetchDepositAddressesByNetworkAsync(String code, Map<String, Object> params) {
+        return super.fetchDepositAddressesByNetwork(code, params).thenApply(DepositAddresses::new);
+    }
+    public CompletableFuture<DepositAddresses> fetchDepositAddressesByNetworkAsync(String code) { return fetchDepositAddressesByNetworkAsync(code, (Map<String, Object>) null); }
+
+    @SuppressWarnings("unchecked")
     public List<OpenInterest> fetchOpenInterestHistory(String symbol, String timeframe, Long since, Long limit, Map<String, Object> params) {
         Object res = Helpers.joinUnwrapped(super.fetchOpenInterestHistory(symbol, timeframe, since, limit, params));
         return toTypedList(res, OpenInterest::new);
