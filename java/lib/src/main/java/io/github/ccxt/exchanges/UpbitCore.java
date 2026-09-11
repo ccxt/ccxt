@@ -894,7 +894,7 @@ public class UpbitCore extends UpbitApi
             //                               "bid_size": 0.4650305 }    ] }   ]
             //
             Object result = new java.util.HashMap<String, Object>() {{}};
-            Object orderbooks = this.toArray(response);
+            java.util.List<Object> orderbooks = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderbooks)); i++)
             {
                 Object orderbook = Helpers.GetValue(orderbooks, i);
@@ -1521,7 +1521,7 @@ public class UpbitCore extends UpbitApi
             //         }
             //     ]
             //
-            Object ohlcvs = this.toArray(response);
+            java.util.List<Object> ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
 

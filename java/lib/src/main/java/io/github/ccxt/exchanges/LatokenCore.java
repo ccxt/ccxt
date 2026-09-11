@@ -539,9 +539,9 @@ public class LatokenCore extends LatokenApi
                 (this.loadTimeDifference()).join();
             }
             Object currencies = this.safeDict(this.options, "cachedCurrencies", new java.util.HashMap<String, Object>() {{}});
-            Object currenciesById = this.indexBy(currencies, "id");
+            java.util.Map<String, Object> currenciesById = this.indexBy(currencies, "id");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawMarkets = this.toArray(response);
+            java.util.List<Object> rawMarkets = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
             {
                 Object market = Helpers.GetValue(rawMarkets, i);
@@ -757,7 +757,7 @@ public class LatokenCore extends LatokenApi
             String type = this.safeString(parameters, "type", defaultType);
             Object types = this.safeValue(this.options, "types", new java.util.HashMap<String, Object>() {{}});
             String accountType = this.safeString(types, type, type);
-            Object balancesByType = this.groupBy(response, "type");
+            java.util.Map<String, Object> balancesByType = this.groupBy(response, "type");
             Object balances = this.safeList(balancesByType, accountType, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
             {

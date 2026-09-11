@@ -1504,7 +1504,7 @@ public class NadoCore extends NadoApi
             //
             Object matches = this.safeList(response, "matches", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object txs = this.safeList(response, "txs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object txsBySubmission = this.indexBy(txs, "submission_idx");
+            java.util.Map<String, Object> txsBySubmission = this.indexBy(txs, "submission_idx");
             Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(matches)); i++)
             {
@@ -1721,7 +1721,7 @@ public class NadoCore extends NadoApi
                         break;
                     }
                 }
-                Object transaction = this.extend(new java.util.HashMap<String, Object>() {{}}, tx);
+                java.util.Map<String, Object> transaction = this.extend(new java.util.HashMap<String, Object>() {{}}, tx);
                 transaction = this.extend(transaction, eventVar);
                 Helpers.addElementToObject(transaction, "transaction_type", transactionType);
                 ((java.util.List<Object>)transactions).add(this.parseTransaction(transaction, currency));
@@ -2084,7 +2084,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object response = (this.gatewayV2PublicGetAssets(parameters)).join();
             Object result = new java.util.HashMap<String, Object>() {{}};
-            Object assets = this.toArray(response);
+            java.util.List<Object> assets = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {
                 Object currency = Helpers.GetValue(assets, i);
@@ -2148,7 +2148,7 @@ public class NadoCore extends NadoApi
             //         }
             //     }
             //
-            Object tickers = this.toArray(response);
+            java.util.List<Object> tickers = this.toArray(response);
             return this.parseTickers(tickers, symbols);
         });
 
@@ -2308,7 +2308,7 @@ public class NadoCore extends NadoApi
             {
                 ((java.util.List<Object>)result).add(this.parseFundingHistory(Helpers.GetValue(fundingPayments, i), market));
             }
-            Object sorted = this.sortBy(result, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 

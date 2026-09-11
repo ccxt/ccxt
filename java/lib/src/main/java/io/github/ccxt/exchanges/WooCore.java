@@ -1545,8 +1545,8 @@ public class WooCore extends WooApi
             var tokenNetworkResponse = ((java.util.List<Object>) tokenResponsetokenNetworkResponseVariable).get(1);
             Object tokenRows = this.safeList(tokenResponse, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object tokenNetworkRows = this.safeList(tokenNetworkResponse, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object networksById = this.groupBy(tokenNetworkRows, "token");
-            Object tokensById = this.groupBy(tokenRows, "balance_token");
+            java.util.Map<String, Object> networksById = this.groupBy(tokenNetworkRows, "token");
+            java.util.Map<String, Object> tokensById = this.groupBy(tokenRows, "balance_token");
             Object currencyIds = Helpers.objectKeys(tokensById);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
             {
@@ -1572,8 +1572,8 @@ public class WooCore extends WooApi
     {
         String currencyId = this.safeString(rawCurrency, "_coin_id");
         String code = (String) this.safeCurrencyCode(currencyId);
-        Object tokensByNetworkId = this.indexBy(Helpers.GetValue(rawCurrency, "_tokens_by_id"), "network");
-        Object chainsByNetworkId = this.indexBy(Helpers.GetValue(rawCurrency, "_networks_by_id"), "network");
+        java.util.Map<String, Object> tokensByNetworkId = this.indexBy(Helpers.GetValue(rawCurrency, "_tokens_by_id"), "network");
+        java.util.Map<String, Object> chainsByNetworkId = this.indexBy(Helpers.GetValue(rawCurrency, "_networks_by_id"), "network");
         Object keys = Helpers.objectKeys(chainsByNetworkId);
         Object resultingNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
@@ -2097,7 +2097,7 @@ public class WooCore extends WooApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object order = this.extend(response, data);
+            java.util.Map<String, Object> order = this.extend(response, data);
             if (Helpers.isTrue(isByClientOrder))
             {
                 Helpers.addElementToObject(order, "clientOrderId", clientOrderIdExchangeSpecific);
@@ -2453,7 +2453,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "INCOMPLETE" );
             }});
             return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
@@ -2491,7 +2491,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "COMPLETED" );
             }});
             return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
@@ -3056,7 +3056,7 @@ public class WooCore extends WooApi
             Object mainRows = new java.util.ArrayList<Object>(java.util.Arrays.asList(mainData));
             Object subData = this.safeDict(subAccountResponse, "data", new java.util.HashMap<String, Object>() {{}});
             Object subRows = this.safeList(subData, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rows = this.arrayConcat(mainRows, subRows);
+            java.util.List<Object> rows = (java.util.List<Object>) this.arrayConcat(mainRows, subRows);
             return this.parseAccounts(rows, parameters);
         });
 
@@ -3864,7 +3864,7 @@ public class WooCore extends WooApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             final Object finalTag = tag;
             final Object finalNetwork = network;
-            Object transactionData = this.extend(data, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> transactionData = this.extend(data, new java.util.HashMap<String, Object>() {{
                 put( "id", WooCore.this.safeString(data, "withdrawId") );
                 put( "timestamp", WooCore.this.safeInteger(response, "timestamp") );
                 put( "currency", code );
@@ -4474,7 +4474,7 @@ public class WooCore extends WooApi
                     put( "datetime", WooCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 

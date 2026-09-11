@@ -2243,7 +2243,7 @@ public class HitbtcCore extends HitbtcApi
             //         },
             //     ]
             //
-            Object ohlcvs = this.toArray(response);
+            java.util.List<Object> ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
 
@@ -3599,7 +3599,7 @@ public class HitbtcCore extends HitbtcApi
                     }});
                 }
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 

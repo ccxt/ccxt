@@ -1107,7 +1107,7 @@ public class BitoproCore extends BitoproApi
                 i = this.sum(i, 1);
             } else
             {
-                Object copy = this.arrayConcat(new java.util.ArrayList<Object>(java.util.Arrays.asList()), copyFrom);
+                java.util.List<Object> copy = (java.util.List<Object>) this.arrayConcat(new java.util.ArrayList<Object>(java.util.Arrays.asList()), copyFrom);
                 Helpers.addElementToObject(copy, 0, timestamp);
                 // set open, high, low to close
                 Helpers.addElementToObject(copy, 1, Helpers.GetValue(copy, 4));

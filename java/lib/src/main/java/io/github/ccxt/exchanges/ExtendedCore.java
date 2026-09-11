@@ -1694,7 +1694,7 @@ public class ExtendedCore extends ExtendedApi
                 }
                 ((java.util.List<Object>)result).add(this.parseFundingRateHistory(entry, market));
             }
-            Object sorted = this.sortBy(result, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -3638,7 +3638,7 @@ public class ExtendedCore extends ExtendedApi
             }}, parameters);
             final Object finalCancelId = cancelId;
             final Object finalExpiryEpochMillis = expiryEpochMillis;
-            Object requestParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> requestParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "cancelId", finalCancelId );
                 put( "expiryEpochMillis", finalExpiryEpochMillis );
             }});

@@ -1313,7 +1313,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             //
             Object cancelOrders = this.safeList(response, "cancelOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object unprocessedRequests = this.safeList(response, "unprocessedRequests", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object orders = this.arrayConcat(cancelOrders, unprocessedRequests);
+            java.util.List<Object> orders = (java.util.List<Object>) this.arrayConcat(cancelOrders, unprocessedRequests);
             return this.parseOrders(orders);
         });
 
@@ -1769,7 +1769,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object request = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
-        Object query = this.keysort(this.omit(parameters, this.extractParams(path)));
+        java.util.Map<String, Object> query = this.keysort(this.omit(parameters, this.extractParams(path)));
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();

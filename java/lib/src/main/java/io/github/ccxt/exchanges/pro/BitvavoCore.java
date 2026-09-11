@@ -102,7 +102,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         put( "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"))) );
     }})) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -134,7 +134,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         put( "markets", args );
     }})) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
         });
 
@@ -400,7 +400,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         put( "markets", marketIds );
     }})) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -515,7 +515,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         put( "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList(marketId)) );
     }})) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -647,7 +647,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 put( "action", "subscribe" );
                 put( "channels", channels );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             var symboltimeframecandlesVariable = (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
             var symbol = ((java.util.List<Object>) symboltimeframecandlesVariable).get(0);
             var timeframe = ((java.util.List<Object>) symboltimeframecandlesVariable).get(1);
@@ -786,7 +786,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 put( "limit", limit );
                 put( "params", parameters );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -842,7 +842,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 put( "limit", limit );
                 put( "params", parameters );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watchMultiple(url, messageHashes, message, messageHashes, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -1142,12 +1142,12 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             {
                 ((java.util.List<Object>)unsubHashes).add(Helpers.add("unsubscribe:", Helpers.GetValue(subMessageHashes, i)));
             }
-            Object subscription = this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "topic", topic );
                 put( "subMessageHashes", subMessageHashes );
                 put( "unsubHashes", unsubHashes );
             }}, subscriptionArgs);
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, unsubHashes, message, unsubHashes, subscription)).join();
         });
 
@@ -2243,7 +2243,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                     put( "signature", signature );
                     put( "timestamp", timestamp );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 future = (this.watch(url, messageHash, message, messageHash, null)).join();
                 Helpers.addElementToObject(client.subscriptions, messageHash, future);
             }

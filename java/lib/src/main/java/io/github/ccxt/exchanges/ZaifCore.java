@@ -661,7 +661,7 @@ public class ZaifCore extends ZaifApi
             //          }, ...
             //      ]
             //
-            Object trades = this.toArray(response);
+            java.util.List<Object> trades = this.toArray(response);
             Object numTrades = Helpers.getArrayLength(trades);
             if (Helpers.isTrue(Helpers.isEqual(numTrades, 1)))
             {

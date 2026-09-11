@@ -1331,7 +1331,7 @@ public class XtCore extends XtApi
             Object chainsData = this.safeList(chainsResponse, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object currenciesResult = this.safeDict(currenciesResponse, "result", new java.util.HashMap<String, Object>() {{}});
             Object currenciesData = this.safeList(currenciesResult, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object chainsDataIndexed = this.indexBy(chainsData, "currency");
+            java.util.Map<String, Object> chainsDataIndexed = this.indexBy(chainsData, "currency");
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currenciesData)); i++)
             {
@@ -1586,7 +1586,7 @@ public class XtCore extends XtApi
             //         ]
             //     }
             //
-            Object swapAndFutureMarkets = this.arrayConcat(this.safeList(Helpers.GetValue(markets, 0), "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())), this.safeList(Helpers.GetValue(markets, 1), "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
+            java.util.List<Object> swapAndFutureMarkets = (java.util.List<Object>) this.arrayConcat(this.safeList(Helpers.GetValue(markets, 0), "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())), this.safeList(Helpers.GetValue(markets, 1), "result", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
             return this.parseMarkets(swapAndFutureMarkets);
         });
 
@@ -5930,7 +5930,7 @@ final Object finalMarket = market;
                     put( "datetime", XtCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -6342,7 +6342,7 @@ final Object finalMarket = market;
                 Object entry = Helpers.GetValue(items, i);
                 ((java.util.List<Object>)result).add(this.parseFundingHistory(entry, market));
             }
-            Object sorted = this.sortBy(result, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySinceLimit(sorted, since, limit);
         });
 

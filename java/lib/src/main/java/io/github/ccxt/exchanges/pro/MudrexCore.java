@@ -102,7 +102,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList("ticker@1s")) );
                 put( "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList(assetId)) );
             }};
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
 
@@ -141,7 +141,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList("ticker@1s")) );
                 put( "assets", assets );
             }};
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             Object ticker = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -192,7 +192,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
                 put( "method", "SUBSCRIBE" );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(stream)) );
             }};
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {

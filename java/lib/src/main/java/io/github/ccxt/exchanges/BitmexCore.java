@@ -1457,7 +1457,7 @@ public class BitmexCore extends BitmexApi
                 put( "datetime", null );
                 put( "nonce", null );
             }};
-            Object orders = this.toArray(response);
+            java.util.List<Object> orders = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
@@ -2158,7 +2158,7 @@ public class BitmexCore extends BitmexApi
             Object response = (this.publicGetInstrumentActiveAndIndices(parameters)).join();
             // same response as under "fetchMarkets"
             Object result = new java.util.HashMap<String, Object>() {{}};
-            Object rawTickers = this.toArray(response);
+            java.util.List<Object> rawTickers = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
             {
                 Object ticker = this.parseTicker(Helpers.GetValue(rawTickers, i));
@@ -3507,7 +3507,7 @@ public class BitmexCore extends BitmexApi
             Object response = (this.publicGetInstrumentActiveAndIndices(parameters)).join();
             // same response as under "fetchMarkets"
             Object filteredResponse = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawItems = this.toArray(response);
+            java.util.List<Object> rawItems = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawItems)); i++)
             {
                 Object item = Helpers.GetValue(rawItems, i);
@@ -4485,7 +4485,7 @@ public class BitmexCore extends BitmexApi
         {
             ((java.util.List<Object>)result).add(this.parseSettlement(Helpers.GetValue(settlements, i), market));
         }
-        Object sorted = this.sortBy(result, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
         String symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }

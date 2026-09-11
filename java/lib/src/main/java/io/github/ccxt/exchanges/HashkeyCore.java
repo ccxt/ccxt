@@ -994,7 +994,7 @@ public class HashkeyCore extends HashkeyApi
             //
             Object spotMarkets = this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object swapMarkets = this.safeList(response, "contracts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object markets = this.arrayConcat(spotMarkets, swapMarkets);
+            java.util.List<Object> markets = (java.util.List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
             if (Helpers.isTrue(this.isEmpty(markets)))
             {
                 markets = new java.util.ArrayList<Object>(java.util.Arrays.asList(response)); // if user provides params.symbol the exchange returns a single object instead of list of objects
@@ -1191,7 +1191,7 @@ public class HashkeyCore extends HashkeyApi
             }
         }
         Object filtersList = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object filters = this.indexBy(filtersList, "filterType");
+        java.util.Map<String, Object> filters = this.indexBy(filtersList, "filterType");
         Object priceFilter = this.safeDict(filters, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
         Object amountFilter = this.safeDict(filters, "LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
         Object costFilter = this.safeDict(filters, "MIN_NOTIONAL", new java.util.HashMap<String, Object>() {{}});
@@ -1803,7 +1803,7 @@ public class HashkeyCore extends HashkeyApi
             //         ...
             //     ]
             //
-            Object ohlcvs = this.toArray(response);
+            java.util.List<Object> ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
 
@@ -4328,7 +4328,7 @@ public class HashkeyCore extends HashkeyApi
             //     ]
             //
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rows = this.toArray(response);
+            java.util.List<Object> rows = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object entry = Helpers.GetValue(rows, i);
@@ -4341,7 +4341,7 @@ public class HashkeyCore extends HashkeyApi
                     put( "datetime", HashkeyCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySinceLimit(sorted, since, limit);
         });
 
@@ -5059,7 +5059,7 @@ final Object finalI = i;
                 url = Helpers.add(url, Helpers.add("?", query));
             } else
             {
-                Object totalParams = this.extend(additionalParams, parameters);
+                java.util.Map<String, Object> totalParams = this.extend(additionalParams, parameters);
                 signature = this.hmac(this.encode(((String)this.customUrlencode(totalParams))), this.encode(this.secret), sha256());
                 Helpers.addElementToObject(totalParams, "signature", signature);
                 query = this.customUrlencode(totalParams);

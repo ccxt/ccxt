@@ -1666,7 +1666,7 @@ public class BingxCore extends BingxApi
             Object linearSwapMarkets = this.safeList(promises, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object inverseSwapMarkets = this.safeList(promises, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object spotMarkets = this.safeList(promises, 2, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object swapMarkets = this.arrayConcat(linearSwapMarkets, inverseSwapMarkets);
+            java.util.List<Object> swapMarkets = (java.util.List<Object>) this.arrayConcat(linearSwapMarkets, inverseSwapMarkets);
             return this.arrayConcat(spotMarkets, swapMarkets);
         });
 

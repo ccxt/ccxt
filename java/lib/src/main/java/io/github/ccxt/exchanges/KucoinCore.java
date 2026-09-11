@@ -2259,13 +2259,13 @@ public class KucoinCore extends KucoinApi
             }
             Object crossData = ((Helpers.isTrue((Helpers.isEqual(requestMarginables, true))))) ? this.safeDict(Helpers.GetValue(responses, crossIndex), "data", new java.util.HashMap<String, Object>() {{}}) : new java.util.HashMap<String, Object>() {{}};
             Object crossItems = this.safeList(crossData, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object crossById = this.indexBy(crossItems, "symbol");
+            java.util.Map<String, Object> crossById = this.indexBy(crossItems, "symbol");
             Object isolatedData = ((Helpers.isTrue((Helpers.isEqual(requestMarginables, true))))) ? Helpers.GetValue(responses, isolatedIndex) : new java.util.HashMap<String, Object>() {{}};
             Object isolatedItems = this.safeList(isolatedData, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object isolatedById = this.indexBy(isolatedItems, "symbol");
+            java.util.Map<String, Object> isolatedById = this.indexBy(isolatedItems, "symbol");
             Object tickersResponse = ((Helpers.isTrue(fetchTickersFees))) ? this.safeDict(responses, tickersIndex, new java.util.HashMap<String, Object>() {{}}) : new java.util.HashMap<String, Object>() {{}};
             Object tickerItems = this.safeList(this.safeDict(tickersResponse, "data", new java.util.HashMap<String, Object>() {{}}), "ticker", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object tickersById = this.indexBy(tickerItems, "symbol");
+            java.util.Map<String, Object> tickersById = this.indexBy(tickerItems, "symbol");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsData)); i++)
             {
@@ -2626,7 +2626,7 @@ public class KucoinCore extends KucoinApi
             Object contractData = this.safeDict(Helpers.GetValue(responses, 1), "data", new java.util.HashMap<String, Object>() {{}});
             Object spotData = this.safeList(data, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object contractSymbolsData = this.safeList(contractData, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object symbolsData = this.arrayConcat(spotData, contractSymbolsData);
+            java.util.List<Object> symbolsData = (java.util.List<Object>) this.arrayConcat(spotData, contractSymbolsData);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsData)); i++)
             {

@@ -3086,7 +3086,7 @@ public class OkxCore extends OkxApi
             //    }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object dataByCurrencyId = this.groupBy(data, "ccy");
+            java.util.Map<String, Object> dataByCurrencyId = this.groupBy(data, "ccy");
             Object currencies = Helpers.objectValues(dataByCurrencyId);
             return this.parseCurrencies(currencies);
         });
@@ -4018,7 +4018,7 @@ public class OkxCore extends OkxApi
                     put( "datetime", OkxCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -4876,7 +4876,7 @@ public class OkxCore extends OkxApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                Object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+                java.util.Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
@@ -6961,7 +6961,7 @@ public class OkxCore extends OkxApi
         Object code = Helpers.GetValue(currency, "code");
         String chain = this.safeString(depositAddress, "chain");
         Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
-        Object networksById = this.indexBy(networks, "id");
+        java.util.Map<String, Object> networksById = this.indexBy(networks, "id");
         Object networkData = ((Helpers.isTrue((Helpers.isEqual(chain, null))))) ? null : this.safeDict(networksById, chain);
         // inconsistent naming responses from exchange
         // with respect to network naming provided in currency info vs address chain-names and ids
@@ -7067,7 +7067,7 @@ public class OkxCore extends OkxApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object filtered = this.filterBy(data, "selected", true);
+            java.util.List<Object> filtered = this.filterBy(data, "selected", true);
             Object parsed = this.parseDepositAddresses(filtered, new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(currency, "code"))), false);
             return this.indexBy(parsed, "network");
         });
@@ -8879,7 +8879,7 @@ public class OkxCore extends OkxApi
                     put( "amount", OkxCore.this.parseNumber(finalAmount) );
                 }});
             }
-            Object sorted = this.sortBy(result, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -8996,7 +8996,7 @@ public class OkxCore extends OkxApi
                     throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchPositionMode() can not detect position mode, because you have multiple accounts. Set params[\"accountId\"] to desired id from: "), String.join((String)", ", (java.util.List<String>)accountIds))) ;
                 } else
                 {
-                    Object accountsById = this.indexBy(accounts, "id");
+                    java.util.Map<String, Object> accountsById = this.indexBy(accounts, "id");
                     selectedAccount = this.safeDict(accountsById, accountId);
                 }
             } else
@@ -10459,7 +10459,7 @@ public class OkxCore extends OkxApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
-            Object sorted = this.sortBy(settlements, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 

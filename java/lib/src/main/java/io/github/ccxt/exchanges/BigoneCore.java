@@ -810,7 +810,7 @@ public class BigoneCore extends BigoneApi
                     put( "info", market );
                 }}));
             }
-            Object contractMarkets = this.toArray(contractResponse);
+            java.util.List<Object> contractMarkets = this.toArray(contractResponse);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(contractMarkets)); i++)
             {
                 Object market = Helpers.GetValue(contractMarkets, i);
@@ -2380,7 +2380,7 @@ public class BigoneCore extends BigoneApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() returned empty address response")) ;
             }
-            Object chainsIndexedById = this.indexBy(data, "chain");
+            java.util.Map<String, Object> chainsIndexedById = this.indexBy(data, "chain");
             Object selectedNetworkId = this.selectNetworkIdFromRawNetworks(code, networkCode, chainsIndexedById);
             Object addressObject = this.safeDict(chainsIndexedById, selectedNetworkId, new java.util.HashMap<String, Object>() {{}});
             String address = this.safeString(addressObject, "value");

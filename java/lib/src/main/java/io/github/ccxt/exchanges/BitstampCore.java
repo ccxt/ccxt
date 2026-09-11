@@ -1419,7 +1419,7 @@ public class BitstampCore extends BitstampApi
         // because the shared scratch key raced between concurrent
         // fetchCurrencies invocations in the multi threaded runtimes
         Object result = new java.util.HashMap<String, Object>() {{}};
-        Object arr = this.toArray(rawCurrencies);
+        java.util.List<Object> arr = this.toArray(rawCurrencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
             Object market = Helpers.GetValue(arr, i);
@@ -2128,7 +2128,7 @@ public class BitstampCore extends BitstampApi
             //         ...
             //     ]
             //
-            Object tradingFeesByMarketId = this.indexBy(response, "currency_pair");
+            java.util.Map<String, Object> tradingFeesByMarketId = this.indexBy(response, "currency_pair");
             Object tradingFee = this.safeDict(tradingFeesByMarketId, Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(Helpers.isEqual(tradingFee, null)))
             {
@@ -2251,7 +2251,7 @@ public class BitstampCore extends BitstampApi
     {
         Object codes = Helpers.getArg(optionalArgs, 0, null);
         Object result = new java.util.HashMap<String, Object>() {{}};
-        Object currencies = this.indexBy(response, "currency");
+        java.util.Map<String, Object> currencies = this.indexBy(response, "currency");
         Object ids = Helpers.objectKeys(currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
         {
@@ -2305,7 +2305,7 @@ public class BitstampCore extends BitstampApi
             //         ...
             //     ]
             //
-            Object responseByCurrencyId = this.groupBy(response, "currency");
+            java.util.Map<String, Object> responseByCurrencyId = this.groupBy(response, "currency");
             return this.parseDepositWithdrawFees(responseByCurrencyId, codes);
         });
 
@@ -2709,7 +2709,7 @@ public class BitstampCore extends BitstampApi
             {
                 response = (this.privatePostUserTransactions(this.extend(request, parameters))).join();
             }
-            Object result = this.filterBy(response, "type", "2");
+            java.util.List<Object> result = this.filterBy(response, "type", "2");
             return this.parseTrades(result, market, since, limit);
         });
 

@@ -75,7 +75,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             Object subscription = subscription3;
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId(url);
-            Object request = this.extend(message, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = this.extend(message, new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }});
             subscription = this.extend(subscription, new java.util.HashMap<String, Object>() {{
@@ -399,7 +399,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             Object subscription = subscription3;
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId(url);
-            Object request = this.extend(message, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = this.extend(message, new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }});
             subscription = this.extend(subscription, new java.util.HashMap<String, Object>() {{
@@ -584,7 +584,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
                 //     'symbol': symbol,
                 //     'params': params,
                 // };
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, message);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
@@ -600,7 +600,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId(url);
-            Object request = this.extend(message, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = this.extend(message, new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }});
             subscription = this.extend(subscription, new java.util.HashMap<String, Object>() {{
@@ -925,7 +925,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         if (Helpers.isTrue(Helpers.inOp(message, "id")))
         {
             Object id = this.safeString(message, "id");
-            Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+            java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
             Object subscription = ((Helpers.isTrue((Helpers.isEqual(id, null))))) ? new java.util.HashMap<String, Object>() {{}} : this.safeValue(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.inOp(subscription, "method")))
             {

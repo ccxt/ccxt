@@ -2655,7 +2655,7 @@ public class PacificaCore extends PacificaApi
                     put( "datetime", PacificaCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(result, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySinceLimit(sorted, since, limit, "timestamp");
         });
 
@@ -3107,7 +3107,7 @@ public class PacificaCore extends PacificaApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             // return last state
-            Object sorted = this.sortBy(data, "created_at", true);
+            java.util.List<Object> sorted = this.sortBy(data, "created_at", true);
             Object lastIdx = Helpers.getArrayLength(sorted);
             Object lastInfo = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isGreaterThan(lastIdx, 0)))
@@ -4413,7 +4413,7 @@ public class PacificaCore extends PacificaApi
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " prepareMessage() requires type, timestamp, expiry_window in header")) ;
         }
-        Object data = this.extend(header, new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> data = this.extend(header, new java.util.HashMap<String, Object>() {{
             put( "data", payload );
         }});
         Object sorted = this.sortJsonKeys(data);
@@ -4490,7 +4490,7 @@ public class PacificaCore extends PacificaApi
         Helpers.addElementToObject(finalHeaders, "signature", signature);
         Helpers.addElementToObject(finalHeaders, "timestamp", this.safeInteger(signatureHeader, "timestamp"));
         Helpers.addElementToObject(finalHeaders, "expiry_window", this.safeInteger(signatureHeader, "expiry_window"));
-        Object request = this.extend(finalHeaders, sigPayload);
+        java.util.Map<String, Object> request = this.extend(finalHeaders, sigPayload);
         return request;
     }
 }

@@ -1722,7 +1722,7 @@ public class CoinbaseCore extends CoinbaseApi
             Object currencies = this.safeDict(response, "currencies", new java.util.HashMap<String, Object>() {{}});
             Object exchangeRates = this.safeDict(response, "exchangeRates", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(currencies, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object dataById = this.indexBy(data, "id");
+            java.util.Map<String, Object> dataById = this.indexBy(data, "id");
             Object rates = this.safeDict(this.safeDict(exchangeRates, "data", new java.util.HashMap<String, Object>() {{}}), "rates", new java.util.HashMap<String, Object>() {{}});
             Object baseIds = Helpers.objectKeys(rates);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2382,7 +2382,7 @@ public class CoinbaseCore extends CoinbaseApi
             Object ratesData = this.safeDict(ratesResponse, "data", new java.util.HashMap<String, Object>() {{}});
             Object rates = this.safeDict(ratesData, "rates", new java.util.HashMap<String, Object>() {{}});
             Object ratesIds = Helpers.objectKeys(rates);
-            Object currencies = this.arrayConcat(fiatData, cryptoData);
+            java.util.List<Object> currencies = (java.util.List<Object>) this.arrayConcat(fiatData, cryptoData);
             Object result = new java.util.HashMap<String, Object>() {{}};
             Object networks = new java.util.HashMap<String, Object>() {{}};
             Object networksById = new java.util.HashMap<String, Object>() {{}};
@@ -2668,7 +2668,7 @@ public class CoinbaseCore extends CoinbaseApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object request = this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }}, parameters);
             Object spot = (this.v2PublicGetPricesSymbolSpot(request)).join();
@@ -5623,7 +5623,7 @@ public class CoinbaseCore extends CoinbaseApi
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
         {
-            Object id = this.extend(this.parseDepositMethodId(Helpers.GetValue(ids, i)), parameters);
+            java.util.Map<String, Object> id = this.extend(this.parseDepositMethodId(Helpers.GetValue(ids, i)), parameters);
             ((java.util.List<Object>)result).add(id);
         }
         return result;

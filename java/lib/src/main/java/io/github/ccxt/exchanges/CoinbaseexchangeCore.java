@@ -845,7 +845,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             //     ]
             //
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawMarkets = this.toArray(response);
+            java.util.List<Object> rawMarkets = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
             {
                 Object market = Helpers.GetValue(rawMarkets, i);
@@ -955,7 +955,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             //         },
             //     ]
             //
-            Object accounts = this.toArray(response);
+            java.util.List<Object> accounts = this.toArray(response);
             return this.parseAccounts(accounts, parameters);
         });
 
@@ -2344,7 +2344,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             }
             (this.loadAccounts()).join();
             Object currency = this.currency(code);
-            Object accountsByCurrencyCode = this.indexBy(this.accounts, "code");
+            java.util.Map<String, Object> accountsByCurrencyCode = this.indexBy(this.accounts, "code");
             Object account = this.safeValue(accountsByCurrencyCode, code);
             if (Helpers.isTrue(Helpers.isEqual(account, null)))
             {
@@ -2369,7 +2369,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 Helpers.addElementToObject(request, "end_date", this.iso8601(until));
             }
             Object response = (this.privateGetAccountsIdLedger(this.extend(request, parameters))).join();
-            Object entries = this.toArray(response);
+            java.util.List<Object> entries = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entries)); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(entries, i), "currency", code);
@@ -2413,7 +2413,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     currency = this.currency(code);
-                    Object accountsByCurrencyCode = this.indexBy(this.accounts, "code");
+                    java.util.Map<String, Object> accountsByCurrencyCode = this.indexBy(this.accounts, "code");
                     Object account = this.safeValue(accountsByCurrencyCode, code);
                     if (Helpers.isTrue(Helpers.isEqual(account, null)))
                     {

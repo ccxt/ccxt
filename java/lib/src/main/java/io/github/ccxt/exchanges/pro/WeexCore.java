@@ -632,7 +632,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object trade = this.parseWsTrade(rawTrade, market);
             ((java.util.List<Object>)newTrades).add(trade);
         }
-        Object sorted = this.sortBy(newTrades, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(newTrades, "timestamp");
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(sorted)); j++)
         {
             Object sortedTrade = Helpers.GetValue(sorted, j);
@@ -2350,7 +2350,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         //     { "result": true, "id": 2 }
         //
         Object id = this.safeString(message, "id");
-        Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
         Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
         if (Helpers.isTrue(Helpers.isEqual(unsubscribe, true)))

@@ -120,7 +120,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                         put( "signatureVersion", "2" );
                     }} );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 future = (this.watch(url, messageHash, message, messageHash, null)).join();
                 //
                 //    {
@@ -194,7 +194,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
             {
                 Helpers.addElementToObject(subscribe, "symbols", marketIds);
             }
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
 
@@ -591,7 +591,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                 put( "channel", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalName)) );
                 put( "symbols", marketIds );
             }};
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {

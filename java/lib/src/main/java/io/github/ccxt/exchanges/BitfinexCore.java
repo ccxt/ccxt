@@ -903,7 +903,7 @@ public class BitfinexCore extends BitfinexApi
             Object futuresMarketsInfo = this.safeList(response, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object securitiesMarketsIds = this.safeList(response, 2, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object marginIds = this.safeList(response, 3, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object markets = this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
+            java.util.List<Object> markets = (java.util.List<Object>) this.arrayConcat(spotMarketsInfo, futuresMarketsInfo);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
@@ -1163,7 +1163,7 @@ public class BitfinexCore extends BitfinexApi
             ((java.util.List<Object>)allowedIds).add(id);
         }
         Object result = new java.util.HashMap<String, Object>() {{}};
-        Object arr = this.toArray(allowedIds);
+        java.util.List<Object> arr = this.toArray(allowedIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
             Object parsed = this.parseCurrencyCustom(Helpers.GetValue(arr, i), indexed, indexedNetworks);
@@ -1284,7 +1284,7 @@ public class BitfinexCore extends BitfinexApi
             Object isDerivative = Helpers.isEqual(requestedType, "derivatives");
             Object query = this.omit(parameters, "type");
             Object response = (this.privatePostAuthRWallets(query)).join();
-            Object balances = this.toArray(response);
+            java.util.List<Object> balances = this.toArray(response);
             Object result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
@@ -1536,7 +1536,7 @@ public class BitfinexCore extends BitfinexApi
                 put( "nonce", null );
             }};
             Object priceIndex = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(fullRequest, "precision"), "R0"))))) ? 1 : 0;
-            Object orders = this.toArray(orderbook);
+            java.util.List<Object> orders = this.toArray(orderbook);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
@@ -1939,8 +1939,8 @@ public class BitfinexCore extends BitfinexApi
             //         ]
             //     ]
             //
-            Object rawTrades = this.toArray(response);
-            Object trades = this.sortBy(rawTrades, 1);
+            java.util.List<Object> rawTrades = this.toArray(response);
+            java.util.List<Object> trades = this.sortBy(rawTrades, 1);
             Object tradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
             {
@@ -2957,7 +2957,7 @@ public class BitfinexCore extends BitfinexApi
             }};
             // valid for trades up to 10 days old
             Object response = (this.privatePostAuthROrderSymbolIdTrades(this.extend(request, parameters))).join();
-            Object rawTrades = this.toArray(response);
+            java.util.List<Object> rawTrades = this.toArray(response);
             Object tradesList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
             {
@@ -3683,7 +3683,7 @@ public class BitfinexCore extends BitfinexApi
             //         ]
             //     ]
             //
-            Object rawPositions = this.toArray(response);
+            java.util.List<Object> rawPositions = this.toArray(response);
             Object positionsList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
             {
@@ -4171,7 +4171,7 @@ public class BitfinexCore extends BitfinexApi
             //       ]
             //   ]
             //
-            Object rawRatesData = this.toArray(response);
+            java.util.List<Object> rawRatesData = this.toArray(response);
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawRatesData)); i++)
             {

@@ -83,7 +83,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 put( "method", method );
                 put( "params", topics );
             }};
-            Object message = this.deepExtend(request, parameters);
+            java.util.Map<String, Object> message = this.deepExtend(request, parameters);
             if (Helpers.isTrue(unwatch))
             {
                 this.handleUnsubscriptions(url, messageHashes, message);
@@ -116,7 +116,7 @@ public class BackpackCore extends io.github.ccxt.exchanges.Backpack
                 put( "params", topics );
                 put( "signature", new java.util.ArrayList<Object>(java.util.Arrays.asList(BackpackCore.this.apiKey, signature, ts, recvWindow)) );
             }};
-            Object message = this.deepExtend(request, parameters);
+            java.util.Map<String, Object> message = this.deepExtend(request, parameters);
             if (Helpers.isTrue(unwatch))
             {
                 this.handleUnsubscriptions(url, messageHashes, message);

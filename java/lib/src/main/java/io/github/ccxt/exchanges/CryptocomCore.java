@@ -3811,7 +3811,7 @@ public class CryptocomCore extends CryptocomApi
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
-            Object sorted = this.sortBy(settlements, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -4045,7 +4045,7 @@ public class CryptocomCore extends CryptocomApi
                     put( "datetime", CryptocomCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -4502,7 +4502,7 @@ public class CryptocomCore extends CryptocomApi
         {
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
-            Object requestParams = this.extend(new java.util.HashMap<String, Object>() {{}}, parameters);
+            java.util.Map<String, Object> requestParams = this.extend(new java.util.HashMap<String, Object>() {{}}, parameters);
             Object paramsKeys = Helpers.objectKeys(requestParams);
             Object strSortKey = this.paramsToString(requestParams, 0);
             Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(path, nonce), this.apiKey), strSortKey), nonce);

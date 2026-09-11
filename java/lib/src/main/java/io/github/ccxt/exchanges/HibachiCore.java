@@ -2444,7 +2444,7 @@ public class HibachiCore extends HibachiApi
             // }
             //
             Object rowsTradingHistory = this.safeList(responseTradingHistory, "tradingHistory", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rows = this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
+            java.util.List<Object> rows = (java.util.List<Object>) this.arrayConcat(rowsCapitalHistory, rowsTradingHistory);
             return this.parseLedger(rows, currency, since, limit, parameters);
         });
 
@@ -2603,7 +2603,7 @@ public class HibachiCore extends HibachiApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object transactions = (this.fetchDepositsWithdrawals(code, since, null, parameters)).join();
-            Object deposits = this.filterBy(transactions, "type", "deposit");
+            java.util.List<Object> deposits = this.filterBy(transactions, "type", "deposit");
             return this.filterBySinceLimit(deposits, since, limit, "timestamp");
         });
 
@@ -2630,7 +2630,7 @@ public class HibachiCore extends HibachiApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object transactions = (this.fetchDepositsWithdrawals(code, since, null, parameters)).join();
-            Object withdrawals = this.filterBy(transactions, "type", "withdrawal");
+            java.util.List<Object> withdrawals = this.filterBy(transactions, "type", "withdrawal");
             return this.filterBySinceLimit(withdrawals, since, limit, "timestamp");
         });
 
@@ -2738,7 +2738,7 @@ public class HibachiCore extends HibachiApi
             //
             Object data = this.safeList(response, "settlements", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
-            Object sorted = this.sortBy(settlements, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -2927,7 +2927,7 @@ public class HibachiCore extends HibachiApi
                     put( "datetime", HibachiCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 

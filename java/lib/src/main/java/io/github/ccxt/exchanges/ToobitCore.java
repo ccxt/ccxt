@@ -1172,7 +1172,7 @@ public class ToobitCore extends ToobitApi
             //
             Object symbols = this.safeList(response, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object contracts = this.safeList(response, "contracts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object all = this.arrayConcat(symbols, contracts);
+            java.util.List<Object> all = (java.util.List<Object>) this.arrayConcat(symbols, contracts);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(all)); i++)
             {
@@ -1202,7 +1202,7 @@ public class ToobitCore extends ToobitApi
         String status = this.safeString(market, "status");
         Object active = (Helpers.isEqual(status, "TRADING"));
         Object filters = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object filtersByType = this.indexBy(filters, "filterType");
+        java.util.Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
         Object priceFilter = this.safeDict(filtersByType, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
         Object lotSizeFilter = this.safeDict(filtersByType, "LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
         Object minNotionalFilter = this.safeDict(filtersByType, "MIN_NOTIONAL", new java.util.HashMap<String, Object>() {{}});
@@ -1801,7 +1801,7 @@ public class ToobitCore extends ToobitApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
         {
             Object parsedTicker = this.parseBidAskCustom(Helpers.GetValue(tickers, i));
-            Object ticker = this.extend(parsedTicker, parameters);
+            java.util.Map<String, Object> ticker = this.extend(parsedTicker, parameters);
             ((java.util.List<Object>)results).add(ticker);
         }
         symbols = this.marketSymbols(symbols);
@@ -3748,7 +3748,7 @@ public class ToobitCore extends ToobitApi
             // Add timestamp to parameters for signed endpoints
             Helpers.addElementToObject(extraQuery, "recvWindow", this.safeString(this.options, "recvWindow", "5000"));
             Helpers.addElementToObject(extraQuery, "timestamp", String.valueOf(timestamp));
-            Object queryExtended = this.extend(query, extraQuery);
+            java.util.Map<String, Object> queryExtended = this.extend(query, extraQuery);
             Object queryString = "";
             if (Helpers.isTrue(Helpers.isTrue(isPost) || Helpers.isTrue(isDelete)))
             {

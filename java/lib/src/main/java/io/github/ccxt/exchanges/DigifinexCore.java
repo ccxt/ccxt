@@ -701,7 +701,7 @@ public class DigifinexCore extends DigifinexApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object groupedById = this.groupBy(data, "currency");
+            java.util.Map<String, Object> groupedById = this.groupBy(data, "currency");
             Object values = Helpers.objectValues(groupedById);
             return this.parseCurrencies(values);
         });
@@ -857,7 +857,7 @@ public class DigifinexCore extends DigifinexApi
             //
             Object spotData = this.safeValue(spotMarkets, "symbol_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object swapData = this.safeValue(swapMarkets, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object response = this.arrayConcat(spotData, swapData);
+            java.util.List<Object> response = (java.util.List<Object>) this.arrayConcat(spotData, swapData);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
             {
@@ -1376,7 +1376,7 @@ public class DigifinexCore extends DigifinexApi
             Object date = this.safeInteger(response, "date");
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
-                Object rawTicker = this.extend(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> rawTicker = this.extend(new java.util.HashMap<String, Object>() {{
                     put( "date", date );
                 }}, Helpers.GetValue(tickers, i));
                 Object ticker = this.parseTicker(rawTicker);
@@ -4339,7 +4339,7 @@ public class DigifinexCore extends DigifinexApi
                     put( "datetime", DigifinexCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 

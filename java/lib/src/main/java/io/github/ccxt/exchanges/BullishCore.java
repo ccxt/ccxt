@@ -1719,7 +1719,7 @@ public class BullishCore extends BullishApi
             //         }, ...
             //     ]
             //
-            Object ohlcvs = this.toArray(response);
+            java.util.List<Object> ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
 
@@ -1796,7 +1796,7 @@ public class BullishCore extends BullishApi
             //     ]
             //
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object result = this.toArray(response);
+            java.util.List<Object> result = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object entry = Helpers.GetValue(result, i);
@@ -1810,7 +1810,7 @@ public class BullishCore extends BullishApi
                     put( "datetime", datetime );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -2786,7 +2786,7 @@ public class BullishCore extends BullishApi
             if (Helpers.isTrue(Helpers.isEqual(tradingAccountId, null)))
             {
                 Object response = (this.privateGetV1AccountsTradingAccounts(parameters)).join();
-                Object accounts = this.toArray(response);
+                java.util.List<Object> accounts = this.toArray(response);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
                 {
                     Object account = Helpers.GetValue(accounts, i);
@@ -2949,7 +2949,7 @@ public class BullishCore extends BullishApi
             //         }
             //     ]
             //
-            Object safeResponse = this.toArray(response);
+            java.util.List<Object> safeResponse = this.toArray(response);
             Object length = Helpers.getArrayLength(safeResponse);
             Object data = this.safeDict(safeResponse, 0, new java.util.HashMap<String, Object>() {{}});
             Object network = null;

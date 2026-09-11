@@ -613,7 +613,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                 put( "id", requestId );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, subscriptionHash, null)).join();
         });
 
@@ -665,7 +665,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                 put( "id", requestId );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object ticker = (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -718,7 +718,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                 put( "id", requestId );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"))) );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -768,7 +768,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                 put( "id", requestId );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"))) );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -817,7 +817,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                 put( "id", requestId );
                 put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), PhemexCore.this.safeInteger(PhemexCore.this.timeframes, timeframe))) );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -1339,7 +1339,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         {
             Object closed = this.safeValue(message, "closed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object open = this.safeValue(message, "open", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object orders = this.arrayConcat(open, closed);
+            java.util.List<Object> orders = (java.util.List<Object>) this.arrayConcat(open, closed);
             Object ordersLength = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isEqual(ordersLength, 0)))
             {
@@ -1818,7 +1818,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                     put( "id", requestId );
                 }};
                 Object subscriptionHash = String.valueOf(requestId);
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
                 {
                     Helpers.addElementToObject(client.subscriptions, subscriptionHash, "handleAuthenticate");

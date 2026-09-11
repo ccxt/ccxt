@@ -618,7 +618,7 @@ public class MudrexCore extends MudrexApi
             while (Helpers.isEqual(paging, true))
             {
                 final Object finalOffset = offset;
-                Object q = this.extend(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> q = this.extend(new java.util.HashMap<String, Object>() {{
                     put( "limit", pageLimit );
                     put( "offset", finalOffset );
                 }}, parameters);
@@ -1003,7 +1003,7 @@ public class MudrexCore extends MudrexApi
             Object response = (this.privatePostFuturesAssetIdOrder(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", response);
             // the create response omits the order/trigger type, so parse a merged copy - the base derivations, like timeInForce, need to see them - then keep the untouched raw payload under info
-            Object merged = this.extend(data, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> merged = this.extend(data, new java.util.HashMap<String, Object>() {{
                 put( "order_type", Helpers.GetValue(request, "order_type") );
                 put( "trigger_type", Helpers.GetValue(request, "trigger_type") );
             }});
@@ -1265,7 +1265,7 @@ public class MudrexCore extends MudrexApi
             {
                 Helpers.addElementToObject(q, "limit", limit);
             }
-            Object request = this.extend(q, parameters);
+            java.util.Map<String, Object> request = this.extend(q, parameters);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(state, "closed")))
             {
@@ -1275,7 +1275,7 @@ public class MudrexCore extends MudrexApi
                 response = (this.privateGetFuturesOrders(request)).join();
             }
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rows = this.toArray(data);
+            java.util.List<Object> rows = this.toArray(data);
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1394,7 +1394,7 @@ public class MudrexCore extends MudrexApi
             {
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            Object rows = this.toArray(data);
+            java.util.List<Object> rows = this.toArray(data);
             Object outPos = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {

@@ -86,7 +86,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
                     put( "channel", channel );
                 }} );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -237,7 +237,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
                     put( "channel", channel );
                 }} );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {

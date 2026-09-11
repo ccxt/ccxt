@@ -2910,7 +2910,7 @@ public class HtxCore extends HtxApi
         {
             return Helpers.GetValue(futureMarketIdsForSymbols, symbolOrMarketId);
         }
-        Object futureMarkets = this.filterBy(this.markets, "future", true);
+        java.util.List<Object> futureMarkets = this.filterBy(this.markets, "future", true);
         Object futuresCharsMaps = new java.util.HashMap<String, Object>() {{
             put( "this_week", "CW" );
             put( "next_week", "NW" );
@@ -9067,7 +9067,7 @@ public class HtxCore extends HtxApi
                     }});
                 }
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -9459,7 +9459,7 @@ public class HtxCore extends HtxApi
                 {
                     request = this.extend(request, query);
                 }
-                Object sortedRequest = this.keysort(request);
+                java.util.Map<String, Object> sortedRequest = this.keysort(request);
                 Object auth = this.urlencode(sortedRequest, true); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(method, this.hostname, url, auth));
@@ -9564,7 +9564,7 @@ public class HtxCore extends HtxApi
                 request = this.keysort(request);
                 if (Helpers.isTrue(!Helpers.isEqual(method, "POST")))
                 {
-                    Object sortedQuery = this.keysort(query);
+                    java.util.Map<String, Object> sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
                 Object auth = Helpers.replace((String)this.urlencode(request, true), (String)"%2c", (String)"%2C"); // in c# it manually needs to be uppercased

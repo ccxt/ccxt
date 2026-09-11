@@ -1359,9 +1359,9 @@ public class PhemexCore extends PhemexApi
             Object riskLimitsV2 = this.safeList(v2ProductsData, "riskLimitsV2", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             riskLimits = this.arrayConcat(riskLimits, riskLimitsV2);
             Object currencies = this.safeList(v2ProductsData, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object riskLimitsById = this.indexBy(riskLimits, "symbol");
-            Object v1ProductsById = this.indexBy(v1ProductsData, "symbol");
-            Object currenciesByCode = this.indexBy(currencies, "currency");
+            java.util.Map<String, Object> riskLimitsById = this.indexBy(riskLimits, "symbol");
+            java.util.Map<String, Object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");
+            java.util.Map<String, Object> currenciesByCode = this.indexBy(currencies, "currency");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(products)); i++)
             {
@@ -6050,7 +6050,7 @@ final Object finalI = i;
                     put( "datetime", PhemexCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(result, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 

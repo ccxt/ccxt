@@ -1044,7 +1044,7 @@ public class OnetradingCore extends OnetradingApi
             //     ]
             //
             Object result = new java.util.HashMap<String, Object>() {{}};
-            Object rawTickers = this.toArray(response);
+            java.util.List<Object> rawTickers = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
             {
                 Object ticker = this.parseTicker(Helpers.GetValue(rawTickers, i));

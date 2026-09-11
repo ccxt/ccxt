@@ -317,7 +317,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         {
             Object ticker = this.safeDict(this.tickers, symbol, new java.util.HashMap<String, Object>() {{}});
             Object rawTicker = this.safeDict(ticker, "info", new java.util.HashMap<String, Object>() {{}});
-            Object merged = this.extend(rawTicker, data);
+            java.util.Map<String, Object> merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged, market);
         }
         Helpers.addElementToObject(this.tickers, symbol, parsed);

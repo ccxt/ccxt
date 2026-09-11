@@ -616,7 +616,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         {
             return message;
         }
-        Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeValue(subscriptionsById, id);
         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
         {
@@ -731,7 +731,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             {
                 return false;
             }
-            Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+            java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
             Object subscription = this.safeValue(subscriptionsById, id);
             if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
             {

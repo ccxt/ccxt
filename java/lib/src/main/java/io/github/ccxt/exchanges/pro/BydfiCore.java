@@ -1262,7 +1262,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         Object id = this.safeString(message, "id");
-        Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
         Object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
         if (Helpers.isTrue(Helpers.isEqual(isUnSubMessage, true)))

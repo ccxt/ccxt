@@ -110,7 +110,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         put( "name", "ACCOUNT_HISTORY" );
     }})) );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, subscribeHash, request)).join();
         });
 
@@ -341,7 +341,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         put( "name", "ACCOUNT_HISTORY" );
     }})) );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object trades = (this.watch(url, messageHash, request, subscribeHash, request)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -540,7 +540,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         put( "name", subscribeHash );
     }})) );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orders = (this.watch(url, messageHash, request, subscribeHash, request)).join();
             if (Helpers.isTrue(this.newUpdates))
             {

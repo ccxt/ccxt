@@ -381,8 +381,8 @@ public class BitflyerCore extends BitflyerApi
             //         { "product_code": "BTC_JPY", "market_type": "Spot" },
             //     ];
             //
-            Object markets = this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
-            markets = this.arrayConcat(markets, this.toArray(eu_markets));
+            java.util.List<Object> markets = (java.util.List<Object>) this.arrayConcat(this.toArray(jp_markets), this.toArray(us_markets));
+            markets = (java.util.List<Object>) this.arrayConcat(markets, this.toArray(eu_markets));
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
@@ -1105,7 +1105,7 @@ public class BitflyerCore extends BitflyerApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             Object orders = (this.fetchOrders(symbol)).join();
-            Object ordersById = this.indexBy(orders, "id");
+            java.util.Map<String, Object> ordersById = this.indexBy(orders, "id");
             if (Helpers.isTrue(Helpers.inOp(ordersById, id)))
             {
                 return Helpers.GetValue(ordersById, id);

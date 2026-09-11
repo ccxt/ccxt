@@ -1232,7 +1232,7 @@ public class BackpackCore extends BackpackApi
                 parameters = this.omit(parameters, "price");
             }
             Object response = (this.publicGetApiV1Klines(this.extend(request, parameters))).join();
-            Object ohlcvs = this.toArray(response);
+            java.util.List<Object> ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
 
@@ -1437,7 +1437,7 @@ public class BackpackCore extends BackpackApi
             //     ]
             //
             Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawRates = this.toArray(response);
+            java.util.List<Object> rawRates = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawRates)); i++)
             {
                 Object rate = Helpers.GetValue(rawRates, i);
@@ -1451,7 +1451,7 @@ public class BackpackCore extends BackpackApi
                     put( "datetime", datetime );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -1499,7 +1499,7 @@ public class BackpackCore extends BackpackApi
             {
                 response = (this.publicGetApiV1Trades(this.extend(request, parameters))).join();
             }
-            Object responseList = this.toArray(response);
+            java.util.List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
         });
 
@@ -1558,7 +1558,7 @@ public class BackpackCore extends BackpackApi
                 Helpers.addElementToObject(request, "fillType", "User"); // default
             }
             Object response = (this.privateGetWapiV1HistoryFills(this.extend(request, parameters))).join();
-            Object responseList = this.toArray(response);
+            java.util.List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
         });
 
@@ -2201,7 +2201,7 @@ public class BackpackCore extends BackpackApi
                 Object amount = this.safeNumber(rawOrder, "amount");
                 Object price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                Object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+                java.util.Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 Object orderRequest = this.createOrderRequest(marketId, type, side, amount, price, extendedParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
@@ -2960,7 +2960,7 @@ public class BackpackCore extends BackpackApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parameters)); i++)
         {
             Object order = this.safeDict(parameters, i, new java.util.HashMap<String, Object>() {{}});
-            Object sortedOrder = this.keysort(order);
+            java.util.Map<String, Object> sortedOrder = this.keysort(order);
             Object orderQuery = this.urlencode(sortedOrder);
             payload = Helpers.add(payload, Helpers.add(Helpers.add(Helpers.add(Helpers.add("instruction=", instruction), "&"), orderQuery), "&"));
             if (Helpers.isTrue(Helpers.isEqual(i, (Helpers.subtract(Helpers.getArrayLength(parameters), 1)))))

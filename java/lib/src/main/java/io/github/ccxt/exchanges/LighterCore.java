@@ -1581,7 +1581,7 @@ public class LighterCore extends LighterApi
             //
             Object spotMarkets = this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object swapMarkets = this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object markets = this.arrayConcat(spotMarkets, swapMarkets);
+            java.util.List<Object> markets = (java.util.List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
@@ -1999,7 +1999,7 @@ public class LighterCore extends LighterApi
             //
             Object spotTickers = this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object swapTickers = this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object tickers = this.arrayConcat(spotTickers, swapTickers);
+            java.util.List<Object> tickers = (java.util.List<Object>) this.arrayConcat(spotTickers, swapTickers);
             Object first = this.safeDict(tickers, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         });
@@ -2030,7 +2030,7 @@ public class LighterCore extends LighterApi
             Object response = (this.publicGetOrderBookDetails(parameters)).join();
             Object spotTickers = this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object swapTickers = this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object tickers = this.arrayConcat(spotTickers, swapTickers);
+            java.util.List<Object> tickers = (java.util.List<Object>) this.arrayConcat(spotTickers, swapTickers);
             return this.parseTickers(tickers, symbols);
         });
 

@@ -82,7 +82,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
                 put( "action", "subscribe" );
                 put( "channel", "balances" );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
         });
 
@@ -524,7 +524,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
                 put( "channel", "trading" );
             }};
             Object messageHash = "orders";
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -766,7 +766,7 @@ final Object finalTradeId = tradeId;
                 put( "channel", type );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });

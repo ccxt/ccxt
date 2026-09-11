@@ -1721,7 +1721,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
                 Object orderParams = this.safeValue(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                Object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+                java.util.Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
                 if (!Helpers.isTrue((Helpers.inOp(extendedParams, "order_tag"))))
                 {
                     // order tag is mandatory so we will generate one if not provided
@@ -3623,7 +3623,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                     put( "datetime", datetime );
                 }});
             }
-            Object sorted = this.sortBy(result, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 

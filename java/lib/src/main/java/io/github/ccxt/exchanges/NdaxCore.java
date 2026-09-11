@@ -2697,7 +2697,7 @@ public class NdaxCore extends NdaxApi
             //         },
             //     ]
             //
-            Object grouped = this.groupBy(response, "ChangeReason");
+            java.util.Map<String, Object> grouped = this.groupBy(response, "ChangeReason");
             Object trades = this.safeList(grouped, "Trade", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         });

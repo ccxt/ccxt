@@ -102,7 +102,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             Object subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object request = this.extend(subscribe, message);
+            java.util.Map<String, Object> request = this.extend(subscribe, message);
             return (this.watch(url, messageHash, request, messageHash, subscribe)).join();
         });
 
@@ -754,7 +754,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
                         put( "timestamp", ts );
                     }} );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
@@ -774,7 +774,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             Object subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object request = this.extend(subscribe, message);
+            java.util.Map<String, Object> request = this.extend(subscribe, message);
             return (this.watch(url, messageHash, request, messageHash, subscribe)).join();
         });
 
@@ -792,7 +792,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
             Object subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object request = this.extend(subscribe, message);
+            java.util.Map<String, Object> request = this.extend(subscribe, message);
             return (this.watchMultiple(url, messageHashes, request, messageHashes, subscribe)).join();
         });
 

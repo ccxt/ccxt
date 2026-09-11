@@ -937,7 +937,7 @@ public class BtcturkCore extends BtcturkApi
             }};
             ((java.util.List<Object>)results).add(this.parseOHLCV(ohlcv, market));
         }
-        Object sorted = this.sortBy(results, 0);
+        java.util.List<Object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
 

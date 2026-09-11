@@ -997,7 +997,7 @@ public class CoinsphCore extends CoinsphApi
                 String quoteId = this.safeString(market, "quoteAsset");
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
-                Object limits = this.indexBy(this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList())), "filterType");
+                java.util.Map<String, Object> limits = this.indexBy(this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList())), "filterType");
                 Object amountLimits = this.safeValue(limits, "LOT_SIZE", new java.util.HashMap<String, Object>() {{}});
                 Object priceLimits = this.safeValue(limits, "PRICE_FILTER", new java.util.HashMap<String, Object>() {{}});
                 Object costLimits = this.safeValue(limits, "NOTIONAL", new java.util.HashMap<String, Object>() {{}});
@@ -1368,7 +1368,7 @@ public class CoinsphCore extends CoinsphApi
             //         ]
             //     ]
             //
-            Object ohlcvs = this.toArray(response);
+            java.util.List<Object> ohlcvs = this.toArray(response);
             return this.parseOHLCVs(ohlcvs, market, timeframe, since, limit);
         });
 
@@ -2299,7 +2299,7 @@ public class CoinsphCore extends CoinsphApi
             //     ]
             //
             Object result = new java.util.HashMap<String, Object>() {{}};
-            Object fees = this.toArray(response);
+            java.util.List<Object> fees = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
             {
                 Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));

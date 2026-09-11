@@ -2534,7 +2534,7 @@ public class ParadexCore extends ParadexApi
                 Object amount = this.safeNumber(rawOrder, "amount");
                 Object price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-                Object extendedParams = this.extend(parameters, orderParams);
+                java.util.Map<String, Object> extendedParams = this.extend(parameters, orderParams);
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
                 orderRequest = (this.signOrderRequest(orderRequest)).join();
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
@@ -4331,7 +4331,7 @@ public class ParadexCore extends ParadexApi
                     put( "datetime", datetime );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 

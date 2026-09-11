@@ -2748,7 +2748,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                     Helpers.addElementToObject(client.subscriptions, tempSubscriptionHash, messageHash);
                 }
             }
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, subscription)).join();
         });
 
@@ -2769,7 +2769,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 put( "event", "subscribe" );
                 put( "payload", payload );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
         });
 
@@ -2798,7 +2798,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 put( "subMessageHashes", subMessageHashes );
                 put( "symbols", symbols );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, sub)).join();
         });
 
@@ -2929,7 +2929,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 // in case of authenticationError we will throw
                 Helpers.addElementToObject(client.subscriptions, tempSubscriptionHash, messageHash);
             }
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, messageHash)).join();
         });
 

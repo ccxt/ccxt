@@ -386,7 +386,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 Helpers.addElementToObject(this.tickers, symbol, this.parseTicker(new java.util.HashMap<String, Object>() {{}}));
             }
             Object updatedTicker = this.parseTicker(update);
-            Object fullParsedTicker = this.deepExtend(Helpers.GetValue(this.tickers, symbol), updatedTicker);
+            java.util.Map<String, Object> fullParsedTicker = this.deepExtend(Helpers.GetValue(this.tickers, symbol), updatedTicker);
             Helpers.addElementToObject(tickers, symbol, fullParsedTicker);
             Helpers.addElementToObject(this.tickers, symbol, fullParsedTicker);
             Object messageHash = Helpers.add("ticker:", symbol);
@@ -519,7 +519,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             ((java.util.List<Object>)newLiquidations).add(liquidation);
         }
         client.resolve(newLiquidations, "liquidations");
-        Object liquidationsBySymbol = this.indexBy(newLiquidations, "symbol");
+        java.util.Map<String, Object> liquidationsBySymbol = this.indexBy(newLiquidations, "symbol");
         Object symbols = Helpers.objectKeys(liquidationsBySymbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
@@ -728,7 +728,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         //
         Object table = "trade";
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object dataByMarketIds = this.groupBy(data, "symbol");
+        java.util.Map<String, Object> dataByMarketIds = this.groupBy(data, "symbol");
         Object marketIds = Helpers.objectKeys(dataByMarketIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
@@ -797,7 +797,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                     put( "op", "authKeyExpires" );
                     put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(BitmexCore.this.apiKey, timestamp, signature)) );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
@@ -1419,7 +1419,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         //
         Object messageHash = this.safeString(message, "table");
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object dataByExecType = this.groupBy(data, "execType");
+        java.util.Map<String, Object> dataByExecType = this.groupBy(data, "execType");
         Object rawTrades = this.safeValue(dataByExecType, "Trade", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> trades = this.parseTrades(rawTrades);
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))

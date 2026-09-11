@@ -862,7 +862,7 @@ public class BtcboxCore extends BtcboxApi
                 symbol = "BTC/JPY";
             }
             Object market = this.market(symbol);
-            Object request = this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "coin", Helpers.GetValue(market, "baseId") );
             }}, parameters);
@@ -1012,7 +1012,7 @@ public class BtcboxCore extends BtcboxApi
         {
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
-            Object query = this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> query = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "key", BtcboxCore.this.apiKey );
                 put( "nonce", nonce );
             }}, parameters);

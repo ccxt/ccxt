@@ -1237,7 +1237,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
                     put( "authPayload", payload );
                     put( "event", eventVar );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();

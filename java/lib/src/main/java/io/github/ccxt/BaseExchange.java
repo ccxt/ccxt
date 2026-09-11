@@ -5162,7 +5162,7 @@ public Object describe()
     public Object parseCurrencies(Object rawCurrencies)
     {
         Object result = new java.util.HashMap<String, Object>() {{}};
-        Object arr = this.toArray(rawCurrencies);
+        java.util.List<Object> arr = this.toArray(rawCurrencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
             Object parsed = this.parseCurrency(Helpers.GetValue(arr, i));
@@ -6299,7 +6299,7 @@ public Object describe()
         this.markets_by_id = this.createSafeDictionary();
         // handle marketId conflicts
         // we insert spot markets first
-        Object marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
+        java.util.List<Object> marketValues = this.sortBy(this.toArray(markets), "spot", true, true);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)
         {
             Object value = Helpers.GetValue(marketValues, i);
@@ -6342,8 +6342,8 @@ public Object describe()
             ((java.util.List<Object>)values).add(market);
         }
         this.markets = this.mapToSafeMap(this.indexBy(values, "symbol"));
-        Object marketsSortedBySymbol = this.keysort(this.markets);
-        Object marketsSortedById = this.keysort(this.markets_by_id);
+        java.util.Map<String, Object> marketsSortedBySymbol = this.keysort(this.markets);
+        java.util.Map<String, Object> marketsSortedById = this.keysort(this.markets_by_id);
         this.symbols = Helpers.objectKeys(marketsSortedBySymbol);
         this.ids = Helpers.objectKeys(marketsSortedById);
         Object numCurrencies = 0;
@@ -6390,8 +6390,8 @@ public Object describe()
             quoteCurrencies = this.sortBy(quoteCurrencies, "code", false, "");
             this.baseCurrencies = this.mapToSafeMap(this.indexBy(baseCurrencies, "code"));
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
-            Object allCurrencies = this.arrayConcat(baseCurrencies, quoteCurrencies);
-            Object groupedCurrencies = this.groupBy(allCurrencies, "code");
+            java.util.List<Object> allCurrencies = (java.util.List<Object>) this.arrayConcat(baseCurrencies, quoteCurrencies);
+            java.util.Map<String, Object> groupedCurrencies = this.groupBy(allCurrencies, "code");
             Object codes = Helpers.objectKeys(groupedCurrencies);
             Object resultingCurrencies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
@@ -6412,11 +6412,11 @@ public Object describe()
                 }
                 ((java.util.List<Object>)resultingCurrencies).add(highestPrecisionCurrency);
             }
-            Object sortedCurrencies = this.sortBy(resultingCurrencies, "code");
+            java.util.List<Object> sortedCurrencies = this.sortBy(resultingCurrencies, "code");
             this.currencies = this.mapToSafeMap(this.deepExtend(this.currencies, this.indexBy(sortedCurrencies, "code")));
         }
         this.currencies_by_id = this.indexBySafe(this.currencies, "id");
-        Object currenciesSortedByCode = this.keysort(this.currencies);
+        java.util.Map<String, Object> currenciesSortedByCode = this.keysort(this.currencies);
         this.codes = Helpers.objectKeys(currenciesSortedByCode);
         if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
         {
@@ -6462,8 +6462,8 @@ public Object describe()
 
     public Object getDescribeForExtendedWsExchange(Object currentRestInstance, Object parentRestInstance, Object wsBaseDescribe)
     {
-        Object extendedRestDescribe = this.deepExtend(((BaseExchange)parentRestInstance).describe(), ((BaseExchange)currentRestInstance).describe());
-        Object superWithRestDescribe = this.deepExtend(extendedRestDescribe, wsBaseDescribe);
+        java.util.Map<String, Object> extendedRestDescribe = this.deepExtend(((BaseExchange)parentRestInstance).describe(), ((BaseExchange)currentRestInstance).describe());
+        java.util.Map<String, Object> superWithRestDescribe = this.deepExtend(extendedRestDescribe, wsBaseDescribe);
         return superWithRestDescribe;
     }
 
@@ -6674,7 +6674,7 @@ public Object describe()
             if (Helpers.isTrue(!Helpers.isTrue(parseFee) && Helpers.isTrue((Helpers.isEqual(reducedLength, 0)))))
             {
                 // copy fee to avoid modification by reference
-                Object feeCopy = this.deepExtend(fee);
+                java.util.Map<String, Object> feeCopy = this.deepExtend(fee);
                 Helpers.addElementToObject(feeCopy, "cost", this.safeNumber(feeCopy, "cost"));
                 if (Helpers.isTrue(Helpers.inOp(feeCopy, "rate")))
                 {
@@ -6906,7 +6906,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object parsed = this.parseOrder(Helpers.GetValue(orders, i), market); // don't inline this call
-                Object order = this.extend(parsed, parameters);
+                java.util.Map<String, Object> order = this.extend(parsed, parameters);
                 ((java.util.List<Object>)results).add(order);
             }
         } else
@@ -6915,11 +6915,11 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
-                Object idExtended = this.extend(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> idExtended = this.extend(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                 }}, Helpers.GetValue(orders, id));
                 Object parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
-                Object order = this.extend(parsedOrder, parameters);
+                java.util.Map<String, Object> order = this.extend(parsedOrder, parameters);
                 ((java.util.List<Object>)results).add(order);
             }
         }
@@ -7195,7 +7195,7 @@ public Object describe()
             {
                 continue;
             }
-            Object itemWithKey = this.extend(new java.util.HashMap<String, Object>() {{}}, item);
+            java.util.Map<String, Object> itemWithKey = this.extend(new java.util.HashMap<String, Object>() {{}}, item);
             Helpers.addElementToObject(itemWithKey, keyName, key);
             ((java.util.List<Object>)result).add(itemWithKey);
         }
@@ -8257,7 +8257,7 @@ public Object describe()
         {
             ((java.util.List<Object>)results).add(this.parseOHLCV(Helpers.GetValue(ohlcvs, i), market));
         }
-        Object sorted = this.sortBy(results, 0);
+        java.util.List<Object> sorted = this.sortBy(results, 0);
         return this.filterBySinceLimit(sorted, since, limit, 0, tail);
     }
 
@@ -8375,11 +8375,11 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         symbols = this.marketSymbols(symbols);
-        Object positionsArray = this.toArray(positions);
+        java.util.List<Object> positionsArray = this.toArray(positions);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positionsArray)); i++)
         {
-            Object position = this.extend(this.parsePosition(Helpers.GetValue(positionsArray, i)), parameters);
+            java.util.Map<String, Object> position = this.extend(this.parsePosition(Helpers.GetValue(positionsArray, i)), parameters);
             ((java.util.List<Object>)result).add(position);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -8400,11 +8400,11 @@ public Object describe()
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         symbols = this.marketSymbols(symbols);
-        Object ranksArray = this.toArray(ranks);
+        java.util.List<Object> ranksArray = this.toArray(ranks);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ranksArray)); i++)
         {
-            Object rank = this.extend(this.parseADLRank(Helpers.GetValue(ranksArray, i)), parameters);
+            java.util.Map<String, Object> rank = this.extend(this.parseADLRank(Helpers.GetValue(ranksArray, i)), parameters);
             ((java.util.List<Object>)result).add(rank);
         }
         return this.filterByArrayPositions(result, "symbol", symbols, false);
@@ -8413,11 +8413,11 @@ public Object describe()
     public Object parseAccounts(Object accounts, Object... optionalArgs)
     {
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-        Object accountsArray = this.toArray(accounts);
+        java.util.List<Object> accountsArray = this.toArray(accounts);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accountsArray)); i++)
         {
-            Object account = this.extend(this.parseAccount(Helpers.GetValue(accountsArray, i)), parameters);
+            java.util.Map<String, Object> account = this.extend(this.parseAccount(Helpers.GetValue(accountsArray, i)), parameters);
             ((java.util.List<Object>)result).add(account);
         }
         return result;
@@ -8429,7 +8429,7 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object tradesArray = this.toArray(trades);
+        java.util.List<Object> tradesArray = this.toArray(trades);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tradesArray)); i++)
         {
@@ -8441,7 +8441,7 @@ public Object describe()
             {
                 parsed = this.parseTrade(Helpers.GetValue(tradesArray, i), market);
             }
-            Object trade = this.extend(parsed, parameters);
+            java.util.Map<String, Object> trade = this.extend(parsed, parameters);
             ((java.util.List<Object>)result).add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
@@ -8473,11 +8473,11 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object transactionsArray = this.toArray(transactions);
+        java.util.List<Object> transactionsArray = this.toArray(transactions);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactionsArray)); i++)
         {
-            Object transaction = this.extend(this.parseTransaction(Helpers.GetValue(transactionsArray, i), currency), parameters);
+            java.util.Map<String, Object> transaction = this.extend(this.parseTransaction(Helpers.GetValue(transactionsArray, i), currency), parameters);
             ((java.util.List<Object>)result).add(transaction);
         }
         result = this.sortBy(result, "timestamp");
@@ -8491,11 +8491,11 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object transfersArray = this.toArray(transfers);
+        java.util.List<Object> transfersArray = this.toArray(transfers);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transfersArray)); i++)
         {
-            Object transfer = this.extend(this.parseTransfer(Helpers.GetValue(transfersArray, i), currency), parameters);
+            java.util.Map<String, Object> transfer = this.extend(this.parseTransfer(Helpers.GetValue(transfersArray, i), currency), parameters);
             ((java.util.List<Object>)result).add(transfer);
         }
         result = this.sortBy(result, "timestamp");
@@ -8510,7 +8510,7 @@ public Object describe()
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object arrayData = this.toArray(data);
+        java.util.List<Object> arrayData = this.toArray(data);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arrayData)); i++)
         {
             Object itemOrItems = this.parseLedgerEntry(Helpers.GetValue(arrayData, i), currency);
@@ -10704,7 +10704,7 @@ public Object describe()
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pricesData)); i++)
             {
-                Object priceData = this.extend(this.parseLastPrice(Helpers.GetValue(pricesData, i)), parameters);
+                java.util.Map<String, Object> priceData = this.extend(this.parseLastPrice(Helpers.GetValue(pricesData, i)), parameters);
                 ((java.util.List<Object>)results).add(priceData);
             }
         } else
@@ -10714,7 +10714,7 @@ public Object describe()
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object market = this.safeMarket(marketId);
-                Object priceData = this.extend(this.parseLastPrice(Helpers.GetValue(pricesData, marketId), market), parameters);
+                java.util.Map<String, Object> priceData = this.extend(this.parseLastPrice(Helpers.GetValue(pricesData, marketId), market), parameters);
                 ((java.util.List<Object>)results).add(priceData);
             }
         }
@@ -10754,7 +10754,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 Object parsedTicker = this.parseTicker(Helpers.GetValue(tickers, i));
-                Object ticker = this.extend(parsedTicker, parameters);
+                java.util.Map<String, Object> ticker = this.extend(parsedTicker, parameters);
                 ((java.util.List<Object>)results).add(ticker);
             }
         } else
@@ -10765,7 +10765,7 @@ public Object describe()
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object market = this.safeMarket(marketId);
                 Object parsed = this.parseTicker(Helpers.GetValue(tickers, marketId), market);
-                Object ticker = this.extend(parsed, parameters);
+                java.util.Map<String, Object> ticker = this.extend(parsed, parameters);
                 ((java.util.List<Object>)results).add(ticker);
             }
         }
@@ -10781,7 +10781,7 @@ public Object describe()
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(addresses)); i++)
         {
-            Object address = this.extend(this.parseDepositAddress(Helpers.GetValue(addresses, i)), parameters);
+            java.util.Map<String, Object> address = this.extend(this.parseDepositAddress(Helpers.GetValue(addresses, i)), parameters);
             ((java.util.List<Object>)result).add(address);
         }
         if (Helpers.isTrue(!Helpers.isEqual(codes, null)))
@@ -10822,7 +10822,7 @@ public Object describe()
             Object borrowRate = this.parseBorrowRate(item);
             ((java.util.List<Object>)result).add(borrowRate);
         }
-        Object sorted = this.sortBy(result, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterByCurrencySinceLimit(sorted, code, since, limit);
     }
 
@@ -10850,7 +10850,7 @@ public Object describe()
             Object entry = Helpers.GetValue(response, i);
             ((java.util.List<Object>)rates).add(this.parseFundingRateHistory(entry, market));
         }
-        Object sorted = this.sortBy(rates, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
@@ -10903,7 +10903,7 @@ public Object describe()
             Object entry = Helpers.GetValue(response, i);
             ((java.util.List<Object>)rates).add(this.parseLongShortRatio(entry, market));
         }
-        Object sorted = this.sortBy(rates, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
@@ -11162,7 +11162,7 @@ public Object describe()
             Object interest = this.parseOpenInterest(entry, market);
             ((java.util.List<Object>)interests).add(interest);
         }
-        Object sorted = this.sortBy(interests, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(interests, "timestamp");
         String symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
@@ -11545,7 +11545,7 @@ public Object describe()
             Object parsed = this.parseIncome(entry, market);
             ((java.util.List<Object>)result).add(parsed);
         }
-        Object sorted = this.sortBy(result, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
         String symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
@@ -11812,7 +11812,7 @@ public Object describe()
                 uniqueResults = this.removeRepeatedElementsFromArray(result);
             }
             Object key = ((Helpers.isTrue((Helpers.isEqual(method, "fetchOHLCV"))))) ? 0 : "timestamp";
-            Object sortedRes = this.sortBy(uniqueResults, key);
+            java.util.List<Object> sortedRes = this.sortBy(uniqueResults, key);
             return this.filterBySinceLimit(sortedRes, since, limit, key);
         });
 
@@ -12284,7 +12284,7 @@ public Object describe()
             Object parsed = this.parseLiquidation(entry, market);
             ((java.util.List<Object>)result).add(parsed);
         }
-        Object sorted = this.sortBy(result, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
         String symbol = this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
@@ -12308,7 +12308,7 @@ public Object describe()
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(greeks)); i++)
             {
                 Object parsedTicker = this.parseGreeks(Helpers.GetValue(greeks, i));
-                Object greek = this.extend(parsedTicker, parameters);
+                java.util.Map<String, Object> greek = this.extend(parsedTicker, parameters);
                 ((java.util.List<Object>)results).add(greek);
             }
         } else
@@ -12319,7 +12319,7 @@ public Object describe()
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object market = this.safeMarket(marketId);
                 Object parsed = this.parseGreeks(Helpers.GetValue(greeks, marketId), market);
-                Object greek = this.extend(parsed, parameters);
+                java.util.Map<String, Object> greek = this.extend(parsed, parameters);
                 ((java.util.List<Object>)results).add(greek);
             }
         }
@@ -12417,7 +12417,7 @@ public Object describe()
         Object since = Helpers.getArg(optionalArgs, 3, null);
         Object limit = Helpers.getArg(optionalArgs, 4, null);
         Object parameters = Helpers.getArg(optionalArgs, 5, new java.util.HashMap<String, Object>() {{}});
-        Object conversionsArray = this.toArray(conversions);
+        java.util.List<Object> conversionsArray = this.toArray(conversions);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object fromCurrency = null;
         Object toCurrency = null;
@@ -12434,10 +12434,10 @@ public Object describe()
             {
                 toCurrency = this.safeCurrency(toId);
             }
-            Object conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), parameters);
+            java.util.Map<String, Object> conversion = this.extend(this.parseConversion(entry, fromCurrency, toCurrency), parameters);
             ((java.util.List<Object>)result).add(conversion);
         }
-        Object sorted = this.sortBy(result, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
         Object currency = null;
         if (Helpers.isTrue(!Helpers.isEqual(code, null)))
         {
@@ -12452,9 +12452,9 @@ public Object describe()
         {
             return this.filterBySinceLimit(sorted, since, limit);
         }
-        Object fromConversion = this.filterBy(sorted, "fromCurrency", code);
-        Object toConversion = this.filterBy(sorted, "toCurrency", code);
-        Object both = this.arrayConcat(fromConversion, toConversion);
+        java.util.List<Object> fromConversion = this.filterBy(sorted, "fromCurrency", code);
+        java.util.List<Object> toConversion = this.filterBy(sorted, "toCurrency", code);
+        java.util.List<Object> both = (java.util.List<Object>) this.arrayConcat(fromConversion, toConversion);
         return this.filterBySinceLimit(both, since, limit);
     }
 

@@ -168,7 +168,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 put( "id", HitbtcCore.this.nonce() );
                 put( "ch", name );
             }};
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         });
 
@@ -793,11 +793,11 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object tradesArray = this.toArray(trades);
+        java.util.List<Object> tradesArray = this.toArray(trades);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tradesArray)); i++)
         {
-            Object trade = this.extend(this.parseWsTrade(Helpers.GetValue(tradesArray, i), market), parameters);
+            java.util.Map<String, Object> trade = this.extend(this.parseWsTrade(Helpers.GetValue(tradesArray, i), market), parameters);
             ((java.util.List<Object>)result).add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");

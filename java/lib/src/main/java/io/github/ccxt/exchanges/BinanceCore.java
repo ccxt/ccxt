@@ -5370,7 +5370,7 @@ public class BinanceCore extends BinanceApi
         String settle = (String) this.safeCurrencyCode(settleId);
         Object spot = !Helpers.isTrue(contract);
         Object filters = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object filtersByType = this.indexBy(filters, "filterType");
+        java.util.Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
         String status = this.safeString2(market, "status", "contractStatus");
         Object contractSize = null;
         Object fees = this.fees;
@@ -10730,7 +10730,7 @@ public class BinanceCore extends BinanceApi
                 Helpers.addElementToObject(parameters, "orderStatus", "FILLED");
             }
             Object orders = (this.fetchOrders(symbol, since, null, parameters)).join();
-            Object filteredOrders = this.filterBy(orders, "status", "closed");
+            java.util.List<Object> filteredOrders = this.filterBy(orders, "status", "closed");
             return this.filterBySinceLimit(filteredOrders, since, limit);
         });
 
@@ -10788,7 +10788,7 @@ public class BinanceCore extends BinanceApi
                 Helpers.addElementToObject(parameters, "orderStatus", "CANCELED");
             }
             Object orders = (this.fetchOrders(symbol, since, null, parameters)).join();
-            Object filteredOrders = this.filterBy(orders, "status", "canceled");
+            java.util.List<Object> filteredOrders = this.filterBy(orders, "status", "canceled");
             return this.filterBySinceLimit(filteredOrders, since, limit);
         });
 
@@ -10846,10 +10846,10 @@ public class BinanceCore extends BinanceApi
                 Helpers.addElementToObject(parameters, "orderStatus", "FILLED,CANCELED");
             }
             Object orders = (this.fetchOrders(symbol, since, null, parameters)).join();
-            Object canceledOrders = this.filterBy(orders, "status", "canceled");
-            Object closedOrders = this.filterBy(orders, "status", "closed");
-            Object filteredOrders = this.arrayConcat(canceledOrders, closedOrders);
-            Object sortedOrders = this.sortBy(filteredOrders, "timestamp");
+            java.util.List<Object> canceledOrders = this.filterBy(orders, "status", "canceled");
+            java.util.List<Object> closedOrders = this.filterBy(orders, "status", "closed");
+            java.util.List<Object> filteredOrders = (java.util.List<Object>) this.arrayConcat(canceledOrders, closedOrders);
+            java.util.List<Object> sortedOrders = this.sortBy(filteredOrders, "timestamp");
             return this.filterBySinceLimit(sortedOrders, since, limit);
         });
 
@@ -12802,7 +12802,7 @@ public class BinanceCore extends BinanceApi
             //  ]
             //
             Object withdrawFees = new java.util.HashMap<String, Object>() {{}};
-            Object coins = this.toArray(response);
+            java.util.List<Object> coins = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(coins)); i++)
             {
                 Object entry = Helpers.GetValue(coins, i);
@@ -13272,7 +13272,7 @@ public class BinanceCore extends BinanceApi
                 {
                     throw new NullResponse((String)Helpers.add(this.id, " method() returned empty response")) ;
                 }
-                Object fees = this.toArray(response);
+                java.util.List<Object> fees = this.toArray(response);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
                 {
                     Object fee = this.parseTradingFee(Helpers.GetValue(fees, i));
@@ -14364,7 +14364,7 @@ public class BinanceCore extends BinanceApi
                 {
                     throw new NullResponse((String)Helpers.add(this.id, " loadLeverageBrackets() returned empty response")) ;
                 }
-                Object entries = this.toArray(response);
+                java.util.List<Object> entries = this.toArray(response);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entries)); i++)
                 {
                     Object entry = Helpers.GetValue(entries, i);
@@ -14659,7 +14659,7 @@ final Object finalMarket = market;
             //     ]
             //
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object positions = this.toArray(response);
+            java.util.List<Object> positions = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 ((java.util.List<Object>)result).add(this.parseOptionPosition(Helpers.GetValue(positions, i), market));
@@ -15051,7 +15051,7 @@ final Object finalMarket = market;
             {
                 throw new NullResponse((String)Helpers.add(this.id, " method() returned empty response")) ;
             }
-            Object positions = this.toArray(response);
+            java.util.List<Object> positions = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object rawPosition = Helpers.GetValue(positions, i);
@@ -15594,7 +15594,7 @@ final Object finalMarket = market;
             //     ]
             //
             Object settlements = this.parseSettlements(response, market);
-            Object sorted = this.sortBy(settlements, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -15669,7 +15669,7 @@ final Object finalMarket = market;
             //     ]
             //
             Object settlements = this.parseSettlements(response, market);
-            Object sorted = this.sortBy(settlements, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -18432,7 +18432,7 @@ final Object finalMarket = market;
             //     ]
             //
             Object result = new java.util.HashMap<String, Object>() {{}};
-            Object assets = this.toArray(response);
+            java.util.List<Object> assets = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(assets)); i++)
             {
                 Object entry = Helpers.GetValue(assets, i);

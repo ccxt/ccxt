@@ -201,7 +201,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 put( "topic", finalSubscriptionHash );
                 put( "response", true );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Client client = this.client(url);
             if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, subscriptionHash))))
             {
@@ -237,7 +237,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 put( "tradeType", tradeType );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object url = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), urlType);
             Client client = this.client(url);
             if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
@@ -276,7 +276,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 Object market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object url = (this.getUtaUrl()).join();
             Client client = this.client(url);
             if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, subscribeHash))))
@@ -372,7 +372,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 put( "topic", topic );
                 put( "response", true );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Client client = this.client(url);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subscriptionHashes)); i++)
             {
@@ -401,7 +401,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 put( "topic", topic );
                 put( "response", true );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
             {
                 Helpers.addElementToObject(subscription, requestId, requestId);
@@ -659,7 +659,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 put( "tradeType", tradeType );
                 put( "symbols", KucoinCore.this.marketIds(symbols) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object url = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), urlType);
             Client client = this.client(url);
             Object messageHashWithSymbols = Helpers.add(Helpers.add(channel, ":"), String.join((String)",", (java.util.List<String>)symbols));
@@ -1001,7 +1001,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 put( "topic", Helpers.add(finalChannelName, joined) );
                 put( "response", true );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
         });
 
@@ -3126,7 +3126,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                     put( "response", true );
                     put( "privateChannel", true );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, subscriptionHash))))
                 {
                     Helpers.addElementToObject(client.subscriptions, requestId, subscriptionHash);
@@ -3667,7 +3667,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 ((java.util.Map<String,Object>)newPosition).remove((String)key);
             }
         }
-        Object position = this.extend(currentPosition, newPosition);
+        java.util.Map<String, Object> position = this.extend(currentPosition, newPosition);
         Helpers.callDynamically(cache, "append", new Object[]{position});
         client.resolve(position, messageHash);
     }
@@ -3718,7 +3718,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
                 ((java.util.Map<String,Object>)newPosition).remove((String)key);
             }
         }
-        Object position = this.extend(currentPosition, newPosition);
+        java.util.Map<String, Object> position = this.extend(currentPosition, newPosition);
         Helpers.callDynamically(cache, "append", new Object[]{position});
         Object messageHash = "positions";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);

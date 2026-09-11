@@ -366,7 +366,7 @@ public class MercadoCore extends MercadoApi
             //
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object amountLimits = this.safeValue(this.options, "limits", new java.util.HashMap<String, Object>() {{}});
-            Object coins = this.toArray(response);
+            java.util.List<Object> coins = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(coins)); i++)
             {
                 Object coin = Helpers.GetValue(coins, i);

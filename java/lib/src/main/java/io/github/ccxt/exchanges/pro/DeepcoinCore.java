@@ -1492,7 +1492,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object action = this.safeString(data, "A"); // 1 = subscribe, 0 = unsubscribe
         if (Helpers.isTrue(Helpers.isEqual(action, "0")))
         {
-            Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+            java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
             Object subId = this.safeInteger(data, "L");
             Object subscription = this.safeDict(subscriptionsById, subId, new java.util.HashMap<String, Object>() {{}}); // original watch subscription
             Object subHash = this.safeString(subscription, "subHash");
@@ -1534,7 +1534,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object requestId = this.safeInteger(data, "L");
-        Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeDict(subscriptionsById, requestId, new java.util.HashMap<String, Object>() {{}});
         Object messageHash = this.safeString(subscription, "subHash");
         Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(message));

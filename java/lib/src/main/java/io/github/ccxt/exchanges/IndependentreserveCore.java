@@ -447,8 +447,8 @@ public class IndependentreserveCore extends IndependentreserveApi
             //     }
             //
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object baseCurrencyIds = this.toArray(baseCurrencies);
-            Object quoteCurrencyIds = this.toArray(quoteCurrencies);
+            java.util.List<Object> baseCurrencyIds = this.toArray(baseCurrencies);
+            java.util.List<Object> quoteCurrencyIds = this.toArray(quoteCurrencies);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(baseCurrencyIds)); i++)
             {
                 Object baseId = Helpers.GetValue(baseCurrencyIds, i);
@@ -1120,7 +1120,7 @@ public class IndependentreserveCore extends IndependentreserveApi
             //     ]
             //
             Object fees = new java.util.HashMap<String, Object>() {{}};
-            Object rows = this.toArray(response);
+            java.util.List<Object> rows = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object fee = Helpers.GetValue(rows, i);

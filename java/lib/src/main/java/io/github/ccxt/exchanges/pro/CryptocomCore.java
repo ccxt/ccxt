@@ -1593,7 +1593,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 }} );
                 put( "nonce", id );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -1614,7 +1614,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 }} );
                 put( "nonce", id );
             }};
-            Object message = this.deepExtend(request, parameters);
+            java.util.Map<String, Object> message = this.deepExtend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
         });
 
@@ -1644,7 +1644,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 put( "subMessageHashes", subMessageHashes );
                 put( "messageHashes", messageHashes );
             }};
-            Object message = this.deepExtend(request, parameters);
+            java.util.Map<String, Object> message = this.deepExtend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtend))).join();
         });
 
@@ -1662,7 +1662,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 put( "id", nonce );
                 put( "nonce", nonce );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, String.valueOf(nonce), message, true, null)).join();
         });
 
@@ -1684,7 +1684,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                 }} );
                 put( "nonce", id );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -1851,7 +1851,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
                     put( "api_key", CryptocomCore.this.apiKey );
                     put( "sig", signature );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();

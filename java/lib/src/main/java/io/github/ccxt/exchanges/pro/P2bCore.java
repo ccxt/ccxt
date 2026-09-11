@@ -92,7 +92,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
                 put( "params", request );
                 put( "id", P2bCore.this.milliseconds() );
             }};
-            Object query = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> query = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, query, messageHash, null)).join();
         });
 
@@ -291,7 +291,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
                 put( "params", marketIds );
                 put( "id", P2bCore.this.milliseconds() );
             }};
-            Object query = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> query = this.extend(subscribe, parameters);
             Object trades = (this.watchMultiple(url, messageHashes, query, messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {

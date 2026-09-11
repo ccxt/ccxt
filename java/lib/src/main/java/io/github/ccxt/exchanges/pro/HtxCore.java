@@ -1163,7 +1163,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         }
         parameters = this.omit(parameters, "contract_code");
         final Object finalContractCode = contractCode;
-        Object requestParams = this.extend(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> requestParams = this.extend(new java.util.HashMap<String, Object>() {{
             put( "contract_code", finalContractCode );
         }}, parameters);
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(channel, messageHash, requestParams));
@@ -2503,7 +2503,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             return;
         }
-        Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeDict(subscriptionsById, id);
         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
         {
@@ -2818,7 +2818,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 return false;
             }
-            Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+            java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
             Object subscription = this.safeValue(subscriptionsById, id);
             if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
             {
@@ -3379,7 +3379,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 put( "messageHash", messageHash );
                 put( "params", parameters );
             }};
-            Object extendedSubsription = this.extend(subscription, subscriptionParams);
+            java.util.Map<String, Object> extendedSubsription = this.extend(subscription, subscriptionParams);
             Object request = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {

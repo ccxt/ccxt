@@ -420,7 +420,7 @@ public class RevolutxCore extends RevolutxApi
                 String base = this.safeString(market, "base");
                 String quote = this.safeString(market, "quote");
                 Object marketId = Helpers.add(Helpers.add(base, "-"), quote);
-                Object marketData = this.extend(market, new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> marketData = this.extend(market, new java.util.HashMap<String, Object>() {{
                     put( "id", marketId );
                 }});
                 ((java.util.List<Object>)result).add(this.parseMarket(marketData));
@@ -513,7 +513,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Object key = Helpers.GetValue(keys, i);
                 Object currency = this.safeDict(currencies, key, new java.util.HashMap<String, Object>() {{}});
-                Object currencyData = this.extend(currency, new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> currencyData = this.extend(currency, new java.util.HashMap<String, Object>() {{
                     put( "id", key );
                 }});
                 Object parsed = this.parseCurrency(currencyData);
@@ -1530,7 +1530,7 @@ public class RevolutxCore extends RevolutxApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object orderStates = this.safeList2(parameters, "orderStates", "order_states", new java.util.ArrayList<Object>(java.util.Arrays.asList("filled", "cancelled", "rejected", "replaced")));
-            Object requestParams = this.extend(this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderStates", "order_states"))), new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> requestParams = this.extend(this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("orderStates", "order_states"))), new java.util.HashMap<String, Object>() {{
                 put( "order_states", orderStates );
             }});
             return (this.fetchOrders(symbol, since, limit, requestParams)).join();

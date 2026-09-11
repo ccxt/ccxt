@@ -422,7 +422,7 @@ public class IndodaxCore extends IndodaxApi
             //     ]
             //
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawMarkets = this.toArray(response);
+            java.util.List<Object> rawMarkets = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
             {
                 Object market = Helpers.GetValue(rawMarkets, i);
