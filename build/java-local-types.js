@@ -4687,17 +4687,22 @@ export function patchJavaLiteralLocalTypes (transpiler) {
 //     usual one: an arm/use that would print an unboxing operator (++/--/compound
 //     assignment/spread/typeof/`x as T`/array destructuring) rejects the local.
 //   * INTEGER DIVISION differs from JS number division, and the C#-campaign
-//     "subtract-on-int" overload trap was CHECKED for Java: Helpers has two real
-//     overload families — `add(Object,Object)` + the String-typed convenience overloads
-//     (a numeric-typed operand never binds them; only a String first argument could)
-//     and that is it — `subtract(int, int)` sits COMMENTED OUT at Helpers.java:331, so
-//     `Helpers.subtract(x, y)` always resolves to the single `subtract(Object, Object)`
-//     (which normalizes Integer to Long and returns a Long/Double box). `/` always
-//     prints Helpers.divide (one Object signature -> toDouble/toDouble). Differential
-//     harness: Helpers.subtract(1000, 1) -> Long 999, Helpers.divide(1, 2) -> 0.5. The
-//     scan still rejects `int` locals as direct `-` operands (numericIsMinusOperand),
-//     mirroring the C# subtract-on-int guard so a re-enabled (int,int) overload could
-//     never silently rebind an int local (census: 0 such sites today).
+//     "subtract-on-int" overload trap was CHECKED for Java — and re-measured after the
+//     JN-16 typed twins landed in Helpers.java (javalib `(Long,Long)` / `(Long,Integer)`
+//     additions, resolution probe + differential harness in the JN-16 report):
+//     `Helpers.subtract(intLocal, y)` with an int-typed FIRST operand still resolves to
+//     `subtract(Object, Object)` — an int has no route into the Long parameters (`int ->
+//     long -> Long` is not a method-invocation conversion; boxing is exact) and the
+//     (Long, Integer) twin only ever binds a Long/long first operand — so the
+//     numericIsMinusOperand guard keeps its exact meaning and
+//     its census (0 sites) stands. The twins bind only Long / long / int-literal argument
+//     positions, where the Object path computed the identical Long (add/subtract/multiply)
+//     or Double (divide/mod) box — 2907 harness comparisons, 0 mismatches. `subtract(int,
+//     int)` stays COMMENTED OUT (a primitive parameter is ambiguous with (Object,Object)
+//     for primitive operands). `/` always prints Helpers.divide (double division on every
+//     path; differential: Helpers.subtract(1000, 1) -> Long 999, Helpers.divide(1, 2) ->
+//     0.5). The scan still rejects `int` locals as direct `-` operands
+//     (numericIsMinusOperand), mirroring the C# subtract-on-int guard.
 //   * unary plus prints raw `+(x)` (an unboxing read): sites can only exist where the
 //     operand was ALREADY numeric (the baseline `+(Object)` does not compile), and all
 //     prefix/postfix unary uses reject the local anyway.

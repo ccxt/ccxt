@@ -243,7 +243,13 @@ public class Helpers {
     // a bare `a.equals(b)` for the crosses. The Object overload reaches its String branch
     // for two Strings (the class check passes first) and its IsInteger branch —
     // toLong(a).equals(toLong(b)) — for two Long/Integer boxes: the same comparisons.
-    // A primitive parameter is deliberately absent (see the arithmetic-twins block below).
+    // A primitive parameter is deliberately absent (see the arithmetic-twins block below),
+    // and so is a (Long, Integer) twin: a null-LITERAL second argument (`Helpers.isEqual
+    // (timestamp, null)`, ~550 generated sites) would be AMBIGUOUS between (Long, Long) and
+    // (Long, Integer) — both unrelated reference types are applicable to `null` and javac
+    // has no most-specific method. The (Long, Long) twin alone binds that shape (the
+    // null-literal converts to Long) and reproduces the Object result (false for exactly-
+    // one-null), which is what the tree actually needs.
     public static boolean isEqual(String a, String b) {
         if (a == null) return b == null;
         if (b == null) return false;
@@ -251,12 +257,6 @@ public class Helpers {
     }
 
     public static boolean isEqual(Long a, Long b) {
-        if (a == null) return b == null;
-        if (b == null) return false;
-        return a.longValue() == b.longValue();
-    }
-
-    public static boolean isEqual(Long a, Integer b) {
         if (a == null) return b == null;
         if (b == null) return false;
         return a.longValue() == b.longValue();
