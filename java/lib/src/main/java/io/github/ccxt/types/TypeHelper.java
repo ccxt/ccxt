@@ -53,6 +53,46 @@ public final class TypeHelper {
         return SafeMethods.SafeValue(obj, key);
     }
 
+    // --- Idempotent nominal-type lifts ---------------------------------------
+    //
+    // Used by the typed exchange accessors (getMarket / getCurrency / getTickers /
+    // getMarkets / getCurrencies in build/generateJavaWrappers.ts) to name the
+    // shape a raw unified value already has.
+    //
+    // Idempotent on purpose: a value that is already the nominal type is returned
+    // as-is instead of being re-wrapped. That keeps the accessors correct if the
+    // underlying cache is ever narrowed to the nominal type, and matches the C#
+    // port's To*/From* helpers (cs/ccxt/base/Exchange.TypedCores.cs).
+    //
+    // null in, null out: an absent value stays absent rather than becoming an
+    // empty object (never fabricate data). A non-null value that is not a Map is
+    // passed to the constructor, which casts and therefore fails loudly — the
+    // cache invariants say these are maps, so anything else is a real bug.
+
+    @SuppressWarnings("unchecked")
+    public static MarketInterface toMarket(Object raw) {
+        if (raw == null || raw instanceof MarketInterface) {
+            return (MarketInterface) raw;
+        }
+        return new MarketInterface(raw);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static CurrencyInterface toCurrency(Object raw) {
+        if (raw == null || raw instanceof CurrencyInterface) {
+            return (CurrencyInterface) raw;
+        }
+        return new CurrencyInterface(raw);
+    }
+
+    @SuppressWarnings("unchecked")
+    public static Ticker toTicker(Object raw) {
+        if (raw == null || raw instanceof Ticker) {
+            return (Ticker) raw;
+        }
+        return new Ticker(raw);
+    }
+
     // Index-based extraction for array types like OHLCV
     public static Double safeFloatAt(Object obj, int index) {
         if (obj instanceof List<?> list && index >= 0 && index < list.size()) {
