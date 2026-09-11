@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class deepcoin { public deepcoin(object args = null) : base(args) { } }
 public partial class deepcoin : ccxt.deepcoin
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -84,7 +84,7 @@ public partial class deepcoin : ccxt.deepcoin
 
     public override object ping(WebSocketClient client)
     {
-        object url = client.url;
+        string url = client.url;
         if (isTrue(isGreaterThanOrEqual(getIndexOf(url, "private"), 0)))
         {
             client.lastPong = this.milliseconds();
@@ -108,7 +108,7 @@ public partial class deepcoin : ccxt.deepcoin
         return newValue;
     }
 
-    public virtual object createPublicRequest(object market, object requestId, object topicID, object suffix = null, object unWatch = null)
+    public virtual Dictionary<string, object> createPublicRequest(object market, object requestId, object topicID, object suffix = null, object unWatch = null)
     {
         suffix ??= "";
         unWatch ??= false;
@@ -131,7 +131,7 @@ public partial class deepcoin : ccxt.deepcoin
                 { "TopicID", topicID },
             } },
         };
-        return request;
+        return ((Dictionary<string, object>)((object)(request)));
     }
 
     public async virtual Task<object> watchPublic(object market, object messageHash, object topicID, object parameters = null, object suffix = null)
@@ -140,7 +140,7 @@ public partial class deepcoin : ccxt.deepcoin
         suffix ??= "";
         object url = getValue(getValue(getValue(getValue(this.urls, "api"), "ws"), "public"), getValue(market, "type"));
         object requestId = this.requestId();
-        object request = this.createPublicRequest(market, requestId, topicID, suffix);
+        Dictionary<string, object> request = this.createPublicRequest(market, requestId, topicID, suffix);
         Dictionary<string, object> subscription = new Dictionary<string, object>() {
             { "subHash", messageHash },
             { "id", requestId },
@@ -162,7 +162,7 @@ public partial class deepcoin : ccxt.deepcoin
             throw new BadRequest ((string)add(add(this.id, " no subscription for "), messageHash)) ;
         }
         Int64? subId = this.safeInteger(existingSubscription, "id");
-        object request = this.createPublicRequest(market, subId, topicID, suffix, true); // unsubscribe message uses the same id as the original subscribe message
+        Dictionary<string, object> request = this.createPublicRequest(market, subId, topicID, suffix, true); // unsubscribe message uses the same id as the original subscribe message
         string unsubHash = add("unsubscribe::", messageHash);
         subscription = this.extend(subscription, new Dictionary<string, object>() {
             { "subHash", messageHash },

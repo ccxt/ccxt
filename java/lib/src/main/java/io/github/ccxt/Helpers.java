@@ -426,7 +426,7 @@ public class Helpers {
         }
     }
 
-    public static Object parseInt(Object a) {
+    public static Long parseInt(Object a) {
         try {
             return toLong(a);
         } catch (Exception ignored) {
@@ -434,7 +434,7 @@ public class Helpers {
         }
     }
 
-    public static Object parseFloat(Object a) {
+    public static Double parseFloat(Object a) {
         try {
             return toDouble(a);
         } catch (Exception ignored) {

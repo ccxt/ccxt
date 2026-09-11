@@ -224,7 +224,7 @@ export default class binance extends binanceRest {
         return newValue;
     }
 
-    isSpotUrl (client: Client) {
+    isSpotUrl (client: Client): boolean {
         return (client.url.indexOf ('/stream') > -1) || (client.url.indexOf ('demo-stream') > -1);
     }
 

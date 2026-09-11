@@ -16,7 +16,7 @@ public class TestFetchTicker extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchTicker";
+        String method = "fetchTicker";
         Object ticker = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTicker", new Object[]{symbol})).join();
         TestTicker.testTicker(exchange, skippedProperties, method, ticker, symbol);
         return true;

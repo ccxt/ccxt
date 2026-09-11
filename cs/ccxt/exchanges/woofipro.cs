@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class woofipro : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "woofipro" },
@@ -839,7 +839,7 @@ public partial class woofipro : Exchange
         return ccxt.BaseExchange.ToInt64Value(this.safeInteger(response, "timestamp"));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         //   {
@@ -994,7 +994,7 @@ public partial class woofipro : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> result = new Dictionary<string, object>() {};
@@ -1033,7 +1033,7 @@ public partial class woofipro : Exchange
         for (int i = 0; isLessThan(i, getArrayLength(tokenRows)); postFixIncrement(ref i))
         {
             object token = getValue(tokenRows, i);
-            object parsed = this.parseCurrency(new Dictionary<string, object>() {
+            Dictionary<string, object> parsed = this.parseCurrency(new Dictionary<string, object>() {
                 { "_token", token },
                 { "_indexedChains", indexedChains },
             });
@@ -1043,10 +1043,10 @@ public partial class woofipro : Exchange
             }
             ((IDictionary<string,object>)result)[(string)getValue(parsed, "code")] = parsed;
         }
-        return result;
+        return ((IDictionary<string, object>)((object)(result)));
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         IDictionary<string, object> token = this.safeDict(rawCurrency, "_token", new Dictionary<string, object>() {});
         string? currencyId = this.safeString(token, "token");
@@ -2094,7 +2094,7 @@ public partial class woofipro : Exchange
         //
         Int64? timestamp = this.safeIntegerN(order, new List<object>() {"timestamp", "created_time", "createdTime"});
         string? orderId = this.safeStringN(order, new List<object>() {"order_id", "orderId", "algoOrderId"});
-        object clientOrderId = this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId")); // Somehow, this always returns 0 for limit order
+        string? clientOrderId = ((string)this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId"))); // Somehow, this always returns 0 for limit order
         string? marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         object symbol = getValue(market, "symbol");
@@ -2110,7 +2110,7 @@ public partial class woofipro : Exchange
         }
         string? side = this.safeStringLower(order, "side");
         string? filled = this.safeStringN(order, new List<object>() {"total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed"});
-        object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
+        string? average = ((string)this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice")));
         string? remaining = Precise.stringSub(amount, filled);
         object fee = this.safeValue2(order, "total_fee", "totalFee");
         string? feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
@@ -2122,7 +2122,7 @@ public partial class woofipro : Exchange
         if (isTrue(!isEqual(childOrders, null)))
         {
             object first = this.safeValue(childOrders, 0);
-            object innerChildOrders = this.safeValue(first, "childOrders", new List<object>() {});
+            List<object> innerChildOrders = this.safeList(first, "childOrders", new List<object>() {});
             int innerChildOrdersLength = getArrayLength(innerChildOrders);
             if (isTrue(isGreaterThan(innerChildOrdersLength, 0)))
             {
@@ -2250,7 +2250,7 @@ public partial class woofipro : Exchange
         bool isConditional = isTrue(isTrue(isTrue(!isEqual(triggerPrice, null)) || isTrue(hasStopLoss)) || isTrue(hasTakeProfit)) || isTrue((!isEqual(this.safeValue(parameters, "childOrders"), null)));
         bool isMarket = isEqual(orderType, "MARKET");
         string? timeInForce = this.safeStringLower(parameters, "timeInForce");
-        object postOnly = this.isPostOnly(isMarket, null, parameters);
+        bool postOnly = this.isPostOnly(isMarket, null, parameters);
         string orderQtyKey = ((bool) isTrue(isConditional)) ? "quantity" : "order_quantity";
         string priceKey = ((bool) isTrue(isConditional)) ? "price" : "order_price";
         string typeKey = ((bool) isTrue(isConditional)) ? "type" : "order_type";
@@ -2507,7 +2507,7 @@ public partial class woofipro : Exchange
             string orderType = ((string)type).ToUpper();
             string? timeInForce = this.safeStringLower(parameters, "timeInForce");
             bool isMarket = isEqual(orderType, "MARKET");
-            object postOnly = this.isPostOnly(isMarket, null, parameters);
+            bool postOnly = this.isPostOnly(isMarket, null, parameters);
             if (isTrue(postOnly))
             {
                 ((IDictionary<string,object>)request)["order_type"] = "POST_ONLY";
@@ -3139,7 +3139,7 @@ public partial class woofipro : Exchange
         {
             object balance = getValue(balances, i);
             string? code = this.safeCurrencyCode(this.safeString(balance, "token"));
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "holding");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "frozen");
             if (isTrue(!isEqual(code, null)))
@@ -4064,7 +4064,7 @@ public partial class woofipro : Exchange
         parameters ??= new Dictionary<string, object>();
         object version = getValue(section, 0);
         object access = getValue(section, 1);
-        string pathWithParams = this.implodeParams(path, parameters);
+        string? pathWithParams = this.implodeParams(path, parameters);
         object url = add(add(add(getValue(getValue(this.urls, "api"), access), "/"), version), "/");
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);

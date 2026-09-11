@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class blockchaincom { public blockchaincom(object args = null) : base(args) { } }
 public partial class blockchaincom : ccxt.blockchaincom
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -111,13 +111,13 @@ public partial class blockchaincom : ccxt.blockchaincom
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", message },
         };
-        object balances = this.safeValue(message, "balances", new List<object>() {});
+        List<object> balances = this.safeList(message, "balances", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(balances)); postFixIncrement(ref i))
         {
             object entry = getValue(balances, i);
             string? currencyId = this.safeString(entry, "currency");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(entry, "available");
             ((IDictionary<string,object>)account)["total"] = this.safeString(entry, "balance");
             if (isTrue(!isEqual(code, null)))
@@ -588,7 +588,7 @@ public partial class blockchaincom : ccxt.blockchaincom
             throw new ExchangeError ((string)add(add(this.id, " "), this.json(message))) ;
         } else if (isTrue(isEqual(eventVar, "snapshot")))
         {
-            object orders = this.safeValue(message, "orders", new List<object>() {});
+            List<object> orders = this.safeList(message, "orders", new List<object>() {});
             for (int i = 0; isLessThan(i, getArrayLength(orders)); postFixIncrement(ref i))
             {
                 object order = getValue(orders, i);
@@ -798,7 +798,7 @@ public partial class blockchaincom : ccxt.blockchaincom
 
     public override void handleDelta(object bookside, object delta)
     {
-        object bookArray = this.parseOrderBookBidAsk(delta, "px", "qty", "num");
+        List<object> bookArray = this.parseOrderBookBidAsk(delta, "px", "qty", "num");
         (bookside as IOrderBookSide).storeArray(bookArray);
     }
 
@@ -847,7 +847,7 @@ public partial class blockchaincom : ccxt.blockchaincom
         {
             throw new AuthenticationError ((string)add(add(this.id, " received an authentication error: "), this.json(message))) ;
         }
-        var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
+        Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
         if (isTrue(!isEqual(future, null)))
         {
             (future as Future).resolve(true);

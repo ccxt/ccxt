@@ -10,7 +10,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testFetchPositions(BaseExchange exchange, object skippedProperties, object symbol)
     {
         string method = "fetchPositions";
-        object now = exchange.milliseconds();
+        Int64 now = exchange.milliseconds();
         // without symbol
         object positions = await invokeExchangeDynamically(exchange, "fetchPositions");
         testSharedMethods.assertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol);

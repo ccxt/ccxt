@@ -88,7 +88,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             this.checkRequiredCredentials();
-            Object tradeType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
+            String tradeType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), tradeType);
             if (!Helpers.isTrue(isContract))
             {
@@ -101,7 +101,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 // single-flight leader election, see https://github.com/ccxt/ccxt/issues/29393:
                 // concurrent callers each minted their own token, last write won, and the losers
                 // carried an orphaned token into name + '@' + listenKey so their streams went dead
-                Object messageHash = Helpers.add("authenticate:", tradeType);
+                String messageHash = (String) Helpers.add("authenticate:", tradeType);
                 if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
                     // a flight is already in progress - wake when the leader
@@ -117,7 +117,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                     Object listenKey = null;
                     if (Helpers.isTrue(isContract))
                     {
-                        Object response = (this.privateLinearGetFutureUserV1UserListenKey()).join();
+                        java.util.Map<String, Object> response = (this.privateLinearGetFutureUserV1UserListenKey()).join();
                         //
                         //    {
                         //        returnCode: '0',
@@ -129,7 +129,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                         listenKey = this.safeString(response, "result");
                     } else
                     {
-                        Object response = (this.privateSpotPostWsToken()).join();
+                        java.util.Map<String, Object> response = (this.privateSpotPostWsToken()).join();
                         //
                         //    {
                         //        "rc": 0,
@@ -167,9 +167,9 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
     public Object getCacheIndex(Object orderbook, Object cache)
     {
         // return the first index of the cache that can be applied to the orderbook or -1 if not possible
-        Object nonce = this.safeInteger(orderbook, "nonce");
+        Long nonce = this.safeInteger(orderbook, "nonce");
         Object firstDelta = this.safeValue(cache, 0);
-        Object firstDeltaNonce = this.safeInteger2(firstDelta, "i", "u");
+        Long firstDeltaNonce = (Long) this.safeInteger2(firstDelta, "i", "u");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(nonce, null))) && Helpers.isTrue((!Helpers.isEqual(firstDeltaNonce, null)))) && Helpers.isTrue((Helpers.isLessThan(nonce, Helpers.subtract(firstDeltaNonce, 1))))))
         {
             return Helpers.opNeg(1);
@@ -177,7 +177,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cache)); i++)
         {
             Object delta = Helpers.GetValue(cache, i);
-            Object deltaNonce = this.safeInteger2(delta, "i", "u");
+            Long deltaNonce = (Long) this.safeInteger2(delta, "i", "u");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(deltaNonce, null))) && Helpers.isTrue((!Helpers.isEqual(nonce, null)))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(deltaNonce, nonce)))))
             {
                 return i;
@@ -196,15 +196,15 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(obBids)); i++)
         {
             Object bid = Helpers.GetValue(obBids, i);
-            Object price = this.safeNumber(bid, 0);
-            Object quantity = this.safeNumber(bid, 1);
+            Double price = this.safeNumber(bid, 0);
+            Double quantity = this.safeNumber(bid, 1);
             Helpers.callDynamically(bids, "store", new Object[]{price, quantity});
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(obAsks)); i++)
         {
             Object ask = Helpers.GetValue(obAsks, i);
-            Object price = this.safeNumber(ask, 0);
-            Object quantity = this.safeNumber(ask, 1);
+            Double price = this.safeNumber(ask, 0);
+            Double quantity = this.safeNumber(ask, 1);
             Helpers.callDynamically(asks, "store", new Object[]{price, quantity});
         }
     }
@@ -233,14 +233,14 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object market = Helpers.getArg(optionalArgs, 0, null);
             Object symbols = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Object privateAccess = Helpers.isEqual(access, "private");
+            Boolean privateAccess = Helpers.isEqual(access, "private");
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(type, "spot"));
             Object id = Helpers.add(this.numberToString(this.milliseconds()), name); // call back ID
-            Object subscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", ((Helpers.isTrue(isContract))) ? "SUBSCRIBE" : "subscribe" );
                 put( "id", id );
             }};
@@ -260,19 +260,19 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             {
                 Helpers.addElementToObject(subscribe, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(name)));
             }
-            Object tradeType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
+            String tradeType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
             Object messageHash = Helpers.add(Helpers.add(name, "::"), tradeType);
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 messageHash = Helpers.add(Helpers.add(messageHash, "::"), String.join((String)",", (java.util.List<String>)symbols));
             }
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             Object tail = access;
             if (Helpers.isTrue(isContract))
             {
                 tail = ((Helpers.isTrue(privateAccess))) ? "user" : "market";
             }
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }};
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), tradeType), "/"), tail);
@@ -309,14 +309,14 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object symbols = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Object subscriptionParams = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object privateAccess = Helpers.isEqual(access, "private");
+            Boolean privateAccess = Helpers.isEqual(access, "private");
             Object type = null;
-            var typeparametersVariable = this.handleMarketTypeAndParams(methodName, market, parameters);
+            java.util.List<Object> typeparametersVariable = (java.util.List<Object>) this.handleMarketTypeAndParams(methodName, market, parameters);
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object isContract = (!Helpers.isEqual(type, "spot"));
             Object id = Helpers.add(this.numberToString(this.milliseconds()), name); // call back ID
-            Object unsubscribe = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> unsubscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", ((Helpers.isTrue(isContract))) ? "UNSUBSCRIBE" : "unsubscribe" );
                 put( "id", id );
             }};
@@ -336,16 +336,16 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             {
                 Helpers.addElementToObject(unsubscribe, "params", new java.util.ArrayList<Object>(java.util.Arrays.asList(name)));
             }
-            Object tradeType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
+            String tradeType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
             Object subMessageHash = Helpers.add(Helpers.add(name, "::"), tradeType);
-            Object request = this.extend(unsubscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(unsubscribe, parameters);
             Object tail = access;
             if (Helpers.isTrue(isContract))
             {
                 tail = ((Helpers.isTrue(privateAccess))) ? "user" : "market";
             }
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), tradeType), "/"), tail);
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "unsubscribe", true );
                 put( "id", id );
                 put( "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList(subMessageHash)) );
@@ -421,7 +421,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object defaultMethod = this.safeString(options, "method", "ticker");
             Object method = this.safeString(parameters, "method", defaultMethod);
             Object name = Helpers.add(Helpers.add(method, "@"), Helpers.GetValue(market, "id"));
-            Object messageHash = Helpers.add("unsubscribe::", name);
+            String messageHash = (String) Helpers.add("unsubscribe::", name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchTicker", defaultMethod, market, null, parameters)).join();
         });
 
@@ -496,7 +496,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             {
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchTickers() does not support symbols argument, unsubscribtion is for all tickers at once only")) ;
             }
-            Object messageHash = Helpers.add("unsubscribe::", name);
+            String messageHash = (String) Helpers.add("unsubscribe::", name);
             Object tickers = (this.unSubscribe(messageHash, name, "public", "unWatchTickers", "ticker", null, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -569,8 +569,8 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             }
             Object market = this.market(symbol);
             Object name = Helpers.add(Helpers.add(Helpers.add("kline@", Helpers.GetValue(market, "id")), ","), timeframe);
-            Object messageHash = Helpers.add("unsubscribe::", name);
-            Object symbolsAndTimeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"), timeframe))));
+            String messageHash = (String) Helpers.add("unsubscribe::", name);
+            java.util.List<Object> symbolsAndTimeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"), timeframe))));
             return (this.unSubscribe(messageHash, name, "public", "unWatchOHLCV", "ohlcv", market, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters, new java.util.HashMap<String, Object>() {{
                 put( "symbolsAndTimeframes", symbolsAndTimeframes );
             }})).join();
@@ -636,7 +636,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             }
             Object market = this.market(symbol);
             Object name = Helpers.add("trade@", Helpers.GetValue(market, "id"));
-            Object messageHash = Helpers.add("unsubscribe::", name);
+            String messageHash = (String) Helpers.add("unsubscribe::", name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchTrades", "trades", market, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -712,7 +712,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             {
                 name = Helpers.add(Helpers.add(Helpers.add("depth@", Helpers.GetValue(market, "id")), ","), levels);
             }
-            Object messageHash = Helpers.add("unsubscribe::", name);
+            String messageHash = (String) Helpers.add("unsubscribe::", name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchOrderBook", "orderbook", market, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
         });
 
@@ -926,7 +926,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 throw new NotSupported((String)Helpers.add(this.id, " unWatchFundingRate() supports swap contracts only")) ;
             }
             Object name = Helpers.add("fund_rate@", Helpers.GetValue(market, "id"));
-            Object messageHash = Helpers.add("unsubscribe::", name);
+            String messageHash = (String) Helpers.add("unsubscribe::", name);
             return (this.unSubscribe(messageHash, name, "public", "unWatchFundingRate", "fund_rate", market, null, parameters)).join();
         });
 
@@ -950,12 +950,12 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             final Object finalMarketId = marketId;
-            Object raw = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> raw = new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalMarketId );
                 put( "fundingRate", XtCore.this.safeString(data, "r") );
             }};
             Object fundingRate = this.parseFundingRate(raw);
-            Object timestamp = this.safeInteger(data, "t");
+            Long timestamp = this.safeInteger(data, "t");
             Helpers.addElementToObject(fundingRate, "timestamp", timestamp);
             Helpers.addElementToObject(fundingRate, "datetime", this.iso8601(timestamp));
             Object symbol = Helpers.GetValue(fundingRate, "symbol");
@@ -976,7 +976,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         Object fetchPositionsSnapshot = this.handleOption("watchPositions", "fetchPositionsSnapshot");
         if (Helpers.isTrue(Helpers.isEqual(fetchPositionsSnapshot, true)))
         {
-            Object messageHash = "fetchPositionsSnapshot";
+            String messageHash = (String) "fetchPositionsSnapshot";
             if (!Helpers.isTrue((Helpers.inOp(client.futures, messageHash))))
             {
                 client.future((String)messageHash);
@@ -996,7 +996,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object position = Helpers.GetValue(positions, i);
-                Object contracts = this.safeNumber(position, "contracts", 0);
+                Double contracts = this.safeNumber(position, "contracts", 0);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contracts, null))) && Helpers.isTrue((Helpers.isGreaterThan(contracts, 0)))))
                 {
                     Helpers.callDynamically(cache, "append", new Object[]{position});
@@ -1059,7 +1059,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object parts = Helpers.split(messageHash, "::");
-            Object symbolsString = Helpers.GetValue(parts, 1);
+            String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(new java.util.ArrayList<Object>(java.util.Arrays.asList(position)), "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
@@ -1137,7 +1137,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             Object cv = this.safeString(data, "cv");
-            Object isSpot = !Helpers.isEqual(cv, null);
+            Boolean isSpot = !Helpers.isEqual(cv, null);
             Object ticker = this.parseTicker(data);
             Object symbol = Helpers.GetValue(ticker, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1145,7 +1145,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
             }
             Object eventVar = this.safeString(message, "event");
-            Object messageHashTail = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
+            String messageHashTail = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
             Object messageHash = Helpers.add(Helpers.add(eventVar, "::"), messageHashTail);
             client.resolve(ticker, messageHash);
         }
@@ -1224,8 +1224,8 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object firstTicker = this.safeDict(data, 0);
         Object spotTest = this.safeString2(firstTicker, "cv", "aq");
-        Object tradeType = ((Helpers.isTrue((!Helpers.isEqual(spotTest, null))))) ? "spot" : "contract";
-        Object newTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        String tradeType = ((Helpers.isTrue((!Helpers.isEqual(spotTest, null))))) ? "spot" : "contract";
+        java.util.List<Object> newTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object tickerData = Helpers.GetValue(data, i);
@@ -1243,7 +1243,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object parts = Helpers.split(messageHash, "::");
-            Object symbolsString = Helpers.GetValue(parts, 2);
+            String symbolsString = (String) Helpers.GetValue(parts, 2);
             Object symbols = Helpers.split(symbolsString, ",");
             Object tickers = this.filterByArray(newTickers, "symbol", symbols);
             Object tickersSymbols = Helpers.objectKeys(tickers);
@@ -1301,15 +1301,15 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             Object timeframe = this.safeString(data, "i", "");
-            Object tradeType = ((Helpers.isTrue((Helpers.inOp(data, "q"))))) ? "spot" : "contract";
-            Object market = this.safeMarket(marketId, null, null, tradeType);
+            String tradeType = ((Helpers.isTrue((Helpers.inOp(data, "q"))))) ? "spot" : "contract";
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object parsed = this.parseOHLCV(data, market);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
             Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
             }
@@ -1359,14 +1359,14 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         {
             Object trade = this.parseTrade(data);
             Object i = this.safeString(data, "i");
-            Object tradeType = ((Helpers.isTrue((!Helpers.isEqual(i, null))))) ? "spot" : "contract";
-            Object market = this.safeMarket(marketId, null, null, tradeType);
+            String tradeType = ((Helpers.isTrue((!Helpers.isEqual(i, null))))) ? "spot" : "contract";
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object eventVar = this.safeString(message, "event");
             Object tradesArray = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
             {
-                Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(((Number)tradesLimit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, tradesArray);
             }
@@ -1445,12 +1445,12 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object eventVar = this.safeString(message, "event", "");
             Object splitEvent = Helpers.split(eventVar, ",");
             eventVar = this.safeString(splitEvent, 0, "");
-            Object tradeType = "spot";
+            String tradeType = "spot";
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(data, null))) && Helpers.isTrue((Helpers.inOp(data, "fu")))))
             {
                 tradeType = "contract";
             }
-            Object market = this.safeMarket(marketId, null, null, tradeType);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object obAsks = this.safeList(data, "a");
             Object obBids = this.safeList(data, "b");
@@ -1458,11 +1458,11 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
             {
                 Object subscription = this.safeDict(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
-                Object limit = this.safeInteger(subscription, "limit");
+                Long limit = this.safeInteger(subscription, "limit");
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             }
-            Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-            Object nonce = this.safeInteger(orderbook, "nonce");
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
+            Long nonce = this.safeInteger(orderbook, "nonce");
             if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
             {
                 Object cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(orderbook, "cache")));
@@ -1480,8 +1480,8 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(obAsks)); i++)
                 {
                     Object ask = Helpers.GetValue(obAsks, i);
-                    Object price = this.safeNumber(ask, 0);
-                    Object quantity = this.safeNumber(ask, 1);
+                    Double price = this.safeNumber(ask, 0);
+                    Double quantity = this.safeNumber(ask, 1);
                     Helpers.callDynamically(asks, "store", new Object[]{price, quantity});
                 }
             }
@@ -1491,12 +1491,12 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(obBids)); i++)
                 {
                     Object bid = Helpers.GetValue(obBids, i);
-                    Object price = this.safeNumber(bid, 0);
-                    Object quantity = this.safeNumber(bid, 1);
+                    Double price = this.safeNumber(bid, 0);
+                    Double quantity = this.safeNumber(bid, 1);
                     Helpers.callDynamically(bids, "store", new Object[]{price, quantity});
                 }
             }
-            Object timestamp = this.safeInteger(data, "t");
+            Long timestamp = this.safeInteger(data, "t");
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(data, "i", "u"));
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
@@ -1541,7 +1541,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(trade, "s");
-        Object tradeType = ((Helpers.isTrue((Helpers.inOp(trade, "symbol"))))) ? "contract" : "spot";
+        String tradeType = ((Helpers.isTrue((Helpers.inOp(trade, "symbol"))))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, tradeType);
         Object timestamp = this.safeString(trade, "t");
         final Object finalMarket = market;
@@ -1612,9 +1612,9 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString2(order, "s", "symbol");
-        Object tradeType = ((Helpers.isTrue((Helpers.inOp(order, "symbol"))))) ? "contract" : "spot";
+        String tradeType = ((Helpers.isTrue((Helpers.inOp(order, "symbol"))))) ? "contract" : "spot";
         market = this.safeMarket(marketId, market, null, tradeType);
-        Object timestamp = this.safeInteger2(order, "ct", "createTime");
+        Long timestamp = (Long) this.safeInteger2(order, "ct", "createTime");
         final Object finalMarket = market;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "info", order );
@@ -1693,7 +1693,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         Object orders = this.orders;
         if (Helpers.isTrue(Helpers.isEqual(orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit");
+            Long limit = this.safeInteger(this.options, "ordersLimit");
             orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = orders;
         }
@@ -1701,8 +1701,8 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         Object marketId = this.safeString2(order, "s", "symbol");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
-            Object tradeType = ((Helpers.isTrue((Helpers.inOp(order, "symbol"))))) ? "contract" : "spot";
-            Object market = this.safeMarket(marketId, null, null, tradeType);
+            String tradeType = ((Helpers.isTrue((Helpers.inOp(order, "symbol"))))) ? "contract" : "spot";
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object parsed = this.parseWsOrder(order, market);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
             client.resolve(orders, Helpers.add("order::", tradeType));
@@ -1748,7 +1748,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object currencyId = this.safeString2(data, "c", "coin");
-        Object code = this.safeCurrencyCode(currencyId);
+        String code = (String) this.safeCurrencyCode(currencyId);
         Object account = this.account();
         Helpers.addElementToObject(account, "free", this.safeString(data, "availableBalance"));
         Helpers.addElementToObject(account, "used", this.safeString(data, "f"));
@@ -1758,7 +1758,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Helpers.addElementToObject(this.balance, code, account);
         }
         this.balance = this.safeBalance(this.balance);
-        Object tradeType = ((Helpers.isTrue((Helpers.inOp(data, "coin"))))) ? "contract" : "spot";
+        String tradeType = ((Helpers.isTrue((Helpers.inOp(data, "coin"))))) ? "contract" : "spot";
         client.resolve(this.balance, Helpers.add("balance::", tradeType));
     }
 
@@ -1802,7 +1802,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         Object stored = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = stored;
         }
@@ -1812,9 +1812,9 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         {
             return;
         }
-        Object market = this.market(tradeSymbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(tradeSymbol);
         Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
-        Object tradeType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? "contract" : "spot";
+        String tradeType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? "contract" : "spot";
         client.resolve(stored, Helpers.add("trade::", tradeType));
     }
 
@@ -1827,7 +1827,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         } else if (Helpers.isTrue(!Helpers.isEqual(eventVar, null)))
         {
             Object topic = this.safeString(message, "topic");
-            Object methods = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "kline", "handleOHLCV");
                 put( "depth", "handleOrderBook");
                 put( "depth_update", "handleOrderBook");
@@ -1886,7 +1886,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //     }
         //
         Object id = this.safeString(message, "id");
-        Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object unsubscribe = false;
         if (Helpers.isTrue(!Helpers.isEqual(id, null)))
         {

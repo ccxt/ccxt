@@ -11,7 +11,7 @@ public partial class testMainClass : BaseTest
     async static public Task<object> testWatchTicker(Exchange exchange, object skippedProperties, object symbol)
     {
         string method = "watchTicker";
-        object now = exchange.milliseconds();
+        Int64 now = exchange.milliseconds();
         object ends = add(now, 15000);
         int maxIdleTime = 5000;
         bool idle = false;
@@ -19,7 +19,7 @@ public partial class testMainClass : BaseTest
         {
             object response = null;
             bool success = true;
-            object startTime = exchange.milliseconds();
+            Int64 startTime = exchange.milliseconds();
             try
             {
                 response = detypeForComparison(await exchange.WatchTicker(((string)symbol)));

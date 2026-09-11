@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class cryptomus : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "cryptomus" },
@@ -367,7 +367,7 @@ public partial class cryptomus : Exchange
         return ccxt.BaseExchange.ToMarketInterfaceList(this.parseMarkets(result));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         //
         //     {
@@ -459,7 +459,7 @@ public partial class cryptomus : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.publicGetV1ExchangeMarketAssets(parameters);
@@ -487,7 +487,7 @@ public partial class cryptomus : Exchange
         return this.parseCurrencies(groupedArray);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         // currency here is array of networks
         string? id = null; // all entries have same id, as they were grouped by
@@ -788,7 +788,7 @@ public partial class cryptomus : Exchange
             object balanceEntry = getValue(balance, i);
             string? currencyId = this.safeString(balanceEntry, "ticker");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balanceEntry, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balanceEntry, "held");
             if (isTrue(!isEqual(code, null)))
@@ -1253,7 +1253,7 @@ public partial class cryptomus : Exchange
         takerFee = Precise.stringDiv(takerFee, "100");
         List<object> feeTiers = this.safeList(data, "tariff_steps", new List<object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
-        object tiers = this.parseFeeTiers(feeTiers);
+        Dictionary<string, object> tiers = this.parseFeeTiers(feeTiers);
         object symbols = this.symbols;
         if (isTrue(isEqual(symbols, null)))
         {
@@ -1275,7 +1275,7 @@ public partial class cryptomus : Exchange
         return ccxt.BaseExchange.ToTradingFees(result);
     }
 
-    public virtual object parseFeeTiers(object feeTiers, object market = null)
+    public virtual Dictionary<string, object> parseFeeTiers(object feeTiers, object market = null)
     {
         List<object> takerFees = new List<object>() {};
         List<object> makerFees = new List<object>() {};
@@ -1301,7 +1301,7 @@ public partial class cryptomus : Exchange
         api ??= "public";
         method ??= "GET";
         parameters ??= new Dictionary<string, object>();
-        string endpoint = this.implodeParams(path, parameters);
+        string? endpoint = this.implodeParams(path, parameters);
         parameters = this.omit(parameters, this.extractParams(path));
         object url = add(add(getValue(getValue(this.urls, "api"), api), "/"), endpoint);
         if (isTrue(isEqual(api, "private")))

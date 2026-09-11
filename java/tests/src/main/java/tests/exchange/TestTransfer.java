@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestTransfer extends BaseTest {
     public static void testTransfer(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "id", "1234" );
             put( "timestamp", 1502962946216L );
@@ -24,7 +24,7 @@ public class TestTransfer extends BaseTest {
             put( "toAccount", "swap" );
             put( "status", "ok" );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("fromAccount", "toAccount"));
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("fromAccount", "toAccount"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, exchange.milliseconds());
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "currency"), requestedCode);

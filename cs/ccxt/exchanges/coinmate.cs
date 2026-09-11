@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class coinmate : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "coinmate" },
@@ -491,7 +491,7 @@ public partial class coinmate : Exchange
         //         ]
         //     }
         //
-        object data = this.safeValue(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -557,7 +557,7 @@ public partial class coinmate : Exchange
 
     public override object parseBalance(object response)
     {
-        object balances = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> balances = this.safeDict(response, "data", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {
             { "info", response },
         };
@@ -567,7 +567,7 @@ public partial class coinmate : Exchange
             string? currencyId = ((string)getValue(currencyIds, i));
             string? code = this.safeCurrencyCode(currencyId);
             object balance = this.safeValue(balances, currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "available");
             ((IDictionary<string,object>)account)["used"] = this.safeString(balance, "reserved");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "balance");
@@ -661,7 +661,7 @@ public partial class coinmate : Exchange
         //         }
         //     }
         //
-        object data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         return ccxt.BaseExchange.ToTicker(this.parseTicker(data, market));
     }
 
@@ -702,7 +702,7 @@ public partial class coinmate : Exchange
         //         }
         //     }
         //
-        object data = this.safeValue(response, "data", new Dictionary<string, object>() {});
+        IDictionary<string, object> data = this.safeDict(response, "data", new Dictionary<string, object>() {});
         List<object> keys = new List<object>(((IDictionary<string,object>)data).Keys);
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
@@ -912,7 +912,7 @@ public partial class coinmate : Exchange
         }
         Dictionary<string, object> currency = this.currency(((string)code));
         object withdrawOptions = this.safeValue(this.options, "withdraw", new Dictionary<string, object>() {});
-        object methods = this.safeValue(withdrawOptions, "methods", new Dictionary<string, object>() {});
+        IDictionary<string, object> methods = this.safeDict(withdrawOptions, "methods", new Dictionary<string, object>() {});
         string? method = this.safeString(methods, code);
         if (isTrue(isEqual(method, null)))
         {
@@ -1020,7 +1020,7 @@ public partial class coinmate : Exchange
             ((IDictionary<string,object>)request)["timestampFrom"] = since;
         }
         Dictionary<string, object> response = await this.privatePostTradeHistory(this.extend(request, parameters));
-        object data = this.safeList(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, null, since, limitVar));
     }
 
@@ -1130,7 +1130,7 @@ public partial class coinmate : Exchange
         //         ]
         //     }
         //
-        object data = this.safeList(response, "data", new List<object>() {});
+        List<object> data = this.safeList(response, "data", new List<object>() {});
         return ccxt.BaseExchange.ToTradeList(this.parseTrades(data, market, since, limit));
     }
 
@@ -1429,7 +1429,7 @@ public partial class coinmate : Exchange
             market = this.market(symbol);
         }
         Dictionary<string, object> response = await this.privatePostOrderById(this.extend(request, parameters));
-        object data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data, market));
     }
 
@@ -1461,7 +1461,7 @@ public partial class coinmate : Exchange
         //        }
         //    }
         //
-        object data = this.safeDict(response, "data");
+        IDictionary<string, object> data = this.safeDict(response, "data");
         return ccxt.BaseExchange.ToOrder(this.parseOrder(data));
     }
 

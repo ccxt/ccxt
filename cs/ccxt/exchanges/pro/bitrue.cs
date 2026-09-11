@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bitrue { public bitrue(object args = null) : base(args) { } }
 public partial class bitrue : ccxt.bitrue
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -174,7 +174,7 @@ public partial class bitrue : ccxt.bitrue
             object balance = getValue(balances, i);
             string? currencyId = this.safeString(balance, "a");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             string? free = this.safeString(balance, "F");
             string? used = this.safeString(balance, "L");
             Int64? balanceUpdateTime = this.safeInteger(balance, "T", 0);
@@ -477,7 +477,7 @@ public partial class bitrue : ccxt.bitrue
         return null;
     }
 
-    public virtual object parseContractBidsAsks(object bidsAsks, object symbol)
+    public virtual List<object> parseContractBidsAsks(object bidsAsks, object symbol)
     {
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(bidsAsks)); postFixIncrement(ref i))
@@ -488,7 +488,7 @@ public partial class bitrue : ccxt.bitrue
             object amount = this.convertFromRawQuantity(symbol, rawAmount);
             ((IList<object>)result).Add(new List<object>() {price, amount});
         }
-        return result;
+        return ((List<object>)((object)(result)));
     }
 
     public virtual object convertFromRawQuantity(object symbol, object rawQuantity)

@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class krakenfutures : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "krakenfutures" },
@@ -527,7 +527,7 @@ public partial class krakenfutures : Exchange
         //        "serverTime": "2018-07-19T11:32:39.433Z"
         //    }
         //
-        object instruments = this.safeValue(response, "instruments", new List<object>() {});
+        List<object> instruments = this.safeList(response, "instruments", new List<object>() {});
         List<object> result = new List<object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(instruments)); postFixIncrement(ref i))
         {
@@ -1751,7 +1751,7 @@ public partial class krakenfutures : Exchange
             await this.loadMarkets();
         }
         List<object> orders = new List<object>() {};
-        object clientOrderIds = this.safeValue(parameters, "clientOrderIds", new List<object>() {});
+        List<object> clientOrderIds = this.safeList(parameters, "clientOrderIds", new List<object>() {});
         int clientOrderIdsLength = getArrayLength(clientOrderIds);
         if (isTrue(isGreaterThan(clientOrderIdsLength, 0)))
         {
@@ -2560,7 +2560,7 @@ public partial class krakenfutures : Exchange
                 { "trades", null },
             });
         }
-        object orderEvents = this.safeValue(order, "orderEvents", new List<object>() {});
+        List<object> orderEvents = this.safeList(order, "orderEvents", new List<object>() {});
         string? errorStatus = this.safeString(order, "status");
         int orderEventsLength = getArrayLength(orderEvents);
         if (isTrue(isTrue(isTrue((inOp(order, "orderEvents"))) && isTrue((!isEqual(errorStatus, null)))) && isTrue((isEqual(orderEventsLength, 0)))))
@@ -3186,7 +3186,7 @@ public partial class krakenfutures : Exchange
         string? accountType = this.safeString2(response, "accountType", "type");
         bool isFlex = (isEqual(accountType, "multiCollateralMarginAccount"));
         bool isCash = (isEqual(accountType, "cashAccount"));
-        object balances = this.safeValue2(response, "balances", "currencies", new Dictionary<string, object>() {});
+        IDictionary<string, object> balances = this.safeDict2(response, "balances", "currencies", new Dictionary<string, object>() {});
         Dictionary<string, object> result = new Dictionary<string, object>() {};
         List<object> currencyIds = new List<object>(((IDictionary<string,object>)balances).Keys);
         for (int i = 0; isLessThan(i, getArrayLength(currencyIds)); postFixIncrement(ref i))
@@ -3204,7 +3204,7 @@ public partial class krakenfutures : Exchange
             {
                 continue;
             }
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             if (isTrue(isFlex))
             {
                 ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "quantity");

@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class foxbit : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "foxbit" },
@@ -372,7 +372,7 @@ public partial class foxbit : Exchange
         });
     }
 
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         Dictionary<string, object> response = await this.v3PublicGetCurrencies(parameters);
@@ -417,7 +417,7 @@ public partial class foxbit : Exchange
         return this.parseCurrencies(data);
     }
 
-    public override object parseCurrency(object rawCurrency)
+    public override Dictionary<string, object> parseCurrency(object rawCurrency)
     {
         Int64? precision = this.safeInteger(rawCurrency, "precision");
         string? currencyId = this.safeString(rawCurrency, "symbol");
@@ -1854,7 +1854,7 @@ public partial class foxbit : Exchange
         return ccxt.BaseExchange.ToLedgerEntryList(this.parseLedger(data, currency, since, limit));
     }
 
-    public override object parseMarket(object market)
+    public override Dictionary<string, object> parseMarket(object market)
     {
         string? id = this.safeString(market, "symbol");
         IDictionary<string, object> baseAssets = this.safeDict(market, "base");

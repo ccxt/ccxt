@@ -89,7 +89,7 @@ export default class deribit extends deribitRest {
         await this.authenticate (params);
         const messageHash = 'balance';
         const url = this.urls['api']['ws'];
-        const currencies = this.safeValue (this.options, 'currencies', []);
+        const currencies = this.safeList (this.options, 'currencies', []);
         const channels: List = [];
         for (let i = 0; i < currencies.length; i++) {
             const currencyCode = currencies[i];

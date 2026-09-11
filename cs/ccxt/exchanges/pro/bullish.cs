@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class bullish { public bullish(object args = null) : base(args) { } }
 public partial class bullish : ccxt.bullish
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -356,8 +356,8 @@ public partial class bullish : ccxt.bullish
             ((IDictionary<string,object>)this.orderbooks)[(string)symbol] = this.orderBook();
         }
         ccxt.pro.IOrderBook orderbook = this.getOrderBook(this.orderbooks, symbol);
-        object bids = this.separateBidsOrAsks(this.safeList(data, "bids", new List<object>() {}));
-        object asks = this.separateBidsOrAsks(this.safeList(data, "asks", new List<object>() {}));
+        List<object> bids = this.separateBidsOrAsks(this.safeList(data, "bids", new List<object>() {}));
+        List<object> asks = this.separateBidsOrAsks(this.safeList(data, "asks", new List<object>() {}));
         Dictionary<string, object> snapshot = new Dictionary<string, object>() {
             { "bids", bids },
             { "asks", asks },
@@ -366,7 +366,7 @@ public partial class bullish : ccxt.bullish
         List<object> sequenceNumberRange = this.safeList(data, "sequenceNumberRange", new List<object>() {});
         if (isTrue(isGreaterThan(getArrayLength(sequenceNumberRange), 0)))
         {
-            object lastIndex = subtract(getArrayLength(sequenceNumberRange), 1);
+            int lastIndex = subtract(getArrayLength(sequenceNumberRange), 1);
             ((IDictionary<string,object>)parsed)["nonce"] = this.safeInteger(sequenceNumberRange, lastIndex);
         }
         (orderbook as IOrderBook).reset(parsed);
@@ -374,7 +374,7 @@ public partial class bullish : ccxt.bullish
         callDynamically(client as WebSocketClient, "resolve", new object[] {orderbook, messageHash});
     }
 
-    public virtual object separateBidsOrAsks(object entry)
+    public virtual List<object> separateBidsOrAsks(object entry)
     {
         List<object> result = new List<object>() {};
         // 300 = '54885.0000000'
@@ -390,7 +390,7 @@ public partial class bullish : ccxt.bullish
             string? amount = this.safeString(entry, add(i, 1));
             ((IList<object>)result).Add(new List<object>() {price, amount});
         }
-        return result;
+        return ((List<object>)((object)(result)));
     }
 
     /**
@@ -745,7 +745,7 @@ public partial class bullish : ccxt.bullish
         {
             IDictionary<string, object> data = this.safeDict(message, "data", new Dictionary<string, object>() {});
             string? assetId = this.safeString(data, "assetSymbol");
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["total"] = this.safeString(data, "availableQuantity");
             ((IDictionary<string,object>)account)["used"] = this.safeString(data, "lockedQuantity");
             string? code = this.safeCurrencyCode(assetId);
@@ -826,7 +826,7 @@ public partial class bullish : ccxt.bullish
             callDynamically(positions, "append", new object[] {position});
             ((IList<object>)newPositions).Add(position);
         }
-        object messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
+        List<object> messageHashes = this.findMessageHashes(client as WebSocketClient, "positions::");
         for (int i = 0; isLessThan(i, getArrayLength(messageHashes)); postFixIncrement(ref i))
         {
             object messageHash = getValue(messageHashes, i);

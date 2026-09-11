@@ -4002,14 +4002,14 @@ export class BaseExchange {
         return parseInt (stringVersion);
     }
 
-    isRoundNumber (value: number) {
+    isRoundNumber (value: number): boolean {
         // this method is similar to isInteger, but this is more loyal and does not check for types.
         // i.e. isRoundNumber(1.000) returns true, while isInteger(1.000) returns false
         const res = this.parseToNumeric ((value % 1));
         return res === 0;
     }
 
-    isEmptyString (value: any) {
+    isEmptyString (value: any): boolean {
         return !this.valueIsDefined (value) || value === '';
     }
 
@@ -6663,7 +6663,7 @@ export class BaseExchange {
         return this.market (symbol);
     }
 
-    checkRequiredCredentials (error = true) {
+    checkRequiredCredentials (error = true): boolean {
         /**
          * @ignore
          * @method
@@ -7417,15 +7417,15 @@ export class BaseExchange {
         return value;
     }
 
-    isTickPrecision () {
+    isTickPrecision (): boolean {
         return this.precisionMode === TICK_SIZE;
     }
 
-    isDecimalPrecision () {
+    isDecimalPrecision (): boolean {
         return this.precisionMode === DECIMAL_PLACES;
     }
 
-    isSignificantPrecision () {
+    isSignificantPrecision (): boolean {
         return this.precisionMode === SIGNIFICANT_DIGITS;
     }
 
@@ -7793,7 +7793,7 @@ export class BaseExchange {
         return this.handleTriggerAndParams (params);
     }
 
-    isPostOnly (isMarketOrder: boolean, exchangeSpecificParam: any, params = {}) {
+    isPostOnly (isMarketOrder: boolean, exchangeSpecificParam: any, params = {}): boolean {
         /**
          * @ignore
          * @method

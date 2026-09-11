@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class bybit : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "bybit" },
@@ -2395,7 +2395,7 @@ public partial class bybit : Exchange
         return await this.privatePostV5AccountUpgradeToUta(parameters);
     }
 
-    public override object createExpiredOptionMarket(object symbol)
+    public override Dictionary<string, object> createExpiredOptionMarket(object symbol)
     {
         // support expired option contracts
         string? quote = null;
@@ -2452,7 +2452,7 @@ public partial class bybit : Exchange
             pricePrecision = this.parseNumber("0.01");
         }
         object convertedExpireDate = this.convertExpireDateToMarketIdDate(expiry);
-        return new Dictionary<string, object>() {
+        return ccxt.BaseExchange.ToDict(new Dictionary<string, object>() {
             { "id", add(add(add(add(add(add(bs, "-"), convertedExpireDate), "-"), strike), "-"), optionType) },
             { "symbol", add(add(add(add(add(add(add(add(add(add(bs, "/"), quote), ":"), settle), "-"), expiry), "-"), strike), "-"), optionType) },
             { "base", bs },
@@ -2496,7 +2496,7 @@ public partial class bybit : Exchange
                 } },
             } },
             { "info", null },
-        };
+        });
     }
 
     public override Dictionary<string, object> safeMarket(object marketId = null, object market = null, object delimiter = null, object marketType = null)
@@ -2510,7 +2510,7 @@ public partial class bybit : Exchange
         return ((Dictionary<string, object>)((object)(base.safeMarket(marketId, market, delimiter, marketType))));
     }
 
-    public virtual object getBybitType(object method, object market, object parameters = null)
+    public virtual List<object> getBybitType(object method, object market, object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         object type = null;
@@ -2664,7 +2664,7 @@ public partial class bybit : Exchange
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {object} an associative dictionary of currencies
      */
-    public async override Task<object> fetchCurrencies(object parameters = null)
+    public async override Task<IDictionary<string, object>> fetchCurrencies(object parameters = null)
     {
         parameters ??= new Dictionary<string, object>();
         if (!isTrue(this.checkRequiredCredentials(false)))
@@ -2711,7 +2711,7 @@ public partial class bybit : Exchange
         return this.parseCurrencies(rows);
     }
 
-    public override object parseCurrency(object currency)
+    public override Dictionary<string, object> parseCurrency(object currency)
     {
         string? currencyId = this.safeString(currency, "coin");
         string? code = this.safeCurrencyCode(currencyId);
@@ -3762,7 +3762,7 @@ public partial class bybit : Exchange
             // https://github.com/ccxt/ccxt/issues/26736 - align the requested
             // start up to the interval boundary so that the exchange returns
             // candles from the first bucket at or after `since`
-            object duration = multiply(this.parseTimeframe(timeframeVar), 1000);
+            Int64 duration = multiply(this.parseTimeframe(timeframeVar), 1000);
             object rounded = multiply(this.parseToInt(divide(since, duration)), duration);
             ((IDictionary<string,object>)request)["start"] = ((bool) isTrue((isEqual(rounded, since)))) ? since : this.sum(rounded, duration);
         }
@@ -3890,7 +3890,7 @@ public partial class bybit : Exchange
         double? indexPrice = this.safeNumber(ticker, "indexPrice");
         IDictionary<string, object> info = this.safeDict(this.safeMarket(marketId, market, null, "swap"), "info");
         Int64? fundingInterval = this.safeInteger(info, "fundingInterval");
-        object intervalString = null;
+        string? intervalString = null;
         if (isTrue(!isEqual(fundingInterval, null)))
         {
             Int64? interval = this.parseToInt(divide(fundingInterval, 60));
@@ -4643,7 +4643,7 @@ public partial class bybit : Exchange
         {
             // usdc wallet
             string code = "USDC";
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(responseResult, "availableBalance");
             ((IDictionary<string,object>)account)["total"] = this.safeString(responseResult, "walletBalance");
             ((IDictionary<string,object>)result)[(string)code] = account;
@@ -4658,7 +4658,7 @@ public partial class bybit : Exchange
                     List<object> coins = this.safeList(entry, "coin", new List<object>() {});
                     for (int j = 0; isLessThan(j, getArrayLength(coins)); postFixIncrement(ref j))
                     {
-                        object account = this.account();
+                        Dictionary<string, object> account = this.account();
                         object coinEntry = getValue(coins, j);
                         string? loan = this.safeString(coinEntry, "borrowAmount");
                         string? interest = this.safeString(coinEntry, "accruedInterest");
@@ -4690,7 +4690,7 @@ public partial class bybit : Exchange
                     }
                 } else
                 {
-                    object account = this.account();
+                    Dictionary<string, object> account = this.account();
                     string? loan = this.safeString(entry, "loan");
                     string? interest = this.safeString(entry, "interest");
                     if (isTrue(isTrue((!isEqual(loan, null))) && isTrue((!isEqual(interest, null)))))
@@ -5113,13 +5113,13 @@ public partial class bybit : Exchange
         {
             clientOrderId = null;
         }
-        object avgPrice = this.omitZero(this.safeString(order, "avgPrice"));
+        string? avgPrice = ((string)this.omitZero(this.safeString(order, "avgPrice")));
         string? rawTimeInForce = this.safeString(order, "timeInForce");
         string? timeInForce = this.parseTimeInForce(rawTimeInForce);
-        object triggerPrice = this.omitZero(this.safeString(order, "triggerPrice"));
+        string? triggerPrice = ((string)this.omitZero(this.safeString(order, "triggerPrice")));
         bool? reduceOnly = this.safeBool(order, "reduceOnly");
-        object takeProfitPrice = this.omitZero(this.safeString(order, "takeProfit"));
-        object stopLossPrice = this.omitZero(this.safeString(order, "stopLoss"));
+        string? takeProfitPrice = ((string)this.omitZero(this.safeString(order, "takeProfit")));
+        string? stopLossPrice = ((string)this.omitZero(this.safeString(order, "stopLoss")));
         string? triggerDirection = this.safeString(order, "triggerDirection");
         bool isAscending = (isEqual(triggerDirection, "1"));
         bool isStopOrderType2 = isTrue((!isEqual(triggerPrice, null))) && isTrue(reduceOnly);
@@ -5275,6 +5275,7 @@ public partial class bybit : Exchange
      * @param {string} [params.trailingAmount] the quote amount to trail away from the current market price
      * @param {string} [params.trailingTriggerPrice] the price to trigger a trailing order, default uses the price argument
      * @param {boolean} [params.tradingStopEndpoint] whether to enforce using the tradingStop (https://bybit-exchange.github.io/docs/v5/position/trading-stop) endpoint, makes difference when submitting single tp/sl order
+     * @param {boolean} [params.rpiTakerAccess] set to true to match a taker order against retail price improvement quotes (https://announcements.bybit.com/en/article/rpi-liquidity-now-available-to-api-taker-orders-bltb943887bfa4c4d17/), supported order combinations: (1) orderType=Market; (2) orderType=Limit with timeInForce=IOC or FOK
      * @returns {object} an [order structure]{@link https://docs.ccxt.com/?id=order-structure}
      */
     public async override Task<ccxt.Order> CreateOrder(string symbol, string type, string side, double amount, double? price = null, object parameters = null)
@@ -8384,7 +8385,7 @@ public partial class bybit : Exchange
         {
             notional = this.safeString2(position, "positionValue", "cumExitValue");
         }
-        object unrealisedPnl = this.omitZero(this.safeString(position, "unrealisedPnl"));
+        string? unrealisedPnl = ((string)this.omitZero(this.safeString(position, "unrealisedPnl")));
         string? initialMarginString = this.safeString2(position, "positionIM", "cumEntryValue");
         string? maintenanceMarginString = this.safeString(position, "positionMM");
         Int64? timestamp = this.safeInteger2(position, "createdTime", "createdAt");
@@ -8394,8 +8395,8 @@ public partial class bybit : Exchange
             lastUpdateTimestamp = this.safeInteger2(position, "updatedTime", "updatedAt");
         }
         string? collateralString = this.safeString(position, "positionBalance");
-        object entryPrice = this.omitZero(this.safeStringN(position, new List<object>() {"entryPrice", "avgPrice", "avgEntryPrice"}));
-        object liquidationPrice = this.omitZero(this.safeString(position, "liqPrice"));
+        string? entryPrice = ((string)this.omitZero(this.safeStringN(position, new List<object>() {"entryPrice", "avgPrice", "avgEntryPrice"})));
+        string? liquidationPrice = ((string)this.omitZero(this.safeString(position, "liqPrice")));
         string? leverage = this.safeString(position, "leverage");
         if (isTrue(!isEqual(liquidationPrice, null)))
         {
@@ -8403,7 +8404,7 @@ public partial class bybit : Exchange
             {
                 //  (Entry price - Liq price) * Contracts + Maintenance Margin + (unrealised pnl) = Collateral
                 bool? useMarkPrice = this.safeBool(this.options, "useMarkPriceForPositionCollateral", false);
-                object price = ((bool) isTrue(useMarkPrice)) ? markPrice : entryPrice;
+                string? price = ((bool) isTrue(useMarkPrice)) ? markPrice : entryPrice;
                 string? difference = Precise.stringAbs(Precise.stringSub(price, liquidationPrice));
                 collateralString = Precise.stringAdd(Precise.stringAdd(Precise.stringMul(difference, size), maintenanceMarginString), unrealisedPnl);
             } else
@@ -8904,7 +8905,7 @@ public partial class bybit : Exchange
      * @param {boolean} [params.paginate] default false, when true will automatically paginate by calling this endpoint multiple times. See in the docs all the [availble parameters](https://github.com/ccxt/ccxt/wiki/Manual#pagination-params)
      * @returns An array of open interest structures
      */
-    public async override Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(object symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
+    public async override Task<List<ccxt.OpenInterest>> FetchOpenInterestHistory(string symbol, string timeframe = null, Int64? since = null, Int64? limit = null, object parameters = null)
     {
         object timeframeVar = timeframe;
         timeframeVar ??= "1h";
@@ -9222,7 +9223,7 @@ public partial class bybit : Exchange
         string? fromId = this.safeString(accountTypes, fromAccount, fromAccount);
         string? toId = this.safeString(accountTypes, toAccount, toAccount);
         Dictionary<string, object> currency = this.currency(((string)code));
-        object amountToPrecision = this.currencyToPrecision(((string)code), amount);
+        string? amountToPrecision = this.currencyToPrecision(((string)code), amount);
         Dictionary<string, object> request = new Dictionary<string, object>() {
             { "transferId", transferId },
             { "fromAccountType", fromId },
@@ -9396,13 +9397,13 @@ public partial class bybit : Exchange
         //     }
         //
         IDictionary<string, object> result = this.safeDict(response, "result", new Dictionary<string, object>() {});
-        object transaction = this.parseMarginLoan(result, currency);
+        Dictionary<string, object> transaction = this.parseMarginLoan(result, currency);
         return this.extend(transaction, new Dictionary<string, object>() {
             { "amount", amount },
         });
     }
 
-    public virtual object parseMarginLoan(object info, object currency = null)
+    public virtual Dictionary<string, object> parseMarginLoan(object info, object currency = null)
     {
         //
         // borrowCrossMargin
@@ -9942,7 +9943,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToDictList(this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit));
     }
 
-    public virtual object parseSettlement(object settlement, object market)
+    public virtual Dictionary<string, object> parseSettlement(object settlement, object market)
     {
         //
         // fetchSettlementHistory
@@ -10054,7 +10055,7 @@ public partial class bybit : Exchange
         return ccxt.BaseExchange.ToDictList(this.parseVolatilityHistory(volatility));
     }
 
-    public virtual object parseVolatilityHistory(object volatility)
+    public virtual List<object> parseVolatilityHistory(object volatility)
     {
         //
         //     {
@@ -10075,7 +10076,7 @@ public partial class bybit : Exchange
                 { "volatility", this.safeNumber(entry, "value") },
             });
         }
-        return result;
+        return ((List<object>)((object)(result)));
     }
 
     /**

@@ -561,7 +561,7 @@ export default class bitfinex extends Exchange {
         });
     }
 
-    isFiat (code: any) {
+    isFiat (code: any): boolean {
         return (code in this.options['fiat']);
     }
 
@@ -987,7 +987,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'v2AccountsByType', {});
         const requestedType = this.safeString (params, 'type', 'exchange');
         const accountType = this.safeString (accountsByType, requestedType, requestedType);
         if (accountType === undefined) {
@@ -1042,7 +1042,7 @@ export default class bitfinex extends Exchange {
         if (this.markets === undefined) {
             await this.loadMarkets ();
         }
-        const accountsByType = this.safeValue (this.options, 'v2AccountsByType', {});
+        const accountsByType = this.safeDict (this.options, 'v2AccountsByType', {});
         const fromId = this.safeString (accountsByType, fromAccount);
         if (fromId === undefined) {
             const keys = Object.keys (accountsByType);
@@ -2741,7 +2741,7 @@ export default class bitfinex extends Exchange {
         //     ]
         //
         const result: Dict = {};
-        const fiat = this.safeValue (this.options, 'fiat', {});
+        const fiat = this.safeDict (this.options, 'fiat', {});
         const feeData = this.safeValue (response, 4, []);
         const makerData = this.safeValue (feeData, 0, []);
         const takerData = this.safeValue (feeData, 1, []);

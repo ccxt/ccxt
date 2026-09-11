@@ -5,7 +5,7 @@ namespace ccxt;
 
 public partial class independentreserve : Exchange
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "id", "independentreserve" },
@@ -508,7 +508,7 @@ public partial class independentreserve : Exchange
             object balance = getValue(response, i);
             string? currencyId = this.safeString(balance, "CurrencyCode");
             string? code = this.safeCurrencyCode(currencyId);
-            object account = this.account();
+            Dictionary<string, object> account = this.account();
             ((IDictionary<string,object>)account)["free"] = this.safeString(balance, "AvailableBalance");
             ((IDictionary<string,object>)account)["total"] = this.safeString(balance, "TotalBalance");
             if (isTrue(!isEqual(code, null)))
@@ -1354,7 +1354,7 @@ public partial class independentreserve : Exchange
             ((IDictionary<string,object>)query)["signature"] = ((string)signature).ToUpper();
             for (int i = 0; isLessThan(i, getArrayLength(keys)); postFixIncrement(ref i))
             {
-                object key = getValue(keys, i);
+                string? key = ((string)getValue(keys, i));
                 ((IDictionary<string,object>)query)[(string)key] = getValue(parameters, key);
             }
             body = this.json(query);

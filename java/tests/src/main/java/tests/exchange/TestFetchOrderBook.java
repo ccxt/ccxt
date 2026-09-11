@@ -16,7 +16,7 @@ public class TestFetchOrderBook extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object method = "fetchOrderBook";
+        String method = "fetchOrderBook";
         Object orderbook = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchOrderBook", new Object[]{symbol})).join();
         TestOrderBook.testOrderBook(exchange, skippedProperties, method, orderbook, symbol);
         return true;

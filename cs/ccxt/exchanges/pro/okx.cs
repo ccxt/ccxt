@@ -7,7 +7,7 @@ namespace ccxt.pro;
 public partial class okx { public okx(object args = null) : base(args) { } }
 public partial class okx : ccxt.okx
 {
-    public override object describe()
+    public override Dictionary<string, object> describe()
     {
         return this.deepExtend(base.describe(), new Dictionary<string, object>() {
             { "has", new Dictionary<string, object>() {
@@ -357,7 +357,7 @@ public partial class okx : ccxt.okx
         object channel = this.safeString(arg, "channel");
         string? marketId = this.safeString(arg, "instId");
         string? symbol = this.safeSymbol(marketId);
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         Int64? tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -467,7 +467,7 @@ public partial class okx : ccxt.okx
         //     }
         // ]
         //
-        object data = this.safeList(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
             object rawfr = getValue(data, i);
@@ -683,7 +683,7 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
         object channel = this.safeString(arg, "channel");
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         Dictionary<string, object> newTickers = new Dictionary<string, object>() {};
         for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
         {
@@ -895,7 +895,7 @@ public partial class okx : ccxt.okx
         //        ]
         //    }
         //
-        object rawLiquidations = this.safeList(message, "data", new List<object>() {});
+        List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);
@@ -1003,7 +1003,7 @@ public partial class okx : ccxt.okx
         //        }]
         //    }
         //
-        object rawLiquidations = this.safeList(message, "data", new List<object>() {});
+        List<object> rawLiquidations = this.safeList(message, "data", new List<object>() {});
         for (int i = 0; isLessThan(i, getArrayLength(rawLiquidations)); postFixIncrement(ref i))
         {
             object rawLiquidation = getValue(rawLiquidations, i);
@@ -1294,7 +1294,7 @@ public partial class okx : ccxt.okx
         {
             return;
         }
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -1664,7 +1664,7 @@ public partial class okx : ccxt.okx
         IDictionary<string, object> arg = this.safeDict(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
         string? action = this.safeString(message, "action");
-        object data = this.safeList(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         string? marketId = this.safeString(arg, "instId");
         Dictionary<string, object> market = this.safeMarket(marketId);
         object symbol = getValue(market, "symbol");
@@ -2104,7 +2104,7 @@ public partial class okx : ccxt.okx
         Dictionary<string, object> market = this.safeMarket(marketId, null, "-");
         object symbol = getValue(market, "symbol");
         object channel = this.safeString(arg, "channel", "");
-        object data = this.safeValue(message, "data", new List<object>() {});
+        List<object> data = this.safeList(message, "data", new List<object>() {});
         if (isTrue(isEqual(this.positions, null)))
         {
             this.positions = new ArrayCacheBySymbolBySide();
@@ -2266,7 +2266,7 @@ public partial class okx : ccxt.okx
         this.handleMyTrades(client as WebSocketClient, message);
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
-        object orders = this.safeValue(message, "data", new List<object>() {});
+        List<object> orders = this.safeList(message, "data", new List<object>() {});
         int ordersLength = getArrayLength(orders);
         if (isTrue(isGreaterThan(ordersLength, 0)))
         {
@@ -2354,7 +2354,7 @@ public partial class okx : ccxt.okx
         //
         object arg = this.safeValue(message, "arg", new Dictionary<string, object>() {});
         object channel = this.safeString(arg, "channel");
-        object rawOrders = this.safeValue(message, "data", new List<object>() {});
+        List<object> rawOrders = this.safeList(message, "data", new List<object>() {});
         List<object> filteredOrders = new List<object>() {};
         // filter orders with no last trade id
         for (int i = 0; isLessThan(i, getArrayLength(rawOrders)); postFixIncrement(ref i))
@@ -2713,7 +2713,7 @@ public partial class okx : ccxt.okx
         //
         //     { event: "login", success: true }
         //
-        var future = this.safeValue((client as WebSocketClient).futures, "authenticated");
+        Future future = ((Future)this.safeValue((client as WebSocketClient).futures, "authenticated"));
         (future as Future).resolve(true);
     }
 
@@ -2753,7 +2753,7 @@ public partial class okx : ccxt.okx
                     this.throwBroadlyMatchedException(getValue(this.exceptions, "broad"), messageString, feedback);
                 } else
                 {
-                    object data = this.safeList(message, "data", new List<object>() {});
+                    List<object> data = this.safeList(message, "data", new List<object>() {});
                     for (int i = 0; isLessThan(i, getArrayLength(data)); postFixIncrement(ref i))
                     {
                         object d = getValue(data, i);

@@ -25,7 +25,7 @@ public partial class BaseTest
         }, new Dictionary<string, object>() {
             { "foo", "c" },
         }};
-            object currentValue = exchange.groupBy(sampleArray, "foo");
+            Dictionary<string, object> currentValue = exchange.groupBy(sampleArray, "foo");
             Dictionary<string, object> storedValue = new Dictionary<string, object>() {
                 { "a", new List<object>() {new Dictionary<string, object>() {
             { "foo", "a" },

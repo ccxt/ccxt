@@ -12,7 +12,7 @@ public partial class BaseTest
             var exchange = new ccxt.Exchange(new Dictionary<string, object>() {
                 { "id", "sampleex" },
             });
-            object ms = exchange.milliseconds();
+            Int64 ms = exchange.milliseconds();
             string fileName = add(add("ccxt-test-io-", ((object)ms).ToString()), ".ccxtfile");
             // upper tmp dir
             object tempDir = exchange.getTempDir();

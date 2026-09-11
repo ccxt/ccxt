@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestDepositWithdrawal extends BaseTest {
     public static void testDepositWithdrawal(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode, Object now)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "id", "1234" );
             put( "txid", "0x1345FEG45EAEF7" );
@@ -33,7 +33,7 @@ public class TestDepositWithdrawal extends BaseTest {
             put( "updated", 1502962946233L );
             put( "fee", new java.util.HashMap<String, Object>() {{}} );
         }};
-        Object emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "addressTo", "addressFrom", "tag", "tagTo", "tagFrom")); // below we still do Assertion for to/from
+        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "addressTo", "addressFrom", "tag", "tagTo", "tagFrom")); // below we still do Assertion for to/from
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         TestSharedMethods.AssertCurrencyCode(exchange, skippedProperties, method, entry, Helpers.GetValue(entry, "currency"), requestedCode);

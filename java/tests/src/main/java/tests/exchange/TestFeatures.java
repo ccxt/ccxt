@@ -16,8 +16,8 @@ public class TestFeatures extends BaseTest {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-        Object marketTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
-        Object subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
+        java.util.List<Object> marketTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
+        java.util.List<Object> subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
         Object features = exchange.features;
         Object keys = Helpers.objectKeys(features);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -55,7 +55,7 @@ public class TestFeatures extends BaseTest {
     }
     public static void testFeaturesInner(BaseExchange exchange, Object skippedProperties, Object featureObj)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "sandbox", false );
             put( "createOrder", new java.util.HashMap<String, Object>() {{
                 put( "marginMode", false );
