@@ -2584,9 +2584,15 @@ function receiverCallIsSafe (method, javaType) {
 // every Identifier node in `scope`, by source name. Not cached: the Java printer
 // renames identifiers inside object literals in place (`x` -> `finalX`) while a body
 // is being printed, so the walk must read the live AST each time.
+// ITERATIVE on purpose: the recursive form overflowed the (web)worker stack on the deep
+// expression trees of ts/src/pro/binance.ts (JN-22 measured a RangeError in a piscina
+// worker mid-regen, killing the process). An explicit stack has no depth limit; the
+// pre-order visit order — and therefore every name's node list — is unchanged.
 function identifierIndex (scope) {
     const index = new Map ();
-    const visit = (n) => {
+    const stack = [ scope ];
+    while (stack.length > 0) {
+        const n = stack.pop ();
         if (n.kind === ts.SyntaxKind.Identifier) {
             const name = n.escapedText;
             let list = index.get (name);
@@ -2596,9 +2602,12 @@ function identifierIndex (scope) {
             }
             list.push (n);
         }
-        ts.forEachChild (n, visit);
-    };
-    ts.forEachChild (scope, visit);
+        const children = [];
+        ts.forEachChild (n, (child) => { children.push (child); });
+        for (let i = children.length - 1; i >= 0; i--) {
+            stack.push (children[i]);
+        }
+    }
     return index;
 }
 
@@ -5944,18 +5953,35 @@ export function patchJavaLiteralLocalTypes (transpiler) {
 //     hand-written BaseExchange (Time.milliseconds() is a primitive long, boxed at the
 //     boundary). parseTimeframe -> primitive int; declared `int` and it THROWS on
 //     malformed input instead of returning undefined, so no null can ever flow in.
-//   * nonce -> deliberately NOT typed. BaseExchange.nonce() returns this.seconds() (a
-//     Long box) but the ~40 venue overrides disagree (ts/src/binance.ts returns
-//     `this.milliseconds() - this.options["timeDifference"]` -> Helpers.subtract -> a
-//     Double box; the generated BinanceCore/OkxCore keep that Double; prediction/Bitmex
-//     return milliseconds() -> Long). One local type cannot cover them without a
-//     per-venue closed table; excluded.
-//   * safeIntegerProduct2 / safeIntegerProductN (and SafeMethods.SafeNumberN) -> NOT
-//     typed: they hand the caller's raw defaultValue back on the failure path, so the
-//     box is whatever the call site passed (an Integer for the ubiquitous `0`).
-//   * safeTimestamp / safeTimestamp2 are NOT narrowable for the same reason (the Java
-//     safeTimestampN returns the caller's default untouched) — already documented in
-//     section 3; they are absent here too.
+//   * nonce -> deliberately NOT typed, RE-AUDITED by JN-22 with the full census (it stays
+//     out). 49 nonce() bodies tree-wide: BaseExchange returns this.seconds() (Long); 25
+//     return this.milliseconds() (Long); Bitfinex returns milliseconds()/seconds() on its
+//     two paths (Long); MexcCore subtracts this.safeInteger(...) (Long); BigoneCore returns
+//     this.sum(Helpers.multiply(this.microseconds(), 1000), exchangeTimeCorrection) (sum's
+//     box is not a numeric family); and 20 venues return
+//     `Helpers.subtract(this.milliseconds(), Helpers.GetValue(this.options, "timeDifference"))`
+//     — subtract(Long, Object), i.e. Long, Double or null depending on the RUNTIME box of
+//     options["timeDifference"] (a Float/Double user config makes it Double). One local type
+//     cannot cover the dispatch set; only 15 `Object x = this.nonce()` locals exist and the
+//     5 that a base-tier resolution rule WOULD type (venues with no override) are exactly the
+//     ones where a subclass override (pro/<venue>.ts) could not be excluded from the local's
+//     own file — zero today, unprovable from the printed evidence. Exclusion stands.
+//   * safeIntegerProduct2 / safeIntegerProductN -> typed ONLY for the no-default call shape
+//     (JN-22 (c), see JAVA_NUMERIC_NO_DEFAULT_TYPES below): the audited bodies return the
+//     caller's RAW defaultValue when the parse fails, so a call WITH a default can box that
+//     default (harness: missing key + default 0 -> java.lang.Long 0 because the default is
+//     fed through SafeValueN -> parse -> (long), but an unparseable default comes back raw).
+//     The no-default shape boxes Long|null on every path.
+//   * safeTimestamp / safeTimestamp2 -> typed ONLY for the no-default call shape (JN-22 (c)):
+//     the Java safeTimestampN returns the caller's raw defaultValue on the miss path
+//     (harness: missing key no default -> null; with default 0 -> java.lang.Integer 0), so
+//     the call must pass NO default. These are cast-family (the callee is declared Object).
+//   * SafeMethods.SafeNumberN / SafeFloatN are declared Double and convert the default with
+//     toDoubleQuiet (harness: missing key + default 0 -> java.lang.Double 0.0), so the
+//     section-4 header's earlier "hands the raw defaultValue back" note was over-broad for
+//     this pair; it has 0 live call sites either way (only a commented-out line in
+//     BaseExchange.java). The generated safeNumberN locals are already Double via
+//     JAVA_NUMERIC_LOCAL_TYPES.
 //
 // UPSTREAM RETYPES (the other half of the slice — all declaration-only):
 //   * java/lib/src/main/java/io/github/ccxt/BaseExchange.java: safeInteger / safeInteger2
@@ -6071,6 +6097,56 @@ const NUMERIC_LIB_DTS_FILE = /(^|[\\/])node_modules[\\/](?:[^\\/]+[\\/]node_modu
 // every other method the printer knows how to special case casts the receiver
 // (String) / (List).
 const NUMERIC_RECEIVER_METHODS = new Set ([ 'toString', 'toFixed' ]);
+
+// JN-22 (c): declared-`Object` accessors whose audited body returns ONE box (or null) ONLY
+// when the call passes NO default argument. SafeMethods.opt(...) -> the failure path hands
+// the caller's raw defaultValue back UNTOUCHED, so a call WITH a default can return that
+// default's box (an Integer for the ubiquitous `0`) — unprovable. Harness (real
+// SafeMethods.java, /tmp/jn22 SafeHarness): `safeTimestamp(obj,"t")` on a missing key ->
+// null; `safeTimestamp(obj,"t",0)` -> java.lang.Integer 0; `safeTimestamp2(...)` the same;
+// `safeIntegerProduct2(obj,k1,k2,m)` missing -> null and only the RAW-default path escapes
+// Long (a numeric default is fed through SafeValueN -> parse -> (long) so it still boxes
+// Long, but the unparseable default returns the caller's box — gate on the same
+// no-default rule). `args` = the exact top-level argument count of the NO-default shape
+// (safeTimestamp(obj,key)=2, safeTimestamp2(obj,k1,k2)=3, safeIntegerProduct2(obj,k1,k2,m)=4,
+// safeIntegerProductN(obj,keys,m)=3); any other count means a default was passed.
+export const JAVA_NUMERIC_NO_DEFAULT_TYPES = {
+    'safeTimestamp': { type: 'Long', args: 2 },
+    'safeTimestamp2': { type: 'Long', args: 3 },
+    'safeIntegerProduct2': { type: 'Long', args: 4 },
+    'safeIntegerProductN': { type: 'Long', args: 3 },
+};
+
+// the same box proof as numericFamilyCallType plus the no-default argument-count gate.
+// Returns the Java type (the printed call is statically Object, so a checkcast is needed).
+function numericNoDefaultFamilyCallType (printer, node) {
+    const call = unwrapNumericExpression (node);
+    if (call === undefined || !ts.isCallExpression (call) || !isThisOrSuperCall (call)) {
+        return undefined;
+    }
+    const method = String (call.expression.name.escapedText);
+    const entry = JAVA_NUMERIC_NO_DEFAULT_TYPES[method];
+    if (entry === undefined) {
+        return undefined;
+    }
+    if (call.arguments === undefined || call.arguments.length !== entry.args) {
+        numericDebug (`miss ${method}: default argument passed (${call.arguments?.length} args)`);
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (call)?.declaration;
+    } catch (e) {
+        declaration = undefined;
+    }
+    const fileName = declaration?.getSourceFile?.().fileName;
+    if (fileName === undefined
+        || (!NUMERIC_BASE_TIER_DECLARATION_FILE.test (fileName) && !NUMERIC_LIB_DTS_FILE.test (fileName))) {
+        numericDebug (`miss ${method}: ${fileName ?? 'unresolved'}`);
+        return undefined;
+    }
+    return entry.type;
+}
 
 const JAVA_NUMERIC_DEBUG = process.env.CCXT_JAVA_NUMERIC_DEBUG === '1';
 
@@ -6297,7 +6373,14 @@ function numericLocalTypeForDeclaration (printer, declaration) {
     if (!ts.isIdentifier (declaration.name)) {
         return undefined;
     }
-    const javaType = numericFamilyCallType (printer, declaration.initializer);
+    let javaType = numericFamilyCallType (printer, declaration.initializer);
+    let cast = false;
+    if (javaType === undefined) {
+        // JN-22 (c): the no-default shapes of safeTimestamp*/safeIntegerProduct2/N — the
+        // callee is declared Object, so the retyped declaration needs a checkcast.
+        javaType = numericNoDefaultFamilyCallType (printer, declaration.initializer);
+        cast = javaType !== undefined;
+    }
     if (javaType === undefined) {
         return undefined;
     }
@@ -6308,7 +6391,7 @@ function numericLocalTypeForDeclaration (printer, declaration) {
     if (!numericIsSafeToNarrow (printer, declaration, sourceName, javaType, isProFile)) {
         return undefined;
     }
-    return javaType;
+    return { type: javaType, cast };
 }
 
 // `cond ? <numeric literal> : this.<family>(...)`: the moment the arm's static type is
@@ -6352,9 +6435,350 @@ function numericConditionalWithArmCasts (printer, node) {
     return `((${condition})) ? ${trueArm} : ${falseArm}`;
 }
 
+// ----- JN-22: LOCAL NUMERIC RECEIVER/OPERAND: arithmetic-result locals -----
+//
+// `a + b` / `a - b` / `a * b` / `a / b` / `a % b` all print through ast-transpiler's
+// binaryExpressionsWrappers as `Helpers.add|subtract|multiply|divide|mod (a, b)` — there is
+// NO raw Java operator anywhere in the generated arithmetic (census: 0 raw `-`/`*`/`/`
+// outside comments), so the JS-vs-Java integer-division hazard can never be introduced by
+// naming a local's box: the printed operand text is byte-identical and Helpers.divide
+// always does double division (`((Long) a).doubleValue() / ((Long) b)`).
+//
+// WHICH BOX EACH HELPER RETURNS (differential javac harness /tmp/jn22, compiled against THIS
+// worktree's Helpers.java; every row in the harness output):
+//   add:      (Long,Long)/(Integer,Integer)/(int,int) -> Long   (normalizeIntIfNeeded turns
+//             every Integer into a Long BEFORE the switch, so the Int32 branch the C#
+//             campaign found in subtract does not exist here);
+//             either operand Double -> Double; either operand String -> String;
+//             any other non-null pair -> null.
+//   subtract: (Long,Long) -> Long; either operand Double -> Double; else null.
+//             `subtract(int, int)` at Helpers.java:331 is COMMENTED OUT and reflection over
+//             Helpers.class shows EXACTLY ONE overload `Object subtract(Object,Object)` —
+//             the C#-campaign Int32-box trap has no Java equivalent (harness row
+//             `subtract(int,int literals) => box=java.lang.Long value=999`).
+//   multiply: (Long,Long)/(int,int) -> Long; with ANY Double operand the box is
+//             VALUE-DEPENDENT: `if (IsInteger(res)) return (long) res; else return res;`
+//             — the SAME static call shape gives different runtime boxes
+//             (`multiply(1L,2.5)` -> Double 2.5, `multiply(2L,2.5)` -> Long 5,
+//             `multiply(1000L,2.5)` -> Long 2500). A Double-operand multiply local can
+//             therefore NEVER be typed; the harness also shows `IsInteger(NaN)` THROWS
+//             NumberFormatException (multiply(Double.NaN, x)), which is baseline behaviour.
+//   divide:  ALWAYS Double-or-null for EVERY operand pair — the null guard is the only
+//             non-Double return. `divide(1,2)=0.5` (double division, NOT integer division),
+//             `divide(1L,0L)=Infinity`, `divide(0L,0L)=NaN`, `divide(-5L,2L)=-2.5` — all
+//             identical to the JS values (node cross-check in the harness output). So a
+//             `/`-result local needs NO operand proof at all; only its own use scan.
+//   mod:     Double-or-null whenever the first operand is numeric (`toDouble(a) % toDouble(b)`).
+//
+// WHAT THIS ADDS: the declaration `Object x = <arith>;` -> `Long|Double x = (Long|Double)
+// <arith>;` when the box is provable, plus the same use scan the numeric family already
+// applies (null is legal for both reference boxes, so the null paths need no special case).
+// The cast is REQUIRED (unlike the safe*/parse* families): `Helpers.subtract` is declared
+// `Object`, so the printed initializer is statically Object and would not assign to Long.
+// A cast on the proven box (or null) is a no-op at runtime; the harness is what proves the
+// box claim on which the cast's safety rests.
+//
+// OPERAND BOX PROOF (`arithmeticValueBox`) — a value expression is provably Long-family or
+// Double-family when it is:
+//   * a numeric literal (printer.printNumericLiteral: Integer for plain/hex, Long for the `L`
+//     suffix, Double when it prints `.`/`e`) — the literal box is what the call site autoboxes;
+//   * unary +/- (prints `Helpers.opNeg(x)` / `+(x)`): opNeg hands the argument's own box back
+//     (audited body: Byte->Byte ... Double->Double, else null) — same family as the operand;
+//   * a call to a base-tier numeric family member (safeInteger*/safeFloat*/safeNumber*/
+//     parseToInt/milliseconds/seconds/parse8601 -> Long, parseTimeframe -> int) — the exact
+//     table the landed slice already trusts, resolved through numericFamilyCallType;
+//   * `Math.floor/ceil` -> Double, `Math.round` -> Long, `Math.abs` -> Double (the printer
+//     prints `Helpers.mathAbs(Double.parseDouble(...))`), `Math.pow` -> Double;
+//   * `.length` -> int -> Integer -> Long family (`Helpers.getArrayLength(x)` / `((String)x)
+//     .length()`, both primitive int, normalized to Long inside every arithmetic helper);
+//   * another arithmetic expression of this family (recursive, depth-capped);
+//   * an identifier whose declaration the same proof reaches: a `const` (no writes at all) or
+//     a `let`/`var` whose every later write hands the same box back, or a for-loop counter
+//     (the printer rewrites its declaration to `var i = <literal>`, a primitive — the literal
+//     decides int/long/double).
+// Everything else (params, GetValue, unknown calls, Strings, Maps, ternaries, destructured
+// names, `undefined`) is unprovable and keeps the whole arithmetic expression `Object`.
+//
+// WHY BOTH OPERANDS MUST BE PROVABLE for add/subtract/multiply: the helpers switch on the
+// RUNTIME boxes, so one unknown operand can flip the result (String for add, null for
+// subtract, the value-dependent Double/Long split for multiply). divide/mod do not need the
+// operand proof (their box is value-independent) but reusing the operand walk for them costs
+// nothing and documents intent; the walk is only skipped for divide.
+
+// JS operator -> the Helpers method the printer emits for it. Every other binary operator
+// (comparisons, ===, &&, ??, ...) is wrapped differently and never produces a numeric box.
+const ARITHMETIC_OPERATOR_METHODS = new Map ([
+    [ ts.SyntaxKind.PlusToken, 'add' ],
+    [ ts.SyntaxKind.MinusToken, 'subtract' ],
+    [ ts.SyntaxKind.AsteriskToken, 'multiply' ],
+    [ ts.SyntaxKind.SlashToken, 'divide' ],
+    [ ts.SyntaxKind.PercentToken, 'mod' ],
+]);
+
+const ARITHMETIC_CAST_METHODS = new Set ([ 'add', 'subtract', 'multiply', 'divide', 'mod' ]);
+
+const ARITHMETIC_DEBUG = process.env.CCXT_JAVA_ARITHMETIC_DEBUG === '1'
+    || process.env.CCXT_JAVA_NUMERIC_DEBUG === '1';
+
+function arithmeticDebug (message) {
+    if (ARITHMETIC_DEBUG) {
+        console.error ('[java-arithmetic] ' + message);
+    }
+}
+
+const ARITHMETIC_DEPTH_CAP = 8;
+
+// classifier context: `depth` bounds the operand walk, `seen` breaks the identifier cycle
+// `x = x + 1` walks through (declaration -> write scan -> the same identifier -> ...): a
+// declaration already being classified is unprovable from the initializer alone.
+function arithmeticChildContext (ctx) {
+    return { depth: ctx.depth + 1, seen: ctx.seen };
+}
+
+function arithmeticRootContext () {
+    return { depth: 0, seen: new Set () };
+}
+
+// the box family of a primitive Java numeric static type as the helpers see it:
+// int/long/short/byte (and their boxes) are normalized to Long; double/float stay Double.
+function arithmeticFamilyOf (javaType) {
+    if (javaType === 'Long' || javaType === 'Integer' || javaType === 'int') {
+        return 'Long';
+    }
+    if (javaType === 'Double') {
+        return 'Double';
+    }
+    return undefined;
+}
+
+function arithmeticIsConstDeclaration (declaration) {
+    const list = declaration.parent;
+    return ts.isVariableDeclarationList (list) && (list.flags & ts.NodeFlags.Const) !== 0;
+}
+
+function arithmeticIsForCounter (declaration) {
+    const list = declaration.parent;
+    return ts.isVariableDeclarationList (list)
+        && list.parent !== undefined && ts.isForStatement (list.parent)
+        && list.parent.initializer === list;
+}
+
+// `Helpers.add(|subtract(|multiply(|divide(|mod(` — the printed prefix of an arithmetic
+// initializer, derived from the SOURCE operator so a printer change can never silently
+// retype a different call shape.
+function arithmeticPrintedPrefix (method) {
+    return `Helpers.${method}(`;
+}
+
+// the printed initializer may carry explicit parentheses (`const x = (a - b)` prints
+// `(Helpers.subtract(a, b))`); the cast applies to the whole parenthesized value, so only
+// the leading parens are skipped before the prefix check.
+function arithmeticValueCarriesPrefix (value, prefix) {
+    return value.replace (/^\(+/, '').startsWith (prefix);
+}
+
+// every later write must hand the same box back (or null/undefined); compound assignment
+// prints `x = Helpers.add/subtract(x, r)` whose box depends on the right operand, and
+// ++/-- print numeric helpers — all rejected.
+function arithmeticWritesKeepBox (printer, declaration, box, ctx) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    const name = declaration.name.escapedText;
+    const uses = identifierIndex (scope).get (name) ?? [];
+    for (const n of uses) {
+        if (n === declaration.name) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent === undefined) {
+            continue;
+        }
+        if (ts.isBinaryExpression (parent) && parent.left === n) {
+            const op = parent.operatorToken.kind;
+            if (op === ts.SyntaxKind.EqualsToken) {
+                const right = unwrapNumericExpression (parent.right);
+                if (right === undefined) {
+                    return false;
+                }
+                if (right.kind === ts.SyntaxKind.NullKeyword) {
+                    continue;
+                }
+                if (right.kind === ts.SyntaxKind.Identifier && right.escapedText === 'undefined') {
+                    continue;
+                }
+                const rightBox = arithmeticExpressionBox (printer, right, ctx);
+                if (rightBox === undefined || rightBox !== box) {
+                    return false;
+                }
+                continue;
+            }
+            if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
+                return false;
+            }
+        }
+        if (ts.isPostfixUnaryExpression (parent)) {
+            return false;
+        }
+        if (ts.isPrefixUnaryExpression (parent)
+            && (parent.operator === ts.SyntaxKind.PlusToken || parent.operator === ts.SyntaxKind.MinusToken)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// the box family ('Long' | 'Double') of a value expression, or undefined when unprovable
+function arithmeticValueBox (printer, node, ctx) {
+    if (ctx.depth > ARITHMETIC_DEPTH_CAP) {
+        return undefined;
+    }
+    const n = unwrapNumericExpression (node);
+    if (n === undefined) {
+        return undefined;
+    }
+    if (n.kind === ts.SyntaxKind.NumericLiteral) {
+        return arithmeticFamilyOf (literalTypeOfNumericLiteral (printer, n));
+    }
+    if (ts.isPrefixUnaryExpression (n)
+        && (n.operator === ts.SyntaxKind.MinusToken || n.operator === ts.SyntaxKind.PlusToken)) {
+        // prints Helpers.opNeg(x) / +(x); opNeg returns the argument's own box
+        return arithmeticValueBox (printer, n.operand, arithmeticChildContext (ctx));
+    }
+    if (ts.isPropertyAccessExpression (n)) {
+        // `x.length` prints Helpers.getArrayLength(x) (int) or ((String)x).length() (int)
+        return String (n.name.escapedText) === 'length' ? 'Long' : undefined;
+    }
+    if (ts.isBinaryExpression (n) && ARITHMETIC_OPERATOR_METHODS.has (n.operatorToken.kind)) {
+        return arithmeticExpressionBox (printer, n, arithmeticChildContext (ctx));
+    }
+    if (ts.isCallExpression (n)) {
+        if (ts.isPropertyAccessExpression (n.expression)
+            && n.expression.expression.kind === ts.SyntaxKind.Identifier
+            && String (n.expression.expression.escapedText) === 'Math') {
+            const name = String (n.expression.name.escapedText);
+            if (name === 'floor' || name === 'ceil' || name === 'pow' || name === 'abs') {
+                return 'Double';
+            }
+            if (name === 'round') {
+                return 'Long';
+            }
+            return undefined; // Math.min/max hand an operand box back — unprovable
+        }
+        // the no-default shapes of safeTimestamp*/safeIntegerProduct2/N box Long (JN-22 c)
+        const noDefault = numericNoDefaultFamilyCallType (printer, n);
+        if (noDefault !== undefined) {
+            return arithmeticFamilyOf (noDefault);
+        }
+        return arithmeticFamilyOf (numericFamilyCallType (printer, n));
+    }
+    if (ts.isIdentifier (n)) {
+        return arithmeticIdentifierBox (printer, n, arithmeticChildContext (ctx));
+    }
+    return undefined;
+}
+
+function arithmeticIdentifierBox (printer, identifier, ctx) {
+    if (ctx.depth > ARITHMETIC_DEPTH_CAP) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getSymbolAtLocation (identifier)?.valueDeclaration;
+    } catch (e) {
+        declaration = undefined;
+    }
+    if (declaration === undefined || !ts.isVariableDeclaration (declaration)
+        || !ts.isIdentifier (declaration.name) || declaration.initializer === undefined) {
+        return undefined;
+    }
+    if (ctx.seen.has (declaration)) {
+        return undefined; // cycle: `x = x + 1` re-entered through the write scan
+    }
+    ctx.seen.add (declaration);
+    try {
+        const inner = arithmeticChildContext (ctx);
+        // a for-loop counter prints `var i = <literal>` — a primitive whose family is the literal's
+        const box = arithmeticValueBox (printer, declaration.initializer, inner);
+        if (box === undefined) {
+            return undefined;
+        }
+        if (arithmeticIsForCounter (declaration) || arithmeticIsConstDeclaration (declaration)) {
+            return box; // no write can change the box
+        }
+        return arithmeticWritesKeepBox (printer, declaration, box, inner) ? box : undefined;
+    } finally {
+        ctx.seen.delete (declaration);
+    }
+}
+
+// the box family of `<a> <op> <b>` (with the printed Helpers.<method> call), or undefined
+function arithmeticExpressionBox (printer, node, ctx) {
+    if (ctx.depth > ARITHMETIC_DEPTH_CAP) {
+        return undefined;
+    }
+    const n = unwrapNumericExpression (node);
+    if (n === undefined || !ts.isBinaryExpression (n)) {
+        return undefined;
+    }
+    const method = ARITHMETIC_OPERATOR_METHODS.get (n.operatorToken.kind);
+    if (method === undefined) {
+        return undefined;
+    }
+    // divide's box is Double-or-null for every operand pair — no operand proof needed
+    if (method !== 'divide') {
+        const left = arithmeticValueBox (printer, n.left, arithmeticChildContext (ctx));
+        if (left === undefined) {
+            return undefined;
+        }
+        const right = arithmeticValueBox (printer, n.right, arithmeticChildContext (ctx));
+        if (right === undefined) {
+            return undefined;
+        }
+        if (method === 'multiply' && (left === 'Double' || right === 'Double')) {
+            // IsInteger(res) picks Long or Double BY VALUE — unprovable, never typed
+            return undefined;
+        }
+        if (method === 'mod') {
+            return 'Double';
+        }
+        return (left === 'Double' || right === 'Double') ? 'Double' : 'Long';
+    }
+    return 'Double';
+}
+
+// the type for a declaration whose initializer is a provable arithmetic expression, plus
+// the printed prefix the initializer must carry (so no other print shape can slip through)
+function arithmeticLocalTypeForDeclaration (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name) || declaration.initializer === undefined) {
+        return undefined;
+    }
+    const box = arithmeticExpressionBox (printer, declaration.initializer, arithmeticRootContext ());
+    if (box === undefined) {
+        return undefined;
+    }
+    const initializer = unwrapNumericExpression (declaration.initializer);
+    const method = ARITHMETIC_OPERATOR_METHODS.get (initializer.operatorToken.kind);
+    if (method === undefined || !ARITHMETIC_CAST_METHODS.has (method)) {
+        return undefined;
+    }
+    const sourceName = declaration.name.escapedText;
+    const fileName = declaration.getSourceFile ().fileName;
+    const isProFile = /[\\/]pro[\\/]/.test (fileName);
+    if (!numericIsSafeToNarrow (printer, declaration, sourceName, box, isProFile)) {
+        arithmeticDebug (`reject ${sourceName} (use scan)`);
+        return undefined;
+    }
+    arithmeticDebug (`typed ${sourceName} -> ${box} (${method})`);
+    return { type: box, prefix: arithmeticPrintedPrefix (method) };
+}
+
 // install the numeric slice: (1) the generated method returns, (2) the conditional-arm
-// restorations, (3) the locals fed by a whole family call. Chains with section 1-3 on
-// the same printer; safe to call more than once.
+// restorations, (3) the locals fed by a whole family call, (4) JN-22: the locals fed by a
+// provable arithmetic expression (`Object x = Helpers.subtract(a, b)` -> `Long x =
+// (Long) Helpers.subtract(a, b)`). Chains with section 1-3 on the same printer; safe to
+// call more than once.
 export function installJavaNumericLocalTypes (transpiler) {
     const printer = transpiler?.javaTranspiler;
     if (!printer || typeof printer.printFunctionType !== 'function' || printer._javaNumericTypesPatched) {
@@ -6391,8 +6815,15 @@ export function installJavaNumericLocalTypes (transpiler) {
         if (declaration.initializer === undefined) {
             return printed;
         }
-        const javaType = numericLocalTypeForDeclaration (printer, declaration);
-        if (javaType === undefined) {
+        let info = numericLocalTypeForDeclaration (printer, declaration);
+        let arithmetic;
+        if (info === undefined) {
+            // JN-22: an arithmetic-result local — `Object x = <a - b>;` prints
+            // `Object x = Helpers.subtract(a, b);`; the box is provable from both operand boxes.
+            arithmetic = arithmeticLocalTypeForDeclaration (printer, declaration);
+            info = arithmetic === undefined ? undefined : { type: arithmetic.type, cast: true };
+        }
+        if (info === undefined) {
             return printed;
         }
         const iden = printer.getIden (identation);
@@ -6402,11 +6833,18 @@ export function installJavaNumericLocalTypes (transpiler) {
             return printed;
         }
         const value = printed.slice (at + marker.length);
-        if (!value.startsWith ('this.') && !value.startsWith ('super.')) {
+        if (arithmetic !== undefined) {
+            if (!arithmeticValueCarriesPrefix (value, arithmetic.prefix)) {
+                // the initializer did not print as the expected `Helpers.<op> (` call — never guess
+                arithmeticDebug (`miss ${declaration.name.escapedText} (value ${value.slice (0, 24)})`);
+                return printed;
+            }
+        } else if (!value.startsWith ('this.') && !value.startsWith ('super.')) {
             return printed; // unexpected shape — leave it as the printer emitted it
         }
-        numericDebug (`typed ${declaration.name.escapedText} -> ${javaType}`);
-        return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ` + value;
+        numericDebug (`typed ${declaration.name.escapedText} -> ${info.type}`);
+        const cast = info.cast ? `(${info.type}) ` : '';
+        return printed.slice (0, at) + `${iden}${info.type} ${printer.printNode (declaration.name)} = ` + cast + value;
     };
     printer._javaNumericTypesPatched = true;
 }

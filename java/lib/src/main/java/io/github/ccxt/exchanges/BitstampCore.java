@@ -1533,7 +1533,7 @@ public class BitstampCore extends BitstampApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "pair");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object timestamp = this.safeTimestamp(ticker, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(ticker, "timestamp");
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = Precise.stringMul(baseVolume, vwap);

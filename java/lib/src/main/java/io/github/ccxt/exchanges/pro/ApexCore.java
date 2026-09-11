@@ -179,7 +179,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object length = Helpers.getArrayLength(trades);
         for (var j = 0; Helpers.isLessThan(j, length); j++)
         {
-            Object index = Helpers.subtract(Helpers.subtract(length, j), 1);
+            Long index = (Long) Helpers.subtract(Helpers.subtract(length, j), 1);
             Object parsed = this.parseWsTrade(Helpers.GetValue(trades, index), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }

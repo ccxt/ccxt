@@ -1753,7 +1753,7 @@ public class MyriadCore extends MyriadApi
         {
             label = outcomeTitle;
         }
-        Object timestamp = this.safeTimestamp(trade, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(trade, "timestamp");
         Object amountStr = this.safeString(trade, "shares");
         Object costStr = this.safeString(trade, "value");
         String priceStr = null;
@@ -3634,7 +3634,7 @@ final Object finalNetworkId = networkId;
     public Object parsePredictionTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp(trade, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(trade, "timestamp");
         Object amountStr = this.safeString(trade, "shares");
         Object costStr = this.safeString(trade, "value");
         String priceStr = null;

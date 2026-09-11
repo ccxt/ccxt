@@ -5111,7 +5111,7 @@ public class AsterCore extends AsterApi
             this.checkAddress(address);
             (this.loadMarketsAndSignIn()).join();
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object nonce = Helpers.multiply(this.milliseconds(), 1000);
+            Long nonce = (Long) Helpers.multiply(this.milliseconds(), 1000);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "receiver", address );
@@ -5301,7 +5301,7 @@ public class AsterCore extends AsterApi
         } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(api, "fapiPrivate")) || Helpers.isTrue(Helpers.isEqual(api, "sapiPrivate"))))
         {
             this.checkRequiredCredentials();
-            Object nonce = Helpers.multiply(this.milliseconds(), 1000);
+            Long nonce = (Long) Helpers.multiply(this.milliseconds(), 1000);
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             String zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
             Long v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);

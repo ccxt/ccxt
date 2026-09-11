@@ -972,7 +972,7 @@ public class BtseCore extends BtseApi
                     // check if the requested time range is too large for one request
                     // if so, just omit until for correct paginated calls for not to get an error from the exchange
                     int duration = this.parseTimeframe(timeframe);
-                    Object maxDelta = Helpers.multiply(Helpers.multiply(duration, maxLimit), 1000); // parseTimeframe returns seconds, the difference below is in milliseconds
+                    Long maxDelta = (Long) Helpers.multiply(Helpers.multiply(duration, maxLimit), 1000); // parseTimeframe returns seconds, the difference below is in milliseconds
                     Object difference = Helpers.subtract(until, since);
                     if (Helpers.isTrue(Helpers.isLessThan(difference, maxDelta)))
                     {
@@ -1569,7 +1569,7 @@ public class BtseCore extends BtseApi
                 baseVolume = Precise.stringMul(baseVolume, contractSizeString);
             }
         }
-        Object timestamp = this.safeTimestamp(ticker, "closeTime");
+        Long timestamp = (Long) this.safeTimestamp(ticker, "closeTime");
         final Object finalMarket = market;
         final Object finalBaseVolume = baseVolume;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -1677,7 +1677,7 @@ public class BtseCore extends BtseApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeTimestamp(interest, "closeTime");
+        Long timestamp = (Long) this.safeTimestamp(interest, "closeTime");
         final Object finalMarket = market;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -1790,7 +1790,7 @@ public class BtseCore extends BtseApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeTimestamp(contract, "closeTime");
+        Long timestamp = (Long) this.safeTimestamp(contract, "closeTime");
         // dated futures carry a zero nextFundingTime as funding only applies to
         // perpetuals, observed live, the zero means no next funding and is omitted
         Object nextFundingTimestamp = this.safeIntegerOmitZero(contract, "nextFundingTime");

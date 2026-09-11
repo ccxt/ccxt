@@ -42,7 +42,7 @@ public class TestOrderBook extends BaseTest {
             String currentBidString = exchange.safeString(Helpers.GetValue(bids, i), 0);
             if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareToNextItem"))))
             {
-                Object nextI = Helpers.add(i, 1);
+                Long nextI = (Long) Helpers.add(i, 1);
                 if (Helpers.isTrue(Helpers.isGreaterThan(bidsLength, nextI)))
                 {
                     String nextBidString = exchange.safeString(Helpers.GetValue(bids, nextI), 0);
@@ -63,7 +63,7 @@ public class TestOrderBook extends BaseTest {
             String currentAskString = exchange.safeString(Helpers.GetValue(asks, i), 0);
             if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareToNextItem"))))
             {
-                Object nextI = Helpers.add(i, 1);
+                Long nextI = (Long) Helpers.add(i, 1);
                 if (Helpers.isTrue(Helpers.isGreaterThan(asksLength, nextI)))
                 {
                     String nextAskString = exchange.safeString(Helpers.GetValue(asks, nextI), 0);

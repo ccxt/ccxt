@@ -3590,7 +3590,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     // Schedule token renewal before expiration
                     if (Helpers.isTrue(!Helpers.isEqual(expirationTime, null)))
                     {
-                        Object renewalTime = Helpers.subtract(Helpers.subtract(expirationTime, time), 60000); // Renew 1 minute before expiration
+                        Long renewalTime = (Long) Helpers.subtract(Helpers.subtract(expirationTime, time), 60000); // Renew 1 minute before expiration
                         if (Helpers.isTrue(Helpers.isGreaterThan(renewalTime, 0)))
                         {
                             java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{

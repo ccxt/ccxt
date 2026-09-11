@@ -822,7 +822,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         Object marketId = this.safeString(trade, "symbol");
         Object datetime = this.safeString(trade, "contDtm");
         // that date is not UTC iso8601, but exchange's local time, -9hr difference
-        Object timestamp = Helpers.subtract(this.parseToInt(this.parse8601(datetime)), 32400000);
+        Long timestamp = (Long) Helpers.subtract(this.parseToInt(this.parse8601(datetime)), 32400000);
         Object sideId = this.safeString(trade, "buySellGb");
         final Object finalSideId = sideId;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{

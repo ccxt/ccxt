@@ -4005,7 +4005,7 @@ public class KucoinCore extends KucoinApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", KucoinCore.this.safeString(KucoinCore.this.timeframes, timeframe, timeframe) );
             }};
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Object endAt = this.milliseconds(); // required param
             Integer denominator = 1000;
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -4115,7 +4115,7 @@ public class KucoinCore extends KucoinApi
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", KucoinCore.this.safeString(KucoinCore.this.timeframes, timeframe, timeframe) );
             }};
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Object endAt = this.milliseconds(); // required param
             Integer denominator = 1000;
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -4200,7 +4200,7 @@ public class KucoinCore extends KucoinApi
             {
                 Helpers.addElementToObject(request, "granularity", timeframe);
             }
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Object endAt = this.milliseconds(); // required param
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -8001,7 +8001,7 @@ public class KucoinCore extends KucoinApi
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeIntegerProduct2(order, "orderTime", "ts", 0.000001);
+        Long timestamp = (Long) this.safeIntegerProduct2(order, "orderTime", "ts", 0.000001);
         Long lastUpdateTimestamp = this.safeIntegerProduct(order, "updatedTime", 0.000001);
         String rawTimeInForce = this.safeString(order, "timeInForce");
         Object amount = null;

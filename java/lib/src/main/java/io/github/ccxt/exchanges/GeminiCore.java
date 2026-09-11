@@ -816,14 +816,14 @@ public class GeminiCore extends GeminiApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object data = (this.fetchWebEndpoint("fetchMarkets", "webGetRestApi", false, "<h1 id=\"symbols-and-minimums\">Symbols and minimums</h1>")).join();
             Object error = Helpers.add(this.id, " fetchMarketsFromWeb() the API doc HTML markup has changed, breaking the parser of order limits and precision info for markets.");
-            java.util.List<Object> tables = (java.util.List<Object>) Helpers.split(data, "tbody>");
-            Integer numTables = Helpers.getArrayLength(tables);
+            Object tables = Helpers.split(data, "tbody>");
+            Object numTables = Helpers.getArrayLength(tables);
             if (Helpers.isTrue(Helpers.isLessThan(numTables, 2)))
             {
                 throw new NotSupported((String)error) ;
             }
-            java.util.List<Object> rows = (java.util.List<Object>) Helpers.split(Helpers.GetValue(tables, 1), "\n<tr>\n"); // eslint-disable-line quotes
-            Integer numRows = Helpers.getArrayLength(rows);
+            Object rows = Helpers.split(Helpers.GetValue(tables, 1), "\n<tr>\n"); // eslint-disable-line quotes
+            Object numRows = Helpers.getArrayLength(rows);
             if (Helpers.isTrue(Helpers.isLessThan(numRows, 2)))
             {
                 throw new NotSupported((String)error) ;
@@ -833,8 +833,8 @@ public class GeminiCore extends GeminiApi
             for (var i = 1; Helpers.isLessThan(i, numRows); i++)
             {
                 String row = (String) Helpers.GetValue(rows, i);
-                java.util.List<Object> cells = (java.util.List<Object>) Helpers.split(row, "</td>\n"); // eslint-disable-line quotes
-                Integer numCells = Helpers.getArrayLength(cells);
+                Object cells = Helpers.split(row, "</td>\n"); // eslint-disable-line quotes
+                Object numCells = Helpers.getArrayLength(cells);
                 if (Helpers.isTrue(Helpers.isLessThan(numCells, 5)))
                 {
                     throw new NotSupported((String)error) ;
@@ -849,15 +849,15 @@ public class GeminiCore extends GeminiApi
                 Object marketId = Helpers.replace((String)Helpers.GetValue(cells, 0), (String)"<td>", (String)"");
                 marketId = Helpers.replace((String)marketId, (String)"*", (String)"");
                 // const base = this.safeCurrencyCode (baseId);
-                String minAmountString = Helpers.replace((String)Helpers.GetValue(cells, 1), (String)"<td>", (String)"");
-                java.util.List<Object> minAmountParts = (java.util.List<Object>) Helpers.split(minAmountString, " ");
+                Object minAmountString = Helpers.replace((String)Helpers.GetValue(cells, 1), (String)"<td>", (String)"");
+                Object minAmountParts = Helpers.split(minAmountString, " ");
                 Double minAmount = this.safeNumber(minAmountParts, 0);
-                String amountPrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 2), (String)"<td>", (String)"");
-                java.util.List<Object> amountPrecisionParts = (java.util.List<Object>) Helpers.split(amountPrecisionString, " ");
-                Object idLength = Helpers.subtract(Helpers.getArrayLength(marketId), 0);
-                Object startingIndex = Helpers.subtract(idLength, 3);
-                String pricePrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 3), (String)"<td>", (String)"");
-                java.util.List<Object> pricePrecisionParts = (java.util.List<Object>) Helpers.split(pricePrecisionString, " ");
+                Object amountPrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 2), (String)"<td>", (String)"");
+                Object amountPrecisionParts = Helpers.split(amountPrecisionString, " ");
+                Long idLength = (Long) Helpers.subtract(Helpers.getArrayLength(marketId), 0);
+                Long startingIndex = (Long) Helpers.subtract(idLength, 3);
+                Object pricePrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 3), (String)"<td>", (String)"");
+                Object pricePrecisionParts = Helpers.split(pricePrecisionString, " ");
                 Object quoteId = this.safeStringLower(pricePrecisionParts, 1, Helpers.slice(marketId, startingIndex, idLength));
                 Object baseId = this.safeStringLower(amountPrecisionParts, 1, Helpers.replace((String)marketId, (String)quoteId, (String)""));
                 String base = (String) this.safeCurrencyCode(baseId);
@@ -1042,7 +1042,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public java.util.Map<String, Object> parseMarket(Object response)
+    public Object parseMarket(Object response)
     {
         //
         // response might be:
@@ -1113,11 +1113,11 @@ public class GeminiCore extends GeminiApi
                 amountPrecision = this.parseNumber(this.parsePrecision(this.safeString(response, 2))); // quantityTickDecimalPlaces
                 minSize = this.safeNumber(response, 3); // quantityMinimum
             }
-            String marketIdUpper = ((String)((String)marketId)).toUpperCase();
+            Object marketIdUpper = ((String)((String)marketId)).toUpperCase();
             Boolean isPerp = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketIdUpper, "PERP"), 0));
-            String marketIdWithoutPerp = Helpers.replace((String)marketIdUpper, (String)"PERP", (String)"");
+            Object marketIdWithoutPerp = Helpers.replace((String)marketIdUpper, (String)"PERP", (String)"");
             Object conflictingMarkets = this.safeDict(this.options, "conflictingMarkets", new java.util.HashMap<String, Object>() {{}});
-            String lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
+            Object lowerCaseId = ((String)marketIdWithoutPerp).toLowerCase();
             if (Helpers.isTrue(Helpers.inOp(conflictingMarkets, lowerCaseId)))
             {
                 Object conflictingMarket = Helpers.GetValue(conflictingMarkets, lowerCaseId);
@@ -1382,7 +1382,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         // fetchTickers
@@ -1432,7 +1432,7 @@ public class GeminiCore extends GeminiApi
         Object quote = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(marketId, null))) && Helpers.isTrue((Helpers.isEqual(market, null)))))
         {
-            Object idLength = Helpers.subtract(((String)marketId).length(), 0);
+            Long idLength = (Long) Helpers.subtract(((String)marketId).length(), 0);
             if (Helpers.isTrue(Helpers.isEqual(idLength, 7)))
             {
                 baseId = Helpers.slice(marketId, 0, 4);
@@ -1525,7 +1525,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         // public fetchTrades
@@ -1645,7 +1645,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public java.util.Map<String, Object> parseBalance(Object response)
+    public Object parseBalance(Object response)
     {
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
@@ -1762,7 +1762,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder (private)
@@ -2389,7 +2389,7 @@ public class GeminiCore extends GeminiApi
 
     }
 
-    public java.util.Map<String, Object> parseTransaction(Object transaction, Object... optionalArgs)
+    public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         //
         // withdraw
@@ -2577,7 +2577,7 @@ public class GeminiCore extends GeminiApi
             {
                 throw new AuthenticationError((String)Helpers.add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
             }
-            String nonce = String.valueOf(this.nonce());
+            Object nonce = String.valueOf(this.nonce());
             Object finalUrl = url;
             java.util.Map<String, Object> request = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "request", finalUrl );

@@ -3397,7 +3397,7 @@ public class WooCore extends WooApi
         Double amount = this.safeNumber(item, "amount");
         String side = this.safeString(item, "tokenSide");
         String direction = ((Helpers.isTrue((Helpers.isEqual(side, "DEPOSIT"))))) ? "in" : "out";
-        Object timestamp = this.safeTimestamp(item, "createdTime");
+        Long timestamp = (Long) this.safeTimestamp(item, "createdTime");
         Object fee = this.parseTokenAndFeeTemp(item, new java.util.ArrayList<Object>(java.util.Arrays.asList("feeToken")), new java.util.ArrayList<Object>(java.util.Arrays.asList("feeAmount")));
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
@@ -3787,7 +3787,7 @@ public class WooCore extends WooApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String code = (String) this.safeCurrencyCode(this.safeString(transfer, "token"), currency);
-        Object timestamp = this.safeTimestamp2(transfer, "createdTime", "timestamp");
+        Long timestamp = (Long) this.safeTimestamp2(transfer, "createdTime", "timestamp");
         Object success = this.safeBool(transfer, "success");
         String status = null;
         if (Helpers.isTrue(!Helpers.isEqual(success, null)))

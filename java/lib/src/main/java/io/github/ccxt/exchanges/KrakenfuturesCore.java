@@ -1274,7 +1274,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 Object length = Helpers.getArrayLength(elements);
                 for (var i = 0; Helpers.isLessThan(i, length); i++)
                 {
-                    Object index = Helpers.subtract(Helpers.subtract(length, 1), i);
+                    Long index = (Long) Helpers.subtract(Helpers.subtract(length, 1), i);
                     Object element = Helpers.GetValue(elements, index);
                     Object eventVar = this.safeDict(element, "event", new java.util.HashMap<String, Object>() {{}});
                     Object executionContainer = this.safeDict(eventVar, "Execution", new java.util.HashMap<String, Object>() {{}});

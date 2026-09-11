@@ -767,13 +767,13 @@ public class LighterCore extends LighterApi
         Long cachedDeadline = this.safeInteger(cachedAuth, "deadline");
         if (Helpers.isTrue(!Helpers.isEqual(cachedDeadline, null)))
         {
-            Object minimumDeadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60));
+            Long minimumDeadline = (Long) Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineMinimumRemaining", 60));
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(cachedDeadline, minimumDeadline)))
             {
                 return this.safeString(cachedAuth, "token");
             }
         }
-        Object deadline = Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineExpiry", 28800));
+        Long deadline = (Long) Helpers.add(this.seconds(), this.safeInteger(this.options, "authDeadlineExpiry", 28800));
         final Object finalApiKeyIndex = apiKeyIndex;
         final Object finalAccountIndex = accountIndex;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -882,7 +882,7 @@ public class LighterCore extends LighterApi
             Object nonce = (this.fetchNonce(accountIndex, apiKeyIndex, this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "skipNonce", false );
             }}))).join();
-            Object expiry = Helpers.add(this.milliseconds(), Helpers.multiply(365, 864000));
+            Long expiry = (Long) Helpers.add(this.milliseconds(), Helpers.multiply(365, 864000));
             java.util.Map<String, Object> signRaw = new java.util.HashMap<String, Object>() {{
                 put( "integrator_account_index", builder );
                 put( "integrator_taker_fee", takerFeeRate );
@@ -2899,7 +2899,7 @@ public class LighterCore extends LighterApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(order, "market_index");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeTimestamp(order, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(order, "timestamp");
         Object isAsk = this.safeBool(order, "is_ask");
         if (Helpers.isTrue(Helpers.isEqual(isAsk, null)))
         {

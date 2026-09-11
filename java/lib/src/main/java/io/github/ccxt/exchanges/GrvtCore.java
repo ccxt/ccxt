@@ -2115,7 +2115,7 @@ public class GrvtCore extends GrvtApi
                 }
             }
         }
-        Object timestamp = this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
+        Long timestamp = (Long) this.safeIntegerProduct2(transaction, "event_time", "initiated_time", 0.000001);
         final Object finalTxId = txId;
         final Object finalDirection = direction;
         final Object finalNetworkCode = networkCode;
@@ -2783,9 +2783,9 @@ public class GrvtCore extends GrvtApi
             Object size = Helpers.GetValue(leg, "size");
             Object sizeParts = Helpers.split(size, ".");
             String sizeDec = this.safeString(sizeParts, 1, "");
-            Object sizeDecLength = Helpers.add(((String)sizeDec).length(), 0); // php tr
+            Long sizeDecLength = (Long) Helpers.add(((String)sizeDec).length(), 0); // php tr
             Object sizeDecLengthStr = String.valueOf(sizeDecLength);
-            Object sizeInteger = Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)size, (String)".", (String)"")), sizeMultiplier), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(sizeDecLengthStr))))));
+            Double sizeInteger = (Double) Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)size, (String)".", (String)"")), sizeMultiplier), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(sizeDecLengthStr))))));
             java.util.Map<String, Object> legOrder = new java.util.HashMap<String, Object>() {{
                 put( "assetID", Helpers.GetValue(Helpers.GetValue(market, "info"), "instrument_hash") );
                 put( "contractSize", GrvtCore.this.parseToInt(sizeInteger) );
@@ -2797,10 +2797,10 @@ public class GrvtCore extends GrvtApi
                 Object price = Helpers.GetValue(leg, "limit_price");
                 Object limitParts = Helpers.split(price, ".");
                 String limitDec = this.safeString(limitParts, 1, "");
-                Object limitDecLength = Helpers.add(((String)limitDec).length(), 0); // php tr
+                Long limitDecLength = (Long) Helpers.add(((String)limitDec).length(), 0); // php tr
                 Object limitDecLengthStr = String.valueOf(limitDecLength);
                 Object powerNum = ((Helpers.isTrue((Helpers.isEqual(limitDecLengthStr, "0"))))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
-                Object priceInteger = (Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)price, (String)".", (String)"")), this.convertToBigIntCustom(priceMultiplier)), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(powerNum))))));
+                Double priceInteger = (Double) (Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)price, (String)".", (String)"")), this.convertToBigIntCustom(priceMultiplier)), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(powerNum))))));
                 Helpers.addElementToObject(legOrder, "limitPrice", this.parseToInt(priceInteger));
             } else
             {
@@ -4002,7 +4002,7 @@ public class GrvtCore extends GrvtApi
 
     public Object defaultSignature()
     {
-        Object expiration = Helpers.add(Helpers.multiply(this.milliseconds(), 1000000), Helpers.multiply(Helpers.multiply(1000000, this.safeInteger(this.options, "expirationSeconds", 30)), 1000));
+        Long expiration = (Long) Helpers.add(Helpers.multiply(this.milliseconds(), 1000000), Helpers.multiply(Helpers.multiply(1000000, this.safeInteger(this.options, "expirationSeconds", 30)), 1000));
         return new java.util.HashMap<String, Object>() {{
             put( "signer", "" );
             put( "r", "" );

@@ -2278,7 +2278,7 @@ public class MexcCore extends MexcApi
             Object options = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             Object timeframes = this.safeValue(options, Helpers.GetValue(market, "type"), new java.util.HashMap<String, Object>() {{}});
             String timeframeValue = this.safeString(timeframes, timeframe);
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", timeframeValue );

@@ -1065,7 +1065,7 @@ public class BydfiCore extends BydfiApi
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             Long now = this.milliseconds();
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Object timeDelta = Helpers.multiply(duration, numberOfCandles);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(startTime, null)) && Helpers.isTrue(Helpers.isEqual(until, null))))
             {
@@ -2185,7 +2185,7 @@ public class BydfiCore extends BydfiApi
         until = ((java.util.List<Object>) untilparametersVariable).get(0);
         parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
         Long now = this.milliseconds();
-        Object sevenDays = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000); // the maximum range is 7 days
+        Long sevenDays = (Long) Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000); // the maximum range is 7 days
         Object startTime = since;
         if (Helpers.isTrue(Helpers.isEqual(startTime, null)))
         {
@@ -3524,7 +3524,7 @@ public class BydfiCore extends BydfiApi
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
             Long now = this.milliseconds();
-            Object sevenDays = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000); // the maximum range is 7 days
+            Long sevenDays = (Long) Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000); // the maximum range is 7 days
             Object startTime = since;
             if (Helpers.isTrue(Helpers.isEqual(startTime, null)))
             {

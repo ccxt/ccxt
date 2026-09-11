@@ -378,13 +378,13 @@ public class CryptomusCore extends CryptomusApi
             //         ]
             //     }
             //
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(result);
         });
 
     }
 
-    public java.util.Map<String, Object> parseMarket(Object market)
+    public Object parseMarket(Object market)
     {
         //
         //     {
@@ -405,12 +405,12 @@ public class CryptomusCore extends CryptomusApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
-        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "_");
+        Object parts = Helpers.split(marketId, "_");
         String baseId = (String) Helpers.GetValue(parts, 0);
         String quoteId = (String) Helpers.GetValue(parts, 1);
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        java.util.Map<String, Object> fees = (java.util.Map<String, Object>) this.safeDict(this.fees, "trading");
+        Object fees = this.safeDict(this.fees, "trading");
         final Object finalMarketId = marketId;
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
@@ -503,9 +503,9 @@ public class CryptomusCore extends CryptomusApi
             //         ]
             //     }
             //
-            java.util.List<Object> coins = (java.util.List<Object>) this.safeList(response, "result");
+            Object coins = this.safeList(response, "result");
             java.util.Map<String, Object> groupedById = this.groupBy(coins, "currency_code");
-            java.util.List<Object> groupedArray = Helpers.objectValues(groupedById);
+            Object groupedArray = Helpers.objectValues(groupedById);
             return this.parseCurrencies(groupedArray);
         });
 
@@ -597,13 +597,13 @@ public class CryptomusCore extends CryptomusApi
             //         ...
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
+            Object data = this.safeList(response, "data");
             return this.parseTickers(data, symbols);
         });
 
     }
 
-    public java.util.Map<String, Object> parseTicker(Object ticker, Object... optionalArgs)
+    public Object parseTicker(Object ticker, Object... optionalArgs)
     {
         //
         //     {
@@ -693,8 +693,8 @@ public class CryptomusCore extends CryptomusApi
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeTimestamp(data, "timestamp");
+            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            Long timestamp = (Long) this.safeTimestamp(data, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         });
 
@@ -711,7 +711,7 @@ public class CryptomusCore extends CryptomusApi
      * @param {object} [params] extra parameters specific to the exchange API endpoint
      * @returns {Trade[]} a list of [trade structures]{@link https://docs.ccxt.com/?id=public-trades}
      */
-    public java.util.concurrent.CompletableFuture<Object> fetchTrades(String symbol, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> fetchTrades(Object symbol, Object... optionalArgs)
     {
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -742,8 +742,8 @@ public class CryptomusCore extends CryptomusApi
             //         ]
             //     }
             //
-            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
-            java.util.List<Object> dataList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object data = this.safeList(response, "data");
+            Object dataList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(data, null)))
             {
                 dataList = data;
@@ -753,7 +753,7 @@ public class CryptomusCore extends CryptomusApi
 
     }
 
-    public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
+    public Object parseTrade(Object trade, Object... optionalArgs)
     {
         //
         //     {
@@ -766,7 +766,7 @@ public class CryptomusCore extends CryptomusApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp(trade, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(trade, "timestamp");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "id", CryptomusCore.this.safeString(trade, "trade_id") );
             put( "timestamp", timestamp );
@@ -818,13 +818,13 @@ public class CryptomusCore extends CryptomusApi
             //         ]
             //     }
             //
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseBalance(result);
         });
 
     }
 
-    public java.util.Map<String, Object> parseBalance(Object balance)
+    public Object parseBalance(Object balance)
     {
         //
         //     {
@@ -895,8 +895,8 @@ public class CryptomusCore extends CryptomusApi
                 Helpers.addElementToObject(request, "client_order_id", clientOrderId);
             }
             Boolean sideBuy = Helpers.isEqual(side, "buy");
-            String amountToString = this.numberToString(amount);
-            String priceToString = this.numberToString(price);
+            Object amountToString = this.numberToString(amount);
+            Object priceToString = this.numberToString(price);
             Object cost = null;
             java.util.List<Object> costparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "cost");
             cost = ((java.util.List<Object>) costparametersVariable).get(0);
@@ -1068,7 +1068,7 @@ public class CryptomusCore extends CryptomusApi
             //         ]
             //     }
             //
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
@@ -1139,13 +1139,13 @@ public class CryptomusCore extends CryptomusApi
             //             ...
             //         ]
             //     }
-            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(result, market, null);
         });
 
     }
 
-    public java.util.Map<String, Object> parseOrder(Object order, Object... optionalArgs)
+    public Object parseOrder(Object order, Object... optionalArgs)
     {
         //
         // createOrder
@@ -1209,14 +1209,14 @@ public class CryptomusCore extends CryptomusApi
         market = this.safeMarket(marketId, market);
         String dateTime = this.safeString(order, "createdAt");
         Long timestamp = this.parse8601(dateTime);
-        java.util.Map<String, Object> deal = (java.util.Map<String, Object>) this.safeDict(order, "deal", new java.util.HashMap<String, Object>() {{}});
+        Object deal = this.safeDict(order, "deal", new java.util.HashMap<String, Object>() {{}});
         Double averageFilledPrice = this.safeNumber(deal, "averageFilledPrice");
         String type = this.safeString(order, "type");
         String side = this.safeString(order, "direction");
         Double price = this.safeNumber(order, "price");
-        java.util.List<Object> transaction = (java.util.List<Object>) this.safeList(deal, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Object transaction = this.safeList(deal, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object fee = null;
-        java.util.Map<String, Object> firstTx = (java.util.Map<String, Object>) this.safeDict(transaction, 0);
+        Object firstTx = this.safeDict(transaction, 0);
         String feeCurrency = this.safeString(firstTx, "feeCurrency");
         if (Helpers.isTrue(!Helpers.isEqual(feeCurrency, null)))
         {
@@ -1340,13 +1340,13 @@ public class CryptomusCore extends CryptomusApi
             //         }
             //     }
             //
-            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            java.util.Map<String, Object> currentFeeTier = (java.util.Map<String, Object>) this.safeDict(data, "current_tariff_step", new java.util.HashMap<String, Object>() {{}});
+            Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            Object currentFeeTier = this.safeDict(data, "current_tariff_step", new java.util.HashMap<String, Object>() {{}});
             String makerFee = this.safeString(currentFeeTier, "maker_percent");
             String takerFee = this.safeString(currentFeeTier, "taker_percent");
             makerFee = Precise.stringDiv(makerFee, "100");
             takerFee = Precise.stringDiv(takerFee, "100");
-            java.util.List<Object> feeTiers = (java.util.List<Object>) this.safeList(data, "tariff_steps", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Object feeTiers = this.safeList(data, "tariff_steps", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object tiers = this.parseFeeTiers(feeTiers);
             java.util.List<Object> symbols = this.symbols;

@@ -417,7 +417,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         // reverse order of array to store candles in ascending order
         for (var i = 0; Helpers.isLessThan(i, changesLength); i++)
         {
-            Object index = Helpers.subtract(Helpers.subtract(changesLength, i), 1);
+            Long index = (Long) Helpers.subtract(Helpers.subtract(changesLength, i), 1);
             Object parsed = this.parseOHLCV(Helpers.GetValue(changes, index), market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }

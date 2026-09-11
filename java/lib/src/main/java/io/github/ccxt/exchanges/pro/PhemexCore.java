@@ -1808,7 +1808,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {
                 Long expiryDelta = this.safeInteger(this.options, "expires", 120);
-                Object expiration = Helpers.add(this.seconds(), expiryDelta);
+                Long expiration = (Long) Helpers.add(this.seconds(), expiryDelta);
                 Object payload = Helpers.add(this.apiKey, String.valueOf(expiration));
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 String method = "user.auth";

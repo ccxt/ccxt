@@ -307,7 +307,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             this.checkRequiredCredentials();
             Object utaToken = this.safeValue(this.options, "utaToken");
             Long lastUpdate = this.safeInteger(this.options, "utaTokenLastUpdate", 0);
-            Object refreshInterval = Helpers.multiply(Helpers.multiply(Helpers.multiply(1000, 60), 60), 24); // 24 hours
+            Long refreshInterval = (Long) Helpers.multiply(Helpers.multiply(Helpers.multiply(1000, 60), 60), 24); // 24 hours
             refreshInterval = this.safeInteger(this.options, "utaTokenRefreshInterval", refreshInterval);
             Long now = this.milliseconds();
             Boolean expired = Helpers.isGreaterThanOrEqual((Helpers.subtract(now, lastUpdate)), refreshInterval);
@@ -1648,7 +1648,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeIntegerProduct2(trade, "M", "E", 0.000001);
+        Long timestamp = (Long) this.safeIntegerProduct2(trade, "M", "E", 0.000001);
         Object fee = null;
         Object feeCost = this.safeString(trade, "f");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -3023,7 +3023,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             amount = this.safeString(trade, "size");
         }
         Object order = this.safeString(trade, "orderId");
-        Object timestamp = this.safeIntegerProduct2(trade, "ts", "time", 0.000001);
+        Long timestamp = (Long) this.safeIntegerProduct2(trade, "ts", "time", 0.000001);
         Object feeCurrency = Helpers.GetValue(market, "quote");
         Object feeRate = this.safeString(trade, "feeRate");
         Object feeCost = this.safeString(trade, "fee");

@@ -662,12 +662,12 @@ public class AlpacaCore extends AlpacaApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
-            Object jetlagStrStart = Helpers.subtract(((String)timestamp).length(), 6);
+            Long jetlagStrStart = (Long) Helpers.subtract(((String)timestamp).length(), 6);
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
             }
-            Object jetlagStrEnd = Helpers.subtract(((String)timestamp).length(), 3);
+            Long jetlagStrEnd = (Long) Helpers.subtract(((String)timestamp).length(), 3);
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;

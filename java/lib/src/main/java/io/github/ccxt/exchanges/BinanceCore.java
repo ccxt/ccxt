@@ -9992,7 +9992,7 @@ public class BinanceCore extends BinanceApi
                 }
                 if (Helpers.isTrue(Helpers.isEqual(since, null)))
                 {
-                    Object oneWeek = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000);
+                    Long oneWeek = (Long) Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000);
                     Helpers.addElementToObject(request, "startTime", Helpers.subtract(until, oneWeek));
                 }
             }
@@ -11402,7 +11402,7 @@ public class BinanceCore extends BinanceApi
                 // The time between startTime and endTime cannot be longer than 7 days.
                 // The parameter fromId cannot be sent with startTime or endTime.
                 Long currentTimestamp = this.milliseconds();
-                Object oneWeek = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000);
+                Long oneWeek = (Long) Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000);
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual((Helpers.subtract(currentTimestamp, startTime)), oneWeek)))
                 {
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(endTime, null))) && Helpers.isTrue((Helpers.isEqual(this.safeBool(market, "linear"), true)))))
@@ -11455,7 +11455,7 @@ public class BinanceCore extends BinanceApi
                     }
                     if (Helpers.isTrue(Helpers.isEqual(since, null)))
                     {
-                        Object oneWeek = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000);
+                        Long oneWeek = (Long) Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000);
                         Helpers.addElementToObject(request, "startTime", Helpers.subtract(endTime, oneWeek));
                     }
                     response = (this.sapiGetEquityTradeHistory(this.extend(request, parameters))).join();

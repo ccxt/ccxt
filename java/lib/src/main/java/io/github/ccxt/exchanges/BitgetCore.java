@@ -6603,7 +6603,7 @@ final Object finalMinNotional = minNotional;
             }
             Integer msInDay = 86400000;
             Long now = this.milliseconds();
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Long until = this.safeInteger(parameters, "until");
             Boolean limitDefined = !Helpers.isEqual(limit, null);
             Boolean sinceDefined = !Helpers.isEqual(since, null);

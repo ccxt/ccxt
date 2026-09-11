@@ -2650,7 +2650,7 @@ public class HibachiCore extends HibachiApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp(settlement, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(settlement, "timestamp");
         String marketId = this.safeString(settlement, "symbol");
         return new java.util.HashMap<String, Object>() {{
             put( "info", settlement );

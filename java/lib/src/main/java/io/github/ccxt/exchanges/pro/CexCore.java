@@ -289,7 +289,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object dataLength = Helpers.getArrayLength(data);
         for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
         {
-            Object index = Helpers.subtract(Helpers.subtract(dataLength, 1), i);
+            Long index = (Long) Helpers.subtract(Helpers.subtract(dataLength, 1), i);
             Object rawTrade = Helpers.GetValue(data, index);
             Object parsed = this.parseWsOldTrade(rawTrade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});

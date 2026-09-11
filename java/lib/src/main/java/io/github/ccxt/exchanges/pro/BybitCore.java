@@ -2871,7 +2871,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
-                Object expiresInt = Helpers.add(this.milliseconds(), 10000);
+                Long expiresInt = (Long) Helpers.add(this.milliseconds(), 10000);
                 Object expires = this.numberToString(expiresInt);
                 Object path = "GET/realtime";
                 Object auth = Helpers.add(path, expires);

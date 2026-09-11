@@ -1789,7 +1789,7 @@ public class PhemexCore extends PhemexApi
                 {
                     // phemex also provides kline query with from/to, however, this interface is NOT recommended and does not work properly.
                     // we do not send since param to the exchange, instead we calculate appropriate limit param
-                    Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                    Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
                     Object timeDelta = Helpers.subtract(this.milliseconds(), since);
                     limit = this.parseToInt(Helpers.divide(timeDelta, duration)); // setting limit to the number of candles after since
                 }
@@ -2883,7 +2883,7 @@ public class PhemexCore extends PhemexApi
         String status = this.parseOrderStatus(this.safeString(order, "ordStatus"));
         String side = (String)this.safeStringLower(order, "side");
         String type = this.parseOrderType(this.safeString(order, "ordType"));
-        Object timestamp = this.safeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001);
+        Long timestamp = (Long) this.safeIntegerProduct2(order, "actionTimeNs", "createTimeNs", 0.000001);
         Object fee = null;
         Object feeCost = this.fromEv(this.safeString(order, "cumFeeEv"), market);
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
@@ -6225,7 +6225,7 @@ final Object finalI = i;
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = Helpers.divide(this.safeInteger(interest, "timestamp"), 1000000);
+        Double timestamp = (Double) Helpers.divide(this.safeInteger(interest, "timestamp"), 1000000);
         String id = this.safeString(interest, "symbol");
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "info", interest );

@@ -3896,7 +3896,7 @@ public class PoloniexCore extends PoloniexApi
         {
             transaction = Helpers.GetValue(transaction, "response");
         }
-        Object timestamp = this.safeTimestamp(transaction, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");
         String code = (String) this.safeCurrencyCode(currencyId);
         Object status = this.safeString(transaction, "status", "pending");

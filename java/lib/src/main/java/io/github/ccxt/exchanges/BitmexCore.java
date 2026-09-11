@@ -2289,7 +2289,7 @@ public class BitmexCore extends BitmexApi
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
                 Helpers.addElementToObject(request, "endTime", this.iso8601(until));
             }
-            Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Object useOpenTimestamp = null;
             java.util.List<Object> useOpenTimestampparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCV", "useOpenTimestamp", true);
             useOpenTimestamp = ((java.util.List<Object>) useOpenTimestampparametersVariable).get(0);

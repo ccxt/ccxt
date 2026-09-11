@@ -318,7 +318,7 @@ public class PaymiumCore extends PaymiumApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = (String) this.safeSymbol(null, market);
-        Object timestamp = this.safeTimestamp(ticker, "at");
+        Long timestamp = (Long) this.safeTimestamp(ticker, "at");
         String vwap = this.safeString(ticker, "vwap");
         String baseVolume = this.safeString(ticker, "volume");
         String quoteVolume = Precise.stringMul(baseVolume, vwap);
@@ -397,7 +397,7 @@ public class PaymiumCore extends PaymiumApi
     public java.util.Map<String, Object> parseTrade(Object trade, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeTimestamp(trade, "created_at_int");
+        Long timestamp = (Long) this.safeTimestamp(trade, "created_at_int");
         String id = this.safeString(trade, "uuid");
         market = this.safeMarket(null, market);
         String side = this.safeString(trade, "side");

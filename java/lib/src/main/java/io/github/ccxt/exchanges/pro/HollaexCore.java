@@ -206,7 +206,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<java.util.Map<String, Object>> parsedTrades = this.parseTrades(data, market);
+        java.util.List<Object> parsedTrades = this.parseTrades(data, market);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(parsedTrades)); j++)
         {
             Helpers.callDynamically(stored, "append", new Object[]{Helpers.GetValue(parsedTrades, j)});
@@ -302,7 +302,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
         {
             Object trade = Helpers.GetValue(rawTrades, i);
-            java.util.Map<String, Object> parsed = this.parseTrade(trade);
+            Object parsed = this.parseTrade(trade);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(trade, "symbol");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -314,7 +314,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         }
         // non-symbol specific
         client.resolve(this.myTrades, channel);
-        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(marketIds);
+        Object keys = Helpers.objectKeys(marketIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);
@@ -451,7 +451,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
         {
             Object order = Helpers.GetValue(rawOrders, i);
-            java.util.Map<String, Object> parsed = this.parseOrder(order);
+            Object parsed = this.parseOrder(order);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(order, "symbol");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -463,7 +463,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         }
         // non-symbol specific
         client.resolve(this.orders, channel);
-        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(marketIds);
+        Object keys = Helpers.objectKeys(marketIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);
@@ -512,8 +512,8 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         //
         Object messageHash = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data");
-        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
-        Object timestamp = this.safeTimestamp(message, "time");
+        Object keys = Helpers.objectKeys(data);
+        Long timestamp = (Long) this.safeTimestamp(message, "time");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));

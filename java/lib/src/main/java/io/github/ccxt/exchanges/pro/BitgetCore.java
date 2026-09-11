@@ -1382,7 +1382,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         // fix chronological order by reversing
         for (var i = 0; Helpers.isLessThan(i, length); i++)
         {
-            Object index = Helpers.subtract(Helpers.subtract(length, i), 1);
+            Long index = (Long) Helpers.subtract(Helpers.subtract(length, i), 1);
             Object rawTrade = Helpers.GetValue(data, index);
             Object parsed = this.parseWsTrade(rawTrade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});

@@ -3874,8 +3874,8 @@ public class BybitCore extends BybitApi
                 // https://github.com/ccxt/ccxt/issues/26736 - align the requested
                 // start up to the interval boundary so that the exchange returns
                 // candles from the first bucket at or after `since`
-                Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
-                Object rounded = Helpers.multiply(this.parseToInt(Helpers.divide(since, duration)), duration);
+                Long duration = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+                Long rounded = (Long) Helpers.multiply(this.parseToInt(Helpers.divide(since, duration)), duration);
                 Helpers.addElementToObject(request, "start", ((Helpers.isTrue((Helpers.isEqual(rounded, since))))) ? since : this.sum(rounded, duration));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -11044,7 +11044,7 @@ public class BybitCore extends BybitApi
             Object result = this.addPaginationCursorToResult(response);
             Object first = this.safeDict(result, 0);
             Object total = Helpers.getArrayLength(result);
-            Object lastIndex = Helpers.subtract(total, 1);
+            Long lastIndex = (Long) Helpers.subtract(total, 1);
             Object last = this.safeDict(result, lastIndex, new java.util.HashMap<String, Object>() {{}});
             String cursorValue = this.safeString(first, "nextPageCursor");
             Helpers.addElementToObject(last, "info", new java.util.HashMap<String, Object>() {{

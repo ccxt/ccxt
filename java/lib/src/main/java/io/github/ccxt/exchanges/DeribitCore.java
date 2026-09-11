@@ -4096,9 +4096,9 @@ public class DeribitCore extends DeribitApi
                 }});
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest)).join();
             }
-            Object duration = Helpers.multiply(this.parseTimeframe(eachItemDuration), 1000);
+            Long duration = (Long) Helpers.multiply(this.parseTimeframe(eachItemDuration), 1000);
             Object time = this.milliseconds();
-            Object month = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(30, 24), 60), 60), 1000);
+            Long month = (Long) Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(30, 24), 60), 60), 1000);
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
                 since = Helpers.subtract(time, month);

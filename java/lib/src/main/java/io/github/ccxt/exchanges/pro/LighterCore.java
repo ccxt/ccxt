@@ -716,7 +716,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object dataLength = Helpers.getArrayLength(data);
         for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
         {
-            Object iReversed = Helpers.subtract(Helpers.subtract(dataLength, 1), i);
+            Long iReversed = (Long) Helpers.subtract(Helpers.subtract(dataLength, 1), i);
             Object trade = this.parseWsTrade(Helpers.GetValue(data, iReversed), market);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
@@ -944,7 +944,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Object tradesLength = Helpers.getArrayLength(trades);
             for (var j = 0; Helpers.isLessThan(j, tradesLength); j++)
             {
-                Object jReversed = Helpers.subtract(Helpers.subtract(tradesLength, 1), j);
+                Long jReversed = (Long) Helpers.subtract(Helpers.subtract(tradesLength, 1), j);
                 Object tradeRaw = Helpers.GetValue(trades, jReversed);
                 Helpers.addElementToObject(tradeRaw, "accountIndex", accountIndex);
                 Object trade = this.parseWsOrderTrade(tradeRaw, market);
@@ -1159,7 +1159,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object dataLength = Helpers.getArrayLength(data);
         for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
         {
-            Object iReversed = Helpers.subtract(Helpers.subtract(dataLength, 1), i);
+            Long iReversed = (Long) Helpers.subtract(Helpers.subtract(dataLength, 1), i);
             Object liquidation = this.parseWsLiquidation(Helpers.GetValue(data, iReversed), market);
             Helpers.callDynamically(stored, "append", new Object[]{liquidation});
         }

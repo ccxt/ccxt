@@ -2135,7 +2135,7 @@ public class WhitebitCore extends WhitebitApi
             //          ]
             //      }
             //
-            Object timestamp = this.safeTimestamp(response, "timestamp");
+            Long timestamp = (Long) this.safeTimestamp(response, "timestamp");
             return this.parseOrderBook(response, symbol, timestamp);
         });
 
@@ -2324,7 +2324,7 @@ public class WhitebitCore extends WhitebitApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         market = this.safeMarket(null, market);
-        Object timestamp = this.safeTimestamp2(trade, "time", "trade_timestamp");
+        Long timestamp = (Long) this.safeTimestamp2(trade, "time", "trade_timestamp");
         String orderId = this.safeString2(trade, "dealOrderId", "orderId");
         String cost = this.safeString(trade, "deal");
         String price = this.safeString(trade, "price");
@@ -3351,8 +3351,8 @@ public class WhitebitCore extends WhitebitApi
                 put( "currency", Helpers.GetValue(finalMarket, "quote") );
             }};
         }
-        Object timestamp = this.safeTimestamp2(order, "ctime", "timestamp");
-        Object lastTradeTimestamp = this.safeTimestamp(order, "ftime");
+        Long timestamp = (Long) this.safeTimestamp2(order, "ctime", "timestamp");
+        Long lastTradeTimestamp = (Long) this.safeTimestamp(order, "ftime");
         Object postOnly = this.safeBool(order, "postOnly");
         Object ioc = this.safeBool(order, "ioc");
         String timeInForce = null;
@@ -4035,7 +4035,7 @@ public class WhitebitCore extends WhitebitApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         currency = this.safeCurrency(null, currency);
         String address = this.safeString(transaction, "address");
-        Object timestamp = this.safeTimestamp(transaction, "createdAt");
+        Long timestamp = (Long) this.safeTimestamp(transaction, "createdAt");
         String currencyId = this.safeString(transaction, "ticker");
         String status = this.safeString(transaction, "status");
         String method = this.safeString(transaction, "method");
@@ -4342,7 +4342,7 @@ public class WhitebitCore extends WhitebitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "market");
         String symbol = (String) this.safeSymbol(marketId, market, "_");
-        Object timestamp = this.safeTimestamp(info, "modifyDate");
+        Long timestamp = (Long) this.safeTimestamp(info, "modifyDate");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", symbol );
@@ -4927,7 +4927,7 @@ public class WhitebitCore extends WhitebitApi
         Object first = this.safeDict(path, 0, new java.util.HashMap<String, Object>() {{}});
         String fromPath = this.safeString(first, "from");
         String toPath = this.safeString(first, "to");
-        Object timestamp = this.safeTimestamp2(conversion, "date", "expireAt");
+        Long timestamp = (Long) this.safeTimestamp2(conversion, "date", "expireAt");
         String fromCoin = this.safeString(conversion, "from", fromPath);
         String fromCode = (String) this.safeCurrencyCode(fromCoin, fromCurrency);
         String toCoin = this.safeString(conversion, "to", toPath);
@@ -5161,7 +5161,7 @@ public class WhitebitCore extends WhitebitApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "market");
-        Object timestamp = this.safeTimestamp(position, "openDate");
+        Long timestamp = (Long) this.safeTimestamp(position, "openDate");
         Object tpsl = this.safeDict(position, "tpsl", new java.util.HashMap<String, Object>() {{}});
         Object orderDetail = this.safeDict(position, "orderDetail", new java.util.HashMap<String, Object>() {{}});
         return this.safePosition(new java.util.HashMap<String, Object>() {{
@@ -5277,7 +5277,7 @@ public class WhitebitCore extends WhitebitApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "market");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeTimestamp(info, "fundingTime");
+        Long timestamp = (Long) this.safeTimestamp(info, "fundingTime");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );

@@ -1777,7 +1777,7 @@ final Object finalClobTokenId = clobTokenId;
             Object history = (java.util.List<Object>)(this.safeList(response, "history", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
             // Client-side bucket aggregation: snap each tick to its candle boundary and
             // build open/high/low/close/volume. Assumes history is sorted ascending by time.
-            Object resolutionMs = Helpers.multiply(Helpers.multiply(fidelityMin, 60), 1000);
+            Long resolutionMs = (Long) Helpers.multiply(Helpers.multiply(fidelityMin, 60), 1000);
             java.util.Map<String, Object> buckets = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(history)); i++)
             {
@@ -1788,7 +1788,7 @@ final Object finalClobTokenId = clobTokenId;
                 {
                     continue;
                 }
-                Object rawMs = Helpers.multiply(t, 1000);
+                Long rawMs = (Long) Helpers.multiply(t, 1000);
                 Object snappedMs = Helpers.multiply((Math.floor(Double.parseDouble(Helpers.toString(Helpers.divide(rawMs, resolutionMs))))), resolutionMs);
                 // the venue supplies no candle volume ({t, p} ticks only) — leave it undefined
                 // rather than fabricating a 0, probing s/v in case the field ever appears

@@ -2691,7 +2691,7 @@ public class NadoCore extends NadoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "product_id");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeTimestamp(trade, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(trade, "timestamp");
         Object rawOrder = this.safeDict(trade, "order");
         Boolean isArchiveMatch = !Helpers.isEqual(rawOrder, null);
         Object order = ((Helpers.isTrue((Helpers.isEqual(rawOrder, null))))) ? new java.util.HashMap<String, Object>() {{}} : rawOrder;
@@ -2820,7 +2820,7 @@ public class NadoCore extends NadoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "product_id");
         market = this.safeMarket(marketId, market);
-        Object fundingTimestamp = this.safeTimestamp(contract, "next_funding_rate_timestamp");
+        Long fundingTimestamp = (Long) this.safeTimestamp(contract, "next_funding_rate_timestamp");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
@@ -2860,7 +2860,7 @@ public class NadoCore extends NadoApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(funding, "product_id");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeTimestamp(funding, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(funding, "timestamp");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", funding );
@@ -3054,7 +3054,7 @@ public class NadoCore extends NadoApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "product_id");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeTimestamp(transaction, "timestamp");
+        Long timestamp = (Long) this.safeTimestamp(transaction, "timestamp");
         Object preBalance = this.safeDict(transaction, "pre_balance", new java.util.HashMap<String, Object>() {{}});
         Object postBalance = this.safeDict(transaction, "post_balance", new java.util.HashMap<String, Object>() {{}});
         Object preSpot = this.safeDict(preBalance, "spot", new java.util.HashMap<String, Object>() {{}});

@@ -8856,7 +8856,7 @@ public Object describe()
                         {
                             if (Helpers.isTrue(this.verbose))
                             {
-                                Object index = Helpers.add(i, 1);
+                                Long index = (Long) Helpers.add(i, 1);
                                 this.log(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("Request failed with the error: ", String.valueOf(e)), ", retrying "), String.valueOf(index)), " of "), String.valueOf(retries)), "..."));
                             }
                             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(retryDelay, null))) && Helpers.isTrue((!Helpers.isEqual(retryDelay, 0)))))
@@ -8927,7 +8927,7 @@ public Object describe()
         Object timeframe = Helpers.getArg(optionalArgs, 0, "1m");
         Object since = Helpers.getArg(optionalArgs, 1, 0);
         Object limit = Helpers.getArg(optionalArgs, 2, 2147483647);
-        Object ms = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+        Long ms = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
         java.util.List<Object> ohlcvs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Integer i_timestamp = 0;
         // const open = 1;
@@ -8963,7 +8963,7 @@ public Object describe()
                 continue;
             }
             Object ohlcv_length = Helpers.getArrayLength(ohlcvs);
-            Object candle = Helpers.subtract(ohlcv_length, 1);
+            Long candle = (Long) Helpers.subtract(ohlcv_length, 1);
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " buildOHLCVC() requires a price argument")) ;
@@ -11790,7 +11790,7 @@ public Object describe()
                         {
                             break;
                         }
-                        Object nextPaginationTimestamp = Helpers.add(lastTimestamp, 1);
+                        Long nextPaginationTimestamp = (Long) Helpers.add(lastTimestamp, 1);
                         paginationTimestamp = nextPaginationTimestamp;
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(until, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(nextPaginationTimestamp, until)))))
                         {
@@ -11886,7 +11886,7 @@ public Object describe()
             parameters = this.omit(parameters, "paginationDirection");
             Long current = this.milliseconds();
             java.util.List<Object> tasks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object time = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
+            Long time = (Long) Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             maxEntriesPerRequest = this.requireValue(maxEntriesPerRequest, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
             Object step = Helpers.multiply(time, maxEntriesPerRequest);
             Long until = (Long) this.safeInteger2(parameters, "until", "till"); // do not omit it here
@@ -12038,7 +12038,7 @@ public Object describe()
                     cursorValue = null; // search for the cursor
                     for (var j = 0; Helpers.isLessThan(j, responseLength); j++)
                     {
-                        Object index = Helpers.subtract(Helpers.subtract(responseLength, j), 1);
+                        Long index = (Long) Helpers.subtract(Helpers.subtract(responseLength, j), 1);
                         Object entry = this.safeDict(response, index);
                         Object info = this.safeDict(entry, "info");
                         Object cursor = ((Helpers.isTrue((Helpers.isEqual(cursorReceived, null))))) ? null : this.safeValue(info, cursorReceived);
@@ -12860,8 +12860,8 @@ public Object describe()
             return "";
         }
         Integer second = 1000;
-        Object minute = Helpers.multiply(60, second);
-        Object hour = Helpers.multiply(60, minute);
+        Long minute = (Long) Helpers.multiply(60, second);
+        Long hour = (Long) Helpers.multiply(60, minute);
         Object day = Helpers.multiply(24, hour);
         Object week = Helpers.multiply(7, day);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.mod(ms, week), 0)))

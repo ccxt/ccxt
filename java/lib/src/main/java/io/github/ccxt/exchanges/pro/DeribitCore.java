@@ -1143,7 +1143,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 put( "id", DeribitCore.this.requestId() );
             }};
             java.util.Map<String, Object> extendedRequest = this.deepExtend(request, parameters);
-            Object maxMessageByteLimit = Helpers.subtract(32768, 1); // 'Message Too Big: limit 32768B'
+            Long maxMessageByteLimit = (Long) Helpers.subtract(32768, 1); // 'Message Too Big: limit 32768B'
             Object jsonedText = this.json(extendedRequest);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(((String)jsonedText).length(), maxMessageByteLimit)))
             {
