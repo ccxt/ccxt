@@ -122,7 +122,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -247,7 +247,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         //
         Object symbol = Helpers.GetValue(subscription, "symbol");
         Object messageHash = Helpers.add("orderbook:", symbol);
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Long timestamp = this.safeInteger(message, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.indexedOrderBook(new java.util.HashMap<String, Object>() {{}}));
@@ -265,7 +265,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             Helpers.addElementToObject(ob, "datetime", this.iso8601(timestamp));
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-        Object nonce = this.safeInteger(message, "sequence");
+        Long nonce = this.safeInteger(message, "sequence");
         Helpers.addElementToObject(orderbook, "nonce", nonce);
         client.resolve(orderbook, messageHash);
     }
@@ -309,8 +309,8 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         Object priceKey = Helpers.getArg(optionalArgs, 0, "price");
         Object amountKey = Helpers.getArg(optionalArgs, 1, "volume");
         Object thirdKey = Helpers.getArg(optionalArgs, 2, 2);
-        Object price = this.safeNumber(bidask, priceKey);
-        Object amount = this.safeNumber(bidask, amountKey);
+        Double price = this.safeNumber(bidask, priceKey);
+        Double amount = this.safeNumber(bidask, amountKey);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount));
         if (Helpers.isTrue(!Helpers.isEqual(thirdKey, null)))
         {

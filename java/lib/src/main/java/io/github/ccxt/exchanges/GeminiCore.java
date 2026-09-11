@@ -851,7 +851,7 @@ public class GeminiCore extends GeminiApi
                 // const base = this.safeCurrencyCode (baseId);
                 Object minAmountString = Helpers.replace((String)Helpers.GetValue(cells, 1), (String)"<td>", (String)"");
                 Object minAmountParts = Helpers.split(minAmountString, " ");
-                Object minAmount = this.safeNumber(minAmountParts, 0);
+                Double minAmount = this.safeNumber(minAmountParts, 0);
                 Object amountPrecisionString = Helpers.replace((String)Helpers.GetValue(cells, 2), (String)"<td>", (String)"");
                 Object amountPrecisionParts = Helpers.split(amountPrecisionString, " ");
                 Object idLength = Helpers.subtract(Helpers.getArrayLength(marketId), 0);
@@ -1135,7 +1135,7 @@ public class GeminiCore extends GeminiApi
                     Object quoteCurrency = Helpers.GetValue(quoteCurrencies, i);
                     if (Helpers.isTrue(((String)marketIdWithoutPerp).endsWith(((String)quoteCurrency))))
                     {
-                        Object quoteLength = this.parseToInt(Helpers.multiply(Helpers.opNeg(1), Helpers.getArrayLength(quoteCurrency)));
+                        Long quoteLength = this.parseToInt(Helpers.multiply(Helpers.opNeg(1), Helpers.getArrayLength(quoteCurrency)));
                         baseId = Helpers.slice(marketIdWithoutPerp, 0, quoteLength);
                         quoteId = quoteCurrency;
                         if (Helpers.isTrue(isPerp))
@@ -1422,7 +1422,7 @@ public class GeminiCore extends GeminiApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object volume = this.safeValue(ticker, "volume", new java.util.HashMap<String, Object>() {{}});
-        Object timestamp = this.safeInteger(volume, "timestamp");
+        Long timestamp = this.safeInteger(volume, "timestamp");
         Object symbol = null;
         String marketId = (String)this.safeStringLower(ticker, "pair");
         market = this.safeMarket(marketId, market);
@@ -1561,7 +1561,7 @@ public class GeminiCore extends GeminiApi
         //      }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "timestampms");
+        Long timestamp = this.safeInteger(trade, "timestampms");
         String id = this.safeString(trade, "tid");
         String orderId = this.safeString(trade, "order_id");
         String feeCurrencyId = this.safeString(trade, "fee_currency");
@@ -1863,7 +1863,7 @@ public class GeminiCore extends GeminiApi
         //      }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(order, "timestampms");
+        Long timestamp = this.safeInteger(order, "timestampms");
         String amount = this.safeString(order, "original_amount");
         String remaining = this.safeString(order, "remaining_amount");
         String filled = this.safeString(order, "executed_amount");
@@ -2410,7 +2410,7 @@ public class GeminiCore extends GeminiApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(transaction, "timestampms");
+        Long timestamp = this.safeInteger(transaction, "timestampms");
         String currencyId = this.safeString(transaction, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String address = this.safeString(transaction, "destination");
@@ -2418,7 +2418,7 @@ public class GeminiCore extends GeminiApi
         // if status field is available, then it's complete
         String statusRaw = this.safeString(transaction, "status");
         Object fee = null;
-        Object feeAmount = this.safeNumber(transaction, "feeAmount");
+        Double feeAmount = this.safeNumber(transaction, "feeAmount");
         if (Helpers.isTrue(!Helpers.isEqual(feeAmount, null)))
         {
             final Object finalFeeAmount = feeAmount;

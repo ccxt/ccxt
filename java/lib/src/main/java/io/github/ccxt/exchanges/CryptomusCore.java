@@ -1210,10 +1210,10 @@ public class CryptomusCore extends CryptomusApi
         String dateTime = this.safeString(order, "createdAt");
         Long timestamp = this.parse8601(dateTime);
         Object deal = this.safeDict(order, "deal", new java.util.HashMap<String, Object>() {{}});
-        Object averageFilledPrice = this.safeNumber(deal, "averageFilledPrice");
+        Double averageFilledPrice = this.safeNumber(deal, "averageFilledPrice");
         String type = this.safeString(order, "type");
         String side = this.safeString(order, "direction");
-        Object price = this.safeNumber(order, "price");
+        Double price = this.safeNumber(order, "price");
         Object transaction = this.safeList(deal, "transactions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object fee = null;
         Object firstTx = this.safeDict(transaction, 0);
@@ -1230,8 +1230,8 @@ public class CryptomusCore extends CryptomusApi
         {
             price = this.safeNumber(firstTx, "filledPrice");
         }
-        Object amount = this.safeNumber(order, "quantity");
-        Object cost = this.safeNumber(order, "value");
+        Double amount = this.safeNumber(order, "quantity");
+        Double cost = this.safeNumber(order, "value");
         String status = this.parseOrderStatus(this.safeString(order, "state"));
         String clientOrderId = this.safeString(order, "clientOrderId");
         final Object finalMarket = market;
@@ -1382,7 +1382,7 @@ public class CryptomusCore extends CryptomusApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeTiers)); i++)
         {
             Object tier = Helpers.GetValue(feeTiers, i);
-            Object turnover = this.safeNumber(tier, "from_turnover");
+            Double turnover = this.safeNumber(tier, "from_turnover");
             String taker = this.safeString(tier, "taker_percent");
             String maker = this.safeString(tier, "maker_percent");
             maker = Precise.stringDiv(maker, "100");

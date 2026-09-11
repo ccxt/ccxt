@@ -1202,7 +1202,7 @@ public class WoofiproCore extends WoofiproApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object isFromFetchOrder = (Helpers.inOp(trade, "id"));
-        Object timestamp = this.safeInteger(trade, "executed_timestamp");
+        Long timestamp = this.safeInteger(trade, "executed_timestamp");
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -1313,9 +1313,9 @@ public class WoofiproCore extends WoofiproApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = this.safeString(fundingRate, "symbol");
         market = this.market(symbol);
-        Object nextFundingTimestamp = this.safeInteger(fundingRate, "next_funding_time");
-        Object estFundingRateTimestamp = this.safeInteger(fundingRate, "est_funding_rate_timestamp");
-        Object lastFundingRateTimestamp = this.safeInteger(fundingRate, "last_funding_rate_timestamp");
+        Long nextFundingTimestamp = this.safeInteger(fundingRate, "next_funding_time");
+        Long estFundingRateTimestamp = this.safeInteger(fundingRate, "est_funding_rate_timestamp");
+        Long lastFundingRateTimestamp = this.safeInteger(fundingRate, "last_funding_rate_timestamp");
         String fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
         String nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
         Object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
@@ -1488,7 +1488,7 @@ public class WoofiproCore extends WoofiproApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         final Object finalMarket = market;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -1617,7 +1617,7 @@ public class WoofiproCore extends WoofiproApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
@@ -1656,8 +1656,8 @@ public class WoofiproCore extends WoofiproApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(interest, "timestamp");
-        Object amount = this.safeNumber2(interest, "open_interest", "openInterest");
+        Long timestamp = this.safeInteger(interest, "timestamp");
+        Double amount = this.safeNumber2(interest, "open_interest", "openInterest");
         final Object finalMarket = market;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -1754,7 +1754,7 @@ public class WoofiproCore extends WoofiproApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
@@ -1849,7 +1849,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 Object entry = Helpers.GetValue(result, i);
                 String marketId = this.safeString(entry, "symbol");
-                Object timestamp = this.safeInteger(entry, "funding_rate_timestamp");
+                Long timestamp = this.safeInteger(entry, "funding_rate_timestamp");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", WoofiproCore.this.safeSymbol(marketId) );
@@ -1883,8 +1883,8 @@ public class WoofiproCore extends WoofiproApi
         String symbol = (String) this.safeSymbol(marketId, market);
         String amount = this.safeString(income, "funding_fee");
         String code = (String) this.safeCurrencyCode("USDC");
-        Object timestamp = this.safeInteger(income, "updated_time");
-        Object rate = this.safeNumber(income, "funding_rate");
+        Long timestamp = this.safeInteger(income, "updated_time");
+        Double rate = this.safeNumber(income, "funding_rate");
         String paymentType = this.safeString(income, "payment_type");
         amount = ((Helpers.isTrue((Helpers.isEqual(paymentType, "Pay"))))) ? Precise.stringNeg(amount) : amount;
         final Object finalAmount = amount;
@@ -1944,7 +1944,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "start_t", since);
             }
-            Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+            Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -2102,7 +2102,7 @@ public class WoofiproCore extends WoofiproApi
             // }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(data, "timestamp");
+            Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         });
 
@@ -2224,7 +2224,7 @@ public class WoofiproCore extends WoofiproApi
         //   }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "created_time", "createdTime")));
+        Long timestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "created_time", "createdTime")));
         String orderId = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_id", "orderId", "algoOrderId")));
         Object clientOrderId = this.omitZero(this.safeString2(order, "client_order_id", "clientOrderId")); // Somehow, this always returns 0 for limit order
         String marketId = this.safeString(order, "symbol");
@@ -2247,7 +2247,7 @@ public class WoofiproCore extends WoofiproApi
         Object fee = this.safeValue2(order, "total_fee", "totalFee");
         String feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         Object transactions = this.safeValue(order, "Transactions");
-        Object triggerPrice = this.safeNumber(order, "triggerPrice");
+        Double triggerPrice = this.safeNumber(order, "triggerPrice");
         Object takeProfitPrice = null;
         Object stopLossPrice = null;
         Object childOrders = this.safeValue(order, "childOrders");
@@ -3489,10 +3489,10 @@ public class WoofiproCore extends WoofiproApi
         String currencyId = this.safeString(item, "token");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        Object amount = this.safeNumber(item, "amount");
+        Double amount = this.safeNumber(item, "amount");
         String side = this.safeString(item, "token_side");
         Object direction = ((Helpers.isTrue((Helpers.isEqual(side, "DEPOSIT"))))) ? "in" : "out";
-        Object timestamp = this.safeInteger(item, "created_time");
+        Long timestamp = this.safeInteger(item, "created_time");
         Object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "id", WoofiproCore.this.safeString(item, "id") );
@@ -3563,7 +3563,7 @@ public class WoofiproCore extends WoofiproApi
         Object fee = this.parseTokenAndFeeTemp(transaction, "fee_token", "fee_amount");
         String addressTo = this.safeString(transaction, "target_address");
         String addressFrom = this.safeString(transaction, "source_address");
-        Object timestamp = this.safeInteger(transaction, "created_time");
+        Long timestamp = this.safeInteger(transaction, "created_time");
         final Object finalMovementDirection = movementDirection;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -3780,7 +3780,7 @@ public class WoofiproCore extends WoofiproApi
             String chainId = this.safeString(parameters, "chainId");
             Object currencyNetworks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
             Object coinNetwork = this.safeDict(currencyNetworks, chainId, new java.util.HashMap<String, Object>() {{}});
-            Object coinNetworkId = this.safeNumber(coinNetwork, "id");
+            Double coinNetworkId = this.safeNumber(coinNetwork, "id");
             if (Helpers.isTrue(Helpers.isEqual(coinNetworkId, null)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " withdraw() require chainId parameter")) ;
@@ -3999,7 +3999,7 @@ public class WoofiproCore extends WoofiproApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(data, "timestamp");
+        Long timestamp = this.safeInteger(data, "timestamp");
         Object success = this.safeBool(data, "success", false);
         final Object finalSuccess = success;
         return new java.util.HashMap<String, Object>() {{
@@ -4105,7 +4105,7 @@ public class WoofiproCore extends WoofiproApi
     public Object parseLeverage(Object leverage, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object leverageValue = this.safeInteger(leverage, "max_leverage");
+        Long leverageValue = this.safeInteger(leverage, "max_leverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", WoofiproCore.this.safeString(market, "symbol") );
@@ -4241,7 +4241,7 @@ public class WoofiproCore extends WoofiproApi
         }
         String contractSize = this.safeString(market, "contractSize");
         String markPrice = this.safeString(position, "mark_price");
-        Object timestamp = this.safeInteger(position, "timestamp");
+        Long timestamp = this.safeInteger(position, "timestamp");
         String entryPrice = this.safeString(position, "average_open_price");
         String unrealisedPnl = this.safeString(position, "unsettled_pnl");
         size = Precise.stringAbs(size);

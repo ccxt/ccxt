@@ -229,7 +229,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object limit = this.safeInteger(parameters, "limit", 50);
+            Long limit = this.safeInteger(parameters, "limit", 50);
             Object topicParams = this.safeValue(parameters, "params");
             if (Helpers.isTrue(Helpers.isEqual(topicParams, null)))
             {
@@ -273,9 +273,9 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = this.safeFloat(delta, 0);
-        Object amount = this.safeFloat(delta, 1);
-        Object count = this.safeInteger(delta, 2);
+        Double price = this.safeFloat(delta, 0);
+        Double amount = this.safeFloat(delta, 1);
+        Long count = this.safeInteger(delta, 2);
         Helpers.callDynamically(bookside, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount, count))});
     }
 
@@ -349,10 +349,10 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         Object symbol = Helpers.GetValue(market, "symbol");
         Object data = this.safeValue(message, "data");
         data = this.safeValue(data, 0);
-        Object timestamp = this.safeInteger(data, "t");
+        Long timestamp = this.safeInteger(data, "t");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
-            Object limit = this.safeInteger(message, "depth");
+            Long limit = this.safeInteger(message, "depth");
             Helpers.addElementToObject(this.orderbooks, symbol, this.countedOrderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
@@ -369,7 +369,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         } else
         {
             books = this.safeValue(data, "update", new java.util.HashMap<String, Object>() {{}});
-            Object previousNonce = this.safeInteger(data, "pu");
+            Long previousNonce = this.safeInteger(data, "pu");
             Object currentNonce = Helpers.GetValue(orderbook, "nonce");
             if (Helpers.isTrue(!Helpers.isEqual(currentNonce, previousNonce)))
             {
@@ -547,7 +547,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -811,7 +811,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = this.safeInteger(ticker, "t");
         Object marketId = this.safeString(ticker, "i");
         market = this.safeMarket(marketId, market, "_");
         Object quote = this.safeString(market, "quote");
@@ -913,7 +913,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         Object marketId = this.safeString(ticker, "i");
         market = this.safeMarket(marketId, market);
         Object symbol = this.safeString(market, "symbol");
-        Object timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = this.safeInteger(ticker, "t");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -1021,7 +1021,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbol, null)) && Helpers.isTrue(!Helpers.isEqual(timeframe, null))))
             {
@@ -1121,7 +1121,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
             {
-                Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+                Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object stored = this.orders;
@@ -1229,7 +1229,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object position = Helpers.GetValue(positions, i);
-                Object contracts = this.safeNumber(position, "contracts", 0);
+                Double contracts = this.safeNumber(position, "contracts", 0);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contracts, null))) && Helpers.isTrue((Helpers.isGreaterThan(contracts, 0)))))
                 {
                     Helpers.callDynamically(cache, "append", new Object[]{position});

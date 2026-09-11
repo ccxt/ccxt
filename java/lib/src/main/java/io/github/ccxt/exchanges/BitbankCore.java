@@ -444,7 +444,7 @@ public class BitbankCore extends BitbankApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = (String) this.safeSymbol(null, market);
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -527,7 +527,7 @@ public class BitbankCore extends BitbankApi
             }};
             Object response = (this.publicGetPairDepth(this.extend(request, parameters))).join();
             Object orderbook = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(orderbook, "timestamp");
+            Long timestamp = this.safeInteger(orderbook, "timestamp");
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp);
         });
 
@@ -547,7 +547,7 @@ public class BitbankCore extends BitbankApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "executed_at");
+        Long timestamp = this.safeInteger(trade, "executed_at");
         market = this.safeMarket(null, market);
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "amount");
@@ -734,7 +734,7 @@ public class BitbankCore extends BitbankApi
                 {
                     limit = 1000; // it doesn't have any defaults, might return 200, might 2000 (i.e. https://public.bitbank.cc/btc_jpy/candlestick/4hour/2020)
                 }
-                Object duration = this.parseTimeframe(timeframe);
+                int duration = this.parseTimeframe(timeframe);
                 since = Helpers.subtract(this.milliseconds(), Helpers.multiply(Helpers.multiply(duration, 1000), limit));
             }
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -877,7 +877,7 @@ public class BitbankCore extends BitbankApi
         String id = this.safeString(order, "order_id");
         String marketId = this.safeString(order, "pair");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(order, "ordered_at");
+        Long timestamp = this.safeInteger(order, "ordered_at");
         String price = this.safeString(order, "price");
         String amount = this.safeString(order, "start_amount");
         String filled = this.safeString(order, "executed_amount");
@@ -1391,7 +1391,7 @@ public class BitbankCore extends BitbankApi
         {
             return null;
         }
-        Object success = this.safeInteger(response, "success");
+        Long success = this.safeInteger(response, "success");
         Object data = this.safeValue(response, "data");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(success, null)) || Helpers.isTrue(Helpers.isEqual(success, null))) || Helpers.isTrue(Helpers.isEqual(success, 0)))) || Helpers.isTrue((Helpers.isEqual(data, null)))))
         {

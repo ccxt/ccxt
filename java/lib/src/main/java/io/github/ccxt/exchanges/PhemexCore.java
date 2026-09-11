@@ -955,9 +955,9 @@ public class PhemexCore extends PhemexApi
                 base = settle;
             }
         }
-        Object priceScale = this.safeInteger(market, "priceScale");
-        Object ratioScale = this.safeInteger(market, "ratioScale");
-        Object valueScale = this.safeInteger(market, "valueScale");
+        Long priceScale = this.safeInteger(market, "priceScale");
+        Long ratioScale = this.safeInteger(market, "ratioScale");
+        Long valueScale = this.safeInteger(market, "valueScale");
         String minPriceEp = this.safeString(market, "minPriceEp");
         String maxPriceEp = this.safeString(market, "maxPriceEp");
         String makerFeeRateEr = this.safeString(market, "makerFeeRateEr");
@@ -1590,7 +1590,7 @@ public class PhemexCore extends PhemexApi
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object book = this.safeValue2(result, "book", "orderbook_p", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeIntegerProduct(result, "timestamp", 0.000001);
+            Long timestamp = this.safeIntegerProduct(result, "timestamp", 0.000001);
             Object orderbook = this.customParseOrderBook(book, symbol, timestamp, "bids", "asks", 0, 1, market);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(result, "sequence"));
             return orderbook;
@@ -1753,7 +1753,7 @@ public class PhemexCore extends PhemexApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(until, null))) || Helpers.isTrue((!Helpers.isEqual(since, null)))))
                 {
-                    Object candleDuration = this.parseTimeframe(timeframe);
+                    int candleDuration = this.parseTimeframe(timeframe);
                     if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                     {
                         since = Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(since, 1000))));
@@ -1771,7 +1771,7 @@ public class PhemexCore extends PhemexApi
                     {
                         // when since is defined 'to' is mandatory
                         Object to = Helpers.add(since, (Helpers.multiply(maxLimit, candleDuration)));
-                        Object now = this.seconds();
+                        Long now = this.seconds();
                         if (Helpers.isTrue(Helpers.isGreaterThan(to, now)))
                         {
                             to = now;
@@ -1875,7 +1875,7 @@ public class PhemexCore extends PhemexApi
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
+        Long timestamp = this.safeIntegerProduct(ticker, "timestamp", 0.000001);
         Object last = this.fromEp(this.safeString2(ticker, "lastEp", "closeRp"), market);
         Object quoteVolume = this.fromEr(this.safeString2(ticker, "turnoverEv", "turnoverRv"), market);
         Object baseVolume = this.safeString(ticker, "volume");
@@ -2482,7 +2482,7 @@ public class PhemexCore extends PhemexApi
             String currencyId = this.safeString(balance, "currency");
             String code = (String) this.safeCurrencyCode(currencyId);
             Object currency = this.safeValue(this.currencies, code, new java.util.HashMap<String, Object>() {{}});
-            Object scale = this.safeInteger(currency, "valueScale", 8);
+            Long scale = this.safeInteger(currency, "valueScale", 8);
             Object account = this.account();
             String balanceEv = this.safeString(balance, "balanceEv");
             String lockedTradingBalanceEv = this.safeString(balance, "lockedTradingBalanceEv");
@@ -2542,7 +2542,7 @@ public class PhemexCore extends PhemexApi
         String currencyId = this.safeString(balance, "currency");
         String code = (String) this.safeCurrencyCode(currencyId);
         Object currency = this.currency(code);
-        Object valueScale = this.safeInteger(currency, "valueScale", 8);
+        Long valueScale = this.safeInteger(currency, "valueScale", 8);
         Object account = this.account();
         String accountBalanceEv = this.safeString2(balance, "accountBalanceEv", "accountBalanceRv");
         String totalUsedBalanceEv = this.safeString2(balance, "totalUsedBalanceEv", "totalUsedBalanceRv");
@@ -3055,16 +3055,16 @@ public class PhemexCore extends PhemexApi
         {
             price = this.fromEp(this.safeString(order, "priceEp"), market);
         }
-        Object amount = this.safeNumber2(order, "orderQty", "orderQtyRq");
-        Object filled = this.safeNumber2(order, "cumQty", "cumQtyRq");
-        Object remaining = this.safeNumber2(order, "leavesQty", "leavesQtyRq");
-        Object timestamp = this.safeIntegerProduct(order, "actionTimeNs", 0.000001);
+        Double amount = this.safeNumber2(order, "orderQty", "orderQtyRq");
+        Double filled = this.safeNumber2(order, "cumQty", "cumQtyRq");
+        Double remaining = this.safeNumber2(order, "leavesQty", "leavesQtyRq");
+        Long timestamp = this.safeIntegerProduct(order, "actionTimeNs", 0.000001);
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             timestamp = this.safeInteger(order, "createdAt");
         }
-        Object cost = this.safeNumber2(order, "cumValue", "cumValueRv");
-        Object lastTradeTimestamp = this.safeIntegerProduct(order, "transactTimeNs", 0.000001);
+        Double cost = this.safeNumber2(order, "cumValue", "cumValueRv");
+        Long lastTradeTimestamp = this.safeIntegerProduct(order, "transactTimeNs", 0.000001);
         if (Helpers.isTrue(Helpers.isEqual(lastTradeTimestamp, 0)))
         {
             lastTradeTimestamp = null;
@@ -4505,7 +4505,7 @@ public class PhemexCore extends PhemexApi
         currency = this.safeCurrency(currencyId, currency);
         Object code = Helpers.GetValue(currency, "code");
         String networkId = this.safeString(transaction, "chainName");
-        Object timestamp = this.safeIntegerN(transaction, new java.util.ArrayList<Object>(java.util.Arrays.asList("createdAt", "submitedAt", "submittedAt")));
+        Long timestamp = this.safeIntegerN(transaction, new java.util.ArrayList<Object>(java.util.Arrays.asList("createdAt", "submitedAt", "submittedAt")));
         String type = (String)this.safeStringLower(transaction, "type");
         Object feeCost = this.parseNumber(this.fromEn(this.safeString(transaction, "feeEv"), this.safeValue(currency, "valueScale")));
         if (Helpers.isTrue(Helpers.isEqual(feeCost, null)))
@@ -4896,7 +4896,7 @@ public class PhemexCore extends PhemexApi
         Object maintenanceMarginString = Precise.stringMul(notionalString, maintenanceMarginPercentageString);
         String initialMarginString = this.safeString2(position, "assignedPosBalance", "assignedPosBalanceRv");
         Object initialMarginPercentageString = Precise.stringDiv(initialMarginString, notionalString);
-        Object liquidationPrice = this.safeNumber2(position, "liquidationPrice", "liquidationPriceRp");
+        Double liquidationPrice = this.safeNumber2(position, "liquidationPrice", "liquidationPriceRp");
         String markPriceString = this.safeString2(position, "markPrice", "markPriceRp");
         String contracts = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("size", "sizeRq", "closedSizeRq")));
         Object contractSize = this.safeValue(market, "contractSize");
@@ -4940,8 +4940,8 @@ public class PhemexCore extends PhemexApi
         String apiUnrealizedPnl = this.safeString(position, "unRealisedPnlRv", unrealizedPnl);
         Object marginRatio = Precise.stringDiv(maintenanceMarginString, collateral);
         Object isCross = this.safeValue(position, "crossMargin");
-        Object timestamp = this.safeInteger(position, "openedTimeNs");
-        Object lastUpdateTimestamp = this.safeInteger(position, "updatedTimeNs", this.safeIntegerProduct(position, "transactTimeNs", 0.000001));
+        Long timestamp = this.safeInteger(position, "openedTimeNs");
+        Long lastUpdateTimestamp = this.safeInteger(position, "updatedTimeNs", this.safeIntegerProduct(position, "transactTimeNs", 0.000001));
         final Object finalIsCross = isCross;
         final Object finalSide = side;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
@@ -5054,7 +5054,7 @@ public class PhemexCore extends PhemexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object entry = Helpers.GetValue(rows, i);
-                Object timestamp = this.safeInteger(entry, "createTime");
+                Long timestamp = this.safeInteger(entry, "createTime");
                 String execFee = this.safeString2(entry, "execFeeEv", "execFeeRv");
                 String currencyCode = (String) this.safeCurrencyCode(this.safeString(entry, "currency"));
                 ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
@@ -5197,7 +5197,7 @@ public class PhemexCore extends PhemexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object timestamp = this.safeIntegerProduct(contract, "timestamp", 0.000001);
+        Long timestamp = this.safeIntegerProduct(contract, "timestamp", 0.000001);
         Object markEp = this.fromEp(this.safeString(contract, "markEp"), market);
         Object indexEp = this.fromEp(this.safeString(contract, "indexEp"), market);
         Object fundingRateEr = this.fromEr(this.safeString(contract, "fundingRateEr"), market);
@@ -5546,7 +5546,7 @@ public class PhemexCore extends PhemexApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(riskLimits)); i++)
         {
             Object tier = Helpers.GetValue(riskLimits, i);
-            Object maxNotional = this.safeInteger(tier, "limit");
+            Long maxNotional = this.safeInteger(tier, "limit");
             Object minNotionalResponse = minNotional; // java req
 final Object finalI = i;
             final Object finalMarket = market;
@@ -5587,8 +5587,8 @@ final Object finalI = i;
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object timestamp = this.seconds();
-            Object xPhemexRequestExpiry = this.safeInteger(this.options, "x-phemex-request-expiry", 60);
+            Long timestamp = this.seconds();
+            Long xPhemexRequestExpiry = this.safeInteger(this.options, "x-phemex-request-expiry", 60);
             Object expiry = this.sum(timestamp, xPhemexRequestExpiry);
             Object expiryString = String.valueOf(expiry);
             headers = new java.util.HashMap<String, Object>() {{
@@ -5904,7 +5904,7 @@ final Object finalI = i;
         Object amountTransfered = this.fromEv(amountEv);
         String currencyId = this.safeString(transfer, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object side = this.safeInteger(transfer, "side");
+        Long side = this.safeInteger(transfer, "side");
         Object fromId = null;
         Object toId = null;
         if (Helpers.isTrue(Helpers.isEqual(side, 1)))
@@ -5916,7 +5916,7 @@ final Object finalI = i;
             fromId = "spot";
             toId = "swap";
         }
-        Object timestamp = this.safeInteger(transfer, "createTime");
+        Long timestamp = this.safeInteger(transfer, "createTime");
         final Object finalFromId = fromId;
         final Object finalToId = toId;
         return new java.util.HashMap<String, Object>() {{
@@ -6040,7 +6040,7 @@ final Object finalI = i;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rates)); i++)
             {
                 Object item = Helpers.GetValue(rates, i);
-                Object timestamp = this.safeInteger(item, "fundingTime");
+                Long timestamp = this.safeInteger(item, "fundingTime");
     final Object finalSymbol = symbol;
                             ((java.util.List<Object>)result).add(new java.util.HashMap<String, Object>() {{
                     put( "info", item );
@@ -6263,7 +6263,7 @@ final Object finalI = i;
             }
             Object fromCurrency = this.currency(fromCode);
             Object toCurrency = this.currency(toCode);
-            Object valueScale = this.safeInteger(fromCurrency, "valueScale");
+            Long valueScale = this.safeInteger(fromCurrency, "valueScale");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "fromCurrency", fromCode );
                 put( "toCurrency", toCode );
@@ -6319,7 +6319,7 @@ final Object finalI = i;
             }
             Object fromCurrency = this.currency(fromCode);
             Object toCurrency = this.currency(toCode);
-            Object valueScale = this.safeInteger(fromCurrency, "valueScale");
+            Long valueScale = this.safeInteger(fromCurrency, "valueScale");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "code", id );
                 put( "fromCurrency", fromCode );
@@ -6475,14 +6475,14 @@ final Object finalI = i;
         Object fromCurrency = Helpers.getArg(optionalArgs, 0, null);
         Object toCurrency = Helpers.getArg(optionalArgs, 1, null);
         Object quoteArgs = this.safeDict(conversion, "quoteArgs", new java.util.HashMap<String, Object>() {{}});
-        Object requestTime = this.safeInteger(quoteArgs, "requestAt");
-        Object timestamp = this.safeInteger(conversion, "createTime", requestTime);
+        Long requestTime = this.safeInteger(quoteArgs, "requestAt");
+        Long timestamp = this.safeInteger(conversion, "createTime", requestTime);
         String fromCoin = this.safeString(conversion, "fromCurrency", this.safeString(fromCurrency, "code"));
         String fromCode = (String) this.safeCurrencyCode(fromCoin, fromCurrency);
         String toCoin = this.safeString(conversion, "toCurrency", this.safeString(toCurrency, "code"));
         String toCode = (String) this.safeCurrencyCode(toCoin, toCurrency);
-        Object fromValueScale = this.safeInteger(fromCurrency, "valueScale");
-        Object toValueScale = this.safeInteger(toCurrency, "valueScale");
+        Long fromValueScale = this.safeInteger(fromCurrency, "valueScale");
+        Long toValueScale = this.safeInteger(toCurrency, "valueScale");
         String fromAmount = this.fromEn(this.safeString(conversion, "fromAmountEv"), fromValueScale);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(fromAmount, null)) && Helpers.isTrue(!Helpers.isEqual(quoteArgs, null))))
         {

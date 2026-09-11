@@ -726,7 +726,7 @@ public class CoinoneCore extends CoinoneApi
             //         ]
             //     }
             //
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "qty");
         });
 
@@ -903,7 +903,7 @@ public class CoinoneCore extends CoinoneApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         String last = this.safeString(ticker, "last");
         Object asks = this.safeList(ticker, "best_asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object bids = this.safeList(ticker, "best_bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -962,7 +962,7 @@ public class CoinoneCore extends CoinoneApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(null, market);
         Object isSellerMaker = this.safeBool(trade, "is_seller_maker");
         Object side = null;
@@ -1473,9 +1473,9 @@ public class CoinoneCore extends CoinoneApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument. To cancel the order, pass a symbol argument and {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument of cancelOrder.")) ;
             }
-            Object price = this.safeNumber(parameters, "price");
-            Object qty = this.safeNumber(parameters, "qty");
-            Object isAsk = this.safeInteger(parameters, "is_ask");
+            Double price = this.safeNumber(parameters, "price");
+            Double qty = this.safeNumber(parameters, "qty");
+            Long isAsk = this.safeInteger(parameters, "is_ask");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(price, null))) || Helpers.isTrue((Helpers.isEqual(qty, null)))) || Helpers.isTrue((Helpers.isEqual(isAsk, null)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires {'price': 12345, 'qty': 1.2345, 'is_ask': 0} in the params argument.")) ;

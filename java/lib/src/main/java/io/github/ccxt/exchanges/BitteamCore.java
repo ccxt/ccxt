@@ -521,7 +521,7 @@ public class BitteamCore extends BitteamApi
     public Object parseMarket(Object market)
     {
         String id = this.safeString(market, "name");
-        Object numericId = this.safeInteger(market, "id");
+        Long numericId = this.safeInteger(market, "id");
         Object parts = Helpers.split(((String)id), "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
@@ -734,7 +734,7 @@ public class BitteamCore extends BitteamApi
     {
         Object statusesResponse = this.safeValue(this.options, "_temp_currencies_statuses", new java.util.HashMap<String, Object>() {{}});
         String id = this.safeString(currency, "symbol");
-        Object numericId = this.safeInteger(currency, "id");
+        Long numericId = this.safeInteger(currency, "id");
         String code = (String) this.safeCurrencyCode(id);
         Object active = this.safeBool(currency, "active", false);
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
@@ -766,7 +766,7 @@ public class BitteamCore extends BitteamApi
         {
             Object networkId = Helpers.GetValue(networkIds, j);
             Object networkCode = this.networkIdToCode(networkId, code);
-            Object networkFee = this.safeNumber(feesByNetworkId, networkId);
+            Double networkFee = this.safeNumber(feesByNetworkId, networkId);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
                 final Object finalNetworkCode = networkCode;
@@ -961,7 +961,7 @@ public class BitteamCore extends BitteamApi
             //         ]
             //     }
             //
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             Object orderbook = this.parseOrderBook(response, symbol, timestamp);
             return orderbook;
         });
@@ -2355,7 +2355,7 @@ public class BitteamCore extends BitteamApi
             put( "currency", BitteamCore.this.safeCurrencyCode(feeCurrencyId) );
             put( "cost", feeCost );
         }};
-        Object intTs = this.parseToInt(timestamp);
+        Long intTs = this.parseToInt(timestamp);
         final Object finalOrder = order;
         final Object finalSide = side;
         final Object finalTakerOrMaker = takerOrMaker;
@@ -2443,7 +2443,7 @@ public class BitteamCore extends BitteamApi
         //         }
         //     }
         //
-        Object timestamp = this.milliseconds();
+        Long timestamp = this.milliseconds();
         Object balance = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
@@ -2659,7 +2659,7 @@ public class BitteamCore extends BitteamApi
         String id = this.safeString(transaction, "id");
         Object parameters = this.safeValue(transaction, "params");
         String txid = this.safeString(parameters, "tx_id");
-        Object timestamp = this.safeInteger(transaction, "timestamp");
+        Long timestamp = this.safeInteger(transaction, "timestamp");
         String networkId = this.safeString(transaction, "blockChain");
         if (Helpers.isTrue(Helpers.isEqual(networkId, null)))
         {

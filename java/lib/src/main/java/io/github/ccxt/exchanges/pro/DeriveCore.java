@@ -62,7 +62,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
     public Object requestId(Object url)
     {
         Object options = this.safeValue(this.options, "requestId", new java.util.HashMap<String, Object>() {{}});
-        Object previousValue = this.safeInteger(options, url, 0);
+        Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
         Helpers.addElementToObject(Helpers.GetValue(this.options, "requestId"), url, newValue);
         return newValue;
@@ -158,13 +158,13 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         Object topic = this.safeString(parameters, "channel");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
-            Object defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
+            Long defaultLimit = this.safeInteger(this.options, "watchOrderBookLimit", 1000);
             Object subscription = ((Helpers.isTrue((Helpers.isEqual(topic, null))))) ? null : Helpers.GetValue(client.subscriptions, topic);
-            Object limit = this.safeInteger(subscription, "limit", defaultLimit);
+            Long limit = this.safeInteger(subscription, "limit", defaultLimit);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-        Object timestamp = this.safeInteger(data, "timestamp");
+        Long timestamp = this.safeInteger(data, "timestamp");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         client.resolve(orderbook, topic);
@@ -540,7 +540,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(((Number)limit).intValue());
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -727,7 +727,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
             {
                 if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
                 {
-                    Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+                    Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                     this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
                 }
                 Object cachedOrders = this.orders;
@@ -823,7 +823,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         Object myTrades = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object parameters = this.safeDict(message, "params");

@@ -722,7 +722,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         {
             return;
         }
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(parsed, "timestamp", timestamp);
         Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.tickers, symbol, parsed);
@@ -776,7 +776,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
     public Object parseWsBidAsk(Object orderbook, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(orderbook, "timestamp");
+        Long timestamp = this.safeInteger(orderbook, "timestamp");
         Object bids = this.sortBy(this.aggregate(Helpers.GetValue(orderbook, "bids")), 0);
         Object asks = this.sortBy(this.aggregate(Helpers.GetValue(orderbook, "asks")), 0);
         Object bestBid = this.safeList(bids, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -992,7 +992,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         }
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(ohlcvsByTimeframe, timeframe), null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
@@ -1235,7 +1235,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
         Object market = this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -1452,7 +1452,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -1764,7 +1764,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         }
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
@@ -2152,7 +2152,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 Object liquidation = this.parseWsLiquidation(rawLiquidation, market);
                 if (Helpers.isTrue(Helpers.isEqual(this.liquidations, null)))
                 {
-                    Object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                    Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                     this.liquidations = new ArrayCache(((Number)limit).intValue());
                 }
                 Object cache = this.liquidations;
@@ -2169,7 +2169,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object liquidation = this.parseWsLiquidation(rawLiquidation, market);
             if (Helpers.isTrue(Helpers.isEqual(this.liquidations, null)))
             {
-                Object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+                Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
                 this.liquidations = new ArrayCache(((Number)limit).intValue());
             }
             Object cache = this.liquidations;
@@ -2422,7 +2422,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
@@ -2729,7 +2729,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 Helpers.addElementToObject(this.balance, account, new java.util.HashMap<String, Object>() {{}});
             }
             Helpers.addElementToObject(Helpers.GetValue(this.balance, account), "info", info);
-            Object timestamp = this.safeInteger(message, "ts");
+            Long timestamp = this.safeInteger(message, "ts");
             Helpers.addElementToObject(Helpers.GetValue(this.balance, account), "timestamp", timestamp);
             Helpers.addElementToObject(Helpers.GetValue(this.balance, account), "datetime", this.iso8601(timestamp));
             Helpers.addElementToObject(this.balance, account, this.safeBalance(Helpers.GetValue(this.balance, account)));
@@ -2738,7 +2738,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         } else
         {
             Helpers.addElementToObject(this.balance, "info", info);
-            Object timestamp = this.safeInteger(message, "ts");
+            Long timestamp = this.safeInteger(message, "ts");
             Helpers.addElementToObject(this.balance, "timestamp", timestamp);
             Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
             this.balance = this.safeBalance(this.balance);
@@ -3008,7 +3008,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             return;
         }
         // spot pong
-        Object pong = this.safeInteger(message, "pong");
+        Long pong = this.safeInteger(message, "pong");
         if (Helpers.isTrue(!Helpers.isEqual(pong, null)))
         {
             this.handlePong(client, message);
@@ -3137,7 +3137,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //    }
         //
         Object success = this.safeValue(message, "success");
-        Object code = this.safeInteger(message, "retCode");
+        Long code = this.safeInteger(message, "retCode");
         Object messageHash = "authenticated";
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) || Helpers.isTrue((Helpers.isEqual(code, 0)))))
         {

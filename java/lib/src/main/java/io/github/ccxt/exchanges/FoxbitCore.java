@@ -436,7 +436,7 @@ public class FoxbitCore extends FoxbitApi
 
     public Object parseCurrency(Object rawCurrency)
     {
-        Object precision = this.safeInteger(rawCurrency, "precision");
+        Long precision = this.safeInteger(rawCurrency, "precision");
         String currencyId = this.safeString(rawCurrency, "symbol");
         String name = this.safeString(rawCurrency, "name");
         String code = (String) this.safeCurrencyCode(currencyId);
@@ -833,7 +833,7 @@ public class FoxbitCore extends FoxbitApi
             //      ]
             //    ]
             //  }
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, symbol, timestamp);
         });
 
@@ -1153,7 +1153,7 @@ public class FoxbitCore extends FoxbitApi
             }
             String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
             Object postOnly = this.safeBool(parameters, "postOnly", false);
-            Object triggerPrice = this.safeNumber(parameters, "triggerPrice");
+            Double triggerPrice = this.safeNumber(parameters, "triggerPrice");
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
@@ -1251,7 +1251,7 @@ public class FoxbitCore extends FoxbitApi
                 }
                 String timeInForce = (String)this.safeStringUpper(orderParams, "timeInForce");
                 Object postOnly = this.safeBool(orderParams, "postOnly", false);
-                Object triggerPrice = this.safeNumber(orderParams, "triggerPrice");
+                Double triggerPrice = this.safeNumber(orderParams, "triggerPrice");
                 final Object finalType = type;
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "market_symbol", Helpers.GetValue(market, "id") );
@@ -2434,9 +2434,9 @@ public class FoxbitCore extends FoxbitApi
         String exchangeSymbol = this.safeString(item, "currency_symbol");
         String currencySymbol = (String) this.safeCurrencyCode(exchangeSymbol);
         Object direction = "in";
-        Object amount = this.safeNumber(item, "amount");
+        Double amount = this.safeNumber(item, "amount");
         Object realAmount = amount;
-        Object balance = this.safeNumber(item, "balance");
+        Double balance = this.safeNumber(item, "balance");
         Object fee = new java.util.HashMap<String, Object>() {{
             put( "cost", FoxbitCore.this.safeNumber(item, "fee") );
             put( "currency", currencySymbol );
@@ -2502,7 +2502,7 @@ public class FoxbitCore extends FoxbitApi
         }
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), urlPath), fullPath);
         parameters = this.omit(parameters, this.extractParams(path));
-        Object timestamp = this.milliseconds();
+        Long timestamp = this.milliseconds();
         Object query = "";
         Object signatureQuery = "";
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))

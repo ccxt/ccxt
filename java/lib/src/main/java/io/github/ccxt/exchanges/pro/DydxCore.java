@@ -149,7 +149,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -311,8 +311,8 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
     {
         if (Helpers.isTrue(Helpers.isArray(delta)))
         {
-            Object price = this.safeFloat(delta, 0);
-            Object amount = this.safeFloat(delta, 1);
+            Double price = this.safeFloat(delta, 0);
+            Double amount = this.safeFloat(delta, 1);
             Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
         } else
         {
@@ -470,7 +470,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
         }

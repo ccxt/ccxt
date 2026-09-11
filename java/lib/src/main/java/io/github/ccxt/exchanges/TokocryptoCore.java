@@ -1402,7 +1402,7 @@ public class TokocryptoCore extends TokocryptoApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "closeTime");
+        Long timestamp = this.safeInteger(ticker, "closeTime");
         String marketId = this.safeString(ticker, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market);
         String last = this.safeString(ticker, "lastPrice");
@@ -1653,7 +1653,7 @@ public class TokocryptoCore extends TokocryptoApi
             Object defaultLimit = 500;
             Object maxLimit = 1500;
             String price = this.safeString(parameters, "price");
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("price", "until")));
             limit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? defaultLimit : Helpers.mathMin(limit, maxLimit);
             final Object finalLimit = limit;
@@ -1799,7 +1799,7 @@ public class TokocryptoCore extends TokocryptoApi
     {
         Object type = Helpers.getArg(optionalArgs, 0, null);
         Object marginMode = Helpers.getArg(optionalArgs, 1, null);
-        Object timestamp = this.safeInteger(response, "updateTime");
+        Long timestamp = this.safeInteger(response, "updateTime");
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
@@ -1950,7 +1950,7 @@ public class TokocryptoCore extends TokocryptoApi
         String marketId = this.safeString(order, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market);
         String filled = this.safeString(order, "executedQty", "0");
-        Object timestamp = this.safeInteger(order, "createTime");
+        Long timestamp = this.safeInteger(order, "createTime");
         String average = this.safeString(order, "avgPrice");
         String price = this.safeString2(order, "price", "executedPrice");
         String amount = this.safeString(order, "origQty");
@@ -2139,7 +2139,7 @@ public class TokocryptoCore extends TokocryptoApi
                     var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                     createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                     parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-                    Object cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
+                    Double cost = this.safeNumber2(parameters, "cost", "quoteOrderQty");
                     parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("cost", "quoteOrderQty")));
                     if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                     {
@@ -2668,7 +2668,7 @@ public class TokocryptoCore extends TokocryptoApi
             }
             Object currency = null;
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 currency = this.currency(code);
@@ -2880,7 +2880,7 @@ public class TokocryptoCore extends TokocryptoApi
         String currencyId = this.safeString2(transaction, "coin", "fiatCurrency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Object timestamp = null;
-        Object insertTime = this.safeInteger(transaction, "insertTime");
+        Long insertTime = this.safeInteger(transaction, "insertTime");
         Long createTime = (Long) this.safeInteger2(transaction, "createTime", "timestamp");
         String type = this.safeString(transaction, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
@@ -2895,7 +2895,7 @@ public class TokocryptoCore extends TokocryptoApi
                 timestamp = createTime;
             }
         }
-        Object feeCost = this.safeNumber2(transaction, "transactionFee", "totalFee");
+        Double feeCost = this.safeNumber2(transaction, "transactionFee", "totalFee");
         Object fee = new java.util.HashMap<String, Object>() {{
             put( "currency", null );
             put( "cost", null );
@@ -2906,7 +2906,7 @@ public class TokocryptoCore extends TokocryptoApi
             Helpers.addElementToObject(fee, "currency", code);
             Helpers.addElementToObject(fee, "cost", feeCost);
         }
-        Object internalRaw = this.safeInteger(transaction, "transferType");
+        Long internalRaw = this.safeInteger(transaction, "transferType");
         Object intern = false;
         if (Helpers.isTrue(!Helpers.isEqual(internalRaw, null)))
         {
@@ -3049,7 +3049,7 @@ public class TokocryptoCore extends TokocryptoApi
         {
             this.checkRequiredCredentials();
             Object query = null;
-            Object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
+            Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
             Object extendedParams = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "timestamp", TokocryptoCore.this.nonce() );
             }}, parameters);
@@ -3057,7 +3057,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 Helpers.addElementToObject(extendedParams, "recvWindow", defaultRecvWindow);
             }
-            Object recvWindow = this.safeInteger(parameters, "recvWindow");
+            Long recvWindow = this.safeInteger(parameters, "recvWindow");
             if (Helpers.isTrue(!Helpers.isEqual(recvWindow, null)))
             {
                 Helpers.addElementToObject(extendedParams, "recvWindow", recvWindow);

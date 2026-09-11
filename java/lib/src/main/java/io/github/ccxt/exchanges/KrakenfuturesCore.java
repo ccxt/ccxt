@@ -579,7 +579,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 Object settleId = null;
                 String cvtp = this.safeString(market, "contractValueTradePrecision");
                 Object amountPrecision = this.parseNumber(this.integerPrecisionToAmount(cvtp));
-                Object pricePrecision = this.safeNumber(market, "tickSize");
+                Double pricePrecision = this.safeNumber(market, "tickSize");
                 Object contract = (Helpers.isTrue(Helpers.isTrue(swap) || Helpers.isTrue(future)) || Helpers.isTrue(index));
                 Object swapOrFutures = (Helpers.isTrue(swap) || Helpers.isTrue(future));
                 if (Helpers.isTrue(swapOrFutures))
@@ -1104,7 +1104,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             parameters = this.omit(parameters, "price");
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object duration = this.parseTimeframe(timeframe);
+                int duration = this.parseTimeframe(timeframe);
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
                 if (Helpers.isTrue(Helpers.isEqual(limit, null)))
                 {
@@ -1112,12 +1112,12 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 }
                 limit = Helpers.mathMin(limit, 2000);
                 Object toTimestamp = this.sum(Helpers.GetValue(request, "from"), Helpers.subtract(Helpers.multiply(limit, duration), 1));
-                Object currentTimestamp = this.seconds();
+                Long currentTimestamp = this.seconds();
                 Helpers.addElementToObject(request, "to", Helpers.mathMin(toTimestamp, currentTimestamp));
             } else if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 limit = Helpers.mathMin(limit, 2000);
-                Object duration = this.parseTimeframe(timeframe);
+                int duration = this.parseTimeframe(timeframe);
                 Helpers.addElementToObject(request, "to", this.seconds());
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.subtract(Helpers.GetValue(request, "to"), (Helpers.multiply(duration, limit)))));
             }
@@ -2017,7 +2017,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? (KrakenfuturesCore.this.parseToInt(Helpers.divide(timeout, 1000))) : 0 );
+                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(timeout, 0))))) ? ((Object) (KrakenfuturesCore.this.parseToInt(Helpers.divide(timeout, 1000)))) : 0 );
             }};
             Object response = (this.privatePostCancelallordersafter(this.extend(request, parameters))).join();
             //
@@ -2883,7 +2883,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         {
             timeInForce = "ioc";
         }
-        Object ts = this.safeInteger(details, "timestamp", timestamp);
+        Long ts = this.safeInteger(details, "timestamp", timestamp);
         Object priceTriggerOptions = this.safeDict(details, "priceTriggerOptions", new java.util.HashMap<String, Object>() {{}});
         String triggerPrice = this.safeString2(details, "triggerPrice", "stopPrice");
         if (Helpers.isTrue(Helpers.isEqual(triggerPrice, null)))
@@ -3034,7 +3034,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 // parseLedger re-applies the limit on the filtered entries
                 Helpers.addElementToObject(request, "count", Helpers.multiply(limit, 2));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -3723,7 +3723,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object leverage = this.safeNumber(position, "maxFixedLeverage");
+        Double leverage = this.safeNumber(position, "maxFixedLeverage");
         Object marginType = "cross";
         if (Helpers.isTrue(!Helpers.isEqual(leverage, null)))
         {
@@ -3885,7 +3885,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         {
             Object tier = Helpers.GetValue(marginLevels, i);
             String initialMargin = this.safeString(tier, "initialMargin");
-            Object minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
+            Double minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
             if (Helpers.isTrue(!Helpers.isEqual(i, 0)))
             {
                 Object tiersLength = Helpers.getArrayLength(tiers);
@@ -4187,7 +4187,7 @@ final Object finalI = i;
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "symbol");
-        Object leverageValue = this.safeInteger(leverage, "maxLeverage");
+        Long leverageValue = this.safeInteger(leverage, "maxLeverage");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
             put( "symbol", KrakenfuturesCore.this.safeSymbol(marketId, market) );

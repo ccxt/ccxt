@@ -797,7 +797,7 @@ public class KrakenCore extends KrakenApi
                 if (Helpers.isTrue(Helpers.isTrue(spot) && Helpers.isTrue((Helpers.inOp(cachedCurrencies, base)))))
                 {
                     Object currency = this.safeValue(cachedCurrencies, base);
-                    Object currencyPrecision = this.safeNumber(currency, "precision");
+                    Double currencyPrecision = this.safeNumber(currency, "precision");
                     // if currency precision is greater (e.g. 0.01) than market precision (e.g. 0.001)
                     if (Helpers.isTrue(Helpers.isEqual(currencyPrecision, null)))
                     {
@@ -1165,9 +1165,9 @@ public class KrakenCore extends KrakenApi
         Object priceKey = Helpers.getArg(optionalArgs, 0, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 1, 1);
         Object countOrIdKey = Helpers.getArg(optionalArgs, 2, 2);
-        Object price = this.safeNumber(bidask, priceKey);
-        Object amount = this.safeNumber(bidask, amountKey);
-        Object timestamp = this.safeInteger(bidask, 2);
+        Double price = this.safeNumber(bidask, priceKey);
+        Double amount = this.safeNumber(bidask, amountKey);
+        Long timestamp = this.safeInteger(bidask, 2);
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount, timestamp));
     }
 
@@ -1424,7 +1424,7 @@ public class KrakenCore extends KrakenApi
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 720)).join();
             }
             Object market = this.market(symbol);
-            Object parsedTimeframe = this.safeInteger(this.timeframes, timeframe);
+            Long parsedTimeframe = this.safeInteger(this.timeframes, timeframe);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1437,7 +1437,7 @@ public class KrakenCore extends KrakenApi
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object scaledSince = this.parseToInt(Helpers.divide(since, 1000));
+                Long scaledSince = this.parseToInt(Helpers.divide(since, 1000));
                 if (Helpers.isTrue(Helpers.isEqual(parsedTimeframe, null)))
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing parsedTimeframe")) ;
@@ -1514,7 +1514,7 @@ public class KrakenCore extends KrakenApi
         {
             direction = "in";
         }
-        Object timestamp = this.safeIntegerProduct(item, "time", 1000);
+        Long timestamp = this.safeIntegerProduct(item, "time", 1000);
         final Object finalDirection = direction;
         final Object finalAmount = amount;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
@@ -2447,7 +2447,7 @@ public class KrakenCore extends KrakenApi
         }
         String flags = this.safeString(order, "oflags", "");
         Object isPostOnly = Helpers.isGreaterThan(Helpers.getIndexOf(flags, "post"), Helpers.opNeg(1));
-        Object average = this.safeNumber(order, "price");
+        Double average = this.safeNumber(order, "price");
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
         {
             symbol = Helpers.GetValue(market, "symbol");
@@ -2960,7 +2960,7 @@ final Object finalId = id;
                 symbol = this.symbol(symbol);
             }
             Object options = this.safeValue(this.options, "fetchOrderTrades", new java.util.HashMap<String, Object>() {{}});
-            Object batchSize = this.safeInteger(options, "batchSize", 20);
+            Long batchSize = this.safeInteger(options, "batchSize", 20);
             Object numTradeIds = Helpers.getArrayLength(tradeIds);
             Object numBatches = this.parseToInt(Helpers.divide(numTradeIds, batchSize));
             numBatches = this.sum(numBatches, 1);
@@ -3306,7 +3306,7 @@ final Object finalId = id;
             }
             final Object finalTimeout = timeout;
             Object request = new java.util.HashMap<String, Object>() {{
-                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? (KrakenCore.this.parseToInt(Helpers.divide(finalTimeout, 1000))) : 0 );
+                put( "timeout", ((Helpers.isTrue((Helpers.isGreaterThan(finalTimeout, 0))))) ? ((Object) (KrakenCore.this.parseToInt(Helpers.divide(finalTimeout, 1000)))) : 0 );
             }};
             Object response = (this.privatePostCancelAllOrdersAfter(this.extend(request, parameters))).join();
             //
@@ -3354,7 +3354,7 @@ final Object finalId = id;
             {
                 Helpers.addElementToObject(request, "start", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object userref = this.safeInteger(parameters, "userref");
+            Long userref = this.safeInteger(parameters, "userref");
             if (Helpers.isTrue(!Helpers.isEqual(userref, null)))
             {
                 Helpers.addElementToObject(request, "userref", userref);
@@ -3458,7 +3458,7 @@ final Object finalId = id;
             {
                 Helpers.addElementToObject(request, "start", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object userref = this.safeInteger(parameters, "userref");
+            Long userref = this.safeInteger(parameters, "userref");
             if (Helpers.isTrue(!Helpers.isEqual(userref, null)))
             {
                 Helpers.addElementToObject(request, "userref", userref);
@@ -3624,7 +3624,7 @@ final Object finalId = id;
         String currencyId = this.safeString(transaction, "asset");
         Object code = this.safeCurrencyCode(currencyId, currency);
         String address = this.safeString(transaction, "info");
-        Object amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount");
         Object status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         String statusProp = this.safeString(transaction, "status-prop");
         Object isOnHoldDeposit = Helpers.isEqual(statusProp, "on-hold");

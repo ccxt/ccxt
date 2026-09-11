@@ -344,8 +344,8 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " apiKey should contain the name (eg: organizations/3b910e93....) and not the public key")) ;
             }
             Object currentToken = this.safeString(this.options, "wsToken");
-            Object tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
-            Object seconds = this.seconds();
+            Long tokenTimestamp = this.safeInteger(this.options, "wsTokenTimestamp", 0);
+            Long seconds = this.seconds();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(currentToken, null)) || Helpers.isTrue(Helpers.isLessThan(Helpers.add(tokenTimestamp, 120), seconds))))
             {
                 // we should generate new token
@@ -622,7 +622,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(ticker, "product_id");
         Object timestamp = null;
-        Object last = this.safeNumber(ticker, "price");
+        Double last = this.safeNumber(ticker, "price");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
             put( "symbol", CoinbaseCore.this.safeSymbol(marketId, market, "-") );
@@ -952,7 +952,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
-            Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache.ArrayCacheBySymbolById(((Number)tradesLimit).intValue());
             Helpers.addElementToObject(this.trades, symbol, tradesArray);
         }
@@ -1014,7 +1014,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
@@ -1113,8 +1113,8 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             Object trade = Helpers.GetValue(updates, i);
             Object sideId = this.safeString(trade, "side");
             Object side = this.safeString(Helpers.GetValue(this.options, "sides"), sideId);
-            Object price = this.safeNumber(trade, "price_level");
-            Object amount = this.safeNumber(trade, "new_quantity");
+            Double price = this.safeNumber(trade, "price_level");
+            Double amount = this.safeNumber(trade, "new_quantity");
             Object orderbookSide = this.safeValue(orderbook, side);
             Helpers.callDynamically(orderbookSide, "store", new Object[]{price, amount});
         }
@@ -1166,7 +1166,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             Object symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("level2::", symbol);
             Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
-            Object limit = this.safeInteger(subscription, "limit");
+            Long limit = this.safeInteger(subscription, "limit");
             Object type = this.safeString(eventVar, "type");
             if (Helpers.isTrue(Helpers.isEqual(type, "snapshot")))
             {

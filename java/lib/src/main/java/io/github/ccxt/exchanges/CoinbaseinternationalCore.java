@@ -641,7 +641,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOHLCV() requires a since argument")) ;
             }
-            Object unitl = this.safeInteger(parameters, "until");
+            Long unitl = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(unitl, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -885,7 +885,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
-        Object datetime = this.safeInteger(income, "created_at");
+        Long datetime = this.safeInteger(income, "created_at");
         Long timestamp = this.parse8601(datetime);
         String currencyId = this.safeString(income, "asset");
         String code = (String) this.safeCurrencyCode(currencyId);
@@ -985,7 +985,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         // }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object datetime = this.safeInteger(transfer, "created_at");
+        Long datetime = this.safeInteger(transfer, "created_at");
         Long timestamp = this.parse8601(datetime);
         String currencyId = this.safeString(transfer, "asset");
         String code = (String) this.safeCurrencyCode(currencyId);
@@ -2234,7 +2234,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             }
             Object market = this.market(symbol);
             Object typeId = ((String)type).toUpperCase();
-            Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
+            Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop_price")));
             String clientOrderIdprefix = this.safeString(this.options, "brokerId", "nfqkvdjp");
             Object clientOrderId = Helpers.add(Helpers.add(clientOrderIdprefix, "-"), this.uuid());
             clientOrderId = Helpers.slice(clientOrderId, 0, 17);
@@ -2354,7 +2354,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(order, "symbol");
-        Object feeCost = this.safeNumber(order, "fee");
+        Double feeCost = this.safeNumber(order, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -2573,7 +2573,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
             {
                 Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
             }
-            Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "stop_price", "triggerPrice")));
+            Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "stop_price", "triggerPrice")));
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 Helpers.addElementToObject(request, "stop_price", triggerPrice);

@@ -763,7 +763,7 @@ public class LatokenCore extends LatokenApi
             {
                 Object balance = Helpers.GetValue(balances, i);
                 String currencyId = this.safeString(balance, "currency");
-                Object timestamp = this.safeInteger(balance, "timestamp");
+                Long timestamp = this.safeInteger(balance, "timestamp");
                 if (Helpers.isTrue(!Helpers.isEqual(timestamp, null)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(maxTimestamp, null)))
@@ -1060,7 +1060,7 @@ public class LatokenCore extends LatokenApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object type = null;
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "quantity");
         String costString = this.safeString(trade, "cost");
@@ -1415,7 +1415,7 @@ public class LatokenCore extends LatokenApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(order, "id");
-        Object timestamp = this.safeInteger(order, "timestamp");
+        Long timestamp = this.safeInteger(order, "timestamp");
         String baseId = this.safeString(order, "baseCurrency");
         String quoteId = this.safeString(order, "quoteCurrency");
         String base = (String) this.safeCurrencyCode(baseId);
@@ -1984,11 +1984,11 @@ public class LatokenCore extends LatokenApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(transaction, "id");
-        Object timestamp = this.safeInteger(transaction, "timestamp");
+        Long timestamp = this.safeInteger(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Object amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount");
         String addressFrom = this.safeString(transaction, "senderAddress");
         String addressTo = this.safeString(transaction, "recipientAddress");
         String txid = this.safeString(transaction, "transactionHash");
@@ -1998,7 +1998,7 @@ public class LatokenCore extends LatokenApi
             put( "cost", null );
             put( "rate", null );
         }};
-        Object feeCost = this.safeNumber(transaction, "transactionFee");
+        Double feeCost = this.safeNumber(transaction, "transactionFee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             Helpers.addElementToObject(fee, "cost", feeCost);

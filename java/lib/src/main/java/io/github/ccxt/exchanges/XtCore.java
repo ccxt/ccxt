@@ -1955,7 +1955,7 @@ public class XtCore extends XtApi
             {
                 Helpers.addElementToObject(request, "limit", 1000);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -2534,7 +2534,7 @@ public class XtCore extends XtApi
         }
         market = this.safeMarket(marketId, market, "_", marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(ticker, "t");
+        Long timestamp = this.safeInteger(ticker, "t");
         String percentage = this.safeString2(ticker, "cr", "r");
         if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
         {
@@ -2946,7 +2946,7 @@ public class XtCore extends XtApi
                 }
             }
         }
-        Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "time", "timestamp")));
+        Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "time", "timestamp")));
         String quantity = this.safeString2(trade, "q", "quantity");
         Object amount = null;
         if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -3367,12 +3367,12 @@ public class XtCore extends XtApi
                 Helpers.addElementToObject(request, "positionSide", requestType);
             }
             Object response = new java.util.HashMap<String, Object>() {{}};
-            Object triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
-            Object stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
-            Object takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
+            Double triggerPrice = this.safeNumber2(parameters, "triggerPrice", "stopPrice");
+            Double stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
+            Double takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
             String trailingPercent = this.safeString(parameters, "trailingPercent");
             String trailingAmount = this.safeString(parameters, "trailingAmount");
-            Object trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice");
+            Double trailingTriggerPrice = this.safeNumber(parameters, "trailingTriggerPrice");
             Object isTrigger = (!Helpers.isEqual(triggerPrice, null));
             Object isStopLoss = (!Helpers.isEqual(stopLoss, null));
             Object isTakeProfit = (!Helpers.isEqual(takeProfit, null));
@@ -4842,7 +4842,7 @@ public class XtCore extends XtApi
         Object amount = ((Helpers.isTrue((Helpers.isEqual(marketType, "spot"))))) ? quantity : Precise.stringMul(this.numberToString(quantity), this.numberToString(Helpers.GetValue(market, "contractSize")));
         Object filledQuantity = this.safeNumber(order, "executedQty");
         Object filled = ((Helpers.isTrue((Helpers.isEqual(marketType, "spot"))))) ? filledQuantity : Precise.stringMul(this.numberToString(filledQuantity), this.numberToString(Helpers.GetValue(market, "contractSize")));
-        Object lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
+        Long lastUpdatedTimestamp = this.safeInteger(order, "updatedTime");
         String timeInForce = this.safeString(order, "timeInForce");
         Object postOnly = null;
         if (Helpers.isTrue(!Helpers.isEqual(timeInForce, null)))
@@ -5035,7 +5035,7 @@ public class XtCore extends XtApi
         Object direction = ((Helpers.isTrue((Helpers.isEqual(side, "ADD"))))) ? "in" : "out";
         String currencyId = this.safeString(item, "coin");
         currency = this.safeCurrency(currencyId, currency);
-        Object timestamp = this.safeInteger(item, "createdTime");
+        Long timestamp = this.safeInteger(item, "createdTime");
         final Object finalCurrency = currency;
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
             put( "info", item );
@@ -5393,11 +5393,11 @@ public class XtCore extends XtApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object type = ((Helpers.isTrue((Helpers.inOp(transaction, "fromAddr"))))) ? "deposit" : "withdraw";
-        Object timestamp = this.safeInteger(transaction, "createdTime");
+        Long timestamp = this.safeInteger(transaction, "createdTime");
         String address = this.safeString(transaction, "address");
         String memo = this.safeString(transaction, "memo");
         String currencyCode = (String) this.safeCurrencyCode(this.safeString(transaction, "currency"), currency);
-        Object fee = this.safeNumber(transaction, "fee");
+        Double fee = this.safeNumber(transaction, "fee");
         Object feeCurrency = ((Helpers.isTrue((!Helpers.isEqual(fee, null))))) ? currencyCode : null;
         String networkId = this.safeString(transaction, "chain");
         final Object finalFee = fee;
@@ -5813,7 +5813,7 @@ public class XtCore extends XtApi
             Object tier = Helpers.GetValue(brackets, i);
             String marketId = this.safeString(info, "symbol");
             market = this.safeMarket(marketId, market, "_", "contract");
-            Object minNotional = this.safeNumber(Helpers.GetValue(brackets, Helpers.subtract(i, 1)), "maxNominalValue", 0);
+            Double minNotional = this.safeNumber(Helpers.GetValue(brackets, Helpers.subtract(i, 1)), "maxNominalValue", 0);
 final Object finalMarket = market;
                         ((java.util.List<Object>)tiers).add(new java.util.HashMap<String, Object>() {{
                 put( "tier", XtCore.this.safeInteger(tier, "bracket") );
@@ -5921,7 +5921,7 @@ final Object finalMarket = market;
                 Object entry = Helpers.GetValue(items, i);
                 String marketId = this.safeString(entry, "symbol");
                 String symbolInner = (String) this.safeSymbol(marketId, market);
-                Object timestamp = this.safeInteger(entry, "createdTime");
+                Long timestamp = this.safeInteger(entry, "createdTime");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", symbolInner );
@@ -6027,7 +6027,7 @@ final Object finalMarket = market;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market, "_", "swap");
-        Object timestamp = this.safeInteger(contract, "nextCollectionTime");
+        Long timestamp = this.safeInteger(contract, "nextCollectionTime");
         Object interval = this.safeString(contract, "collectionInternal");
         if (Helpers.isTrue(!Helpers.isEqual(interval, null)))
         {
@@ -6124,7 +6124,7 @@ final Object finalMarket = market;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market, null, "contract");
-        Object timestamp = this.safeInteger(interest, "time");
+        Long timestamp = this.safeInteger(interest, "time");
         final Object finalMarket = market;
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -6365,7 +6365,7 @@ final Object finalMarket = market;
         String symbol = (String) this.safeSymbol(marketId, market, "_", "swap");
         String currencyId = this.safeString(contract, "coin");
         String code = (String) this.safeCurrencyCode(currencyId);
-        Object timestamp = this.safeInteger(contract, "createdTime");
+        Long timestamp = this.safeInteger(contract, "createdTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -6781,10 +6781,10 @@ final Object finalMarket = market;
         String positionType = this.safeString(position, "positionType");
         Object isCross = Helpers.isTrue((Helpers.isEqual(positionType, "CROSSED"))) || Helpers.isTrue((Helpers.isEqual(positionType, "1")));
         Object marginMode = ((Helpers.isTrue((isCross)))) ? "cross" : "isolated";
-        Object collateral = this.safeNumber(position, "isolatedMargin");
+        Double collateral = this.safeNumber(position, "isolatedMargin");
         // history entries carry the liquidation price in forceMarkPrice when force is true
         Object liquidationPriceString = this.omitZero(this.safeString2(position, "breakPrice", "forceMarkPrice"));
-        Object timestamp = this.safeInteger(position, "closeTime");
+        Long timestamp = this.safeInteger(position, "closeTime");
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "info", position );
@@ -7000,8 +7000,8 @@ final Object finalMarket = market;
             }
             Object market = this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
-            Object takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
+            Double stopLoss = this.safeNumber2(parameters, "stopLoss", "triggerStopPrice");
+            Double takeProfit = this.safeNumber2(parameters, "takeProfit", "triggerProfitPrice");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopLoss", "takeProfit")));
             Object isStopLoss = (!Helpers.isEqual(stopLoss, null));
             Object isTakeProfit = (!Helpers.isEqual(takeProfit, null));

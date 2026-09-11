@@ -679,7 +679,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -724,14 +724,14 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
         }
-        Object interval = this.safeInteger(first, "interval");
+        Long interval = this.safeInteger(first, "interval");
         Object timeframe = ((String)this.findTimeframe(interval));
         Object messageHash = this.getMessageHash("ohlcv", null, symbol);
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
         }
@@ -1144,7 +1144,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object symbol = ((String)this.safeString(first, "symbol"));
         Object a = this.safeList(first, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object b = this.safeValue(first, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object c = this.safeInteger(first, "checksum");
+        Long c = this.safeInteger(first, "checksum");
         Object messageHash = this.getMessageHash("orderbook", null, symbol);
         Object orderbook = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "update")))
@@ -1229,8 +1229,8 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(deltas)); j++)
         {
             Object delta = Helpers.GetValue(deltas, j);
-            Object price = this.safeNumber(delta, "price");
-            Object amount = this.safeNumber(delta, "qty");
+            Double price = this.safeNumber(delta, "price");
+            Double amount = this.safeNumber(delta, "qty");
             Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
         }
     }
@@ -1294,7 +1294,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Client client = this.client(url);
             Object authenticated = "authenticated";
             Object subscription = this.safeValue(client.subscriptions, authenticated);
-            Object now = this.seconds();
+            Long now = this.seconds();
             Object start = this.safeInteger(subscription, "start");
             Object expires = this.safeInteger(subscription, "expires");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(subscription, null))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(subscription, null))) && Helpers.isTrue(Helpers.isLessThanOrEqual((Helpers.add(start, expires)), now))))))
@@ -1467,7 +1467,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         {
             if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
             {
-                Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 this.myTrades = new ArrayCache(((Number)limit).intValue());
             }
             Object stored = this.myTrades;
@@ -1616,7 +1616,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         Object allOrdersLength = Helpers.getArrayLength(allOrders);
         if (Helpers.isTrue(Helpers.isGreaterThan(allOrdersLength, 0)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
             {
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());

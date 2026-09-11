@@ -917,7 +917,7 @@ public class DydxCore extends DydxApi
             {
                 Helpers.addElementToObject(request, "fromIso", this.iso8601(since));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -988,7 +988,7 @@ public class DydxCore extends DydxApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "effectiveBeforeOrAt", this.iso8601(until));
@@ -1593,7 +1593,7 @@ public class DydxCore extends DydxApi
     public Object pow(Object n, Object m)
     {
         Object r = Precise.stringMul(n, "1");
-        Object c = this.parseToInt(m);
+        Long c = this.parseToInt(m);
         // TODO: cap
         for (var i = 1; Helpers.isLessThan(i, c); i++)
         {
@@ -1701,7 +1701,7 @@ public class DydxCore extends DydxApi
             }
             conditionalOrderTriggerSubticks = Precise.stringMul(conditionalOrderTriggerSubticks, priceScale);
         }
-        Object latestBlockHeight = this.safeInteger(parameters, "latestBlockHeight");
+        Long latestBlockHeight = this.safeInteger(parameters, "latestBlockHeight");
         Object goodTillBlock = this.safeInteger(parameters, "goodTillBlock");
         Object goodTillBlockTime = null;
         Object goodTillBlockTimeInSeconds = 2592000;
@@ -1810,7 +1810,7 @@ public class DydxCore extends DydxApi
             //
             Object result = this.safeDict(response, "result");
             Object info = this.safeDict(result, "response");
-            Object height = this.safeInteger(info, "last_block_height");
+            Long height = this.safeInteger(info, "last_block_height");
             if (Helpers.isTrue(Helpers.isEqual(height, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchLatestBlockHeight() could not parse last_block_height")) ;
@@ -1944,7 +1944,7 @@ public class DydxCore extends DydxApi
             parameters = ((java.util.List<Object>) goodTillBlockTimeInSecondsparametersVariable).get(1); // default is 30 days
             Object goodTillBlockTime = null;
             Object defaultOrderFlags = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? 32 : 64;
-            Object orderFlags = this.safeInteger(parameters, "orderFlags", defaultOrderFlags);
+            Long orderFlags = this.safeInteger(parameters, "orderFlags", defaultOrderFlags);
             Object subAccountId = 0;
             var subAccountIdparametersVariable = this.handleOptionAndParams(parameters, "cancelOrder", "subAccountId", subAccountId);
             subAccountId = ((java.util.List<Object>) subAccountIdparametersVariable).get(0);
@@ -2366,8 +2366,8 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object fromSubaccountId = this.safeInteger(parameters, "fromSubaccountId");
-            Object toSubaccountId = this.safeInteger(parameters, "toSubaccountId");
+            Long fromSubaccountId = this.safeInteger(parameters, "fromSubaccountId");
+            Long toSubaccountId = this.safeInteger(parameters, "toSubaccountId");
             if (Helpers.isTrue(!Helpers.isEqual(fromAccount, "main")))
             {
                 // throw error if from subaccount id is undefined
@@ -2383,7 +2383,7 @@ public class DydxCore extends DydxApi
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("fromSubaccountId", "toSubaccountId")));
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
-            Object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
+            Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
             Object payload = null;
             Object signingPayload = null;
             if (Helpers.isTrue(Helpers.isEqual(fromAccount, "main")))
@@ -2484,7 +2484,7 @@ public class DydxCore extends DydxApi
         String id = this.safeString(transfer, "id");
         String currencyId = this.safeString(transfer, "symbol");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object amount = this.safeNumber(transfer, "size");
+        Double amount = this.safeNumber(transfer, "size");
         Object sender = this.safeDict(transfer, "sender");
         Object recipient = this.safeDict(transfer, "recipient");
         String fromAccount = this.safeString(sender, "address");
@@ -2576,7 +2576,7 @@ public class DydxCore extends DydxApi
         String currencyId = this.safeString(transaction, "symbol");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         Long timestamp = this.parse8601(this.safeString(transaction, "createdAt"));
-        Object amount = this.safeNumber(transaction, "size");
+        Double amount = this.safeNumber(transaction, "size");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
             put( "id", id );
@@ -2628,7 +2628,7 @@ public class DydxCore extends DydxApi
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            Object subaccountId = this.safeInteger(parameters, "subaccountId");
+            Long subaccountId = this.safeInteger(parameters, "subaccountId");
             if (Helpers.isTrue(Helpers.isEqual(subaccountId, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw requires subaccountId.")) ;
@@ -2637,7 +2637,7 @@ public class DydxCore extends DydxApi
             Object currency = this.currency(code);
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
-            Object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
+            Long usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));
             final Object finalSubaccountId = subaccountId;
             Object payload = new java.util.HashMap<String, Object>() {{
                 put( "sender", new java.util.HashMap<String, Object>() {{

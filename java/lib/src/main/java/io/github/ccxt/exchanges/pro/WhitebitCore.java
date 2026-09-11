@@ -98,7 +98,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
-            Object interval = this.safeInteger(timeframes, timeframe);
+            Long interval = this.safeInteger(timeframes, timeframe);
             Object marketId = Helpers.GetValue(market, "id");
             // currently there is no way of knowing
             // the interval upon getting an update
@@ -154,7 +154,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             // let stored = this.ohlcvs[symbol]['unknown']; // we don't know the timeframe but we need to respect the type
             if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), "unknown"))))
             {
-                Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), "unknown", stored);
             }
@@ -275,8 +275,8 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = this.safeFloat(delta, 0);
-        Object amount = this.safeFloat(delta, 1);
+        Double price = this.safeFloat(delta, 0);
+        Double amount = this.safeFloat(delta, 1);
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
@@ -484,7 +484,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -566,7 +566,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object trade = this.safeValue(message, "params");
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
@@ -614,7 +614,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 put( "currency", feeCurrencyCode );
             }};
         }
-        Object rawSide = this.safeInteger(trade, 8);
+        Long rawSide = this.safeInteger(trade, 8);
         Object side = null;
         if (Helpers.isTrue(Helpers.isEqual(rawSide, 1)))
         {
@@ -623,7 +623,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         {
             side = "buy";
         }
-        Object role = this.safeInteger(trade, 9);
+        Long role = this.safeInteger(trade, 9);
         Object takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(role, 1)))
         {
@@ -729,11 +729,11 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object data = this.safeValue(parameters, 1);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.orders;
-        Object status = this.safeInteger(parameters, 0);
+        Long status = this.safeInteger(parameters, 0);
         Object parsed = this.parseWsOrder(this.extend(data, new java.util.HashMap<String, Object>() {{
             put( "status", status );
         }}));
@@ -768,7 +768,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object status = this.safeInteger(order, "status");
+        Long status = this.safeInteger(order, "status");
         Object marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
         Object id = this.safeString(order, "id");
@@ -793,7 +793,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object timestamp = this.safeTimestamp(order, "ctime");
         Object lastTradeTimestamp = this.safeTimestamp(order, "mtime");
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object rawSide = this.safeInteger(order, "side");
+        Long rawSide = this.safeInteger(order, "side");
         Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, 1))))) ? "sell" : "buy";
         Object dealFee = this.safeString(order, "deal_fee");
         Object fee = null;
@@ -1343,7 +1343,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             this.handlePong(client, message);
             return;
         }
-        Object id = this.safeInteger(message, "id");
+        Long id = this.safeInteger(message, "id");
         if (Helpers.isTrue(!Helpers.isEqual(id, null)))
         {
             this.handleSubscriptionStatus(client, message, id);
@@ -1379,7 +1379,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             Object subscription = Helpers.GetValue(values, i);
             if (Helpers.isTrue(!Helpers.isEqual(subscription, true)))
             {
-                Object subId = this.safeInteger(subscription, "id");
+                Long subId = this.safeInteger(subscription, "id");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(subId, null))) && Helpers.isTrue((Helpers.isEqual(subId, id)))))
                 {
                     Object method = this.safeValue(subscription, "method");

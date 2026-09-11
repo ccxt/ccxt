@@ -1054,20 +1054,21 @@ public class BaseExchange {
         return SafeMethods.SafeStringN(obj, keys, defaultValue);
     }
 
-    // SafeInteger / SafeIntegerN  (SafeMethods returns Long)
-    public Object safeInteger(Object obj, Object key, Object... defaultValue) {
+    // SafeInteger / SafeIntegerN  (every return path hands back a Long box or null —
+    // SafeIntegerN is declared Long, the wrapper used to say Object)
+    public Long safeInteger(Object obj, Object key, Object... defaultValue) {
         return SafeMethods.SafeInteger(obj, key, defaultValue);
     }
 
-    public Object safeInteger2(Object obj, Object key1, Object key2, Object... defaultValue) {
+    public Long safeInteger2(Object obj, Object key1, Object key2, Object... defaultValue) {
         return SafeMethods.SafeInteger2(obj, key1, key2, defaultValue);
     }
 
-    public Object safeIntegerN(Object obj, Object keys, Object... defaultValue) {
+    public Long safeIntegerN(Object obj, Object keys, Object... defaultValue) {
         return SafeMethods.SafeIntegerN(obj, keys, defaultValue);
     }
 
-    public Object safeIntegerProduct(Object obj, Object key, Object multiplier, Object... defaultValue) {
+    public Long safeIntegerProduct(Object obj, Object key, Object multiplier, Object... defaultValue) {
         return SafeMethods.safeIntegerProduct(obj, key, multiplier, defaultValue);
     }
 
@@ -5634,7 +5635,7 @@ public Object describe()
 
     }
 
-    public Object parseToInt(Object number)
+    public Long parseToInt(Object number)
     {
         // Solve Common parseInt misuse ex: parseInt ((since / 1000).toString ())
         // using a number as parameter which is not valid in ts
@@ -5684,7 +5685,7 @@ public Object describe()
     public Object safeIntegerOmitZero(Object obj, Object key, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(obj, key, defaultValue);
+        Long timestamp = this.safeInteger(obj, key, defaultValue);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(timestamp, null)) || Helpers.isTrue(Helpers.isEqual(timestamp, 0))))
         {
             return null;
@@ -6053,7 +6054,7 @@ public Object describe()
         {
             Helpers.addElementToObject(fee, "cost", this.safeNumber(fee, "cost"));
         }
-        Object timestamp = this.safeInteger(entry, "timestamp");
+        Long timestamp = this.safeInteger(entry, "timestamp");
         Object info = this.safeDict(entry, "info", new java.util.HashMap<String, Object>() {{}});
         final Object finalDirection = direction;
         final Object finalCurrency = currency;
@@ -6815,8 +6816,8 @@ public Object describe()
             // timeInForce is not undefined here
             postOnly = Helpers.isEqual(timeInForce, "PO");
         }
-        Object timestamp = this.safeInteger(order, "timestamp");
-        Object lastUpdateTimestamp = this.safeInteger(order, "lastUpdateTimestamp");
+        Long timestamp = this.safeInteger(order, "timestamp");
+        Long lastUpdateTimestamp = this.safeInteger(order, "lastUpdateTimestamp");
         String datetime = this.safeString(order, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
@@ -8210,7 +8211,7 @@ public Object describe()
         return chosenNetworkId;
     }
 
-    public Object safeNumber2(Object dictionary, Object key1, Object key2, Object... optionalArgs)
+    public Double safeNumber2(Object dictionary, Object key1, Object key2, Object... optionalArgs)
     {
         Object d = Helpers.getArg(optionalArgs, 0, null);
         String value = this.safeString2(dictionary, key1, key2);
@@ -8355,7 +8356,7 @@ public Object describe()
             Helpers.addElementToObject(position, "percentage", this.parseNumber(percentageString));
         }
         // if contractSize is undefined get from market
-        Object contractSize = this.safeNumber(position, "contractSize");
+        Double contractSize = this.safeNumber(position, "contractSize");
         String symbol = this.safeString(position, "symbol");
         Object market = null;
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -8607,7 +8608,7 @@ public Object describe()
     public Object handleParamInteger(Object parameters, Object paramName, Object... optionalArgs)
     {
         Object defaultValue = Helpers.getArg(optionalArgs, 0, null);
-        Object value = this.safeInteger(parameters, paramName, defaultValue);
+        Long value = this.safeInteger(parameters, paramName, defaultValue);
         if (Helpers.isTrue(!Helpers.isEqual(value, null)))
         {
             parameters = this.omit(parameters, paramName);
@@ -9050,9 +9051,9 @@ public Object describe()
         Object priceKey = Helpers.getArg(optionalArgs, 0, 0);
         Object amountKey = Helpers.getArg(optionalArgs, 1, 1);
         Object countOrIdKey = Helpers.getArg(optionalArgs, 2, 2);
-        Object price = this.safeFloat(bidask, priceKey);
-        Object amount = this.safeFloat(bidask, amountKey);
-        Object countOrId = this.safeInteger(bidask, countOrIdKey);
+        Double price = this.safeFloat(bidask, priceKey);
+        Double amount = this.safeFloat(bidask, amountKey);
+        Long countOrId = this.safeInteger(bidask, countOrIdKey);
         Object bidAsk = new java.util.ArrayList<Object>(java.util.Arrays.asList(price, amount));
         if (Helpers.isTrue(!Helpers.isEqual(countOrId, null)))
         {
@@ -10470,7 +10471,7 @@ public Object describe()
             return this.forceString(fee);
         } else
         {
-            Object roundingMode = this.safeInteger(this.options, "currencyToPrecisionRoundingMode", ROUND);
+            Long roundingMode = this.safeInteger(this.options, "currencyToPrecisionRoundingMode", ROUND);
             return this.decimalToPrecision(fee, roundingMode, precision, this.precisionMode, this.paddingMode);
         }
     }
@@ -10499,14 +10500,14 @@ public Object describe()
         return Helpers.isEqual(this.precisionMode, SIGNIFICANT_DIGITS);
     }
 
-    public Object safeNumber(Object obj, Object key, Object... optionalArgs)
+    public Double safeNumber(Object obj, Object key, Object... optionalArgs)
     {
         Object defaultNumber = Helpers.getArg(optionalArgs, 0, null);
         String value = this.safeString(obj, key);
         return this.parseNumber(value, defaultNumber);
     }
 
-    public Object safeNumberN(Object obj, Object arr, Object... optionalArgs)
+    public Double safeNumberN(Object obj, Object arr, Object... optionalArgs)
     {
         Object defaultNumber = Helpers.getArg(optionalArgs, 0, null);
         String value = this.safeStringN(obj, arr);
@@ -10589,7 +10590,7 @@ public Object describe()
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object serverTime = (this.fetchTime(parameters)).join();
-            Object after = this.milliseconds();
+            Long after = this.milliseconds();
             if (Helpers.isTrue(Helpers.isEqual(serverTime, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " loadTimeDifference() missing serverTime")) ;
@@ -11712,7 +11713,7 @@ public Object describe()
             Object calls = 0;
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object errors = 0;
-            Object until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "untill", "till"))); // do not omit it from params here
+            Long until = this.safeIntegerN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until", "untill", "till"))); // do not omit it from params here
             var maxEntriesPerRequestparametersVariable = this.handleMaxEntriesPerRequestAndParams(method, maxEntriesPerRequest, parameters);
             maxEntriesPerRequest = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) maxEntriesPerRequestparametersVariable).get(1);
@@ -11785,7 +11786,7 @@ public Object describe()
                         errors = 0;
                         result = this.arrayConcat(result, response);
                         Object last = this.safeValue(response, Helpers.subtract(responseLength, 1));
-                        Object lastTimestamp = this.safeInteger(last, "timestamp", 0);
+                        Long lastTimestamp = this.safeInteger(last, "timestamp", 0);
                         if (Helpers.isTrue(Helpers.isEqual(lastTimestamp, null)))
                         {
                             break;
@@ -11884,7 +11885,7 @@ public Object describe()
             // pagination always walks forward internally, so strip it here to avoid leaking an
             // unrecognized param into the underlying exchange request (e.g. binance -1104 errors)
             parameters = this.omit(parameters, "paginationDirection");
-            Object current = this.milliseconds();
+            Long current = this.milliseconds();
             Object tasks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object time = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             maxEntriesPerRequest = this.requireValue(maxEntriesPerRequest, "fetchPaginatedCallDeterministic() maxEntriesPerRequest is required");
@@ -12052,7 +12053,7 @@ public Object describe()
                     {
                         break;
                     }
-                    Object lastTimestamp = this.safeInteger(last, "timestamp");
+                    Long lastTimestamp = this.safeInteger(last, "timestamp");
                     if (Helpers.isTrue(Helpers.isEqual(since, null)))
                     {
                         throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPaginatedCallCursor() requires a since argument")) ;

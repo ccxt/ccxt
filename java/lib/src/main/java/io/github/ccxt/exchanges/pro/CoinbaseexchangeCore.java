@@ -573,7 +573,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object tradesArray = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
             {
-                Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(((Number)tradesLimit).intValue());
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -597,7 +597,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object tradesArray = this.myTrades;
             if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
             {
-                Object limit = this.safeInteger(this.options, "myTradesLimit", 1000);
+                Long limit = this.safeInteger(this.options, "myTradesLimit", 1000);
                 tradesArray = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
                 this.myTrades = tradesArray;
             }
@@ -792,7 +792,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         Object currentOrders = this.orders;
         if (Helpers.isTrue(Helpers.isEqual(currentOrders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             currentOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = currentOrders;
         }
@@ -823,13 +823,13 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 client.resolve(orders, messageHash);
             } else
             {
-                Object sequence = this.safeInteger(message, "sequence");
+                Long sequence = this.safeInteger(message, "sequence");
                 if (Helpers.isTrue(Helpers.isEqual(sequence, null)))
                 {
                     return;
                 }
                 Object previousInfo = this.safeValue(previousOrder, "info", new java.util.HashMap<String, Object>() {{}});
-                Object previousSequence = this.safeInteger(previousInfo, "sequence");
+                Long previousSequence = this.safeInteger(previousInfo, "sequence");
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(previousSequence, null))) || Helpers.isTrue((Helpers.isGreaterThan(sequence, previousSequence)))))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(type, "match")))
@@ -916,7 +916,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         Object marketId = this.safeString(order, "product_id");
         String symbol = (String) this.safeSymbol(marketId);
         Object side = this.safeString(order, "side");
-        Object price = this.safeNumber(order, "price");
+        Double price = this.safeNumber(order, "price");
         Object amount = this.safeString2(order, "size", "funds");
         Object time = this.safeString(order, "time");
         Long timestamp = this.parse8601(time);
@@ -1063,8 +1063,8 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = this.safeNumber(delta, 0);
-        Object amount = this.safeNumber(delta, 1);
+        Double price = this.safeNumber(delta, 0);
+        Double amount = this.safeNumber(delta, 1);
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
@@ -1110,7 +1110,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         Object name = "level2";
         Object messageHash = Helpers.add(Helpers.add(name, ":"), marketId);
         Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
-        Object limit = this.safeInteger(subscription, "limit");
+        Long limit = this.safeInteger(subscription, "limit");
         if (Helpers.isTrue(Helpers.isEqual(type, "snapshot")))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
@@ -1135,8 +1135,8 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 Object change = Helpers.GetValue(changes, i);
                 Object key = this.safeString(change, 0);
                 Object side = this.safeString(sides, key);
-                Object price = this.safeNumber(change, 1);
-                Object amount = this.safeNumber(change, 2);
+                Double price = this.safeNumber(change, 1);
+                Double amount = this.safeNumber(change, 2);
                 Object bookside = this.safeValue(orderbook, side);
                 Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
             }

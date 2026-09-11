@@ -976,8 +976,8 @@ public class BitoproCore extends BitoproApi
             //     }
             //
             Object result = new java.util.HashMap<String, Object>() {{}};
-            Object maker = this.safeNumber(first, "makerFee");
-            Object taker = this.safeNumber(first, "takerFee");
+            Double maker = this.safeNumber(first, "makerFee");
+            Double taker = this.safeNumber(first, "takerFee");
             Object symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
@@ -1041,7 +1041,7 @@ public class BitoproCore extends BitoproApi
             {
                 limit = Helpers.mathMin(limit, 75000); // supports slightly more than 75k candles atm, but limit here to avoid errors
             }
-            Object timeframeInSeconds = this.parseTimeframe(timeframe);
+            int timeframeInSeconds = this.parseTimeframe(timeframe);
             Object alignedSince = null;
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
@@ -1876,7 +1876,7 @@ final Object finalJ = j;
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "coin");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeInteger(transaction, "timestamp");
+        Long timestamp = this.safeInteger(transaction, "timestamp");
         String address = this.safeString(transaction, "address");
         String tag = this.safeString(transaction, "message");
         String status = this.safeString(transaction, "status");
@@ -2272,7 +2272,7 @@ final Object finalJ = j;
                 {
                     url = Helpers.add(url, Helpers.add("?", this.urlencode(query)));
                 }
-                Object nonce = this.milliseconds();
+                Long nonce = this.milliseconds();
                 Object rawData = new java.util.HashMap<String, Object>() {{
                     put( "nonce", nonce );
                 }};

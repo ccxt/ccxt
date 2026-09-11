@@ -550,7 +550,7 @@ public class RevolutxCore extends RevolutxApi
         String low = this.safeString(ticker, "low_24h");
         String priceChange = this.safeString(ticker, "price_change_24h");
         String baseVolume = this.safeString(ticker, "volume_24h");
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         Object open = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(last, null)) && Helpers.isTrue(!Helpers.isEqual(priceChange, null))))
         {
@@ -641,7 +641,7 @@ public class RevolutxCore extends RevolutxApi
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object metadata = this.safeDict(response, "metadata", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(metadata, "timestamp");
+            Long timestamp = this.safeInteger(metadata, "timestamp");
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -751,7 +751,7 @@ public class RevolutxCore extends RevolutxApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object metadata = this.safeDict(response, "metadata", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(metadata, "timestamp");
+            Long timestamp = this.safeInteger(metadata, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         });
 
@@ -769,12 +769,12 @@ public class RevolutxCore extends RevolutxApi
     public Object parseOHLCV(Object ohlcv, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ohlcv, "start");
-        Object open = this.safeNumber(ohlcv, "open");
-        Object high = this.safeNumber(ohlcv, "high");
-        Object low = this.safeNumber(ohlcv, "low");
-        Object close = this.safeNumber(ohlcv, "close");
-        Object volume = this.safeNumber(ohlcv, "volume");
+        Long timestamp = this.safeInteger(ohlcv, "start");
+        Double open = this.safeNumber(ohlcv, "open");
+        Double high = this.safeNumber(ohlcv, "high");
+        Double low = this.safeNumber(ohlcv, "low");
+        Double close = this.safeNumber(ohlcv, "close");
+        Double volume = this.safeNumber(ohlcv, "volume");
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(timestamp, open, high, low, close, volume));
     }
 
@@ -858,10 +858,10 @@ public class RevolutxCore extends RevolutxApi
         String id = this.safeString(trade, "id");
         String tradeSymbol = this.safeString(trade, "symbol");
         String symbol = (String) this.safeSymbol(tradeSymbol, market, "/");
-        Object price = this.safeNumber(trade, "price");
-        Object amount = this.safeNumber(trade, "quantity");
+        Double price = this.safeNumber(trade, "price");
+        Double amount = this.safeNumber(trade, "quantity");
         String side = (String)this.safeStringLower(trade, "side");
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         Object cost = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(price, null)) && Helpers.isTrue(!Helpers.isEqual(amount, null))))
         {
@@ -1074,8 +1074,8 @@ public class RevolutxCore extends RevolutxApi
         String feeCurrency = this.safeString(order, "fee_currency");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String timeInForce = (String)this.safeStringUpper(order, "time_in_force");
-        Object createdDate = this.safeInteger(order, "created_date");
-        Object updatedDate = this.safeInteger(order, "updated_date");
+        Long createdDate = this.safeInteger(order, "created_date");
+        Long updatedDate = this.safeInteger(order, "updated_date");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(totalFee, null)))
         {
@@ -1552,8 +1552,8 @@ public class RevolutxCore extends RevolutxApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString(trade, "tid");
         String orderId = this.safeString(trade, "oid");
-        Object price = this.safeNumber(trade, "p");
-        Object amount = this.safeNumber(trade, "q");
+        Double price = this.safeNumber(trade, "p");
+        Double amount = this.safeNumber(trade, "q");
         String side = (String)this.safeStringLower(trade, "s");
         Long timestamp = (Long) this.safeInteger2(trade, "tdt", "pdt");
         Object isMaker = this.safeBool(trade, "im", false);

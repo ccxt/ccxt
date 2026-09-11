@@ -330,7 +330,7 @@ public class HyperliquidCore extends HyperliquidApi
                         }
                     }
                     Object thresholdsLength = Helpers.getArrayLength(thresholds);
-                    Object index = this.parseToInt(indexStr);
+                    Long index = this.parseToInt(indexStr);
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThan(thresholdsLength, 0)) && Helpers.isTrue(!Helpers.isEqual(index, null))))
                     {
                         Object bucketLabel = null;
@@ -455,7 +455,7 @@ public class HyperliquidCore extends HyperliquidApi
             for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(questionsList)); qi++)
             {
                 Object question = this.safeDict(questionsList, qi, new java.util.HashMap<String, Object>() {{}});
-                Object fallbackOutcome = this.safeInteger(question, "fallbackOutcome");
+                Long fallbackOutcome = this.safeInteger(question, "fallbackOutcome");
                 if (Helpers.isTrue(!Helpers.isEqual(fallbackOutcome, null)))
                 {
                     Object fallbackKey = String.valueOf(fallbackOutcome);
@@ -464,7 +464,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Object namedOutcomes = this.safeList(question, "namedOutcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var ni = 0; Helpers.isLessThan(ni, Helpers.getArrayLength(namedOutcomes)); ni++)
                 {
-                    Object namedOutcomeId = this.safeInteger(namedOutcomes, ni);
+                    Long namedOutcomeId = this.safeInteger(namedOutcomes, ni);
                     if (Helpers.isTrue(!Helpers.isEqual(namedOutcomeId, null)))
                     {
                         Object namedKey = String.valueOf(namedOutcomeId);
@@ -484,7 +484,7 @@ public class HyperliquidCore extends HyperliquidApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomesList)); i++)
             {
                 Object outcomeInfo = this.safeDict(outcomesList, i, new java.util.HashMap<String, Object>() {{}});
-                Object outcomeId = this.safeInteger(outcomeInfo, "outcome", i);
+                Long outcomeId = this.safeInteger(outcomeInfo, "outcome", i);
                 Object linkedQuestion = this.safeDict(outcomesToQuestions, String.valueOf(outcomeId), new java.util.HashMap<String, Object>() {{}});
                 Object market = this.parseOutcomeMarket(outcomeInfo, outcomeId, linkedQuestion);
                 ((java.util.List<Object>)markets).add(market);
@@ -799,7 +799,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Object outcomeObj = this.safeDict(outcomesMap, outcomeHandle, new java.util.HashMap<String, Object>() {{}});
                 Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
                 Object coin = this.safeString(info, "coinName");
-                Object mid = this.safeNumber(mids, coin);
+                Double mid = this.safeNumber(mids, coin);
                 if (Helpers.isTrue(Helpers.isEqual(mid, null)))
                 {
                     continue;
@@ -840,8 +840,8 @@ public class HyperliquidCore extends HyperliquidApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object now = this.milliseconds();
-        Object timestamp = this.safeInteger(raw, "time", now);
+        Long now = this.milliseconds();
+        Long timestamp = this.safeInteger(raw, "time", now);
         // the 2nd arg carries the outcome object (callers pass the resolved outcome)
         Object mkt = this.safeOutcome(null, market);
         Object outcome = this.safeString(mkt, "outcome");
@@ -864,7 +864,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object parentSymbol = this.safeString(mkt, "market");
         Object parentMarket = ((Helpers.isTrue((!Helpers.isEqual(parentSymbol, null))))) ? this.safeMarket(parentSymbol) : null;
         Object ctx = ((Helpers.isTrue((!Helpers.isEqual(parentMarket, null))))) ? this.safeDict(this.safeDict(parentMarket, "info", new java.util.HashMap<String, Object>() {{}}), "ctx", new java.util.HashMap<String, Object>() {{}}) : new java.util.HashMap<String, Object>() {{}};
-        Object dayVolume = this.safeNumber(ctx, "dayNtlVlm");
+        Double dayVolume = this.safeNumber(ctx, "dayNtlVlm");
         final Object finalBid = bid;
         final Object finalAsk = ask;
         final Object finalMid = mid;
@@ -930,7 +930,7 @@ public class HyperliquidCore extends HyperliquidApi
             //         "time": 1704290104840
             //     }
             //
-            Object timestamp = this.safeInteger(response, "time");
+            Long timestamp = this.safeInteger(response, "time");
             Object levels = this.safeList(response, "levels", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawBids = this.safeList(levels, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawAsks = this.safeList(levels, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -982,7 +982,7 @@ public class HyperliquidCore extends HyperliquidApi
             // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
             Object market = this.market(this.safeString(outcomeObj, "market"));
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object until = this.safeInteger(parameters, "until", this.milliseconds());
+            Long until = this.safeInteger(parameters, "until", this.milliseconds());
             Object startTime = since;
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
@@ -1378,7 +1378,7 @@ public class HyperliquidCore extends HyperliquidApi
         if (Helpers.isTrue(isNumericInput))
         {
             ((java.util.List<Object>)candidates).add(Helpers.add("#", outcomeInput)); // encoding id without #
-            Object numeric = this.parseToInt(outcomeInput);
+            Long numeric = this.parseToInt(outcomeInput);
             if (Helpers.isTrue(!Helpers.isEqual(numeric, null)))
             {
                 ((java.util.List<Object>)candidates).add(this.outcomeCoin(this.outcomeEncoding(numeric, 0))); // raw outcome id -> YES encoding
@@ -1444,10 +1444,10 @@ public class HyperliquidCore extends HyperliquidApi
             Object marketSymbol = this.safeString(outcomeObj, "market");
             Object market = this.market(marketSymbol);
             Object outcomeInfo = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object isBuy = (Helpers.isEqual(((String)side).toUpperCase(), "BUY"));
             Object isMarket = (Helpers.isEqual(((String)type).toUpperCase(), "MARKET"));
-            Object assetId = this.safeInteger(outcomeInfo, "assetId");
+            Long assetId = this.safeInteger(outcomeInfo, "assetId");
             Object clientOrderId = this.safeString2(parameters, "clientOrderId", "client_id");
             Object reduceOnly = this.safeBool(parameters, "reduceOnly", false);
             Object postOnly = this.safeBool(parameters, "postOnly", false);
@@ -1638,8 +1638,8 @@ public class HyperliquidCore extends HyperliquidApi
             (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object outcomeInfo = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object assetId = this.safeInteger(outcomeInfo, "assetId");
-            Object nonce = this.milliseconds();
+            Long assetId = this.safeInteger(outcomeInfo, "assetId");
+            Long nonce = this.milliseconds();
             Object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_id")));
             Object cancelReq = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1856,8 +1856,8 @@ public class HyperliquidCore extends HyperliquidApi
                         Helpers.addElementToObject(deduped, oid, raw);
                     } else
                     {
-                        Object existingTs = this.safeInteger(Helpers.GetValue(deduped, oid), "statusTimestamp");
-                        Object currentTs = this.safeInteger(raw, "statusTimestamp");
+                        Long existingTs = this.safeInteger(Helpers.GetValue(deduped, oid), "statusTimestamp");
+                        Long currentTs = this.safeInteger(raw, "statusTimestamp");
                         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(currentTs, null)) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(existingTs, null)) || Helpers.isTrue(Helpers.isGreaterThan(currentTs, existingTs))))))
                         {
                             Helpers.addElementToObject(deduped, oid, raw);
@@ -1986,7 +1986,7 @@ public class HyperliquidCore extends HyperliquidApi
         {
             filled = Precise.stringSub(totalAmount, remaining);
         }
-        Object timestamp = this.safeInteger(entry, "timestamp");
+        Long timestamp = this.safeInteger(entry, "timestamp");
         Object tifRaw = this.safeString(entry, "tif");
         Object tif = this.parseTimeInForce(tifRaw);
         Object postOnly = (Helpers.isEqual(tif, "PO"));
@@ -2162,7 +2162,7 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 Helpers.addElementToObject(request, "type", "userFills");
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -2216,7 +2216,7 @@ public class HyperliquidCore extends HyperliquidApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "time");
+        Long timestamp = this.safeInteger(trade, "time");
         Object price = this.safeString(trade, "px");
         Object amount = this.safeString(trade, "sz");
         Object coin = this.safeString(trade, "coin");
@@ -2225,7 +2225,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object resolvedMarket = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(marketSymbol, null)) && Helpers.isTrue(!Helpers.isEqual(marketSymbol, "")))))) ? this.safeMarket(marketSymbol, market) : market;
         Object rawSide = this.safeString(trade, "side");
         Object side = ((Helpers.isTrue((Helpers.isEqual(rawSide, "B"))))) ? "buy" : "sell";
-        Object fee = this.safeNumber(trade, "fee");
+        Double fee = this.safeNumber(trade, "fee");
         Object feeCurrency = this.safeString(trade, "feeToken", "USDC");
         Object outcomeSymbol = this.safeString(outcomeObj, "outcome");
         Object feeObject = null;
@@ -2471,7 +2471,7 @@ public class HyperliquidCore extends HyperliquidApi
     public Object amountToPrecision(Object outcome, Object amount)
     {
         Object market = this.market(outcome);
-        Object prec = this.safeNumber(this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}}), "amount", 0.0001);
+        Double prec = this.safeNumber(this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}}), "amount", 0.0001);
         // Convert precision to decimal places
         Object decimals = 4;
         if (Helpers.isTrue(Helpers.isEqual(prec, null)))
@@ -2488,7 +2488,7 @@ public class HyperliquidCore extends HyperliquidApi
     public Object priceToPrecision(Object outcome, Object price)
     {
         Object market = this.market(outcome);
-        Object prec = this.safeNumber(this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}}), "price", 0.0001);
+        Double prec = this.safeNumber(this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}}), "price", 0.0001);
         Object decimals = 4;
         if (Helpers.isTrue(Helpers.isEqual(prec, null)))
         {
@@ -2630,7 +2630,7 @@ public class HyperliquidCore extends HyperliquidApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
             final Object finalIsSandboxMode = isSandboxMode;
             Object payload = new java.util.HashMap<String, Object>() {{

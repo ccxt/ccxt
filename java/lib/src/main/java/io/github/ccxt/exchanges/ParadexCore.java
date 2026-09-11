@@ -909,7 +909,7 @@ public class ParadexCore extends ParadexApi
         String settleId = this.safeString(market, "settlement_currency");
         String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
-        Object expiry = this.safeInteger(market, "expiry_at");
+        Long expiry = this.safeInteger(market, "expiry_at");
         String optionType = this.safeString(market, "option_type");
         String strikePrice = this.safeString(market, "strike_price");
         Object takerFee = this.parseNumber("0.0003");
@@ -1159,8 +1159,8 @@ public class ParadexCore extends ParadexApi
                 put( "resolution", ParadexCore.this.safeString(ParadexCore.this.timeframes, timeframe, timeframe) );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object now = this.milliseconds();
-            Object duration = this.parseTimeframe(timeframe);
+            Long now = this.milliseconds();
+            int duration = this.parseTimeframe(timeframe);
             Long until = (Long) this.safeInteger2(parameters, "until", "till", now);
             String price = this.safeString(parameters, "price");
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
@@ -1359,7 +1359,7 @@ public class ParadexCore extends ParadexApi
         String marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(ticker, "created_at");
+        Long timestamp = this.safeInteger(ticker, "created_at");
         final Object finalPercentage = percentage;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -1483,7 +1483,7 @@ public class ParadexCore extends ParadexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         market = this.safeMarket(marketId, market, null, "swap");
-        Object timestamp = this.safeInteger(contract, "created_at");
+        Long timestamp = this.safeInteger(contract, "created_at");
         // the summary answers for every product, and only a perpetual funds: an
         // option row carries an empty funding_rate and a period of zero. left
         // without a symbol, parseFundingRates drops the row
@@ -1572,7 +1572,7 @@ public class ParadexCore extends ParadexApi
             {
                 Helpers.addElementToObject(request, "depth", limit);
             }
-            Object timestamp = this.safeInteger(response, "last_updated_at");
+            Long timestamp = this.safeInteger(response, "last_updated_at");
             Object orderbook = this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
             Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(response, "seq_no"));
             return orderbook;
@@ -1693,7 +1693,7 @@ public class ParadexCore extends ParadexApi
         String marketId = this.safeString(trade, "market");
         market = this.safeMarket(marketId, market);
         String id = this.safeString(trade, "id");
-        Object timestamp = this.safeInteger(trade, "created_at");
+        Long timestamp = this.safeInteger(trade, "created_at");
         String priceString = this.safeString(trade, "price");
         String amountString = this.safeString(trade, "size");
         String side = (String)this.safeStringLower(trade, "side");
@@ -1800,7 +1800,7 @@ public class ParadexCore extends ParadexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(interest, "created_at");
+        Long timestamp = this.safeInteger(interest, "created_at");
         String marketId = this.safeString(interest, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -1973,7 +1973,7 @@ public class ParadexCore extends ParadexApi
             Object now = this.nonce();
             if (Helpers.isTrue(!Helpers.isEqual(cachedToken, null)))
             {
-                Object cachedExpires = this.safeInteger(this.options, "expires");
+                Long cachedExpires = this.safeInteger(this.options, "expires");
                 if (Helpers.isTrue(Helpers.isEqual(cachedExpires, null)))
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " authenticateRest() missing cachedExpires")) ;
@@ -2064,7 +2064,7 @@ public class ParadexCore extends ParadexApi
         // }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(order, "created_at");
+        Long timestamp = this.safeInteger(order, "created_at");
         String orderId = this.safeString(order, "id");
         Object clientOrderId = this.omitZero(this.safeString(order, "client_id"));
         String marketId = this.safeString(order, "market");
@@ -2089,7 +2089,7 @@ public class ParadexCore extends ParadexApi
         Object average = this.omitZero(this.safeString(order, "avg_fill_price"));
         Object remaining = this.omitZero(this.safeString(order, "remaining_size"));
         Object triggerPrice = this.omitZero(this.safeString(order, "trigger_price"));
-        Object lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
+        Long lastUpdateTimestamp = this.safeInteger(order, "last_updated_at");
         Object flags = this.safeList(order, "flags");
         Object reduceOnly = null;
         if (Helpers.isTrue(!Helpers.isEqual(flags, null)))
@@ -2531,8 +2531,8 @@ public class ParadexCore extends ParadexApi
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeNumber(rawOrder, "amount");
-                Object price = this.safeNumber(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object extendedParams = this.extend(parameters, orderParams);
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, extendedParams);
@@ -3259,7 +3259,7 @@ public class ParadexCore extends ParadexApi
         {
             quantity = Precise.stringMul("-1", quantity);
         }
-        Object timestamp = this.safeInteger(position, "time");
+        Long timestamp = this.safeInteger(position, "time");
         Object liquidationPrice = this.parseNumber(this.omitZero(this.safeString(position, "liquidation_price")));
         final Object finalSide = side;
         final Object finalQuantity = quantity;
@@ -3358,7 +3358,7 @@ public class ParadexCore extends ParadexApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(liquidation, "created_at");
+        Long timestamp = this.safeInteger(liquidation, "created_at");
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", liquidation );
             put( "symbol", ParadexCore.this.safeString(market, "symbol") );
@@ -3641,7 +3641,7 @@ public class ParadexCore extends ParadexApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "token");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeInteger(transfer, "created_at");
+        Long timestamp = this.safeInteger(transfer, "created_at");
         String kind = this.safeString(transfer, "kind");
         Object fromAccount = null;
         Object toAccount = null;
@@ -3694,12 +3694,12 @@ public class ParadexCore extends ParadexApi
         String txid = this.safeString(transaction, "txn_hash");
         String currencyId = this.safeString(transaction, "token");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeInteger(transaction, "created_at");
-        Object updated = this.safeInteger(transaction, "last_updated_at");
+        Long timestamp = this.safeInteger(transaction, "created_at");
+        Long updated = this.safeInteger(transaction, "last_updated_at");
         String type = this.safeString(transaction, "kind");
         type = ((Helpers.isTrue((Helpers.isEqual(type, "DEPOSIT"))))) ? "deposit" : "withdrawal";
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
-        Object amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount");
         final Object finalType = type;
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );
@@ -4107,7 +4107,7 @@ public class ParadexCore extends ParadexApi
         String marketId = this.safeString(greeks, "symbol");
         market = this.safeMarket(marketId, market, null, "option");
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(greeks, "created_at");
+        Long timestamp = this.safeInteger(greeks, "created_at");
         Object greeksData = this.safeDict(greeks, "greeks", new java.util.HashMap<String, Object>() {{}});
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
@@ -4232,7 +4232,7 @@ public class ParadexCore extends ParadexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "market");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(income, "created_at");
+        Long timestamp = this.safeInteger(income, "created_at");
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
@@ -4289,7 +4289,7 @@ public class ParadexCore extends ParadexApi
             {
                 Helpers.addElementToObject(request, "start_at", since);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -4321,7 +4321,7 @@ public class ParadexCore extends ParadexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object rate = Helpers.GetValue(results, i);
-                Object timestamp = this.safeInteger(rate, "created_at");
+                Long timestamp = this.safeInteger(rate, "created_at");
                 String datetime = this.iso8601(timestamp);
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", rate );

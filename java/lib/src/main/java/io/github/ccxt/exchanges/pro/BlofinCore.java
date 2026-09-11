@@ -176,7 +176,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object stored = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 stored = new ArrayCache(((Number)limit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
@@ -286,7 +286,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-        Object timestamp = this.safeInteger(data, "ts");
+        Long timestamp = this.safeInteger(data, "ts");
         Object action = this.safeString(message, "action");
         if (Helpers.isTrue(Helpers.isEqual(action, "snapshot")))
         {
@@ -469,7 +469,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         Object marketId = this.safeString(ticker, "instId");
         market = this.safeMarket(marketId, market, "-");
         Object symbol = this.safeString(market, "symbol");
-        Object timestamp = this.safeInteger(ticker, "ts");
+        Long timestamp = this.safeInteger(ticker, "ts");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -578,7 +578,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), unifiedTimeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), unifiedTimeframe, stored);
         }
@@ -739,7 +739,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         //
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
@@ -1062,7 +1062,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            Object milliseconds = this.milliseconds();
+            Long milliseconds = this.milliseconds();
             Object messageHash = "authenticate_hash";
             Object timestamp = String.valueOf(milliseconds);
             Object nonce = Helpers.add("n_", timestamp);

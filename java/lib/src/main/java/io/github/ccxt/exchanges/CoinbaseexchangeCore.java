@@ -1513,8 +1513,8 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             //        "usd_volume": "43806.92"
             //    }
             //
-            Object maker = this.safeNumber(response, "maker_fee_rate");
-            Object taker = this.safeNumber(response, "taker_fee_rate");
+            Double maker = this.safeNumber(response, "maker_fee_rate");
+            Double taker = this.safeNumber(response, "taker_fee_rate");
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
             {
@@ -1712,7 +1712,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         String filled = this.safeString(order, "filled_size");
         String amount = this.safeString(order, "size", filled);
         String cost = this.safeString(order, "executed_value");
-        Object feeCost = this.safeNumber(order, "fill_fees");
+        Double feeCost = this.safeNumber(order, "fill_fees");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -1729,7 +1729,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         String side = this.safeString(order, "side");
         String timeInForce = this.safeString(order, "time_in_force");
         Object postOnly = this.safeValue(order, "post_only");
-        Object triggerPrice = this.safeNumber(order, "stop_price");
+        Double triggerPrice = this.safeNumber(order, "stop_price");
         String clientOrderId = this.safeString(order, "client_oid");
         final Object finalStatus = status;
         final Object finalMarket_2 = market;
@@ -1993,7 +1993,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 Helpers.addElementToObject(request, "client_oid", clientOrderId);
             }
-            Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "stop_price", "triggerPrice")));
+            Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stopPrice", "stop_price", "triggerPrice")));
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 Helpers.addElementToObject(request, "stop_price", this.priceToPrecision(symbol, triggerPrice));
@@ -2638,7 +2638,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         {
             type = "withdrawal";
             address = this.safeString(details, "sent_to_address", address);
-            Object feeCost = this.safeNumber(details, "fee");
+            Double feeCost = this.safeNumber(details, "fee");
             if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(amount, null)))

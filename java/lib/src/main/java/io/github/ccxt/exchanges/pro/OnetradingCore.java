@@ -102,7 +102,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = "balance";
             Object subscribeHash = "ACCOUNT_HISTORY";
-            Object bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
+            Long bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
             Object subscribe = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
                 put( "bp_remaining_quota", bpRemainingQuota );
@@ -333,7 +333,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             (this.authenticate(parameters)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object subscribeHash = "ACCOUNT_HISTORY";
-            Object bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
+            Long bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
             Object subscribe = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
                 put( "bp_remaining_quota", bpRemainingQuota );
@@ -532,7 +532,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             (this.authenticate(parameters)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object subscribeHash = this.safeString(parameters, "channel", "ACCOUNT_HISTORY");
-            Object bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
+            Long bpRemainingQuota = this.safeInteger(this.options, "bp_remaining_quota", 200);
             Object subscribe = new java.util.HashMap<String, Object>() {{
                 put( "type", "SUBSCRIBE" );
                 put( "bp_remaining_quota", bpRemainingQuota );
@@ -605,7 +605,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         //
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object order = this.parseTradingOrder(message);
@@ -803,12 +803,12 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         //
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object rawOrders = this.safeList(message, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1062,12 +1062,12 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         //
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object symbol = null;
@@ -1311,7 +1311,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
         }
         Helpers.callDynamically(stored, "append", new Object[]{parsed});

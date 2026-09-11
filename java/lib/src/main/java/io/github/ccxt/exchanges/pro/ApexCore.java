@@ -172,7 +172,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -207,7 +207,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object marketId = this.safeString2(trade, "s", "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "T", "createdAt")));
+        Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("t", "T", "createdAt")));
         String side = (String)this.safeStringLower2(trade, "S", "side");
         Object price = this.safeString2(trade, "p", "price");
         Object amount = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("q", "v", "size")));
@@ -404,7 +404,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object marketId = this.safeString(data, "s");
         Object market = this.safeMarket(marketId, null);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeIntegerProduct(message, "ts", 0.001);
+        Long timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -561,7 +561,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged);
         }
-        Object timestamp = this.safeIntegerProduct(message, "ts", 0.001);
+        Long timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         Helpers.addElementToObject(parsed, "timestamp", timestamp);
         Helpers.addElementToObject(parsed, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.tickers, ((String)symbol), parsed);
@@ -689,7 +689,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         }
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
@@ -883,7 +883,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         // ]
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
@@ -940,7 +940,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         // ]
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
@@ -1225,7 +1225,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             return;
         }
         Object ret_msg = this.safeString(message, "ret_msg");
-        Object pong = this.safeInteger(message, "pong");
+        Long pong = this.safeInteger(message, "pong");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(ret_msg, "pong")) || Helpers.isTrue(!Helpers.isEqual(pong, null))))
         {
             this.handlePong(client, message);
@@ -1273,7 +1273,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
 
     public Object ping(Client client)
     {
-        Object timeStamp = this.milliseconds();
+        Long timeStamp = this.milliseconds();
         client.lastPong = ((Number)timeStamp).longValue();
         return new java.util.HashMap<String, Object>() {{
             put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(String.valueOf(timeStamp))) );
@@ -1289,7 +1289,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             //
             //     {"op": "ping", "args": ["1761069137485"]}
             //
-            Object timeStamp = this.milliseconds();
+            Long timeStamp = this.milliseconds();
             try
             {
                 (client.send(new java.util.HashMap<String, Object>() {{
@@ -1359,7 +1359,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         //    }
         //
         Object success = this.safeValue(message, "success");
-        Object code = this.safeInteger(message, "retCode");
+        Long code = this.safeInteger(message, "retCode");
         Object messageHash = "authenticated";
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(success, true))) || Helpers.isTrue((Helpers.isEqual(code, 0)))))
         {

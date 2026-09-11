@@ -268,7 +268,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "market");
         Object market = this.safeMarket(marketId);
-        Object timestamp = this.safeInteger(data, "last_updated_at");
+        Long timestamp = this.safeInteger(data, "last_updated_at");
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -483,7 +483,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object symbol = this.safeString(parsed, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Helpers.callDynamically(this.orders, "append", new Object[]{parsed});
@@ -680,7 +680,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(contract, "market");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object timestamp = this.safeInteger(contract, "created_at");
+        Long timestamp = this.safeInteger(contract, "created_at");
         Object fundingPeriod = this.safeString(contract, "funding_period_hours");
         final Object finalFundingPeriod = fundingPeriod;
         return new java.util.HashMap<String, Object>() {{

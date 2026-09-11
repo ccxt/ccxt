@@ -236,7 +236,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             trade = Helpers.split(trade, ":");
         }
         Object side = this.safeString(trade, 0);
-        Object timestamp = this.safeInteger(trade, 1);
+        Long timestamp = this.safeInteger(trade, 1);
         Object amount = this.safeString(trade, 2);
         Object price = this.safeString(trade, 3);
         Object id = this.safeString(trade, 4);
@@ -281,7 +281,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         }
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(this.trades, symbol);
@@ -713,7 +713,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object stored = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = stored;
         }
@@ -884,7 +884,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         remains = this.currencyFromPrecision(base, remains);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object storedOrders = this.orders;
@@ -904,7 +904,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         {
             Helpers.addElementToObject(order, "status", "closed");
         }
-        Object fee = this.safeNumber(data, "fee");
+        Double fee = this.safeNumber(data, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(fee, null)))
         {
             final Object finalFee = fee;
@@ -914,7 +914,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
     put( "rate", null );
 }});
         }
-        Object timestamp = this.safeInteger(data, "time");
+        Long timestamp = this.safeInteger(data, "time");
         Helpers.addElementToObject(order, "timestamp", timestamp);
         Helpers.addElementToObject(order, "datetime", this.iso8601(timestamp));
         order = this.safeOrder(order);
@@ -998,7 +998,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             symbol = Helpers.add(Helpers.add(base, "/"), quote);
         }
         market = this.safeMarket(symbol, market);
-        Object time = this.safeInteger(order, "time", this.milliseconds());
+        Long time = this.safeInteger(order, "time", this.milliseconds());
         Object timestamp = time;
         if (Helpers.isTrue(isTransaction))
         {
@@ -1067,7 +1067,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
 
     public String currencyFromPrecision(Object currency, Object amount)
     {
-        Object scale = this.safeInteger(Helpers.GetValue(this.currencies, currency), "precision", 0);
+        Long scale = this.safeInteger(Helpers.GetValue(this.currencies, currency), "precision", 0);
         return this.fromPrecision(amount, scale);
     }
 
@@ -1093,7 +1093,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object myOrders = this.orders;
         if (Helpers.isTrue(Helpers.isEqual(myOrders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
@@ -1185,7 +1185,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object symbol = this.pairToSymbol(pair);
         Object messageHash = Helpers.add("orderbook:", symbol);
         Long timestamp = (Long) this.safeInteger2(data, "timestamp_ms", "timestamp");
-        Object incrementalId = this.safeInteger(data, "id");
+        Long incrementalId = this.safeInteger(data, "id");
         Object orderbook = this.orderBook(new java.util.HashMap<String, Object>() {{}});
         Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         Helpers.addElementToObject(snapshot, "nonce", incrementalId);
@@ -1225,7 +1225,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         //     }
         //
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object incrementalId = this.safeInteger(data, "id");
+        Long incrementalId = this.safeInteger(data, "id");
         Object pair = this.safeString(data, "pair", "");
         Object symbol = this.pairToSymbol(pair);
         Object storedOrderBook = this.safeValue(this.orderbooks, symbol);
@@ -1236,7 +1236,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             client.reject(Helpers.add(this.id, " watchOrderBook() skipped a message"), messageHash);
             return;
         }
-        Object timestamp = this.safeInteger(data, "time");
+        Long timestamp = this.safeInteger(data, "time");
         Object asks = this.safeValue(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object bids = this.safeValue(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         this.handleDeltas(Helpers.GetValue(storedOrderBook, "asks"), asks);
@@ -1338,7 +1338,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         Object market = this.safeMarket(symbol);
         Object messageHash = Helpers.add("ohlcv:", symbol);
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+        Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
         var stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
         Object sorted = this.sortBy(data, 0);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sorted)); i++)

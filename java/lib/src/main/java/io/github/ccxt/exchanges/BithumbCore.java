@@ -1335,7 +1335,7 @@ public class BithumbCore extends BithumbApi
                     Object quote = Helpers.GetValue(quotes, i);
                     Object response = Helpers.GetValue(responses, i);
                     Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-                    Object timestamp = this.safeInteger(data, "date");
+                    Long timestamp = this.safeInteger(data, "date");
                     Object tickers = this.omit(data, "date");
                     Object currencyIds = Helpers.objectKeys(tickers);
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
@@ -1550,7 +1550,7 @@ public class BithumbCore extends BithumbApi
                     response = (this.publicGetV1CandlesMonths(this.extend(request, parameters))).join();
                 } else
                 {
-                    Object timeframeInteger = this.safeInteger(this.timeframes, timeframe);
+                    Long timeframeInteger = this.safeInteger(this.timeframes, timeframe);
                     if (Helpers.isTrue(Helpers.isEqual(timeframeInteger, null)))
                     {
                         throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe)) ;
@@ -2616,7 +2616,7 @@ public class BithumbCore extends BithumbApi
         }
         String id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_id", "uuid", "algo_order_id")));
         Object rawTrades = this.safeList2(order, "contract", "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object feeCost = this.safeNumber(order, "reserved_fee");
+        Double feeCost = this.safeNumber(order, "reserved_fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {

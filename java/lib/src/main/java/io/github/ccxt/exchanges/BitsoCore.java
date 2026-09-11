@@ -638,7 +638,7 @@ public class BitsoCore extends BitsoApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(feeTiers)); j++)
                 {
                     Object tier = Helpers.GetValue(feeTiers, j);
-                    Object volume = this.safeNumber(tier, "volume");
+                    Double volume = this.safeNumber(tier, "volume");
                     Object takerFee = this.safeNumber(tier, "taker");
                     Object makerFee = this.safeNumber(tier, "maker");
                     ((java.util.List<Object>)takerFees).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(volume, takerFee)));
@@ -1029,12 +1029,12 @@ public class BitsoCore extends BitsoApi
                 Helpers.addElementToObject(request, "start", since);
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
-                    Object duration = this.parseTimeframe(timeframe);
+                    int duration = this.parseTimeframe(timeframe);
                     Helpers.addElementToObject(request, "end", this.sum(since, Helpers.multiply(Helpers.multiply(duration, limit), 1000)));
                 }
             } else if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
-                Object now = this.milliseconds();
+                Long now = this.milliseconds();
                 Helpers.addElementToObject(request, "end", now);
                 Helpers.addElementToObject(request, "start", Helpers.subtract(now, Helpers.multiply(Helpers.multiply(this.parseTimeframe(timeframe), 1000), limit)));
             }

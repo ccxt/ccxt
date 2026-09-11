@@ -507,7 +507,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         Object newLiquidations = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(this.liquidations, null)))
         {
-            Object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+            Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(((Number)limit).intValue());
         }
         Object cache = this.liquidations;
@@ -740,7 +740,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object stored = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 stored = new ArrayCache(((Number)limit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
@@ -790,7 +790,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 this.checkRequiredCredentials();
-                Object timestamp = this.milliseconds();
+                Long timestamp = this.milliseconds();
                 Object payload = Helpers.add(Helpers.add("GET", "/realtime"), String.valueOf(timestamp));
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 Object request = new java.util.HashMap<String, Object>() {{
@@ -1280,7 +1280,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
             {
-                Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+                Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object stored = this.orders;
@@ -1424,7 +1424,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         java.util.List<Object> trades = this.parseTrades(rawTrades);
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
@@ -1710,7 +1710,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
             }
@@ -1825,7 +1825,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Helpers.addElementToObject(orderbook, "symbol", symbol);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
-                Object price = this.safeFloat(Helpers.GetValue(data, i), "price");
+                Double price = this.safeFloat(Helpers.GetValue(data, i), "price");
                 Object size = this.convertFromRawQuantity(symbol, this.safeString(Helpers.GetValue(data, i), "size"));
                 Object id = this.safeString(Helpers.GetValue(data, i), "id");
                 Object side = this.safeString(Helpers.GetValue(data, i), "side");
@@ -1856,7 +1856,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 Object market = this.safeMarket(marketId);
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-                Object price = this.safeNumber(Helpers.GetValue(data, i), "price");
+                Double price = this.safeNumber(Helpers.GetValue(data, i), "price");
                 Object size = ((Helpers.isTrue((Helpers.isEqual(action, "delete"))))) ? 0 : this.convertFromRawQuantity(symbol, this.safeString(Helpers.GetValue(data, i), "size", "0"));
                 Object id = this.safeString(Helpers.GetValue(data, i), "id");
                 Object side = this.safeString(Helpers.GetValue(data, i), "side");

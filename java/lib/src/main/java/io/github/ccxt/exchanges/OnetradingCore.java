@@ -885,7 +885,7 @@ public class OnetradingCore extends OnetradingApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(feeTiers)); i++)
         {
             Object tier = Helpers.GetValue(feeTiers, i);
-            Object volume = this.safeNumber(tier, "volume");
+            Double volume = this.safeNumber(tier, "volume");
             String taker = this.safeString(tier, "taker_fee");
             String maker = this.safeString(tier, "maker_fee");
             maker = Precise.stringDiv(maker, "100");
@@ -1183,7 +1183,7 @@ public class OnetradingCore extends OnetradingApi
             throw new ExchangeError((String)Helpers.add(this.id, " parseOHLCV() missing period/unit")) ;
         }
         Object timeframe = Helpers.add(period, lowercaseUnit);
-        Object durationInSeconds = this.parseTimeframe(timeframe);
+        int durationInSeconds = this.parseTimeframe(timeframe);
         Object duration = Helpers.multiply(durationInSeconds, 1000);
         Long timestamp = this.parse8601(this.safeString(ohlcv, "time"));
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
@@ -1230,7 +1230,7 @@ public class OnetradingCore extends OnetradingApi
             var periodunitVariable = Helpers.split(periodUnit, "/");
             var period = ((java.util.List<Object>) periodunitVariable).get(0);
             var unit = ((java.util.List<Object>) periodunitVariable).get(1);
-            Object durationInSeconds = this.parseTimeframe(timeframe);
+            int durationInSeconds = this.parseTimeframe(timeframe);
             Object duration = Helpers.multiply(durationInSeconds, 1000);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -1243,7 +1243,7 @@ public class OnetradingCore extends OnetradingApi
             }};
             if (Helpers.isTrue(Helpers.isEqual(since, null)))
             {
-                Object now = this.milliseconds();
+                Long now = this.milliseconds();
                 Helpers.addElementToObject(request, "to", this.iso8601(now));
                 Helpers.addElementToObject(request, "from", this.iso8601(Helpers.subtract(now, Helpers.multiply(limit, duration))));
             } else
@@ -1308,7 +1308,7 @@ public class OnetradingCore extends OnetradingApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object feeInfo = this.safeValue(trade, "fee", new java.util.HashMap<String, Object>() {{}});
         trade = this.safeValue(trade, "trade", trade);
-        Object timestamp = this.safeInteger(trade, "trade_timestamp");
+        Long timestamp = this.safeInteger(trade, "trade_timestamp");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             timestamp = this.parse8601(this.safeString(trade, "time"));
@@ -1600,7 +1600,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 priceIsRequired = true;
             }
-            Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "trigger_price", "stopPrice")));
+            Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "trigger_price", "stopPrice")));
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "MARKET")))
@@ -1882,7 +1882,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 Helpers.addElementToObject(request, "from", this.iso8601(since));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -2117,7 +2117,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 Helpers.addElementToObject(request, "from", this.iso8601(since));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");

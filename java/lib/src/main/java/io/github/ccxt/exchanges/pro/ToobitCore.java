@@ -133,7 +133,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         //
         // handle ping-pong: { ping: 1758540450000 }
         //
-        Object pongTimestamp = this.safeInteger(message, "pong");
+        Long pongTimestamp = this.safeInteger(message, "pong");
         if (Helpers.isTrue(!Helpers.isEqual(pongTimestamp, null)))
         {
             this.handleIncomingPong(client, pongTimestamp);
@@ -285,7 +285,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(this.trades, symbol);
@@ -443,7 +443,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(Helpers.GetValue(this.options, "ws"), "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(Helpers.GetValue(this.options, "ws"), "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (Helpers.isTrue(!Helpers.isEqual(timeframe, null)))
             {
@@ -744,11 +744,11 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("orderBook::", symbol), "::"), "diffDepth");
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
             {
-                Object limit = this.safeInteger(Helpers.GetValue(this.options, "ws"), "orderBookLimit", 1000);
+                Long limit = this.safeInteger(Helpers.GetValue(this.options, "ws"), "orderBookLimit", 1000);
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             }
             Object orderBook = Helpers.GetValue(this.orderbooks, symbol);
-            Object timestamp = this.safeInteger(entry, "t");
+            Long timestamp = this.safeInteger(entry, "t");
             Object bids = this.safeList(entry, "b", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object asks = this.safeList(entry, "a", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderBook, "asks"), asks);
@@ -808,11 +808,11 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("orderBook::", symbol), "::"), channel);
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
             {
-                Object limit = this.safeInteger(Helpers.GetValue(this.options, "ws"), "orderBookLimit", 1000);
+                Long limit = this.safeInteger(Helpers.GetValue(this.options, "ws"), "orderBookLimit", 1000);
                 Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
             }
             Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-            Object timestamp = this.safeInteger(entry, "t");
+            Long timestamp = this.safeInteger(entry, "t");
             Object snapshot = this.parseOrderBook(entry, symbol, timestamp, "b", "a");
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
             client.resolve(orderbook, messageHash);
@@ -918,7 +918,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         //
         Object channel = this.safeString(message, "e");
         Object data = this.safeList(message, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object timestamp = this.safeInteger(message, "E");
+        Long timestamp = this.safeInteger(message, "E");
         Object type = ((Helpers.isTrue((Helpers.isEqual(channel, "outboundContractAccountInfo"))))) ? "contract" : "spot";
         if (!Helpers.isTrue((Helpers.inOp(this.balance, type))))
         {
@@ -1050,7 +1050,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         //
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
@@ -1065,7 +1065,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
     public Object parseWsOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(order, "O");
+        Long timestamp = this.safeInteger(order, "O");
         Object marketId = this.safeString(order, "s");
         String symbol = (String) this.safeSymbol(marketId, market);
         String priceType = (String)this.safeStringLower(order, "pt");
@@ -1078,7 +1078,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         {
             orderType = rawOrderType;
         }
-        Object feeCost = this.safeNumber(order, "n");
+        Double feeCost = this.safeNumber(order, "n");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -1182,7 +1182,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         Object myTrades = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trade = this.parseMyTrade(message);
@@ -1378,7 +1378,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Object position = this.parseWsPosition(rawPosition);
-            Object timestamp = this.safeInteger(rawPosition, "E");
+            Long timestamp = this.safeInteger(rawPosition, "E");
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
             ((java.util.List<Object>)newPositions).add(position);
@@ -1442,9 +1442,9 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object time = this.milliseconds();
-            Object lastAuthenticatedTime = this.safeInteger(Helpers.GetValue(this.options, "ws"), "lastAuthenticatedTime", 0);
-            Object listenKeyRefreshRate = this.safeInteger(Helpers.GetValue(this.options, "ws"), "listenKeyRefreshRate", 1200000);
+            Long time = this.milliseconds();
+            Long lastAuthenticatedTime = this.safeInteger(Helpers.GetValue(this.options, "ws"), "lastAuthenticatedTime", 0);
+            Long listenKeyRefreshRate = this.safeInteger(Helpers.GetValue(this.options, "ws"), "listenKeyRefreshRate", 1200000);
             Object delay = this.sum(listenKeyRefreshRate, 10000);
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), delay)))
             {
@@ -1529,7 +1529,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
                 return null;
             }
             // whether or not to schedule another listenKey keepAlive request
-            Object listenKeyRefreshRate = this.safeInteger(Helpers.GetValue(this.options, "ws"), "listenKeyRefreshRate", 1200000);
+            Long listenKeyRefreshRate = this.safeInteger(Helpers.GetValue(this.options, "ws"), "listenKeyRefreshRate", 1200000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
             return null;
         });

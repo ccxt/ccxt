@@ -620,7 +620,7 @@ public class MercadoCore extends MercadoApi
             {
                 Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object to = this.safeInteger(parameters, "to");
+            Long to = this.safeInteger(parameters, "to");
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(since, null))) && Helpers.isTrue((!Helpers.isEqual(to, null)))))
             {

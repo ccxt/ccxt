@@ -62,7 +62,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object omsId = this.safeInteger(this.options, "omsId", 1);
+            Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -148,7 +148,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Object omsId = this.safeInteger(this.options, "omsId", 1);
+            Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -213,7 +213,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             Object tradesArray = ((Helpers.isTrue((Helpers.isEqual(symbol, null))))) ? null : this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
             {
-                Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 tradesArray = new ArrayCache(((Number)limit).intValue());
             }
             Helpers.callDynamically(tradesArray, "append", new Object[]{trade});
@@ -258,7 +258,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object omsId = this.safeInteger(this.options, "omsId", 1);
+            Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -338,7 +338,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 Object timeframe = Helpers.GetValue(keys, j);
                 Object interval = this.safeString(this.timeframes, timeframe, timeframe);
                 Object duration = Helpers.multiply(Helpers.parseInt(interval), 1000);
-                Object timestamp = this.safeInteger(ohlcv, 0);
+                Long timestamp = this.safeInteger(ohlcv, 0);
                 if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
                 {
                     continue;
@@ -378,7 +378,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                     } else
                     {
                         ((java.util.List<Object>)stored).add(parsed);
-                        Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                        Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(length, limit)))
                         {
                             ((java.util.List<Object>)stored).get(0);
@@ -427,7 +427,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             Object symbol = symbol3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object omsId = this.safeInteger(this.options, "omsId", 1);
+            Long omsId = this.safeInteger(this.options, "omsId", 1);
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
@@ -534,10 +534,10 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 nonce = Helpers.mathMax(currentNonceValue, newNonceValue);
             }
             // 0 new, 1 update, 2 remove
-            Object type = this.safeInteger(bidask, 3);
-            Object price = this.safeFloat(bidask, 6);
-            Object amount = this.safeFloat(bidask, 8);
-            Object side = this.safeInteger(bidask, 9);
+            Long type = this.safeInteger(bidask, 3);
+            Double price = this.safeFloat(bidask, 6);
+            Double amount = this.safeFloat(bidask, 8);
+            Long side = this.safeInteger(bidask, 9);
             // 0 buy, 1 sell, 2 short reserved for future use, 3 unknown
             Object orderbookSide = ((Helpers.isTrue((Helpers.isEqual(side, 0))))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
             // 0 new, 1 update, 2 remove
@@ -590,7 +590,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //
         Object symbol = this.safeString(subscription, "symbol");
         Object snapshot = this.parseOrderBook(payload, symbol);
-        Object limit = this.safeInteger(subscription, "limit");
+        Long limit = this.safeInteger(subscription, "limit");
         Object orderbook = this.orderBook(snapshot, limit);
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
@@ -611,7 +611,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //     }
         //
         Object subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Object id = this.safeInteger(message, "i");
+        Long id = this.safeInteger(message, "i");
         Object subscription = ((Helpers.isTrue((Helpers.isEqual(id, null))))) ? null : this.safeValue(subscriptionsById, id);
         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
         {

@@ -437,8 +437,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object arg = this.safeValue(message, "arg", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object ticker = this.safeValue(data, 0, new java.util.HashMap<String, Object>() {{}});
-        Object utaTimestamp = this.safeInteger(message, "ts");
-        Object timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
+        Long utaTimestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
         String instType = (String)this.safeStringLower(arg, "instType");
         Object marketType = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
         Object utaMarketId = this.safeString(arg, "symbol");
@@ -556,8 +556,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object arg = this.safeValue(message, "arg", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object ticker = this.safeValue(data, 0, new java.util.HashMap<String, Object>() {{}});
-        Object utaTimestamp = this.safeInteger(message, "ts");
-        Object timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
+        Long utaTimestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(ticker, "ts", utaTimestamp);
         String instType = (String)this.safeStringLower(arg, "instType");
         Object marketType = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
         Object utaMarketId = this.safeString(arg, "symbol");
@@ -794,7 +794,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
         }
@@ -899,7 +899,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 (this.loadMarkets()).join();
             }
             Object channel = "books";
-            Object limit = this.safeInteger(parameters, "limit");
+            Long limit = this.safeInteger(parameters, "limit");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(limit, 1))) || Helpers.isTrue((Helpers.isEqual(limit, 5)))) || Helpers.isTrue((Helpers.isEqual(limit, 15)))) || Helpers.isTrue((Helpers.isEqual(limit, 50)))))
             {
                 parameters = this.omit(parameters, "limit");
@@ -1084,7 +1084,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object messageHash = Helpers.add("orderbook:", symbol);
         Object data = this.safeValue(message, "data");
         Object rawOrderBook = this.safeValue(data, 0);
-        Object timestamp = this.safeInteger(rawOrderBook, "ts");
+        Long timestamp = this.safeInteger(rawOrderBook, "ts");
         Object incrementalBook = Helpers.isEqual(channel, "books");
         if (Helpers.isTrue(incrementalBook))
         {
@@ -1107,7 +1107,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object isSnapshot = Helpers.isEqual(this.safeString(message, "action"), "snapshot"); // snapshot does not have a checksum
             // UTA order books do not provide a crc32 checksum (they rely on seq/pseq for integrity),
             // so only validate the checksum when the exchange actually sends one
-            Object responseChecksum = this.safeInteger(rawOrderBook, "checksum");
+            Long responseChecksum = this.safeInteger(rawOrderBook, "checksum");
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isTrue(isSnapshot) && Helpers.isTrue((Helpers.isEqual(checksum, true)))) && Helpers.isTrue((!Helpers.isEqual(responseChecksum, null)))))
             {
                 Object storedAsks = Helpers.GetValue(storedOrderBook, "asks");
@@ -1373,7 +1373,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -1503,7 +1503,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         {
             market = this.safeMarket(instId, null, null, defaultType);
         }
-        Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("uTime", "cTime", "ts", "T", "execTime")));
+        Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("uTime", "cTime", "ts", "T", "execTime")));
         Object feeDetail = this.safeList(trade, "feeDetail", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object first = this.safeDict(feeDetail, 0);
         Object fee = null;
@@ -1792,7 +1792,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         }});
         Object hedgedId = this.safeString2(position, "posMode", "holdMode");
         Object hedged = ((Helpers.isTrue((Helpers.isEqual(hedgedId, "hedge_mode"))))) ? true : false;
-        Object timestamp = this.safeIntegerN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("updatedTime", "uTime", "cTime", "createdTime")));
+        Long timestamp = this.safeIntegerN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("updatedTime", "uTime", "cTime", "createdTime")));
         Object percentageDecimal = this.safeString2(position, "unrealizedPLR", "profitRate");
         Object percentage = Precise.stringMul(percentageDecimal, "100");
         Object contractSize = null;
@@ -2096,7 +2096,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         }
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.triggerOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
@@ -2332,7 +2332,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 put( "currency", BitgetCore.this.safeCurrencyCode(feeCurrency) );
             }};
         }
-        Object triggerPrice = this.safeNumber(order, "triggerPrice");
+        Double triggerPrice = this.safeNumber(order, "triggerPrice");
         Object isTriggerOrder = (!Helpers.isEqual(triggerPrice, null));
         Object price = null;
         if (!Helpers.isTrue(isTriggerOrder))
@@ -2638,7 +2638,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
         Object stored = this.myTrades;

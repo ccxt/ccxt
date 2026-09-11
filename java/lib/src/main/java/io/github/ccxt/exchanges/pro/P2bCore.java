@@ -124,7 +124,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
                 (this.loadMarkets()).join();
             }
             Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
-            Object channel = this.safeInteger(timeframes, timeframe);
+            Long channel = this.safeInteger(timeframes, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(channel, null)))
             {
                 throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " watchOHLCV cannot take a timeframe of "), timeframe)) ;
@@ -379,7 +379,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         {
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
             }
@@ -418,7 +418,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
-            Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(((Number)tradesLimit).intValue());
             Helpers.addElementToObject(this.trades, ((String)symbol), tradesArray);
         }
@@ -524,7 +524,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add("orderbook::", Helpers.GetValue(market, "symbol"));
         Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
-        Object limit = this.safeInteger(subscription, "limit");
+        Long limit = this.safeInteger(subscription, "limit");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
@@ -544,8 +544,8 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bids)); i++)
             {
                 Object bid = this.safeValue(bids, i);
-                Object price = this.safeNumber(bid, 0);
-                Object amount = this.safeNumber(bid, 1);
+                Double price = this.safeNumber(bid, 0);
+                Double amount = this.safeNumber(bid, 1);
                 Object bookSide = Helpers.GetValue(orderbook, "bids");
                 Helpers.callDynamically(bookSide, "store", new Object[]{price, amount});
             }
@@ -555,8 +555,8 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(asks)); i++)
             {
                 Object ask = this.safeValue(asks, i);
-                Object price = this.safeNumber(ask, 0);
-                Object amount = this.safeNumber(ask, 1);
+                Double price = this.safeNumber(ask, 0);
+                Double amount = this.safeNumber(ask, 1);
                 Object bookside = Helpers.GetValue(orderbook, "asks");
                 Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
             }

@@ -177,9 +177,9 @@ public class OpinionCore extends OpinionApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("limit")));
-            Object userLimit = this.safeInteger(parameters, "limit");
-            Object pageLimit = this.safeInteger(this.options, "marketsPageLimit", 20);
-            Object maxPages = this.safeInteger(this.options, "maxMarketsPages", 50);
+            Long userLimit = this.safeInteger(parameters, "limit");
+            Long pageLimit = this.safeInteger(this.options, "marketsPageLimit", 20);
+            Long maxPages = this.safeInteger(this.options, "maxMarketsPages", 50);
             Object flatMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             // seen-guard keyed by the event handle; the events themselves go through setEvents below
             // so the cache gets the base indexing (id + handle + slug) instead of a raw assignment
@@ -203,11 +203,11 @@ public class OpinionCore extends OpinionApi
                 // categorical parents expand into several flatMarkets entries each, so the raw,
                 // unflattened row count in 'total' must be compared against fetchedRawCount, not
                 // flatMarkets.length - otherwise expansion makes the comparison meaningless
-                Object total = this.safeInteger(result, "total");
+                Long total = this.safeInteger(result, "total");
                 for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
                 {
                     Object raw = Helpers.GetValue(rawMarkets, i);
-                    Object marketType = this.safeInteger(raw, "marketType");
+                    Long marketType = this.safeInteger(raw, "marketType");
                     if (Helpers.isTrue(Helpers.isEqual(marketType, 1)))
                     {
                         Object eventVar = this.parseEvent(raw);
@@ -476,8 +476,8 @@ final Object finalTokenId = tokenId;
                 return this.applyEventFetchParams(new java.util.ArrayList<Object>(java.util.Arrays.asList(single)), parameters, queries);
             }
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries", "tags", "status", "sort", "searchIn", "limit")));
-            Object pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 20);
-            Object userLimit = this.safeInteger(parameters, "limit");
+            Long pageLimit = this.safeInteger(this.options, "defaultFetchEventsLimit", 20);
+            Long userLimit = this.safeInteger(parameters, "limit");
             // bound how many events are actually FETCHED: the user limit when given, otherwise
             // options.maxFetchEventsResults - the scope filters keep the listing narrow, but a broad
             // label can still hold more than one page
@@ -486,7 +486,7 @@ final Object finalTokenId = tokenId;
             {
                 fetchCap = userLimit;
             }
-            Object maxPages = this.safeInteger(this.options, "maxEventsPages", 50);
+            Long maxPages = this.safeInteger(this.options, "maxEventsPages", 50);
             Object rawEvents = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object page = 1;
             Object fetchedRawCount = 0;
@@ -518,7 +518,7 @@ final Object finalTokenId = tokenId;
                 {
                     ((java.util.List<Object>)rawEvents).add(Helpers.GetValue(pageEvents, i));
                 }
-                Object total = this.safeInteger(result, "total");
+                Long total = this.safeInteger(result, "total");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(pageEventsLength, reqLimit))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(page, maxPages)))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(total, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(fetchedRawCount, total)))))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(fetchedRawCount, fetchCap)))))
                 {
                     break;
@@ -798,8 +798,8 @@ final Object finalTokenId = tokenId;
         Object asks = this.safeList(bookResult, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object bestBid = this.safeDict(bids, 0, new java.util.HashMap<String, Object>() {{}});
         Object bestAsk = this.safeDict(asks, 0, new java.util.HashMap<String, Object>() {{}});
-        Object last = this.safeNumber(priceResult, "price");
-        Object timestamp = this.safeInteger(priceResult, "timestamp", this.milliseconds());
+        Double last = this.safeNumber(priceResult, "price");
+        Long timestamp = this.safeInteger(priceResult, "timestamp", this.milliseconds());
         return this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
             put( "outcome", OpinionCore.this.safeString(marketAny, "outcome") );
             put( "outcomeId", OpinionCore.this.safeString2(marketAny, "outcomeId", "id") );
@@ -922,7 +922,7 @@ final Object finalTokenId = tokenId;
             //     }
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(result, "timestamp");
+            Long timestamp = this.safeInteger(result, "timestamp");
             Object orderbook = this.parseOrderBook(result, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
             return this.safePredictionOrderBook(orderbook, outcomeObj);
         });
@@ -980,7 +980,7 @@ final Object finalTokenId = tokenId;
             for (var i = 0; Helpers.isLessThan(i, historyLength); i++)
             {
                 Object point = Helpers.GetValue(history, i);
-                Object price = this.safeNumber(point, "p");
+                Double price = this.safeNumber(point, "p");
                 Object timestamp = this.safeTimestamp(point, "t");
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(price, null))) && Helpers.isTrue((!Helpers.isEqual(timestamp, null)))))
                 {
@@ -1008,7 +1008,7 @@ final Object finalTokenId = tokenId;
         //     { "p": "0.001", "t": 1785495600 }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object price = this.safeNumber(ohlcv, "p");
+        Double price = this.safeNumber(ohlcv, "p");
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(ohlcv, "t"), price, price, price, price, null));
     }
 
@@ -1237,11 +1237,11 @@ final Object finalTokenId = tokenId;
                 marketOrderPrice = this.numberToString(price);
             }
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object topicId = this.safeInteger(info, "marketId");
+            Long topicId = this.safeInteger(info, "marketId");
             Object quoteTokenAddress = this.safeString(info, "quoteToken");
             Object quoteToken = (this.loadQuoteToken(quoteTokenAddress)).join();
             Object exchangeAddress = this.safeString(quoteToken, "ctfExchangeAddress", "");
-            Object decimals = this.safeInteger(quoteToken, "decimal", 18);
+            Long decimals = this.safeInteger(quoteToken, "decimal", 18);
             Object amounts = this.opinionOrderRawAmounts(isMarket, sideStr, amount, price, decimals);
             Object makerAmount = this.safeString(amounts, "makerAmount");
             Object takerAmount = this.safeString(amounts, "takerAmount");
@@ -1598,7 +1598,7 @@ final Object finalTokenId = tokenId;
             {
                 Object trade = Helpers.GetValue(trades, i);
                 Object tokenId = this.safeString(trade, "tokenId");
-                Object marketId = this.safeInteger(trade, "marketId");
+                Long marketId = this.safeInteger(trade, "marketId");
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(tokenId, null))) && Helpers.isTrue((!Helpers.isEqual(marketId, null)))))
                 {
                     Object tradeMarket = (this.loadTradeMarket(marketId)).join();
@@ -2170,7 +2170,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object marketId = this.safeInteger(info, "marketId");
+            Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
             Object channel = "market.depth.diff";
             Object messageHash = Helpers.add("orderbook::", sym);
@@ -2245,10 +2245,10 @@ final Object finalTokenId = tokenId;
         Object orderbook = Helpers.GetValue(this.orderbooks, sym);
         Object sideStr = this.safeString(message, "side");
         Object bookSide = ((Helpers.isTrue((Helpers.isEqual(sideStr, "bids"))))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
-        Object price = this.safeNumber(message, "price");
-        Object size = this.safeNumber(message, "size");
+        Double price = this.safeNumber(message, "price");
+        Double size = this.safeNumber(message, "size");
         Helpers.callDynamically(bookSide, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(price, size))});
-        Object now = this.milliseconds();
+        Long now = this.milliseconds();
         Helpers.addElementToObject(orderbook, "timestamp", now);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(now));
         client.resolve(orderbook, Helpers.add("orderbook::", sym));
@@ -2271,7 +2271,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object marketId = this.safeInteger(info, "marketId");
+            Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
             Object messageHash = Helpers.add("ticker::", sym);
             return (this.subscribeOpinionChannel(messageHash, "market.last.price", marketId)).join();
@@ -2297,8 +2297,8 @@ final Object finalTokenId = tokenId;
         {
             return;
         }
-        Object now = this.milliseconds();
-        Object last = this.safeNumber(message, "price");
+        Long now = this.milliseconds();
+        Double last = this.safeNumber(message, "price");
         final Object finalSym = sym;
         Object ticker = this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
             put( "outcome", finalSym );
@@ -2336,7 +2336,7 @@ final Object finalTokenId = tokenId;
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object marketId = this.safeInteger(info, "marketId");
+            Long marketId = this.safeInteger(info, "marketId");
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
             Object messageHash = Helpers.add("trades::", sym);
             Object trades = (this.subscribeOpinionChannel(messageHash, "market.last.trade", marketId)).join();
@@ -2366,7 +2366,7 @@ final Object finalTokenId = tokenId;
         {
             return;
         }
-        Object now = this.milliseconds();
+        Long now = this.milliseconds();
         final Object finalSym = sym;
         Object trade = this.safePredictionTrade(new java.util.HashMap<String, Object>() {{
             put( "id", null );
@@ -2392,7 +2392,7 @@ final Object finalTokenId = tokenId;
         }
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.trades, sym), null)))
         {
-            Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, sym, new ArrayCache(((Number)tradesLimit).intValue()));
         }
         Object stored = Helpers.GetValue(this.trades, sym);
@@ -2426,7 +2426,7 @@ final Object finalTokenId = tokenId;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object marketId = this.safeInteger(info, "marketId");
+            Long marketId = this.safeInteger(info, "marketId");
             Object messageHash = "orders";
             Object orders = (this.subscribeOpinionChannel(messageHash, "trade.order.update", marketId)).join();
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
@@ -2493,15 +2493,15 @@ final Object finalTokenId = tokenId;
         //         "msgType": "trade.order.update"
         //     }
         //
-        Object marketId = this.safeInteger(message, "marketId");
-        Object outcomeSide = this.safeInteger(message, "outcomeSide");
+        Long marketId = this.safeInteger(message, "marketId");
+        Long outcomeSide = this.safeInteger(message, "outcomeSide");
         Object outcomeObj = this.opinionOutcomeByMarketIdSide(marketId, outcomeSide);
         Object timestamp = this.safeTimestamp(message, "createdAt");
         // unlike the REST order body (0 buy / 1 sell), the websocket channel uses 1 buy / 2 sell
         // per the docs and confirmed live
-        Object sideInt = this.safeInteger(message, "side");
+        Long sideInt = this.safeInteger(message, "side");
         Object side = ((Helpers.isTrue((Helpers.isEqual(sideInt, 1))))) ? "buy" : "sell";
-        Object tradingMethod = this.safeInteger(message, "tradingMethod");
+        Long tradingMethod = this.safeInteger(message, "tradingMethod");
         Object type = ((Helpers.isTrue((Helpers.isEqual(tradingMethod, 1))))) ? "market" : "limit";
         Object order = this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
             put( "id", OpinionCore.this.safeString(message, "orderId") );
@@ -2526,7 +2526,7 @@ final Object finalTokenId = tokenId;
         }}, outcomeObj);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
         Object stored = this.orders;
@@ -2560,7 +2560,7 @@ final Object finalTokenId = tokenId;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object marketId = this.safeInteger(info, "marketId");
+            Long marketId = this.safeInteger(info, "marketId");
             Object messageHash = "myTrades";
             Object trades = (this.subscribeOpinionChannel(messageHash, "trade.record.new", marketId)).join();
             Object sym = this.safeOutcomeSymbol(outcome, outcomeObj);
@@ -2592,8 +2592,8 @@ final Object finalTokenId = tokenId;
         //         "msgType": "trade.record.new"
         //     }
         //
-        Object marketId = this.safeInteger(message, "marketId");
-        Object outcomeSide = this.safeInteger(message, "outcomeSide");
+        Long marketId = this.safeInteger(message, "marketId");
+        Long outcomeSide = this.safeInteger(message, "outcomeSide");
         Object outcomeObj = this.opinionOutcomeByMarketIdSide(marketId, outcomeSide);
         Object sym = this.safeString(outcomeObj, "outcome");
         Object timestamp = this.safeTimestamp(message, "createdAt");
@@ -2620,7 +2620,7 @@ final Object finalTokenId = tokenId;
         }}, outcomeObj);
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object myTradesLimit = this.safeInteger(this.options, "myTradesLimit", 1000);
+            Long myTradesLimit = this.safeInteger(this.options, "myTradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)myTradesLimit).intValue());
         }
         Object stored = this.myTrades;
@@ -2634,7 +2634,7 @@ final Object finalTokenId = tokenId;
         {
             return null;
         }
-        Object errno = this.safeInteger(response, "errno");
+        Long errno = this.safeInteger(response, "errno");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(errno, null))) && Helpers.isTrue((!Helpers.isEqual(errno, 0)))))
         {
             Object errmsg = this.safeString(response, "errmsg", "");

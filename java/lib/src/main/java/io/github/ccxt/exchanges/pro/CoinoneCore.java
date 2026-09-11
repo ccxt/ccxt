@@ -130,7 +130,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
-        Object timestamp = this.safeInteger(data, "timestamp");
+        Long timestamp = this.safeInteger(data, "timestamp");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
@@ -260,7 +260,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         Object last = this.safeString(ticker, "last");
         Object baseId = this.safeString(ticker, "target_currency");
         Object quoteId = this.safeString(ticker, "quote_currency");
@@ -359,7 +359,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, ((String)symbol), stored);
         }
@@ -387,7 +387,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(symbol, market);
         Object isSellerMaker = this.safeValue(trade, "is_seller_maker");
         Object side = null;

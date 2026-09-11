@@ -176,7 +176,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object timeframe = this.findTimeframe(klineType);
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -345,7 +345,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(this.trades, symbol);
@@ -436,7 +436,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object dataEntry = this.safeDict(data, 0);
-        Object timestamp = this.safeInteger(dataEntry, "t");
+        Long timestamp = this.safeInteger(dataEntry, "t");
         Object snapshot = this.parseOrderBook(dataEntry, symbol, timestamp, "b", "a");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "id"));
@@ -523,7 +523,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         //
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object parsed = this.parseWsOrder(message);
@@ -541,7 +541,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(order, "O");
+        Long timestamp = this.safeInteger(order, "O");
         Object side = this.safeStringLower(order, "S");
         Object reduceOnly = null;
         var sidereduceOnlyVariable = this.parseOrderSideAndReduceOnly(side);
@@ -658,7 +658,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object subscription = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object tradesArray = this.myTrades;
@@ -703,7 +703,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(trade, "s");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(trade, "t");
+        Long timestamp = this.safeInteger(trade, "t");
         Object isBuyerMaker = this.safeBool(trade, "m");
         Object isPublicTrade = Helpers.isEqual(this.safeString(trade, "e"), null);
         Object side = null;
@@ -831,7 +831,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(position, "s");
         market = this.safeMarket(marketId);
-        Object timestamp = this.safeInteger(position, "E");
+        Long timestamp = this.safeInteger(position, "E");
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -1041,7 +1041,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
                     throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty listenKey")) ;
                 }
                 Helpers.addElementToObject(this.options, "listenKey", listenKey);
-                Object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
+                Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 3600000);
                 this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", listenKey, parameters);
                 // settle the flight: client.resolve () wakes every waiter and
                 // drops the future from the map
@@ -1077,7 +1077,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
             try
             {
                 (this.privatePutApiV1UserDataStream(this.extend(request, parameters))).join();
-                Object listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
+                Long listenKeyRefreshRate = this.safeInteger(this.options, "listenKeyRefreshRate", 1200000);
                 this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", listenKey, parameters);
             } catch(Exception error)
             {

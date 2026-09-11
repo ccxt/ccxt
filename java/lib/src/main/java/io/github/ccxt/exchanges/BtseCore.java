@@ -971,7 +971,7 @@ public class BtseCore extends BtseApi
                 {
                     // check if the requested time range is too large for one request
                     // if so, just omit until for correct paginated calls for not to get an error from the exchange
-                    Object duration = this.parseTimeframe(timeframe);
+                    int duration = this.parseTimeframe(timeframe);
                     Object maxDelta = Helpers.multiply(Helpers.multiply(duration, maxLimit), 1000); // parseTimeframe returns seconds, the difference below is in milliseconds
                     Object difference = Helpers.subtract(until, since);
                     if (Helpers.isTrue(Helpers.isLessThan(difference, maxDelta)))
@@ -1070,7 +1070,7 @@ public class BtseCore extends BtseApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(data, "timestamp");
+            Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks");
         });
 
@@ -1162,7 +1162,7 @@ public class BtseCore extends BtseApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rates)); i++)
             {
                 Object rate = Helpers.GetValue(rates, i);
-                Object timestamp = this.safeInteger(rate, "timestamp");
+                Long timestamp = this.safeInteger(rate, "timestamp");
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(timestamp, null))) || Helpers.isTrue((Helpers.isLessThanOrEqual(timestamp, until)))))
                 {
                     ((java.util.List<Object>)result).add(rate);
@@ -1182,7 +1182,7 @@ public class BtseCore extends BtseApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(contract, "timestamp");
+        Long timestamp = this.safeInteger(contract, "timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", BtseCore.this.safeSymbol(null, market) );
@@ -1794,14 +1794,14 @@ public class BtseCore extends BtseApi
         // dated futures carry a zero nextFundingTime as funding only applies to
         // perpetuals, observed live, the zero means no next funding and is omitted
         Object nextFundingTimestamp = this.safeIntegerOmitZero(contract, "nextFundingTime");
-        Object fundingIntervalMinutes = this.safeInteger(contract, "fundingIntervalMinutes");
+        Long fundingIntervalMinutes = this.safeInteger(contract, "fundingIntervalMinutes");
         Object interval = null;
         // a wire value of zero minutes reaches this, and zero hours is not an
         // interval: a caller annualising a rate divides by it. anything under an
         // hour rounds to the same string, and the vocabulary has no minutes
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(fundingIntervalMinutes, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(fundingIntervalMinutes, 60)))))
         {
-            Object hours = this.parseToInt(Helpers.divide(fundingIntervalMinutes, 60));
+            Long hours = this.parseToInt(Helpers.divide(fundingIntervalMinutes, 60));
             interval = Helpers.add(String.valueOf(hours), "h");
         }
         final Object finalMarket = market;
@@ -1891,7 +1891,7 @@ public class BtseCore extends BtseApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
             {
                 Object trade = Helpers.GetValue(trades, i);
-                Object timestamp = this.safeInteger(trade, "timestamp");
+                Long timestamp = this.safeInteger(trade, "timestamp");
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(timestamp, null))) || Helpers.isTrue((Helpers.isLessThanOrEqual(timestamp, until)))))
                 {
                     ((java.util.List<Object>)result).add(trade);
@@ -2171,9 +2171,9 @@ public class BtseCore extends BtseApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(trade, "positionId", "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         Object fee = null;
-        Object feeCost = this.safeNumber(trade, "feeAmount");
+        Double feeCost = this.safeNumber(trade, "feeAmount");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;
@@ -3205,7 +3205,7 @@ public class BtseCore extends BtseApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString2(order, "symbol", "market");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(order, "timestamp");
+        Long timestamp = this.safeInteger(order, "timestamp");
         // open_orders rows carry no numeric status - the state lives in
         // orderState (STATUS_ACTIVE / STATUS_INACTIVE), and time_in_force
         // is spelled timeInForce there (observed live), so both fall back
@@ -3356,8 +3356,8 @@ public class BtseCore extends BtseApi
                 String marketId = this.safeString(feeInfo, "symbol");
                 Object market = this.safeMarket(marketId);
                 Object symbol = Helpers.GetValue(market, "symbol");
-                Object makerFee = this.safeNumber(feeInfo, "makerFee");
-                Object takerFee = this.safeNumber(feeInfo, "takerFee");
+                Double makerFee = this.safeNumber(feeInfo, "makerFee");
+                Double takerFee = this.safeNumber(feeInfo, "takerFee");
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", feeInfo );
         put( "symbol", symbol );
@@ -3854,8 +3854,8 @@ public class BtseCore extends BtseApi
             }
             Object rows = this.safeList(response, "data", ((Object)response));
             Object feeInfo = this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
-            Object makerFee = this.safeNumber(feeInfo, "makerFee");
-            Object takerFee = this.safeNumber(feeInfo, "takerFee");
+            Double makerFee = this.safeNumber(feeInfo, "makerFee");
+            Double takerFee = this.safeNumber(feeInfo, "takerFee");
             return new java.util.HashMap<String, Object>() {{
                 put( "info", feeInfo );
                 put( "symbol", symbol );
@@ -3979,7 +3979,7 @@ public class BtseCore extends BtseApi
             marketId = this.safeString(position, "symbol");
         }
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(position, "timestamp");
+        Long timestamp = this.safeInteger(position, "timestamp");
         String marginType = this.safeString(position, "marginType");
         String side = (String)this.safeStringLower2(position, "positionDirection", "side");
         String positionMode = this.safeString(position, "positionMode");
@@ -4353,7 +4353,7 @@ public class BtseCore extends BtseApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(safeResponse)); i++)
             {
                 Object entrty = Helpers.GetValue(safeResponse, i);
-                Object leverageValue = this.safeInteger(entrty, "leverage");
+                Long leverageValue = this.safeInteger(entrty, "leverage");
                 String positionDirection = this.safeString(entrty, "positionDirection");
                 marginMode = this.safeStringLower(entrty, "marginMode");
                 if (Helpers.isTrue(Helpers.isEqual(positionDirection, "LONG")))

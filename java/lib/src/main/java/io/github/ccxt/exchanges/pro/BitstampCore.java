@@ -129,7 +129,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         Object storedOrderBook = this.safeValue(this.orderbooks, symbol);
         Object nonce = this.safeValue(storedOrderBook, "nonce");
         Object delta = this.safeValue(message, "data");
-        Object deltaNonce = this.safeInteger(delta, "microtimestamp");
+        Long deltaNonce = this.safeInteger(delta, "microtimestamp");
         if (Helpers.isTrue(Helpers.isEqual(deltaNonce, null)))
         {
             return;
@@ -182,12 +182,12 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
     {
         // we will consider it a fail
         Object firstElement = Helpers.GetValue(deltas, 0);
-        Object firstElementNonce = this.safeInteger(firstElement, "microtimestamp");
+        Long firstElementNonce = this.safeInteger(firstElement, "microtimestamp");
         if (Helpers.isTrue(Helpers.isEqual(firstElementNonce, null)))
         {
             return Helpers.opNeg(1);
         }
-        Object nonce = this.safeInteger(orderbook, "nonce");
+        Long nonce = this.safeInteger(orderbook, "nonce");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(nonce, null))) || Helpers.isTrue((Helpers.isLessThan(nonce, firstElementNonce)))))
         {
             return Helpers.opNeg(1);
@@ -195,7 +195,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(deltas)); i++)
         {
             Object delta = Helpers.GetValue(deltas, i);
-            Object deltaNonce = this.safeInteger(delta, "microtimestamp");
+            Long deltaNonce = this.safeInteger(delta, "microtimestamp");
             if (Helpers.isTrue(Helpers.isEqual(deltaNonce, nonce)))
             {
                 return Helpers.add(i, 1);
@@ -265,9 +265,9 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
+        Long microtimestamp = this.safeInteger(trade, "microtimestamp", 0);
         Object id = this.safeString(trade, "id");
-        Object timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
+        Long timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
         Object price = this.safeString(trade, "price");
         Object amount = this.safeString(trade, "amount");
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
@@ -275,7 +275,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             market = this.safeMarket(null, market);
         }
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object sideRaw = this.safeInteger(trade, "type");
+        Long sideRaw = this.safeInteger(trade, "type");
         Object side = ((Helpers.isTrue((Helpers.isEqual(sideRaw, 0))))) ? "buy" : "sell";
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
@@ -331,7 +331,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesArray = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, tradesArray);
         }
@@ -410,7 +410,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         //
         Object channel = this.safeString(message, "channel");
         Object order = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+        Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
@@ -626,7 +626,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         {
             Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(message));
             Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
-            Object code = this.safeNumber(data, "code");
+            Double code = this.safeNumber(data, "code");
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, feedback);
         }
         return true;
@@ -687,8 +687,8 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            Object time = this.milliseconds();
-            Object expiresIn = this.safeInteger(this.options, "expiresIn");
+            Long time = this.milliseconds();
+            Long expiresIn = this.safeInteger(this.options, "expiresIn");
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(expiresIn, null))) || Helpers.isTrue((Helpers.isGreaterThan(time, expiresIn)))))
             {
                 // single-flight leader election on a never-dialed client, see
@@ -727,7 +727,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
                         throw new AuthenticationError((String)Helpers.add(this.id, " authenticate() received an empty token")) ;
                     }
                     Object userId = this.safeString(response, "user_id");
-                    Object validity = this.safeIntegerProduct(response, "valid_sec", 1000);
+                    Long validity = this.safeIntegerProduct(response, "valid_sec", 1000);
                     Helpers.addElementToObject(this.options, "expiresIn", this.sum(time, validity));
                     Helpers.addElementToObject(this.options, "userId", userId);
                     Helpers.addElementToObject(this.options, "wsSessionToken", sessionToken);

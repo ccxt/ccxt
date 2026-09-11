@@ -56,7 +56,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object ping = this.safeInteger(message, "ping");
+            Long ping = this.safeInteger(message, "ping");
             if (Helpers.isTrue(!Helpers.isEqual(ping, null)))
             {
                 (client.send(new java.util.HashMap<String, Object>() {{
@@ -540,7 +540,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             {
                 return;
             }
-            Object legacyTimestamp = this.parseToInt(Helpers.slice(timestampStr, 0, 13));
+            Long legacyTimestamp = this.parseToInt(Helpers.slice(timestampStr, 0, 13));
             if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, legacySymbol))))
             {
                 Object ob = this.orderBook();
@@ -563,7 +563,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         }
         Object streamType = this.safeString(message, "stream_type");
         Object options = this.safeValue(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
-        Object obLimit = this.safeInteger(options, "limit", 1000);
+        Long obLimit = this.safeInteger(options, "limit", 1000);
         if (Helpers.isTrue(!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))) || Helpers.isTrue((Helpers.isEqual(streamType, "SNAPSHOT")))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, obLimit));
@@ -577,10 +577,10 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(units)); i++)
         {
             Object entry = Helpers.GetValue(units, i);
-            Object bidPrice = this.safeNumber(entry, "bid_price");
-            Object bidSize = this.safeNumber(entry, "bid_size");
-            Object askPrice = this.safeNumber(entry, "ask_price");
-            Object askSize = this.safeNumber(entry, "ask_size");
+            Double bidPrice = this.safeNumber(entry, "bid_price");
+            Double bidSize = this.safeNumber(entry, "bid_size");
+            Double askPrice = this.safeNumber(entry, "ask_price");
+            Double askSize = this.safeNumber(entry, "ask_size");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(bidPrice, null))) && Helpers.isTrue((!Helpers.isEqual(bidSize, null)))))
             {
                 Helpers.callDynamically(bids, "store", new Object[]{bidPrice, bidSize});
@@ -762,7 +762,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             Object symbol = this.safeString(parsed, "symbol", fallbackSymbol);
             if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
             {
-                Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 var stored = new ArrayCache(((Number)limit).intValue());
                 Helpers.addElementToObject(this.trades, symbol, stored);
             }
@@ -811,7 +811,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         Object marketCode = this.safeString(trade, "code");
         if (Helpers.isTrue(!Helpers.isEqual(marketCode, null)))
         {
-            Object tradeTimestamp = this.safeInteger(trade, "trade_timestamp");
+            Long tradeTimestamp = this.safeInteger(trade, "trade_timestamp");
             final Object finalMarketCode = marketCode;
             Object normalized = this.extend(trade, new java.util.HashMap<String, Object>() {{
                 put( "market", finalMarketCode );
@@ -966,7 +966,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             }
         }
         Helpers.addElementToObject(this.balance, "info", message);
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
         this.balance = this.safeBalance(this.balance);
@@ -1126,7 +1126,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         // const orderId = this.safeString (parsed, 'id');
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object cachedOrders = this.orders;
@@ -1165,7 +1165,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object marketId = this.safeString(order, "code");
         String symbol = (String) this.safeSymbol(marketId, market, "-");
-        Object timestamp = this.safeInteger(order, "order_timestamp");
+        Long timestamp = this.safeInteger(order, "order_timestamp");
         Object sideId = this.safeString(order, "ask_bid");
         String side = (String)this.safeStringLower(order, "side");
         if (Helpers.isTrue(!Helpers.isEqual(sideId, null)))

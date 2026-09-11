@@ -113,7 +113,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
     {
         Object newValue;
         synchronized (this) {
-        Object previousValue = this.safeInteger(this.options, "lastRequestId", 0);
+        Long previousValue = this.safeInteger(this.options, "lastRequestId", 0);
         newValue = this.sum(previousValue, 1);
         Helpers.addElementToObject(this.options, "lastRequestId", newValue);
         }
@@ -217,7 +217,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            Object time = this.milliseconds();
+            Long time = this.milliseconds();
             // single-flight leader election on a never-dialed client, see
             // https://github.com/ccxt/ccxt/issues/29393: the key rides the private ws url query string, so racing
             // acquires would mint several keys and losers dial streams keyed to orphaned credentials. the whole
@@ -413,13 +413,13 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "U");
-        Object high = this.safeNumber(ticker, "H");
-        Object low = this.safeNumber(ticker, "L");
-        Object open = this.safeNumber(ticker, "O");
-        Object last = this.safeNumber(ticker, "N");
-        Object bid = this.safeNumber(ticker, "BP1");
-        Object ask = this.safeNumber(ticker, "AP1");
+        Long timestamp = this.safeInteger(ticker, "U");
+        Double high = this.safeNumber(ticker, "H");
+        Double low = this.safeNumber(ticker, "L");
+        Double open = this.safeNumber(ticker, "O");
+        Double last = this.safeNumber(ticker, "N");
+        Double bid = this.safeNumber(ticker, "BP1");
+        Double ask = this.safeNumber(ticker, "AP1");
         Object baseVolume = this.safeNumber(ticker, "V");
         Object quoteVolume = this.safeNumber(ticker, "T");
         if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "inverse"), true)))
@@ -548,7 +548,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         String symbol = (String) this.safeSymbol(marketId, market);
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Object strored = Helpers.GetValue(this.trades, symbol);
@@ -763,7 +763,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         }
         if (!Helpers.isTrue((Helpers.inOp(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe)))))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
@@ -922,8 +922,8 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             Object entry = Helpers.GetValue(entries, i);
             Object entryData = this.safeDict(entry, "d", new java.util.HashMap<String, Object>() {{}});
             Object side = this.safeString(entryData, "D");
-            Object price = this.safeNumber(entryData, "P");
-            Object volume = this.safeNumber(entryData, "V");
+            Double price = this.safeNumber(entryData, "P");
+            Double volume = this.safeNumber(entryData, "V");
             if (Helpers.isTrue(Helpers.isEqual(side, "0")))
             {
                 // bid
@@ -934,7 +934,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
                 ((java.util.List<Object>)Helpers.GetValue(orderedEntries, "asks")).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, volume)));
             }
         }
-        Object timestamp = this.safeInteger(message, "mt", 0);
+        Long timestamp = this.safeInteger(message, "mt", 0);
         Object snapshot = this.parseOrderBook(orderedEntries, symbol, timestamp);
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         Object cachedMessages = ((java.util.List<Object>)Helpers.GetValue(orderbook, "cache"));
@@ -965,7 +965,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //         "mt": 1760975816446
         //     }
         //
-        Object timestamp = this.safeInteger(message, "mt", 0);
+        Long timestamp = this.safeInteger(message, "mt", 0);
         if (Helpers.isTrue(Helpers.isGreaterThan(timestamp, Helpers.GetValue(orderbook, "timestamp"))))
         {
             Object response = this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -981,8 +981,8 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object bids = Helpers.GetValue(orderbook, "bids");
         Object asks = Helpers.GetValue(orderbook, "asks");
         Object side = this.safeString(data, "D");
-        Object price = this.safeNumber(data, "P");
-        Object volume = this.safeNumber(data, "V");
+        Double price = this.safeNumber(data, "P");
+        Double volume = this.safeNumber(data, "V");
         if (Helpers.isTrue(Helpers.isEqual(side, "0")))
         {
             // bid
@@ -1078,7 +1078,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         {
             if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
             {
-                Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object stored = this.myTrades;
@@ -1173,7 +1173,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
             {
-                Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+                Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object parsed = this.parseWsOrder(data, market);
@@ -1365,7 +1365,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(position, "U");
+        Long timestamp = this.safeInteger(position, "U");
         Object direction = this.safeString(position, "p");
         Object marginMode = this.safeString(position, "i");
         return this.safePosition(new java.util.HashMap<String, Object>() {{
@@ -1493,7 +1493,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         if (Helpers.isTrue(Helpers.isEqual(action, "0")))
         {
             Object subscriptionsById = this.indexBy(client.subscriptions, "id");
-            Object subId = this.safeInteger(data, "L");
+            Long subId = this.safeInteger(data, "L");
             Object subscription = this.safeDict(subscriptionsById, subId, new java.util.HashMap<String, Object>() {{}}); // original watch subscription
             Object subHash = this.safeString(subscription, "subHash");
             Object unsubHash = Helpers.add("unsubscribe::", subHash);
@@ -1533,7 +1533,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object response = this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
-        Object requestId = this.safeInteger(data, "L");
+        Long requestId = this.safeInteger(data, "L");
         Object subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeDict(subscriptionsById, requestId, new java.util.HashMap<String, Object>() {{}});
         Object messageHash = this.safeString(subscription, "subHash");

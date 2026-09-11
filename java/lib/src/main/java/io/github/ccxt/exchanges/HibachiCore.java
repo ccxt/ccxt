@@ -336,14 +336,14 @@ public class HibachiCore extends HibachiApi
     public Object getAccountId()
     {
         this.checkRequiredCredentials();
-        Object id = this.parseToInt(this.accountId);
+        Long id = this.parseToInt(this.accountId);
         return id;
     }
 
     public Object parseMarket(Object market)
     {
         String marketId = this.safeString(market, "symbol");
-        Object numericId = this.safeNumber(market, "id");
+        Double numericId = this.safeNumber(market, "id");
         Object marketType = "swap";
         String baseId = this.safeString(market, "underlyingSymbol");
         String quoteId = this.safeString(market, "settlementSymbol");
@@ -352,7 +352,7 @@ public class HibachiCore extends HibachiApi
         String settleId = this.safeString(market, "settlementSymbol");
         String settle = (String) this.safeCurrencyCode(settleId);
         Object symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(base, "/"), quote), ":"), settle);
-        Object created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
+        Long created = this.safeIntegerProduct(market, "marketCreationTimestamp", 1000);
         final Object finalBase = base;
         return this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", marketId );
@@ -569,12 +569,12 @@ public class HibachiCore extends HibachiApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object prices = this.safeDict(ticker, "prices");
         Object stats = this.safeDict(ticker, "stats");
-        Object bid = this.safeNumber(prices, "bidPrice");
-        Object ask = this.safeNumber(prices, "askPrice");
-        Object last = this.safeNumber(prices, "tradePrice");
-        Object high = this.safeNumber(stats, "high24h");
-        Object low = this.safeNumber(stats, "low24h");
-        Object volume = this.safeNumber(stats, "volume24h");
+        Double bid = this.safeNumber(prices, "bidPrice");
+        Double ask = this.safeNumber(prices, "askPrice");
+        Double last = this.safeNumber(prices, "tradePrice");
+        Double high = this.safeNumber(stats, "high24h");
+        Double low = this.safeNumber(stats, "low24h");
+        Double volume = this.safeNumber(stats, "volume24h");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", HibachiCore.this.safeSymbol(null, market) );
             put( "timestamp", null );
@@ -632,7 +632,7 @@ public class HibachiCore extends HibachiApi
         String id = this.safeString(trade, "id");
         String price = this.safeString(trade, "price");
         String amount = this.safeString(trade, "quantity");
-        Object timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
+        Long timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
         Object cost = Precise.stringMul(price, amount);
         Object side = null;
         Object fee = null;
@@ -853,12 +853,12 @@ public class HibachiCore extends HibachiApi
         {
             reduceOnly = true;
         }
-        Object timestamp = this.safeInteger(order, "createdAt");
+        Long timestamp = this.safeInteger(order, "createdAt");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             timestamp = this.safeIntegerProduct(order, "creationTime", 1000);
         }
-        Object lastUpdateTimestamp = this.safeInteger(order, "closedAt");
+        Long lastUpdateTimestamp = this.safeInteger(order, "closedAt");
         final Object finalTimestamp = timestamp;
         final Object finalMarket = market;
         final Object finalTimeInForce = timeInForce;
@@ -956,8 +956,8 @@ public class HibachiCore extends HibachiApi
             //        "tradeMakerFeeRate": "0.00000000",
             //        "tradeTakerFeeRate": "0.00020000"
             //    },
-            Object makerFeeRate = this.safeNumber(response, "tradeMakerFeeRate");
-            Object takerFeeRate = this.safeNumber(response, "tradeTakerFeeRate");
+            Double makerFeeRate = this.safeNumber(response, "tradeMakerFeeRate");
+            Double takerFeeRate = this.safeNumber(response, "tradeTakerFeeRate");
             Object result = new java.util.HashMap<String, Object>() {{}};
             Object symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
@@ -1540,7 +1540,7 @@ public class HibachiCore extends HibachiApi
             //    },
             // }
             Object feeConfig = this.safeDict(exchangeInfo, "feeConfig");
-            Object maxFees = this.safeNumber(feeConfig, "withdrawalFees");
+            Double maxFees = this.safeNumber(feeConfig, "withdrawalFees");
             // Generate the signature
             Object message = this.encodeWithdrawMessage(amount, maxFees, withdrawAddress);
             Object signature = this.signMessage(message, this.privateKey);
@@ -2488,7 +2488,7 @@ public class HibachiCore extends HibachiApi
     public Object parseTransaction(Object transaction, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerProduct(transaction, "timestampSec", 1000);
+        Long timestamp = this.safeIntegerProduct(transaction, "timestampSec", 1000);
         String address = this.safeString(transaction, "withdrawalAddress");
         Object transactionType = this.safeString(transaction, "transactionType");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(transactionType, "deposit")) && Helpers.isTrue(!Helpers.isEqual(transactionType, "withdrawal"))))
@@ -2794,7 +2794,7 @@ public class HibachiCore extends HibachiApi
             //
             //   { "totalQuantity" : "2.3299770166" }
             //
-            Object timestamp = this.milliseconds();
+            Long timestamp = this.milliseconds();
             return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "openInterestAmount", HibachiCore.this.safeString(response, "totalQuantity") );
@@ -2846,8 +2846,8 @@ public class HibachiCore extends HibachiApi
             // }
             //
             Object funding = this.safeDict(response, "fundingRateEstimation", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.milliseconds();
-            Object nextFundingTimestamp = this.safeIntegerProduct(funding, "nextFundingTimestamp", 1000);
+            Long timestamp = this.milliseconds();
+            Long nextFundingTimestamp = this.safeIntegerProduct(funding, "nextFundingTimestamp", 1000);
             return new java.util.HashMap<String, Object>() {{
                 put( "info", funding );
                 put( "symbol", Helpers.GetValue(market, "symbol") );
@@ -2918,7 +2918,7 @@ public class HibachiCore extends HibachiApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
-                Object timestamp = this.safeIntegerProduct(entry, "fundingTimestamp", 1000);
+                Long timestamp = this.safeIntegerProduct(entry, "fundingTimestamp", 1000);
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", symbol );

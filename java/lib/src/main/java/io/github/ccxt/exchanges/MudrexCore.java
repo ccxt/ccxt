@@ -404,13 +404,13 @@ public class MudrexCore extends MudrexApi
                 put( "aggregation", MudrexCore.this.safeString(MudrexCore.this.timeframes, timeframe, timeframe) );
             }};
             // the endpoint requires an explicit time window (in seconds)
-            Object duration = this.parseTimeframe(timeframe);
+            int duration = this.parseTimeframe(timeframe);
             Object requestLimit = limit;
             if (Helpers.isTrue(Helpers.isEqual(requestLimit, null)))
             {
                 requestLimit = 500;
             }
-            Object now = this.seconds();
+            Long now = this.seconds();
             Object startTime = null;
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -424,7 +424,7 @@ public class MudrexCore extends MudrexApi
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchOHLCV() missing startTime")) ;
             }
             Object endTime = Helpers.add(startTime, Helpers.multiply(duration, requestLimit));
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -572,7 +572,7 @@ public class MudrexCore extends MudrexApi
         String ms = this.safeString(ticker, "symbol");
         market = this.safeMarket(ms, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object pct = this.safeNumber(ticker, "change_perc");
+        Double pct = this.safeNumber(ticker, "change_perc");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
@@ -967,7 +967,7 @@ public class MudrexCore extends MudrexApi
                 Object riskData = this.safeDict(riskResponse, "data", riskResponse);
                 return this.parseOrder(riskData, market);
             }
-            Object lev = this.safeInteger(parameters, "leverage", 1);
+            Long lev = this.safeInteger(parameters, "leverage", 1);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "market"))) && Helpers.isTrue((Helpers.isEqual(price, null)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument for market orders")) ;

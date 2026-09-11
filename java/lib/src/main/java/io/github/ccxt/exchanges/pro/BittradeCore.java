@@ -233,7 +233,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Object tradesCache = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesCache, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesCache = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, tradesCache);
         }
@@ -335,7 +335,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
         }
@@ -425,7 +425,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //
         Object symbol = this.safeString(subscription, "symbol");
         Object messageHash = this.safeString(subscription, "messageHash");
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         Object orderbook = Helpers.GetValue(this.orderbooks, ((String)symbol));
         Object data = this.safeValue(message, "data");
         Object snapshot = this.parseOrderBook(data, symbol);
@@ -452,7 +452,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             try
             {
                 Object symbol = this.safeString(subscription, "symbol");
-                Object limit = this.safeInteger(subscription, "limit");
+                Long limit = this.safeInteger(subscription, "limit");
                 Object parameters = this.safeValue(subscription, "params");
                 Object api = this.safeString(this.options, "api", "api");
                 Object hostname = new java.util.HashMap<String, Object>() {{
@@ -488,8 +488,8 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = this.safeFloat(delta, 0);
-        Object amount = this.safeFloat(delta, 1);
+        Double price = this.safeFloat(delta, 0);
+        Double amount = this.safeFloat(delta, 1);
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
@@ -524,8 +524,8 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //     }
         //
         Object tick = this.safeValue(message, "tick", new java.util.HashMap<String, Object>() {{}});
-        Object seqNum = this.safeInteger(tick, "seqNum");
-        Object prevSeqNum = this.safeInteger(tick, "prevSeqNum");
+        Long seqNum = this.safeInteger(tick, "seqNum");
+        Long prevSeqNum = this.safeInteger(tick, "prevSeqNum");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(prevSeqNum, null))) || Helpers.isTrue((Helpers.isEqual(seqNum, null)))))
         {
             return orderbook;
@@ -537,7 +537,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "nonce", seqNum);
-            Object timestamp = this.safeInteger(message, "ts");
+            Long timestamp = this.safeInteger(message, "ts");
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         }
@@ -591,7 +591,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         {
             return;
         }
-        Object limit = this.safeInteger(subscription, "limit");
+        Long limit = this.safeInteger(subscription, "limit");
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
             ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);

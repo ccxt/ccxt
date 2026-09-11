@@ -936,7 +936,7 @@ public class BittradeCore extends BittradeApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = (String) this.safeSymbol(null, market);
-        Object timestamp = this.safeInteger(ticker, "ts");
+        Long timestamp = this.safeInteger(ticker, "ts");
         Object bid = null;
         Object bidVolume = null;
         Object ask = null;
@@ -1051,7 +1051,7 @@ public class BittradeCore extends BittradeApi
                     throw new BadSymbol((String)Helpers.add(Helpers.add(this.id, " fetchOrderBook() returned empty response: "), this.json(response))) ;
                 }
                 Object tick = this.safeValue(response, "tick");
-                Object timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
+                Long timestamp = this.safeInteger(tick, "ts", this.safeInteger(response, "ts"));
                 Object result = this.parseOrderBook(tick, symbol, timestamp);
                 Helpers.addElementToObject(result, "nonce", this.safeInteger(tick, "version"));
                 return result;
@@ -1106,7 +1106,7 @@ public class BittradeCore extends BittradeApi
             //
             Object tick = this.safeDict(response, "tick", new java.util.HashMap<String, Object>() {{}});
             Object ticker = this.parseTicker(tick, market);
-            Object timestamp = this.safeInteger(response, "ts");
+            Long timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
             return ticker;
@@ -1136,7 +1136,7 @@ public class BittradeCore extends BittradeApi
             symbols = this.marketSymbols(symbols);
             Object response = (this.marketGetTickers(parameters)).join();
             Object tickers = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object timestamp = this.safeInteger(response, "ts");
+            Long timestamp = this.safeInteger(response, "ts");
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
@@ -1984,7 +1984,7 @@ public class BittradeCore extends BittradeApi
         }
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(order, "created-at");
+        Long timestamp = this.safeInteger(order, "created-at");
         String clientOrderId = this.safeString(order, "client-order-id");
         String amount = this.safeString(order, "amount");
         String filled = this.safeString2(order, "filled-amount", "field-amount"); // typo in their API, filled amount
@@ -2113,7 +2113,7 @@ public class BittradeCore extends BittradeApi
                 var createMarketBuyOrderRequiresPriceparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "createMarketBuyOrderRequiresPrice", true);
                 createMarketBuyOrderRequiresPrice = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(0);
                 parameters = ((java.util.List<Object>) createMarketBuyOrderRequiresPriceparametersVariable).get(1);
-                Object cost = this.safeNumber(parameters, "cost");
+                Double cost = this.safeNumber(parameters, "cost");
                 parameters = this.omit(parameters, "cost");
                 if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                 {
@@ -2573,7 +2573,7 @@ public class BittradeCore extends BittradeApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(transaction, "created-at");
+        Long timestamp = this.safeInteger(transaction, "created-at");
         String code = (String) this.safeCurrencyCode(this.safeString(transaction, "currency"));
         String type = this.safeString(transaction, "type");
         if (Helpers.isTrue(Helpers.isEqual(type, "withdraw")))

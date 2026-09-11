@@ -771,11 +771,10 @@ export function installJavaLocalTypes (transpiler) {
 //     SafeInteger2 -> Long (bodies untouched; SafeIntegerN already declared Long).
 //   * java/lib/src/main/java/io/github/ccxt/Helpers.java: parseInt -> Long, parseFloat ->
 //     Double (toLong/toDouble already produced exactly those boxes).
-//   * patchJavaNumericMethodReturns() below retypes the GENERATED methods (parseToInt,
+//   * installJavaNumericLocalTypes() (part 1) retypes the GENERATED methods (parseToInt,
 //     safeNumber, safeNumber2, safeNumberN) at print time by wrapping printFunctionType
 //     — their signatures live below the "METHODS BELOW THIS LINE" delimiter (rewritten
 //     from ts/src/base/Exchange.ts by every regen), so a text edit would not survive.
-//
 // JAVA TRAPS this section encodes (each differential-tested with a javac harness):
 //   * a PRIMITIVE local cannot hold null: `int x; x = null` does not compile, so a
 //     nullish write rejects the int family outright (parseTimeframe never returns null,
@@ -784,7 +783,7 @@ export function installJavaLocalTypes (transpiler) {
 //     parseToInt prints `Object`, and becomes a NUMERIC conditional the moment the arm
 //     is statically Long — javac then applies binary numeric promotion and UNBOXES the
 //     arm, so a null return throws NPE where the baseline stored null. The retype is
-//     therefore paired with patchJavaNumericConditionals: any conditional arm that is
+//     therefore paired with installJavaNumericLocalTypes() (part 2): any conditional arm that is
 //     one of the newly retyped calls gets a restoring `((Object) ...)` cast when the
 //     other arm is a numeric literal or a different family box (10 sites tree-wide,
 //     all `? ... parseToInt(...) : 0` / `? 0.00001 : safeNumber(...)`).
@@ -842,7 +841,7 @@ const JAVA_NUMERIC_RETYPED_CALLS = new Set ([
     'safeNumber', 'safeNumber2', 'safeNumberN', 'parseToInt',
 ]);
 
-// GENERATED methods whose erased `Object` return type patchJavaNumericMethodReturns
+// GENERATED methods whose erased `Object` return type installJavaNumericLocalTypes
 // names at print time. Bodies need no edit — every return expression is already
 // statically the named type (parseNumber -> Double, Helpers.parseInt -> Long).
 const JAVA_NUMERIC_METHOD_RETURN_TYPES = {
@@ -860,8 +859,9 @@ const JAVA_NUMERIC_METHOD_RETURN_TYPES = {
 // else (a venue override, a same-named venue helper) is left `Object`.
 const NUMERIC_BASE_TIER_DECLARATION_FILE = /(^|[\\/])ts[\\/]src[\\/]base[\\/](Exchange(\.nooverloads\.\d+)?\.ts|PredictionExchange(\.nooverloads\.\d+)?\.ts|functions[\\/](type|time|misc)\.ts)$/;
 // `milliseconds = now` where `now = Date.now` (ts/src/base/functions/time.ts), so a
-// `this.milliseconds()` call resolves to the lib signature.
-const NUMERIC_LIB_DTS_FILE = /(^|[\\/])node_modules[\\/]typescript6[\\/]lib[\\/]lib\..*\.d\.ts$/;
+// `this.milliseconds()` call resolves to the Date.now signature in whichever
+// typescript package the resolution cache nests it under.
+const NUMERIC_LIB_DTS_FILE = /(^|[\\/])node_modules[\\/](?:[^\\/]+[\\/]node_modules[\\/])?typescript6?[\\/]lib[\\/]lib\.[^\\/]*\.d\.ts$/;
 
 // method names whose Java print is safe on a narrowed numeric receiver: toString ->
 // String.valueOf(x) and toFixed -> toFixed(x, d) are the only Object-taking prints;
@@ -909,11 +909,16 @@ function numericFamilyCallType (printer, node) {
         declaration = undefined;
     }
     if (declaration === undefined) {
+        numericDebug (`miss ${method}: unresolved`);
         return undefined;
     }
     const fileName = declaration.getSourceFile?.().fileName;
-    if (fileName === undefined
-        || (!NUMERIC_BASE_TIER_DECLARATION_FILE.test (fileName) && !NUMERIC_LIB_DTS_FILE.test (fileName))) {
+    if (fileName === undefined) {
+        numericDebug (`miss ${method}: no file`);
+        return undefined;
+    }
+    if (!NUMERIC_BASE_TIER_DECLARATION_FILE.test (fileName) && !NUMERIC_LIB_DTS_FILE.test (fileName)) {
+        numericDebug (`miss ${method}: ${fileName}`);
         return undefined;
     }
     return javaType;

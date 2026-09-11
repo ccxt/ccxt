@@ -1113,7 +1113,7 @@ public class HollaexCore extends HollaexApi
             Object until = this.safeInteger(parameters, "until");
             Object timeDelta = Helpers.multiply(Helpers.multiply(this.parseTimeframe(timeframe), maxLimit), 1000);
             Object start = since;
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             if (Helpers.isTrue(Helpers.isEqual(until, null)))
             {
                 until = now; // the exchange has not a lot of trades, so if we count until by limit and limit is small, it may return empty result
@@ -1581,7 +1581,7 @@ public class HollaexCore extends HollaexApi
                 put( "size", HollaexCore.this.amountToPrecision(symbol, amount) );
                 put( "type", finalType );
             }};
-            Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop")));
+            Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop")));
             Object meta = this.safeValue(parameters, "meta", new java.util.HashMap<String, Object>() {{}});
             Object exchangeSpecificParam = this.safeBool(meta, "post_only", false);
             Object isMarketOrder = Helpers.isEqual(type, "market");
@@ -2133,7 +2133,7 @@ public class HollaexCore extends HollaexApi
         Long timestamp = this.parse8601(this.safeString(transaction, "created_at"));
         Long updated = this.parse8601(this.safeString(transaction, "updated_at"));
         String type = this.safeString(transaction, "type");
-        Object amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount");
         String address = this.safeString(transaction, "address");
         Object addressTo = null;
         Object addressFrom = null;
@@ -2168,7 +2168,7 @@ public class HollaexCore extends HollaexApi
         }
         String feeCurrencyId = this.safeString(transaction, "fee_coin");
         String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId, currency);
-        Object feeCost = this.safeNumber(transaction, "fee");
+        Double feeCost = this.safeNumber(transaction, "fee");
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -2341,7 +2341,7 @@ public class HollaexCore extends HollaexApi
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a networkCode argument")) ;
                 }
                 Object networkCodeUpper = ((String)networkCode).toUpperCase(); // default to the upper case network code
-                Object withdrawalFee = this.safeNumber(value, "value");
+                Double withdrawalFee = this.safeNumber(value, "value");
                 Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCodeUpper, new java.util.HashMap<String, Object>() {{
     put( "deposit", null );
     put( "withdraw", withdrawalFee );

@@ -217,7 +217,7 @@ public class BinanceCore extends BinanceApi
                 }
                 return queryMarkets;
             }
-            Object maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
+            Long maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 200));
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries", "limit")));
             Object rawTopics = (this.fetchRawTopics(maxMarkets, rest)).join();
             Object parsedEvents = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -451,7 +451,7 @@ public class BinanceCore extends BinanceApi
             }
             Object allQueriesLength = Helpers.getArrayLength(allQueries);
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries")));
-            Object userLimit = this.safeInteger(parameters, "limit");
+            Long userLimit = this.safeInteger(parameters, "limit");
             Object fetchCap = this.safeInteger(this.options, "maxFetchEventsResults", 100);
             if (Helpers.isTrue(!Helpers.isEqual(userLimit, null)))
             {
@@ -687,7 +687,7 @@ public class BinanceCore extends BinanceApi
         Object topicId = this.safeString(rawTopic, "marketTopicId");
         Object slug = this.safeString(rawTopic, "slug");
         Object title = this.safeString(rawTopic, "title");
-        Object endDate = this.safeInteger(rawTopic, "endDate");
+        Long endDate = this.safeInteger(rawTopic, "endDate");
         Long created = (Long) this.safeInteger2(rawTopic, "publishedAt", "startDate");
         Object status = this.safeString(rawTopic, "status");
         Object active = anyActive;
@@ -769,7 +769,7 @@ public class BinanceCore extends BinanceApi
             active = Helpers.isTrue((Helpers.isEqual(status, "REGISTERED"))) || Helpers.isTrue((Helpers.isEqual(status, "OPEN")));
         }
         Object resolved = Helpers.isTrue((Helpers.isEqual(status, "RESOLVED"))) || Helpers.isTrue((Helpers.isEqual(status, "SETTLED")));
-        Object endDate = this.safeInteger(rawTopic, "endDate");
+        Long endDate = this.safeInteger(rawTopic, "endDate");
         Object feeRateBps = this.safeString(rawTopic, "feeRateBps", "200");
         Object feeRate = this.parseNumber(Precise.stringDiv(feeRateBps, "10000"));
         Object decimalPrecision = this.safeString(rawMarket, "decimalPrecision", "2");
@@ -778,8 +778,8 @@ public class BinanceCore extends BinanceApi
             put( "amount", 0.01 );
             put( "price", pricePrecision );
         }};
-        Object volume = this.safeNumber(rawMarket, "tradeVolume");
-        Object liquidity = this.safeNumber(rawMarket, "liquidity");
+        Double volume = this.safeNumber(rawMarket, "tradeVolume");
+        Double liquidity = this.safeNumber(rawMarket, "liquidity");
         Object rawOutcomes = (java.util.List<Object>)(this.safeList(rawMarket, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
         Object outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object resolvedOutcomeRaw = null;
@@ -980,7 +980,7 @@ final Object finalMarketSymbol = marketSymbol;
                 last = this.parseNumber(lastString);
             }
         }
-        Object now = this.milliseconds();
+        Long now = this.milliseconds();
         final Object finalLast = last;
         return this.safePredictionTicker(new java.util.HashMap<String, Object>() {{
             put( "outcome", BinanceCore.this.safeString(outcomeObj, "outcome") );
@@ -1096,7 +1096,7 @@ final Object finalMarketSymbol = marketSymbol;
             //         "asks": [ { "price": "0.52", "size": "3000.00" } ]
             //     }
             //
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             Object orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
             return this.safePredictionOrderBook(orderbook, outcomeObj);
         });
@@ -1209,7 +1209,7 @@ final Object finalMarketSymbol = marketSymbol;
             outcomeObj = this.safeOutcome(outcomeName);
         }
         String side = (String)this.safeStringLower(order, "side");
-        Object timestamp = this.safeInteger(order, "createTime");
+        Long timestamp = this.safeInteger(order, "createTime");
         final Object finalOutcomeObj = outcomeObj;
         return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
             put( "id", BinanceCore.this.safeString(order, "orderId") );
@@ -1299,7 +1299,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Long offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if (Helpers.isTrue(Helpers.isGreaterThan(offSet, 0)))
             {
                 Helpers.addElementToObject(request, "offset", offSet);
@@ -1400,7 +1400,7 @@ final Object finalMarketSymbol = marketSymbol;
             }
             Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Long offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if (Helpers.isTrue(Helpers.isGreaterThan(offSet, 0)))
             {
                 Helpers.addElementToObject(request, "offset", offSet);
@@ -1419,7 +1419,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 Helpers.addElementToObject(request, "startDate", this.yyyymmdd(since));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -1637,7 +1637,7 @@ final Object finalMarketSymbol = marketSymbol;
             outcomeName = Helpers.add(outcomeName, Helpers.add(":", outcome));
             outcomeObj = this.safeOutcome(outcomeName);
         }
-        Object timestamp = this.safeInteger(position, "createdTime");
+        Long timestamp = this.safeInteger(position, "createdTime");
         Object totalCost = this.parseNumber(this.safeString(position, "totalCost"));
         final Object finalOutcomeObj = outcomeObj;
         return this.safePredictionPosition(new java.util.HashMap<String, Object>() {{
@@ -1713,7 +1713,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "status", "FILLED" );
             }};
-            Object offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
+            Long offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if (Helpers.isTrue(Helpers.isGreaterThan(offSet, 0)))
             {
                 Helpers.addElementToObject(request, "offset", offSet);
@@ -1732,7 +1732,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 Helpers.addElementToObject(request, "startDate", this.yyyymmdd(since));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -1835,7 +1835,7 @@ final Object finalMarketSymbol = marketSymbol;
             outcomeName = Helpers.add(outcomeName, Helpers.add(":", outcome));
             outcomeObj = this.safeOutcome(outcomeName);
         }
-        Object timestamp = this.safeInteger(trade, "createTime");
+        Long timestamp = this.safeInteger(trade, "createTime");
         Object filled = this.safeString(trade, "filledShareQty");
         Object cost = this.safeString(trade, "filledUsdtAmount");
         Object price = this.safeString(trade, "price");
@@ -1999,7 +1999,7 @@ final Object finalMarketSymbol = marketSymbol;
     public Object priceToPrecision(Object outcome, Object price)
     {
         Object market = this.market(outcome);
-        Object prec = this.safeNumber(this.safeDict(((Object)market), "precision", new java.util.HashMap<String, Object>() {{}}), "price", 0.0001);
+        Double prec = this.safeNumber(this.safeDict(((Object)market), "precision", new java.util.HashMap<String, Object>() {{}}), "price", 0.0001);
         Object decimals = 4;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(prec, null))) && Helpers.isTrue((Helpers.isGreaterThan(prec, 0)))))
         {
@@ -2011,7 +2011,7 @@ final Object finalMarketSymbol = marketSymbol;
     public Object amountToPrecision(Object outcome, Object amount)
     {
         Object market = this.market(outcome);
-        Object prec = this.safeNumber(this.safeDict(((Object)market), "precision", new java.util.HashMap<String, Object>() {{}}), "amount", 0.01);
+        Double prec = this.safeNumber(this.safeDict(((Object)market), "precision", new java.util.HashMap<String, Object>() {{}}), "amount", 0.01);
         Object decimals = 2;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(prec, null))) && Helpers.isTrue((Helpers.isGreaterThan(prec, 0)))))
         {
@@ -2060,7 +2060,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object defaultSlippage = this.safeString(this.options, "defaultSlippage", "0.05");
             Object slippage = this.safeString(parameters, "slippage", defaultSlippage);
             Object cost = this.safeString(parameters, "cost");
-            Object slippageBps = this.parseToInt(Precise.stringMul(slippage, "10000"));
+            Long slippageBps = this.parseToInt(Precise.stringMul(slippage, "10000"));
             final Object finalTypeUpper = typeUpper;
             Object commonRequest = new java.util.HashMap<String, Object>() {{
                 put( "walletAddress", Helpers.GetValue(wallet, "walletAddress") );
@@ -2342,7 +2342,7 @@ final Object finalMarketSymbol = marketSymbol;
         Object extendedParams = this.extend(new java.util.HashMap<String, Object>() {{
             put( "timestamp", BinanceCore.this.nonce() );
         }}, query);
-        Object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
+        Long defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
         if (Helpers.isTrue(!Helpers.isEqual(defaultRecvWindow, null)))
         {
             Helpers.addElementToObject(extendedParams, "recvWindow", defaultRecvWindow);

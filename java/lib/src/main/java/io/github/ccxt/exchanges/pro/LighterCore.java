@@ -161,8 +161,8 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = this.safeFloat(delta, "price");
-        Object amount = this.safeFloat(delta, "size");
+        Double price = this.safeFloat(delta, "price");
+        Double amount = this.safeFloat(delta, "size");
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
@@ -180,7 +180,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         this.handleDeltas(Helpers.GetValue(orderbook, "asks"), this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
         this.handleDeltas(Helpers.GetValue(orderbook, "bids"), this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(data, "offset"));
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
         return orderbook;
@@ -219,7 +219,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object marketId = Helpers.GetValue(parts, 1);
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Long timestamp = this.safeInteger(message, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -633,7 +633,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         Object tradeId = this.safeString(trade, "trade_id");
         Object priceString = this.safeString(trade, "price");
         Object amountString = this.safeString(trade, "size");
@@ -709,7 +709,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -818,15 +818,15 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         Object tradeId = this.safeString(trade, "trade_id");
         Object priceString = this.safeString(trade, "price");
         Object amountString = this.safeString(trade, "size");
         Object costString = this.safeString(trade, "usd_amount");
         Object isMakerAsk = this.safeBool(trade, "is_maker_ask");
-        Object accountIndex = this.safeInteger(trade, "accountIndex");
-        Object bidAccountId = this.safeInteger(trade, "bid_account_id");
-        Object askAccountId = this.safeInteger(trade, "ask_account_id");
+        Long accountIndex = this.safeInteger(trade, "accountIndex");
+        Long bidAccountId = this.safeInteger(trade, "bid_account_id");
+        Long askAccountId = this.safeInteger(trade, "ask_account_id");
         Object side = null;
         Object order = null;
         Object takerOrMaker = null;
@@ -931,7 +931,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         }
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
@@ -1078,7 +1078,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(liquidation, "timestamp");
+        Long timestamp = this.safeInteger(liquidation, "timestamp");
         Object isMakerAsk = this.safeBool(liquidation, "is_maker_ask");
         Object side = ((Helpers.isTrue((Helpers.isEqual(isMakerAsk, true))))) ? "buy" : "sell";
         Object contracts = this.safeString(liquidation, "size");
@@ -1152,7 +1152,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object stored = this.safeValue(this.liquidations, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
+            Long limit = this.safeInteger(this.options, "liquidationsLimit", 1000);
             this.liquidations = new ArrayCache(((Number)limit).intValue());
             stored = this.liquidations;
         }
@@ -1333,7 +1333,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Helpers.addElementToObject(account, "info", stats);
             Helpers.addElementToObject(balance, "USDC", account);
         }
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(balance, "timestamp", timestamp);
         Helpers.addElementToObject(balance, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.balance, type, this.safeBalance(balance));
@@ -1435,7 +1435,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
     public Object requestId(Object url)
     {
         Object options = this.safeDict(this.options, "requestId", this.createSafeDictionary());
-        Object previousValue = this.safeInteger(options, url, 0);
+        Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
         Helpers.addElementToObject(Helpers.GetValue(this.options, "requestId"), url, newValue);
         return this.numberToString(newValue);
@@ -1620,7 +1620,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         }
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache(((Number)limit).intValue());
         }
         Object stored = this.orders;

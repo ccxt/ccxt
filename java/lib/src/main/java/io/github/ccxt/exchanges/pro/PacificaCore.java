@@ -172,7 +172,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             //   "type": "create_order"
             // }
             //
-            Object code = this.safeInteger(response, "code");
+            Long code = this.safeInteger(response, "code");
             Object success = false;
             if (Helpers.isTrue(Helpers.isEqual(code, 200)))
             {
@@ -252,7 +252,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             //   "t": 1749223026150,
             //   "type": "edit_order"
             // }
-            Object code = this.safeInteger(response, "code");
+            Long code = this.safeInteger(response, "code");
             Object success = false;
             if (Helpers.isTrue(Helpers.isEqual(code, 200)))
             {
@@ -429,7 +429,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             //   "type": "cancel_order"
             // }
             //
-            Object code = this.safeInteger(response, "code");
+            Long code = this.safeInteger(response, "code");
             Object success = false;
             if (Helpers.isTrue(Helpers.isEqual(code, 200)))
             {
@@ -646,9 +646,9 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             put( "bids", PacificaCore.this.safeList(levels, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
             put( "asks", PacificaCore.this.safeList(levels, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
         }};
-        Object timestamp = this.safeInteger(entry, "t");
+        Long timestamp = this.safeInteger(entry, "t");
         Object snapshot = this.parseOrderBook(result, symbol, timestamp, "bids", "asks", "p", "a");
-        Object nonce = this.safeInteger(entry, "li");
+        Long nonce = this.safeInteger(entry, "li");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(nonce, null))) && Helpers.isTrue((!Helpers.isEqual(nonce, 0)))))
         {
             Helpers.addElementToObject(snapshot, "nonce", nonce);
@@ -941,7 +941,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         //
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
@@ -1086,7 +1086,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -1138,7 +1138,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "t");
+        Long timestamp = this.safeInteger(trade, "t");
         Object price = this.safeString(trade, "p");
         Object amount = this.safeString(trade, "a");
         Object marketId = this.safeString(trade, "s");
@@ -1323,7 +1323,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         Object ohlcv = this.safeValue(symbolOhlcvs, timeframe);
         if (Helpers.isTrue(Helpers.isEqual(ohlcv, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             ohlcv = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(symbolOhlcvs, timeframe, ohlcv);
         }
@@ -1471,7 +1471,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object dataLength = Helpers.getArrayLength(data);

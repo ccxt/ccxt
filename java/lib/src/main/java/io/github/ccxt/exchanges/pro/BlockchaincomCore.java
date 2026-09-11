@@ -232,7 +232,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
             }
@@ -443,7 +443,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -615,7 +615,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
         Object cachedOrders = this.orders;
         if (Helpers.isTrue(Helpers.isEqual(cachedOrders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             cachedOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.orders = cachedOrders;
         }

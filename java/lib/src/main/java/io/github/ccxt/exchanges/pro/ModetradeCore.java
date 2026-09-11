@@ -80,7 +80,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
     public Object requestId(Object url)
     {
         Object options = this.safeDict(this.options, "requestId", new java.util.HashMap<String, Object>() {{}});
-        Object previousValue = this.safeInteger(options, url, 0);
+        Long previousValue = this.safeInteger(options, url, 0);
         Object newValue = this.sum(previousValue, 1);
         Helpers.addElementToObject(Helpers.GetValue(this.options, "requestId"), url, newValue);
         return newValue;
@@ -176,7 +176,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         Object snapshot = this.parseOrderBook(data, symbol, timestamp, "bids", "asks");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         client.resolve(orderbook, topic);
@@ -276,7 +276,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object topic = this.safeString(message, "topic");
         Object marketId = this.safeString(data, "symbol");
         Object market = this.safeMarket(marketId);
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         Helpers.addElementToObject(data, "date", timestamp);
         Object ticker = this.parseWsTicker(data, market);
         Helpers.addElementToObject(ticker, "symbol", Helpers.GetValue(market, "symbol"));
@@ -342,7 +342,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //
         Object topic = this.safeString(message, "topic");
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
@@ -410,7 +410,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         //
         Object topic = this.safeString(message, "topic");
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
@@ -433,7 +433,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object marketId = this.safeString(ticker, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = this.safeString(market, "symbol");
-        Object timestamp = this.safeInteger(ticker, "ts");
+        Long timestamp = this.safeInteger(ticker, "ts");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -530,7 +530,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
         }
@@ -595,7 +595,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         // }
         //
         Object topic = this.safeString(message, "topic");
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "symbol");
         Object market = this.safeMarket(marketId);
@@ -605,7 +605,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         }}), market);
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             var stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -661,7 +661,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object amount = this.safeString2(trade, "executedQuantity", "size");
         Object cost = Precise.stringMul(price, amount);
         String side = (String)this.safeStringLower(trade, "side");
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         Object takerOrMaker = null;
         Object maker = this.safeBool(trade, "maker");
         if (Helpers.isTrue(!Helpers.isEqual(maker, null)))
@@ -975,14 +975,14 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object timestamp = this.safeInteger(order, "timestamp");
+        Long timestamp = this.safeInteger(order, "timestamp");
         Object fee = new java.util.HashMap<String, Object>() {{
             put( "cost", ModetradeCore.this.safeString(order, "totalFee") );
             put( "currency", ModetradeCore.this.safeString(order, "feeAsset") );
         }};
         Object priceString = this.safeString(order, "price");
         Object price = this.safeNumber(order, "price");
-        Object avgPrice = this.safeNumber(order, "avgPrice");
+        Double avgPrice = this.safeNumber(order, "avgPrice");
         if (Helpers.isTrue(Helpers.isTrue(Precise.stringEq(priceString, "0")) && Helpers.isTrue((!Helpers.isEqual(avgPrice, null)))))
         {
             price = avgPrice;
@@ -990,7 +990,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object amount = this.safeString(order, "quantity");
         String side = (String)this.safeStringLower(order, "side");
         String type = (String)this.safeStringLower(order, "type");
-        Object filled = this.safeNumber(order, "totalExecutedQuantity");
+        Double filled = this.safeNumber(order, "totalExecutedQuantity");
         Object totalExecQuantity = this.safeString(order, "totalExecutedQuantity");
         Object remaining = amount;
         if (Helpers.isTrue(Precise.stringGe(amount, totalExecQuantity)))
@@ -1001,7 +1001,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object status = this.parseOrderStatus(rawStatus);
         Object trades = null;
         Object clientOrderId = this.safeString(order, "clientOrderId");
-        Object triggerPrice = this.safeNumber(order, "triggerPrice");
+        Double triggerPrice = this.safeNumber(order, "triggerPrice");
         final Object finalPrice = price;
         final Object finalRemaining = remaining;
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
@@ -1098,7 +1098,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
             {
-                Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+                Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
                 this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object cachedOrders = this.orders;
@@ -1165,7 +1165,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object trades = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(trades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             trades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             this.myTrades = trades;
         }
@@ -1379,7 +1379,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         }
         Object contractSize = this.safeString(market, "contractSize");
         Object markPrice = this.safeString(position, "markPrice");
-        Object timestamp = this.safeInteger(position, "timestamp");
+        Long timestamp = this.safeInteger(position, "timestamp");
         Object entryPrice = this.safeString(position, "averageOpenPrice");
         Object unrealisedPnl = this.safeString(position, "unsettledPnl");
         size = Precise.stringAbs(size);
@@ -1481,7 +1481,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object balances = this.safeDict(data, "balances", new java.util.HashMap<String, Object>() {{}});
         Object keys = Helpers.objectKeys(balances);
-        Object ts = this.safeInteger(message, "ts");
+        Long ts = this.safeInteger(message, "ts");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", ts);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(ts));

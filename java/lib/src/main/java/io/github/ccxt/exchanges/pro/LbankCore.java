@@ -67,7 +67,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
     {
         Object newValue;
         synchronized (this) {
-        Object previousValue = this.safeInteger(this.options, "requestId", 0);
+        Long previousValue = this.safeInteger(this.options, "requestId", 0);
         newValue = this.sum(previousValue, 1);
         Helpers.addElementToObject(this.options, "requestId", newValue);
         }
@@ -254,7 +254,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
             }
@@ -272,7 +272,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
             {
-                Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+                Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
                 stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
                 Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
             }
@@ -556,7 +556,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -590,7 +590,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, 0);
+        Long timestamp = this.safeInteger(trade, 0);
         Object datetime = ((Helpers.isTrue((!Helpers.isEqual(timestamp, null))))) ? (this.iso8601(timestamp)) : (this.safeString(trade, "TS"));
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
@@ -702,7 +702,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         Object myOrders = this.orders;
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             myOrders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object order = this.parseWsOrder(message);
@@ -773,7 +773,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         }
         Object marketId = this.safeString(order, "pair");
         String symbol = (String) this.safeSymbol(marketId, market, "_");
-        Object timestamp = this.safeInteger(orderUpdate, "updateTime");
+        Long timestamp = this.safeInteger(orderUpdate, "updateTime");
         Object status = this.safeString(orderUpdate, "orderStatus");
         Object orderAmount = this.safeString(orderUpdate, "orderAmt");
         Object cost = null;
@@ -1138,7 +1138,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             this.checkRequiredCredentials();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             Object messageHash = "authenticateFlight";
             if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
             {
@@ -1168,7 +1168,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
     }});
                 } else
                 {
-                    Object expires = this.safeInteger(authenticated, "expires", 0);
+                    Long expires = this.safeInteger(authenticated, "expires", 0);
                     if (Helpers.isTrue(Helpers.isLessThan(expires, now)))
                     {
                         final Object finalAuthenticated = authenticated;

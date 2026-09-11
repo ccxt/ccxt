@@ -977,7 +977,7 @@ public class CoincheckCore extends CoincheckApi
                     Helpers.addElementToObject(request, "amount", amount);
                 } else
                 {
-                    Object cost = this.safeNumber(parameters, "cost");
+                    Double cost = this.safeNumber(parameters, "cost");
                     parameters = this.omit(parameters, "cost");
                     if (Helpers.isTrue(!Helpers.isEqual(cost, null)))
                     {
@@ -1209,13 +1209,13 @@ public class CoincheckCore extends CoincheckApi
         String id = this.safeString(transaction, "id");
         Long timestamp = this.parse8601(this.safeString(transaction, "created_at"));
         String address = this.safeString(transaction, "address");
-        Object amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount");
         String currencyId = this.safeString(transaction, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String status = this.parseTransactionStatus(this.safeString(transaction, "status"));
         Long updated = this.parse8601(this.safeString(transaction, "confirmed_at"));
         Object fee = null;
-        Object feeCost = this.safeNumber(transaction, "fee");
+        Double feeCost = this.safeNumber(transaction, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;

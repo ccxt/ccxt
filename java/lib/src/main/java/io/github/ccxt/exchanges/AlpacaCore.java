@@ -767,9 +767,9 @@ public class AlpacaCore extends AlpacaApi
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         String status = this.safeString(asset, "status");
         Object active = (Helpers.isEqual(status, "active"));
-        Object minAmount = this.safeNumber(asset, "min_order_size");
-        Object amount = this.safeNumber(asset, "min_trade_increment");
-        Object price = this.safeNumber(asset, "price_increment");
+        Double minAmount = this.safeNumber(asset, "min_order_size");
+        Double amount = this.safeNumber(asset, "min_trade_increment");
+        Double price = this.safeNumber(asset, "price_increment");
         Object minCost = null;
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(assetClass, "crypto"))) && Helpers.isTrue((Helpers.isEqual(quote, "USD")))))
         {
@@ -1064,7 +1064,7 @@ public class AlpacaCore extends AlpacaApi
                 {
                     Helpers.addElementToObject(request, "start", this.iso8601(since));
                 }
-                Object until = this.safeInteger(parameters, "until");
+                Long until = this.safeInteger(parameters, "until");
                 if (Helpers.isTrue(!Helpers.isEqual(until, null)))
                 {
                     parameters = this.omit(parameters, "until");
@@ -1675,7 +1675,7 @@ public class AlpacaCore extends AlpacaApi
                 market = this.market(symbol);
                 Helpers.addElementToObject(request, "symbols", Helpers.GetValue(market, "id"));
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -2009,7 +2009,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 market = this.market(symbol);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");

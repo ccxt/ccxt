@@ -1913,7 +1913,7 @@ public class AsterCore extends AsterApi
             //         ]
             //     }
             //
-            Object timestamp = this.safeInteger(response, "T");
+            Long timestamp = this.safeInteger(response, "T");
             return this.parseOrderBook(response, symbol, timestamp, "bids", "asks");
         });
 
@@ -1964,7 +1964,7 @@ public class AsterCore extends AsterApi
         //        }, ...
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "closeTime");
+        Long timestamp = this.safeInteger(ticker, "closeTime");
         String last = this.safeString(ticker, "lastPrice");
         String open = this.safeString(ticker, "openPrice");
         String percentage = this.safeString(ticker, "priceChangePercent");
@@ -2224,7 +2224,7 @@ public class AsterCore extends AsterApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(entry, "time");
+        Long timestamp = this.safeInteger(entry, "time");
         return new java.util.HashMap<String, Object>() {{
             put( "symbol", AsterCore.this.safeString(market, "symbol") );
             put( "timestamp", timestamp );
@@ -2319,8 +2319,8 @@ public class AsterCore extends AsterApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
-        Object nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
-        Object timestamp = this.safeInteger(contract, "time");
+        Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
+        Long timestamp = this.safeInteger(contract, "time");
         String interval = this.safeString(contract, "fundingIntervalHours");
         Object intervalString = null;
         if (Helpers.isTrue(!Helpers.isEqual(interval, null)))
@@ -2546,7 +2546,7 @@ public class AsterCore extends AsterApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(contract, "fundingTime");
+        Long timestamp = this.safeInteger(contract, "fundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", AsterCore.this.safeSymbol(AsterCore.this.safeString(contract, "symbol"), null, null, "swap") );
@@ -2870,7 +2870,7 @@ public class AsterCore extends AsterApi
         String marketId = this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market, null, defaultType);
         String side = (String)this.safeStringLower(order, "side");
-        Object timestamp = this.safeInteger(order, "time");
+        Long timestamp = this.safeInteger(order, "time");
         String statusId = (String)this.safeStringUpper(order, "status");
         String rawType = (String)this.safeStringUpper(order, "type");
         String stopPriceString = this.safeString(order, "stopPrice");
@@ -3871,7 +3871,7 @@ public class AsterCore extends AsterApi
         String side = (String)this.safeStringLower(leverage, "positionSide");
         Object longLeverage = null;
         Object shortLeverage = null;
-        Object leverageValue = this.safeInteger(leverage, "leverage");
+        Long leverageValue = this.safeInteger(leverage, "leverage");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(side, null))) || Helpers.isTrue((Helpers.isEqual(side, "both")))))
         {
             longLeverage = leverageValue;
@@ -4001,7 +4001,7 @@ public class AsterCore extends AsterApi
             }
             (this.loadMarketsAndSignIn()).join();
             Object market = this.market(symbol);
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4061,10 +4061,10 @@ public class AsterCore extends AsterApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object rawType = this.safeInteger(data, "type");
+        Long rawType = this.safeInteger(data, "type");
         String errorCode = this.safeString(data, "code");
         String marketId = this.safeString(data, "symbol");
-        Object timestamp = this.safeInteger(data, "time");
+        Long timestamp = this.safeInteger(data, "time");
         market = this.safeMarket(marketId, market, null, "swap");
         Object noErrorCode = Helpers.isEqual(errorCode, null);
         Object success = Helpers.isEqual(errorCode, "200");
@@ -4176,7 +4176,7 @@ public class AsterCore extends AsterApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "symbol");
         String currencyId = this.safeString(income, "asset");
-        Object timestamp = this.safeInteger(income, "time");
+        Long timestamp = this.safeInteger(income, "time");
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
             put( "symbol", AsterCore.this.safeSymbol(marketId, market, null, "swap") );
@@ -4266,7 +4266,7 @@ public class AsterCore extends AsterApi
         String currencyId = this.safeString(item, "asset");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        Object timestamp = this.safeInteger(item, "time");
+        Long timestamp = this.safeInteger(item, "time");
         String type = this.safeString(item, "incomeType");
         final Object finalDirection = direction;
         final Object finalAmount = amount;
@@ -4339,7 +4339,7 @@ public class AsterCore extends AsterApi
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000)); // max 1000
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -4488,7 +4488,7 @@ public class AsterCore extends AsterApi
         collateralString = ((Helpers.isTrue((Helpers.isEqual(collateralString, null))))) ? "0" : collateralString;
         Object collateral = this.parseNumber(collateralString);
         Object markPrice = this.parseNumber(this.omitZero(this.safeString(position, "markPrice")));
-        Object timestamp = this.safeInteger(position, "updateTime");
+        Long timestamp = this.safeInteger(position, "updateTime");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, 0)))
         {
             timestamp = null;
@@ -4782,7 +4782,7 @@ public class AsterCore extends AsterApi
         Object maintenanceMarginPercentage = this.parseNumber(maintenanceMarginPercentageString);
         String unrealizedPnlString = this.safeString(position, "unrealizedProfit");
         Object unrealizedPnl = this.parseNumber(unrealizedPnlString);
-        Object timestamp = this.safeInteger(position, "updateTime");
+        Long timestamp = this.safeInteger(position, "updateTime");
         if (Helpers.isTrue(Helpers.isEqual(timestamp, 0)))
         {
             timestamp = null;
@@ -5035,7 +5035,7 @@ public class AsterCore extends AsterApi
 
     public Object signWithdrawPayload(Object withdrawPayload, Object network)
     {
-        Object chainId = this.safeInteger(withdrawPayload, "chainId");
+        Long chainId = this.safeInteger(withdrawPayload, "chainId");
         Object domain = new java.util.HashMap<String, Object>() {{
             put( "chainId", chainId );
             put( "name", "Aster" );
@@ -5117,7 +5117,7 @@ public class AsterCore extends AsterApi
                 put( "receiver", address );
                 put( "userNonce", String.valueOf(nonce) );
             }};
-            Object chainId = this.safeInteger(parameters, "chainId");
+            Long chainId = this.safeInteger(parameters, "chainId");
             // TODO: check how ARBI signature would work
             Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             String network = (String)this.safeStringUpper(parameters, "network");
@@ -5304,7 +5304,7 @@ public class AsterCore extends AsterApi
             Object nonce = Helpers.multiply(this.milliseconds(), 1000);
             // Sign using EIP-712 typed data per the AsterSignTransaction spec
             String zeroAddress = this.safeString(this.options, "zeroAddress", "0x0000000000000000000000000000000000000000");
-            Object v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
+            Long v3ChainId = this.safeInteger(this.options, "v3ChainId", 1666);
             Object walletAddress = this.safeString(this.options, "cachedWalletAddress");
             Object privateKeyHash = this.hash(this.encode(this.privateKey), keccak(), "hex");
             String cachedPrivateKeyHash = this.safeString(this.options, "privateKeyHashForCachedWalletAddress");
@@ -5532,7 +5532,7 @@ public class AsterCore extends AsterApi
                     //
                     // {"code": 200,"msg": "success"}
                     //
-                    Object codeRes = this.safeInteger(authResponse, "code");
+                    Long codeRes = this.safeInteger(authResponse, "code");
                     if (Helpers.isTrue(!Helpers.isEqual(codeRes, 200)))
                     {
                         throw new ExchangeError((String)Helpers.add("Builder authorization failed, ", this.json(authResponse))) ;

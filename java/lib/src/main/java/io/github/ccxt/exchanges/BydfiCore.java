@@ -638,9 +638,9 @@ public class BydfiCore extends BydfiApi
         Object rawAmountPrecision = this.parsePrecision(this.safeString(market, "volumePrecision"));
         Object amountPrecision = Precise.stringDiv(rawAmountPrecision, contractSize);
         Object basePrecision = this.parsePrecision(this.safeString(market, "basePrecision"));
-        Object taker = this.safeNumber(market, "feeRateTaker");
-        Object maker = this.safeNumber(market, "feeRateMaker");
-        Object maxLeverage = this.safeNumber(market, "maxLeverageLevel");
+        Double taker = this.safeNumber(market, "feeRateTaker");
+        Double maker = this.safeNumber(market, "feeRateMaker");
+        Double maxLeverage = this.safeNumber(market, "maxLeverageLevel");
         String status = this.safeString(market, "status");
         final Object finalBase = base;
         final Object finalStatus = status;
@@ -757,7 +757,7 @@ public class BydfiCore extends BydfiApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.milliseconds();
+            Long timestamp = this.milliseconds();
             Object orderBook = this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
             Helpers.addElementToObject(orderBook, "nonce", this.safeInteger(data, "lastUpdateId"));
             return orderBook;
@@ -966,7 +966,7 @@ public class BydfiCore extends BydfiApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "symbol");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(trade, "time");
+        Long timestamp = this.safeInteger(trade, "time");
         Object fee = null;
         String rawType = this.safeString(trade, "type");
         String feeCost = this.safeString(trade, "fee");
@@ -1064,7 +1064,7 @@ public class BydfiCore extends BydfiApi
             var untilparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "until");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             Object duration = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Object timeDelta = Helpers.multiply(duration, numberOfCandles);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(startTime, null)) && Helpers.isTrue(Helpers.isEqual(until, null))))
@@ -1313,8 +1313,8 @@ public class BydfiCore extends BydfiApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object timestamp = this.safeInteger(contract, "time");
-        Object nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
+        Long timestamp = this.safeInteger(contract, "time");
+        Long nextFundingTimestamp = this.safeInteger(contract, "nextFundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -1420,7 +1420,7 @@ public class BydfiCore extends BydfiApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, "symbol");
-        Object timestamp = this.safeInteger(contract, "fundingTime");
+        Long timestamp = this.safeInteger(contract, "fundingTime");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", BydfiCore.this.safeSymbol(marketId, market) );
@@ -1688,8 +1688,8 @@ public class BydfiCore extends BydfiApi
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeNumber(rawOrder, "amount");
-                Object price = this.safeNumber(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
@@ -1783,8 +1783,8 @@ public class BydfiCore extends BydfiApi
                 String id = this.safeString(rawOrder, "id");
                 String symbol = this.safeString(rawOrder, "symbol");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeNumber(rawOrder, "amount");
-                Object price = this.safeNumber(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object orderRequest = this.createEditOrderRequest(id, symbol, "limit", side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
@@ -2184,7 +2184,7 @@ public class BydfiCore extends BydfiApi
         var untilparametersVariable = this.handleOptionAndParams2(parameters, methodName, "until", "endTime");
         until = ((java.util.List<Object>) untilparametersVariable).get(0);
         parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
-        Object now = this.milliseconds();
+        Long now = this.milliseconds();
         Object sevenDays = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000); // the maximum range is 7 days
         Object startTime = since;
         if (Helpers.isTrue(Helpers.isEqual(startTime, null)))
@@ -2303,7 +2303,7 @@ public class BydfiCore extends BydfiApi
         }
         String rawStatus = this.safeString(order, "status");
         Object fee = new java.util.HashMap<String, Object>() {{}};
-        Object quoteFee = this.safeNumber(order, "quoteFee");
+        Double quoteFee = this.safeNumber(order, "quoteFee");
         if (Helpers.isTrue(!Helpers.isEqual(quoteFee, null)))
         {
             Helpers.addElementToObject(fee, "cost", quoteFee);
@@ -2670,7 +2670,7 @@ public class BydfiCore extends BydfiApi
             // in fetchPositions, the 'volume' is in base currency units, need to convert to contracts
             contracts = Precise.stringDiv(contracts, contractSize);
         }
-        Object timestamp = this.safeInteger(position, "createTime");
+        Long timestamp = this.safeInteger(position, "createTime");
         final Object finalMarket = market;
         final Object finalPositionSide = positionSide;
         final Object finalContracts = contracts;
@@ -3212,7 +3212,7 @@ public class BydfiCore extends BydfiApi
 
     public Object parseBalance(Object response)
     {
-        Object timestamp = this.milliseconds();
+        Long timestamp = this.milliseconds();
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
@@ -3279,7 +3279,7 @@ public class BydfiCore extends BydfiApi
             Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
-                Object timestamp = this.milliseconds();
+                Long timestamp = this.milliseconds();
                 Helpers.addElementToObject(transfer, "timestamp", timestamp);
                 Helpers.addElementToObject(transfer, "datetime", this.iso8601(timestamp));
                 Helpers.addElementToObject(transfer, "currency", code);
@@ -3409,7 +3409,7 @@ public class BydfiCore extends BydfiApi
         String toId = (String)this.safeStringUpper(transfer, "targetWallet");
         String fromAccount = this.safeString(accountsById, fromId, fromId);
         String toAccount = this.safeString(accountsById, toId, toId);
-        Object timestamp = this.safeInteger(transfer, "timestamp");
+        Long timestamp = this.safeInteger(transfer, "timestamp");
         String currencyId = this.safeString(transfer, "asset");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
@@ -3523,7 +3523,7 @@ public class BydfiCore extends BydfiApi
             var untilparametersVariable = this.handleOptionAndParams2(parameters, "fetchTransfers", "until", "endTime");
             until = ((java.util.List<Object>) untilparametersVariable).get(0);
             parameters = ((java.util.List<Object>) untilparametersVariable).get(1);
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             Object sevenDays = Helpers.multiply(Helpers.multiply(Helpers.multiply(Helpers.multiply(7, 24), 60), 60), 1000); // the maximum range is 7 days
             Object startTime = since;
             if (Helpers.isTrue(Helpers.isEqual(startTime, null)))
@@ -3620,9 +3620,9 @@ public class BydfiCore extends BydfiApi
         String currencyId = this.safeString(transaction, "asset");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String rawStatus = (String)this.safeStringLower(transaction, "status");
-        Object timestamp = this.safeInteger(transaction, "createTime");
+        Long timestamp = this.safeInteger(transaction, "createTime");
         Object fee = null;
-        Object feeCost = this.safeNumber(transaction, "fee");
+        Double feeCost = this.safeNumber(transaction, "fee");
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
             final Object finalFeeCost = feeCost;

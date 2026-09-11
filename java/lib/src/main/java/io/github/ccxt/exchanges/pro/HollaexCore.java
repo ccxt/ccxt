@@ -201,7 +201,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -294,7 +294,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         }
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
@@ -435,7 +435,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         }
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object stored = this.orders;
@@ -604,7 +604,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         //     { error: "Bearer or HMAC authentication required" }
         //     { error: "Error: wrong input" }
         //
-        Object error = this.safeInteger(message, "error");
+        Long error = this.safeInteger(message, "error");
         try
         {
             if (Helpers.isTrue(!Helpers.isEqual(error, null)))

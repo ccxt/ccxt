@@ -779,9 +779,9 @@ public class GrvtCore extends GrvtApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             // expires in 24 hours as CS suggested
-            Object expires = this.safeInteger(this.options, "signInExpiration", 0);
+            Long expires = this.safeInteger(this.options, "signInExpiration", 0);
             // if previous sign-in not expired (give 10 seconds margin)
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(expires, null)) && Helpers.isTrue(Helpers.isGreaterThan(expires, Helpers.add(now, 10000)))))
             {
@@ -810,9 +810,9 @@ public class GrvtCore extends GrvtApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
-            Object now = this.milliseconds();
+            Long now = this.milliseconds();
             // expires in 24 hours as CS suggested
-            Object expires = this.safeInteger(this.options, "signInExpiration", 0);
+            Long expires = this.safeInteger(this.options, "signInExpiration", 0);
             // if previous sign-in not expired (give 10 seconds margin)
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(expires, null)) && Helpers.isTrue(Helpers.isGreaterThan(expires, Helpers.add(now, 10000)))))
             {
@@ -1246,7 +1246,7 @@ public class GrvtCore extends GrvtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(ticker, "instrument");
-        Object timestamp = this.safeIntegerProduct(ticker, "event_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(ticker, "event_time", 0.000001);
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "info", ticker );
             put( "symbol", GrvtCore.this.safeSymbol(marketId, market) );
@@ -1445,7 +1445,7 @@ public class GrvtCore extends GrvtApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "instrument");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(trade, "event_time", 0.000001);
         Object takerOrMaker = null;
         Object isTakerBuyer = this.safeBool(trade, "is_taker_buyer");
         Object side = null;
@@ -1687,7 +1687,7 @@ public class GrvtCore extends GrvtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(rawItem, "instrument");
-        Object ts = this.safeIntegerProduct(rawItem, "funding_time", 0.000001);
+        Long ts = this.safeIntegerProduct(rawItem, "funding_time", 0.000001);
         // the api documents funding_rate in percentage points, and a unified
         // fundingRate is a fraction, with the Manual's examples reading 0.000072
         String rate = this.safeString(rawItem, "funding_rate");
@@ -1794,7 +1794,7 @@ public class GrvtCore extends GrvtApi
         //            "cross_unrealized_pnl": "0.0"
         //        }
         //
-        Object timestamp = this.safeIntegerProduct(response, "event_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(response, "event_time", 0.000001);
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
@@ -2375,7 +2375,7 @@ public class GrvtCore extends GrvtApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transfer, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object timestamp = this.safeIntegerProduct(transfer, "event_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(transfer, "event_time", 0.000001);
         return new java.util.HashMap<String, Object>() {{
             put( "info", transfer );
             put( "id", GrvtCore.this.safeString(transfer, "tx_id") );
@@ -3013,7 +3013,7 @@ public class GrvtCore extends GrvtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "instrument");
-        Object timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(position, "event_time", 0.000001);
         String sizeRaw = this.safeString(position, "size");
         Object isLong = (Precise.stringGe(sizeRaw, "0"));
         Object side = ((Helpers.isTrue(isLong))) ? "long" : "short";
@@ -3146,7 +3146,7 @@ public class GrvtCore extends GrvtApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(leverage, "instrument");
-        Object leverageValue = this.safeNumber(leverage, "leverage");
+        Double leverageValue = this.safeNumber(leverage, "leverage");
         String marginType = (String)this.safeStringLower(leverage, "margin_type");
         return new java.util.HashMap<String, Object>() {{
             put( "info", leverage );
@@ -3310,7 +3310,7 @@ public class GrvtCore extends GrvtApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(income, "instrument");
         String currencyId = this.safeString(income, "currency");
-        Object timestamp = this.safeIntegerProduct(income, "event_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(income, "event_time", 0.000001);
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
             put( "symbol", GrvtCore.this.safeSymbol(marketId, market) );
@@ -3730,7 +3730,7 @@ public class GrvtCore extends GrvtApi
             filled = this.safeString(filledAmounts, primaryOrderIndex);
             avgPrice = this.safeString(avgPrices, primaryOrderIndex);
         }
-        Object timestamp = this.safeIntegerProduct(metadata, "create_time", 0.000001);
+        Long timestamp = this.safeIntegerProduct(metadata, "create_time", 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
         Object legsLength = Helpers.getArrayLength(legs);
         final Object finalLegsLength = legsLength;

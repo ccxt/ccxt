@@ -389,7 +389,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object tradesCache = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesCache, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesCache = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, tradesCache);
         }
@@ -511,7 +511,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbol, null)) && Helpers.isTrue(!Helpers.isEqual(timeframe, null))))
             {
@@ -610,7 +610,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object market = this.market(symbol);
             Object topic = "orderbook";
             Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
-            Object depth = this.safeInteger(options, "depth", 150);
+            Long depth = this.safeInteger(options, "depth", 150);
             Object subMessageHash = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
@@ -658,7 +658,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             return;
         }
         Object id = this.safeString(message, "id");
-        Object lastTimestamp = this.safeInteger(subscription, "lastTimestamp");
+        Long lastTimestamp = this.safeInteger(subscription, "lastTimestamp");
         try
         {
             Object orderbook = this.safeValue(this.orderbooks, symbol);
@@ -667,16 +667,16 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object firstMessage = this.safeValue(messages, 0, new java.util.HashMap<String, Object>() {{}});
             Object snapshot = this.parseOrderBook(data, symbol);
             Object tick = this.safeValue(firstMessage, "tick");
-            Object sequence = this.safeInteger(tick, "prevSeqNum");
-            Object nonce = this.safeInteger(data, "seqNum");
+            Long sequence = this.safeInteger(tick, "prevSeqNum");
+            Long nonce = this.safeInteger(data, "seqNum");
             if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
             {
                 return;
             }
             Helpers.addElementToObject(snapshot, "nonce", nonce);
-            Object snapshotTimestamp = this.safeInteger(message, "ts");
+            Long snapshotTimestamp = this.safeInteger(message, "ts");
             Helpers.addElementToObject(subscription, "lastTimestamp", snapshotTimestamp);
-            Object snapshotLimit = this.safeInteger(subscription, "limit");
+            Long snapshotLimit = this.safeInteger(subscription, "limit");
             Object snapshotOrderBook = this.orderBook(snapshot, snapshotLimit);
             client.resolve(snapshotOrderBook, id);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(sequence, null))) || Helpers.isTrue((Helpers.isLessThan(nonce, sequence)))))
@@ -739,10 +739,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
 
             Object messageHash = this.safeString(subscription, "messageHash");
             Object symbol = this.safeString(subscription, "symbol");
-            Object limit = this.safeInteger(subscription, "limit");
-            Object timestamp = this.safeInteger(message, "ts");
+            Long limit = this.safeInteger(subscription, "limit");
+            Long timestamp = this.safeInteger(message, "ts");
             Object parameters = this.safeValue(subscription, "params");
-            Object attempts = this.safeInteger(subscription, "numAttempts", 0);
+            Long attempts = this.safeInteger(subscription, "numAttempts", 0);
             Object market = this.market(symbol);
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"), false, true);
             Object requestId = this.requestId();
@@ -782,8 +782,8 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
 
     public void handleDelta(Object bookside, Object delta)
     {
-        Object price = this.safeFloat(delta, 0);
-        Object amount = this.safeFloat(delta, 1);
+        Double price = this.safeFloat(delta, 0);
+        Double amount = this.safeFloat(delta, 1);
         Helpers.callDynamically(bookside, "store", new Object[]{price, amount});
     }
 
@@ -871,10 +871,10 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Object tick = this.safeValue(message, "tick", new java.util.HashMap<String, Object>() {{}});
         Object seqNum = this.safeInteger(tick, "seqNum");
-        Object prevSeqNum = this.safeInteger(tick, "prevSeqNum");
+        Long prevSeqNum = this.safeInteger(tick, "prevSeqNum");
         Object eventVar = this.safeString(tick, "event");
         Object version = this.safeInteger(tick, "version");
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         if (Helpers.isTrue(Helpers.isEqual(eventVar, "snapshot")))
         {
             Object snapshot = this.parseOrderBook(tick, symbol, timestamp);
@@ -969,7 +969,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 return;
             }
             Object sizeParts = Helpers.split(size, "_");
-            Object limit = this.safeInteger(sizeParts, 1);
+            Long limit = this.safeInteger(sizeParts, 1);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         }
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
@@ -987,7 +987,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
     {
         Object symbol = this.safeString(subscription, "symbol");
         Object market = this.market(symbol);
-        Object limit = this.safeInteger(subscription, "limit");
+        Long limit = this.safeInteger(subscription, "limit");
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
@@ -1491,7 +1491,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         }
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object cachedOrders = this.orders;
@@ -1672,7 +1672,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object lastTradeTimestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("lastActTime", "updated_time", "ts")));
+        Long lastTradeTimestamp = this.safeIntegerN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("lastActTime", "updated_time", "ts")));
         Long created = (Long) this.safeInteger2(order, "orderCreateTime", "created_time");
         Object marketId = this.safeString2(order, "contract_code", "symbol");
         market = this.safeMarket(marketId, market);
@@ -1782,7 +1782,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object price = this.safeString(trade, "tradePrice");
         Object amount = this.safeString(trade, "tradeVolume");
         Object order = this.safeString(trade, "orderId");
-        Object timestamp = this.safeInteger(trade, "tradeTime");
+        Long timestamp = this.safeInteger(trade, "tradeTime");
         Object type = this.safeString(trade, "type");
         Object side = null;
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
@@ -2017,7 +2017,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         }
         Object newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object positionsByMarginMode = new java.util.HashMap<String, Object>() {{}};
-        Object timestamp = this.safeInteger(message, "ts");
+        Long timestamp = this.safeInteger(message, "ts");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
@@ -2322,7 +2322,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         //
         Object channel = this.safeString(message, "ch");
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object timestamp = this.safeInteger(data, "changeTime", this.safeInteger(message, "ts"));
+        Long timestamp = this.safeInteger(data, "changeTime", this.safeInteger(message, "ts"));
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
         Helpers.addElementToObject(this.balance, "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.balance, "info", data);
@@ -2706,7 +2706,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
 
             try
             {
-                Object ping = this.safeInteger(message, "ping");
+                Long ping = this.safeInteger(message, "ping");
                 if (Helpers.isTrue(!Helpers.isEqual(ping, null)))
                 {
                     (client.send(new java.util.HashMap<String, Object>() {{
@@ -2718,7 +2718,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 if (Helpers.isTrue(Helpers.isEqual(action, "ping")))
                 {
                     Object data = this.safeValue(message, "data");
-                    Object pingTs = this.safeInteger(data, "ts");
+                    Long pingTs = this.safeInteger(data, "ts");
                     (client.send(new java.util.HashMap<String, Object>() {{
                         put( "action", "pong" );
                         put( "data", new java.util.HashMap<String, Object>() {{
@@ -2730,7 +2730,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 Object op = this.safeString(message, "op");
                 if (Helpers.isTrue(Helpers.isEqual(op, "ping")))
                 {
-                    Object pingTs = this.safeInteger(message, "ts");
+                    Long pingTs = this.safeInteger(message, "ts");
                     (client.send(new java.util.HashMap<String, Object>() {{
                         put( "op", "pong" );
                         put( "ts", pingTs );
@@ -3074,7 +3074,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object extendParams = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object cachedTrades = this.myTrades;
@@ -3199,7 +3199,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object price = this.safeString2(trade, "tradePrice", "trade_price");
         Object amount = this.safeString2(trade, "tradeVolume", "trade_volume");
         Object order = this.safeString2(trade, "orderId", "order_id");
-        Object timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("tradeTime", "updated_time", "created_time")));
+        Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("tradeTime", "updated_time", "created_time")));
         Object orderType = this.safeString2(trade, "orderType", "type");
         Object aggressor = this.safeValue(trade, "aggressor");
         Object takerOrMaker = null;

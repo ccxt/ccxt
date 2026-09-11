@@ -1120,7 +1120,7 @@ public class BigoneCore extends BigoneApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(data, "Timestamp");
+            Long timestamp = this.safeInteger(data, "Timestamp");
             if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchTime() missing timestamp")) ;
@@ -1531,7 +1531,7 @@ public class BigoneCore extends BigoneApi
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchOHLCV () can only fetch ohlcvs for spot markets")) ;
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             Object untilIsDefined = (!Helpers.isEqual(until, null));
             Object sinceIsDefined = (!Helpers.isEqual(since, null));
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -1547,7 +1547,7 @@ public class BigoneCore extends BigoneApi
             if (Helpers.isTrue(sinceIsDefined))
             {
                 // const start = this.parseToInt (since / 1000);
-                Object duration = this.parseTimeframe(timeframe);
+                int duration = this.parseTimeframe(timeframe);
                 Object endByLimit = this.sum(since, Helpers.multiply(Helpers.multiply(limit, duration), 1000));
                 if (Helpers.isTrue(untilIsDefined))
                 {
@@ -2466,7 +2466,7 @@ public class BigoneCore extends BigoneApi
         String currencyId = this.safeString(transaction, "asset_symbol");
         String code = (String) this.safeCurrencyCode(currencyId);
         String id = this.safeString(transaction, "id");
-        Object amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount");
         String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         Long timestamp = this.parse8601(this.safeString(transaction, "inserted_at"));
         Long updated = this.parse8601(this.safeString2(transaction, "updated_at", "completed_at"));

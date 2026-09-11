@@ -145,7 +145,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         {
             orderbook = this.orderBook(new java.util.HashMap<String, Object>() {{}});
         }
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Long timestamp = this.safeInteger(message, "timestamp");
         Object snapshot = this.parseOrderBook(message, symbol, timestamp, "bids", "asks", "price", "amount");
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         client.resolve(orderbook, messageHash);
@@ -218,7 +218,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object tradesCache = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesCache, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             tradesCache = new ArrayCache(((Number)limit).intValue());
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
@@ -306,7 +306,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object messageHash = this.safeString(message, "event");
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
@@ -463,7 +463,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object messageHash = Helpers.add(Helpers.add(eventVar, ":"), symbol);
         Object result = this.parseTicker(message, market);
         Helpers.addElementToObject(result, "symbol", this.safeString(market, "symbol")); // symbol returned from REST's parseTicker is distorted for WS, so re-set it from market object
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Long timestamp = this.safeInteger(message, "timestamp");
         Helpers.addElementToObject(result, "timestamp", timestamp);
         Helpers.addElementToObject(result, "datetime", this.iso8601(timestamp)); // we shouldn't set "datetime" string provided by server, as those values are obviously wrong offset from UTC
         Helpers.addElementToObject(this.tickers, symbol, result);
@@ -477,7 +477,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             return;
         }
         this.checkRequiredCredentials();
-        Object nonce = this.milliseconds();
+        Long nonce = this.milliseconds();
         Object rawData = this.json(new java.util.HashMap<String, Object>() {{
             put( "nonce", nonce );
             put( "identity", BitoproCore.this.login );
@@ -553,7 +553,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         //
         Object eventVar = this.safeString(message, "event");
         Object data = this.safeValue(message, "data");
-        Object timestamp = this.safeInteger(message, "timestamp");
+        Long timestamp = this.safeInteger(message, "timestamp");
         Object datetime = this.safeString(message, "datetime");
         Object currencies = Helpers.objectKeys(data);
         Object result = new java.util.HashMap<String, Object>() {{

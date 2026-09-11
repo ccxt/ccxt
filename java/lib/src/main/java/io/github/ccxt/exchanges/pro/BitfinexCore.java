@@ -321,7 +321,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), stored);
         }
@@ -491,7 +491,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object tradesArray = this.myTrades;
@@ -539,7 +539,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         Object marketId = this.safeString(subscription, "symbol");
         Object market = this.safeMarket(marketId);
         Object messageHash = Helpers.add(Helpers.add(channel, ":"), marketId);
-        Object tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
+        Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -643,7 +643,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         }
         Object orderId = ((Helpers.isTrue((!Helpers.isTrue(isPublic))))) ? this.safeString(trade, 3) : null;
         Object id = this.safeString(trade, 0);
-        Object timestamp = this.safeInteger(trade, createdKey);
+        Long timestamp = this.safeInteger(trade, createdKey);
         Object price = this.safeString(trade, priceKey);
         Object amountString = this.safeString(trade, amountKey);
         Object amount = this.parseNumber(Precise.stringAbs(amountString));
@@ -665,7 +665,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
                 put( "currency", code );
             }};
         }
-        Object maker = this.safeInteger(trade, 8);
+        Long maker = this.safeInteger(trade, 8);
         Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(maker, null)))
         {
@@ -845,7 +845,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         // if it is an initial snapshot
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
-            Object limit = this.safeInteger(subscription, "len");
+            Long limit = this.safeInteger(subscription, "len");
             if (Helpers.isTrue(isRaw))
             {
                 // raw order books
@@ -867,7 +867,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
                     Object side = ((Helpers.isTrue((Helpers.isLessThan(delta2, 0))))) ? "asks" : "bids";
                     Object bookside = Helpers.GetValue(orderbook, side);
                     Object idString = this.safeString(delta, 0);
-                    Object price = this.safeFloat(delta, 1);
+                    Double price = this.safeFloat(delta, 1);
                     Helpers.callDynamically(bookside, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(price, size, idString))});
                 }
             } else
@@ -881,8 +881,8 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
                     {
                         continue;
                     }
-                    Object counter = this.safeNumber(delta, 1);
-                    Object price = this.safeNumber(delta, 0);
+                    Double counter = this.safeNumber(delta, 1);
+                    Double price = this.safeNumber(delta, 0);
                     Object size = ((Helpers.isTrue((Helpers.isLessThan(amount, 0))))) ? Helpers.opNeg(amount) : amount;
                     Object side = ((Helpers.isTrue((Helpers.isLessThan(amount, 0))))) ? "asks" : "bids";
                     Object bookside = Helpers.GetValue(orderbook, side);
@@ -961,7 +961,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         }
         Object payload = String.join((String)":", (java.util.List<String>)stringArray);
         Object localChecksum = this.crc32(payload, true);
-        Object responseChecksum = this.safeInteger(message, 2);
+        Long responseChecksum = this.safeInteger(message, 2);
         if (Helpers.isTrue(!Helpers.isEqual(responseChecksum, localChecksum)))
         {
             ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
@@ -1226,7 +1226,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
-                Object nonce = this.milliseconds();
+                Long nonce = this.milliseconds();
                 Object payload = Helpers.add("AUTH", String.valueOf(nonce));
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384(), "hex");
                 Object eventVar = "auth";
@@ -1351,7 +1351,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         Object messageType = this.safeString(message, 1);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;

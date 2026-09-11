@@ -456,7 +456,7 @@ public class NadoCore extends NadoApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument")) ;
             }
-            Object productId = this.parseToInt(Helpers.GetValue(market, "id"));
+            Long productId = this.parseToInt(Helpers.GetValue(market, "id"));
             Object priceString = this.priceToPrecision(symbol, price);
             Object amountString = this.amountToPrecision(symbol, amount);
             String priceX18 = this.convertToX18(priceString);
@@ -478,7 +478,7 @@ public class NadoCore extends NadoApi
             recvWindow = ((java.util.List<Object>) recvWindowparametersVariable).get(0);
             parameters = ((java.util.List<Object>) recvWindowparametersVariable).get(1);
             String nonce = this.createOrderNonce(recvWindow);
-            Object requestId = this.safeInteger(parameters, "id");
+            Long requestId = this.safeInteger(parameters, "id");
             Object spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
             Object sender = this.createSubaccount(this.walletAddress, subaccount);
             final Object finalAmountX18 = amountX18;
@@ -664,7 +664,7 @@ public class NadoCore extends NadoApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires a price argument")) ;
             }
-            Object productId = this.parseToInt(Helpers.GetValue(market, "id"));
+            Long productId = this.parseToInt(Helpers.GetValue(market, "id"));
             Object priceString = this.priceToPrecision(symbol, price);
             Object amountString = this.amountToPrecision(symbol, amount);
             String priceX18 = this.convertToX18(priceString);
@@ -693,7 +693,7 @@ public class NadoCore extends NadoApi
             {
                 appendix = this.createOrderAppendix(false, parameters);
             }
-            Object requestId = this.safeInteger(parameters, "id");
+            Long requestId = this.safeInteger(parameters, "id");
             Object spotLeverage = this.safeBool2(parameters, "spotLeverage", "spot_leverage");
             Object placeRequiresUnfilled = this.safeBool2(parameters, "placeRequiresUnfilled", "place_requires_unfilled", this.safeBool(editOrderOptions, "placeRequiresUnfilled", true));
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("expiration", "nonce", "appendix", "reduceOnly", "postOnly", "timeInForce", "id", "spotLeverage", "spot_leverage", "placeRequiresUnfilled", "place_requires_unfilled")));
@@ -873,7 +873,7 @@ public class NadoCore extends NadoApi
                 throw new ExchangeError((String)Helpers.add(this.id, " cancelAllOrders() requires endpoint_addr from contracts query")) ;
             }
             Object signature = this.signCancellationProducts(tx, chainId, endpointAddress);
-            Object requestId = this.safeInteger(parameters, "id");
+            Long requestId = this.safeInteger(parameters, "id");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("id")));
             Object cancelProductOrders = new java.util.HashMap<String, Object>() {{
                 put( "tx", tx );
@@ -962,7 +962,7 @@ public class NadoCore extends NadoApi
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object market = this.market(symbol);
-            Object productId = this.parseToInt(Helpers.GetValue(market, "id"));
+            Long productId = this.parseToInt(Helpers.GetValue(market, "id"));
             Object subaccount = null;
             var subaccountparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "subaccount", "default");
             subaccount = ((java.util.List<Object>) subaccountparametersVariable).get(0);
@@ -992,7 +992,7 @@ public class NadoCore extends NadoApi
                 throw new ExchangeError((String)Helpers.add(this.id, " cancelOrders() requires endpoint_addr from contracts query")) ;
             }
             Object signature = this.signCancellation(tx, chainId, endpointAddress);
-            Object requestId = this.safeInteger(parameters, "id");
+            Long requestId = this.safeInteger(parameters, "id");
             String requiredUnfilledAmountRaw = this.safeString(parameters, "required_unfilled_amount");
             String requiredUnfilledAmount = this.safeString(parameters, "requiredUnfilledAmount");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "requiredUnfilledAmount", "required_unfilled_amount")));
@@ -2518,7 +2518,7 @@ public class NadoCore extends NadoApi
             //         "timestamp": 1757913317944
             //     }
             //
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
         });
 
@@ -2598,7 +2598,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object market = this.market(symbol);
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "candlesticks", new java.util.HashMap<String, Object>() {{

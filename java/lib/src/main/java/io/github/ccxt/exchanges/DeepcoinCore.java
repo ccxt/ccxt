@@ -895,7 +895,7 @@ public class DeepcoinCore extends DeepcoinApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "after", until);
@@ -909,14 +909,14 @@ public class DeepcoinCore extends DeepcoinApi
                 {
                     // the exchange do not have a since param for this endpoint
                     // we calculate until (after) for correct pagination
-                    Object duration = this.parseTimeframe(timeframe);
+                    int duration = this.parseTimeframe(timeframe);
                     Object numberOfCandles = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? maxLimit : limit;
                     Object endTime = Helpers.add(since, Helpers.multiply((Helpers.multiply(duration, numberOfCandles)), 1000));
                     if (Helpers.isTrue(!Helpers.isEqual(until, null)))
                     {
                         endTime = Helpers.mathMin(endTime, until);
                     }
-                    Object now = this.milliseconds();
+                    Long now = this.milliseconds();
                     Helpers.addElementToObject(request, "after", Helpers.mathMin(endTime, now));
                 }
             }
@@ -1023,7 +1023,7 @@ public class DeepcoinCore extends DeepcoinApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(ticker, "ts");
+        Long timestamp = this.safeInteger(ticker, "ts");
         String marketId = this.safeString(ticker, "instId");
         market = this.safeMarket(marketId, market, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -1159,7 +1159,7 @@ public class DeepcoinCore extends DeepcoinApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "instId");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(trade, "ts");
+        Long timestamp = this.safeInteger(trade, "ts");
         String side = this.safeString(trade, "side");
         String execType = this.safeString(trade, "execType");
         Object fee = null;
@@ -1320,7 +1320,7 @@ public class DeepcoinCore extends DeepcoinApi
             {
                 Helpers.addElementToObject(request, "size", limit);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "endTime", until);
@@ -1386,7 +1386,7 @@ public class DeepcoinCore extends DeepcoinApi
             {
                 Helpers.addElementToObject(request, "size", limit);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "endTime", until);
@@ -1420,7 +1420,7 @@ public class DeepcoinCore extends DeepcoinApi
         String txid = this.safeString(transaction, "txHash");
         String currencyId = this.safeString(transaction, "coin");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object amount = this.safeNumber(transaction, "amount");
+        Double amount = this.safeNumber(transaction, "amount");
         Object timestamp = this.safeTimestamp(transaction, "createTime");
         String networkId = this.safeString(transaction, "chainName");
         Object network = this.networkIdToCode(networkId, code);
@@ -1662,7 +1662,7 @@ public class DeepcoinCore extends DeepcoinApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 Helpers.addElementToObject(request, "before", until);
@@ -1715,7 +1715,7 @@ public class DeepcoinCore extends DeepcoinApi
         //     }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(item, "ts");
+        Long timestamp = this.safeInteger(item, "ts");
         String change = this.safeString(item, "balChg");
         Object amount = Precise.stringAbs(change);
         Object direction = ((Helpers.isTrue(Precise.stringLt(change, "0")))) ? "out" : "in";
@@ -2670,7 +2670,7 @@ public class DeepcoinCore extends DeepcoinApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
             Object market = this.market(symbol);
-            Object index = this.safeInteger(parameters, "index", 1); // todo add pagination handling
+            Long index = this.safeInteger(parameters, "index", 1); // todo add pagination handling
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
@@ -2925,8 +2925,8 @@ public class DeepcoinCore extends DeepcoinApi
                 }
                 symbol = Helpers.GetValue(market, "symbol");
             }
-            Object stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
-            Object takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
+            Double stopLossPrice = this.safeNumber(parameters, "stopLossPrice");
+            Double takeProfitPrice = this.safeNumber(parameters, "takeProfitPrice");
             Object isTPSL = Helpers.isTrue((!Helpers.isEqual(stopLossPrice, null))) || Helpers.isTrue((!Helpers.isEqual(takeProfitPrice, null)));
             Object response = null;
             if (Helpers.isTrue(isTPSL))
@@ -3299,7 +3299,7 @@ public class DeepcoinCore extends DeepcoinApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(position, "instId");
         market = this.safeMarket(marketId, market);
-        Object timestamp = this.safeInteger(position, "cTime");
+        Long timestamp = this.safeInteger(position, "cTime");
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(finalMarket, "symbol") );
@@ -3717,7 +3717,7 @@ public class DeepcoinCore extends DeepcoinApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 100, max 100
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
                 parameters = this.omit(parameters, "until");
@@ -3865,7 +3865,7 @@ public class DeepcoinCore extends DeepcoinApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object timestamp = this.milliseconds();
+            Long timestamp = this.milliseconds();
             String dateTime = this.iso8601(timestamp);
             Object payload = Helpers.add(Helpers.add(Helpers.add(dateTime, method), "/"), requestPath);
             final Object finalDateTime = dateTime;

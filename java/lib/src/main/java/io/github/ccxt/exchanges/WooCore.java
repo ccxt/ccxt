@@ -2036,7 +2036,7 @@ public class WooCore extends WooApi
             String clientOrderIdUnified = this.safeString2(parameters, "clOrdID", "clientOrderId");
             String clientOrderIdExchangeSpecific = this.safeString(parameters, "client_order_id", clientOrderIdUnified);
             Object isByClientOrder = !Helpers.isEqual(clientOrderIdExchangeSpecific, null);
-            Object triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")));
+            Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")));
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {
                 Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
@@ -2398,7 +2398,7 @@ public class WooCore extends WooApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+            Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -2623,9 +2623,9 @@ public class WooCore extends WooApi
         String filled = this.safeString2(order, "executed", "totalExecutedQuantity");
         Object average = this.omitZero(this.safeString(order, "averageExecutedPrice"));
         // const remaining = Precise.stringSub (cost, filled);
-        Object fee = this.safeNumber(order, "totalFee");
+        Double fee = this.safeNumber(order, "totalFee");
         String feeCurrency = this.safeString(order, "feeAsset");
-        Object triggerPrice = this.safeNumber(order, "triggerPrice");
+        Double triggerPrice = this.safeNumber(order, "triggerPrice");
         String lastUpdateTimestampString = this.safeString(order, "updatedTime");
         Object lastUpdateTimestamp = null;
         if (Helpers.isTrue(!Helpers.isEqual(lastUpdateTimestampString, null)))
@@ -2752,7 +2752,7 @@ public class WooCore extends WooApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             return this.parseOrderBook(data, symbol, timestamp, "bids", "asks", "price", "quantity");
         });
 
@@ -2797,7 +2797,7 @@ public class WooCore extends WooApi
             {
                 Helpers.addElementToObject(request, "after", Helpers.subtract(since, 1)); // #27793
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -2941,7 +2941,7 @@ public class WooCore extends WooApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+            Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -3394,7 +3394,7 @@ public class WooCore extends WooApi
         String networkizedCode = this.safeString(item, "token");
         String code = (String) this.safeCurrencyCode(networkizedCode, currency);
         currency = this.safeCurrency(code, currency);
-        Object amount = this.safeNumber(item, "amount");
+        Double amount = this.safeNumber(item, "amount");
         String side = this.safeString(item, "tokenSide");
         Object direction = ((Helpers.isTrue((Helpers.isEqual(side, "DEPOSIT"))))) ? "in" : "out";
         Object timestamp = this.safeTimestamp(item, "createdTime");
@@ -3701,7 +3701,7 @@ public class WooCore extends WooApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+            Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -4100,8 +4100,8 @@ public class WooCore extends WooApi
         String amount = this.safeString(income, "fundingFee");
         String code = (String) this.safeCurrencyCode("USD");
         String id = this.safeString(income, "id");
-        Object timestamp = this.safeInteger(income, "updatedTime");
-        Object rate = this.safeNumber(income, "fundingRate");
+        Long timestamp = this.safeInteger(income, "updatedTime");
+        Double rate = this.safeNumber(income, "fundingRate");
         String paymentType = this.safeString(income, "paymentType");
         amount = ((Helpers.isTrue((Helpers.isEqual(paymentType, "Pay"))))) ? Precise.stringNeg(amount) : amount;
         final Object finalAmount = amount;
@@ -4161,7 +4161,7 @@ public class WooCore extends WooApi
             {
                 Helpers.addElementToObject(request, "startTime", since);
             }
-            Object until = this.safeInteger(parameters, "until"); // unified in milliseconds
+            Long until = this.safeInteger(parameters, "until"); // unified in milliseconds
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -4232,8 +4232,8 @@ public class WooCore extends WooApi
         String symbol = this.safeString(fundingRate, "symbol");
         market = this.market(symbol);
         Long nextFundingTimestamp = (Long) this.safeInteger2(fundingRate, "nextFundingTime", "fundingTs");
-        Object estFundingRateTimestamp = this.safeInteger(fundingRate, "estFundingRateTimestamp");
-        Object lastFundingRateTimestamp = this.safeInteger(fundingRate, "lastFundingRateTimestamp");
+        Long estFundingRateTimestamp = this.safeInteger(fundingRate, "estFundingRateTimestamp");
+        Long lastFundingRateTimestamp = this.safeInteger(fundingRate, "lastFundingRateTimestamp");
         String intervalString = this.safeString(fundingRate, "estFundingIntervalHours");
         Object interval = null;
         if (Helpers.isTrue(!Helpers.isEqual(intervalString, null)))
@@ -4465,7 +4465,7 @@ public class WooCore extends WooApi
             {
                 Object entry = Helpers.GetValue(rows, i);
                 String marketId = this.safeString(entry, "symbol");
-                Object timestamp = this.safeInteger(entry, "fundingRateTimestamp");
+                Long timestamp = this.safeInteger(entry, "fundingRateTimestamp");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", WooCore.this.safeSymbol(marketId) );
@@ -4575,7 +4575,7 @@ public class WooCore extends WooApi
         String marketId = this.safeString(leverage, "symbol");
         market = this.safeMarket(marketId, market);
         String marginMode = (String)this.safeStringLower(leverage, "marginMode");
-        Object spotLeverage = this.safeInteger(leverage, "leverage");
+        Long spotLeverage = this.safeInteger(leverage, "leverage");
         if (Helpers.isTrue(Helpers.isEqual(spotLeverage, 0)))
         {
             spotLeverage = null;
@@ -4586,7 +4586,7 @@ public class WooCore extends WooApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(details)); i++)
         {
             Object position = this.safeDict(details, i, new java.util.HashMap<String, Object>() {{}});
-            Object positionLeverage = this.safeInteger(position, "leverage");
+            Long positionLeverage = this.safeInteger(position, "leverage");
             String side = this.safeString(position, "positionSide");
             if (Helpers.isTrue(Helpers.isEqual(side, "BOTH")))
             {
@@ -5434,7 +5434,7 @@ public class WooCore extends WooApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(info, "symbol");
-        Object timestamp = this.safeInteger(info, "timestamp");
+        Long timestamp = this.safeInteger(info, "timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", info );
             put( "symbol", WooCore.this.safeSymbol(marketId, market, null, "contract") );

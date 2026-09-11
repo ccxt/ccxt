@@ -206,7 +206,7 @@ public Object describe()
                 result = this.sortBy(result, sortKey, true, 0);
             }
         }
-        Object limit = this.safeInteger(parameters, "limit");
+        Long limit = this.safeInteger(parameters, "limit");
         if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
         {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
@@ -1078,7 +1078,7 @@ public Object describe()
             String searchQuery = this.outcomeSearchQuery(outcomeSymbol);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(searchQuery, null))) && Helpers.isTrue(this.safeBool(this.has, "fetchEvents", false))))
             {
-                Object searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
+                Long searchLimit = this.safeInteger(this.options, "fetchOutcomeSearchLimit", 10);
                 try
                 {
                     (this.fetchEvents(new java.util.HashMap<String, Object>() {{
@@ -1773,7 +1773,7 @@ public Object describe()
                 {
                     side = this.safeString(trade, "side");
                 }
-                Object tradeTimestamp = this.safeInteger(trade, "timestamp");
+                Long tradeTimestamp = this.safeInteger(trade, "timestamp");
                 if (Helpers.isTrue(!Helpers.isEqual(tradeTimestamp, null)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(lastTradeTimestamp, null)))
@@ -1847,7 +1847,7 @@ public Object describe()
         {
             postOnly = (Helpers.isEqual(timeInForce, "PO"));
         }
-        Object timestamp = this.safeInteger(outcomeOrder, "timestamp");
+        Long timestamp = this.safeInteger(outcomeOrder, "timestamp");
         String datetime = this.safeString(outcomeOrder, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
@@ -1907,7 +1907,7 @@ public Object describe()
         {
             cost = Precise.stringMul(price, amount);
         }
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         String datetime = this.safeString(trade, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
@@ -1963,7 +1963,7 @@ public Object describe()
         {
             average = Precise.stringDiv(Precise.stringAdd(open, close), "2");
         }
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         String datetime = this.safeString(ticker, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
@@ -2007,7 +2007,7 @@ public Object describe()
     {
         // build the prediction position directly (no crypto safePosition, which carries the whole
         // leverage/marginMode/liquidation block the prediction type omits)
-        Object timestamp = this.safeInteger(position, "timestamp");
+        Long timestamp = this.safeInteger(position, "timestamp");
         String datetime = this.safeString(position, "datetime");
         if (Helpers.isTrue(Helpers.isEqual(datetime, null)))
         {
@@ -2261,7 +2261,7 @@ public Object describe()
             return "";
         }
         // RLP-encodes a single byte string (hex without 0x) per the Ethereum RLP spec
-        Object byteLength = this.parseToInt(Helpers.divide(((String)hex).length(), 2));
+        Long byteLength = this.parseToInt(Helpers.divide(((String)hex).length(), 2));
         if (Helpers.isTrue(Helpers.isEqual(byteLength, 0)))
         {
             return "80";
@@ -2276,7 +2276,7 @@ public Object describe()
         }
         Object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
-        Object lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
+        Long lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
         return Helpers.add(Helpers.add(this.intToBase16(Helpers.add(183, lengthOfLength)), lengthHex), hex);
     }
 
@@ -2287,14 +2287,14 @@ public Object describe()
         {
             concatenated = Helpers.add(concatenated, Helpers.GetValue(items, i));
         }
-        Object byteLength = this.parseToInt(Helpers.divide(((String)concatenated).length(), 2));
+        Long byteLength = this.parseToInt(Helpers.divide(((String)concatenated).length(), 2));
         if (Helpers.isTrue(Helpers.isLessThan(byteLength, 56)))
         {
             return Helpers.add(this.intToBase16(Helpers.add(192, byteLength)), concatenated);
         }
         Object lengthHex = this.intToBase16(byteLength);
         lengthHex = this.padHexToEven(lengthHex);
-        Object lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
+        Long lengthOfLength = this.parseToInt(Helpers.divide(((String)lengthHex).length(), 2));
         return Helpers.add(Helpers.add(this.intToBase16(Helpers.add(247, lengthOfLength)), lengthHex), concatenated);
     }
 
@@ -2400,7 +2400,7 @@ public Object describe()
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object timeout = Helpers.getArg(optionalArgs, 0, 60000);
-            Object start = this.milliseconds();
+            Long start = this.milliseconds();
             while (Helpers.isLessThan((Helpers.subtract(this.milliseconds(), start)), timeout))
             {
                 Object receipt = (this.ethRpc(rpcUrl, "eth_getTransactionReceipt", new java.util.ArrayList<Object>(java.util.Arrays.asList(txHash)))).join();

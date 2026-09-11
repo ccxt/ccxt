@@ -1184,7 +1184,7 @@ public class BitfinexCore extends BitfinexApi
         Object type = ((Helpers.isTrue(isCryptoCoin))) ? "crypto" : null;
         Object feeValues = this.safeList(Helpers.GetValue(indexed, "fees"), id, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object fees = this.safeList(feeValues, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object fee = this.safeNumber(fees, 1);
+        Double fee = this.safeNumber(fees, 1);
         Object undl = this.safeList(Helpers.GetValue(indexed, "undl"), id, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String defaultCurrencyPrecision = this.safeString(this.options, "defaultCurrencyPrecision", "8"); // kept here for backward-compatibility
         // numberToString instead of an `as string` cast: the describe() default for this option is the
@@ -1434,7 +1434,7 @@ public class BitfinexCore extends BitfinexApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object result = this.safeList(transfer, "result");
-        Object timestamp = this.safeInteger(result, 0);
+        Long timestamp = this.safeInteger(result, 0);
         Object info = this.safeValue(result, 4);
         String fromAccount = this.safeString(info, 1);
         String toAccount = this.safeString(info, 2);
@@ -1526,7 +1526,7 @@ public class BitfinexCore extends BitfinexApi
             }
             Object fullRequest = this.extend(request, parameters);
             Object orderbook = (this.publicGetBookSymbolPrecision(fullRequest)).join();
-            Object timestamp = this.milliseconds();
+            Long timestamp = this.milliseconds();
             Object result = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "symbol") );
                 put( "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
@@ -1540,7 +1540,7 @@ public class BitfinexCore extends BitfinexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object order = Helpers.GetValue(orders, i);
-                Object price = this.safeNumber(order, priceIndex);
+                Double price = this.safeNumber(order, priceIndex);
                 String signedAmount = this.safeString(order, 2);
                 Object amount = Precise.stringAbs(signedAmount);
                 Object side = ((Helpers.isTrue(Precise.stringGt(signedAmount, "0")))) ? "bids" : "asks";
@@ -1597,7 +1597,7 @@ public class BitfinexCore extends BitfinexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object length = Helpers.getArrayLength(ticker);
-        Object firstValue = this.safeNumber(ticker, 0);
+        Double firstValue = this.safeNumber(ticker, 0);
         Object isFetchTicker = !Helpers.isEqual(firstValue, null); // if it's Nan, then it's string (symbol)
         Object symbol = null;
         Object minusIndex = 0;
@@ -1833,13 +1833,13 @@ public class BitfinexCore extends BitfinexApi
         Object fee = null;
         String symbol = (String) this.safeSymbol(null, market);
         Object timestampIndex = ((Helpers.isTrue(isPrivate))) ? 2 : 1;
-        Object timestamp = this.safeInteger(tradeList, timestampIndex);
+        Long timestamp = this.safeInteger(tradeList, timestampIndex);
         if (Helpers.isTrue(isPrivate))
         {
             Object marketId = Helpers.GetValue(tradeList, 1);
             symbol = (String) this.safeSymbol(marketId);
             orderId = this.safeString(tradeList, 3);
-            Object maker = this.safeInteger(tradeList, 8);
+            Long maker = this.safeInteger(tradeList, 8);
             takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(maker, 1))))) ? "maker" : "taker";
             String feeCostString = this.safeString(tradeList, 9);
             feeCostString = Precise.stringNeg(feeCostString);
@@ -2094,7 +2094,7 @@ public class BitfinexCore extends BitfinexApi
         String symbol = (String) this.safeSymbol(marketId);
         // https://github.com/ccxt/ccxt/issues/6686
         // const timestamp = this.safeTimestamp (orderObject, 5);
-        Object timestamp = this.safeInteger(orderList, 5);
+        Long timestamp = this.safeInteger(orderList, 5);
         Object remaining = Precise.stringAbs(this.safeString(orderList, 6));
         String signedAmount = this.safeString(orderList, 7);
         Object amount = Precise.stringAbs(signedAmount);
@@ -2410,8 +2410,8 @@ public class BitfinexCore extends BitfinexApi
                 String symbol = this.safeString(rawOrder, "symbol");
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
-                Object amount = this.safeNumber(rawOrder, "amount");
-                Object price = this.safeNumber(rawOrder, "price");
+                Double amount = this.safeNumber(rawOrder, "amount");
+                Double price = this.safeNumber(rawOrder, "price");
                 Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, orderParams);
                 ((java.util.List<Object>)ordersRequests).add(new java.util.ArrayList<Object>(java.util.Arrays.asList("on", orderRequest)));
@@ -3406,12 +3406,12 @@ public class BitfinexCore extends BitfinexApi
             Object feeData = this.safeValue(response, 4, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object makerData = this.safeValue(feeData, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object takerData = this.safeValue(feeData, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object makerFee = this.safeNumber(makerData, 0);
-            Object makerFeeFiat = this.safeNumber(makerData, 2);
-            Object makerFeeDeriv = this.safeNumber(makerData, 5);
-            Object takerFee = this.safeNumber(takerData, 0);
-            Object takerFeeFiat = this.safeNumber(takerData, 2);
-            Object takerFeeDeriv = this.safeNumber(takerData, 5);
+            Double makerFee = this.safeNumber(makerData, 0);
+            Double makerFeeFiat = this.safeNumber(makerData, 2);
+            Double makerFeeDeriv = this.safeNumber(makerData, 5);
+            Double takerFee = this.safeNumber(takerData, 0);
+            Double takerFeeFiat = this.safeNumber(takerData, 2);
+            Double takerFeeDeriv = this.safeNumber(takerData, 5);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(this.symbols, i);
@@ -3735,7 +3735,7 @@ public class BitfinexCore extends BitfinexApi
         Object positionList = this.safeList(position, "result");
         String marketId = this.safeString(positionList, 0);
         String amount = this.safeString(positionList, 2);
-        Object timestamp = this.safeInteger(positionList, 12);
+        Long timestamp = this.safeInteger(positionList, 12);
         String meta = this.safeString(positionList, 19);
         String tradePrice = this.safeString(meta, "trade_price");
         String tradeAmount = this.safeString(meta, "trade_amount");
@@ -3912,9 +3912,9 @@ public class BitfinexCore extends BitfinexApi
         String currencyId = this.safeString(itemList, 1);
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         currency = this.safeCurrency(currencyId, currency);
-        Object timestamp = this.safeInteger(itemList, 3);
-        Object amount = this.safeNumber(itemList, 5);
-        Object after = this.safeNumber(itemList, 6);
+        Long timestamp = this.safeInteger(itemList, 3);
+        Double amount = this.safeNumber(itemList, 5);
+        Double after = this.safeNumber(itemList, 6);
         String description = this.safeString(itemList, 8);
         if (Helpers.isTrue(!Helpers.isEqual(description, null)))
         {
@@ -4225,8 +4225,8 @@ public class BitfinexCore extends BitfinexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(contract, 0);
-        Object timestamp = this.safeInteger(contract, 1);
-        Object nextFundingTimestamp = this.safeInteger(contract, 8);
+        Long timestamp = this.safeInteger(contract, 1);
+        Long nextFundingTimestamp = this.safeInteger(contract, 8);
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", BitfinexCore.this.safeSymbol(marketId, market) );
@@ -4279,8 +4279,8 @@ public class BitfinexCore extends BitfinexApi
         // ]
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(contract, 0);
-        Object nextFundingTimestamp = this.safeInteger(contract, 7);
+        Long timestamp = this.safeInteger(contract, 0);
+        Long nextFundingTimestamp = this.safeInteger(contract, 7);
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", BitfinexCore.this.safeSymbol(null, market) );
@@ -4576,7 +4576,7 @@ public class BitfinexCore extends BitfinexApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object interestLength = Helpers.getArrayLength(interest);
         Object openInterestIndex = ((Helpers.isTrue((Helpers.isEqual(interestLength, 23))))) ? 17 : 18;
-        Object timestamp = this.safeInteger(interest, 1);
+        Long timestamp = this.safeInteger(interest, 1);
         String marketId = this.safeString(interest, 0);
         return this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", BitfinexCore.this.safeSymbol(marketId, market, null, "swap") );
@@ -4682,13 +4682,13 @@ public class BitfinexCore extends BitfinexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object entry = Helpers.GetValue(liquidation, 0);
-        Object timestamp = this.safeInteger(entry, 2);
+        Long timestamp = this.safeInteger(entry, 2);
         String marketId = this.safeString(entry, 4);
         Object contracts = Precise.stringAbs(this.safeString(entry, 5));
         String contractSize = this.safeString(market, "contractSize");
         Object baseValue = Precise.stringMul(contracts, contractSize);
         String price = this.safeString(entry, 11);
-        Object sideFlag = this.safeInteger(entry, 8);
+        Long sideFlag = this.safeInteger(entry, 8);
         Object side = ((Helpers.isTrue((Helpers.isEqual(sideFlag, 1))))) ? "buy" : "sell";
         return this.safeLiquidation(new java.util.HashMap<String, Object>() {{
             put( "info", entry );

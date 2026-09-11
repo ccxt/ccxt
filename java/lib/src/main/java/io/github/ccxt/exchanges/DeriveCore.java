@@ -1347,7 +1347,7 @@ public class DeriveCore extends DeriveApi
             {
                 Helpers.addElementToObject(request, "from_timestamp", since);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -1454,7 +1454,7 @@ public class DeriveCore extends DeriveApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String marketId = this.safeString(trade, "instrument_name");
         String symbol = (String) this.safeSymbol(marketId, market);
-        Object timestamp = this.safeInteger(trade, "timestamp");
+        Long timestamp = this.safeInteger(trade, "timestamp");
         Object fee = new java.util.HashMap<String, Object>() {{
             put( "currency", "USDC" );
             put( "cost", DeriveCore.this.safeString(trade, "trade_fee") );
@@ -1508,7 +1508,7 @@ public class DeriveCore extends DeriveApi
             {
                 Helpers.addElementToObject(request, "start_timestamp", since);
             }
-            Object until = this.safeInteger(parameters, "until");
+            Long until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("until")));
             if (Helpers.isTrue(!Helpers.isEqual(until, null)))
             {
@@ -1534,7 +1534,7 @@ public class DeriveCore extends DeriveApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object entry = Helpers.GetValue(data, i);
-                Object timestamp = this.safeInteger(entry, "timestamp");
+                Long timestamp = this.safeInteger(entry, "timestamp");
                 ((java.util.List<Object>)rates).add(new java.util.HashMap<String, Object>() {{
                     put( "info", entry );
                     put( "symbol", Helpers.GetValue(market, "symbol") );
@@ -1589,7 +1589,7 @@ public class DeriveCore extends DeriveApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String symbol = this.safeString(contract, "symbol");
-        Object fundingTimestamp = this.safeInteger(contract, "timestamp");
+        Long fundingTimestamp = this.safeInteger(contract, "timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", symbol );
@@ -1706,9 +1706,9 @@ public class DeriveCore extends DeriveApi
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
             Object orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-            Object nonce = this.milliseconds();
+            Long nonce = this.milliseconds();
             // Order signature expiry must be between 2592000 and 7776000 sec from now
-            Object signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
+            Long signatureExpiry = this.safeInteger(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
@@ -1908,8 +1908,8 @@ public class DeriveCore extends DeriveApi
             Object orderType = ((String)type).toLowerCase();
             Object orderSide = ((String)((String)side)).toLowerCase();
             Object orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
-            Object nonce = this.milliseconds();
-            Object signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
+            Long nonce = this.milliseconds();
+            Double signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
             // TODO: subaccount id / trade module address
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
@@ -2333,11 +2333,11 @@ public class DeriveCore extends DeriveApi
             // }
             //
             Object data = this.safeValue(response, "result");
-            Object page = this.safeInteger(parameters, "page");
+            Long page = this.safeInteger(parameters, "page");
             if (Helpers.isTrue(!Helpers.isEqual(page, null)))
             {
                 Object pagination = this.safeDict(data, "pagination");
-                Object currentPage = this.safeInteger(pagination, "num_pages", 0);
+                Long currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if (Helpers.isTrue(Helpers.isGreaterThan(page, currentPage)))
                 {
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2575,7 +2575,7 @@ public class DeriveCore extends DeriveApi
                 takeProfitPrice = triggerPrice;
             }
         }
-        Object lastUpdateTimestamp = this.safeInteger(rawOrder, "last_update_timestamp");
+        Long lastUpdateTimestamp = this.safeInteger(rawOrder, "last_update_timestamp");
         String status = this.safeString(order, "order_status");
         String timeInForce = this.safeString(order, "time_in_force");
         final Object finalOrder = order;
@@ -2802,11 +2802,11 @@ public class DeriveCore extends DeriveApi
             // }
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object page = this.safeInteger(parameters, "page");
+            Long page = this.safeInteger(parameters, "page");
             if (Helpers.isTrue(!Helpers.isEqual(page, null)))
             {
                 Object pagination = this.safeDict(result, "pagination");
-                Object currentPage = this.safeInteger(pagination, "num_pages", 0);
+                Long currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if (Helpers.isTrue(Helpers.isGreaterThan(page, currentPage)))
                 {
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2940,7 +2940,7 @@ public class DeriveCore extends DeriveApi
         }
         String contractSize = this.safeString(market, "contractSize");
         String markPrice = this.safeString(position, "mark_price");
-        Object timestamp = this.safeInteger(position, "creation_timestamp");
+        Long timestamp = this.safeInteger(position, "creation_timestamp");
         String unrealisedPnl = this.safeString(position, "unrealized_pnl");
         size = Precise.stringAbs(size);
         Object notional = Precise.stringMul(size, markPrice);
@@ -3066,11 +3066,11 @@ public class DeriveCore extends DeriveApi
             // }
             //
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object page = this.safeInteger(parameters, "page");
+            Long page = this.safeInteger(parameters, "page");
             if (Helpers.isTrue(!Helpers.isEqual(page, null)))
             {
                 Object pagination = this.safeDict(result, "pagination");
-                Object currentPage = this.safeInteger(pagination, "num_pages", 0);
+                Long currentPage = this.safeInteger(pagination, "num_pages", 0);
                 if (Helpers.isTrue(Helpers.isGreaterThan(page, currentPage)))
                 {
                     return new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -3097,7 +3097,7 @@ public class DeriveCore extends DeriveApi
         String symbol = (String) this.safeSymbol(marketId, market);
         String rate = this.safeString(income, "funding");
         String code = (String) this.safeCurrencyCode("USDC");
-        Object timestamp = this.safeInteger(income, "timestamp");
+        Long timestamp = this.safeInteger(income, "timestamp");
         return new java.util.HashMap<String, Object>() {{
             put( "info", income );
             put( "symbol", symbol );
@@ -3366,7 +3366,7 @@ public class DeriveCore extends DeriveApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String code = this.safeString(transaction, "asset");
-        Object timestamp = this.safeInteger(transaction, "timestamp");
+        Long timestamp = this.safeInteger(transaction, "timestamp");
         String txId = this.safeString(transaction, "tx_hash");
         if (Helpers.isTrue(Helpers.isEqual(txId, "0x0")))
         {

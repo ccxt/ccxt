@@ -412,7 +412,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object marketId = this.safeString(ticker, "instrument_name");
         market = this.safeMarket(marketId, market);
         Object symbol = this.safeString(market, "symbol");
-        Object timestamp = this.safeInteger(ticker, "timestamp");
+        Long timestamp = this.safeInteger(ticker, "timestamp");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -523,7 +523,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object trades = this.safeList(parameters, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.trades, symbol), null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(this.trades, symbol);
@@ -624,7 +624,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object cachedTrades = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(cachedTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             cachedTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         java.util.List<Object> parsed = this.parseTrades(trades);
@@ -781,7 +781,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         }
         Object marketId = this.safeString(data, "instrument_name");
         String symbol = (String) this.safeSymbol(marketId);
-        Object timestamp = this.safeInteger(data, "timestamp");
+        Long timestamp = this.safeInteger(data, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.countedOrderBook());
@@ -932,7 +932,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         //
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object parameters = this.safeValue(message, "params", new java.util.HashMap<String, Object>() {{}});
@@ -1058,7 +1058,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), unifiedTimeframe), null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe));
@@ -1287,7 +1287,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            Object time = this.milliseconds();
+            Long time = this.milliseconds();
             Object timeString = this.numberToString(time);
             Object nonce = timeString;
             Object messageHash = "authenticated";

@@ -1344,9 +1344,9 @@ public class BitstampCore extends BitstampApi
             // currencies are now fetched before markets
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object options = this.safeValue(this.options, "fetchMarkets", new java.util.HashMap<String, Object>() {{}});
-            Object timestamp = this.safeInteger(options, "timestamp");
-            Object expires = this.safeInteger(options, "expires", 1000);
-            Object now = this.milliseconds();
+            Long timestamp = this.safeInteger(options, "timestamp");
+            Long expires = this.safeInteger(options, "expires", 1000);
+            Long now = this.milliseconds();
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(timestamp, null))) || Helpers.isTrue((Helpers.isGreaterThan((Helpers.subtract(now, timestamp)), expires)))))
             {
                 Object response = (this.publicGetMarkets(parameters)).join();
@@ -1445,12 +1445,12 @@ public class BitstampCore extends BitstampApi
             Object cost = Helpers.GetValue(parts, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && !Helpers.isTrue((Helpers.inOp(result, base)))))
             {
-                Object baseDecimals = this.safeInteger(market, "base_decimals");
+                Long baseDecimals = this.safeInteger(market, "base_decimals");
                 Helpers.addElementToObject(result, base, this.constructCurrencyObject(baseId, base, baseDescription, baseDecimals, null, market));
             }
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(quote, null))) && !Helpers.isTrue((Helpers.inOp(result, quote)))))
             {
-                Object counterDecimals = this.safeInteger(market, "counter_decimals");
+                Long counterDecimals = this.safeInteger(market, "counter_decimals");
                 Helpers.addElementToObject(result, quote, this.constructCurrencyObject(quoteId, quote, quoteDescription, counterDecimals, this.parseNumber(cost), market));
             }
         }
@@ -1499,12 +1499,12 @@ public class BitstampCore extends BitstampApi
             //         ]
             //     }
             //
-            Object microtimestamp = this.safeInteger(response, "microtimestamp");
+            Long microtimestamp = this.safeInteger(response, "microtimestamp");
             if (Helpers.isTrue(Helpers.isEqual(microtimestamp, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchOrderBook() missing microtimestamp")) ;
             }
-            Object timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
+            Long timestamp = this.parseToInt(Helpers.divide(microtimestamp, 1000));
             Object orderbook = this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), timestamp);
             Helpers.addElementToObject(orderbook, "nonce", microtimestamp);
             return orderbook;
@@ -1675,7 +1675,7 @@ public class BitstampCore extends BitstampApi
             Object id = Helpers.GetValue(ids, i);
             if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(id, "_"), 0)))
             {
-                Object value = this.safeInteger(transaction, id);
+                Long value = this.safeInteger(transaction, id);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue((!Helpers.isEqual(value, 0)))))
                 {
                     return id;
@@ -1982,7 +1982,7 @@ public class BitstampCore extends BitstampApi
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "step", BitstampCore.this.safeString(BitstampCore.this.timeframes, timeframe, timeframe) );
             }};
-            Object duration = this.parseTimeframe(timeframe);
+            int duration = this.parseTimeframe(timeframe);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(since, null)))
@@ -1991,7 +1991,7 @@ public class BitstampCore extends BitstampApi
                 } else
                 {
                     limit = 1000;
-                    Object start = this.parseToInt(Helpers.divide(since, 1000));
+                    Long start = this.parseToInt(Helpers.divide(since, 1000));
                     Helpers.addElementToObject(request, "start", start);
                     Helpers.addElementToObject(request, "end", this.sum(start, Helpers.multiply(duration, (Helpers.subtract(limit, 1)))));
                     Helpers.addElementToObject(request, "limit", limit);
@@ -2000,7 +2000,7 @@ public class BitstampCore extends BitstampApi
             {
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
                 {
-                    Object start = this.parseToInt(Helpers.divide(since, 1000));
+                    Long start = this.parseToInt(Helpers.divide(since, 1000));
                     Helpers.addElementToObject(request, "start", start);
                     Helpers.addElementToObject(request, "end", this.sum(start, Helpers.multiply(duration, (Helpers.subtract(limit, 1)))));
                 }
@@ -2321,7 +2321,7 @@ public class BitstampCore extends BitstampApi
             Object networkEntry = Helpers.GetValue(fee, j);
             String networkId = this.safeString(networkEntry, "network");
             Object networkCode = this.networkIdToCode(networkId, code);
-            Object withdrawFee = this.safeNumber(networkEntry, "fee");
+            Double withdrawFee = this.safeNumber(networkEntry, "fee");
             Helpers.addElementToObject(result, "withdraw", new java.util.HashMap<String, Object>() {{
     put( "fee", withdrawFee );
     put( "percentage", null );
@@ -2795,7 +2795,7 @@ public class BitstampCore extends BitstampApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeIntegerProduct(contract, "timestamp", 0.001);
+        Long timestamp = this.safeIntegerProduct(contract, "timestamp", 0.001);
         return new java.util.HashMap<String, Object>() {{
             put( "info", contract );
             put( "symbol", null );
@@ -3408,8 +3408,8 @@ public class BitstampCore extends BitstampApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object currentTime = this.safeIntegerProduct(fundingRate, "timestamp", 1000);
-        Object nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, "next_funding_time", 1000);
+        Long currentTime = this.safeIntegerProduct(fundingRate, "timestamp", 1000);
+        Long nextFundingRateTimestamp = this.safeIntegerProduct(fundingRate, "next_funding_time", 1000);
         String marketId = this.safeString(fundingRate, "market");
         return new java.util.HashMap<String, Object>() {{
             put( "info", fundingRate );

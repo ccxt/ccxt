@@ -648,12 +648,12 @@ public class PolymarketCore extends PolymarketApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object resultLimit = this.safeInteger(parameters, "limit");
+            Long resultLimit = this.safeInteger(parameters, "limit");
             // fixed page size (gamma's limit_per_type). do NOT tie it to `limit`: that made a small
             // limit fan out into many tiny-page requests (limit:1 -> ~one request per matching event).
             // tunable per-call via params.searchPageSize, else the exchange option, else 100
-            Object optionPageSize = this.safeInteger(this.options, "searchPageSize", 100);
-            Object pageSize = this.safeInteger(parameters, "searchPageSize", optionPageSize);
+            Long optionPageSize = this.safeInteger(this.options, "searchPageSize", 100);
+            Long pageSize = this.safeInteger(parameters, "searchPageSize", optionPageSize);
             // map the unified sort/status onto the gamma search params
             Object sort = this.safeString(parameters, "sort");
             Object sortParam = "volume";
@@ -698,7 +698,7 @@ public class PolymarketCore extends PolymarketApi
                 Object firstEvents = (java.util.List<Object>)(this.safeList(first, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
                 Object firstEventsLength = Helpers.getArrayLength(firstEvents);
                 Object pagination = this.safeDict(first, "pagination", new java.util.HashMap<String, Object>() {{}});
-                Object totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
+                Long totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
                 Object totalPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(totalResults, pageSize))));
                 // only page as far as `limit` needs (applyEventFetchParams slices to it afterwards);
                 // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
@@ -711,8 +711,8 @@ public class PolymarketCore extends PolymarketApi
                     }
                 } else
                 {
-                    Object optionMaxPages = this.safeInteger(this.options, "maxSearchPages", 5);
-                    Object maxSearchPages = this.safeInteger(parameters, "maxSearchPages", optionMaxPages);
+                    Long optionMaxPages = this.safeInteger(this.options, "maxSearchPages", 5);
+                    Long maxSearchPages = this.safeInteger(parameters, "maxSearchPages", optionMaxPages);
                     if (Helpers.isTrue(Helpers.isLessThan(maxSearchPages, totalPages)))
                     {
                         totalPages = maxSearchPages;
@@ -821,10 +821,10 @@ public class PolymarketCore extends PolymarketApi
             // gamma hard-caps each response at 100 events regardless of the requested limit, so the
             // page size must be that cap or pagination never advances (the > check below stays false)
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object pageSize = this.safeInteger(this.options, "eventsPageSize", 100);
+            Long pageSize = this.safeInteger(this.options, "eventsPageSize", 100);
             // scope the listing: without a search query loadMarkets would otherwise dump every
             // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
-            Object limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 200));
+            Long limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 200));
             Object maxPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(limit, pageSize))));
             Object status = this.safeString(parameters, "status", this.safeString(this.options, "defaultEventStatus", "active"));
             // sort maps to the gamma `order` field; 'volume' is the default ranking
@@ -1043,9 +1043,9 @@ public class PolymarketCore extends PolymarketApi
             Object marketResolved = Helpers.isTrue((Helpers.isEqual(closed, true))) || Helpers.isTrue((Helpers.isEqual(this.safeStringLower(market, "umaResolutionStatus"), "resolved")));
             Object resolvedOutcome = null;
             // gamma exposes the order-book tick as orderPriceMinTickSize; minimumTickSize is the clob alias
-            Object tickSize = this.safeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01);
+            Double tickSize = this.safeNumber2(market, "orderPriceMinTickSize", "minimumTickSize", 0.01);
             // real per-market min order size (shares) and price tick — don't hardcode 1 / 0.01..0.99
-            Object orderMinSize = this.safeNumber(market, "orderMinSize", 1);
+            Double orderMinSize = this.safeNumber(market, "orderMinSize", 1);
             Object priceMax = this.parseNumber(Precise.stringSub("1", this.numberToString(tickSize)));
             Object negRisk = this.safeBool(market, "negRisk", false);
             Object endDate = this.safeString(market, "endDate", this.safeString(market, "end_date_iso"));
@@ -1097,7 +1097,7 @@ public class PolymarketCore extends PolymarketApi
             {
                 Object outcomeLabel = Helpers.GetValue(outcomeLabels, oi);
                 Object clobTokenId = Helpers.GetValue(clobTokenIds, oi);
-                Object outcomePrice = this.safeNumber(outcomePrices, oi);
+                Double outcomePrice = this.safeNumber(outcomePrices, oi);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(clobTokenId, null))) || Helpers.isTrue((Helpers.isEqual(clobTokenId, "")))))
                 {
                     continue;
@@ -1312,7 +1312,7 @@ final Object finalClobTokenId = clobTokenId;
                     this.markets = this.createSafeDictionary();
                 }
                 // token ids are ~78 chars each, so cap the batch to keep the URL under common limits
-                Object chunkSize = this.safeInteger(this.options, "fetchOutcomesBatchSize", 50);
+                Long chunkSize = this.safeInteger(this.options, "fetchOutcomesBatchSize", 50);
                 Object startIndex = 0;
                 while (Helpers.isLessThan(startIndex, tokenIdsLength))
                 {
@@ -1475,7 +1475,7 @@ final Object finalClobTokenId = clobTokenId;
                     ((java.util.List<Object>)tokenIds).add(tokenId);
                 }
             }
-            Object chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 200);
+            Long chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 200);
             Object result = new java.util.HashMap<String, Object>() {{}};
             Object tokenIdsLength = Helpers.getArrayLength(tokenIds);
             Object startIndex = 0;
@@ -1591,7 +1591,7 @@ final Object finalClobTokenId = clobTokenId;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object midpointData = this.safeDict(ticker, "midpoint", new java.util.HashMap<String, Object>() {{}});
         Object bookData = this.safeDict(ticker, "book", new java.util.HashMap<String, Object>() {{}});
-        Object mid = this.safeNumber(midpointData, "mid");
+        Double mid = this.safeNumber(midpointData, "mid");
         Object bids = (java.util.List<Object>)(this.safeList(bookData, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
         Object asks = (java.util.List<Object>)(this.safeList(bookData, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
         Object bidsLength = Helpers.getArrayLength(bids);
@@ -1610,7 +1610,7 @@ final Object finalClobTokenId = clobTokenId;
             last = mid;
         }
         Object outcome = this.safeOutcomeSymbol(null, market);
-        Object timestamp = this.safeInteger(bookData, "timestamp", this.milliseconds());
+        Long timestamp = this.safeInteger(bookData, "timestamp", this.milliseconds());
         Object quoteVolume = null;
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
         {
@@ -1689,7 +1689,7 @@ final Object finalClobTokenId = clobTokenId;
             //         "last_trade_price": "0.002"
             //     }
             //
-            Object timestamp = this.safeInteger(response, "timestamp");
+            Long timestamp = this.safeInteger(response, "timestamp");
             Object orderbook = this.parseOrderBook(response, this.safeOutcomeSymbol(outcome, outcomeObj), timestamp, "bids", "asks", "price", "size");
             return this.safePredictionOrderBook(orderbook, outcomeObj);
         });
@@ -1725,7 +1725,7 @@ final Object finalClobTokenId = clobTokenId;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
             Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
-            Object fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
+            Long fidelityMin = this.safeInteger(this.timeframes, timeframe, 1); // fidelity in minutes
             Object nowS = this.seconds();
             Object startS = null;
             Object endS = nowS;
@@ -1746,7 +1746,7 @@ final Object finalClobTokenId = clobTokenId;
             // regardless of fidelity, so clamp the window to the cap: keep the requested
             // `since` anchor (oldest chunk first, consistent with since/limit paging),
             // or the most recent window when no `since` was given
-            Object maxWindow = this.safeInteger(this.options, "maxPricesHistoryWindow", 1296000);
+            Long maxWindow = this.safeInteger(this.options, "maxPricesHistoryWindow", 1296000);
             if (Helpers.isTrue(Helpers.isGreaterThan((Helpers.subtract(endS, startS)), maxWindow)))
             {
                 if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1782,8 +1782,8 @@ final Object finalClobTokenId = clobTokenId;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(history)); i++)
             {
                 Object item = Helpers.GetValue(history, i);
-                Object t = this.safeInteger(item, "t");
-                Object price = this.safeNumber(item, "p");
+                Long t = this.safeInteger(item, "t");
+                Double price = this.safeNumber(item, "p");
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(t, null))) || Helpers.isTrue((Helpers.isEqual(price, null)))))
                 {
                     continue;
@@ -1842,7 +1842,7 @@ final Object finalClobTokenId = clobTokenId;
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object price = this.safeNumber(ohlcv, "p");
+        Double price = this.safeNumber(ohlcv, "p");
         return new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(ohlcv, "t"), price, price, price, price, null));
     }
 
@@ -1942,7 +1942,7 @@ final Object finalClobTokenId = clobTokenId;
         //     { "market": "0x7976b8...92", "value": 4925662.470476 }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.milliseconds();
+        Long timestamp = this.milliseconds();
         Object openInterest = this.safeOpenInterest(new java.util.HashMap<String, Object>() {{
             put( "symbol", PolymarketCore.this.safeOutcomeSymbol(null, market) );
             put( "openInterestAmount", null );
@@ -2154,13 +2154,13 @@ final Object finalClobTokenId = clobTokenId;
         // the private CLOB /data/trades use 'asset_id'/'taker_order_id'/'transaction_hash'/'match_time'
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object id = this.safeStringN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("transactionHash", "transaction_hash", "id")));
-        Object timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
+        Long timestamp = this.safeIntegerProduct(trade, "timestamp", 1000);
         if (Helpers.isTrue(Helpers.isEqual(timestamp, null)))
         {
             timestamp = this.safeIntegerProduct(trade, "match_time", 1000);
         }
-        Object price = this.safeNumber(trade, "price");
-        Object amount = this.safeNumber(trade, "size");
+        Double price = this.safeNumber(trade, "price");
+        Double amount = this.safeNumber(trade, "size");
         String rawSide = (String)this.safeStringLower(trade, "side");
         Object side = ((Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(rawSide, "buy")) || Helpers.isTrue(Helpers.isEqual(rawSide, "sell")))))) ? rawSide : null;
         Object assetId = this.safeString2(trade, "asset", "asset_id");
@@ -2359,9 +2359,9 @@ final Object finalClobTokenId = clobTokenId;
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object tokenId = this.safeString(position, "asset");
         Object marketData = this.safeOutcome(tokenId, market);
-        Object size = this.safeNumber(position, "size");
-        Object entryPrice = this.safeNumber(position, "avgPrice");
-        Object curPrice = this.safeNumber(position, "currentPrice");
+        Double size = this.safeNumber(position, "size");
+        Double entryPrice = this.safeNumber(position, "avgPrice");
+        Double curPrice = this.safeNumber(position, "currentPrice");
         Object notional = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(size, null))) && Helpers.isTrue((!Helpers.isEqual(curPrice, null)))))
         {
@@ -2495,10 +2495,10 @@ final Object finalClobTokenId = clobTokenId;
         // REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
         Object status = this.parseOrderStatus(this.safeString2(order, "status", "type"));
         String side = (String)this.safeStringLower(order, "side");
-        Object price = this.safeNumber(order, "price");
-        Object amount = this.safeNumber(order, "original_size");
-        Object filled = this.safeNumber(order, "size_matched", 0);
-        Object ts = this.safeIntegerProduct(order, "created_at", 1000);
+        Double price = this.safeNumber(order, "price");
+        Double amount = this.safeNumber(order, "original_size");
+        Double filled = this.safeNumber(order, "size_matched", 0);
+        Long ts = this.safeIntegerProduct(order, "created_at", 1000);
         return this.safePredictionOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
@@ -2629,7 +2629,7 @@ final Object finalClobTokenId = clobTokenId;
             Object bodies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object requests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object batchSalt = this.milliseconds();
+            Long batchSalt = this.milliseconds();
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object o = Helpers.GetValue(orders, i);
@@ -2743,7 +2743,7 @@ final Object finalClobTokenId = clobTokenId;
         // GTD (good-til-date) orders need a unix-seconds expiration; 0 means no expiry
         Object expiration = this.safeString(parameters, "expiration", "0");
         // a market buy can be sized by USDC cost instead of shares (see createMarketBuyOrderWithCost)
-        Object cost = this.safeNumber(parameters, "cost");
+        Double cost = this.safeNumber(parameters, "cost");
         Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("signatureType", "signature_type", "funder", "maker", "orderType", "timeInForce", "postOnly", "tickSize", "negRisk", "salt", "timestamp", "expiration", "cost", "builder", "builderCode")));
         Object amounts = this.polymarketOrderRawAmounts(sideStr, amount, price, tickSize, cost);
         Object makerAmount = this.safeString(amounts, "makerAmount");
@@ -2901,9 +2901,9 @@ final Object finalClobTokenId = clobTokenId;
             }} );
         }};
         Object cfg = this.safeDict(configs, tickSize, this.safeDict(configs, "0.01"));
-        Object priceDecimals = this.safeInteger(cfg, "price");
-        Object sizeDecimals = this.safeInteger(cfg, "size");
-        Object amountDecimals = this.safeInteger(cfg, "amount");
+        Long priceDecimals = this.safeInteger(cfg, "price");
+        Long sizeDecimals = this.safeInteger(cfg, "size");
+        Long amountDecimals = this.safeInteger(cfg, "amount");
         Object priceStr = this.numberToString(price);
         Object rawPrice = this.decimalToPrecision(priceStr, ROUND, priceDecimals, DECIMAL_PLACES);
         Object makerRaw = null;
@@ -2944,7 +2944,7 @@ final Object finalClobTokenId = clobTokenId;
         // chainIdValue, not chainId: the php regex transpiler would rewrite the substring "chainId"
         // inside the 'EIP712Domain(...uint256 chainId,...)' literal below to the local var '$chainId',
         // corrupting the domain type hash
-        Object chainIdValue = this.safeInteger(this.options, "chainId", 137);
+        Long chainIdValue = this.safeInteger(this.options, "chainId", 137);
         Object domainName = this.safeString(this.options, "ctfExchangeName", "Polymarket CTF Exchange");
         Object orderTypeString = "Order(uint256 salt,address maker,address signer,uint256 tokenId,uint256 makerAmount,uint256 takerAmount,uint8 side,uint8 signatureType,uint256 timestamp,bytes32 metadata,bytes32 builder)";
         Object orderStruct = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -3600,7 +3600,7 @@ final Object finalClobTokenId = clobTokenId;
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 Object address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
                 Object timestamp = String.valueOf(this.seconds());
-                Object nonce = this.safeInteger(parameters, "nonce", 0);
+                Long nonce = this.safeInteger(parameters, "nonce", 0);
                 Object l1signature = this.signClobAuth(address, timestamp, nonce);
                 headers = this.extend(headers, new java.util.HashMap<String, Object>() {{
                     put( "POLY_ADDRESS", address );
@@ -3975,8 +3975,8 @@ final Object finalOutcome = outcome;
                 continue;
             }
             Object orderbook = Helpers.GetValue(this.orderbooks, outcome);
-            Object price = this.safeNumber(change, "price");
-            Object size = this.safeNumber(change, "size");
+            Double price = this.safeNumber(change, "price");
+            Double size = this.safeNumber(change, "size");
             Object isBuy = Helpers.isEqual(this.safeStringUpper(change, "side", ""), "BUY");
             Object side = ((Helpers.isTrue(isBuy))) ? Helpers.GetValue(orderbook, "bids") : Helpers.GetValue(orderbook, "asks");
             // storeArray([price, size]) inserts/updates or removes (size=0) the level
@@ -4005,8 +4005,8 @@ final Object finalOutcome = outcome;
             return;
         }
         Object timestamp = this.parsePolyTimestamp(this.safeString(eventVar, "timestamp"));
-        Object price = this.safeNumber(eventVar, "price");
-        Object amount = this.safeNumber(eventVar, "size");
+        Double price = this.safeNumber(eventVar, "price");
+        Double amount = this.safeNumber(eventVar, "size");
         Object market = this.safeOutcome(tokenId);
         final Object finalOutcome = outcome;
         Object trade = this.safePredictionTrade(new java.util.HashMap<String, Object>() {{
@@ -4034,7 +4034,7 @@ final Object finalOutcome = outcome;
         Object stored = this.safeValue(this.trades, outcome);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, outcome, stored);
         }
@@ -4327,7 +4327,7 @@ final Object finalOutcome = outcome;
     {
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
         Object stored = this.orders;
@@ -4345,7 +4345,7 @@ final Object finalOutcome = outcome;
     {
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             this.myTrades = new ArrayCache.ArrayCacheByOutcomeById(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
@@ -4384,7 +4384,7 @@ final Object finalOutcome = outcome;
         {
             return this.milliseconds();
         }
-        Object n = this.parseToInt(raw);
+        Long n = this.parseToInt(raw);
         if (Helpers.isTrue(Helpers.isEqual(n, null)))
         {
             return this.milliseconds();

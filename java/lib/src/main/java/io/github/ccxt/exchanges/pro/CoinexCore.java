@@ -366,7 +366,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object balances = this.safeList(data, "balance_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object firstEntry = Helpers.GetValue(balances, 0);
-        Object updated = this.safeInteger(firstEntry, "updated_at");
+        Long updated = this.safeInteger(firstEntry, "updated_at");
         Object unrealizedPnl = this.safeString(firstEntry, "unrealized_pnl");
         Object isSpot = (!Helpers.isEqual(updated, null));
         Object isSwap = (!Helpers.isEqual(unrealizedPnl, null));
@@ -563,7 +563,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -626,7 +626,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
@@ -680,7 +680,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(trade, "created_at");
+        Long timestamp = this.safeInteger(trade, "created_at");
         Object isSpot = (Helpers.inOp(trade, "margin_market"));
         Object defaultType = ((Helpers.isTrue(isSpot))) ? "spot" : "swap";
         Object marketId = this.safeString(trade, "market");
@@ -1057,7 +1057,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object symbol = Helpers.GetValue(market, "symbol");
         Object name = "orderbook";
         Object messageHash = Helpers.add(Helpers.add(name, ":"), symbol);
-        Object timestamp = this.safeInteger(depth, "updated_at");
+        Long timestamp = this.safeInteger(depth, "updated_at");
         Object currentOrderBook = this.safeValue(this.orderbooks, symbol);
         Object fullOrderBook = this.safeBool(data, "is_full", false);
         if (Helpers.isTrue(Helpers.isEqual(fullOrderBook, true)))
@@ -1298,7 +1298,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object market = this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object orders = this.orders;
@@ -1401,7 +1401,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(order, "created_at");
+        Long timestamp = this.safeInteger(order, "created_at");
         Object marketId = this.safeString(order, "market");
         Object status = this.safeString(order, "status");
         Object isSpot = (Helpers.inOp(order, "margin_market"));
@@ -1560,7 +1560,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         Object defaultType = this.safeString(this.options, "defaultType");
         Object marketId = this.safeString(ticker, "market");
         market = this.safeMarket(marketId, market, null, defaultType);
-        Object timestamp = this.safeInteger(ticker, "updated_at");
+        Long timestamp = this.safeInteger(ticker, "updated_at");
         final Object finalMarket = market;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", CoinexCore.this.safeSymbol(marketId, finalMarket, null, defaultType) );
@@ -1686,7 +1686,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
 
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
             Client client = this.client(url);
-            Object time = this.milliseconds();
+            Long time = this.milliseconds();
             Object timestamp = String.valueOf(time);
             Object messageHash = "authenticated";
             io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);

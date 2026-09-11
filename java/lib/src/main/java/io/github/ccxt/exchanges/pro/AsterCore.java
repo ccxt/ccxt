@@ -517,7 +517,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
     {
         Object eventVar = this.safeString(message, "e");
         Object marketId = this.safeString(message, "s");
-        Object timestamp = this.safeInteger(message, "E");
+        Long timestamp = this.safeInteger(message, "E");
         Object market = this.safeMarket(marketId, null, null, marketType);
         Object last = this.safeString(message, "c");
         if (Helpers.isTrue(Helpers.isEqual(eventVar, "markPriceUpdate")))
@@ -702,7 +702,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
     public Object parseWsBidAsk(Object message, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeInteger(message, "T");
+        Long timestamp = this.safeInteger(message, "T");
         Object bidAskSymbol = ((Helpers.isTrue((!Helpers.isEqual(market, null))))) ? Helpers.GetValue(market, "symbol") : null;
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", bidAskSymbol );
@@ -912,7 +912,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         }
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
-            Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+            Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(this.trades, symbol);
@@ -1016,7 +1016,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object e = this.safeString(trade, "e");
         Object isPublicTrade = Helpers.isTrue((Helpers.isEqual(e, "trade"))) || Helpers.isTrue((Helpers.isEqual(e, "aggTrade")));
         Object id = this.safeString2(trade, "t", "a");
-        Object timestamp = this.safeInteger(trade, "T");
+        Long timestamp = this.safeInteger(trade, "T");
         Object price = this.safeString2(trade, "L", "p");
         Object amount = null;
         if (Helpers.isTrue(isPublicTrade))
@@ -1286,7 +1286,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object marketType = this.getAccountTypeFromUrl(client.url);
         Object data = message;
         Object marketId = this.safeString(data, "s");
-        Object timestamp = this.safeInteger(data, "T");
+        Long timestamp = this.safeInteger(data, "T");
         Object market = this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -1541,7 +1541,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         }
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(ohlcvsByTimeframe, timeframe), null)))
         {
-            Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
+            Long limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
@@ -1565,11 +1565,11 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
 
             Object type = Helpers.getArg(optionalArgs, 0, "spot");
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object time = this.milliseconds();
+            Long time = this.milliseconds();
             Object lastAuthenticatedTimeOptions = this.safeDict(this.options, "lastAuthenticatedTime", new java.util.HashMap<String, Object>() {{}});
-            Object lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, type, 0);
+            Long lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, type, 0);
             Object listenKeyRefreshRateOptions = this.safeDict(this.options, "listenKeyRefreshRate", new java.util.HashMap<String, Object>() {{}});
-            Object listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
+            Long listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
             {
                 // single-flight leader election on a never-dialed client, see
@@ -1671,7 +1671,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             }
             // whether or not to schedule another listenKey keepAlive request
             Object listenKeyRefreshOptions = this.safeDict(this.options, "listenKeyRefresh", new java.util.HashMap<String, Object>() {{}});
-            Object listenKeyRefreshRate = this.safeInteger(listenKeyRefreshOptions, "listenKeyRefreshRate", 3600000);
+            Long listenKeyRefreshRate = this.safeInteger(listenKeyRefreshOptions, "listenKeyRefreshRate", 3600000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
             return null;
         });
@@ -1855,7 +1855,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), code, account);
             }
         }
-        Object timestamp = this.safeInteger(message, "E");
+        Long timestamp = this.safeInteger(message, "E");
         Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), "timestamp", timestamp);
         Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), "datetime", this.iso8601(timestamp));
         Helpers.addElementToObject(this.balance, accountType, this.safeBalance(Helpers.GetValue(this.balance, accountType)));
@@ -1955,7 +1955,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
                 Object position = Helpers.GetValue(positions, i);
-                Object contracts = this.safeNumber(position, "contracts", 0);
+                Double contracts = this.safeNumber(position, "contracts", 0);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(contracts, null))) && Helpers.isTrue((Helpers.isGreaterThan(contracts, 0)))))
                 {
                     Helpers.callDynamically(cache, "append", new Object[]{position});
@@ -2019,7 +2019,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Object position = this.parseWsPosition(rawPosition);
-            Object timestamp = this.safeInteger(message, "E");
+            Long timestamp = this.safeInteger(message, "E");
             Helpers.addElementToObject(position, "timestamp", timestamp);
             Helpers.addElementToObject(position, "datetime", this.iso8601(timestamp));
             ((java.util.List<Object>)newPositions).add(position);
@@ -2299,7 +2299,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             }
             if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
             {
-                Object limit = this.safeInteger(this.options, "tradesLimit", 1000);
+                Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
                 this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
             }
             Object myTrades = this.myTrades;
@@ -2390,7 +2390,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object market = this.getMarketFromOrder(client, message);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
-            Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
+            Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object cache = this.orders;
@@ -2413,7 +2413,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object marketId = this.safeString(order, "s");
         market = this.safeMarket(marketId, market);
         Object timestamp = this.safeInteger(order, "O");
-        Object T = this.safeInteger(order, "T");
+        Long T = this.safeInteger(order, "T");
         Object lastTradeTimestamp = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(executionType, "NEW")) || Helpers.isTrue(Helpers.isEqual(executionType, "AMENDMENT"))) || Helpers.isTrue(Helpers.isEqual(executionType, "CANCELED"))))
         {
