@@ -5910,7 +5910,6 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	if IsTrue(!IsEqual(toAccount, nil)) {
 		AddElementToObject(request, "toAccount", toId)
 	}
-	params = this.Omit(params, []any{"fromAccount", "toAccount"})
 	var maxLimit int = 100
 	var paginate any = false
 	paginateparamsVariable := this.HandleOptionAndParams(params, "fetchTransfers", "paginate", false)
@@ -5918,11 +5917,12 @@ func (this *Bingx) fetchTransfersBody(ch chan any, optionalArgs ...any) any {
 	params = GetValue(paginateparamsVariable, 1)
 	if IsTrue(paginate) {
 
-		retRes537219 := (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", nil, since, limit, params, maxLimit))
-		PanicOnError(retRes537219)
-		ch <- retRes537219
+		retRes537119 := (<-this.FetchPaginatedCallDynamicAsync("fetchTransfers", code, since, limit, params, maxLimit))
+		PanicOnError(retRes537119)
+		ch <- retRes537119
 		return nil
 	}
+	params = this.Omit(params, []any{"fromAccount", "toAccount"})
 	if IsTrue(!IsEqual(since, nil)) {
 		AddElementToObject(request, "startTime", since)
 	}
