@@ -481,7 +481,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -836,7 +836,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "t_rate")));
             String targetRate = this.safeString(parameters, "target_rate");
             String trailRate = this.safeString(parameters, "trail_rate");
@@ -920,7 +920,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             Object request = new java.util.HashMap<String, Object>() {{
@@ -964,7 +964,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "entry_id", id );
@@ -1037,7 +1037,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("trigger", "stop")));
             Object quoteSide = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "quoteId"), "USDT"))))) ? "usdtListOpen" : "listOpen";
@@ -1197,7 +1197,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "page", 0 );
@@ -1280,7 +1280,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(market, "baseId") );
                 put( "market", Helpers.GetValue(market, "quoteId") );
@@ -1325,7 +1325,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
                 put( "page", 0 );
@@ -1387,7 +1387,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
                 put( "page", 0 );
@@ -1523,7 +1523,7 @@ public class BitbnsCore extends BitbnsApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
             }};

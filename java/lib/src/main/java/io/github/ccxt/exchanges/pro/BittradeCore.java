@@ -80,7 +80,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             // only supports a limit of 150 at this time
             Object messageHash = Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".detail");
@@ -133,7 +133,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         }
         Object parts = Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object ticker = this.parseTicker(tick, market);
         Object timestamp = this.safeValue(message, "ts");
         Helpers.addElementToObject(ticker, "timestamp", timestamp);
@@ -166,7 +166,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             // only supports a limit of 150 at this time
             Object messageHash = Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
@@ -228,7 +228,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         }
         Object parts = Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object tradesCache = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesCache, null)))
@@ -270,7 +270,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
@@ -327,7 +327,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         }
         Object parts = Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object interval = this.safeString(parts, 3);
         Object timeframe = this.findTimeframe(interval);
@@ -369,7 +369,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             // only supports a limit of 150 at this time
             limit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? 150 : limit;

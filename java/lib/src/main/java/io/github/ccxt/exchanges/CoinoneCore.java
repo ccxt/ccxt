@@ -693,7 +693,7 @@ public class CoinoneCore extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "quote_currency", Helpers.GetValue(market, "quote") );
                 put( "target_currency", Helpers.GetValue(market, "base") );
@@ -828,7 +828,7 @@ public class CoinoneCore extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "quote_currency", Helpers.GetValue(market, "quote") );
                 put( "target_currency", Helpers.GetValue(market, "base") );
@@ -1032,7 +1032,7 @@ public class CoinoneCore extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "quote_currency", Helpers.GetValue(market, "quote") );
                 put( "target_currency", Helpers.GetValue(market, "base") );
@@ -1100,7 +1100,7 @@ public class CoinoneCore extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             // the v1 order/limit_buy and order/limit_sell endpoints were retired by
             // the exchange and return 404, the v2.1 order endpoint replaces them,
             // see https://github.com/ccxt/ccxt/issues/23174
@@ -1151,7 +1151,7 @@ public class CoinoneCore extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "currency", Helpers.GetValue(market, "id") );
@@ -1366,7 +1366,7 @@ public class CoinoneCore extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "quote_currency", Helpers.GetValue(market, "quoteId") );
                 put( "target_currency", Helpers.GetValue(market, "baseId") );
@@ -1422,7 +1422,7 @@ public class CoinoneCore extends CoinoneApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "id") );
             }};

@@ -1223,7 +1223,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 Object marketId = Helpers.GetValue(marketIds, i);
                 Object entry = this.safeValue(response, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object first = this.safeValue(entry, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object market = this.safeMarket(marketId, null, delimiter);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, delimiter);
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Helpers.addElementToObject(result, symbol, this.parseTicker(first, market));
             }
@@ -1251,7 +1251,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", Helpers.GetValue(market, "id") );
             }};
@@ -1415,7 +1415,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "product_id", Helpers.GetValue(market, "id") );
             }};
@@ -1462,7 +1462,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", Helpers.GetValue(market, "id") );
             }};
@@ -1584,7 +1584,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 300)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object parsedTimeframe = this.safeInteger(this.timeframes, timeframe);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", Helpers.GetValue(market, "id") );
@@ -1981,7 +1981,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalType = type;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", finalType );
@@ -2186,7 +2186,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
@@ -2343,7 +2343,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object accountsByCurrencyCode = this.indexBy(this.accounts, "code");
             Object account = this.safeValue(accountsByCurrencyCode, code);
             if (Helpers.isTrue(Helpers.isEqual(account, null)))
@@ -2696,7 +2696,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object accounts = this.safeValue(this.options, "coinbaseAccounts");
             if (Helpers.isTrue(Helpers.isEqual(accounts, null)))
             {

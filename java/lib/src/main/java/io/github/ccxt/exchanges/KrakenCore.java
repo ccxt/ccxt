@@ -1103,7 +1103,7 @@ public class KrakenCore extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "fee-info", true );
@@ -1192,7 +1192,7 @@ public class KrakenCore extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1315,7 +1315,7 @@ public class KrakenCore extends KrakenApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    Object market = this.market(symbol);
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "active"), true)))
                     {
                         ((java.util.List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
@@ -1330,7 +1330,7 @@ public class KrakenCore extends KrakenApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
-                Object market = this.safeMarket(id);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(id);
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object ticker = Helpers.GetValue(tickers, id);
                 Helpers.addElementToObject(result, symbol, this.parseTicker(ticker, market));
@@ -1359,7 +1359,7 @@ public class KrakenCore extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1423,7 +1423,7 @@ public class KrakenCore extends KrakenApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 720)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object parsedTimeframe = this.safeInteger(this.timeframes, timeframe);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -1866,7 +1866,7 @@ public class KrakenCore extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object id = Helpers.GetValue(market, "id");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", id );
@@ -2063,7 +2063,7 @@ public class KrakenCore extends KrakenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "type", side );
@@ -2767,7 +2767,7 @@ final Object finalId = id;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders, only spot orders are accepted")) ;
@@ -3719,7 +3719,7 @@ final Object finalId = id;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
-                Object currency = this.currency(code);
+                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(request, "asset", Helpers.GetValue(currency, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3824,7 +3824,7 @@ final Object finalId = id;
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
-                Object currency = this.currency(code);
+                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(request, "asset", Helpers.GetValue(currency, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -3948,7 +3948,7 @@ final Object finalId = id;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
@@ -4000,7 +4000,7 @@ final Object finalId = id;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             String network = (String)this.safeStringUpper(parameters, "network");
             Object networks = this.safeValue(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             network = this.safeString(networks, network, network); // support ETH > ERC20 aliases
@@ -4114,7 +4114,7 @@ final Object finalId = id;
             if (Helpers.isTrue(Helpers.inOp(parameters, "key")))
             {
                 (this.loadMarkets()).join();
-                Object currency = this.currency(code);
+                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "asset", Helpers.GetValue(currency, "id") );
                     put( "amount", amount );
@@ -4323,7 +4323,7 @@ final Object finalId = id;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             String fromAccountParsed = this.parseAccountType(fromAccount);
             String toAccountParsed = this.parseAccountType(toAccount);
             final Object finalFromAccountParsed = fromAccountParsed;

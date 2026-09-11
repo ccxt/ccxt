@@ -80,7 +80,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -176,7 +176,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -314,7 +314,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object request = new java.util.HashMap<String, Object>() {{

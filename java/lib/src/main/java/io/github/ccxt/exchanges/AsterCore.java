@@ -1555,7 +1555,7 @@ public class AsterCore extends AsterApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -1729,7 +1729,7 @@ public class AsterCore extends AsterApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1876,7 +1876,7 @@ public class AsterCore extends AsterApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2030,7 +2030,7 @@ public class AsterCore extends AsterApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2202,7 +2202,7 @@ public class AsterCore extends AsterApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 String marketId = this.safeString(Helpers.GetValue(rows, i), "symbol");
-                Object safeMarket = this.safeMarket(marketId, null, null, marketType);
+                java.util.Map<String, Object> safeMarket = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
                 Object priceData = this.extend(this.parseLastPrice(Helpers.GetValue(rows, i), safeMarket), parameters);
                 ((java.util.List<Object>)results).add(priceData);
             }
@@ -2373,7 +2373,7 @@ public class AsterCore extends AsterApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2646,7 +2646,7 @@ public class AsterCore extends AsterApi
                 throw new BadRequest((String)Helpers.add(this.id, " marginMode must be either isolated or cross")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalMarginMode = marginMode;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -2756,7 +2756,7 @@ public class AsterCore extends AsterApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2927,7 +2927,7 @@ public class AsterCore extends AsterApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -3005,7 +3005,7 @@ public class AsterCore extends AsterApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -3087,7 +3087,7 @@ public class AsterCore extends AsterApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -3269,7 +3269,7 @@ public class AsterCore extends AsterApi
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
@@ -3340,7 +3340,7 @@ public class AsterCore extends AsterApi
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
                 String marketId = this.safeString(rawOrder, "symbol");
-                Object currentMarket = this.market(marketId);
+                java.util.Map<String, Object> currentMarket = (java.util.Map<String, Object>) this.market(marketId);
                 ((java.util.List<Object>)orderSymbols).add(Helpers.GetValue(currentMarket, "symbol"));
                 String type = this.safeString(rawOrder, "type");
                 String side = this.safeString(rawOrder, "side");
@@ -3351,7 +3351,7 @@ public class AsterCore extends AsterApi
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Object market = this.market(Helpers.GetValue(orderSymbols, 0));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
@@ -3420,7 +3420,7 @@ public class AsterCore extends AsterApi
          * @param {object} [params] extra parameters specific to the exchange API endpoint
          * @returns {object} request to be sent to the exchange
          */
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object initialUppercaseType = ((String)type).toUpperCase();
         Object isMarketOrder = Helpers.isEqual(initialUppercaseType, "MARKET");
         Object isLimitOrder = Helpers.isEqual(initialUppercaseType, "LIMIT");
@@ -3626,7 +3626,7 @@ public class AsterCore extends AsterApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelAllOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -3677,7 +3677,7 @@ public class AsterCore extends AsterApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -3730,7 +3730,7 @@ public class AsterCore extends AsterApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -3781,7 +3781,7 @@ public class AsterCore extends AsterApi
                 throw new BadRequest((String)Helpers.add(this.id, " leverage should be between 1 and 125")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalLeverage = leverage;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4000,7 +4000,7 @@ public class AsterCore extends AsterApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -4092,7 +4092,7 @@ public class AsterCore extends AsterApi
             Object amount = amount3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             amount = this.amountToPrecision(symbol, amount);
             final Object finalAmount = amount;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -4702,7 +4702,7 @@ public class AsterCore extends AsterApi
         {
             Object position = Helpers.GetValue(positions, i);
             String marketId = this.safeString(position, "symbol");
-            Object market = this.safeMarket(marketId, null, null, "contract");
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
             Object code = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))))) ? Helpers.GetValue(market, "quote") : Helpers.GetValue(market, "base");
             String maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
@@ -5110,7 +5110,7 @@ public class AsterCore extends AsterApi
             parameters = ((java.util.List<Object>) tagparametersVariable).get(1);
             this.checkAddress(address);
             (this.loadMarketsAndSignIn()).join();
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object nonce = Helpers.multiply(this.milliseconds(), 1000);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
@@ -5202,7 +5202,7 @@ public class AsterCore extends AsterApi
             Object toAccount = toAccount3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "amount", AsterCore.this.currencyToPrecision(code, amount) );

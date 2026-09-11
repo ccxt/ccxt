@@ -476,7 +476,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 (this.loadMarkets()).join();
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 Object symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol));
                 Object marketIds = this.marketIds(symbols);

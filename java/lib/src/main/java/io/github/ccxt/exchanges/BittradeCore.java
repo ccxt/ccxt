@@ -1017,7 +1017,7 @@ public class BittradeCore extends BittradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", "step0" );
@@ -1079,7 +1079,7 @@ public class BittradeCore extends BittradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1141,7 +1141,7 @@ public class BittradeCore extends BittradeApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 String marketId = this.safeString(Helpers.GetValue(tickers, i), "symbol");
-                Object market = this.safeMarket(marketId);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object ticker = this.parseTicker(Helpers.GetValue(tickers, i), market);
                 Helpers.addElementToObject(ticker, "timestamp", timestamp);
@@ -1348,7 +1348,7 @@ public class BittradeCore extends BittradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1440,7 +1440,7 @@ public class BittradeCore extends BittradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "period", BittradeCore.this.safeString(BittradeCore.this.timeframes, timeframe, timeframe) );
@@ -2050,7 +2050,7 @@ public class BittradeCore extends BittradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -2087,7 +2087,7 @@ public class BittradeCore extends BittradeApi
                 (this.loadMarkets()).join();
             }
             (this.loadAccounts()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalSide = side;
             final Object finalType = type;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -2663,7 +2663,7 @@ public class BittradeCore extends BittradeApi
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "address", address );
                 put( "amount", amount );

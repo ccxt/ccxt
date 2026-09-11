@@ -108,7 +108,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
@@ -199,7 +199,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object rawTicker = this.safeDictN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("d", "data", "publicAggreBookTicker")));
         Object marketId = this.safeString2(message, "s", "symbol");
         Long timestamp = (Long) this.safeInteger2(message, "t", "sendTime");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object ticker = null;
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
@@ -340,7 +340,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object data = this.safeList2(message, "data", "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object channel = this.safeString(message, "c", "");
         Object marketId = this.safeString(message, "s");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object channelStartsWithSpot = ((String)channel).startsWith(((String)"spot"));
         Object marketIdIsUndefined = Helpers.isEqual(marketId, null);
         Object isSpot = ((Helpers.isTrue(marketIdIsUndefined))) ? channelStartsWithSpot : Helpers.GetValue(market, "spot");
@@ -474,7 +474,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 if (Helpers.isTrue(isSpot))
                 {
-                    Object market = this.market(Helpers.GetValue(symbols, i));
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                     ((java.util.List<Object>)topics).add(Helpers.add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", Helpers.GetValue(market, "id")));
                 }
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("bidask:", Helpers.GetValue(symbols, i)));
@@ -648,7 +648,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             Object timeframeId = this.safeString(timeframes, timeframe);
@@ -761,7 +761,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             timeframe = this.findTimeframe(timeframeId, timeframes);
             Object marketId = this.safeString2(message, "s", "symbol");
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             symbol = Helpers.GetValue(market, "symbol");
             parsed = this.parseWsOHLCV(rawOhlcv, market);
         }
@@ -861,7 +861,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("orderbook:", symbol);
             Object orderbook = null;
@@ -1107,7 +1107,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("trades:", symbol);
             Object trades = null;
@@ -1186,7 +1186,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         //     }
         //
         Object marketId = this.safeString2(message, "s", "symbol");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
@@ -1314,7 +1314,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object data = this.safeDictN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("d", "data", "privateDeals")));
         Object futuresMarketId = this.safeString(data, "symbol");
         Object marketId = this.safeString2(message, "s", "symbol", futuresMarketId);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object trade = null;
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
@@ -1564,7 +1564,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object data = this.safeDictN(message, new java.util.ArrayList<Object>(java.util.Arrays.asList("d", "data", "privateOrders")));
         Object futuresMarketId = this.safeString(data, "symbol");
         Object marketId = this.safeString2(message, "s", "symbol", futuresMarketId);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object parsed = null;
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
@@ -1871,7 +1871,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add("fundingRate:", Helpers.GetValue(market, "symbol"));
             Object channel = "sub.funding.rate";
             Object requestParams = new java.util.HashMap<String, Object>() {{
@@ -1901,7 +1901,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add("unsubscribe:fundingRate:", Helpers.GetValue(market, "symbol"));
             Object url = null;
             Object channel = "unsub.funding.rate";
@@ -1960,7 +1960,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add("unsubscribe:ticker:", Helpers.GetValue(market, "symbol"));
             Object url = null;
             Object channel = null;
@@ -2079,7 +2079,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 if (Helpers.isTrue(isSpot))
                 {
-                    Object market = this.market(Helpers.GetValue(symbols, i));
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                     ((java.util.List<Object>)topics).add(Helpers.add("spot@public.aggre.bookTicker.v3.api.pb@100ms@", Helpers.GetValue(market, "id")));
                 }
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("unsubscribe:bidask:", Helpers.GetValue(symbols, i)));
@@ -2118,7 +2118,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             Object timeframeId = this.safeString(timeframes, timeframe);
@@ -2166,7 +2166,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("unsubscribe:orderbook:", symbol);
             Object url = null;
@@ -2217,7 +2217,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("unsubscribe:trades:", symbol);
             Object url = null;

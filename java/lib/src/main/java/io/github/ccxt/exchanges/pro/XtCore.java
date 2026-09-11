@@ -1059,7 +1059,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object parts = Helpers.split(messageHash, "::");
-            Object symbolsString = Helpers.GetValue(parts, 1);
+            String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(new java.util.ArrayList<Object>(java.util.Arrays.asList(position)), "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
@@ -1243,7 +1243,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object parts = Helpers.split(messageHash, "::");
-            Object symbolsString = Helpers.GetValue(parts, 2);
+            String symbolsString = (String) Helpers.GetValue(parts, 2);
             Object symbols = Helpers.split(symbolsString, ",");
             Object tickers = this.filterByArray(newTickers, "symbol", symbols);
             Object tickersSymbols = Helpers.objectKeys(tickers);
@@ -1302,7 +1302,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         {
             Object timeframe = this.safeString(data, "i", "");
             Object tradeType = ((Helpers.isTrue((Helpers.inOp(data, "q"))))) ? "spot" : "contract";
-            Object market = this.safeMarket(marketId, null, null, tradeType);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object parsed = this.parseOHLCV(data, market);
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
@@ -1360,7 +1360,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             Object trade = this.parseTrade(data);
             Object i = this.safeString(data, "i");
             Object tradeType = ((Helpers.isTrue((!Helpers.isEqual(i, null))))) ? "spot" : "contract";
-            Object market = this.safeMarket(marketId, null, null, tradeType);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object eventVar = this.safeString(message, "event");
             Object tradesArray = this.safeValue(this.trades, symbol);
@@ -1450,7 +1450,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             {
                 tradeType = "contract";
             }
-            Object market = this.safeMarket(marketId, null, null, tradeType);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object obAsks = this.safeList(data, "a");
             Object obBids = this.safeList(data, "b");
@@ -1702,7 +1702,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
             Object tradeType = ((Helpers.isTrue((Helpers.inOp(order, "symbol"))))) ? "contract" : "spot";
-            Object market = this.safeMarket(marketId, null, null, tradeType);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, tradeType);
             Object parsed = this.parseWsOrder(order, market);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
             client.resolve(orders, Helpers.add("order::", tradeType));
@@ -1812,7 +1812,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         {
             return;
         }
-        Object market = this.market(tradeSymbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(tradeSymbol);
         Helpers.callDynamically(stored, "append", new Object[]{parsedTrade});
         Object tradeType = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "contract"), true))))) ? "contract" : "spot";
         client.resolve(stored, Helpers.add("trade::", tradeType));

@@ -519,7 +519,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(market, "id"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -1105,7 +1105,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
         //
         Object type = this.safeString(message, "type");
         Object marketId = this.safeString(message, "product_id");
-        Object market = this.safeMarket(marketId, null, "-");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         Object name = "level2";
         Object messageHash = Helpers.add(Helpers.add(name, ":"), marketId);

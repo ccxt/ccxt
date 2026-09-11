@@ -1442,7 +1442,7 @@ public class BitstampCore extends BitstampApi
                 throw new ExchangeError((String)Helpers.add(this.id, " parseCurrencies() missing minimumOrder")) ;
             }
             Object parts = Helpers.split(minimumOrder, " ");
-            Object cost = Helpers.GetValue(parts, 0);
+            String cost = (String) Helpers.GetValue(parts, 0);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(base, null))) && !Helpers.isTrue((Helpers.inOp(result, base)))))
             {
                 Object baseDecimals = this.safeInteger(market, "base_decimals");
@@ -1478,7 +1478,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1581,7 +1581,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1907,7 +1907,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "time", "hour" );
@@ -1977,7 +1977,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "step", BitstampCore.this.safeString(BitstampCore.this.timeframes, timeframe, timeframe) );
@@ -2109,7 +2109,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market_symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2372,7 +2372,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "amount", BitstampCore.this.amountToPrecision(symbol, amount) );
@@ -2451,7 +2451,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "amount", BitstampCore.this.amountToPrecision(symbol, amount) );
                 put( "price", BitstampCore.this.priceToPrecision(symbol, price) );
@@ -3379,7 +3379,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market_symbol", Helpers.GetValue(market, "id") );
             }};
@@ -3630,7 +3630,7 @@ public class BitstampCore extends BitstampApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "amount", BitstampCore.this.parseToNumeric(BitstampCore.this.currencyToPrecision(code, amount)) );
                 put( "currency", ((String)Helpers.GetValue(currency, "id")).toUpperCase() );

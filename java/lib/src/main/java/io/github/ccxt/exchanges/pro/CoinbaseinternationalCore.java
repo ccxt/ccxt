@@ -310,7 +310,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "active"), true)))
             {
                 ((java.util.List<Object>)output).add(symbol);
@@ -570,7 +570,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object options = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             Object interval = this.safeString(options, timeframe, timeframe);
@@ -606,7 +606,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
         //
         Object messageHash = this.safeString(message, "channel");
         Object marketId = this.safeString(message, "product_id");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timeframe = this.findTimeframe(messageHash);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));

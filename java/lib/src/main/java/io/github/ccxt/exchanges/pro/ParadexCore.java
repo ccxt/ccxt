@@ -135,7 +135,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object messageHash = "trades.";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 messageHash = Helpers.add(messageHash, Helpers.GetValue(market, "id"));
             } else
             {
@@ -217,7 +217,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add(Helpers.add("order_book.", Helpers.GetValue(market, "id")), ".snapshot@15@100ms");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -267,7 +267,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "market");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object timestamp = this.safeInteger(data, "last_updated_at");
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -421,7 +421,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object channel = "orders.";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 channel = Helpers.add(channel, Helpers.GetValue(market, "id"));
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
@@ -525,7 +525,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "symbol");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object channel = this.safeString(parameters, "channel");
         Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);

@@ -538,7 +538,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
             }};
@@ -756,7 +756,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             // let maxCount = 50;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
@@ -836,7 +836,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalTimeframe = timeframe;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -965,7 +965,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalType = type;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderType", side );
@@ -1090,7 +1090,7 @@ public class BtcturkCore extends BtcturkApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pairSymbol", Helpers.GetValue(market, "id") );
             }};

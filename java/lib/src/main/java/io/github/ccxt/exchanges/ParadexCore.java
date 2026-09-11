@@ -1045,7 +1045,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -1154,7 +1154,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "resolution", ParadexCore.this.safeString(ParadexCore.this.timeframes, timeframe, timeframe) );
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1297,7 +1297,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -1449,7 +1449,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object rates = (this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
             Object rate = this.safeDict(rates, Helpers.GetValue(market, "symbol"));
             if (Helpers.isTrue(Helpers.isEqual(rate, null)))
@@ -1544,7 +1544,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -1613,7 +1613,7 @@ public class ParadexCore extends ParadexApi
             {
                 return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -1743,7 +1743,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
@@ -2183,7 +2183,7 @@ public class ParadexCore extends ParadexApi
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         Object orderType = ((String)type).toUpperCase();
         Object orderSide = ((String)((String)side)).toUpperCase();
@@ -2383,7 +2383,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             request = (this.signOrderRequest(request)).join();
             Object response = (this.privatePostOrders(request)).join();
@@ -2458,7 +2458,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             request = this.omit(request, new java.util.ArrayList<Object>(java.util.Arrays.asList("instruction", "client_id", "flags")));
             Helpers.addElementToObject(request, "order_id", id);
@@ -2692,7 +2692,7 @@ public class ParadexCore extends ParadexApi
             {
                 Object result = Helpers.GetValue(results, i);
                 String marketId = this.safeString(result, "market");
-                Object market = this.safeMarket(marketId);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 String status = this.safeString(result, "status");
                 Object orderStatus = null;
                 if (Helpers.isTrue(Helpers.isEqual(status, "QUEUED_FOR_CANCELLATION")))
@@ -2744,7 +2744,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -3165,7 +3165,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object positions = (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
             return this.safeDict(positions, 0, new java.util.HashMap<String, Object>() {{}});
         });
@@ -3756,7 +3756,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -3817,7 +3817,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object leverage = 1;
             var leverageparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "leverage", leverage);
             leverage = ((java.util.List<Object>) leverageparametersVariable).get(0);
@@ -3853,7 +3853,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -3925,7 +3925,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -3960,7 +3960,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -4174,7 +4174,7 @@ public class ParadexCore extends ParadexApi
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingHistory", symbol, since, limit, parameters, "next", "cursor", null, 100)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -4274,7 +4274,7 @@ public class ParadexCore extends ParadexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};

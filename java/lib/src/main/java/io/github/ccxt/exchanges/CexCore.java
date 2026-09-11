@@ -765,7 +765,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -864,7 +864,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -928,7 +928,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalDataType = dataType;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -1053,7 +1053,7 @@ public class CexCore extends CexApi
             Object symbol = Helpers.GetValue(symbols, i);
             if (!Helpers.isTrue((Helpers.inOp(result, symbol))))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(result, symbol, this.parseTradingFee(response, market));
             }
         }
@@ -1562,7 +1562,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
@@ -2021,7 +2021,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object fromMain = (Helpers.isEqual(fromAccount, ""));
             Object targetAccount = ((Helpers.isTrue(fromMain))) ? toAccount : fromAccount;
             String guid = this.safeString(parameters, "guid", this.uuid());
@@ -2068,7 +2068,7 @@ public class CexCore extends CexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", CexCore.this.currencyToPrecision(code, amount) );
@@ -2162,7 +2162,7 @@ public class CexCore extends CexApi
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) networkCodeparametersVariable).get(1);
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             final Object finalAccountId = accountId;
             final Object finalNetworkCode = networkCode;
             Object request = new java.util.HashMap<String, Object>() {{

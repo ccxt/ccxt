@@ -395,7 +395,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = (this.createOrderRequest(symbol, type, side, amount, price, parameters)).join();
             Object placeOrder = this.safeDict(request, "place_order", new java.util.HashMap<String, Object>() {{}});
             Object isTriggerOrder = (Helpers.inOp(placeOrder, "trigger"));
@@ -447,7 +447,7 @@ public class NadoCore extends NadoApi
             Object side = side3;
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
                 throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() supports limit orders only")) ;
@@ -600,7 +600,7 @@ public class NadoCore extends NadoApi
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = (this.editOrderRequest(id, symbol, type, side, amount, price, parameters)).join();
             Object response = (this.gatewayPrivatePostExecute(request)).join();
             //
@@ -646,7 +646,7 @@ public class NadoCore extends NadoApi
             Object amount = Helpers.getArg(optionalArgs, 0, null);
             Object price = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(type, "limit")))
             {
                 throw new InvalidOrder((String)Helpers.add(this.id, " editOrder() supports limit orders only")) ;
@@ -847,7 +847,7 @@ public class NadoCore extends NadoApi
             Object productIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 ((java.util.List<Object>)productIds).add(this.parseToInt(Helpers.GetValue(market, "id")));
             }
             Object subaccount = null;
@@ -918,7 +918,7 @@ public class NadoCore extends NadoApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrders() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object trigger = this.safeBool2(parameters, "stop", "trigger");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
             Object request = (this.cancelOrdersRequest(ids, symbol, parameters)).join();
@@ -961,7 +961,7 @@ public class NadoCore extends NadoApi
 
             Object symbol = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object productId = this.parseToInt(Helpers.GetValue(market, "id"));
             Object subaccount = null;
             var subaccountparametersVariable = this.handleOptionAndParams(parameters, "cancelOrders", "subaccount", "default");
@@ -1041,7 +1041,7 @@ public class NadoCore extends NadoApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOrder() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "order" );
                 put( "product_id", NadoCore.this.parseToInt(Helpers.GetValue(market, "id")) );
@@ -1218,7 +1218,7 @@ public class NadoCore extends NadoApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchOpenOrders() requires a symbol argument")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sender", sender );
                 put( "type", "subaccount_orders" );
@@ -2170,7 +2170,7 @@ public class NadoCore extends NadoApi
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object tickers = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             Object ticker = this.safeDict(tickers, symbol);
@@ -2200,7 +2200,7 @@ public class NadoCore extends NadoApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingRate() supports swap contracts only")) ;
@@ -2266,7 +2266,7 @@ public class NadoCore extends NadoApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingHistory() requires walletAddress")) ;
             }
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchFundingHistory() supports swap contracts only")) ;
@@ -2386,7 +2386,7 @@ public class NadoCore extends NadoApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " fetchOpenInterest() supports swap contracts only")) ;
@@ -2495,7 +2495,7 @@ public class NadoCore extends NadoApi
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String tickerId = this.safeString(Helpers.GetValue(market, "info"), "ticker_id");
             final Object finalLimit = limit;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -2545,7 +2545,7 @@ public class NadoCore extends NadoApi
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String tickerId = this.safeString(Helpers.GetValue(market, "info"), "ticker_id");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "ticker_id", tickerId );
@@ -2597,7 +2597,7 @@ public class NadoCore extends NadoApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3005,7 +3005,7 @@ public class NadoCore extends NadoApi
                 code = "USDT0";
             } else if (Helpers.isTrue(Helpers.isEqual(code, currencyId)))
             {
-                Object market = this.safeMarket(currencyId, null, null, "spot");
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(currencyId, null, null, "spot");
                 if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "spot"), true)))
                 {
                     code = this.safeString(market, "base", code);

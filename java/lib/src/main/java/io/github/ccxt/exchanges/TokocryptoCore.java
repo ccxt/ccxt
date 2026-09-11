@@ -1015,7 +1015,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", TokocryptoCore.this.getMarketIdByType(market) );
             }};
@@ -1252,7 +1252,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             // the venue routes market data by the symbol type reported by fetchMarkets,
             // not by the quote currency: type 1 markets are served by the binance host
@@ -1535,7 +1535,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(this.isNativeMarket(market)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchTicker() does not support "), symbol), " yet, the venue serves 24hr ticker statistics only for its binance backed markets")) ;
@@ -1647,7 +1647,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
             // the reality is that the time range wider than 500 candles won't work right
             Object defaultLimit = 500;
@@ -2044,7 +2044,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId");
             Object postOnly = this.safeBool(parameters, "postOnly", false);
             // only supported for spot/margin api
@@ -2330,7 +2330,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2521,7 +2521,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2591,7 +2591,7 @@ public class TokocryptoCore extends TokocryptoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
@@ -2976,7 +2976,7 @@ public class TokocryptoCore extends TokocryptoApi
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "address", address );

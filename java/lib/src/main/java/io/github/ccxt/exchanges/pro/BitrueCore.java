@@ -242,7 +242,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             }
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
             Object url = (this.authenticate()).join();
@@ -374,7 +374,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("orderbook:", symbol);
             Object url = null;
@@ -528,7 +528,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         {
             return null;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
             return rawQuantity;
@@ -560,7 +560,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -695,7 +695,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -818,7 +818,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {

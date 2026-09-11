@@ -69,7 +69,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
             final Object finalSymbol = symbol;
@@ -117,7 +117,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             return;
         }
         Object symbol = Helpers.GetValue(subscription, "symbol");
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -191,7 +191,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object subscriptionHash = Helpers.add("/stream/", Helpers.GetValue(market, "id"));
             final Object finalSymbol = symbol;

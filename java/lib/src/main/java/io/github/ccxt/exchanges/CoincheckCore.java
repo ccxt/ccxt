@@ -365,7 +365,7 @@ public class CoincheckCore extends CoincheckApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object currencyId = Helpers.GetValue(currency, "id");
             if (Helpers.isTrue(Helpers.inOp(response, currencyId)))
             {
@@ -580,7 +580,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -654,7 +654,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -792,7 +792,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -850,7 +850,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -923,7 +923,7 @@ public class CoincheckCore extends CoincheckApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object fee = this.safeValue(fees, Helpers.GetValue(market, "id"), new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", fee );
@@ -965,7 +965,7 @@ public class CoincheckCore extends CoincheckApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};

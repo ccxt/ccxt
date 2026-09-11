@@ -825,7 +825,7 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -904,7 +904,7 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "resolution", DydxCore.this.safeString(DydxCore.this.timeframes, timeframe, timeframe) );
@@ -980,7 +980,7 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -1616,7 +1616,7 @@ public class DydxCore extends DydxApi
         }
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
         Object orderType = ((String)type).toUpperCase();
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
@@ -1926,7 +1926,7 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clientId", id);
             if (Helpers.isTrue(Helpers.isEqual(clientOrderId, null)))
             {
@@ -2047,7 +2047,7 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object clientOrderIds = this.safeList(parameters, "clientOrderIds");
             if (Helpers.isTrue(Helpers.isEqual(clientOrderIds, null)))
             {
@@ -2134,7 +2134,7 @@ public class DydxCore extends DydxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -2634,7 +2634,7 @@ public class DydxCore extends DydxApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " withdraw requires subaccountId.")) ;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("subaccountId")));
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object credentials = this.retrieveCredentials();
             Object account = (this.fetchDydxAccount()).join();
             Object usd = this.parseToInt(Precise.stringMul(this.numberToString(amount), "1000000"));

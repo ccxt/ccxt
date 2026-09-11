@@ -75,7 +75,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("orderbook:", symbol);
             Object channel = Helpers.add("diff_order_book_", Helpers.GetValue(market, "id"));
@@ -226,7 +226,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("trades:", symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -323,7 +323,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         }
         Object parts = Helpers.split(channel, "_");
         Object marketId = this.safeString(parts, 2);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add("trades:", symbol);
         Object data = this.safeValue(message, "data");
@@ -366,7 +366,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object channel = "private-my_orders";
             Object messageHash = Helpers.add(Helpers.add(channel, "_"), Helpers.GetValue(market, "id"));
@@ -418,7 +418,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         Object stored = this.orders;
         Object subscription = ((Helpers.isTrue((Helpers.isEqual(channel, null))))) ? null : this.safeValue(client.subscriptions, channel);
         Object symbol = this.safeString(subscription, "symbol");
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Helpers.addElementToObject(order, "event", this.safeString(message, "event"));
         Object parsed = this.parseWsOrder(order, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});

@@ -172,7 +172,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object options = this.safeDict(this.options, "watchTicker", new java.util.HashMap<String, Object>() {{}});
             Object topic = this.safeString(options, "name", "market.{marketId}.detail");
@@ -267,7 +267,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         }
         Object parts = Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object ticker = this.parseTicker(tick, market);
         Object timestamp = this.safeValue(message, "ts");
         Helpers.addElementToObject(ticker, "timestamp", timestamp);
@@ -306,7 +306,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"));
@@ -384,7 +384,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         }
         Object parts = Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object tradesCache = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesCache, null)))
@@ -429,7 +429,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
@@ -503,7 +503,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         }
         Object parts = Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object interval = this.safeString(parts, 3);
         Object timeframe = this.findTimeframe(interval);
@@ -547,7 +547,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object allowedLimits = new java.util.ArrayList<Object>(java.util.Arrays.asList(5, 20, 150, 400));
             // 2) 5-level/20-level incremental MBP is a tick by tick feed,
@@ -743,7 +743,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             Object timestamp = this.safeInteger(message, "ts");
             Object parameters = this.safeValue(subscription, "params");
             Object attempts = this.safeInteger(subscription, "numAttempts", 0);
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object url = this.getUrlByMarketType(Helpers.GetValue(market, "type"), Helpers.GetValue(market, "linear"), false, true);
             Object requestId = this.requestId();
             final Object finalMessageHash = messageHash;
@@ -866,7 +866,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object ch = this.safeValue(message, "ch");
         Object parts = Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Object tick = this.safeValue(message, "tick", new java.util.HashMap<String, Object>() {{}});
@@ -986,7 +986,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
     public void handleOrderBookSubscription(Client client, Object message, Object subscription)
     {
         Object symbol = this.safeString(subscription, "symbol");
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object limit = this.safeInteger(subscription, "limit");
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
@@ -1426,7 +1426,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         {
             marketId = this.safeString2(data, "contract_code", "symbol");
         }
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object parsedOrder = null;
         if (Helpers.isTrue(!Helpers.isEqual(data, null)))
         {
@@ -1775,7 +1775,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object marketResolved = this.safeMarket(null, market);
+        java.util.Map<String, Object> marketResolved = (java.util.Map<String, Object>) this.safeMarket(null, market);
         market = marketResolved;
         Object symbol = Helpers.GetValue(marketResolved, "symbol");
         Object tradeId = this.safeString(trade, "tradeId");
@@ -2050,7 +2050,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 Object messageHash = Helpers.GetValue(messageHashes, j);
                 Object parts = Helpers.split(messageHash, "::");
-                Object symbolsString = Helpers.GetValue(parts, 1);
+                String symbolsString = (String) Helpers.GetValue(parts, 1);
                 Object symbols = Helpers.split(symbolsString, ",");
                 Object positions = this.filterByArray(marginModePositions, "symbol", symbols, false);
                 if (!Helpers.isTrue(this.isEmpty(positions)))
@@ -3118,7 +3118,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 // in handleOrder
                 Object rawTrades = this.safeList(message, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object marketId = this.safeValue(message, "symbol");
-                Object market = this.market(marketId);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
                 {
                     Object trade = Helpers.GetValue(rawTrades, i);

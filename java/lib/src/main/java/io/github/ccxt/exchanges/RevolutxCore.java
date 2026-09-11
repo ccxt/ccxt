@@ -618,7 +618,7 @@ public class RevolutxCore extends RevolutxApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    Object market = this.market(symbol);
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                     ((java.util.List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
                 }
                 Helpers.addElementToObject(request, "symbols", String.join((String)",", (java.util.List<String>)marketIds));
@@ -726,7 +726,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -805,7 +805,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", RevolutxCore.this.safeInteger(RevolutxCore.this.timeframes, timeframe, 5) );
@@ -1159,7 +1159,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
             String cost = this.safeString2(parameters, "cost", "quote_size");
             String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
@@ -1379,7 +1379,7 @@ public class RevolutxCore extends RevolutxApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbols", Helpers.GetValue(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1456,7 +1456,7 @@ public class RevolutxCore extends RevolutxApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbols", Helpers.GetValue(market, "id"));
             }
             Object thirtyDays = 2592000000L;
@@ -1615,7 +1615,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMyTrades() requires a symbol parameter")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1700,7 +1700,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "client_order_id", this.uuid());
             String cost = this.safeString2(parameters, "cost", "quote_size");
             String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");

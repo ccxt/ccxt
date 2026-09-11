@@ -620,7 +620,7 @@ public class BitoproCore extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -707,7 +707,7 @@ public class BitoproCore extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -870,7 +870,7 @@ public class BitoproCore extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1027,7 +1027,7 @@ public class BitoproCore extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String resolution = this.safeString(this.timeframes, timeframe, timeframe);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -1334,7 +1334,7 @@ public class BitoproCore extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", type );
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -1414,7 +1414,7 @@ public class BitoproCore extends BitoproApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -1480,7 +1480,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object id = Helpers.GetValue(market, "uppercaseId");
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
@@ -1528,7 +1528,7 @@ final Object finalJ = j;
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
                 response = (this.privateDeleteOrdersPair(this.extend(request, parameters))).join();
             } else
@@ -1576,7 +1576,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
                 put( "pair", Helpers.GetValue(market, "id") );
@@ -1638,7 +1638,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1781,7 +1781,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1942,7 +1942,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.safeCurrency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
@@ -2010,7 +2010,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.safeCurrency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
@@ -2074,7 +2074,7 @@ final Object finalJ = j;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.safeCurrency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "serial", id );
                 put( "currency", Helpers.GetValue(currency, "id") );
@@ -2129,7 +2129,7 @@ final Object finalJ = j;
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", BitoproCore.this.numberToString(amount) );

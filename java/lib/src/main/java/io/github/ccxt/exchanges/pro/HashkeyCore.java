@@ -165,7 +165,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         Object marketId = this.safeString(message, "symbol");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         String symbol = (String) this.safeSymbol(marketId, market);
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
         {
@@ -341,7 +341,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         Object marketId = this.safeString(message, "symbol");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {

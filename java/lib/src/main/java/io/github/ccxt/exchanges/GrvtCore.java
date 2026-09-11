@@ -1169,7 +1169,7 @@ public class GrvtCore extends GrvtApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument", GrvtCore.this.marketId(symbol) );
             }};
@@ -1354,7 +1354,7 @@ public class GrvtCore extends GrvtApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument", Helpers.GetValue(market, "id") );
             }};
@@ -1528,7 +1528,7 @@ public class GrvtCore extends GrvtApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument", Helpers.GetValue(market, "id") );
                 put( "interval", GrvtCore.this.safeString(GrvtCore.this.timeframes, timeframe, timeframe) );
@@ -1635,7 +1635,7 @@ public class GrvtCore extends GrvtApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument", Helpers.GetValue(market, "id") );
             }};
@@ -2171,7 +2171,7 @@ public class GrvtCore extends GrvtApi
             }
             (this.loadMarketsAndSignIn()).join();
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object maxLimit = 1000;
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
@@ -2276,7 +2276,7 @@ public class GrvtCore extends GrvtApi
             Object toAccount = toAccount3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
             if (Helpers.isTrue(Helpers.isTrue(this.inArray(fromAccount, new java.util.ArrayList<Object>(java.util.Arrays.asList("trading", "funding")))) && Helpers.isTrue(this.inArray(toAccount, new java.util.ArrayList<Object>(java.util.Arrays.asList("trading", "funding"))))))
             {
@@ -2481,7 +2481,7 @@ public class GrvtCore extends GrvtApi
             this.checkAddress(address);
             (this.loadMarketsAndSignIn()).join();
             String defaultFromAccountId = this.safeString(this.options, "userMainAccountId");
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "to_eth_address", address );
                 put( "from_account_id", defaultFromAccountId );
@@ -2543,7 +2543,7 @@ public class GrvtCore extends GrvtApi
             Object price = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object orderLeg = new java.util.HashMap<String, Object>() {{
                 put( "instrument", Helpers.GetValue(market, "id") );
                 put( "size", GrvtCore.this.amountToPrecision(symbol, amount) );
@@ -2775,7 +2775,7 @@ public class GrvtCore extends GrvtApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderLegs)); i++)
         {
             Object leg = Helpers.GetValue(orderLegs, i);
-            Object market = this.market(Helpers.GetValue(leg, "instrument"));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(leg, "instrument"));
             Object bigInt10 = this.convertToBigIntCustom("10");
             Object precisionValue = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "base"));
             Object precisionValueStr = String.valueOf(precisionValue);
@@ -2947,7 +2947,7 @@ public class GrvtCore extends GrvtApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    Object market = this.market(symbol);
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                     if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
                     {
                         throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() supports contract markets only")) ;
@@ -3108,7 +3108,7 @@ public class GrvtCore extends GrvtApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             (this.loadMarketsAndSignIn()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sub_account_id", GrvtCore.this.getSubAccountId(parameters) );
                 put( "instrument", Helpers.GetValue(market, "id") );
@@ -3827,7 +3827,7 @@ public class GrvtCore extends GrvtApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "base", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 ((java.util.List<Object>)Helpers.GetValue(request, "base")).add(Helpers.GetValue(market, "baseId"));
                 Helpers.addElementToObject(request, "quote", new java.util.ArrayList<Object>(java.util.Arrays.asList()));

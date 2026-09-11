@@ -910,7 +910,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
@@ -975,7 +975,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "interval", ApexCore.this.safeString(ApexCore.this.timeframes, timeframe, timeframe) );
                 put( "symbol", ApexCore.this.safeString(market, "id2") );
@@ -1040,7 +1040,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
@@ -1110,7 +1110,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
@@ -1207,7 +1207,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", ApexCore.this.safeString(market, "id2") );
             }};
@@ -1285,7 +1285,7 @@ public class ApexCore extends ApexApi
                 (this.loadMarkets()).join();
             }
             Object request = new java.util.HashMap<String, Object>() {{}};
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
@@ -1599,7 +1599,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object orderType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
@@ -2306,7 +2306,7 @@ public class ApexCore extends ApexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object leverageString = this.numberToString(leverage);
             Object initialMarginRate = Precise.stringDiv("1", leverageString, 4);
             Object request = new java.util.HashMap<String, Object>() {{

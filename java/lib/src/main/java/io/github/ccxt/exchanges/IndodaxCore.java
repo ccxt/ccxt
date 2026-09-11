@@ -594,7 +594,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -667,7 +667,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -737,7 +737,7 @@ public class IndodaxCore extends IndodaxApi
                 Object key = Helpers.GetValue(keys, i);
                 Object rawTicker = Helpers.GetValue(tickers, key);
                 Object marketId = Helpers.replace((String)key, (String)"_", (String)"");
-                Object market = this.safeMarket(marketId);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object parsed = this.parseTicker(rawTicker, market);
                 Helpers.addElementToObject(parsedTickers, marketId, parsed);
             }
@@ -790,7 +790,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -841,7 +841,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String selectedTimeframe = this.safeString(this.timeframes, timeframe, timeframe);
             Object now = this.seconds();
             Object until = this.safeInteger(parameters, "until", now);
@@ -1028,7 +1028,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "order_id", id );
@@ -1132,7 +1132,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -1171,7 +1171,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalSide = side;
             final Object finalPrice = price;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1269,7 +1269,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalSide = side;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
@@ -1321,7 +1321,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
@@ -1363,7 +1363,7 @@ public class IndodaxCore extends IndodaxApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
@@ -1536,7 +1536,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             // Custom string you need to provide to identify each withdrawal.
             // Will be passed to callback URL (assigned via website to the API key)
             // so your system can identify the request and confirm it.

@@ -219,7 +219,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
                 ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(marketId, "@"), String.valueOf(interval)));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("ticker::", Helpers.GetValue(market, "symbol")));
@@ -323,7 +323,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object ticker = this.parseWsTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -391,7 +391,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
                 Object limitRaw = this.safeInteger(parameters, "limit", 50); // 50, 200, 500, 1000
                 ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(marketId, "@"), String.valueOf(limitRaw)));
@@ -441,7 +441,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
@@ -523,7 +523,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
                 Object symbolString = this.safeString(data, 0);
-                Object market = this.market(symbolString);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbolString);
                 Object marketId = Helpers.GetValue(market, "id");
                 Object unfiedTimeframe = this.safeString(data, 1, "1");
                 Object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -574,7 +574,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object secondPart = this.safeString(parts, 1, "");
         Object timeframeId = Helpers.replace((String)secondPart, (String)"-TRADE", (String)"");
@@ -677,7 +677,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
                 ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(marketId, "@"), extraPart));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("orderbook::", Helpers.GetValue(market, "symbol")));
@@ -725,7 +725,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         Object selector = this.safeString(message, "selector", "");
         Object parts = Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeIntegerProduct(data, "event_time", 0.000001);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -833,7 +833,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             Object rawHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(subAccountId, "-"), Helpers.GetValue(market, "id")));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("myTrades::", Helpers.GetValue(market, "symbol")));
             } else
@@ -944,7 +944,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
                     Object symbol = Helpers.GetValue(symbols, i);
-                    Object market = this.market(symbol);
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                     ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(subAccountId, "-"), Helpers.GetValue(market, "id")));
                     ((java.util.List<Object>)messageHashes).add(Helpers.add("positions::", Helpers.GetValue(market, "symbol")));
                 }
@@ -1052,7 +1052,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
                 ((java.util.List<Object>)rawHashes).add(subAccountId);
             } else
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("order::", Helpers.GetValue(market, "symbol")));
                 ((java.util.List<Object>)rawHashes).add(Helpers.add(Helpers.add(subAccountId, "-"), Helpers.GetValue(market, "id")));
             }

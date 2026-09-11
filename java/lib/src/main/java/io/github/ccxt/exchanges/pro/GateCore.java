@@ -189,7 +189,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageType = this.getTypeByMarket(market);
             Object channel = Helpers.add(messageType, ".order_place");
@@ -225,7 +225,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             }
             Object request = this.createOrdersRequest(orders, parameters);
             Object firstOrder = Helpers.GetValue(orders, 0);
-            Object market = this.market(Helpers.GetValue(firstOrder, "symbol"));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(firstOrder, "symbol"));
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createOrdersWs is not supported for swap markets")) ;
@@ -359,7 +359,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object extendedRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
             Object messageType = this.getTypeByMarket(market);
             Object channel = Helpers.add(messageType, ".order_amend");
@@ -539,7 +539,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object marketId = Helpers.GetValue(market, "id");
             Object url = this.getUrlByMarket(market);
@@ -611,7 +611,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object url = this.getUrlByMarket(market);
             symbol = Helpers.GetValue(market, "symbol");
             Object marketId = Helpers.GetValue(market, "id");
@@ -917,7 +917,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTicker");
             Object result = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
@@ -1037,7 +1037,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             callerMethodName = ((java.util.List<Object>) callerMethodNameparametersVariable).get(0);
             parameters = ((java.util.List<Object>) callerMethodNameparametersVariable).get(1);
             symbols = this.marketSymbols(symbols, null, false);
-            Object market = this.market(Helpers.GetValue(symbols, 0));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
             Object messageType = this.getTypeByMarket(market);
             Object marketIds = this.marketIds(symbols);
             Object channelName = null;
@@ -1092,7 +1092,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         {
             Object rawTicker = Helpers.GetValue(results, i);
             Object marketId = this.safeString(rawTicker, "s");
-            Object market = this.safeMarket(marketId, null, "_", marketType);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_", marketType);
             Object parsedItem = this.parseTicker(rawTicker, market);
             Object symbol = Helpers.GetValue(parsedItem, "symbol");
             if (Helpers.isTrue(isTicker))
@@ -1168,7 +1168,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             }
             symbols = this.marketSymbols(symbols);
             Object marketIds = this.marketIds(symbols);
-            Object market = this.market(Helpers.GetValue(symbols, 0));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
             Object messageType = this.getTypeByMarket(market);
             Object channel = Helpers.add(messageType, ".trades");
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1210,7 +1210,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             }
             symbols = this.marketSymbols(symbols);
             Object marketIds = this.marketIds(symbols);
-            Object market = this.market(Helpers.GetValue(symbols, 0));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
             Object messageType = this.getTypeByMarket(market);
             Object channel = Helpers.add(messageType, ".trades");
             Object subMessageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1318,7 +1318,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 (this.loadMarkets()).join();
             }
             // todo add options support
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object marketId = Helpers.GetValue(market, "id");
             Object interval = this.safeString(this.timeframes, timeframe, timeframe);
@@ -1893,7 +1893,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object parts = Helpers.split(messageHash, "::");
-            Object symbolsString = Helpers.GetValue(parts, 1);
+            String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
@@ -1938,7 +1938,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object marketResolved = this.market(symbol);
+                java.util.Map<String, Object> marketResolved = (java.util.Map<String, Object>) this.market(symbol);
                 market = marketResolved;
                 symbol = Helpers.GetValue(market, "symbol");
             }
@@ -2076,7 +2076,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             }
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(parsed, "symbol");
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "id"), null)))
             {
                 Helpers.addElementToObject(marketIds, Helpers.GetValue(market, "id"), true);

@@ -94,7 +94,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
@@ -195,7 +195,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "action", "subscribe" );
@@ -266,7 +266,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -369,7 +369,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("trade:", symbol);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -491,7 +491,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             Object messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add("orders:", symbol);
             }

@@ -394,7 +394,7 @@ public class MudrexCore extends MudrexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String priceType = this.safeString(parameters, "price");
             parameters = this.omit(parameters, "price");
             // the endpoint expects the pair in "BASE/QUOTE" format (comma-separated for multiple)
@@ -508,7 +508,7 @@ public class MudrexCore extends MudrexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset_id", Helpers.GetValue(market, "id") );
                 put( "is_symbol", 1 );
@@ -553,7 +553,7 @@ public class MudrexCore extends MudrexApi
                 {
                     continue;
                 }
-                Object m = this.safeMarket(sym);
+                java.util.Map<String, Object> m = (java.util.Map<String, Object>) this.safeMarket(sym);
                 Object symbol = Helpers.GetValue(m, "symbol");
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(symbols, null)) && !Helpers.isTrue(this.inArray(symbol, symbols))))
                 {
@@ -843,7 +843,7 @@ public class MudrexCore extends MudrexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset_id", Helpers.GetValue(market, "id") );
                 put( "is_symbol", 1 );
@@ -887,7 +887,7 @@ public class MudrexCore extends MudrexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String marginType = this.safeString(parameters, "marginType", "ISOLATED");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset_id", Helpers.GetValue(market, "id") );
@@ -936,7 +936,7 @@ public class MudrexCore extends MudrexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             // standalone stop-loss / take-profit orders (stopLossPrice/takeProfitPrice) are attached to
             // an existing position through the riskorder endpoint, so a positionId is required
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
@@ -1400,7 +1400,7 @@ public class MudrexCore extends MudrexApi
             {
                 Object p = Helpers.GetValue(rows, i);
                 String symRaw = this.safeString(p, "symbol");
-                Object m = this.safeMarket(symRaw);
+                java.util.Map<String, Object> m = (java.util.Map<String, Object>) this.safeMarket(symRaw);
                 Object pos = this.parsePosition(p, m);
                 ((java.util.List<Object>)outPos).add(pos);
             }
@@ -1559,7 +1559,7 @@ public class MudrexCore extends MudrexApi
             Object amount = this.safeValue(parameters, "amount");
             if (Helpers.isTrue(Helpers.isEqual(positionId, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object positions = (this.fetchPositions(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
                 {

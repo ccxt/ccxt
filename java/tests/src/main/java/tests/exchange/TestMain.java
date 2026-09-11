@@ -752,7 +752,7 @@ public class TestMain extends BaseTest
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
             {
-                Object currentCode = Helpers.GetValue(codes, i);
+                String currentCode = (String) Helpers.GetValue(codes, i);
                 Object marketsArrayForCurrentCode = exchange.filterBy(currentTypeMarkets, "base", currentCode);
                 Object indexedMkts = exchange.indexBy(marketsArrayForCurrentCode, "symbol");
                 Object symbolsArrayForCurrentCode = Helpers.objectKeys(indexedMkts);
@@ -1122,7 +1122,7 @@ public class TestMain extends BaseTest
                         // derive one from the selected outcome handle (the market words with
                         // separators as spaces) so the scoped contract holds even without a pin
                         Object handleParts = Helpers.split(outcomeSymbol, ":");
-                        Object marketPart = Helpers.GetValue(handleParts, 0);
+                        String marketPart = (String) Helpers.GetValue(handleParts, 0);
                         Object lowerPart = ((String)marketPart).toLowerCase();
                         Object dedashed = Helpers.replaceAll((String)lowerPart, (String)"-", (String)" ");
                         eventQuery = Helpers.replaceAll((String)dedashed, (String)"_", (String)" ");
@@ -1774,7 +1774,7 @@ public class TestMain extends BaseTest
         {
             if (Helpers.isTrue(Helpers.isGreaterThan(i, 2)))
             {
-                Object current = Helpers.GetValue(urlParts, i);
+                String current = (String) Helpers.GetValue(urlParts, i);
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(current, "?"), Helpers.opNeg(1))))
                 {
                     // handle urls like this: /v1/account/accounts?AccessK
@@ -1796,14 +1796,14 @@ public class TestMain extends BaseTest
         Object parts = Helpers.split(url, "&");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parts)); i++)
         {
-            Object part = Helpers.GetValue(parts, i);
+            String part = (String) Helpers.GetValue(parts, i);
             Object keyValue = Helpers.split(part, "=");
             Object keysLength = Helpers.getArrayLength(keyValue);
             if (Helpers.isTrue(!Helpers.isEqual(keysLength, 2)))
             {
                 continue;
             }
-            Object key = Helpers.GetValue(keyValue, 0);
+            String key = (String) Helpers.GetValue(keyValue, 0);
             Object value = Helpers.GetValue(keyValue, 1);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(value, null))) && Helpers.isTrue((Helpers.isTrue((((String)value).startsWith(((String)"[")))) || Helpers.isTrue((((String)value).startsWith(((String)"{"))))))))
             {

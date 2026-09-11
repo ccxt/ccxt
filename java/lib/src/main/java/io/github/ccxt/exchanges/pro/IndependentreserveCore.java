@@ -70,7 +70,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), Helpers.GetValue(market, "base")), "-"), Helpers.GetValue(market, "quote"));
             Object messageHash = Helpers.add("trades:", symbol);
@@ -171,7 +171,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {

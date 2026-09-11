@@ -109,7 +109,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             this.checkContractMarket(market, "fetchOHLCVWs");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new java.util.HashMap<String, Object>() {{}});
@@ -162,7 +162,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             this.checkContractMarket(market, "watchOHLCV");
             Object watchOHLCVOptions = this.safeValue(this.options, "watchOHLCV", new java.util.HashMap<String, Object>() {{}});
             Object timeframes = this.safeValue(watchOHLCVOptions, "timeframes", new java.util.HashMap<String, Object>() {{}});
@@ -301,7 +301,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             this.checkContractMarket(market, "fetchTickerWs");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("fetchTicker:", Helpers.GetValue(market, "symbol"));
@@ -336,7 +336,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             this.checkContractMarket(market, "watchTicker");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
@@ -376,7 +376,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //
         Object marketId = this.safeString(message, "pair");
         String symbol = (String) this.safeSymbol(marketId);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object parsedTicker = this.parseWsTicker(message, market);
         Helpers.addElementToObject(this.tickers, symbol, parsedTicker);
         Object messageHash = Helpers.add("ticker:", symbol);
@@ -460,7 +460,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             this.checkContractMarket(market, "fetchTradesWs");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("fetchTrades:", Helpers.GetValue(market, "symbol"));
@@ -505,7 +505,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             this.checkContractMarket(market, "watchTrades");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("trades:", Helpers.GetValue(market, "symbol"));
@@ -552,7 +552,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //
         Object marketId = this.safeString(message, "pair");
         String symbol = (String) this.safeSymbol(marketId);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -658,7 +658,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 messageHash = "orders:all";
             } else
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = this.symbol(symbol);
                 messageHash = Helpers.add("orders:", Helpers.GetValue(market, "symbol"));
                 pair = ((String)Helpers.GetValue(market, "id"));
@@ -910,7 +910,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             this.checkContractMarket(market, "fetchOrderBookWs");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("fetchOrderbook:", Helpers.GetValue(market, "symbol"));
@@ -953,7 +953,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             this.checkContractMarket(market, "watchOrderBook");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));

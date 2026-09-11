@@ -858,7 +858,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object marketId = Helpers.GetValue(market, "id");
             String loc = this.safeString(parameters, "loc", "us");
             String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocTrades");
@@ -952,7 +952,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object id = Helpers.GetValue(market, "id");
             String loc = this.safeString(parameters, "loc", "us");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1036,7 +1036,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object marketId = Helpers.GetValue(market, "id");
             String loc = this.safeString(parameters, "loc", "us");
             String method = this.safeString(parameters, "method", "marketPublicGetV1beta3CryptoLocBars");
@@ -1299,7 +1299,7 @@ public class AlpacaCore extends AlpacaApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object market = this.safeMarket(marketId);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object entry = this.safeDict(snapshots, marketId);
                 Object dailyBar = this.safeDict(entry, "dailyBar", new java.util.HashMap<String, Object>() {{}});
                 Object prevDailyBar = this.safeDict(entry, "prevDailyBar", new java.util.HashMap<String, Object>() {{}});
@@ -1459,7 +1459,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object id = Helpers.GetValue(market, "id");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", id );
@@ -1635,7 +1635,7 @@ public class AlpacaCore extends AlpacaApi
             }};
             Object order = (this.traderPrivateGetV2OrdersOrderId(this.extend(request, parameters))).join();
             String marketId = this.safeString(order, "symbol");
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             return this.parseOrder(order, market);
         });
 
@@ -2136,7 +2136,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
@@ -2205,7 +2205,7 @@ public class AlpacaCore extends AlpacaApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(tag, null))) && Helpers.isTrue((!Helpers.isEqual(tag, "")))))
             {
                 address = Helpers.add(Helpers.add(address, ":"), tag);

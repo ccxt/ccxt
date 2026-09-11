@@ -487,7 +487,7 @@ public class ZaifCore extends ZaifApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -559,7 +559,7 @@ public class ZaifCore extends ZaifApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -644,7 +644,7 @@ public class ZaifCore extends ZaifApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
@@ -704,7 +704,7 @@ public class ZaifCore extends ZaifApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalSide = side;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency_pair", Helpers.GetValue(market, "id") );
@@ -925,7 +925,7 @@ public class ZaifCore extends ZaifApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(Helpers.isEqual(code, "JPY")))
             {
                 throw new ExchangeError((String)Helpers.add(Helpers.add(Helpers.add(this.id, " withdraw() does not allow "), code), " withdrawals")) ;

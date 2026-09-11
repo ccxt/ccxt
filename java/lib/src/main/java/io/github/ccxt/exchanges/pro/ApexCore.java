@@ -122,7 +122,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object topic = Helpers.add("recentlyTrade.H.", Helpers.GetValue(market, "id2"));
                 ((java.util.List<Object>)topics).add(topic);
                 Object messageHash = Helpers.add("trade:", symbol);
@@ -167,7 +167,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object trades = data;
         Object parts = Helpers.split(((String)topic), ".");
         Object marketId = this.safeString(parts, 2);
-        Object market = this.safeMarket(marketId, null);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -283,7 +283,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 if (Helpers.isTrue(Helpers.isEqual(limit, null)))
                 {
                     limit = 25;
@@ -402,7 +402,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object isSnapshot = (Helpers.isEqual(type, "snapshot"));
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
-        Object market = this.safeMarket(marketId, null);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -461,7 +461,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = this.getWsPublicUrl();
             Object messageHash = Helpers.add("ticker:", symbol);
@@ -499,7 +499,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(symbols))); i++)
             {
                 Object symbol = Helpers.GetValue((java.util.List<String>)(symbols), i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object topic = Helpers.add(Helpers.add("instrumentInfo", ".H."), Helpers.GetValue(market, "id2"));
                 ((java.util.List<Object>)topics).add(topic);
                 Object messageHash = Helpers.add("ticker:", symbol);
@@ -554,7 +554,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object topicParts = Helpers.split(topic, ".");
             Object topicLength = Helpers.getArrayLength(topicParts);
             Object marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
-            Object market = this.safeMarket(marketId, null);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null);
             symbol = Helpers.GetValue(market, "symbol");
             Object ticker = this.safeDict(this.tickers, symbol, new java.util.HashMap<String, Object>() {{}});
             Object rawTicker = this.safeDict(ticker, "info", new java.util.HashMap<String, Object>() {{}});
@@ -627,7 +627,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
                 Object symbolString = this.safeString(data, 0);
-                Object market = this.market(symbolString);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbolString);
                 symbolString = Helpers.GetValue(market, "id2");
                 Object unfiedTimeframe = this.safeString(data, 1, "1");
                 Object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -681,7 +681,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
         Object isSpot = Helpers.isGreaterThan(Helpers.getIndexOf(client.url, "spot"), Helpers.opNeg(1));
         Object marketType = ((Helpers.isTrue(isSpot))) ? "spot" : "contract";
-        Object market = this.safeMarket(marketId, null, null, marketType);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.ohlcvs, symbol))))
         {
@@ -1066,7 +1066,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object parts = Helpers.split(messageHash, "::");
-            Object symbolsString = Helpers.GetValue(parts, 1);
+            String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))

@@ -336,7 +336,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object token = (this.authenticate()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateV2");
             Object requestId = this.requestId();
             Object messageHash = ((String)this.numberToString(requestId));
@@ -683,7 +683,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         java.util.List<Object> parsed = this.parseTrades(data, market);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parsed)); i++)
         {
@@ -979,7 +979,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object name = "ohlc";
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "publicV2");
             Object requestId = this.requestId();
@@ -1023,7 +1023,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                     {
                         Object symbol = Helpers.GetValue(symbols, i);
-                        Object market = this.market(symbol);
+                        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                         Object info = this.safeValue(market, "info", new java.util.HashMap<String, Object>() {{}});
                         Object wsName = ((String)this.safeString(info, "wsname"));
                         Helpers.addElementToObject(marketsByWsName, wsName, market);
@@ -1173,7 +1173,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object keys = new java.util.ArrayList<Object>(java.util.Arrays.asList("asks", "bids"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
-                Object key = Helpers.GetValue(keys, i);
+                String key = (String) Helpers.GetValue(keys, i);
                 Object bookside = Helpers.GetValue(orderbook, key);
                 Object deltas = this.safeList(first, key, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object deltasLength = Helpers.getArrayLength(deltas);

@@ -1144,7 +1144,7 @@ public class DeriveCore extends DeriveApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
@@ -1500,7 +1500,7 @@ public class DeriveCore extends DeriveApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
@@ -1690,7 +1690,7 @@ public class DeriveCore extends DeriveApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(price, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument")) ;
@@ -1897,7 +1897,7 @@ public class DeriveCore extends DeriveApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object subaccountId = null;
             var subaccountIdparametersVariable = this.handleDeriveSubaccountId("editOrder", parameters);
             subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
@@ -2070,7 +2070,7 @@ public class DeriveCore extends DeriveApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object isTrigger = this.safeBool2(parameters, "trigger", "stop", false);
             Object subaccountId = null;
             var subaccountIdparametersVariable = this.handleDeriveSubaccountId("cancelOrder", parameters);
@@ -3279,7 +3279,7 @@ public class DeriveCore extends DeriveApi
             //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
             // }
             //
-            Object currency = this.safeCurrency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrency(code);
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object events = this.safeList(result, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(events, currency, since, limit, parameters);
@@ -3343,7 +3343,7 @@ public class DeriveCore extends DeriveApi
             //     "id": "ceebc730-22ab-40cd-9941-33ceb2a74389"
             // }
             //
-            Object currency = this.safeCurrency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.safeCurrency(code);
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object events = this.safeList(result, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(events, currency, since, limit, parameters);

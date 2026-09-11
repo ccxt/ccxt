@@ -782,7 +782,7 @@ public class OnetradingCore extends OnetradingApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object tierObject = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? firstSpotTier : firstFuturesTier;
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
         put( "info", spotFees );
@@ -859,7 +859,7 @@ public class OnetradingCore extends OnetradingApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object makerFee = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? spotMakerFee : futuresMakerFee;
                 Object takerFee = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? spotTakerFee : futuresTakerFee;
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
@@ -973,7 +973,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_code", Helpers.GetValue(market, "id") );
             }};
@@ -1080,7 +1080,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_code", Helpers.GetValue(market, "id") );
             }};
@@ -1221,7 +1221,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String periodUnit = this.safeString(this.timeframes, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(periodUnit, null)))
             {
@@ -1581,7 +1581,7 @@ public class OnetradingCore extends OnetradingApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
@@ -1721,7 +1721,7 @@ public class OnetradingCore extends OnetradingApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "instrument_code", Helpers.GetValue(market, "id"));
             }
             Object response = (this.privateDeleteAccountOrders(this.extend(request, parameters))).join();

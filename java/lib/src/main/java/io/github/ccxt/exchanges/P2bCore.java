@@ -530,7 +530,7 @@ public class P2bCore extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -654,7 +654,7 @@ public class P2bCore extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -724,7 +724,7 @@ public class P2bCore extends P2bApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTrades () requires an extra parameter params[\"lastId\"]")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalLastId = lastId;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
@@ -859,7 +859,7 @@ public class P2bCore extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "interval", timeframe );
@@ -1019,7 +1019,7 @@ public class P2bCore extends P2bApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " createOrder () can only accept orders with type \"limit\"")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "side", side );
@@ -1080,7 +1080,7 @@ public class P2bCore extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "orderId", id );
@@ -1145,7 +1145,7 @@ public class P2bCore extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -1213,7 +1213,7 @@ public class P2bCore extends P2bApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.safeMarket(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "orderId", id );
             }};
@@ -1304,7 +1304,7 @@ public class P2bCore extends P2bApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchMyTrades () the time between since and params[\"until\"] cannot be greater than 24 hours")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object sinceSec = this.parseToInt(Helpers.divide(since, 1000));
             Object untilSec = this.parseToInt(Helpers.divide(until, 1000));
             Object request = new java.util.HashMap<String, Object>() {{

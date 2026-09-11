@@ -109,7 +109,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Helpers.isTrue(isGenerationTwo))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "publicGen2") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
             Object tickTypes = this.safeString(parameters, "tickTypes", "24H");
             parameters = this.omit(parameters, "tickTypes");
@@ -179,7 +179,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             for (var i = 0; Helpers.isLessThan(i, symbolsLengthDefined); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object streamMarketId = null;
                 if (Helpers.isTrue(isGenerationTwo))
                 {
@@ -451,7 +451,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Helpers.isTrue(isGenerationTwo))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "publicGen2") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add(Helpers.add("orderbook", ":"), symbol);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -663,7 +663,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             parameters = ((java.util.List<Object>) generationparametersVariable).get(1);
             Object isGenerationTwo = (Helpers.isEqual(generation, 2));
             Object url = ((Helpers.isTrue(isGenerationTwo))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "publicGen2") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("trade:", symbol);
             Object request = new java.util.HashMap<String, Object>() {{
@@ -1080,7 +1080,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             }});
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
             }
@@ -1208,7 +1208,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
-            Object marketForFee = this.safeMarket(marketId, market);
+            java.util.Map<String, Object> marketForFee = (java.util.Map<String, Object>) this.safeMarket(marketId, market);
             Object feeCurrency = this.safeString(marketForFee, "quote");
             final Object finalFeeCost = feeCost;
             fee = new java.util.HashMap<String, Object>() {{

@@ -380,7 +380,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
-        Object market = this.safeMarket(marketId, null, "/");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
         Object parsedTicker = this.parseWsTicker(data, market);
         Object messageHash = Helpers.add(Helpers.add("ticker", "::"), symbol);
@@ -544,7 +544,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
-        Object market = this.safeMarket(marketId, null, "/");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
         {
@@ -753,7 +753,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
-        Object market = this.safeMarket(marketId, null, "/");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
         Object interval = this.safeString(data, "P");
         Object timeframe = this.findTimeframe(interval);
@@ -877,7 +877,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
-        Object market = this.safeMarket(marketId, null, "/");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
@@ -910,7 +910,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object first = this.safeDict(entries, 0, new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
-        Object market = this.safeMarket(marketId, null, "/");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
         Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
         Object orderedEntries = new java.util.HashMap<String, Object>() {{
@@ -1070,7 +1070,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object first = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(first, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
-        Object market = this.safeMarket(marketId, null, "/");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
         Object messageHash = "myTrades";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
@@ -1165,7 +1165,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object first = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(first, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
-        Object market = this.safeMarket(marketId, null, "/");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
         Object messageHash = "orders";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
@@ -1330,7 +1330,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Object first = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(first, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
-        Object market = this.safeMarket(marketId, null, "/");
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
         Object messageHash = "positions";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);

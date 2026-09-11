@@ -856,7 +856,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
@@ -973,7 +973,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
@@ -1005,7 +1005,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1200,7 +1200,7 @@ public class BlofinCore extends BlofinApi
             {
                 return (this.fetchPaginatedCallCursor("fetchTrades", symbol, since, limit, parameters, "tradeId", "after", null, 100)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
@@ -1269,7 +1269,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1339,7 +1339,7 @@ public class BlofinCore extends BlofinApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, "8h", parameters, 100)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
@@ -1433,7 +1433,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchFundingRate() is only valid for swap markets")) ;
@@ -1639,7 +1639,7 @@ public class BlofinCore extends BlofinApi
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         final Object finalSide = side;
         final Object finalType = type;
         Object request = new java.util.HashMap<String, Object>() {{
@@ -1912,7 +1912,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object isStopLossPriceDefined = !Helpers.isEqual(this.safeString(parameters, "stopLossPrice"), null);
             Object isTakeProfitPriceDefined = !Helpers.isEqual(this.safeString(parameters, "takeProfitPrice"), null);
             Object isTriggerOrder = !Helpers.isEqual(this.safeString(parameters, "triggerPrice"), null);
@@ -1961,7 +1961,7 @@ public class BlofinCore extends BlofinApi
         Object amount = Helpers.getArg(optionalArgs, 0, null);
         Object price = Helpers.getArg(optionalArgs, 1, null);
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object hedged = this.safeBool(parameters, "hedged", false);
         Object positionSide = "net";
         if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
@@ -2056,7 +2056,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
@@ -2683,7 +2683,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object method = this.handleOption("cancelOrders", "method", "privatePostTradeCancelBatchOrders");
             Object clientOrderIds = this.parseIds(this.safeValue(parameters, "clientOrderId"));
@@ -2776,7 +2776,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -2830,7 +2830,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
             }};
@@ -3160,7 +3160,7 @@ public class BlofinCore extends BlofinApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsList)); i++)
             {
                 Object entry = Helpers.GetValue(symbolsList, i);
-                Object entryMarket = this.market(entry);
+                java.util.Map<String, Object> entryMarket = (java.util.Map<String, Object>) this.market(entry);
                 if (Helpers.isTrue(Helpers.isGreaterThan(i, 0)))
                 {
                     instIds = Helpers.add(Helpers.add(instIds, ","), Helpers.GetValue(entryMarket, "id"));
@@ -3227,7 +3227,7 @@ public class BlofinCore extends BlofinApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchLeverage() requires a marginMode parameter that must be either cross or isolated")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalMarginMode = marginMode;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "instId", Helpers.GetValue(market, "id") );
@@ -3298,7 +3298,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("setLeverage", parameters, "cross");
             marginMode = ((java.util.List<Object>) marginModeparametersVariable).get(0);
@@ -3348,7 +3348,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             Object marginMode = null;
             var marginModeparametersVariable = this.handleMarginModeAndParams("closePosition", parameters, "cross");
@@ -3458,7 +3458,7 @@ public class BlofinCore extends BlofinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object response = (this.privateGetAccountMarginMode(parameters)).join();
             //
             //     {

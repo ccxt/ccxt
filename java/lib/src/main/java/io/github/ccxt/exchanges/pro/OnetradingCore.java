@@ -170,7 +170,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object subscriptionHash = "MARKET_TICKER";
             Object messageHash = Helpers.add("ticker.", symbol);
@@ -326,7 +326,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
@@ -379,7 +379,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("book:", symbol);
             Object subscriptionHash = "ORDER_BOOK";
@@ -525,7 +525,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Object messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
@@ -1185,7 +1185,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object marketId = Helpers.GetValue(market, "id");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");

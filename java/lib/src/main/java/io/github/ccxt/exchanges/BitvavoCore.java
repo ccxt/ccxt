@@ -802,7 +802,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -949,7 +949,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchTrades", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1176,7 +1176,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -1228,7 +1228,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -1282,7 +1282,7 @@ final Object finalBase = base;
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
             put( "interval", BitvavoCore.this.safeString(BitvavoCore.this.timeframes, timeframe, timeframe) );
@@ -1338,7 +1338,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1493,7 +1493,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object subaccountId = this.safeString(parameters, "subaccountId");
             parameters = this.omit(parameters, "subaccountId");
             Object direction = null;
@@ -1738,7 +1738,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(currency, "id") );
             }};
@@ -1775,7 +1775,7 @@ final Object finalBase = base;
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         final Object finalSide = side;
         final Object finalType = type;
         Object request = new java.util.HashMap<String, Object>() {{
@@ -1912,7 +1912,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = (this.privatePostOrder(request)).join();
             //
@@ -1966,7 +1966,7 @@ final Object finalBase = base;
         Object price = Helpers.getArg(optionalArgs, 1, null);
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object request = new java.util.HashMap<String, Object>() {{}};
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object amountRemaining = this.safeNumber(parameters, "amountRemaining");
         String triggerPrice = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "triggerAmount")));
         parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("amountRemaining", "triggerPrice", "stopPrice", "triggerAmount")));
@@ -2037,7 +2037,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
             Object response = (this.privatePutOrder(request)).join();
             return this.parseOrder(response, market);
@@ -2053,7 +2053,7 @@ final Object finalBase = base;
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a symbol argument")) ;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
         }};
@@ -2097,7 +2097,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.cancelOrderRequest(id, symbol, parameters);
             Object response = (this.privateDeleteOrder(request)).join();
             //
@@ -2235,7 +2235,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -2290,7 +2290,7 @@ final Object finalBase = base;
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
         }};
@@ -2346,7 +2346,7 @@ final Object finalBase = base;
             {
                 return (this.fetchPaginatedCallDynamic("fetchOrders", symbol, since, limit, parameters)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.fetchOrdersRequest(symbol, since, limit, parameters);
             Object response = (this.privateGetOrders(request)).join();
             //
@@ -2599,7 +2599,7 @@ final Object finalBase = base;
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
         }};
@@ -2655,7 +2655,7 @@ final Object finalBase = base;
             {
                 return (this.fetchPaginatedCallDynamic("fetchMyTrades", symbol, since, limit, parameters)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.fetchMyTradesRequest(symbol, since, limit, parameters);
             Object response = (this.privateGetTrades(request)).join();
             //
@@ -2822,7 +2822,7 @@ final Object finalBase = base;
     {
         Object tag = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object currency = this.currency(code);
+        java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(currency, "id") );
             put( "amount", BitvavoCore.this.currencyToPrecision(code, amount) );
@@ -2862,7 +2862,7 @@ final Object finalBase = base;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = this.withdrawRequest(code, amount, address, tag, parameters);
             Object response = (this.privatePostWithdrawal(request)).join();
             //

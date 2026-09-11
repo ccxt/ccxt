@@ -721,7 +721,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -808,7 +808,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1052,7 +1052,7 @@ public class BydfiCore extends BydfiApi
             {
                 return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit);
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -1199,7 +1199,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1276,7 +1276,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1366,7 +1366,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1466,7 +1466,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object wallet = "W001";
             var walletparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "wallet", wallet);
@@ -1525,7 +1525,7 @@ public class BydfiCore extends BydfiApi
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
@@ -1819,7 +1819,7 @@ public class BydfiCore extends BydfiApi
         {
             Helpers.addElementToObject(request, "orderId", id);
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
@@ -1861,7 +1861,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object wallet = "W001";
             var walletparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
@@ -1941,7 +1941,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object wallet = "W001";
             var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
@@ -2030,7 +2030,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2409,7 +2409,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object wallet = "W001";
             var walletparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
@@ -2451,7 +2451,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object wallet = "W001";
             var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchLeverage", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
@@ -2573,7 +2573,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object contractType = "FUTURE";
             var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
@@ -2740,7 +2740,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object contractType = "FUTURE";
             var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionHistory", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
@@ -2876,7 +2876,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object contractType = "FUTURE";
             var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
@@ -2954,7 +2954,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object contractType = "FUTURE";
             var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
@@ -3078,7 +3078,7 @@ public class BydfiCore extends BydfiApi
                 parameters = ((java.util.List<Object>) settleCoinparametersVariable).get(1);
             } else
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 settleCoin = Helpers.GetValue(market, "settleId");
             }
             final Object finalContractType = contractType;
@@ -3256,7 +3256,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
@@ -3321,7 +3321,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object paginate = this.safeBool(parameters, "paginate", false);
             if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
@@ -3504,7 +3504,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object paginate = this.safeBool(parameters, "paginate", false);
             if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {

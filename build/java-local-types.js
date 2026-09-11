@@ -244,6 +244,207 @@ const ACCESSOR_SOURCE_FILES = [
 // generated override (census), accepted by name
 const FIELD_FUNCTION_NAMES = new Set ([ 'parse8601', 'iso8601' ]);
 
+// ===== string-element access locals =====
+//
+// The printer declares every initialised body local as `Object` and prints element
+// reads through the generic helper:
+//
+//     Object transactionDate = Helpers.GetValue(parts, 0);
+//
+// This family narrows the locals whose initializer is a whole element read
+// `recv[key]` / `recv[index]` when the receiver's runtime elements are provably
+// strings — because of how the PRINTED Java builds them:
+//
+//     String transactionDate = (String) Helpers.GetValue(parts, 0);
+//
+// `Helpers.GetValue(Object, Object)` returns the boxed element of a List (or null
+// off-range / for a null receiver or key). `(String)` is a checkcast on that box: it
+// can only ever fire on a box the old `Object` path would have failed on later anyway —
+// for the receivers below it CANNOT fire at all, because every element they can hold is
+// a java.lang.String instance by construction of the printed producer:
+//
+//   * `x.split (sep)` prints `Helpers.split(x, sep)`, whose every path is
+//     `Arrays.asList(<String[]> ...)` or `Collections.emptyList()` — a String[] carries
+//     String instances only (Java's real String.split).
+//   * `['a', 'b', ...]` of string literals prints
+//     `new java.util.ArrayList<Object>(java.util.Arrays.asList("a", "b"))` —
+//     ArrayList of String instances.
+//
+// WHAT IS DELIBERATELY NOT CLASSIFIED: `Object.keys (x)`. It prints
+// `Helpers.objectKeys(x)`, which copies `Map<?,?>.keySet()` (erased — the cast is
+// unchecked, so a map with non-String keys passes it). A `(String)` on the element
+// would then throw where the `Object` path returned the key — a moved failure.
+//
+// RECEIVER GUARD (mirror of build/csharp-local-types.js receiverUseIsWrite): the
+// receiver must be an identifier with exactly ONE binding in the enclosing function
+// (name-based, so shadowing rejects conservatively), declared before the site, with a
+// producer initializer, and every other use of the name must be a plain read — any
+// write, element write / delete, mutating list method
+// (push/pop/shift/unshift/splice/sort/reverse/fill/copyWithin), alias
+// (`const o = recv`), escape (call/new argument, return) or ++/-- keeps the receiver's
+// elements unprovable and the site stays Object.
+//
+// THE `+` TRAP (strictPlus): before narrowing `Helpers.add(site, y)` binds
+// add(Object, Object); after, add(String, *) — the two agree for a provably-string
+// right operand (including null on either side) but diverge when y can be a Double
+// (add(Object,Object) goes numeric) or on a bare null-left. So a site local used as the
+// LEFT of `+` is only accepted when every right operand of its chain is a string
+// literal, which is why this family marks its entries `strictPlus` (the parse* family
+// predates the guard and is left alone).
+
+// TS method names that rebuild / mutate a list in place — any use of the receiver
+// through one disqualifies it (the same set the C# port uses).
+const LIST_MUTATING_METHODS = new Set ([
+    'push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill', 'copyWithin',
+]);
+
+// every assignment operator kind (ts.SyntaxKind.FirstAssignment .. LastAssignment)
+const ASSIGNMENT_OPERATORS = (() => {
+    const operators = [];
+    for (let kind = ts.SyntaxKind.FirstAssignment; kind <= ts.SyntaxKind.LastAssignment; kind++) {
+        operators.push (kind);
+    }
+    return operators;
+}) ();
+
+// does the PRINTED Java for this initializer hand a list whose every runtime element is
+// a String instance? `Object.keys` is excluded on purpose — see above.
+function stringElementsProducer (initializer) {
+    const node = unwrapParens (initializer);
+    if (node === undefined) {
+        return false;
+    }
+    if (ts.isCallExpression (node)) {
+        const callee = node.expression;
+        if (!ts.isPropertyAccessExpression (callee)) {
+            return false;
+        }
+        return callee.name?.escapedText === 'split';
+    }
+    if (ts.isArrayLiteralExpression (node)) {
+        return node.elements.length > 0 && node.elements.every ((element) =>
+            element.kind === ts.SyntaxKind.StringLiteral
+            || element.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
+    }
+    return false;
+}
+
+// is this occurrence of the receiver able to change what the list holds, hand it to
+// another scope, or rebuild it? Any such use disqualifies the receiver.
+function receiverUseIsWrite (identifier) {
+    const parent = identifier.parent;
+    if (!parent) {
+        return true;
+    }
+    switch (parent.kind) {
+    case ts.SyntaxKind.BinaryExpression:
+        return (parent.left === identifier || parent.right === identifier)
+            && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind);
+    case ts.SyntaxKind.ElementAccessExpression: {
+        if (parent.expression !== identifier) {
+            return false;
+        }
+        const grand = parent.parent;
+        if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+            return true;
+        }
+        return grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent
+            && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind);
+    }
+    case ts.SyntaxKind.PropertyAccessExpression:
+        return parent.expression === identifier && LIST_MUTATING_METHODS.has (parent.name?.escapedText);
+    case ts.SyntaxKind.VariableDeclaration:
+        return parent.initializer === identifier; // `const other = recv` aliases the list
+    case ts.SyntaxKind.CallExpression:
+    case ts.SyntaxKind.NewExpression:
+        return (parent.arguments ?? []).some ((argument) => argument === identifier);
+    case ts.SyntaxKind.ReturnStatement:
+        return true; // the caller can mutate what it gets back
+    case ts.SyntaxKind.DeleteExpression:
+    case ts.SyntaxKind.BindingElement:
+    case ts.SyntaxKind.PostfixUnaryExpression:
+    case ts.SyntaxKind.PrefixUnaryExpression:
+        return true;
+    }
+    return false;
+}
+
+// the element type of `recv[key]` when recv is a local whose elements are provably
+// strings. The receiver must have exactly one binding in the enclosing function (no
+// shadowing), that binding must be a declaration BEFORE the site with a string-elements
+// producer, and every other use of the name must be a read.
+function elementAccessHasStringElements (initializer) {
+    const site = unwrapParens (initializer);
+    if (site?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return false;
+    }
+    const receiver = site.expression;
+    if (receiver?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const scope = enclosingFunction (site);
+    if (scope === undefined) {
+        return false;
+    }
+    const uses = identifierIndex (scope).get (receiver.escapedText);
+    if (!uses) {
+        return false;
+    }
+    let declaration;
+    let bindings = 0;
+    for (const n of uses) {
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.VariableDeclaration || parent?.kind === ts.SyntaxKind.Parameter) && parent.name === n) {
+            bindings++;
+            declaration = parent;
+        }
+    }
+    if (bindings !== 1
+        || declaration?.kind !== ts.SyntaxKind.VariableDeclaration
+        || declaration.initializer === undefined
+        || !stringElementsProducer (declaration.initializer)) {
+        return false;
+    }
+    if (declaration.getStart () > site.getStart ()) {
+        return false; // the list is not provably built before the read
+    }
+    for (const n of uses) {
+        if (n === receiver || n === declaration.name) {
+            continue;
+        }
+        if (receiverUseIsWrite (n)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// a string literal `x + 'lit'` binds add(String, String) AFTER narrowing where it bound
+// add(Object, Object) before; the two only agree when the right operand is provably a
+// string (see the `+` trap comment above).
+function isProvablyStringOperand (node) {
+    const value = unwrapParens (node);
+    return value !== undefined
+        && (value.kind === ts.SyntaxKind.StringLiteral
+            || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
+}
+
+// walk up through `+` parents: at every level where our chain is the LEFT operand the
+// printed add switches overload family after narrowing, so its right operand must be a
+// provably-string literal. Uses in the RIGHT operand keep add(Object, Object).
+function plusUsesAreSafe (identifier) {
+    let child = identifier;
+    let current = identifier.parent;
+    while (current !== undefined && ts.isBinaryExpression (current) && current.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        if (current.left === child && !isProvablyStringOperand (current.right)) {
+            return false;
+        }
+        child = current;
+        current = current.parent;
+    }
+    return true;
+}
+
 // ===== helpers =====
 
 const JAVA_ARRAY_TYPE = 'java.util.List<Object>';
@@ -408,7 +609,15 @@ function returnCastFor (printer, node, methodName) {
 
 function localInitializerType (printer, declaration) {
     const initializer = unwrapParens (declaration.initializer);
-    if (initializer === undefined || !isThisCall (initializer)) {
+    if (initializer === undefined) {
+        return undefined;
+    }
+    // string-element access: `const x = parts[0]` where `parts` is provably a list of
+    // String instances — printed `Helpers.GetValue(parts, 0)`, the cast is exact
+    if (elementAccessHasStringElements (initializer)) {
+        return { type: 'String', cast: '(String)', valuePrefix: 'Helpers.GetValue(', strictPlus: true };
+    }
+    if (!isThisCall (initializer)) {
         return undefined;
     }
     const name = initializer.expression.name.escapedText;
@@ -587,7 +796,7 @@ function feedsInheritedAsyncCall (printer, n, scope) {
 }
 
 // reject the refinement when a later use needs the local to stay `Object`
-function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile) {
+function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, info) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
         return false;
@@ -608,6 +817,19 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile) 
             // `obj.<name>` is a member read, but `x.<method>(...)` is a receiver call
             // the printer may cast to a fixed type
             continue;
+        }
+        if (ts.isElementAccessExpression (parent) && parent.expression === n) {
+            // `x[k]` reads print Helpers.GetValue(x, k) and stay valid for every
+            // family; a write / delete through the local prints a receiver cast the
+            // narrowed type cannot satisfy ("...".remove((String)k) / List cast)
+            const grand = parent.parent;
+            if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+                return false;
+            }
+            if (grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent
+                && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind)) {
+                return false;
+            }
         }
         if (ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.parent !== undefined
             && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
@@ -642,6 +864,13 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile) 
                 return false;
             }
         }
+        // strictPlus families (string-element access): the printed Helpers.add moves
+        // from add(Object, Object) to add(String, *) when the local is the LEFT of a
+        // `+` chain, and the two diverge for a null left / non-string right
+        if (info?.strictPlus === true && ts.isBinaryExpression (parent)
+            && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && !plusUsesAreSafe (n)) {
+            return false;
+        }
         if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
             return false;
         }
@@ -661,7 +890,7 @@ function javaLocalTypeOf (printer, declaration) {
     const sourceName = declaration.name.escapedText;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
-    if (!isSafeToNarrow (printer, declaration, sourceName, info.type, isProFile)) {
+    if (!isSafeToNarrow (printer, declaration, sourceName, info.type, isProFile, info)) {
         return undefined;
     }
     return info;
@@ -729,7 +958,8 @@ export function installJavaLocalTypes (transpiler) {
             return printed;
         }
         const value = printed.slice (at + marker.length);
-        if (!value.startsWith ('this.')) {
+        const prefix = info.valuePrefix === undefined ? 'this.' : info.valuePrefix;
+        if (!value.startsWith (prefix)) {
             return printed; // unexpected shape — leave it as the printer emitted it
         }
         narrowed.set (declaration, info.type);

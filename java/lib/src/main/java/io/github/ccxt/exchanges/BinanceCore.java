@@ -6077,7 +6077,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -6420,7 +6420,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -6475,7 +6475,7 @@ public class BinanceCore extends BinanceApi
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
-            Object symbolMarket = this.market(Helpers.GetValue(symbols, i));
+            java.util.Map<String, Object> symbolMarket = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
             Object stock = this.safeBool(symbolMarket, "stock", false);
             if (Helpers.isTrue(Helpers.isEqual(stock, true)))
             {
@@ -6739,7 +6739,7 @@ public class BinanceCore extends BinanceApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             String marketId = this.safeString(Helpers.GetValue(response, i), "symbol");
-            Object tickerMarket = this.safeMarket(marketId, null, null, "spot");
+            java.util.Map<String, Object> tickerMarket = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, "spot");
             Object parsedTicker = this.parseTicker(Helpers.GetValue(response, i));
             Helpers.addElementToObject(parsedTicker, "symbol", Helpers.GetValue(tickerMarket, "symbol"));
             ((java.util.List<Object>)results).add(parsedTicker);
@@ -6769,7 +6769,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object type = null;
             var typeparametersVariable = this.handleMarketTypeAndParams("fetchMarkPrice", market, parameters, "swap");
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
@@ -6964,7 +6964,7 @@ public class BinanceCore extends BinanceApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 1000)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             // binance docs say that the default limit 500, max 1500 for futures, max 1000 for spot markets
             // the reality is that the time range wider than 500 candles won't work right
             Object defaultLimit = 500;
@@ -7444,7 +7444,7 @@ public class BinanceCore extends BinanceApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -7630,7 +7630,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editSpotOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
@@ -7709,7 +7709,7 @@ public class BinanceCore extends BinanceApi
          * @param {string} [params.marginMode] 'cross' or 'isolated', for spot margin trading
          * @returns {object} request to be sent to the exchange
          */
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("newClientOrderId", "clientOrderId", "origClientOrderId")));
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
@@ -7871,7 +7871,7 @@ public class BinanceCore extends BinanceApi
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() and editOrderWs() require a price argument for swap orders")) ;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
             throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editContractOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
@@ -7929,7 +7929,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object isPortfolioMargin = null;
             var isPortfolioMarginparametersVariable = this.handleOptionAndParams2(parameters, "editContractOrder", "papi", "portfolioMargin", false);
             isPortfolioMargin = ((java.util.List<Object>) isPortfolioMarginparametersVariable).get(0);
@@ -8019,7 +8019,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrder() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
@@ -8080,7 +8080,7 @@ public class BinanceCore extends BinanceApi
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Object market = this.market(Helpers.GetValue(orderSymbols, 0));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) || Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "option"), true)))))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " editOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
@@ -8917,7 +8917,7 @@ public class BinanceCore extends BinanceApi
                 ((java.util.List<Object>)ordersRequests).add(orderRequest);
             }
             orderSymbols = this.marketSymbols(orderSymbols, null, false, true, true);
-            Object market = this.market(Helpers.GetValue(orderSymbols, 0));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(orderSymbols, 0));
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrders() does not support "), Helpers.GetValue(market, "type")), " orders")) ;
@@ -9030,7 +9030,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             // don't handle/omit params here, omitting happens inside createOrderRequest
             String marketType = this.safeString(parameters, "type", Helpers.GetValue(market, "type"));
             String marginMode = this.safeString(parameters, "marginMode");
@@ -9165,7 +9165,7 @@ public class BinanceCore extends BinanceApi
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         String marketType = this.safeString(parameters, "type", Helpers.GetValue(market, "type"));
         Object stock = this.safeBool(market, "stock", false);
         String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientAlgoId", "newClientOrderId", "clientOrderId")));
@@ -9652,7 +9652,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketOrderWithCost() supports spot orders only")) ;
@@ -9685,7 +9685,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -9718,7 +9718,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
@@ -10467,7 +10467,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -11217,7 +11217,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " cancelOrders is only supported for swap markets.")) ;
@@ -11314,7 +11314,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String type = this.safeString(parameters, "type", Helpers.GetValue(market, "type"));
             parameters = this.omit(parameters, "type");
             if (Helpers.isTrue(!Helpers.isEqual(type, "spot")))
@@ -11772,7 +11772,7 @@ public class BinanceCore extends BinanceApi
         Object timestamp = this.safeInteger(trade, "operateTime");
         String currencyId = this.safeString(trade, "fromAsset");
         String tradedCurrency = (String) this.safeCurrencyCode(currencyId);
-        Object bnb = this.currency("BNB");
+        java.util.Map<String, Object> bnb = (java.util.Map<String, Object>) this.currency("BNB");
         Object earnedCurrency = Helpers.GetValue(bnb, "code");
         Object applicantSymbol = Helpers.add(Helpers.add(earnedCurrency, "/"), tradedCurrency);
         Object tradedCurrencyIsQuote = false;
@@ -12405,7 +12405,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "amount", BinanceCore.this.currencyToPrecision(code, amount) );
@@ -12631,7 +12631,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
             }};
@@ -13006,7 +13006,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "address", address );
@@ -13088,7 +13088,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object type = Helpers.GetValue(market, "type");
             Object subType = null;
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchTradingFee", market, parameters);
@@ -13408,7 +13408,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             final Object finalType = type;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
@@ -13446,7 +13446,7 @@ public class BinanceCore extends BinanceApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -13733,7 +13733,7 @@ public class BinanceCore extends BinanceApi
         {
             Object position = Helpers.GetValue(positions, i);
             String marketId = this.safeString(position, "symbol");
-            Object market = this.safeMarket(marketId, null, null, "contract");
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
             Object code = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))))) ? Helpers.GetValue(market, "quote") : Helpers.GetValue(market, "base");
             String maintenanceMargin = this.safeString(position, "maintMargin");
             // check for maintenance margin so empty positions are not returned
@@ -14556,7 +14556,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchPosition() supports option markets only")) ;
@@ -15195,7 +15195,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalLeverage = leverage;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -15279,7 +15279,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalMarginMode = marginMode;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -15792,7 +15792,7 @@ final Object finalMarket = market;
                 throw new BadRequest((String)Helpers.add(this.id, " fetchLedgerEntry() can only be used for type option")) ;
             }
             this.checkRequiredArgument("fetchLedgerEntry", code, "code");
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "recordId", id );
                 put( "currency", Helpers.GetValue(currency, "id") );
@@ -16050,7 +16050,7 @@ final Object finalMarket = market;
             return null;
         }
         Object networkCode = null;
-        Object currency = this.currency(currencyCode);
+        java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(currencyCode);
         Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
         Object networkCodes = Helpers.objectKeys(networks);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networkCodes)); i++)
@@ -16488,7 +16488,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             amount = this.amountToPrecision(symbol, amount);
             final Object finalAmount = amount;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -16640,7 +16640,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
@@ -16715,7 +16715,7 @@ final Object finalMarket = market;
             parameters = this.omit(parameters, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object response = (this.sapiGetMarginIsolatedMarginData(this.extend(request, parameters))).join();
@@ -16775,7 +16775,7 @@ final Object finalMarket = market;
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchBorrowRateHistory() limit parameter cannot exceed 92")) ;
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             final Object finalLimit = limit;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
@@ -16888,7 +16888,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             // ensure you have enough token in your funding account before calling this code
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "token", Helpers.GetValue(currency, "id") );
@@ -17020,7 +17020,7 @@ final Object finalMarket = market;
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
-                Object currency = this.currency(code);
+                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(request, "asset", Helpers.GetValue(currency, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -17135,7 +17135,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "amount", BinanceCore.this.currencyToPrecision(code, amount) );
@@ -17190,8 +17190,8 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "amount", BinanceCore.this.currencyToPrecision(code, amount) );
@@ -17233,7 +17233,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "amount", BinanceCore.this.currencyToPrecision(code, amount) );
@@ -17284,8 +17284,8 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "amount", BinanceCore.this.currencyToPrecision(code, amount) );
@@ -17377,7 +17377,7 @@ final Object finalMarket = market;
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOpenInterestHistory", symbol, since, limit, timeframe, parameters, 500)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalTimeframe = timeframe;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "period", BinanceCore.this.safeString(BinanceCore.this.timeframes, finalTimeframe, finalTimeframe) );
@@ -17456,7 +17456,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "option"), true)))
             {
@@ -17873,7 +17873,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -18156,7 +18156,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object subType = null;
             var subTypeparametersVariable = this.handleSubTypeAndParams("fetchMarginMode", market, parameters);
             subType = ((java.util.List<Object>) subTypeparametersVariable).get(0);
@@ -18229,7 +18229,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -18346,7 +18346,7 @@ final Object finalMarket = market;
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchMarginAdjustmentHistory () requires a symbol argument")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object until = this.safeInteger(parameters, "until");
             parameters = this.omit(parameters, "until");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -18520,8 +18520,8 @@ final Object finalMarket = market;
             //         "fromAmount":"0.1"
             //     }
             //
-            Object fromCurrency = this.currency(fromCode);
-            Object toCurrency = this.currency(toCode);
+            java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCode);
+            java.util.Map<String, Object> toCurrency = (java.util.Map<String, Object>) this.currency(toCode);
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
                 throw new NullResponse((String)Helpers.add(this.id, " parseConversion() returned empty response")) ;
@@ -18574,8 +18574,8 @@ final Object finalMarket = market;
                 Helpers.addElementToObject(request, "quoteId", id);
                 response = (this.sapiPostConvertAcceptQuote(this.extend(request, parameters))).join();
             }
-            Object fromCurrency = this.currency(fromCode);
-            Object toCurrency = this.currency(toCode);
+            java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCode);
+            java.util.Map<String, Object> toCurrency = (java.util.Map<String, Object>) this.currency(toCode);
             if (Helpers.isTrue(Helpers.isEqual(response, null)))
             {
                 throw new NullResponse((String)Helpers.add(this.id, " parseConversion() returned empty response")) ;
@@ -18614,7 +18614,7 @@ final Object finalMarket = market;
                 Object now = this.milliseconds();
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
-                    Object currency = this.currency(code);
+                    java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                     Helpers.addElementToObject(request, "asset", Helpers.GetValue(currency, "id"));
                 }
                 Helpers.addElementToObject(request, "tranId", id);
@@ -18703,7 +18703,7 @@ final Object finalMarket = market;
             Object toCurrencyKey = null;
             if (Helpers.isTrue(Helpers.isEqual(code, "BUSD")))
             {
-                Object currency = this.currency(code);
+                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(request, "asset", Helpers.GetValue(currency, "id"));
                 if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
                 {
@@ -18915,7 +18915,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
             {
                 timeframe = "1d";
@@ -19012,7 +19012,7 @@ final Object finalMarket = market;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};

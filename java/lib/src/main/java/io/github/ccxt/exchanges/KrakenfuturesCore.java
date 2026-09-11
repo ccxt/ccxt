@@ -705,7 +705,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -763,7 +763,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1001,7 +1001,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 String uid = this.safeString(Helpers.GetValue(market, "info"), "feeScheduleUid");
                 Object schedule = this.safeDict(schedulesByUid, uid);
                 if (Helpers.isTrue(Helpers.isEqual(schedule, null)))
@@ -1086,7 +1086,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchOHLCV", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -1194,7 +1194,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 return (this.fetchPaginatedCallDynamic("fetchTrades", symbol, since, limit, parameters)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1509,7 +1509,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         symbol = Helpers.GetValue(market, "symbol");
         type = this.safeString(parameters, "orderType", type);
         String timeInForce = this.safeString(parameters, "timeInForce");
@@ -1616,7 +1616,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object response = (this.privatePostSendorder(orderRequest)).join();
             //
@@ -3474,7 +3474,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                         continue;
                     }
                 }
-                Object market = this.safeMarket(entry_symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(entry_symbol);
                 Object parsed = this.parseFundingRate(entry, market);
                 ((java.util.List<Object>)fundingRates).add(parsed);
             }
@@ -3587,7 +3587,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchFundingRateHistory() supports swap contracts only")) ;
@@ -3950,7 +3950,7 @@ final Object finalI = i;
             return Helpers.GetValue(accountByType, account);
         } else if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(this.markets, null))) && Helpers.isTrue((Helpers.inOp(this.markets, account)))))
         {
-            Object market = this.market(account);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(account);
             Object marketId = Helpers.GetValue(market, "id");
             Object splitId = Helpers.split(((String)marketId), "_");
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
@@ -4011,7 +4011,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(Helpers.isEqual(fromAccount, "spot")))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " transfer does not yet support transfers from spot")) ;
@@ -4158,7 +4158,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object marketIdUpper = this.marketId(symbol);
             if (Helpers.isTrue(Helpers.isEqual(marketIdUpper, null)))
             {

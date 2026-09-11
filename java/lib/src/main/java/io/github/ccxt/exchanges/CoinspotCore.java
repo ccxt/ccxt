@@ -705,7 +705,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "cointype", Helpers.GetValue(market, "id") );
             }};
@@ -772,7 +772,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object response = (this.publicGetLatest(parameters)).join();
             Object id = this.safeString(market, "id", "");
             id = ((String)id).toLowerCase();
@@ -839,7 +839,7 @@ public class CoinspotCore extends CoinspotApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
-                Object market = this.safeMarket(id);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(id);
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
                 {
                     Object symbol = Helpers.GetValue(market, "symbol");
@@ -875,7 +875,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "cointype", Helpers.GetValue(market, "id") );
             }};
@@ -1083,7 +1083,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "cointype", Helpers.GetValue(market, "id") );
                 put( "amount", amount );

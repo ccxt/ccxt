@@ -1179,7 +1179,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1352,7 +1352,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1657,7 +1657,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -1687,7 +1687,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketSellOrderWithCost() supports spot orders only")) ;
@@ -1815,7 +1815,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object orderSide = ((String)((String)side)).toUpperCase();
             final Object finalOrderSide = orderSide;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -2023,7 +2023,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
@@ -2222,7 +2222,7 @@ public class WooCore extends WooApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object response = null;
@@ -2721,7 +2721,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2784,7 +2784,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", WooCore.this.safeString(WooCore.this.timeframes, timeframe, timeframe) );
@@ -3193,7 +3193,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object networkCode = null;
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
@@ -3630,7 +3630,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "token", Helpers.GetValue(currency, "id") );
                 put( "amount", WooCore.this.parseToNumeric(amount) );
@@ -3837,7 +3837,7 @@ public class WooCore extends WooApi
                 (this.loadMarkets()).join();
             }
             this.checkAddress(address);
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "address", address );
@@ -3908,7 +3908,7 @@ public class WooCore extends WooApi
                 market = this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "token", Helpers.GetValue(currency, "id") );
                 put( "amount", WooCore.this.currencyToPrecision(code, amount) );
@@ -4303,7 +4303,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -4423,7 +4423,7 @@ public class WooCore extends WooApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchFundingRateHistory() requires a symbol argument")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -4543,7 +4543,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
@@ -4718,7 +4718,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "adjust_token", "USDT" );
@@ -4749,7 +4749,7 @@ public class WooCore extends WooApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -4820,7 +4820,7 @@ public class WooCore extends WooApi
                 Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
-                    Object market = this.market(Helpers.GetValue(symbols, 0));
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
@@ -5027,9 +5027,9 @@ public class WooCore extends WooApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(data, "sellToken", fromCode);
-            Object fromCurrency = this.currency(fromCurrencyId);
+            java.util.Map<String, Object> fromCurrency = (java.util.Map<String, Object>) this.currency(fromCurrencyId);
             String toCurrencyId = this.safeString(data, "buyToken", toCode);
-            Object toCurrency = this.currency(toCurrencyId);
+            java.util.Map<String, Object> toCurrency = (java.util.Map<String, Object>) this.currency(toCurrencyId);
             return this.parseConversion(data, fromCurrency, toCurrency);
         });
 
@@ -5362,7 +5362,7 @@ public class WooCore extends WooApi
                 Object symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
-                    Object market = this.market(Helpers.GetValue(symbols, 0));
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
                     Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 }
             }
@@ -5448,7 +5448,7 @@ public class WooCore extends WooApi
 
     public Object defaultNetworkCodeForCurrency(Object code)
     {
-        Object currencyItem = this.currency(code);
+        java.util.Map<String, Object> currencyItem = (java.util.Map<String, Object>) this.currency(code);
         Object networks = Helpers.GetValue(currencyItem, "networks");
         Object networkKeys = Helpers.objectKeys(networks);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networkKeys)); i++)

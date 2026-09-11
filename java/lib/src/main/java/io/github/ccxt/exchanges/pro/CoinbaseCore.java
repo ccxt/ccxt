@@ -235,7 +235,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
                 ((java.util.List<Object>)productIds).add(marketId);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(name, "::"), symbol));
@@ -291,7 +291,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
                 ((java.util.List<Object>)productIds).add(marketId);
                 ((java.util.List<Object>)watchMessageHashes).add(Helpers.add(Helpers.add(name, "::"), symbol));
@@ -851,7 +851,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets()).join();
             }
             Object name = "level2";
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object orderbook = (this.subscribe(name, false, symbol, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -1162,7 +1162,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             Object updates = this.safeList(eventVar, "updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("level2::", symbol);
             Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});

@@ -90,7 +90,7 @@ public class TestProxies extends BaseTest {
                 if (Helpers.isTrue(!Helpers.isEqual(j, i)))
                 {
                     Object proxyFirst = Helpers.GetValue(possibleOptionsArray, i);
-                    Object proxySecond = Helpers.GetValue(possibleOptionsArray, j);
+                    String proxySecond = (String) Helpers.GetValue(possibleOptionsArray, j);
                     exchange.setProperty(exchange, proxyFirst, "0.0.0.0"); // actual value does not matter
                     exchange.setProperty(exchange, proxySecond, "0.0.0.0"); // actual value does not matter
                     Object exceptionCaught = false;

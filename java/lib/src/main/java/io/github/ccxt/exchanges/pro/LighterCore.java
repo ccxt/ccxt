@@ -216,8 +216,8 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object data = this.safeDict(message, "order_book", new java.util.HashMap<String, Object>() {{}});
         Object channel = this.safeString(message, "channel", "");
         Object parts = Helpers.split(channel, ":");
-        Object marketId = Helpers.GetValue(parts, 1);
-        Object market = this.safeMarket(marketId);
+        String marketId = (String) Helpers.GetValue(parts, 1);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger(message, "timestamp");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -260,7 +260,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("order_book/", Helpers.GetValue(market, "id")) );
             }};
@@ -290,7 +290,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("order_book/", Helpers.GetValue(market, "id")) );
             }};
@@ -361,7 +361,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object market = this.safeMarket(marketId);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = Helpers.GetValue(market, "symbol");
                 Object ticker = this.parseTicker(Helpers.GetValue(data, marketId), market);
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -371,7 +371,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         } else
         {
             Object marketId = this.safeString(data, "market_id");
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object ticker = this.parseTicker(data, market);
             Helpers.addElementToObject(this.tickers, symbol, ticker);
@@ -398,7 +398,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("market_stats/", Helpers.GetValue(market, "id")) );
             }};
@@ -427,7 +427,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("market_stats/", Helpers.GetValue(market, "id")) );
             }};
@@ -703,8 +703,8 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object data = this.safeList(message, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object channel = this.safeString(message, "channel", "");
         Object parts = Helpers.split(channel, ":");
-        Object marketId = Helpers.GetValue(parts, 1);
-        Object market = this.safeMarket(marketId);
+        String marketId = (String) Helpers.GetValue(parts, 1);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -747,7 +747,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("trade/", Helpers.GetValue(market, "id")) );
             }};
@@ -777,7 +777,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("trade/", Helpers.GetValue(market, "id")) );
             }};
@@ -921,7 +921,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //
         Object channel = this.safeString(message, "channel", "");
         Object parts = Helpers.split(channel, ":");
-        Object accountIndex = Helpers.GetValue(parts, 1);
+        String accountIndex = (String) Helpers.GetValue(parts, 1);
         Object data = this.safeDict(message, "trades", new java.util.HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(data);
         Object idsLength = Helpers.getArrayLength(marketIds);
@@ -939,7 +939,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object trades = this.safeList(data, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object tradesLength = Helpers.getArrayLength(trades);
             for (var j = 0; Helpers.isLessThan(j, tradesLength); j++)
@@ -992,7 +992,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Object messageHash = this.getMessageHash("myTrades");
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = this.getMessageHash("myTrades", symbol);
             }
@@ -1034,7 +1034,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 (this.loadMarkets()).join();
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = this.getMessageHash("unsubscribe", symbol);
             }
@@ -1146,8 +1146,8 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         Object data = this.safeList(message, "liquidation_trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object channel = this.safeString(message, "channel", "");
         Object parts = Helpers.split(channel, ":");
-        Object marketId = Helpers.GetValue(parts, 1);
-        Object market = this.safeMarket(marketId);
+        String marketId = (String) Helpers.GetValue(parts, 1);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object stored = this.safeValue(this.liquidations, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -1190,7 +1190,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "channel", Helpers.add("trade/", Helpers.GetValue(market, "id")) );
             }};
@@ -1373,7 +1373,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 messageHash = this.getMessageHash("orders", Helpers.GetValue(market, "symbol"));
                 Helpers.addElementToObject(request, "channel", Helpers.add(Helpers.add(Helpers.add("account_orders/", Helpers.GetValue(market, "id")), "/"), this.numberToString(accountIndex)));
             } else
@@ -1419,7 +1419,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 messageHash = this.getMessageHash("orders", Helpers.GetValue(market, "symbol"));
                 Helpers.addElementToObject(request, "channel", Helpers.add(Helpers.add(Helpers.add("account_orders/", Helpers.GetValue(market, "id")), "/"), this.numberToString(accountIndex)));
             } else
@@ -1628,7 +1628,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object orders = this.safeList(data, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(orders)); j++)
             {

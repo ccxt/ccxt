@@ -421,7 +421,7 @@ public class UpbitCore extends UpbitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             return (this.fetchCurrencyById(Helpers.GetValue(currency, "id"), parameters)).join();
         });
 
@@ -544,7 +544,7 @@ public class UpbitCore extends UpbitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             return (this.fetchMarketById(Helpers.GetValue(market, "id"), parameters)).join();
         });
 
@@ -1032,7 +1032,7 @@ public class UpbitCore extends UpbitApi
                 Object marketSymbols = this.symbols;
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketSymbols)); i++)
                 {
-                    Object market = this.market(Helpers.GetValue(marketSymbols, i));
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(marketSymbols, i));
                     Object quoteId = Helpers.GetValue(market, "quoteId");
                     if (!Helpers.isTrue(this.inArray(quoteId, quoteIds)))
                     {
@@ -1261,7 +1261,7 @@ public class UpbitCore extends UpbitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 200;
@@ -1319,7 +1319,7 @@ public class UpbitCore extends UpbitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -1462,7 +1462,7 @@ public class UpbitCore extends UpbitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object timeframePeriod = this.parseTimeframe(timeframe);
             String timeframeValue = this.safeString(this.timeframes, timeframe, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -1598,7 +1598,7 @@ public class UpbitCore extends UpbitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString(parameters, "clientOrderId");
             String customType = this.safeString2(parameters, "ordType", "ord_type");
             Object postOnly = this.isPostOnly(Helpers.isEqual(type, "market"), false, parameters);
@@ -2827,7 +2827,7 @@ public class UpbitCore extends UpbitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object networkCode = null;
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
             networkCode = ((java.util.List<Object>) networkCodeparametersVariable).get(0);
@@ -2874,7 +2874,7 @@ public class UpbitCore extends UpbitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
@@ -2932,7 +2932,7 @@ public class UpbitCore extends UpbitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "amount", amount );
             }};

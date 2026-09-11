@@ -80,7 +80,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add(Helpers.add("orderbook", ":"), Helpers.GetValue(market, "id"));
             Object orderbook = (this.watchPublic(messageHash, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -113,7 +113,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         //
         Object marketId = this.safeString(message, "symbol");
         Object channel = this.safeString(message, "topic");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
@@ -164,7 +164,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add(Helpers.add("trade", ":"), Helpers.GetValue(market, "id"));
             Object trades = (this.watchPublic(messageHash, parameters)).join();
@@ -196,7 +196,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         //
         Object channel = this.safeString(message, "topic");
         Object marketId = this.safeString(message, "symbol");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -305,7 +305,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             Object parsed = this.parseTrade(trade);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(trade, "symbol");
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object marketId = Helpers.GetValue(market, "id");
             if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
             {
@@ -454,7 +454,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             Object parsed = this.parseOrder(order);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(order, "symbol");
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object marketId = Helpers.GetValue(market, "id");
             if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
             {

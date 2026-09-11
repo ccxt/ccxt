@@ -1193,7 +1193,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1320,7 +1320,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1429,7 +1429,7 @@ public class ModetradeCore extends ModetradeApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
@@ -1695,7 +1695,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1760,7 +1760,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "type", ModetradeCore.this.safeString(ModetradeCore.this.timeframes, timeframe, timeframe) );
@@ -2000,7 +2000,7 @@ public class ModetradeCore extends ModetradeApi
          */
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
         Object orderType = ((String)type).toUpperCase();
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
@@ -2139,7 +2139,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             String triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Object stopLoss = this.safeValue(parameters, "stopLoss");
@@ -2264,7 +2264,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
@@ -2525,7 +2525,7 @@ public class ModetradeCore extends ModetradeApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
             }
             Object response = null;
@@ -3411,7 +3411,7 @@ public class ModetradeCore extends ModetradeApi
                     throw new NotSupported((String)Helpers.add(this.id, " withdraw() only support USDC")) ;
                 }
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             String verifyingContractAddress = this.safeString(this.options, "verifyingContractAddress");
             String chainId = this.safeString(parameters, "chainId");
             Object currencyNetworks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
@@ -3521,7 +3521,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object response = (this.v1PrivateGetClientInfo(parameters)).join();
             //
             // {
@@ -3693,7 +3693,7 @@ public class ModetradeCore extends ModetradeApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchPosition() requires a symbol argument")) ;
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};

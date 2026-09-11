@@ -832,7 +832,7 @@ public class GeminiCore extends GeminiApi
             // skip the first element (empty string)
             for (var i = 1; Helpers.isLessThan(i, numRows); i++)
             {
-                Object row = Helpers.GetValue(rows, i);
+                String row = (String) Helpers.GetValue(rows, i);
                 Object cells = Helpers.split(row, "</td>\n"); // eslint-disable-line quotes
                 Object numCells = Helpers.getArrayLength(cells);
                 if (Helpers.isTrue(Helpers.isLessThan(numCells, 5)))
@@ -1247,7 +1247,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1272,7 +1272,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1304,7 +1304,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1614,7 +1614,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2089,7 +2089,7 @@ public class GeminiCore extends GeminiApi
             {
                 clientOrderId = String.valueOf(this.milliseconds());
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object amountString = this.amountToPrecision(symbol, amount);
             Object priceString = this.priceToPrecision(symbol, price);
             final Object finalClientOrderId = clientOrderId;
@@ -2255,7 +2255,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2300,7 +2300,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
@@ -2532,7 +2532,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             code = Helpers.GetValue(currency, "code");
             Object networkCode = null;
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
@@ -2668,7 +2668,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
@@ -2711,7 +2711,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "timeframe", timeframeId );
@@ -2754,7 +2754,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};

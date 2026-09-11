@@ -168,7 +168,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add("trades::", Helpers.GetValue(market, "symbol"));
             Object url = "/trading-api/v1/market-data/trades";
             Object request = new java.util.HashMap<String, Object>() {{
@@ -214,7 +214,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "symbol");
         String symbol = (String) this.safeSymbol(marketId);
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object rawTrades = this.safeList(data, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> trades = this.parseTrades(rawTrades, market);
         if (!Helpers.isTrue((Helpers.inOp(this.trades, symbol))))
@@ -252,7 +252,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), "/trading-api/v1/market-data/tick/"), Helpers.GetValue(market, "id"));
             Object messageHash = Helpers.add("ticker::", symbol);
@@ -310,7 +310,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         Object updateType = this.safeString(message, "type", "");
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "symbol");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object parsed = this.parseTicker(data, market);
         if (Helpers.isTrue(Helpers.isEqual(updateType, "update")))
@@ -346,7 +346,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object url = "/trading-api/v1/market-data/orderbook";
             Object messageHash = Helpers.add("orderbook::", Helpers.GetValue(market, "symbol"));
             Object request = new java.util.HashMap<String, Object>() {{
@@ -893,7 +893,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object parts = Helpers.split(messageHash, "::");
-            Object symbolsString = Helpers.GetValue(parts, 1);
+            String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object symbolPositions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(symbolPositions)))

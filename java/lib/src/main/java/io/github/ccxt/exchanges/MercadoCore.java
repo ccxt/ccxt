@@ -456,7 +456,7 @@ public class MercadoCore extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(market, "base") );
             }};
@@ -526,7 +526,7 @@ public class MercadoCore extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(market, "base") );
             }};
@@ -612,7 +612,7 @@ public class MercadoCore extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(market, "base") );
             }};
@@ -712,7 +712,7 @@ public class MercadoCore extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin_pair", Helpers.GetValue(market, "id") );
             }};
@@ -781,7 +781,7 @@ public class MercadoCore extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin_pair", Helpers.GetValue(market, "id") );
                 put( "order_id", id );
@@ -929,7 +929,7 @@ public class MercadoCore extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin_pair", Helpers.GetValue(market, "id") );
                 put( "order_id", Helpers.parseInt(id) );
@@ -968,7 +968,7 @@ public class MercadoCore extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
                 put( "quantity", toFixed(amount, 10) );
@@ -1101,7 +1101,7 @@ public class MercadoCore extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "resolution", MercadoCore.this.safeString(MercadoCore.this.timeframes, timeframe, timeframe) );
                 put( "symbol", Helpers.add(Helpers.add(Helpers.GetValue(market, "base"), "-"), Helpers.GetValue(market, "quote")) );
@@ -1154,7 +1154,7 @@ public class MercadoCore extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin_pair", Helpers.GetValue(market, "id") );
             }};
@@ -1193,7 +1193,7 @@ public class MercadoCore extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin_pair", Helpers.GetValue(market, "id") );
                 put( "status_list", "[2]" );
@@ -1233,7 +1233,7 @@ public class MercadoCore extends MercadoApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin_pair", Helpers.GetValue(market, "id") );
                 put( "has_fills", true );

@@ -699,7 +699,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -749,7 +749,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -823,7 +823,7 @@ public class HollaexCore extends HollaexApi
             Object key = Helpers.GetValue(keys, i);
             Object ticker = Helpers.GetValue(tickers, key);
             String marketId = this.safeString(ticker, "symbol", key);
-            Object market = this.safeMarket(marketId, null, "-");
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
             Object symbol = Helpers.GetValue(market, "symbol");
             Helpers.addElementToObject(result, symbol, this.extend(this.parseTicker(ticker, market), parameters));
         }
@@ -911,7 +911,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1053,7 +1053,7 @@ public class HollaexCore extends HollaexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(this.symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 String makerString = this.safeString(makerFees, Helpers.GetValue(market, "id"));
                 String takerString = this.safeString(takerFees, Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
@@ -1096,7 +1096,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "resolution", HollaexCore.this.safeString(HollaexCore.this.timeframes, timeframe, timeframe) );
@@ -1573,7 +1573,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalType = type;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -2236,7 +2236,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
             {
                 address = Helpers.add(address, Helpers.add(":", tag));

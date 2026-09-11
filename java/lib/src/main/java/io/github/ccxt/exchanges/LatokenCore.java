@@ -811,7 +811,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
@@ -945,7 +945,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "base", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
@@ -1146,7 +1146,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
@@ -1212,7 +1212,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
@@ -1248,7 +1248,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
@@ -1518,7 +1518,7 @@ public class LatokenCore extends LatokenApi
             Object isTrigger = this.safeValue2(parameters, "trigger", "stop");
             parameters = this.omit(parameters, "stop");
             // privateGetAuthOrderActive doesn't work even though its listed at https://api.latoken.com/doc/v2/#tag/Order/operation/getMyActiveOrders
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(market, "baseId") );
                 put( "quote", Helpers.GetValue(market, "quoteId") );
@@ -1734,7 +1734,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
@@ -2075,7 +2075,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object response = (this.privateGetAuthTransfer(parameters)).join();
             //
             //     {
@@ -2138,7 +2138,7 @@ public class LatokenCore extends LatokenApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "recipient", toAccount );

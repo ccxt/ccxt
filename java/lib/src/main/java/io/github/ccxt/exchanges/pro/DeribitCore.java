@@ -200,7 +200,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object interval = this.safeString(parameters, "interval", "100ms");
             parameters = this.omit(parameters, "interval");
@@ -264,7 +264,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(symbols))); i++)
             {
-                Object market = this.market(Helpers.GetValue((java.util.List<String>)(symbols), i));
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue((java.util.List<String>)(symbols), i));
                 ((java.util.List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.add("ticker.", Helpers.GetValue(market, "id")), "."), interval));
             }
             Object message = new java.util.HashMap<String, Object>() {{
@@ -354,7 +354,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(symbols))); i++)
             {
-                Object market = this.market(Helpers.GetValue((java.util.List<String>)(symbols), i));
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue((java.util.List<String>)(symbols), i));
                 ((java.util.List<Object>)channels).add(Helpers.add("quote.", Helpers.GetValue(market, "id")));
             }
             Object message = new java.util.HashMap<String, Object>() {{
@@ -519,7 +519,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object marketId = this.safeString(parts, 1);
         Object interval = this.safeString(parts, 2);
         String symbol = (String) this.safeSymbol(marketId);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object trades = this.safeList(parameters, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.trades, symbol), null)))
         {
@@ -1050,7 +1050,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object parts = Helpers.split(channel, ".");
         Object marketId = this.safeString(parts, 2);
         Object rawTimeframe = this.safeString(parts, 3);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object wsOptions = this.safeDict(this.options, "ws", new java.util.HashMap<String, Object>() {{}});
         Object timeframes = this.safeDict(wsOptions, "timeframes", new java.util.HashMap<String, Object>() {{}});

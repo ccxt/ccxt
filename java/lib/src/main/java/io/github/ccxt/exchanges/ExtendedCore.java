@@ -923,7 +923,7 @@ public class ExtendedCore extends ExtendedApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -994,7 +994,7 @@ public class ExtendedCore extends ExtendedApi
                 Object marketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
-                    Object market = this.market(Helpers.GetValue(symbols, i));
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                     ((java.util.List<Object>)marketIds).add(Helpers.GetValue(market, "id"));
                 }
                 Helpers.addElementToObject(request, "market", marketIds);
@@ -1023,7 +1023,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 Object marketData = Helpers.GetValue(data, i);
                 String marketId = this.safeString(marketData, "name");
-                Object market = this.safeMarket(marketId);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object stats = this.safeDict(marketData, "marketStats", new java.util.HashMap<String, Object>() {{}});
                 Object ticker = this.parseTicker(stats, market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
@@ -1121,7 +1121,7 @@ public class ExtendedCore extends ExtendedApi
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -1179,7 +1179,7 @@ public class ExtendedCore extends ExtendedApi
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -1533,7 +1533,7 @@ public class ExtendedCore extends ExtendedApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String price = this.safeString(parameters, "price");
             String candleType = this.safeString(parameters, "candleType");
             if (Helpers.isTrue(Helpers.isEqual(candleType, null)))
@@ -1638,7 +1638,7 @@ public class ExtendedCore extends ExtendedApi
             {
                 return (this.fetchPaginatedCallCursor("fetchFundingRateHistory", symbol, since, limit, parameters, "cursor", "cursor", null, 10000)).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
@@ -1746,7 +1746,7 @@ public class ExtendedCore extends ExtendedApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe);
             if (!Helpers.isTrue(this.inArray(interval, new java.util.ArrayList<Object>(java.util.Arrays.asList("PT1H", "P1D")))))
             {
@@ -2070,7 +2070,7 @@ public class ExtendedCore extends ExtendedApi
         Object timestamp = this.safeInteger(item, "time");
         String assetId = this.safeString(item, "asset");
         Object code = this.getExtendedCurrencyCodeById(assetId, currency);
-        Object ledgerCurrency = this.safeCurrency(code, currency);
+        java.util.Map<String, Object> ledgerCurrency = (java.util.Map<String, Object>) this.safeCurrency(code, currency);
         String amountString = this.safeString(item, "amount");
         Object direction = null;
         if (Helpers.isTrue(!Helpers.isEqual(amountString, null)))
@@ -2273,7 +2273,7 @@ public class ExtendedCore extends ExtendedApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             String chainId = (String)this.safeStringUpper2(parameters, "chainId", "network", "STRK");
             if (Helpers.isTrue(!Helpers.isEqual(chainId, "STRK")))
             {
@@ -2420,7 +2420,7 @@ public class ExtendedCore extends ExtendedApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             (this.loadMarkets()).join();
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object account = (this.fetchExtendedAccount()).join();
             String currentAccountId = this.safeString(account, "accountId", "");
             if (Helpers.isTrue(Helpers.isEqual(fromAccount, null)))
@@ -2647,7 +2647,7 @@ public class ExtendedCore extends ExtendedApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -2760,7 +2760,7 @@ public class ExtendedCore extends ExtendedApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
             }};
@@ -2804,7 +2804,7 @@ public class ExtendedCore extends ExtendedApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " setLeverage() requires a symbol argument")) ;
             }
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );
                 put( "leverage", ExtendedCore.this.numberToString(leverage) );
@@ -3258,7 +3258,7 @@ public class ExtendedCore extends ExtendedApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
             }
             (this.loadMarkets()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object uppercaseType = ((String)type).toUpperCase();
             Object uppercaseSide = ((String)((String)side)).toUpperCase();
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))) && Helpers.isTrue(!Helpers.isEqual(uppercaseType, "LIMIT"))))

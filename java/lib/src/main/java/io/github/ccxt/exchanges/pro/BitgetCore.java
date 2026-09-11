@@ -159,7 +159,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("ticker:", symbol);
             Object instType = null;
@@ -232,7 +232,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             {
                 symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            Object market = this.market(Helpers.GetValue(symbols, 0));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
             Object instType = null;
             Object uta = null;
             var utaparametersVariable = this.handleOptionAndParams(parameters, "watchTickers", "uta", false);
@@ -246,7 +246,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object marketInner = this.market(symbol);
+                java.util.Map<String, Object> marketInner = (java.util.Map<String, Object>) this.market(symbol);
                 final Object finalInstType = instType;
                 Object args = new java.util.HashMap<String, Object>() {{
                     put( "instType", finalInstType );
@@ -500,7 +500,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             {
                 symbols = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             }
-            Object market = this.market(Helpers.GetValue(symbols, 0));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
             Object instType = null;
             Object uta = null;
             var utaparametersVariable = this.handleOptionAndParams(parameters, "watchBidsAsks", "uta", false);
@@ -514,7 +514,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object marketInner = this.market(symbol);
+                java.util.Map<String, Object> marketInner = (java.util.Map<String, Object>) this.market(symbol);
                 final Object finalInstType = instType;
                 Object args = new java.util.HashMap<String, Object>() {{
                     put( "instType", finalInstType );
@@ -604,7 +604,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object timeframes = this.safeValue(this.options, "timeframes");
             Object interval = this.safeString(timeframes, timeframe);
@@ -673,7 +673,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object timeframes = this.safeDict(this.options, "timeframes");
             Object interval = this.safeString(timeframes, timeframe);
             Object channel = null;
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object instType = null;
             Object messageHash = null;
             Object values = this.handleOptionAndParams(parameters, "watchOHLCV", "uta", false);
@@ -771,7 +771,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         String instType = (String)this.safeStringLower(arg, "instType");
         Object marketType = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
         Object marketId = this.safeString2(arg, "instId", "symbol");
-        Object market = this.safeMarket(marketId, null, null, marketType);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         Object channel = this.safeString2(arg, "channel", "topic", "");
@@ -920,7 +920,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("unsubscribe:", messageHashTopic), ":"), Helpers.GetValue(market, "symbol"));
             Object instType = null;
             Object uta = null;
@@ -994,7 +994,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object instType = null;
                 var instTypeparametersVariable = this.getInstType("watchOrderBookForSymbols", market, uta, parameters);
                 instType = ((java.util.List<Object>) instTypeparametersVariable).get(0);
@@ -1079,7 +1079,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         String instType = (String)this.safeStringLower(arg, "instType");
         Object marketType = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
         Object marketId = this.safeString2(arg, "instId", "symbol");
-        Object market = this.safeMarket(marketId, null, null, marketType);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add("orderbook:", symbol);
         Object data = this.safeValue(message, "data");
@@ -1261,7 +1261,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object instType = null;
                 var instTypeparametersVariable = this.getInstType("watchTradesForSymbols", market, uta, parameters);
                 instType = ((java.util.List<Object>) instTypeparametersVariable).get(0);
@@ -1368,7 +1368,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         String instType = (String)this.safeStringLower(arg, "instType");
         Object marketType = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
         Object marketId = this.safeString2(arg, "instId", "symbol");
-        Object market = this.safeMarket(marketId, null, null, marketType);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -1706,7 +1706,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         {
             Object rawPosition = Helpers.GetValue(rawPositions, i);
             Object marketId = this.safeString2(rawPosition, "instId", "symbol");
-            Object market = this.safeMarket(marketId, null, null, "contract");
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, "contract");
             Object position = this.parseWsPosition(rawPosition, market);
             ((java.util.List<Object>)newPositions).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
@@ -1716,7 +1716,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object parts = Helpers.split(messageHash, "::");
-            Object symbolsString = Helpers.GetValue(parts, 1);
+            String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
@@ -2108,7 +2108,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         {
             Object order = Helpers.GetValue(data, i);
             Object marketId = this.safeString2(order, "instId", "symbol", argInstId);
-            Object market = this.safeMarket(marketId, null, null, marketType);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
             Object parsed = this.parseWsOrder(order, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(parsed, "symbol");
@@ -3308,7 +3308,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         String instType = (String)this.safeStringLower(arg, "instType");
         Object type = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
         Object instId = this.safeString2(arg, "instId", "symbol");
-        Object market = this.safeMarket(instId, null, null, type);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add("unsubscribe:orderbook:", Helpers.GetValue(market, "symbol"));
         Object subMessageHash = Helpers.add("orderbook:", symbol);
@@ -3341,7 +3341,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         String instType = (String)this.safeStringLower(arg, "instType");
         Object type = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
         Object instId = this.safeString2(arg, "instId", "symbol");
-        Object market = this.safeMarket(instId, null, null, type);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add("unsubscribe:trade:", Helpers.GetValue(market, "symbol"));
         Object subMessageHash = Helpers.add("trade:", symbol);
@@ -3374,7 +3374,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         String instType = (String)this.safeStringLower(arg, "instType");
         Object type = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
         Object instId = this.safeString2(arg, "instId", "symbol");
-        Object market = this.safeMarket(instId, null, null, type);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add("unsubscribe:ticker:", Helpers.GetValue(market, "symbol"));
         Object subMessageHash = Helpers.add("ticker:", symbol);
@@ -3424,7 +3424,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         }
         Object timeframes = this.safeValue(this.options, "timeframes");
         Object timeframe = this.findTimeframe(interval, timeframes);
-        Object market = this.safeMarket(instId, null, null, type);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(instId, null, null, type);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = null;
         Object subMessageHash = null;

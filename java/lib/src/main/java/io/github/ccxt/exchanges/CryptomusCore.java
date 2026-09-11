@@ -406,8 +406,8 @@ public class CryptomusCore extends CryptomusApi
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
         Object parts = Helpers.split(marketId, "_");
-        Object baseId = Helpers.GetValue(parts, 0);
-        Object quoteId = Helpers.GetValue(parts, 1);
+        String baseId = (String) Helpers.GetValue(parts, 0);
+        String quoteId = (String) Helpers.GetValue(parts, 1);
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         Object fees = this.safeDict(this.fees, "trading");
@@ -664,7 +664,7 @@ public class CryptomusCore extends CryptomusApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
             }};
@@ -723,7 +723,7 @@ public class CryptomusCore extends CryptomusApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "currencyPair", Helpers.GetValue(market, "id") );
             }};
@@ -881,7 +881,7 @@ public class CryptomusCore extends CryptomusApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalSide = side;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", Helpers.GetValue(market, "id") );

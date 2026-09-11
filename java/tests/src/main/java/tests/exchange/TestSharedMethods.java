@@ -477,7 +477,7 @@ public class TestSharedMethods extends BaseTest {
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(decimalNumbers)); i++)
             {
-                Object num = Helpers.GetValue(decimalNumbers, i);
+                String num = (String) Helpers.GetValue(decimalNumbers, i);
                 Object numStr = num;
                 AssertNonEqual(exchange, skippedProperties, method, entry, key, numStr);
             }
@@ -549,7 +549,7 @@ public class TestSharedMethods extends BaseTest {
         Object methods_singular = new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methods_singular)); i++)
         {
-            Object singularFetchName = Helpers.GetValue(methods_singular, i);
+            String singularFetchName = (String) Helpers.GetValue(methods_singular, i);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, singularFetchName), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, singularFetchName), false)))))
             {
                 Object currentOrder = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, singularFetchName, new Object[] { originalId, symbol })).join();
@@ -568,7 +568,7 @@ public class TestSharedMethods extends BaseTest {
             Object methods_plural = new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methods_plural)); i++)
             {
-                Object pluralFetchName = Helpers.GetValue(methods_plural, i);
+                String pluralFetchName = (String) Helpers.GetValue(methods_plural, i);
                 if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, pluralFetchName), null))) && Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(exchange.has, pluralFetchName), false)))))
                 {
                     Object orders = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, pluralFetchName, new Object[] { symbol, sinceTime })).join();

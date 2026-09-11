@@ -171,7 +171,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = "trades";
@@ -285,7 +285,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(this.trades, symbol);
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object dataLength = Helpers.getArrayLength(data);
         for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
         {
@@ -319,7 +319,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("ticker:", symbol);
@@ -409,7 +409,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = this.requestId();
             Object request = this.extend(new java.util.HashMap<String, Object>() {{
@@ -584,7 +584,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             }
             (this.authenticate(parameters)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("orders:", symbol);
             final Object finalSymbol = symbol;
@@ -636,7 +636,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             }
             (this.authenticate(parameters)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object messageHash = Helpers.add("myTrades:", Helpers.GetValue(market, "symbol"));
             Object subscriptionHash = Helpers.add("orders:", Helpers.GetValue(market, "symbol"));
             Object message = new java.util.HashMap<String, Object>() {{
@@ -880,7 +880,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object market = this.safeMarket(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
         remains = this.currencyFromPrecision(base, remains);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -1099,7 +1099,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
         {
             Object rawOrder = Helpers.GetValue(rawOrders, i);
-            Object market = this.safeMarket(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
             Object order = this.parseOrder(rawOrder, market);
             Helpers.addElementToObject(order, "status", "open");
             Helpers.callDynamically(myOrders, "append", new Object[]{order});
@@ -1135,7 +1135,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = Helpers.add("orderbook:", symbol);
@@ -1286,7 +1286,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("ohlcv:", symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
@@ -1335,7 +1335,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object market = this.safeMarket(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
         Object messageHash = Helpers.add("ohlcv:", symbol);
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object limit = this.safeInteger(this.options, "OHLCVLimit", 1000);
@@ -1493,7 +1493,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = this.requestId();
             Object data = this.extend(new java.util.HashMap<String, Object>() {{
@@ -1540,7 +1540,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object messageHash = this.requestId();
             final Object finalPrice = price;
@@ -1596,7 +1596,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalAmount = amount;
             final Object finalPrice = price;
             Object data = this.extend(new java.util.HashMap<String, Object>() {{

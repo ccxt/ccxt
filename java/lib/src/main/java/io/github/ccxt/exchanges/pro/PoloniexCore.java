@@ -260,7 +260,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
                 (this.loadMarkets()).join();
             }
             (this.authenticate()).join();
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
@@ -800,7 +800,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         Object channel = this.safeString(message, "channel");
         Object marketId = this.safeString(data, "symbol");
         String symbol = (String) this.safeSymbol(marketId);
-        Object market = this.safeMarket(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(symbol);
         Object timeframes = this.safeValue(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(channel, timeframes);
         Object messageHash = Helpers.add(Helpers.add(channel, "::"), symbol);
@@ -1143,7 +1143,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
-            Object market = this.market(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("orders::", symbol);
             client.resolve(orders, messageHash);
@@ -1276,7 +1276,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object parts = Helpers.split(messageHash, "::");
-            Object symbolsString = Helpers.GetValue(parts, 1);
+            String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object tickers = this.filterByArray(newTickers, "symbol", symbols);
             if (!Helpers.isTrue(this.isEmpty(tickers)))
@@ -1345,7 +1345,7 @@ public class PoloniexCore extends io.github.ccxt.exchanges.Poloniex
         {
             Object item = Helpers.GetValue(data, i);
             Object marketId = this.safeString(item, "symbol");
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
             Object name = "book_lv2";
             Object messageHash = Helpers.add(Helpers.add(name, "::"), symbol);

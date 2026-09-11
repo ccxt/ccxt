@@ -704,8 +704,8 @@ public class LbankCore extends LbankApi
                 Object market = Helpers.GetValue(data, i);
                 String marketId = this.safeString(market, "symbol");
                 Object parts = Helpers.split(((String)marketId), "_");
-                Object baseId = Helpers.GetValue(parts, 0);
-                Object quoteId = Helpers.GetValue(parts, 1);
+                String baseId = (String) Helpers.GetValue(parts, 0);
+                String quoteId = (String) Helpers.GetValue(parts, 1);
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -960,7 +960,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
                 Object responseForSwap = (this.fetchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
@@ -1117,7 +1117,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 60;
@@ -1348,7 +1348,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -1439,7 +1439,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 100;
@@ -1707,7 +1707,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object responseForSwap = (this.fetchFundingRates(new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))), parameters)).join();
             return this.safeValue(responseForSwap, Helpers.GetValue(market, "symbol"));
         });
@@ -1880,7 +1880,7 @@ public class LbankCore extends LbankApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object result = (this.fetchTradingFees(this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "category", Helpers.GetValue(market, "id") );
             }}))).join();
@@ -1943,7 +1943,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " createMarketBuyOrderWithCost() supports spot orders only")) ;
@@ -1981,7 +1981,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "custom_id", "clientOrderId");
             Object postOnly = this.safeBool(parameters, "postOnly", false);
             String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
@@ -2309,7 +2309,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "orderId", id );
@@ -2358,7 +2358,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "order_id", id );
@@ -2425,7 +2425,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             since = this.safeValue(parameters, "start_date", since);
             parameters = this.omit(parameters, "start_date");
             Object request = new java.util.HashMap<String, Object>() {{
@@ -2497,7 +2497,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 100;
@@ -2571,7 +2571,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 100;
@@ -2644,7 +2644,7 @@ public class LbankCore extends LbankApi
             }
             String clientOrderId = this.safeString2(parameters, "origClientOrderId", "clientOrderId");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("origClientOrderId", "clientOrderId")));
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "orderId", id );
@@ -2697,7 +2697,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
@@ -2782,7 +2782,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "assetCode", Helpers.GetValue(currency, "id") );
             }};
@@ -2831,7 +2831,7 @@ public class LbankCore extends LbankApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "coin", Helpers.GetValue(currency, "id") );
             }};
@@ -2901,7 +2901,7 @@ public class LbankCore extends LbankApi
             parameters = this.omit(parameters, "fee");
             // The relevant coin network fee can be found by calling fetchDepositWithdrawFees (), note: if no network param is supplied then the default network will be used, this can also be found in fetchDepositWithdrawFees ().
             this.checkRequiredArgument("withdraw", fee, "fee");
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "address", address );
                 put( "coin", Helpers.GetValue(currency, "id") );
@@ -3337,7 +3337,7 @@ public class LbankCore extends LbankApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
-                Object currency = this.currency(code);
+                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(request, "assetCode", Helpers.GetValue(currency, "id"));
             }
             Object response = (this.spotPublicGetWithdrawConfigs(this.extend(request, parameters))).join();

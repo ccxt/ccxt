@@ -192,7 +192,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object marketId = Helpers.GetValue(market, "id");
             Object messageHash = Helpers.add("ticker::", symbol);
             Object channel = Helpers.add(marketId, "@ticker");
@@ -454,7 +454,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
                 Object marketId = this.safeString(symbolAndTimeframe, 0);
-                Object market = this.market(marketId);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
                 Object tf = this.safeString(symbolAndTimeframe, 1);
                 Object timeframes = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
                 Object interval = this.safeString(timeframes, tf, tf);
@@ -502,7 +502,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
                 Object marketId = this.safeString(symbolAndTimeframe, 0);
-                Object market = this.market(marketId);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketId);
                 Object tf = this.safeString(symbolAndTimeframe, 1);
                 Object interval = this.safeString(this.timeframes, tf, tf);
                 ((java.util.List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@kline_"), interval));
@@ -537,7 +537,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //     }
         //
         Object marketId = this.safeString(message, "s");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object interval = this.safeString(message, "i");
         Object timeframes = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
@@ -641,7 +641,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 ((java.util.List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@depth"), depth), channelSuffix));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("orderbook::", symbol));
             }
@@ -690,7 +690,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 ((java.util.List<Object>)channels).add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@depth"), depth), channelSuffix));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("unsubscribe::orderbook::", symbol));
             }
@@ -843,7 +843,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //
         Object rawOrder = this.safeDict(message, "o", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(rawOrder, "s");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = "orders";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);
@@ -1027,7 +1027,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         Object positionsData = this.safeList(data, "p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object rawPosition = this.safeDict(positionsData, 0, new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(rawPosition, "s");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = "positions";
         Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), symbol);

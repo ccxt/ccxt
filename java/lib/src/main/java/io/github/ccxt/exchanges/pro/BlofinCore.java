@@ -278,7 +278,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         Object channelName = this.safeString(arg, "channel");
         Object data = this.safeDict(message, "data");
         Object marketId = this.safeString(arg, "instId");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add(Helpers.add(channelName, ":"), symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
@@ -322,7 +322,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object symbol = symbol3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(parameters, "callerMethodName", "watchTicker");
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object result = (this.watchTickers(new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             return Helpers.GetValue(result, symbol);
@@ -419,7 +419,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object symbolsList = (java.util.List<String>)(symbols);
-            Object firstMarket = this.market(Helpers.GetValue(symbolsList, 0));
+            java.util.Map<String, Object> firstMarket = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbolsList, 0));
             Object channel = "tickers";
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchBidsAsks", firstMarket, parameters);
@@ -430,7 +430,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             Object args = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsList)); i++)
             {
-                Object market = this.market(Helpers.GetValue(symbolsList, i));
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbolsList, i));
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("bidask:", Helpers.GetValue(market, "symbol")));
                 ((java.util.List<Object>)args).add(new java.util.HashMap<String, Object>() {{
                     put( "channel", channel );
@@ -570,7 +570,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
         Object channelName = this.safeString(arg, "channel");
         Object data = this.safeList(message, "data");
         Object marketId = this.safeString(arg, "instId");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object interval = Helpers.replace((String)((String)channelName), (String)"candle", (String)"");
         Object unifiedTimeframe = this.findTimeframe(interval);
@@ -852,7 +852,7 @@ public class BlofinCore extends io.github.ccxt.exchanges.Blofin
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object marketType = null;
             var marketTypeparametersVariable = this.handleMarketTypeAndParams("watchFundingRate", market, parameters);
             marketType = ((java.util.List<Object>) marketTypeparametersVariable).get(0);

@@ -76,7 +76,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("orderbook:", symbol);
             Object query = this.urlencode(parameters);
@@ -115,7 +115,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "m");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add("orderbook:", symbol);
         Object timestamp = this.safeInteger(message, "ts");
@@ -231,7 +231,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             Object messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
@@ -365,7 +365,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             Object messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
             }
@@ -550,7 +550,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
             Object parts = Helpers.split(messageHash, "::");
-            Object symbolsString = Helpers.GetValue(parts, 1);
+            String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(filtered)))
@@ -651,7 +651,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("fundingRate:", symbol);
             Object query = this.urlencode(parameters);
@@ -740,7 +740,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("markPrice:", symbol);
             Object query = this.urlencode(parameters);
@@ -775,7 +775,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "m");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object timestamp = this.safeInteger(data, "ts");
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(timestamp, null))) || Helpers.isTrue((Helpers.isEqual(timestamp, 0)))))
@@ -818,7 +818,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object messageHash = Helpers.add("trades:", symbol);
             Object query = this.urlencode(parameters);
@@ -868,7 +868,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             return;
         }
         Object marketId = this.safeString(first, "m");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object messageHash = Helpers.add("trades:", symbol);
         Object subscription = this.safeDict(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
@@ -922,7 +922,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object price = this.safeString(parameters, "price");
             Object candleType = this.safeString(parameters, "candleType");
