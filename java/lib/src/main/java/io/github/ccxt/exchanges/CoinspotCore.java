@@ -965,7 +965,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 Helpers.addElementToObject(Helpers.GetValue(sellTrades, i), "side", "sell");
             }
-            Object trades = this.arrayConcat(buyTrades, sellTrades);
+            java.util.List<Object> trades = (java.util.List<Object>) this.arrayConcat(buyTrades, sellTrades);
             return this.parseTrades(trades, market, since, limit);
         });
 

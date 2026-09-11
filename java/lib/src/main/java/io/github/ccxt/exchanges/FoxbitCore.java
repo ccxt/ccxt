@@ -1814,8 +1814,8 @@ public class FoxbitCore extends FoxbitApi
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             Object withdrawals = (this.fetchWithdrawals(code, since, limit, parameters)).join();
             Object deposits = (this.fetchDeposits(code, since, limit, parameters)).join();
-            Object allTransactions = this.arrayConcat(withdrawals, deposits);
-            Object result = this.sortBy(allTransactions, "timestamp");
+            java.util.List<Object> allTransactions = (java.util.List<Object>) this.arrayConcat(withdrawals, deposits);
+            java.util.List<Object> result = this.sortBy(allTransactions, "timestamp");
             return result;
         });
 

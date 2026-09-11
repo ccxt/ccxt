@@ -539,9 +539,9 @@ public class LatokenCore extends LatokenApi
                 (this.loadTimeDifference()).join();
             }
             Object currencies = this.safeDict(this.options, "cachedCurrencies", new java.util.HashMap<String, Object>() {{}});
-            Object currenciesById = this.indexBy(currencies, "id");
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object rawMarkets = this.toArray(response);
+            java.util.Map<String, Object> currenciesById = this.indexBy(currencies, "id");
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> rawMarkets = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
             {
                 Object market = Helpers.GetValue(rawMarkets, i);
@@ -561,7 +561,7 @@ public class LatokenCore extends LatokenApi
                     {
                         continue;
                     }
-                    String lowercaseQuote = ((String)quote).toLowerCase();
+                    Object lowercaseQuote = ((String)quote).toLowerCase();
                     Object capitalizedQuote = this.capitalize(lowercaseQuote);
                     String status = this.safeString(market, "status");
     final Object finalBase = base;
@@ -757,7 +757,7 @@ public class LatokenCore extends LatokenApi
             String type = this.safeString(parameters, "type", defaultType);
             Object types = this.safeValue(this.options, "types", new java.util.HashMap<String, Object>() {{}});
             String accountType = this.safeString(types, type, type);
-            Object balancesByType = this.groupBy(response, "type");
+            java.util.Map<String, Object> balancesByType = this.groupBy(response, "type");
             Object balances = this.safeList(balancesByType, accountType, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balances)); i++)
             {
@@ -847,8 +847,8 @@ public class LatokenCore extends LatokenApi
             // aggregation failed to drop, so it is removed here
             Object rawAsks = this.safeList(response, "ask", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawBids = this.safeList(response, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawAsks)); i++)
             {
                 Object askEntry = Helpers.GetValue(rawAsks, i);
@@ -1081,7 +1081,7 @@ public class LatokenCore extends LatokenApi
         }
         Object isBuy = (Helpers.isEqual(side, "buy"));
         Object isMaker = Helpers.isTrue((Helpers.isEqual(makerBuyer, true))) && Helpers.isTrue(isBuy);
-        String takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
+        Object takerOrMaker = ((Helpers.isTrue(isMaker))) ? "maker" : "taker";
         String baseId = this.safeString(trade, "baseCurrency");
         String quoteId = this.safeString(trade, "quoteCurrency");
         String base = (String) this.safeCurrencyCode(baseId);
@@ -1433,8 +1433,8 @@ public class LatokenCore extends LatokenApi
         Object side = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderSide, null)))
         {
-            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(orderSide, "_");
-            Integer partsLength = Helpers.getArrayLength(parts);
+            Object parts = Helpers.split(orderSide, "_");
+            Object partsLength = Helpers.getArrayLength(parts);
             side = this.safeStringLower(parts, Helpers.subtract(partsLength, 1));
         }
         String type = this.parseOrderType(this.safeString(order, "type"));
@@ -1442,7 +1442,7 @@ public class LatokenCore extends LatokenApi
         String amount = this.safeString(order, "quantity");
         String filled = this.safeString(order, "filled");
         String cost = this.safeString(order, "cost");
-        String status = this.parseOrderStatus(this.safeString(order, "status"));
+        Object status = this.parseOrderStatus(this.safeString(order, "status"));
         String message = this.safeString(order, "message");
         if (Helpers.isTrue(!Helpers.isEqual(message, null)))
         {
@@ -1735,7 +1735,7 @@ public class LatokenCore extends LatokenApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            String uppercaseType = ((String)type).toUpperCase();
+            Object uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
@@ -2242,7 +2242,7 @@ public class LatokenCore extends LatokenApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        String request = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
+        Object request = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
         Object requestString = request;
         Object query = this.omit(parameters, this.extractParams(path));
         Object urlencodedQuery = this.urlencode(query);

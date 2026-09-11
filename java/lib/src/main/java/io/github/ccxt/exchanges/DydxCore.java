@@ -1022,7 +1022,7 @@ public class DydxCore extends DydxApi
                     put( "datetime", DydxCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -1857,7 +1857,7 @@ public class DydxCore extends DydxApi
             Object account = (this.fetchDydxAccount()).join();
             Object lastBlockHeight = (this.fetchLatestBlockHeight()).join();
             // params['latestBlockHeight'] = lastBlockHeight;
-            Object newParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> newParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "latestBlockHeight", lastBlockHeight );
             }});
             Object orderRequestRes = this.createOrderRequest(symbol, type, side, amount, price, newParams);
@@ -2537,9 +2537,9 @@ public class DydxCore extends DydxApi
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "methodName", "fetchTransfers" );
             }}))).join();
-            Object transferIn = this.filterBy(response, "type", "TRANSFER_IN");
-            Object transferOut = this.filterBy(response, "type", "TRANSFER_OUT");
-            Object rows = this.arrayConcat(transferIn, transferOut);
+            java.util.List<Object> transferIn = this.filterBy(response, "type", "TRANSFER_IN");
+            java.util.List<Object> transferOut = this.filterBy(response, "type", "TRANSFER_OUT");
+            java.util.List<Object> rows = (java.util.List<Object>) this.arrayConcat(transferIn, transferOut);
             return this.parseTransfers(rows, currency, since, limit);
         });
 
@@ -2793,9 +2793,9 @@ public class DydxCore extends DydxApi
             Object response = (this.fetchTransactionsHelper(code, since, limit, this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "methodName", "fetchDepositsWithdrawals" );
             }}))).join();
-            Object withdrawals = this.filterBy(response, "type", "WITHDRAWAL");
-            Object deposits = this.filterBy(response, "type", "DEPOSIT");
-            Object rows = this.arrayConcat(withdrawals, deposits);
+            java.util.List<Object> withdrawals = this.filterBy(response, "type", "WITHDRAWAL");
+            java.util.List<Object> deposits = this.filterBy(response, "type", "DEPOSIT");
+            java.util.List<Object> rows = (java.util.List<Object>) this.arrayConcat(withdrawals, deposits);
             return this.parseTransactions(rows, currency, since, limit);
         });
 

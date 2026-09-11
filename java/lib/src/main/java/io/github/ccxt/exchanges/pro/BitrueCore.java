@@ -107,7 +107,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                     put( "channel", "user_balance_update" );
                 }} );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
 
@@ -253,7 +253,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                     put( "channel", "user_order_update" );
                 }} );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -404,7 +404,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                     put( "channel", finalChannel );
                 }} );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(((String)url), messageHash, request, messageHash, null)).join();
         });
 
@@ -579,7 +579,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                     put( "channel", channel );
                 }} );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -720,7 +720,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                     put( "channel", channel );
                 }} );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -837,7 +837,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                     put( "channel", channel );
                 }} );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
 

@@ -3676,7 +3676,7 @@ public class BydfiCore extends BydfiApi
         Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api);
         Object endpoint = Helpers.add("/", path);
         Object query = "";
-        Object sortedParams = this.keysort(parameters);
+        java.util.Map<String, Object> sortedParams = this.keysort(parameters);
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             query = this.urlencode(sortedParams);

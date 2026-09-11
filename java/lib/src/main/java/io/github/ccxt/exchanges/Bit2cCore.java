@@ -1300,7 +1300,7 @@ public class Bit2cCore extends Bit2cApi
         {
             this.checkRequiredCredentials();
             Object nonce = this.nonce();
-            Object query = this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> query = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters);
             Object auth = this.urlencode(query);

@@ -1624,7 +1624,7 @@ public class KrakenCore extends KrakenApi
             }
             ids = String.join((String)",", (java.util.List<String>)ids);
             final Object finalIds = ids;
-            Object request = this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", finalIds );
             }}, parameters);
             Object response = (this.privatePostQueryLedgers(request)).join();
@@ -3137,7 +3137,7 @@ final Object finalId = id;
             {
                 market = this.market(symbol);
             }
-            Object tradesList = this.toArray(trades);
+            java.util.List<Object> tradesList = this.toArray(trades);
             return this.parseTrades(tradesList, market, since, limit);
         });
 

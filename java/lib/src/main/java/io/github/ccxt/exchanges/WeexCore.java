@@ -1148,7 +1148,7 @@ public class WeexCore extends WeexApi
             var contractResponse = ((java.util.List<Object>) spotResponsecontractResponseVariable).get(1);
             Object spotArray = this.safeList(spotResponse, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object contractArray = this.safeList(contractResponse, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object result = this.arrayConcat(spotArray, contractArray);
+            java.util.List<Object> result = (java.util.List<Object>) this.arrayConcat(spotArray, contractArray);
             return this.parseMarkets(result);
         });
 
@@ -1684,7 +1684,7 @@ public class WeexCore extends WeexApi
             //     }
             //
             // normalize here instead of falling back to 'price' in parseTicker, so a bare 'price' field in other payloads can never silently become the mark price
-            Object ticker = this.extend(new java.util.HashMap<String, Object>() {{}}, response);
+            java.util.Map<String, Object> ticker = this.extend(new java.util.HashMap<String, Object>() {{}}, response);
             if (Helpers.isTrue(Helpers.isEqual(priceType, "INDEX")))
             {
                 Helpers.addElementToObject(ticker, "indexPrice", this.safeString(ticker, "price"));

@@ -2004,10 +2004,10 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object side = this.safeString(position, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
-            Object longPosition = this.extend(new java.util.HashMap<String, Object>() {{}}, position);
+            java.util.Map<String, Object> longPosition = this.extend(new java.util.HashMap<String, Object>() {{}}, position);
             Helpers.addElementToObject(longPosition, "side", "long");
             Helpers.callDynamically(positions, "append", new Object[]{longPosition});
-            Object shortPosition = this.extend(new java.util.HashMap<String, Object>() {{}}, position);
+            java.util.Map<String, Object> shortPosition = this.extend(new java.util.HashMap<String, Object>() {{}}, position);
             Helpers.addElementToObject(shortPosition, "side", "short");
             Helpers.callDynamically(positions, "append", new Object[]{shortPosition});
         } else

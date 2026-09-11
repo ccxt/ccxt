@@ -289,8 +289,8 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             (this.authenticate(type)).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
             // coinex throws a closes the websocket when subscribing over 1422 currencies, therefore we filter out inactive currencies
-            Object activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
-            Object activeCurrenciesById = this.indexBy(activeCurrencies, "id");
+            java.util.List<Object> activeCurrencies = this.filterBy(this.currencies_by_id, "active", true);
+            java.util.Map<String, Object> activeCurrenciesById = this.indexBy(activeCurrencies, "id");
             Object currencies = Helpers.objectKeys(activeCurrenciesById);
             if (Helpers.isTrue(Helpers.isEqual(currencies, null)))
             {
@@ -312,7 +312,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 }} );
                 put( "id", CoinexCore.this.requestId() );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
 
@@ -520,7 +520,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 }} );
                 put( "id", CoinexCore.this.requestId() );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -1160,7 +1160,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 put( "id", CoinexCore.this.requestId() );
             }};
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, request)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -1290,7 +1290,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
         //     }
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object order = this.extend(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> order = this.extend(new java.util.HashMap<String, Object>() {{
             put( "status", CoinexCore.this.safeString(data, "event") );
         }}, this.safeDict2(data, "order", "stop", new java.util.HashMap<String, Object>() {{}}));
         Object parsedOrder = this.parseWsOrder(order);

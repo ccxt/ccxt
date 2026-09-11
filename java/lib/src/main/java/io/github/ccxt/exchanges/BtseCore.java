@@ -3348,7 +3348,7 @@ public class BtseCore extends BtseApi
             //     ]
             //
             Object rows = this.safeList(response, "data", ((Object)response));
-            Object responseList = this.arrayConcat(new java.util.ArrayList<Object>(java.util.Arrays.asList()), rows);
+            java.util.List<Object> responseList = (java.util.List<Object>) this.arrayConcat(new java.util.ArrayList<Object>(java.util.Arrays.asList()), rows);
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseList)); i++)
             {

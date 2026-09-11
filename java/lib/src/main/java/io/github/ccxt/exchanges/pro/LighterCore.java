@@ -1778,7 +1778,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
         //
         Object type = this.safeString(message, "type", "");
         Object id = this.safeString(message, "session_id");
-        Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(type, "unsubscribed")))
         {

@@ -2941,7 +2941,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 put( "op", "subscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(args)) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -2973,7 +2973,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 put( "op", "unsubscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(args)) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -3000,7 +3000,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 put( "op", "subscribe" );
                 put( "args", argsArray );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
         });
 
@@ -3034,7 +3034,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         put( "sign", signature );
     }})) );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
@@ -3072,7 +3072,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 put( "op", "subscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(args)) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, subscriptionHash, null)).join();
         });
 

@@ -789,7 +789,7 @@ public class LighterCore extends LighterApi
 
     public Object pow(Object n, Object m)
     {
-        String r = Precise.stringMul(n, "1");
+        Object r = Precise.stringMul(n, "1");
         Object c = this.parseToInt(m);
         if (Helpers.isTrue(Helpers.isLessThan(c, 0)))
         {
@@ -999,9 +999,9 @@ public class LighterCore extends LighterApi
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument")) ;
         }
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
-        String orderType = ((String)type).toUpperCase();
+        Object orderType = ((String)type).toUpperCase();
         Object market = this.market(symbol);
-        String orderSide = ((String)((String)side)).toUpperCase();
+        Object orderSide = ((String)((String)side)).toUpperCase();
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market_index", LighterCore.this.parseToInt(Helpers.GetValue(market, "id")) );
         }};
@@ -1126,13 +1126,13 @@ public class LighterCore extends LighterApi
             Helpers.addElementToObject(request, "integrator_taker_fee", Helpers.GetValue(this.options, "integratorTakerFee"));
             Helpers.addElementToObject(request, "integrator_maker_fee", Helpers.GetValue(this.options, "integratorMakerFee"));
         }
-        java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         ((java.util.List<Object>)orders).add(this.extend(request, parameters));
         if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)))
         {
             // group order
             Helpers.addElementToObject(Helpers.GetValue(orders, 0), "client_order_index", 0); // client order index should be 0
-            String triggerOrderSide = "";
+            Object triggerOrderSide = "";
             if (Helpers.isTrue(Helpers.isEqual(side, "BUY")))
             {
                 triggerOrderSide = "sell";
@@ -1232,7 +1232,7 @@ public class LighterCore extends LighterApi
             groupingType = ((java.util.List<Object>) groupingTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) groupingTypeparametersVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
             Object orderRequests = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            Integer totalOrderRequests = Helpers.getArrayLength(orderRequests);
+            Object totalOrderRequests = Helpers.getArrayLength(orderRequests);
             Object apiKeyIndex = null;
             Object order = null;
             if (Helpers.isTrue(Helpers.isGreaterThan(totalOrderRequests, 0)))
@@ -1581,8 +1581,8 @@ public class LighterCore extends LighterApi
             //
             Object spotMarkets = this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object swapMarkets = this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object markets = this.arrayConcat(spotMarkets, swapMarkets);
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> markets = (java.util.List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -1594,8 +1594,8 @@ public class LighterCore extends LighterApi
                 {
                     baseId = Helpers.GetValue(Helpers.split(baseId, "/"), 0);
                 }
-                String quoteId = "USDC";
-                String settleId = ((Helpers.isTrue((Helpers.isEqual(type, "swap"))))) ? "USDC" : null;
+                Object quoteId = "USDC";
+                Object settleId = ((Helpers.isTrue((Helpers.isEqual(type, "swap"))))) ? "USDC" : null;
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
                 String settle = (String) this.safeCurrencyCode(settleId);
@@ -1999,7 +1999,7 @@ public class LighterCore extends LighterApi
             //
             Object spotTickers = this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object swapTickers = this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object tickers = this.arrayConcat(spotTickers, swapTickers);
+            java.util.List<Object> tickers = (java.util.List<Object>) this.arrayConcat(spotTickers, swapTickers);
             Object first = this.safeDict(tickers, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         });
@@ -2030,7 +2030,7 @@ public class LighterCore extends LighterApi
             Object response = (this.publicGetOrderBookDetails(parameters)).join();
             Object spotTickers = this.safeList(response, "spot_order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object swapTickers = this.safeList(response, "order_book_details", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object tickers = this.arrayConcat(spotTickers, swapTickers);
+            java.util.List<Object> tickers = (java.util.List<Object>) this.arrayConcat(spotTickers, swapTickers);
             return this.parseTickers(tickers, symbols);
         });
 
@@ -2227,7 +2227,7 @@ public class LighterCore extends LighterApi
             //     }
             //
             Object data = this.safeList(response, "funding_rates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 String exchange = this.safeString(Helpers.GetValue(data, i), "exchange");
@@ -2464,7 +2464,7 @@ public class LighterCore extends LighterApi
             //         ]
             //     }
             //
-            java.util.List<Object> allPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object allPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object accounts = this.safeList(response, "accounts", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(accounts)); i++)
             {
@@ -2505,13 +2505,13 @@ public class LighterCore extends LighterApi
         String marketId = this.safeString(position, "market_id");
         market = this.safeMarket(marketId, market);
         Object sign = this.safeInteger(position, "sign");
-        String side = null;
+        Object side = null;
         if (Helpers.isTrue(!Helpers.isEqual(sign, null)))
         {
             side = ((Helpers.isTrue((Helpers.isEqual(sign, 1))))) ? "long" : "short";
         }
         Object marginModeId = this.safeInteger(position, "margin_mode");
-        String marginMode = null;
+        Object marginMode = null;
         if (Helpers.isTrue(!Helpers.isEqual(marginModeId, null)))
         {
             marginMode = ((Helpers.isTrue((Helpers.isEqual(marginModeId, 0))))) ? "cross" : "isolated";
@@ -2909,7 +2909,7 @@ public class LighterCore extends LighterApi
                 isAsk = Helpers.isEqual(isAskAsInteger, 1);
             }
         }
-        String side = null;
+        Object side = null;
         if (Helpers.isTrue(!Helpers.isEqual(isAsk, null)))
         {
             side = ((Helpers.isTrue(isAsk))) ? "sell" : "buy";
@@ -3765,7 +3765,7 @@ public class LighterCore extends LighterApi
         String askAccountId = this.safeString(trade, "ask_account_id");
         String bidAccountId = this.safeString(trade, "bid_account_id");
         Object isMakerAsk = this.safeBool(trade, "is_maker_ask");
-        String side = null;
+        Object side = null;
         Object orderId = null;
         if (Helpers.isTrue(!Helpers.isEqual(accountIndex, null)))
         {
@@ -3779,7 +3779,7 @@ public class LighterCore extends LighterApi
                 orderId = this.safeString(trade, "bid_id");
             }
         }
-        String takerOrMaker = null;
+        Object takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(side, null)) && Helpers.isTrue(!Helpers.isEqual(isMakerAsk, null))))
         {
             Object isMaker = ((Helpers.isTrue((Helpers.isEqual(side, "sell"))))) ? isMakerAsk : !Helpers.isTrue(isMakerAsk);

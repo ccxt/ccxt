@@ -705,7 +705,7 @@ public class HyperliquidCore extends HyperliquidApi
                 // and we don't have the base/settle information and we can't assume it's USDC for hip3 markets
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(universe)); j++)
                 {
-                    Object data = this.extend(this.safeDict(universe, j, new java.util.HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, j, new java.util.HashMap<String, Object>() {{}}));
+                    java.util.Map<String, Object> data = this.extend(this.safeDict(universe, j, new java.util.HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, j, new java.util.HashMap<String, Object>() {{}}));
                     Helpers.addElementToObject(data, "baseId", this.sum(j, offset));
                     Helpers.addElementToObject(data, "collateralToken", collateralToken);
                     Helpers.addElementToObject(data, "hip3", true);
@@ -820,7 +820,7 @@ public class HyperliquidCore extends HyperliquidApi
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(universe)); i++)
             {
-                Object data = this.extend(this.safeDict(universe, i, new java.util.HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, i, new java.util.HashMap<String, Object>() {{}}));
+                java.util.Map<String, Object> data = this.extend(this.safeDict(universe, i, new java.util.HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, i, new java.util.HashMap<String, Object>() {{}}));
                 Helpers.addElementToObject(data, "baseId", i);
                 ((java.util.List<Object>)result).add(data);
             }
@@ -1539,7 +1539,7 @@ public class HyperliquidCore extends HyperliquidApi
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(universe)); i++)
             {
-                Object data = this.extend(this.safeDict(universe, i, new java.util.HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, i, new java.util.HashMap<String, Object>() {{}}));
+                java.util.Map<String, Object> data = this.extend(this.safeDict(universe, i, new java.util.HashMap<String, Object>() {{}}), this.safeDict(assetCtxs, i, new java.util.HashMap<String, Object>() {{}}));
                 ((java.util.List<Object>)result).add(data);
             }
             return this.parseFundingRates(result, symbols);
@@ -3657,7 +3657,7 @@ final Object finalClientOrderId = clientOrderId;
                     put( "datetime", HyperliquidCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(result, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(result, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 

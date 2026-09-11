@@ -115,7 +115,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 }} );
                 put( "id", DeribitCore.this.requestId() );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
         });
 
@@ -222,7 +222,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 }} );
                 put( "id", DeribitCore.this.requestId() );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, channel, request, channel, request)).join();
         });
 
@@ -275,7 +275,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 }} );
                 put( "id", DeribitCore.this.requestId() );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object newTickers = (this.watchMultiple(url, channels, request, channels, request)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -365,7 +365,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 }} );
                 put( "id", DeribitCore.this.requestId() );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object newTickers = (this.watchMultiple(url, channels, request, channels, request)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -577,7 +577,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 }} );
                 put( "id", DeribitCore.this.requestId() );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object trades = (this.watch(url, channel, request, channel, request)).join();
             return this.filterBySymbolSinceLimit(trades, symbol, since, limit, true);
         });
@@ -883,7 +883,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 }} );
                 put( "id", DeribitCore.this.requestId() );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, channel, request, channel, request)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -1142,7 +1142,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
                 }} );
                 put( "id", DeribitCore.this.requestId() );
             }};
-            Object extendedRequest = this.deepExtend(request, parameters);
+            java.util.Map<String, Object> extendedRequest = this.deepExtend(request, parameters);
             Object maxMessageByteLimit = Helpers.subtract(32768, 1); // 'Message Too Big: limit 32768B'
             Object jsonedText = this.json(extendedRequest);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(((String)jsonedText).length(), maxMessageByteLimit)))

@@ -130,7 +130,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             {
                 Helpers.addElementToObject(message, "size", limit);
             }
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object requestId = this.requestId();
             return (this.watch(url, messageHash, request, requestId, request)).join();
         });
@@ -175,7 +175,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 put( "kbar", timeframeId );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -310,7 +310,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 put( "request", "tick" );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object requestId = this.requestId();
             return (this.watch(url, messageHash, request, requestId, request)).join();
         });
@@ -345,7 +345,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 put( "subscribe", "tick" );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
         });
 
@@ -475,7 +475,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 put( "pair", Helpers.GetValue(market, "id") );
                 put( "size", finalLimit );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object requestId = this.requestId();
             return (this.watch(url, messageHash, request, requestId, request)).join();
         });
@@ -514,7 +514,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 put( "subscribe", "trade" );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object trades = (this.watch(url, messageHash, request, messageHash, request)).join();
             java.util.List<Object> result = this.filterBySinceLimit(trades, since, limit, "timestamp", true);
             return this.sortBy(result, "timestamp");  // needed bcz of https://github.com/ccxt/ccxt/actions/runs/21364685870/job/61493905690?pr=27750#step:11:1067
@@ -670,7 +670,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 put( "subscribeKey", key );
                 put( "pair", finalPair );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             Object orders = (this.watch(url, messageHash, request, messageHash, request)).join();
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit, true);
         });
@@ -846,7 +846,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 put( "subscribe", "assetUpdate" );
                 put( "subscribeKey", key );
             }};
-            Object request = this.deepExtend(message, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(message, parameters);
             return (this.watch(url, messageHash, request, messageHash, request)).join();
         });
 
@@ -925,7 +925,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 put( "depth", finalLimit );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -969,7 +969,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
                 put( "depth", finalLimit );
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object orderbook = (this.watch(url, messageHash, request, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });

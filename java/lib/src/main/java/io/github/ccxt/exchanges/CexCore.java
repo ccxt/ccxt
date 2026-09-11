@@ -420,8 +420,8 @@ public class CexCore extends CexApi
             Object responses = (Helpers.promiseAll(promises)).join();
             Object dataCurrencies = this.safeList(Helpers.GetValue(responses, 0), "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object dataNetworks = this.safeDict(Helpers.GetValue(responses, 1), "data", new java.util.HashMap<String, Object>() {{}});
-            Object currenciesIndexed = this.indexBy(dataCurrencies, "currency");
-            Object data = this.deepExtend(currenciesIndexed, dataNetworks);
+            java.util.Map<String, Object> currenciesIndexed = this.indexBy(dataCurrencies, "currency");
+            java.util.Map<String, Object> data = this.deepExtend(currenciesIndexed, dataNetworks);
             return this.parseCurrencies(this.toArray(data));
         });
 
@@ -1106,7 +1106,7 @@ public class CexCore extends CexApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object balances = this.safeDict(data, "balancesPerAccounts", new java.util.HashMap<String, Object>() {{}});
-            Object arrays = this.toArray(balances);
+            java.util.List<Object> arrays = this.toArray(balances);
             return this.parseAccounts(arrays, parameters);
         });
 

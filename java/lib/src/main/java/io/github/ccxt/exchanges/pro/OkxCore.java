@@ -2053,7 +2053,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Object arg = this.safeValue(message, "arg", new java.util.HashMap<String, Object>() {{}});
         Object channel = this.safeString(arg, "channel");
         Object balance = this.parseTradingBalance(message);
-        Object newBalance = this.deepExtend(this.balance, balance);
+        java.util.Map<String, Object> newBalance = this.deepExtend(this.balance, balance);
         this.balance = this.safeBalance(newBalance);
         client.resolve(this.balance, channel);
     }
@@ -2853,7 +2853,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             for (var i = 0; Helpers.isLessThan(i, idsLength); i++)
             {
                 final Object finalI = i;
-                Object arg = this.extend(instParams, new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> arg = this.extend(instParams, new java.util.HashMap<String, Object>() {{
                     put( "ordId", Helpers.GetValue(ids, finalI) );
                 }});
                 ((java.util.List<Object>)args).add(arg);

@@ -2176,7 +2176,7 @@ public class GateCore extends GateApi
             var marginResponsespotMarketsResponseVariable = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(marginPromise, spotMarketsPromise)))).join();
             var marginResponse = ((java.util.List<Object>) marginResponsespotMarketsResponseVariable).get(0);
             var spotMarketsResponse = ((java.util.List<Object>) marginResponsespotMarketsResponseVariable).get(1);
-            Object marginMarkets = this.indexBy(marginResponse, "id");
+            java.util.Map<String, Object> marginMarkets = this.indexBy(marginResponse, "id");
             //
             //  Spot
             //
@@ -2221,7 +2221,7 @@ public class GateCore extends GateApi
                 Object spotMarket = this.safeDict(spotMarketsResponse, i, new java.util.HashMap<String, Object>() {{}});
                 String id = this.safeString(spotMarket, "id");
                 Object marginMarket = this.safeValue(marginMarkets, id);
-                Object market = this.deepExtend(marginMarket, spotMarket);
+                java.util.Map<String, Object> market = this.deepExtend(marginMarket, spotMarket);
                 var baseIdquoteIdVariable = Helpers.split(((String)id), "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
@@ -2566,7 +2566,7 @@ public class GateCore extends GateApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(underlyings)); i++)
             {
                 Object underlying = Helpers.GetValue(underlyings, i);
-                Object query = this.extend(new java.util.HashMap<String, Object>() {{}}, parameters);
+                java.util.Map<String, Object> query = this.extend(new java.util.HashMap<String, Object>() {{}}, parameters);
                 Helpers.addElementToObject(query, "underlying", underlying);
                 Object response = (this.publicOptionsGetContracts(query)).join();
                 //
@@ -3795,7 +3795,7 @@ public class GateCore extends GateApi
             Object funding = this.parseFundingHistory(entry);
             ((java.util.List<Object>)result).add(funding);
         }
-        Object sorted = this.sortBy(result, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
     }
 
@@ -4782,7 +4782,7 @@ public class GateCore extends GateApi
                     put( "datetime", GateCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -5892,7 +5892,7 @@ final Object finalPointFee = pointFee;
             Object amount = this.safeValue(rawOrder, "amount");
             Object price = this.safeValue(rawOrder, "price");
             Object orderParams = this.safeValue(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
-            Object extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
+            java.util.Map<String, Object> extendedParams = this.extend(orderParams, parameters); // the request does not accept extra params since it's a list, so we're extending each order with the common params
             Object triggerValue = this.safeValueN(orderParams, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "takeProfitPrice", "stopLossPrice")));
             if (Helpers.isTrue(!Helpers.isEqual(triggerValue, null)))
             {
@@ -8154,7 +8154,7 @@ final Object finalRebate = rebate;
             var requestparametersVariable = this.prepareRequest(market, Helpers.GetValue(market, "type"), parameters);
             request = ((java.util.List<Object>) requestparametersVariable).get(0);
             parameters = ((java.util.List<Object>) requestparametersVariable).get(1);
-            Object extendedRequest = this.extend(request, parameters);
+            java.util.Map<String, Object> extendedRequest = this.extend(request, parameters);
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
@@ -9018,7 +9018,7 @@ final Object finalI = i;
             path = this.implodeParams(path, settle);
             // remove the first element from params
             Object newParams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object anyParams = this.toArray(parameters);
+            java.util.List<Object> anyParams = this.toArray(parameters);
             for (var i = 1; Helpers.isLessThan(i, Helpers.getArrayLength(anyParams)); i++)
             {
                 ((java.util.List<Object>)newParams).add(Helpers.GetValue(parameters, i));
@@ -9422,7 +9422,7 @@ final Object finalI = i;
             //     ]
             //
             Object settlements = this.parseSettlements(response, market);
-            Object sorted = this.sortBy(settlements, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -9534,7 +9534,7 @@ final Object finalI = i;
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeValue(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
-            Object sorted = this.sortBy(settlements, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 

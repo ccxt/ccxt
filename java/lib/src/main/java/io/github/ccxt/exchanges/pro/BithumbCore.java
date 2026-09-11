@@ -813,7 +813,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         {
             Object tradeTimestamp = this.safeInteger(trade, "trade_timestamp");
             final Object finalMarketCode = marketCode;
-            Object normalized = this.extend(trade, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> normalized = this.extend(trade, new java.util.HashMap<String, Object>() {{
                 put( "market", finalMarketCode );
                 put( "timestamp", tradeTimestamp );
             }});

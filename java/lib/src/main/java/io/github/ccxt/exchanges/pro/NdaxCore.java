@@ -83,7 +83,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 put( "n", finalName );
                 put( "o", NdaxCore.this.json(payload) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -171,7 +171,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 put( "n", finalName );
                 put( "o", NdaxCore.this.json(payload) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -282,7 +282,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 put( "n", finalName );
                 put( "o", NdaxCore.this.json(payload) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -463,7 +463,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 put( "limit", finalLimit );
                 put( "params", parameters );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, subscription)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -610,7 +610,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
         //         "o": "[[1,1,1608204295901,0,20782.49,1,18200,8,1,0]]"
         //     }
         //
-        Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object id = this.safeInteger(message, "i");
         Object subscription = ((Helpers.isTrue((Helpers.isEqual(id, null))))) ? null : this.safeValue(subscriptionsById, id);
         if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))

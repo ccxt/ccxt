@@ -98,7 +98,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                     put( "event", "challenge" );
                     put( "api_key", KrakenfuturesCore.this.apiKey );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
@@ -173,7 +173,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), Helpers.GetValue(market, "symbol"));
             }
             Helpers.addElementToObject(subscribe, "product_ids", marketIds);
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
 
@@ -207,7 +207,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                 put( "original_challenge", Helpers.GetValue(KrakenfuturesCore.this.options, "challenge") );
                 put( "signed_challenge", Helpers.GetValue(KrakenfuturesCore.this.options, "signedChallenge") );
             }};
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
 
@@ -1046,7 +1046,7 @@ public class KrakenfuturesCore extends io.github.ccxt.exchanges.Krakenfutures
                     if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(currentOrder, "id"), Helpers.GetValue(message, "order_id"))))
                     {
                         final Object finalReason = reason;
-                        Object info = this.extend(this.safeDict(currentOrder, "info", new java.util.HashMap<String, Object>() {{}}), new java.util.HashMap<String, Object>() {{
+                        java.util.Map<String, Object> info = this.extend(this.safeDict(currentOrder, "info", new java.util.HashMap<String, Object>() {{}}), new java.util.HashMap<String, Object>() {{
                             put( "reason", finalReason );
                         }});
                         final Object finalStatus = status;

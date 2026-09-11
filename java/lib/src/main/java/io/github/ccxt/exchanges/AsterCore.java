@@ -1338,7 +1338,7 @@ public class AsterCore extends AsterApi
                     ((java.util.List<Object>)fapiRowsFiltered).add(market);
                 }
             }
-            Object rows = this.arrayConcat(sapiRows, fapiRowsFiltered);
+            java.util.List<Object> rows = (java.util.List<Object>) this.arrayConcat(sapiRows, fapiRowsFiltered);
             return this.parseMarkets(rows);
         });
 
@@ -1381,7 +1381,7 @@ public class AsterCore extends AsterApi
         }
         // filters
         Object filters = this.safeList(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object filtersByType = this.indexBy(filters, "filterType");
+        java.util.Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
         Object filterNotional = this.safeDict2(filtersByType, "MIN_NOTIONAL", "NOTIONAL");
         Object filterPrice = this.safeDict(filtersByType, "PRICE_FILTER");
         Object filterLotSize = this.safeDict(filtersByType, "LOT_SIZE");
@@ -2197,13 +2197,13 @@ public class AsterCore extends AsterApi
             {
                 throw new NullResponse((String)Helpers.add(this.id, " fetchLastPrices() returned empty response")) ;
             }
-            Object rows = this.toArray(response);
+            java.util.List<Object> rows = this.toArray(response);
             Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 String marketId = this.safeString(Helpers.GetValue(rows, i), "symbol");
                 Object safeMarket = this.safeMarket(marketId, null, null, marketType);
-                Object priceData = this.extend(this.parseLastPrice(Helpers.GetValue(rows, i), safeMarket), parameters);
+                java.util.Map<String, Object> priceData = this.extend(this.parseLastPrice(Helpers.GetValue(rows, i), safeMarket), parameters);
                 ((java.util.List<Object>)results).add(priceData);
             }
             symbols = this.marketSymbols(symbols);
@@ -4613,7 +4613,7 @@ public class AsterCore extends AsterApi
             //         }
             //     ]
             //
-            Object rawPositions = this.toArray(response);
+            java.util.List<Object> rawPositions = this.toArray(response);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
             {
@@ -5000,7 +5000,7 @@ public class AsterCore extends AsterApi
                 //                ...
                 //
                 Helpers.addElementToObject(this.options, "leverageBrackets", this.createSafeDictionary());
-                Object entries = this.toArray(response);
+                java.util.List<Object> entries = this.toArray(response);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entries)); i++)
                 {
                     Object entry = Helpers.GetValue(entries, i);

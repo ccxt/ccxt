@@ -993,7 +993,7 @@ public class WhitebitCore extends WhitebitApi
         Object networkLimits = this.safeDict(rawCurrency, "limits", new java.util.HashMap<String, Object>() {{}});
         Object depositLimits = this.safeDict(networkLimits, "deposit", new java.util.HashMap<String, Object>() {{}});
         Object withdrawLimits = this.safeDict(networkLimits, "withdraw", new java.util.HashMap<String, Object>() {{}});
-        Object allNetworks = this.arrayConcat(depositsNetworks, withdrawsNetworks);
+        java.util.List<Object> allNetworks = (java.util.List<Object>) this.arrayConcat(depositsNetworks, withdrawsNetworks);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(allNetworks)); j++)
         {
             Object networkId = Helpers.GetValue(allNetworks, j);
@@ -1890,7 +1890,7 @@ public class WhitebitCore extends WhitebitApi
                 {
                     Object response = (this.v4PrivatePostOrders(this.extend(request, parameters))).join();
                     // Search for order in active orders response (array format)
-                    Object orders = this.toArray(response);
+                    java.util.List<Object> orders = this.toArray(response);
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
                     {
                         Object order = Helpers.GetValue(orders, i);
@@ -2949,9 +2949,9 @@ public class WhitebitCore extends WhitebitApi
             var openOrdersclosedOrdersVariable = (Helpers.promiseAll(new java.util.ArrayList<Object>(java.util.Arrays.asList(this.fetchOpenOrders(symbol, since, limit, parameters), this.fetchClosedOrders(symbol, since, limit, parameters))))).join();
             var openOrders = ((java.util.List<Object>) openOrdersclosedOrdersVariable).get(0);
             var closedOrders = ((java.util.List<Object>) openOrdersclosedOrdersVariable).get(1);
-            Object allOrders = this.arrayConcat(openOrders, closedOrders);
+            java.util.List<Object> allOrders = (java.util.List<Object>) this.arrayConcat(openOrders, closedOrders);
             // Sort by timestamp (most recent first)
-            Object sortedOrders = this.sortBy(allOrders, "timestamp", true);
+            java.util.List<Object> sortedOrders = this.sortBy(allOrders, "timestamp", true);
             // Apply limit if specified (since and symbol filtering already handled by individual methods)
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(limit, null)) && Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(sortedOrders), limit))))
             {
@@ -4623,7 +4623,7 @@ public class WhitebitCore extends WhitebitApi
             Object contract = Helpers.GetValue(contracts, i);
             ((java.util.List<Object>)result).add(this.parseFundingHistory(contract, market));
         }
-        Object sorted = this.sortBy(result, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
         return this.filterBySinceLimit(sorted, since, limit);
     }
 

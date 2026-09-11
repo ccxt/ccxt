@@ -1410,7 +1410,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //     }
         //
         Object id = this.safeString(message, "id");
-        Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeValue(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
         Object method = this.safeValue(subscription, "method");
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))
@@ -3380,7 +3380,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         {
             Helpers.addElementToObject(parameters, "recvWindow", recvWindow);
         }
-        Object extendedParams = this.extend(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> extendedParams = this.extend(new java.util.HashMap<String, Object>() {{
             put( "timestamp", BinanceCore.this.nonce() );
             put( "apiKey", BinanceCore.this.apiKey );
         }}, parameters);
@@ -3593,7 +3593,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         Object renewalTime = Helpers.subtract(Helpers.subtract(expirationTime, time), 60000); // Renew 1 minute before expiration
                         if (Helpers.isTrue(Helpers.isGreaterThan(renewalTime, 0)))
                         {
-                            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                            java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                                 put( "type", marketType );
                             }});
                             this.scheduleCallback(renewalTime, "renewListenToken", extendedParams);

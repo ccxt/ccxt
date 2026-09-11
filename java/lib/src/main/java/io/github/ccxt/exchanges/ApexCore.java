@@ -1336,7 +1336,7 @@ public class ApexCore extends ApexApi
                     put( "datetime", ApexCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -2430,7 +2430,7 @@ public class ApexCore extends ApexApi
             }
         } else
         {
-            Object sortedQuery = this.keysort(parameters);
+            java.util.Map<String, Object> sortedQuery = this.keysort(parameters);
             signBody = this.rawencode(sortedQuery);
         }
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))

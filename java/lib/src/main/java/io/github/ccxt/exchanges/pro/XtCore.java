@@ -266,7 +266,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             {
                 messageHash = Helpers.add(Helpers.add(messageHash, "::"), String.join((String)",", (java.util.List<String>)symbols));
             }
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             Object tail = access;
             if (Helpers.isTrue(isContract))
             {
@@ -338,7 +338,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             }
             String tradeType = ((Helpers.isTrue(isContract))) ? "contract" : "spot";
             Object subMessageHash = Helpers.add(Helpers.add(name, "::"), tradeType);
-            Object request = this.extend(unsubscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(unsubscribe, parameters);
             Object tail = access;
             if (Helpers.isTrue(isContract))
             {
@@ -1886,7 +1886,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
         //     }
         //
         Object id = this.safeString(message, "id");
-        Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object unsubscribe = false;
         if (Helpers.isTrue(!Helpers.isEqual(id, null)))
         {

@@ -100,7 +100,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 put( "product_ids", productIds );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(name)) );
             }};
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
 
@@ -140,7 +140,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 put( "product_ids", productIds );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(name)) );
             }};
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             return (this.watchMultiple(url, messageHashes, request, messageHashes, null)).join();
         });
 
@@ -483,7 +483,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 put( "product_ids", marketIds );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalName)) );
             }};
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             final Object finalSymbols = symbols;
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "messageHash", finalName );
@@ -529,7 +529,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                 put( "product_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"))) );
                 put( "channels", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalName)) );
             }};
-            Object request = this.extend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.extend(subscribe, parameters);
             final Object finalSymbol = symbol;
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "messageHash", messageHash );
@@ -883,7 +883,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                         client.resolve(orders, messageHash);
                     } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "received"))) || Helpers.isTrue((Helpers.isEqual(type, "done")))))
                     {
-                        Object info = this.extend(Helpers.GetValue(previousOrder, "info"), message);
+                        java.util.Map<String, Object> info = this.extend(Helpers.GetValue(previousOrder, "info"), message);
                         Object order = this.parseWsOrder(info);
                         Object keys = Helpers.objectKeys(order);
                         // update the reference

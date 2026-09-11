@@ -590,7 +590,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 put( "method", channel );
                 put( "param", requestParams );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -616,7 +616,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                     put( "reqTime", timestamp );
                 }} );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, channel, null)).join();
         });
 

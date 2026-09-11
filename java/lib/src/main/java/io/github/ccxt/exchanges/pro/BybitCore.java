@@ -715,7 +715,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             // update the info in place
             Object ticker = this.safeDict(this.tickers, symbol, new java.util.HashMap<String, Object>() {{}});
             Object rawTicker = this.safeDict(ticker, "info", new java.util.HashMap<String, Object>() {{}});
-            Object merged = this.extend(rawTicker, data);
+            java.util.Map<String, Object> merged = this.extend(rawTicker, data);
             parsed = this.parseTicker(merged);
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(parsed, null))) || Helpers.isTrue((Helpers.isEqual(symbol, null)))))
@@ -777,8 +777,8 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object timestamp = this.safeInteger(orderbook, "timestamp");
-        Object bids = this.sortBy(this.aggregate(Helpers.GetValue(orderbook, "bids")), 0);
-        Object asks = this.sortBy(this.aggregate(Helpers.GetValue(orderbook, "asks")), 0);
+        java.util.List<Object> bids = this.sortBy(this.aggregate(Helpers.GetValue(orderbook, "bids")), 0);
+        java.util.List<Object> asks = this.sortBy(this.aggregate(Helpers.GetValue(orderbook, "asks")), 0);
         Object bestBid = this.safeList(bids, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object bestAsk = this.safeList(asks, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
@@ -2826,7 +2826,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 put( "req_id", BybitCore.this.requestId() );
                 put( "args", topics );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, null)).join();
         });
 
@@ -2852,7 +2852,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 put( "subMessageHashes", subMessageHashes );
                 put( "symbols", symbols );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watchMultiple(url, messageHashes, message, messageHashes, this.extend(subscription, subExtension))).join();
         });
 
@@ -2880,7 +2880,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                     put( "op", "auth" );
                     put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(BybitCore.this.apiKey, expires, signature)) );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, null);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();

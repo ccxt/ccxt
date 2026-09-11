@@ -1425,6 +1425,421 @@ function javaLocalTypeOf (printer, declaration, narrowed) {
     return info;
 }
 
+// ===== collection/dict helpers -> java.util.Map<String, Object> / java.util.List<Object> =====
+//
+// (JAVA-RE-5 — additive slice; its patcher is installed from the bottom of
+// installJavaLocalTypes below.) The Java printer declares every initialised body local
+// `Object`; this section names the locals whose initializer is a WHOLE call to one of the
+// hand-written collection helpers, whose Java box provably IS the named collection on
+// every path that can return.
+//
+// Java base audit (java/lib/src/main/java/io/github/ccxt/BaseExchange.java +
+// base/Generic.java + base/Functions.java):
+//
+//   Map<String, Object> — a fresh LinkedHashMap on every returning path; a list / foreign
+//   input throws INSIDE the helper before it can return (never a passthrough):
+//     * this.extend (aa, bb)         -> Generic.Extend: casts both inputs to Map (null
+//                                       tolerated), builds a fresh LinkedHashMap;
+//     * this.deepExtend (objs...)    -> Generic.deepExtend: builds a fresh LinkedHashMap;
+//                                       the final `(Map) outObj` cast throws for a
+//                                       non-mapable input, so it never hands a list back;
+//                                       empty/all-null input -> null (a checkcast passes);
+//     * this.keysort (x)             -> Functions.keysort: casts its input to Map (a list
+//                                       input throws there), builds a fresh LinkedHashMap;
+//     * this.indexBy / indexBySafe / groupBy (x, key) -> fresh LinkedHashMap; a non-list /
+//                                       non-map input throws at the internal cast.
+//
+//   List<Object> — a fresh ArrayList on every returning path:
+//     * this.sortBy / sortBy2 (arr, key[, desc]) -> Generic.sortBy/2: `(List) array`
+//                                       throws for a non-list input, otherwise a fresh
+//                                       sorted ArrayList (an unmatched-key run may hand
+//                                       back null — a checkcast passes null);
+//     * this.filterBy (x, key, val)  -> Generic.filterBy: fresh ArrayList;
+//     * this.toArray (x)             -> Functions.toArray: fresh ArrayList on EVERY path
+//                                       (null -> empty list, non-collection scalar ->
+//                                       empty list, list -> copy, map -> values);
+//     * this.aggregate (bidasks)     -> Functions.aggregate: fresh ArrayList, every path;
+//     * this.arrayConcat (a, b)      -> Functions.arrayConcat: fresh ArrayList when both
+//                                       inputs are lists, `return null` otherwise — never
+//                                       a foreign box.
+//
+// DECLARED-Object helpers get an explicit checkcast at the call site (a no-op on the box
+// the helper already returns):
+//     * this.extend (a, b, c...) — the VARARGS overload `Object extend(Object...)`; the
+//       fixed-arity `extend(Object, Object)` is declared Map and needs none. The cast
+//       predicate fires when the TS call carries != 2 arguments (or a spread); a
+//       redundant checkcast on the 2-arg overload's Map would be harmless anyway.
+//     * this.arrayConcat (a, b) — declared `Object` in BaseExchange.
+//
+// ===== THE omit TRAP (do not "fix" this) =====
+// omit / omitN / clone / deepExtend2 / omitZero / sort stay Object-typed LOCALS:
+//     * Functions.omit(Object, Object) hands a LIST input back AS-IS
+//       (`if (aa instanceof List<?>) return aa;`). Batch-order endpoints (okx sign() for
+//       privatePostTradeBatchOrders, binance/mexc batch orders) hand a list of orders
+//       down fetch2 -> handleOptionAndParams -> omit; a Map-typed local (or a `(Map)`
+//       checkcast at the declaration) throws ClassCastException on a LIVE path. Same
+//       conclusion as the C# campaign (PR #30356) and the java-loc-collections slice.
+//       The `Object x = this.omit(...)` locals stay exactly as the printer emitted them;
+//       the enclosing `keysort(this.omit(...))` / `extend(request, query)` call shapes
+//       are fine to narrow and are covered by the tables above.
+//     * clone — BaseExchange.clone is `return s;` (identity) and ts/src/base/functions/
+//       generic.ts returns an ARRAY for array inputs: the box is not always a Map.
+//     * deepExtend2 — has `out = obj;` return paths handing back a non-Map.
+//     * omitN — same helper family as omit; kept Object deliberately (0 call sites today).
+//     * omitZero — returns its non-collection input untouched.
+//     * sort — BaseExchange.sort is declared `java.util.List<String>`; a List<Object>
+//       local cannot take that value (java generics are invariant).
+//
+// CONSUMER policy (mirrors the java-loc-collections slice, re-checked against the pinned
+// ast-transpiler printer): only the receiver calls the printer emits in a shape the
+// narrowed type satisfies are accepted — the Object-taking helpers (indexOf/slice/split/
+// concat/toString/toFixed) for both types, and `((java.util.List<Object>) x)` receivers
+// (push/pop/shift/reverse) plus `x.contains` (includes) for the list family. `join` prints
+// `String.join(..., (java.util.List<String>) x)` — a javac inconvertible-types ERROR on a
+// List<Object> receiver — and the String-cast receivers (trim/toUpperCase/replace/padEnd/
+// ...) are inconvertible on both; all of those reject. `delete x[k]`, `as` casts, typeof,
+// spread, ++/--, for..of, await (prints `(x).join()`) and compound assignments reject.
+// Writes to an already-narrowed local are accepted only for the nullish literal, a
+// same-kind literal, or a same-family call; the reassignment hook below supplies the
+// checkcast when the callee is declared Object.
+
+const JAVA_MAP_TYPE = 'java.util.Map<String, Object>';
+
+// this.<name>(...) -> proven box. `cast` is a per-call predicate: true when the resolved
+// Java declaration is still `Object`, so the narrowed declaration / reassignment needs the
+// checkcast.
+const JAVA_COLLECTION_CALL_TYPES = {
+    'extend': { type: JAVA_MAP_TYPE, cast: (call) => call.arguments.length !== 2 || call.arguments.some ((a) => ts.isSpreadElement (a)) },
+    'deepExtend': { type: JAVA_MAP_TYPE, cast: () => false },
+    'keysort': { type: JAVA_MAP_TYPE, cast: () => false },
+    'indexBy': { type: JAVA_MAP_TYPE, cast: () => false },
+    'indexBySafe': { type: JAVA_MAP_TYPE, cast: () => false },
+    'groupBy': { type: JAVA_MAP_TYPE, cast: () => false },
+    'sortBy': { type: JAVA_ARRAY_TYPE, cast: () => false },
+    'sortBy2': { type: JAVA_ARRAY_TYPE, cast: () => false },
+    'filterBy': { type: JAVA_ARRAY_TYPE, cast: () => false },
+    'toArray': { type: JAVA_ARRAY_TYPE, cast: () => false },
+    'aggregate': { type: JAVA_ARRAY_TYPE, cast: () => false },
+    'arrayConcat': { type: JAVA_ARRAY_TYPE, cast: () => true },
+};
+
+// the helper DEFINITIONS the resolved signature must live in, so a same-named method
+// defined by a venue (its own file) or an alias binding never classifies
+const COLLECTION_SOURCE_FILE = /[\\/]base[\\/]functions[\\/](generic|misc)\.ts$/;
+
+const COLLECTION_DEBUG = process.env.CCXT_JAVA_COLLECTION_LOCAL_DEBUG === '1';
+
+// receiver methods whose printed Java takes Object and is valid on either narrowed type:
+//   indexOf -> Helpers.getIndexOf(x, arg)   slice -> Helpers.slice(...)
+//   split   -> Helpers.split(x, arg)        concat -> Helpers.concat(...)
+//   toString-> String.valueOf(x)            toFixed -> toFixed(x, arg)
+const COLLECTION_SAFE_ANY_RECEIVER = new Set ([
+    'indexOf', 'slice', 'split', 'concat', 'toString', 'toFixed',
+]);
+
+// receiver methods printed as `((java.util.List<Object>) x).…` / `x.contains(…)` /
+// `Collections.reverse((java.util.List<Object>) x)` — valid on a List<Object> receiver,
+// broken on a Map. `.join` is NOT here (prints a List<String> cast — a javac ERROR on
+// List<Object>).
+const COLLECTION_SAFE_LIST_RECEIVER = new Set ([
+    'push', 'pop', 'shift', 'reverse', 'includes',
+]);
+
+function collectionReceiverIsSafe (method, javaType) {
+    if (COLLECTION_SAFE_ANY_RECEIVER.has (method)) {
+        return true;
+    }
+    return javaType === JAVA_ARRAY_TYPE && COLLECTION_SAFE_LIST_RECEIVER.has (method);
+}
+
+// the proven Java type of a whole family call, or undefined. The resolved signature must
+// be a declaration that LIVES IN the audited helper file and carries the same name (a
+// venue override, an alias like `indexBySafe = indexBy`, or an unrelated same-named
+// helper never classifies).
+function collectionCallInfo (printer, node) {
+    const call = unwrapParens (node);
+    if (call === undefined || !ts.isCallExpression (call) || !isThisOrSuperCall (call)) {
+        return undefined;
+    }
+    const method = String (call.expression.name.escapedText);
+    const entry = JAVA_COLLECTION_CALL_TYPES[method];
+    if (entry === undefined) {
+        return undefined;
+    }
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (call)?.declaration;
+    } catch (e) {
+        return undefined; // no transpilation context (in-memory transpiles)
+    }
+    if (declaration === undefined) {
+        if (COLLECTION_DEBUG) {
+            console.error (`[collection] ${method}: no resolved declaration`);
+        }
+        return undefined;
+    }
+    const file = declaration.getSourceFile ().fileName;
+    if (!COLLECTION_SOURCE_FILE.test (file)) {
+        if (COLLECTION_DEBUG) {
+            console.error (`[collection] ${method}: resolves outside generic/misc.ts (${file})`);
+        }
+        return undefined;
+    }
+    // the resolved declaration is the generic.ts/misc.ts function (`const extend = (...) =>`,
+    // a FunctionExpression on its binding, ...) — its name sits on itself or its parent
+    const name = declaration.name?.escapedText ?? declaration.parent?.name?.escapedText;
+    if (name === undefined || String (name) !== method) {
+        if (COLLECTION_DEBUG) {
+            console.error (`[collection] ${method}: resolved name mismatch (${String (name)})`);
+        }
+        return undefined;
+    }
+    return { type: entry.type, cast: entry.cast (call) };
+}
+
+// literal writes to an already-narrowed local: the printer emits
+// `new java.util.HashMap<String, Object>() {{ ... }}` / `new java.util.ArrayList<Object>(...)`,
+// both assignable to the narrowed interface with no cast
+function collectionLiteralInfo (node) {
+    switch (node?.kind) {
+        case ts.SyntaxKind.ObjectLiteralExpression:
+            return { type: JAVA_MAP_TYPE };
+        case ts.SyntaxKind.ArrayLiteralExpression:
+            return { type: JAVA_ARRAY_TYPE };
+        default:
+            return undefined;
+    }
+}
+
+// does the printed Java of a `= ` assignment right-hand side hand back the same box?
+function collectionWriteIsSameBox (printer, node, javaType) {
+    const written = unwrapParens (node);
+    if (written === undefined) {
+        return false;
+    }
+    if (written.kind === ts.SyntaxKind.NullKeyword
+        || (ts.isIdentifier (written) && written.escapedText === 'undefined')) {
+        return true; // prints null — assignable to either type
+    }
+    const info = collectionCallInfo (printer, written) ?? collectionLiteralInfo (written);
+    return info !== undefined && info.type === javaType;
+}
+
+// reject the narrowing when any use needs the local to stay `Object` (or a receiver cast
+// the narrowed type cannot satisfy).
+function collectionIsSafeToNarrow (printer, declaration, sourceName, javaType, isProFile) {
+    const scope = enclosingFunction (declaration);
+    if (scope === undefined) {
+        return false;
+    }
+    const uses = identifierIndex (scope).get (sourceName) ?? [];
+    for (const n of uses) {
+        if (n === declaration.name) {
+            continue;
+        }
+        const parent = n.parent;
+        if (parent === undefined) {
+            continue;
+        }
+        if (ts.isVariableDeclaration (parent) && parent.name === n) {
+            continue; // a sibling block-scoped declaration gets its own type
+        }
+        if (ts.isPropertyAccessExpression (parent)) {
+            if (parent.name === n) {
+                continue; // `obj.<name>` is a member read of another object
+            }
+            if (parent.expression === n && parent.parent !== undefined
+                && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
+                const method = String (parent.name.escapedText);
+                if (!collectionReceiverIsSafe (method, javaType)) {
+                    return false;
+                }
+            }
+            // other reads (`x.foo`, `x[k]`) print Object-taking helpers, `.length`
+            // prints Helpers.getArrayLength(x)
+            continue;
+        }
+        if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
+            const op = parent.operator;
+            if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
+                return false;
+            }
+            continue; // `!x` prints a Helpers.isTrue test — Object-taking
+        }
+        if (ts.isSpreadElement (parent)) {
+            return false;
+        }
+        if (ts.isTypeOfExpression (parent)) {
+            return false; // `typeof x === '...'` prints `x instanceof ...` — inconvertible
+        }
+        if (ts.isAsExpression (parent) || parent.kind === ts.SyntaxKind.TypeAssertionExpression) {
+            return false; // `as any` -> ((Object)x); `as T[]` -> a List<String> cast
+        }
+        if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
+            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
+            return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
+        }
+        if (ts.isDeleteExpression (parent)) {
+            return false; // `delete x` / `delete x[k]` (see the receiver cast below)
+        }
+        if (ts.isElementAccessExpression (parent)) {
+            if (parent.expression === n) {
+                const grand = parent.parent;
+                if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+                    return false; // prints `((java.util.Map<...>) x).remove(...)` (interface cast)
+                }
+                if (ts.isBinaryExpression (grand) && grand.left === parent
+                    && grand.operatorToken.kind !== ts.SyntaxKind.EqualsToken) {
+                    return false; // compound element write
+                }
+                continue; // read, or `x[k] = v` -> Helpers.addElementToObject(x, k, v)
+            }
+            continue; // the key of `x[k]` — Object-taking
+        }
+        if (ts.isBinaryExpression (parent)) {
+            const op = parent.operatorToken.kind;
+            if (parent.left === n) {
+                if (op === ts.SyntaxKind.EqualsToken) {
+                    if (!collectionWriteIsSameBox (printer, parent.right, javaType)) {
+                        return false;
+                    }
+                } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
+                    return false; // `x += y` prints `x = Helpers.add(x, y)` — an Object write
+                }
+                // `in` / comparisons / `+` operands: Helpers.{inOp,isEqual,add}(...) take
+                // Object and there is no Map/List overload to re-bind
+                continue;
+            }
+            continue; // right operand (`y = x`, `a + x`, `x in y`, `x != null`, ...)
+        }
+        if (ts.isForOfStatement (parent)) {
+            return false;
+        }
+        if (ts.isAwaitExpression (parent)) {
+            return false; // prints `(x).join()` — no join() on either type
+        }
+        // explicitly fine parents: call/new arguments, returns, property assignments
+        // (object literal values), template spans, ternary arms, wrapped reads
+        continue;
+    }
+    // in pro files a local feeding an inherited `this.<async>()` call as an argument can
+    // re-bind to the typed wrapper overload — keep Object (same guard as the families above)
+    if (isProFile) {
+        for (const n of uses) {
+            if (n === declaration.name) {
+                continue;
+            }
+            const parent = n.parent;
+            if (parent !== undefined && ts.isVariableDeclaration (parent) && parent.name === n) {
+                continue;
+            }
+            if (feedsInheritedAsyncCall (printer, n, scope)) {
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+function collectionLocalDeclaration (printer, declaration) {
+    if (!ts.isIdentifier (declaration.name)) {
+        return undefined;
+    }
+    const info = collectionCallInfo (printer, declaration.initializer);
+    if (info === undefined) {
+        return undefined;
+    }
+    // scan by the SOURCE name: ReservedKeywordsReplacements renames the printed one
+    const sourceName = declaration.name.escapedText;
+    const fileName = declaration.getSourceFile ().fileName;
+    const isProFile = /[\\/]pro[\\/]/.test (fileName);
+    if (!collectionIsSafeToNarrow (printer, declaration, sourceName, info.type, isProFile)) {
+        if (COLLECTION_DEBUG) {
+            console.error (`[collection] declined ${fileName}:${declaration.name.escapedText}`);
+        }
+        return undefined;
+    }
+    if (COLLECTION_DEBUG) {
+        console.error (`[collection] ${fileName}: ${declaration.name.escapedText} -> ${info.type}${info.cast ? ' (cast)' : ''}`);
+    }
+    return info;
+}
+
+// the collection slice's own printVariableDeclarationList / printBinaryExpression
+// wrappers. Chained after the ones above; its marker lookup no-ops on a line one of the
+// earlier patches already retyped (the Object token is gone by then).
+export function patchJavaCollectionLocalTypes (transpiler) {
+    const printer = transpiler?.javaTranspiler;
+    if (!printer || typeof printer.printVariableDeclarationList !== 'function' || printer._javaCollectionLocalTypesPatched) {
+        return;
+    }
+    // declaration node -> narrowed Java type, filled as declarations are printed. Java
+    // statements print in source order, so by the time a reassignment is printed its
+    // declaration has already been classified.
+    const narrowed = new WeakMap ();
+    const original = printer.printVariableDeclarationList.bind (printer);
+    printer.printVariableDeclarationList = function (node, identation) {
+        const printed = original (node, identation);
+        if (node.declarations?.length !== 1) {
+            return printed; // multi-declarator lists are left as the printer emitted them
+        }
+        const declaration = node.declarations[0];
+        if (declaration.initializer === undefined) {
+            return printed;
+        }
+        const info = collectionLocalDeclaration (printer, declaration);
+        if (info === undefined) {
+            return printed;
+        }
+        const iden = printer.getIden (identation);
+        const printedName = printer.printNode (declaration.name, 0);
+        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+        const at = printed.lastIndexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        // the printed initializer must still be the shape this module proved: a whole
+        // `this./super.` family call (a surprising shape is declined)
+        const head = printed.slice (at + marker.length);
+        if (!head.startsWith ('this.') && !head.startsWith ('super.')) {
+            return printed;
+        }
+        // a call family casts only where its Java declaration is still `Object`
+        // (arrayConcat, the varargs extend overload)
+        const castPrefix = info.cast ? `(${info.type}) ` : '';
+        narrowed.set (declaration, info.type);
+        return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${castPrefix}` + head;
+    };
+    // `x = this.arrayConcat(...)` / `x = this.extend(a, b, c)` on an already-narrowed
+    // local: the Java declaration is still `Object`, so the reassignment needs the same
+    // checkcast the declaration got. Writes whose value already carries the type
+    // (`this.extend(a, b)` -> Map, `this.sortBy(...)` -> List) print untouched.
+    const originalBinary = printer.printBinaryExpression.bind (printer);
+    printer.printBinaryExpression = function (node, identation) {
+        const printed = originalBinary (node, identation);
+        if (node.operatorToken.kind !== ts.SyntaxKind.EqualsToken || !ts.isIdentifier (node.left)) {
+            return printed;
+        }
+        const info = collectionCallInfo (printer, node.right);
+        if (info === undefined || !info.cast) {
+            return printed;
+        }
+        const symbol = printer.getChecker ().getSymbolAtLocation (node.left);
+        const declaration = symbol?.valueDeclaration;
+        const javaType = (declaration !== undefined) ? narrowed.get (declaration) : undefined;
+        if (javaType === undefined || javaType !== info.type) {
+            return printed;
+        }
+        const marker = `${printer.printNode (node.left, 0)} = `;
+        const at = printed.indexOf (marker);
+        if (at === -1) {
+            return printed;
+        }
+        return printed.slice (0, at + marker.length) + `(${javaType}) ` + printed.slice (at + marker.length);
+    };
+    printer._javaCollectionLocalTypesPatched = true;
+}
+
 // ===== install =====
 
 export function installJavaLocalTypes (transpiler) {
@@ -1566,6 +1981,13 @@ export function installJavaLocalTypes (transpiler) {
         const head = at + marker.length - 'this.'.length;
         return printed.slice (0, head) + cast + ' ' + printed.slice (head);
     };
+    // (5) collection/dict helper locals (JAVA-RE-5, additive slice): a second,
+    // independent patch of the same printer hooks — it keeps its own candidate table
+    // and its own WeakMap of narrowed declarations, and declines every declaration the
+    // hooks above already retyped (their marker lookup no-ops once the Object token is
+    // gone). Installed here so both the main-thread Transpiler and the piscina worker
+    // (which both call installJavaLocalTypes) get it.
+    patchJavaCollectionLocalTypes (transpiler);
     printer._javaLocalTypesPatched = true;
     patchJavaDataflowTypes (transpiler);
 }

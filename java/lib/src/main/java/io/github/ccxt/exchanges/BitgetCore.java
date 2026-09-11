@@ -4061,7 +4061,7 @@ public class BitgetCore extends BitgetApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subTypes)); i++)
             {
                 final Object finalI = i;
-                Object req = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> req = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                     put( "category", Helpers.GetValue(subTypes, finalI) );
                 }});
                 ((java.util.List<Object>)promises).add(this.publicUtaGetV3MarketInstruments(req));
@@ -6725,7 +6725,7 @@ final Object finalMinNotional = minNotional;
             } else
             {
                 Helpers.addElementToObject(request, "productType", productType);
-                Object extended = this.extend(request, parameters);
+                java.util.Map<String, Object> extended = this.extend(request, parameters);
                 if (Helpers.isTrue(!Helpers.isTrue(historicalEndpointNeeded) && Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(priceType, "mark")) || Helpers.isTrue(Helpers.isEqual(priceType, "index"))))))
                 {
                     if (!Helpers.isTrue(limitDefined))
@@ -8350,7 +8350,7 @@ final Object finalMinNotional = minNotional;
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object failure = this.safeValue(data, "failureList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object orderInfo = this.safeValue(data, "successList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object both = this.arrayConcat(orderInfo, failure);
+            java.util.List<Object> both = (java.util.List<Object>) this.arrayConcat(orderInfo, failure);
             return this.parseOrders(both, market);
         });
 
@@ -11654,7 +11654,7 @@ final Object finalMinNotional = minNotional;
                     put( "datetime", BitgetCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -12099,7 +12099,7 @@ final Object finalMinNotional = minNotional;
             // }
             ((java.util.List<Object>)result).add(this.parseFundingHistory(contract, market));
         }
-        Object sorted = this.sortBy(result, "timestamp");
+        java.util.List<Object> sorted = this.sortBy(result, "timestamp");
         Object symbol = null;
         if (Helpers.isTrue(!Helpers.isEqual(market, null)))
         {
@@ -14618,7 +14618,7 @@ final Object finalMinNotional = minNotional;
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                 {
-                    Object sortedParams = this.keysort(parameters);
+                    java.util.Map<String, Object> sortedParams = this.keysort(parameters);
                     Object queryInner = Helpers.add("?", this.urlencode(sortedParams, true));
                     // check #21169 pr
                     if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(queryInner, "%24"), Helpers.opNeg(1))))

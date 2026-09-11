@@ -1016,7 +1016,7 @@ public class GeminiCore extends GeminiApi
                 Object tradingPairs = this.safeList(this.options, "tradingPairs");
                 if (Helpers.isTrue(!Helpers.isEqual(tradingPairs, null)))
                 {
-                    Object indexedTradingPairs = this.indexBy(tradingPairs, 0);
+                    java.util.Map<String, Object> indexedTradingPairs = this.indexBy(tradingPairs, 0);
                     for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
                     {
                         Object marketId = Helpers.GetValue(marketIds, i);
@@ -2579,7 +2579,7 @@ public class GeminiCore extends GeminiApi
             }
             String nonce = String.valueOf(this.nonce());
             Object finalUrl = url;
-            Object request = this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "request", finalUrl );
                 put( "nonce", nonce );
             }}, query);

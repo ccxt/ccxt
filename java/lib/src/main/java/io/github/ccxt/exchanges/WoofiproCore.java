@@ -1068,7 +1068,7 @@ public class WoofiproCore extends WoofiproApi
             Object tokenRows = this.safeList(tokenData, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object chainData = this.safeDict(chainResponse, "data", new java.util.HashMap<String, Object>() {{}});
             Object chainRows = this.safeList(chainData, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object indexedChains = this.indexBy(chainRows, "chain_id");
+            java.util.Map<String, Object> indexedChains = this.indexBy(chainRows, "chain_id");
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tokenRows)); i++)
             {
                 Object token = Helpers.GetValue(tokenRows, i);
@@ -1627,7 +1627,7 @@ public class WoofiproCore extends WoofiproApi
                 {
                     continue;
                 }
-                Object ticker = this.extend(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> ticker = this.extend(new java.util.HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                 }}, row);
                 ((java.util.List<Object>)result).add(this.parseTicker(ticker));
@@ -1764,7 +1764,7 @@ public class WoofiproCore extends WoofiproApi
                 {
                     continue;
                 }
-                Object interest = this.extend(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> interest = this.extend(new java.util.HashMap<String, Object>() {{
                     put( "timestamp", timestamp );
                 }}, row);
                 ((java.util.List<Object>)result).add(this.parseOpenInterest(interest));
@@ -1858,7 +1858,7 @@ public class WoofiproCore extends WoofiproApi
                     put( "datetime", WoofiproCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -3159,7 +3159,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 (this.loadMarkets()).join();
             }
-            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "INCOMPLETE" );
             }});
             return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
@@ -3197,7 +3197,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 (this.loadMarkets()).join();
             }
-            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "COMPLETED" );
             }});
             return (this.fetchOrders(symbol, since, limit, extendedParams)).join();

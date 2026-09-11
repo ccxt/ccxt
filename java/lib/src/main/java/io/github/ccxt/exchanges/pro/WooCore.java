@@ -104,7 +104,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object request = this.extend(subscribe, message);
+            java.util.Map<String, Object> request = this.extend(subscribe, message);
             return (this.watch(url, messageHash, request, messageHash, subscribe)).join();
         });
 
@@ -1147,7 +1147,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                         put( "timestamp", ts );
                     }} );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 this.watch(url, messageHash, message, messageHash, message);
             }
             return ((io.github.ccxt.ws.Future)future).getFuture().join();
@@ -1167,7 +1167,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object request = this.extend(subscribe, message);
+            java.util.Map<String, Object> request = this.extend(subscribe, message);
             return (this.watch(url, messageHash, request, messageHash, subscribe)).join();
         });
 
@@ -1185,7 +1185,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
             }};
-            Object request = this.extend(subscribe, message);
+            java.util.Map<String, Object> request = this.extend(subscribe, message);
             return (this.watchMultiple(url, messageHashes, request, messageHashes, subscribe)).join();
         });
 
@@ -2053,7 +2053,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         //     }
         //
         Object id = this.safeString(message, "id");
-        Object subscriptionsById = this.indexBy(client.subscriptions, "id");
+        java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
         Object subscription = this.safeValue(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
         Object method = this.safeValue(subscription, "method");
         if (Helpers.isTrue(!Helpers.isEqual(method, null)))

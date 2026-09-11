@@ -83,7 +83,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
                 put( "type", "subscribe" );
                 put( "channel", Helpers.add(Helpers.GetValue(market, "id"), "-orderbook") );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -161,7 +161,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
                 put( "type", "subscribe" );
                 put( "channel", Helpers.add(Helpers.GetValue(market, "id"), "-trades") );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {

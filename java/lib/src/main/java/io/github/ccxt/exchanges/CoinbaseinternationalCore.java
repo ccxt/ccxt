@@ -1098,7 +1098,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
 
     public Object findDefaultNetwork(Object networks)
     {
-        Object networksArray = this.toArray(networks);
+        java.util.List<Object> networksArray = this.toArray(networks);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networksArray)); i++)
         {
             Object info = Helpers.GetValue(Helpers.GetValue(networksArray, i), "info");
@@ -1157,7 +1157,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networks)); i++)
         {
-            Object network = this.extend(this.parseNetwork(Helpers.GetValue(networks, i)), parameters);
+            java.util.Map<String, Object> network = this.extend(this.parseNetwork(Helpers.GetValue(networks, i)), parameters);
             Helpers.addElementToObject(result, Helpers.GetValue(network, "network"), network);
         }
         return result;

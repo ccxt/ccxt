@@ -2190,7 +2190,7 @@ public class PoloniexCore extends PoloniexApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
             Object order = Helpers.GetValue(orders, i);
-            Object extended = this.extend(order, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extended = this.extend(order, new java.util.HashMap<String, Object>() {{
                 put( "status", "open" );
                 put( "type", "limit" );
                 put( "side", Helpers.GetValue(order, "type") );
@@ -2892,7 +2892,7 @@ public class PoloniexCore extends PoloniexApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
             Object orders = (this.fetchOpenOrders(symbol, null, null, parameters)).join();
-            Object indexed = this.indexBy(orders, "id");
+            java.util.Map<String, Object> indexed = this.indexBy(orders, "id");
             return ((Helpers.isTrue((Helpers.inOp(indexed, id))))) ? "open" : "closed";
         });
 
@@ -3604,7 +3604,7 @@ public class PoloniexCore extends PoloniexApi
             Object deposits = this.safeValue(response, "deposits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> withdrawalTransactions = this.parseTransactions(withdrawals, currency, since, limit);
             java.util.List<Object> depositTransactions = this.parseTransactions(deposits, currency, since, limit);
-            Object transactions = this.arrayConcat(depositTransactions, withdrawalTransactions);
+            java.util.List<Object> transactions = (java.util.List<Object>) this.arrayConcat(depositTransactions, withdrawalTransactions);
             return this.filterByCurrencySinceLimit(this.sortBy(transactions, "timestamp"), code, since, limit);
         });
 
@@ -4477,7 +4477,7 @@ public class PoloniexCore extends PoloniexApi
                 auth = Helpers.add(auth, Helpers.add("signTimestamp=", timestamp));
             } else
             {
-                Object sortedQuery = this.extend(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> sortedQuery = this.extend(new java.util.HashMap<String, Object>() {{
                     put( "signTimestamp", timestamp );
                 }}, query);
                 sortedQuery = this.keysort(sortedQuery);

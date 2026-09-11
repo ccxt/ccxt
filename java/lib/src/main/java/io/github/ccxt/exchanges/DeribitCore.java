@@ -4091,7 +4091,7 @@ public class DeribitCore extends DeribitApi
             if (Helpers.isTrue(paginate))
             {
                 // fix for: https://github.com/ccxt/ccxt/issues/25040
-                Object paginationParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> paginationParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                     put( "isDeribitPaginationCall", true );
                 }});
                 return (this.fetchPaginatedCallDeterministic("fetchFundingRateHistory", symbol, since, limit, eachItemDuration, paginationParams, maxEntriesPerRequest)).join();

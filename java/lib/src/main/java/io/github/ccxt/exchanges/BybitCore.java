@@ -4247,7 +4247,7 @@ public class BybitCore extends BybitApi
                     put( "datetime", BybitCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, symbol, since, limit);
         });
 
@@ -10403,7 +10403,7 @@ public class BybitCore extends BybitApi
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
-            Object sorted = this.sortBy(settlements, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
         });
 
@@ -10483,7 +10483,7 @@ public class BybitCore extends BybitApi
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object data = this.safeList(result, "list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object settlements = this.parseSettlements(data, market);
-            Object sorted = this.sortBy(settlements, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(settlements, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, this.safeString(market, "symbol"), since, limit);
         });
 
@@ -11119,7 +11119,7 @@ public class BybitCore extends BybitApi
         Object marketIds = this.marketIds(symbols);
         Object idKey = ((Helpers.isTrue((Helpers.isEqual(marketIdKey, null))))) ? "symbol" : marketIdKey;
         Object filteredResults = this.filterByArray(response, idKey, marketIds, false);
-        Object grouped = this.groupBy(filteredResults, idKey);
+        java.util.Map<String, Object> grouped = this.groupBy(filteredResults, idKey);
         Object keys = Helpers.objectKeys(grouped);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
@@ -12435,7 +12435,7 @@ final Object finalMarket = market;
                 {
                     Helpers.addElementToObject(headers, "X-BAPI-SIGN-TYPE", "2");
                 }
-                Object query = this.extend(new java.util.HashMap<String, Object>() {{}}, parameters);
+                java.util.Map<String, Object> query = this.extend(new java.util.HashMap<String, Object>() {{}}, parameters);
                 Object queryEncoded = this.rawencode(query);
                 Object auth_base = Helpers.add(Helpers.add(String.valueOf(timestamp), this.apiKey), String.valueOf(Helpers.GetValue(this.options, "recvWindow")));
                 Object authFull = null;
@@ -12460,12 +12460,12 @@ final Object finalMarket = market;
             } else
             {
                 final Object finalTimestamp_3 = timestamp;
-                Object query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> query = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                     put( "api_key", BybitCore.this.apiKey );
                     put( "recv_window", Helpers.GetValue(BybitCore.this.options, "recvWindow") );
                     put( "timestamp", finalTimestamp_3 );
                 }});
-                Object sortedQuery = this.keysort(query);
+                java.util.Map<String, Object> sortedQuery = this.keysort(query);
                 Object auth = this.rawencode(sortedQuery, true);
                 Object signature = null;
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), Helpers.opNeg(1))))
@@ -12479,7 +12479,7 @@ final Object finalMarket = market;
                 {
                     Object isSpot = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "spot"), 0);
                     final Object finalSignature = signature;
-                    Object extendedQuery = this.extend(query, new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> extendedQuery = this.extend(query, new java.util.HashMap<String, Object>() {{
                         put( "sign", finalSignature );
                     }});
                     if (Helpers.isTrue(isSpot))

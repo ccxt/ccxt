@@ -580,7 +580,7 @@ public class LbankCore extends LbankApi
             //    }
             //
             Object currenciesData = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object grouped = this.groupBy(currenciesData, "assetCode");
+            java.util.Map<String, Object> grouped = this.groupBy(currenciesData, "assetCode");
             Object values = Helpers.objectValues(grouped);
             return this.parseCurrencies(values);
         });

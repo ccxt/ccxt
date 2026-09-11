@@ -883,7 +883,7 @@ public class TokocryptoCore extends TokocryptoApi
                 String settle = (String) this.safeCurrencyCode(settleId);
                 Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
                 Object filters = this.safeValue(market, "filters", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object filtersByType = this.indexBy(filters, "filterType");
+                java.util.Map<String, Object> filtersByType = this.indexBy(filters, "filterType");
                 String status = this.safeString(market, "spotTradingEnable");
                 Boolean active = (Helpers.isEqual(status, "1"));
                 Object permissions = this.safeList(market, "permissions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1347,7 +1347,7 @@ public class TokocryptoCore extends TokocryptoApi
             //         }
             //     ]
             //
-            Object responseList = this.toArray(response);
+            java.util.List<Object> responseList = this.toArray(response);
             return this.parseTrades(responseList, market, since, limit);
         });
 
@@ -3050,7 +3050,7 @@ public class TokocryptoCore extends TokocryptoApi
             this.checkRequiredCredentials();
             Object query = null;
             Object defaultRecvWindow = this.safeInteger(this.options, "recvWindow");
-            Object extendedParams = this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extendedParams = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "timestamp", TokocryptoCore.this.nonce() );
             }}, parameters);
             if (Helpers.isTrue(!Helpers.isEqual(defaultRecvWindow, null)))

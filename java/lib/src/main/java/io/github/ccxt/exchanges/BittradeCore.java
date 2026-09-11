@@ -2411,7 +2411,7 @@ public class BittradeCore extends BittradeApi
         String code = (String) this.safeCurrencyCode(currencyId, currency);
         String networkId = this.safeString(depositAddress, "chain");
         Object networks = this.safeValue(currency, "networks", new java.util.HashMap<String, Object>() {{}});
-        Object networksById = this.indexBy(networks, "id");
+        java.util.Map<String, Object> networksById = this.indexBy(networks, "id");
         Object networkValue = this.safeValue(networksById, networkId, networkId);
         String network = this.safeString(networkValue, "network");
         this.checkAddress(address);
@@ -2734,7 +2734,7 @@ public class BittradeCore extends BittradeApi
             {
                 request = this.extend(request, query);
             }
-            Object requestSorted = this.keysort(request);
+            java.util.Map<String, Object> requestSorted = this.keysort(request);
             Object auth = this.urlencode(requestSorted);
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(method, this.hostname, url, auth));

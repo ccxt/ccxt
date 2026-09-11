@@ -716,7 +716,7 @@ public class BithumbCore extends BithumbApi
                         final Object finalQuote = quote;
                         final Object finalQuoteId = quoteId;
                         final Object finalActive = active;
-                        Object entry = this.deepExtend(new java.util.HashMap<String, Object>() {{
+                        java.util.Map<String, Object> entry = this.deepExtend(new java.util.HashMap<String, Object>() {{
                             put( "id", finalCurrencyId );
                             put( "symbol", Helpers.add(Helpers.add(finalBase, "/"), finalQuote) );
                             put( "base", finalBase );
@@ -2400,7 +2400,7 @@ public class BithumbCore extends BithumbApi
             Object orderData = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object parsedOrder = this.extend(data, orderData);
+            java.util.Map<String, Object> parsedOrder = this.extend(data, orderData);
             return this.parseOrder(parsedOrder, market);
         });
 

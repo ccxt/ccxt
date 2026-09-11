@@ -1070,7 +1070,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 put( "method", method );
                 put( "params", reqParams );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -1113,7 +1113,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                     put( "method", finalMethod );
                     put( "params", finalMarketIds );
                 }};
-                Object message = this.extend(request, parameters);
+                java.util.Map<String, Object> message = this.extend(request, parameters);
                 return (this.watch(url, messageHash, message, method, subscription)).join();
             } else
             {
@@ -1177,7 +1177,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 put( "method", method );
                 put( "params", reqParams );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 

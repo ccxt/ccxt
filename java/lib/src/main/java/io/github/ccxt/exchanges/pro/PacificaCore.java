@@ -550,7 +550,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                     put( "agg_level", finalAggLevel );
                 }} );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object orderbook = (this.watch(url, messageHash, message, messageHash, null)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -596,7 +596,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                     put( "agg_level", finalAggLevel );
                 }} );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -810,7 +810,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                     put( "account", finalUserAddress );
                 }} );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -862,7 +862,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                     put( "account", finalUserAddress );
                 }} );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -902,7 +902,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             ((java.util.List<Object>)parsedTickers).add(ticker);
         }
-        Object tickers = this.indexBy(parsedTickers, "symbol");
+        java.util.Map<String, Object> tickers = this.indexBy(parsedTickers, "symbol");
         client.resolve(tickers, "tickers");
         return true;
     }
@@ -1010,7 +1010,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }} );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object trades = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -1054,7 +1054,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                     put( "symbol", Helpers.GetValue(market, "id") );
                 }} );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -1234,7 +1234,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                 }} );
             }};
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("candles:", parsedTf), ":"), symbol);
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object ohlcv = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -1281,7 +1281,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             }};
             Object subMessageHash = Helpers.add(Helpers.add(Helpers.add("candles:", timeframe), ":"), symbol);
             Object messagehash = Helpers.add("unsubscribe:", subMessageHash);
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messagehash, message, messagehash, null)).join();
         });
 
@@ -1381,7 +1381,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                     put( "account", finalUserAddress );
                 }} );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             Object orders = (this.watch(url, messageHash, message, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -1433,7 +1433,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                     put( "account", finalUserAddress );
                 }} );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 

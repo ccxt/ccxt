@@ -937,8 +937,8 @@ public class DeriveCore extends DeriveApi
             //     "id": "a06bc0b2-8e78-4536-a21f-f785f225b5a5"
             // }
             //
-            Object result = this.arrayConcat(spotMarkets, swapMarkets);
-            result = this.arrayConcat(result, optionMarkets);
+            java.util.List<Object> result = (java.util.List<Object>) this.arrayConcat(spotMarkets, swapMarkets);
+            result = (java.util.List<Object>) this.arrayConcat(result, optionMarkets);
             return result;
         });
 
@@ -1399,7 +1399,7 @@ public class DeriveCore extends DeriveApi
         Object since = Helpers.getArg(optionalArgs, 1, null);
         Object limit = Helpers.getArg(optionalArgs, 2, null);
         Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-        Object tradesArray = this.toArray(trades);
+        java.util.List<Object> tradesArray = this.toArray(trades);
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tradesArray)); i++)
         {
@@ -1411,7 +1411,7 @@ public class DeriveCore extends DeriveApi
                 continue;
             }
             Object parsed = this.parseTrade(rawTrade, market);
-            Object trade = this.extend(parsed, parameters);
+            java.util.Map<String, Object> trade = this.extend(parsed, parameters);
             ((java.util.List<Object>)result).add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
@@ -1543,7 +1543,7 @@ public class DeriveCore extends DeriveApi
                     put( "datetime", DeriveCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 
@@ -2374,7 +2374,7 @@ public class DeriveCore extends DeriveApi
             {
                 (this.loadMarkets()).join();
             }
-            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "open" );
             }});
             return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
@@ -2407,7 +2407,7 @@ public class DeriveCore extends DeriveApi
             {
                 (this.loadMarkets()).join();
             }
-            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "filled" );
             }});
             return (this.fetchOrders(symbol, since, limit, extendedParams)).join();
@@ -2440,7 +2440,7 @@ public class DeriveCore extends DeriveApi
             {
                 (this.loadMarkets()).join();
             }
-            Object extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> extendedParams = this.extend(parameters, new java.util.HashMap<String, Object>() {{
                 put( "status", "cancelled" );
             }});
             return (this.fetchOrders(symbol, since, limit, extendedParams)).join();

@@ -3573,7 +3573,7 @@ public class MexcCore extends MexcApi
                     //
                     ordersOfTrigger = this.safeValue(response, "data");
                 }
-                Object merged = this.arrayConcat(ordersOfTrigger, ordersOfRegular);
+                java.util.List<Object> merged = (java.util.List<Object>) this.arrayConcat(ordersOfTrigger, ordersOfRegular);
                 return this.parseOrders(merged, market, since, limit, parameters);
             }
         });
@@ -5440,7 +5440,7 @@ public class MexcCore extends MexcApi
                     put( "datetime", MexcCore.this.iso8601(timestamp) );
                 }});
             }
-            Object sorted = this.sortBy(rates, "timestamp");
+            java.util.List<Object> sorted = this.sortBy(rates, "timestamp");
             return this.filterBySymbolSinceLimit(sorted, Helpers.GetValue(market, "symbol"), since, limit);
         });
 

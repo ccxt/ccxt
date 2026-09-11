@@ -551,7 +551,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
                 put( "op", "subscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(url, messageHash, message, messageHash, null)).join();
         });
 
@@ -592,7 +592,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
                 put( "op", "subscribe" );
                 put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(messageHash)) );
             }};
-            Object message = this.extend(request, parameters);
+            java.util.Map<String, Object> message = this.extend(request, parameters);
             return (this.watch(signedUrl, messageHash, message, messageHash, null)).join();
         });
 

@@ -994,7 +994,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 }} );
                 put( "req_id", requestId );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             Object ohlcv = (this.watch(url, messageHash, request, messageHash, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -1634,7 +1634,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                 Object newOrder = parsed;
                 if (Helpers.isTrue(!Helpers.isEqual(previousOrder, null)))
                 {
-                    Object newRawOrder = this.extend(Helpers.GetValue(previousOrder, "info"), Helpers.GetValue(newOrder, "info"));
+                    java.util.Map<String, Object> newRawOrder = this.extend(Helpers.GetValue(previousOrder, "info"), Helpers.GetValue(newOrder, "info"));
                     newOrder = this.parseWsOrder(newRawOrder);
                 }
                 Integer length = Helpers.getArrayLength(stored);
@@ -1808,7 +1808,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
                     put( "token", token );
                 }} );
             }};
-            Object request = this.deepExtend(subscribe, parameters);
+            java.util.Map<String, Object> request = this.deepExtend(subscribe, parameters);
             return (this.watch(url, messageHash, request, messageHash, null)).join();
         });
 
@@ -1853,7 +1853,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         String type = "spot";
         Object balance = this.safeBalance(result);
         Object oldBalance = this.safeValue(this.balance, type, new java.util.HashMap<String, Object>() {{}});
-        Object newBalance = this.deepExtend(oldBalance, balance);
+        java.util.Map<String, Object> newBalance = this.deepExtend(oldBalance, balance);
         Helpers.addElementToObject(this.balance, type, this.safeBalance(newBalance));
         Object channel = this.safeString(message, "channel");
         client.resolve(Helpers.GetValue(this.balance, type), channel);
