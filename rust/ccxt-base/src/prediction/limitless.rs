@@ -1856,7 +1856,7 @@ impl LimitlessCore {
             m
         });
         if !is_equal(&limit, &Value::Null) {
-            add_element_to_object(&mut request, &Value::Str("limit".to_string()), limit.clone());
+            add_element_to_object(&mut request, &Value::Str("limit".to_string()), crate::runtime::Math::min(&limit, &Value::Int(100)));
         }
         let __ws_arg_19 = self.extend(request.clone(), &[params.clone()]);
         let mut response: Value = self.limitless_public_get_markets_slug_events(&[__ws_arg_19]).await;
@@ -4185,7 +4185,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @name limitless#sign
  * @description builds the request URL and attaches the lmts authentication headers for private endpoints
  * @param {string} path the endpoint path
- * @param {string|string[]} [section] the api group and access level
+ * @param {string|string[]} [api] the api group and access level
  * @param {string} [method] HTTP method
  * @param {object} [params] request parameters
  * @param {object} [headers] request headers
@@ -4193,7 +4193,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @returns {object} a dictionary with url, method, body and headers
  */
     pub fn sign(&self, mut path: Value, optional_args: &[Value]) -> Value {
-        let mut section = get_arg(optional_args, 0, Value::Str("limitless".to_string()));
+        let mut api = get_arg(optional_args, 0, Value::Str("limitless".to_string()));
         let mut method = get_arg(optional_args, 1, Value::Str("GET".to_string()));
         let mut params = get_arg(optional_args, 2, Value::Map({
     let mut m = indexmap::IndexMap::new();
@@ -4201,8 +4201,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
 }));
         let mut headers = get_arg(optional_args, 3, Value::Null);
         let mut body = get_arg(optional_args, 4, Value::Null);
-        let mut apiGroup: Value = ternary(is_string(&section), section.clone(), get_value(&section, &Value::Int(0)));
-        let mut access: Value = ternary(is_string(&section), Value::Str("public".to_string()), get_value(&section, &Value::Int(1)));
+        let mut apiGroup: Value = ternary(is_string(&api), api.clone(), get_value(&api, &Value::Int(0)));
+        let mut access: Value = ternary(is_string(&api), Value::Str("public".to_string()), get_value(&api, &Value::Int(1)));
         let mut baseUrls: Value = get_value(&self.urls, &Value::Str("api".to_string()));
         let mut baseUrl: Value = self.safe_string(baseUrls.clone(), apiGroup.clone(), &[get_value(&baseUrls, &Value::Str("limitless".to_string()))]);
         let mut url: Value = add(&Value::Str("/".to_string()), &self.implode_params(path.clone(), params.clone()));
@@ -4240,11 +4240,17 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             let mut signature: Value = self.hmac(self.encode(payload.clone()), self.base64_to_binary(self.secret.clone(), &[]), Value::Str("sha256".to_string()), &[Value::Str("base64".to_string())]);
             headers = self.extend(headers.clone(), &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("lmts-api-key".to_string(), self.apiKey.clone());
                     m.insert("lmts-timestamp".to_string(), timestamp.clone());
                     m.insert("lmts-signature".to_string(), signature.clone());
                 m
             })]);
+            let mut headerKey: Value = add(&Value::Str("lmts-api".to_string()), &Value::Str("-key".to_string())); // concatenating because of the php version
+            let mut headersKey: Value = Value::Map({
+                let mut m = indexmap::IndexMap::new();
+                m
+            });
+            add_element_to_object(&mut headersKey, &headerKey, self.apiKey.clone());
+            headers = self.extend(headers.clone(), &[headersKey.clone()]);
         }
         url = add(&baseUrl, &url);
         return Value::Map({
