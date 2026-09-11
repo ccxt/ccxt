@@ -3,6 +3,8 @@ package io.github.ccxt.types;
 import static org.junit.jupiter.api.Assertions.*;
 import org.junit.jupiter.api.Test;
 
+import io.github.ccxt.Exchange;
+
 import java.util.*;
 
 /**
@@ -190,5 +192,147 @@ class EdgeCaseTest {
         assertEquals("t1", t.id);
         assertEquals(100.0, t.price);
         // Should not throw
+    }
+
+    // ==========================================
+    // Balance family — absent means null, never 0
+    //
+    // CCXT leaves free/used/total undefined when the exchange omits them.
+    // A defaulted 0.0 would be a LIE about the user's funds, so every one of
+    // these conversions must keep absence as a null Double.
+    // ==========================================
+
+    @Test
+    void testBalanceMissingFieldsStayNull() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("free", 1.5);
+        data.put("total", 2.0);
+        // `used` and `debt` omitted by the exchange
+        Balance b = new Balance(data);
+        assertEquals(1.5, b.free);
+        assertEquals(2.0, b.total);
+        assertNull(b.used);
+        assertNull(b.debt);
+    }
+
+    @Test
+    void testBalanceExplicitNullIsAbsence() {
+        Map<String, Object> data = new HashMap<>();
+        data.put("free", null);
+        data.put("used", 0.25);
+        Balance b = new Balance(data);
+        assertNull(b.free);
+        assertEquals(0.25, b.used);
+    }
+
+    @Test
+    void testBalanceEmptyMapStaysNull() {
+        Balance b = new Balance(new HashMap<>());
+        assertNull(b.free);
+        assertNull(b.used);
+        assertNull(b.total);
+        assertNull(b.debt);
+    }
+
+    @Test
+    void testBalancesNestedRowNullSurvival() {
+        // the full CCXT shape: currency-keyed rows plus parallel free/used/total maps.
+        // BTC omits `used` — it must stay null in the row AND in the projections, and
+        // the used projection must not grow a fabricated 0 entry for BTC.
+        Map<String, Object> btc = new HashMap<>();
+        btc.put("free", 1.5);
+        btc.put("total", 2.0);
+        Map<String, Object> raw = new HashMap<>();
+        raw.put("BTC", btc);
+        raw.put("free", Map.of("BTC", 1.5));
+        raw.put("used", new HashMap<String, Object>());
+        raw.put("total", Map.of("BTC", 2.0));
+        raw.put("info", Map.of("raw", "response"));
+        Balances b = new Balances(raw);
+        assertNotNull(b.get("BTC"));
+        assertEquals(1.5, b.get("BTC").free);
+        assertEquals(2.0, b.get("BTC").total);
+        assertNull(b.get("BTC").used);
+        assertEquals(1.5, b.free.get("BTC"));
+        assertEquals(2.0, b.total.get("BTC"));
+        assertFalse(b.used.containsKey("BTC"));
+        assertNull(b.used.get("BTC"));
+        // the currency rows must not leak into the projection maps
+        assertEquals(1, b.free.size());
+        assertNull(b.get("MISSING"));
+    }
+
+    @Test
+    void testBalanceNullSurvivesSafeBalanceConversion() {
+        // end-to-end: raw exchange dict -> safeBalance (base helper) -> Balances wrapper.
+        // A row with only `free` cannot be completed from the other two, so used and
+        // total must stay null — not 0.0.
+        Map<String, Object> config = new HashMap<>();
+        config.put("id", "sampleexchange");
+        Exchange exchange = new Exchange(config);
+        Map<String, Object> btc = new HashMap<>();
+        btc.put("free", 1.5);
+        Map<String, Object> raw = new HashMap<>();
+        raw.put("BTC", btc);
+        Object balanced = exchange.safeBalance(raw);
+        Balances b = new Balances(balanced);
+        assertEquals(1.5, b.get("BTC").free);
+        assertNull(b.get("BTC").used);
+        assertNull(b.get("BTC").total);
+        assertNull(b.get("BTC").debt);
+        assertEquals(1.5, b.free.get("BTC"));
+        assertFalse(b.used.containsKey("BTC"));
+        assertFalse(b.total.containsKey("BTC"));
+    }
+
+    @Test
+    void testBalanceAccountMissingFieldsStayNull() {
+        BalanceAccount empty = new BalanceAccount(new HashMap<>());
+        assertNull(empty.free);
+        assertNull(empty.used);
+        assertNull(empty.total);
+        assertNull(empty.debt);
+        assertNull(empty.frozen);
+        Map<String, Object> data = new HashMap<>();
+        data.put("free", "1.5");
+        data.put("total", "2");
+        BalanceAccount ba = new BalanceAccount(data);
+        assertEquals("1.5", ba.free);
+        assertEquals("2", ba.total);
+        assertNull(ba.used); // absent stays absent — never "" or "0"
+        assertNull(ba.frozen);
+    }
+
+    @Test
+    void testAccountMissingFieldsStayNull() {
+        Account empty = new Account(new HashMap<>());
+        assertNull(empty.id);
+        assertNull(empty.type);
+        assertNull(empty.code);
+        Map<String, Object> data = new HashMap<>();
+        data.put("id", "acc-1");
+        Account a = new Account(data);
+        assertEquals("acc-1", a.id);
+        assertNull(a.type);
+        assertNull(a.code);
+    }
+
+    @Test
+    void testAccountsStorageSurfaceIsTyped() {
+        // pins the declared types of the BaseExchange account/balance caches:
+        // List<Object> accounts, Map<String, Object> accountsById / balance.
+        Map<String, Object> config = new HashMap<>();
+        config.put("id", "sampleexchange");
+        Exchange exchange = new Exchange(config);
+        assertNull(exchange.accounts); // unset until loadAccounts()
+        exchange.accounts = new ArrayList<>();
+        exchange.accounts.add(Map.of("id", "acc-1", "type", "spot", "code", "USD", "info", Map.of()));
+        exchange.accountsById = new HashMap<>();
+        exchange.accountsById.put("acc-1", exchange.accounts.get(0));
+        assertEquals(1, exchange.accounts.size());
+        assertEquals("USD", ((Map<?, ?>) exchange.accountsById.get("acc-1")).get("code"));
+        exchange.balance = new HashMap<>();
+        exchange.balance.put("spot", new HashMap<String, Object>());
+        assertTrue(exchange.balance.containsKey("spot"));
     }
 }
