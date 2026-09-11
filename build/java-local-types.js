@@ -793,13 +793,18 @@ export function installJavaLocalTypes (transpiler) {
 //     Core file found 0 raw comparisons outside comments). The guard is nonetheless the
 //     usual one: an arm/use that would print an unboxing operator (++/--/compound
 //     assignment/spread/typeof/`x as T`/array destructuring) rejects the local.
-//   * INTEGER DIVISION differs from JS number division: `/` always prints
-//     Helpers.divide (single Object,Object signature -> toDouble/toDouble -> JS
-//     semantics) so a typed operand changes nothing; but `Helpers.subtract` is
-//     OVERLOADED — subtract(int, int) returns a primitive int (Int32 wraparound, no
-//     toDouble normalisation) where subtract(Object, Object) returned a Double box.
-//     `int`-typed locals are therefore rejected as direct operands of `-` (census: 0
-//     sites today; the guard mirrors build/csharp-local-types.js's subtract-on-int rule).
+//   * INTEGER DIVISION differs from JS number division, and the C#-campaign
+//     "subtract-on-int" overload trap was CHECKED for Java: Helpers has two real
+//     overload families — `add(Object,Object)` + the String-typed convenience overloads
+//     (a numeric-typed operand never binds them; only a String first argument could)
+//     and that is it — `subtract(int, int)` sits COMMENTED OUT at Helpers.java:331, so
+//     `Helpers.subtract(x, y)` always resolves to the single `subtract(Object, Object)`
+//     (which normalizes Integer to Long and returns a Long/Double box). `/` always
+//     prints Helpers.divide (one Object signature -> toDouble/toDouble). Differential
+//     harness: Helpers.subtract(1000, 1) -> Long 999, Helpers.divide(1, 2) -> 0.5. The
+//     scan still rejects `int` locals as direct `-` operands (numericIsMinusOperand),
+//     mirroring the C# subtract-on-int guard so a re-enabled (int,int) overload could
+//     never silently rebind an int local (census: 0 such sites today).
 //   * unary plus prints raw `+(x)` (an unboxing read): sites can only exist where the
 //     operand was ALREADY numeric (the baseline `+(Object)` does not compile), and all
 //     prefix/postfix unary uses reject the local anyway.
@@ -957,8 +962,10 @@ function numericReceiverCallIsSafe (method) {
 }
 
 // is `n` (through parentheses) a direct operand of a `-`? `a - x` prints
-// Helpers.subtract(a, x), whose (int, int) overload returns a primitive int where the
-// Object overload returned a Double box — an int-typed operand must keep Object.
+// Helpers.subtract(a, x). The (int, int) overload that would return a primitive int is
+// commented out at Helpers.java:331 today, but the guard keeps an int-typed operand on
+// Object so the overload can never silently rebind it (mirrors the C# subtract-on-int
+// rule; census: 0 such call sites in the tree).
 function numericIsMinusOperand (n) {
     let node = n;
     let parent = n.parent;
@@ -1053,6 +1060,8 @@ function numericIsSafeToNarrow (printer, declaration, sourceName, javaType, isPr
             } else if (javaType === 'int' && parent.operatorToken.kind === ts.SyntaxKind.MinusToken) {
                 numericDebug (`reject ${sourceName} (int subtract operand)`);
                 return false;
+                // (an int operand of `-` prints Helpers.subtract(int, int) the moment the
+                // commented-out primitive overload at Helpers.java:331 is re-enabled)
             }
         } else if (javaType === 'int' && numericIsMinusOperand (n)) {
             numericDebug (`reject ${sourceName} (int subtract operand)`);
