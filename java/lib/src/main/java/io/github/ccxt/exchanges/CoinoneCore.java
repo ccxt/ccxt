@@ -1285,7 +1285,7 @@ public class CoinoneCore extends CoinoneApi
         {
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(remainingString, null))) && Helpers.isTrue((!Helpers.isEqual(amountString, null)))))
             {
-                Object isLessThan = Precise.stringLt(remainingString, amountString);
+                Boolean isLessThan = Precise.stringLt(remainingString, amountString);
                 if (Helpers.isTrue(isLessThan))
                 {
                     status = "canceled";

@@ -2489,7 +2489,7 @@ public class DeribitCore extends DeribitApi
         Object lastTradeTimestamp = null;
         if (Helpers.isTrue(!Helpers.isEqual(filledString, null)))
         {
-            Object isFilledPositive = Precise.stringGt(filledString, "0");
+            Boolean isFilledPositive = Precise.stringGt(filledString, "0");
             if (Helpers.isTrue(isFilledPositive))
             {
                 lastTradeTimestamp = lastUpdate;

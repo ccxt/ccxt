@@ -2853,7 +2853,7 @@ public class OkxCore extends OkxApi
         String maxLeverage = this.safeString(market, "lever", "1");
         maxLeverage = Precise.stringMax(maxLeverage, "1");
         Object maxSpotCost = this.safeNumber(market, "maxMktSz");
-        Object leverageAboveOne = Precise.stringGt(maxLeverage, "1");
+        Boolean leverageAboveOne = Precise.stringGt(maxLeverage, "1");
         Object quoteEqualSettle = (Helpers.isEqual(quoteId, settleId));
         Object baseEqualSettle = (Helpers.isEqual(baseId, settleId));
         String status = this.safeString(market, "state");

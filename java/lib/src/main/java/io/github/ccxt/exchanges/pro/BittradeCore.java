@@ -230,7 +230,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Object marketId = this.safeString(parts, 1);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object tradesCache = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache tradesCache = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesCache, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

@@ -285,6 +285,64 @@ export function isGuardedStringHelper (name) {
     return JAVA_STRING_HELPER_PLAIN.has (name) || JAVA_STRING_HELPER_CAST.has (name);
 }
 
+// ===== Precise.string* statics (JN-23 cross-port slice) =====
+//
+// `Precise.<member>(...)` prints unchanged in Java (a static call). The members were
+// audited against java/lib/src/main/java/io/github/ccxt/base/Precise.java:
+//
+//   * the string-arithmetic members are declared `public static String`: stringMul,
+//     stringDiv, stringSub, stringAdd, stringOr, stringMax, stringMin, stringAbs,
+//     stringNeg, stringMod. Every path returns a String or null (a null operand
+//     short-circuits to null), so a local fed by one of them can be declared `String`
+//     with NO cast (the call's own static type is String) and takes the standard
+//     String scan / `+`-left rule (nonNull: false).
+//   * the comparison members are declared `public static boolean`: stringGt, stringGe,
+//     stringLt, stringLe, stringEq, stringEquals. A local fed by one of them is a
+//     Boolean box; `Boolean x = Precise.stringGt(...)` autoboxes the primitive exactly
+//     like the old Object declaration did.
+//
+// The C# classifier types the same family (CSHARP_LOCAL_STATIC_RETURN_TYPES).
+// The precision helpers (`decimalToPrecision` / `numberToString`) are the section-4
+// plain string helpers; `currencyToPrecision` / `parsePrecision` have no Java lower
+// tier (documented in the JN-23 matrix).
+const JAVA_PRECISE_STRING_STATICS = new Set ([
+    'stringMul', 'stringDiv', 'stringSub', 'stringAdd', 'stringOr',
+    'stringMax', 'stringMin', 'stringAbs', 'stringNeg', 'stringMod',
+]);
+const JAVA_PRECISE_BOOLEAN_STATICS = new Set ([
+    'stringGt', 'stringGe', 'stringLt', 'stringLe', 'stringEq', 'stringEquals',
+]);
+
+// is `node` a `Precise.<member>(...)` call whose printed Java value is statically the
+// named Java type? (no cast: the statics are declared String / boolean)
+function crosscheckPreciseCallType (node, javaType) {
+    if (!ts.isCallExpression (node) || !ts.isPropertyAccessExpression (node.expression)
+        || !ts.isIdentifier (node.expression.expression)
+        || node.expression.expression.escapedText !== 'Precise') {
+        return false;
+    }
+    const member = node.expression.name?.escapedText;
+    if (javaType === 'String') {
+        return JAVA_PRECISE_STRING_STATICS.has (member);
+    }
+    if (javaType === 'Boolean') {
+        return JAVA_PRECISE_BOOLEAN_STATICS.has (member);
+    }
+    return false;
+}
+
+// the Java type of a whole `Precise.<member>(...)` initializer, or undefined. The
+// printed value must start with `Precise.` (the main hook's value-prefix guard).
+function crosscheckPreciseInitializerType (initializer) {
+    if (crosscheckPreciseCallType (initializer, 'String')) {
+        return { type: 'String', nonNull: false, valuePrefix: 'Precise.' };
+    }
+    if (crosscheckPreciseCallType (initializer, 'Boolean')) {
+        return { type: 'Boolean', valuePrefix: 'Precise.' };
+    }
+    return undefined;
+}
+
 // this.<name>(...) -> Java type the call sites print for the LOCALS. Declared return
 // types of the hand-written Java base (`cast` entries are declared Object but hand back
 // the named box on every path).
@@ -456,7 +514,15 @@ function stringElementsProducer (initializer) {
         if (!ts.isPropertyAccessExpression (callee)) {
             return false;
         }
-        return callee.name?.escapedText === 'split';
+        if (callee.name?.escapedText === 'split') {
+            return true;
+        }
+        // `this.stringToCharsArray(x)` — hand-written BaseExchange method that builds a
+        // List<String> (String.valueOf of every char; null for a null input), so every
+        // element read `(String) Helpers.GetValue(chars, i)` names the box exactly (the
+        // C# port's CS-10 addendum; no generated venue overrides this helper)
+        return callee.expression.kind === ts.SyntaxKind.ThisKeyword
+            && callee.name?.escapedText === 'stringToCharsArray';
     }
     if (ts.isArrayLiteralExpression (node)) {
         return node.elements.length > 0 && node.elements.every ((element) =>
@@ -615,6 +681,28 @@ const WS_THIS_CALL_TYPES = {
 const WS_MAP_READ_TYPES = {
     'trades': ARRAYCACHE_TYPE,
     'orderbooks': ORDERBOOK_TYPE,
+};
+
+// `new <ctor>(...)` ws-cache constructors whose PRINTED Java class is assignable to the
+// declared ws type: the nested classes extend their outer class in
+// java/lib/src/main/java/io/github/ccxt/ws/ArrayCache.java (ArrayCacheByTimestamp /
+// ArrayCacheBySymbolById / ArrayCacheByOutcomeById / ArrayCacheBySymbolBySide all
+// `extends ArrayCache`) and WsOrderBook.java (IndexedOrderBook / CountedOrderBook
+// `extends WsOrderBook`), so a later write `x = new ArrayCacheBySymbolById(...)` into an
+// `io.github.ccxt.ws.ArrayCache`-declared local (or `new OrderBook(...)` into a
+// WsOrderBook one) is a widening reference assignment — the printed `<name> = new X(...)`
+// needs no cast. The C# classifier proves the same family for its ArrayCache/OrderBook
+// classes (CSHARP_LOCAL_NEW_TYPES) used by the later-write / ternary-arm value path; this
+// is that family's Java side.
+const JAVA_WS_NEW_TYPES = {
+    'ArrayCache': ARRAYCACHE_TYPE,
+    'ArrayCacheByTimestamp': ARRAYCACHE_TYPE,
+    'ArrayCacheBySymbolById': ARRAYCACHE_TYPE,
+    'ArrayCacheByOutcomeById': ARRAYCACHE_TYPE,
+    'ArrayCacheBySymbolBySide': ARRAYCACHE_TYPE,
+    'OrderBook': ORDERBOOK_TYPE,
+    'IndexedOrderBook': ORDERBOOK_TYPE,
+    'CountedOrderBook': ORDERBOOK_TYPE,
 };
 
 // the resolved TS declaration must live in ts/src/base/** so an exchange-local override
@@ -1243,9 +1331,18 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
             return { type: memberType };
         }
     }
+    // Precise.string* statics (see the section above): declared `String` / `boolean`
+    // in Precise.java, so the narrowed declaration needs no cast
+    const precise = crosscheckPreciseInitializerType (initializer);
+    if (precise !== undefined) {
+        return precise;
+    }
     if (!isThisCall (initializer)) {
         return undefined;
     }
+    // NOTE (JN-23 finding): this second guard is unreachable — `receiverMethodLocalType`
+    // (the section-4 receiver-method family) can never run. Sibling string-method slice
+    // owns the fix; left byte-identical here to stay merge-clean.
     if (!isThisCall (initializer)) {
         return receiverMethodLocalType (initializer);
     }
@@ -1300,6 +1397,12 @@ function isProvablyOfType (printer, node, javaType, selfName) {
             return isWsType (javaType) && wsMapReadType (node) === javaType;
         case ts.SyntaxKind.CallExpression: {
             const callee = node.expression;
+            // Precise.<member>(...) statics (see the section above): the printed value is
+            // statically the named type, so a same-family write of a typed local is
+            // accepted cast-free
+            if (crosscheckPreciseCallType (node, javaType)) {
+                return true;
+            }
             if (ts.isIdentifier (callee)) {
                 // bare helper call (`jwt(...)` / `eddsa(...)` / `rsa(...)` / `totp(...)`):
                 // Java binds it to the inherited BaseExchange method; its box is the same
@@ -1378,6 +1481,17 @@ function isProvablyOfType (printer, node, javaType, selfName) {
         case ts.SyntaxKind.PropertyAccessExpression:
             return thisPropName (node) !== undefined
                 && THIS_MEMBER_TYPES[String (node.name.escapedText)] === javaType;
+        case ts.SyntaxKind.NewExpression: {
+            // `x = new ArrayCache(...)` / `new ArrayCache.ArrayCacheBySymbolById(...)`:
+            // the ws-cache constructors widen-assign to the declared ws type (the nested
+            // classes extend the outer class — see JAVA_WS_NEW_TYPES)
+            const ctor = node.expression;
+            if (ctor?.kind !== ts.SyntaxKind.Identifier) {
+                return false;
+            }
+            const ctorType = JAVA_WS_NEW_TYPES[ctor.escapedText];
+            return ctorType !== undefined && ctorType === javaType;
+        }
         default:
             return false;
     }

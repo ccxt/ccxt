@@ -780,7 +780,7 @@ public class PolymarketCore extends PolymarketApi
         Boolean pendingSep = false;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chars)); i++)
         {
-            Object ch = Helpers.GetValue(chars, i);
+            String ch = (String) Helpers.GetValue(chars, i);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(allowed, ch), 0)))
             {
                 if (Helpers.isTrue(Helpers.isTrue(pendingSep) && Helpers.isTrue((!Helpers.isEqual(slug, "")))))
@@ -3678,7 +3678,7 @@ final Object finalClobTokenId = clobTokenId;
         Object result = "";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(addrChars)); i++)
         {
-            Object ch = Helpers.GetValue(addrChars, i);
+            String ch = (String) Helpers.GetValue(addrChars, i);
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(upperNibbles, Helpers.GetValue(hashChars, i)), 0)))
             {
                 result = Helpers.add(result, ((String)ch).toUpperCase());

@@ -949,7 +949,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object marketId = this.safeString(trade, "product_id");
         String symbol = (String) this.safeSymbol(marketId);
         String messageHash = (String) Helpers.add("market_trades::", symbol);
-        Object tradesArray = this.safeValue(this.trades, symbol);
+        io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
             Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);

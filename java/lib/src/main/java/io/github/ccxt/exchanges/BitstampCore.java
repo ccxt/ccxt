@@ -1823,7 +1823,7 @@ public class BitstampCore extends BitstampApi
         {
             if (Helpers.isTrue(!Helpers.isEqual(amountString, null)))
             {
-                Object isAmountNeg = Precise.stringLt(amountString, "0");
+                Boolean isAmountNeg = Precise.stringLt(amountString, "0");
                 if (Helpers.isTrue(isAmountNeg))
                 {
                     side = "sell";
