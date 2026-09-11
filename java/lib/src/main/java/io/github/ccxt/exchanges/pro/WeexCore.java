@@ -657,6 +657,16 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(trade, "T");
         Object symbol = ((Helpers.isTrue((Helpers.isEqual(market, null))))) ? null : Helpers.GetValue(market, "symbol");
+        Boolean isBuyerMaker = (Boolean) this.safeBool(trade, "m"); // m is the isBuyerMaker flag of the REST trades, true means the taker sold
+        String side = null;
+        String takerOrMaker = null;
+        if (Helpers.isTrue(!Helpers.isEqual(isBuyerMaker, null)))
+        {
+            side = ((Helpers.isTrue(isBuyerMaker))) ? "sell" : "buy";
+            takerOrMaker = "taker"; // a public trade is reported from the aggressor's side, same as parseTrade
+        }
+        final Object finalSide = side;
+        final Object finalTakerOrMaker = takerOrMaker;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", WeexCore.this.safeString(trade, "t") );
@@ -665,8 +675,8 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             put( "symbol", symbol );
             put( "order", null );
             put( "type", null );
-            put( "side", null );
-            put( "takerOrMaker", null );
+            put( "side", finalSide );
+            put( "takerOrMaker", finalTakerOrMaker );
             put( "price", WeexCore.this.safeString(trade, "p") );
             put( "amount", WeexCore.this.safeString(trade, "q") );
             put( "cost", WeexCore.this.safeString(trade, "v") );

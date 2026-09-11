@@ -1597,8 +1597,13 @@ public class BitfinexCore extends BitfinexApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Integer length = Helpers.getArrayLength(ticker);
-        Double firstValue = this.safeNumber(ticker, 0);
-        Boolean isFetchTicker = !Helpers.isEqual(firstValue, null); // if it's Nan, then it's string (symbol)
+        // the list shapes (fetchTickers) carry the market id in slot 0, the singular
+        // shapes (fetchTicker) do not. safeNumber is not a portable discriminator here:
+        // in PHP a non numeric string casts to 0.0 instead of undefined, so 'fUSD' would
+        // look like a number and the whole array would be read off by one.
+        String firstValue = this.safeString(ticker, 0);
+        Boolean hasMarketId = Helpers.isTrue((!Helpers.isEqual(firstValue, null))) && Helpers.isTrue((Helpers.isTrue(((String)firstValue).startsWith(((String)"t"))) || Helpers.isTrue(((String)firstValue).startsWith(((String)"f")))));
+        Boolean isFetchTicker = !Helpers.isTrue(hasMarketId);
         Object symbol = null;
         Integer minusIndex = 0;
         if (Helpers.isTrue(isFetchTicker))
@@ -1626,7 +1631,9 @@ public class BitfinexCore extends BitfinexApi
             bid = this.safeString(ticker, Helpers.subtract(2, minusIndex));
             ask = this.safeString(ticker, Helpers.subtract(5, minusIndex));
             change = this.safeString(ticker, Helpers.subtract(8, minusIndex));
-            percentage = this.safeString(ticker, Helpers.subtract(9, minusIndex));
+            // DAILY_CHANGE_RELATIVE, per the array above: the same field the trading
+            // branch reads at index 6 and scales
+            percentage = Precise.stringMul(this.safeString(ticker, Helpers.subtract(9, minusIndex)), "100");
             volume = this.safeString(ticker, Helpers.subtract(11, minusIndex));
             high = this.safeString(ticker, Helpers.subtract(12, minusIndex));
             low = this.safeString(ticker, Helpers.subtract(13, minusIndex));

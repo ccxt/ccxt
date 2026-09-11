@@ -5831,7 +5831,6 @@ public class BingxCore extends BingxApi
             {
                 Helpers.addElementToObject(request, "toAccount", toId);
             }
-            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("fromAccount", "toAccount")));
             Integer maxLimit = 100;
             Object paginate = false;
             java.util.List<Object> paginateparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTransfers", "paginate", false);
@@ -5839,8 +5838,9 @@ public class BingxCore extends BingxApi
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             if (Helpers.isTrue(paginate))
             {
-                return (this.fetchPaginatedCallDynamic("fetchTransfers", null, since, limit, parameters, maxLimit)).join();
+                return (this.fetchPaginatedCallDynamic("fetchTransfers", code, since, limit, parameters, maxLimit)).join();
             }
+            parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("fromAccount", "toAccount")));
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
                 Helpers.addElementToObject(request, "startTime", since);
