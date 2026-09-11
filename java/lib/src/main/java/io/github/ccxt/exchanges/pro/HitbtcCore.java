@@ -264,10 +264,10 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object options = this.safeValue(this.options, "watchOrderBook");
-            Object defaultMethod = this.safeString(options, "method", "orderbook/full");
+            String defaultMethod = (String) this.safeString(options, "method", "orderbook/full");
             Object name = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
-            Object depth = this.safeString(parameters, "depth", "20");
-            Object speed = this.safeString(parameters, "depth", "100");
+            String depth = (String) this.safeString(parameters, "depth", "20");
+            String speed = (String) this.safeString(parameters, "depth", "100");
             if (Helpers.isTrue(Helpers.isEqual(name, "orderbook/{depth}/{speed}")))
             {
                 name = Helpers.add(Helpers.add(Helpers.add(Helpers.add("orderbook/D", depth), "/"), speed), "ms");
@@ -416,9 +416,9 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             }
             symbols = this.marketSymbols(symbols);
             Object options = this.safeValue(this.options, "watchTicker");
-            Object defaultMethod = this.safeString(options, "method", "ticker/{speed}/batch");
-            Object method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
-            Object speed = this.safeString(parameters, "speed", "1s");
+            String defaultMethod = (String) this.safeString(options, "method", "ticker/{speed}/batch");
+            String method = (String) this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
+            String speed = (String) this.safeString(parameters, "speed", "1s");
             Object name = this.implodeParams(method, new java.util.HashMap<String, Object>() {{
                 put( "speed", speed );
             }});
@@ -549,7 +549,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(ticker, "t");
         String symbol = (String) this.safeSymbol(null, market);
-        Object last = this.safeString(ticker, "c");
+        String last = (String) this.safeString(ticker, "c");
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -598,9 +598,9 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             }
             symbols = this.marketSymbols(symbols, null, false);
             Object options = this.safeValue(this.options, "watchBidsAsks");
-            Object defaultMethod = this.safeString(options, "method", "orderbook/top/{speed}/batch");
-            Object method = this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
-            Object speed = this.safeString(parameters, "speed", "100ms");
+            String defaultMethod = (String) this.safeString(options, "method", "orderbook/top/{speed}/batch");
+            String method = (String) this.safeString2(parameters, "method", "defaultMethod", defaultMethod);
+            String speed = (String) this.safeString(parameters, "speed", "100ms");
             Object name = this.implodeParams(method, new java.util.HashMap<String, Object>() {{
                 put( "speed", speed );
             }});
@@ -801,7 +801,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             ((java.util.List<Object>)result).add(trade);
         }
         result = this.sortBy2(result, "timestamp", "id");
-        Object symbol = this.safeString(market, "symbol");
+        String symbol = (String) this.safeString(market, "symbol");
         return this.filterBySymbolSinceLimit(result, symbol, since, limit);
     }
 
@@ -856,7 +856,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object period = this.safeString(this.timeframes, timeframe, timeframe);
+            String period = (String) this.safeString(this.timeframes, timeframe, timeframe);
             Object name = Helpers.add("candles/", period);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -915,9 +915,9 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //
         Object data = this.safeDict2(message, "snapshot", "update", new java.util.HashMap<String, Object>() {{}});
         Object marketIds = Helpers.objectKeys(data);
-        Object channel = this.safeString(message, "ch", "");
+        String channel = (String) this.safeString(message, "ch", "");
         Object splitChannel = Helpers.split(channel, "/");
-        Object period = this.safeString(splitChannel, 1);
+        String period = (String) this.safeString(splitChannel, 1);
         Object timeframe = this.findTimeframe(period);
         if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
         {
@@ -1106,9 +1106,9 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             return;
         }
         String marketId = (String)this.safeStringLower2(order, "instrument", "symbol");
-        Object method = this.safeString(message, "method", "");
+        String method = (String) this.safeString(message, "method", "");
         Object splitMethod = Helpers.split(method, "_order");
-        Object messageHash = this.safeString(splitMethod, 0);
+        String messageHash = (String) this.safeString(splitMethod, 0);
         String symbol = (String) this.safeSymbol(marketId);
         Object parsed = this.parseOrder(order);
         Helpers.callDynamically(orders, "append", new Object[]{parsed});
@@ -1146,7 +1146,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(trade, "created_at");
-        Object marketId = this.safeString(trade, "symbol");
+        String marketId = (String) this.safeString(trade, "symbol");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", HitbtcCore.this.safeString(trade, "trade_id") );
@@ -1197,18 +1197,18 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object timestamp = this.safeString(order, "created_at");
-        Object marketId = this.safeString(order, "symbol");
+        String timestamp = (String) this.safeString(order, "created_at");
+        String marketId = (String) this.safeString(order, "symbol");
         market = this.safeMarket(marketId, market);
-        Object tradeId = this.safeString(order, "trade_id");
+        String tradeId = (String) this.safeString(order, "trade_id");
         java.util.List<Object> trades = null;
         if (Helpers.isTrue(!Helpers.isEqual(tradeId, null)))
         {
             Object trade = this.parseWsOrderTrade(order, market);
             trades = new java.util.ArrayList<Object>(java.util.Arrays.asList(trade));
         }
-        Object rawStatus = this.safeString(order, "status");
-        Object report_type = this.safeString(order, "report_type");
+        String rawStatus = (String) this.safeString(order, "status");
+        String report_type = (String) this.safeString(order, "report_type");
         String parsedStatus = null;
         if (Helpers.isTrue(Helpers.isEqual(report_type, "canceled")))
         {
@@ -1277,7 +1277,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                 put( "swap", "futures_balance_subscribe" );
                 put( "future", "futures_balance_subscribe" );
             }});
-            Object mode = this.safeString(parameters, "mode", "batches");
+            String mode = (String) this.safeString(parameters, "mode", "batches");
             parameters = this.omit(parameters, "mode");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "mode", mode );
@@ -1525,7 +1525,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //        ]
         //    }
         //
-        Object messageHash = this.safeString(message, "method");
+        String messageHash = (String) this.safeString(message, "method");
         Object parameters = this.safeValue(message, "params");
         Object balance = this.parseBalance(parameters);
         this.balance = this.deepExtend(this.balance, balance);
@@ -1569,7 +1569,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //        "id": 1700233093414
         //    }
         //
-        Object messageHash = this.safeString(message, "id");
+        String messageHash = (String) this.safeString(message, "id");
         Object result = this.safeValue(message, "result", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isArray(result)))
         {
@@ -1594,14 +1594,14 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         {
             return;
         }
-        Object channel = this.safeString2(message, "ch", "method");
+        String channel = (String) this.safeString2(message, "ch", "method");
         if (Helpers.isTrue(!Helpers.isEqual(channel, null)))
         {
             Object splitChannel = Helpers.split(channel, "/");
             channel = this.safeString(splitChannel, 0);
             if (Helpers.isTrue(Helpers.isEqual(channel, "orderbook")))
             {
-                Object channel2 = this.safeString(splitChannel, 1);
+                String channel2 = (String) this.safeString(splitChannel, 1);
                 if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(channel2, null)) && Helpers.isTrue(Helpers.isEqual(channel2, "top"))))
                 {
                     channel = "orderbook/top";
@@ -1630,7 +1630,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         } else
         {
             Object result = this.safeValue(message, "result");
-            Object clientOrderId = this.safeString(result, "client_order_id");
+            String clientOrderId = (String) this.safeString(result, "client_order_id");
             if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
             {
                 this.handleOrderRequest(client, message);
@@ -1697,8 +1697,8 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
             try
             {
                 Object code = this.safeValue(error, "code");
-                Object errorMessage = this.safeString(error, "message");
-                Object description = this.safeString(error, "description");
+                String errorMessage = (String) this.safeString(error, "message");
+                String description = (String) this.safeString(error, "description");
                 Object feedback = Helpers.add(Helpers.add(this.id, " "), description);
                 this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), code, feedback);
                 this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), errorMessage, feedback);
@@ -1715,7 +1715,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
                     }
                 } else
                 {
-                    Object id = this.safeString(message, "id");
+                    String id = (String) this.safeString(message, "id");
                     client.reject(e, id);
                 }
                 return true;

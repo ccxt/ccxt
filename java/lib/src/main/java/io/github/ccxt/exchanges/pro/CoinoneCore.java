@@ -129,7 +129,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         String quoteId = (String)this.safeStringUpper(data, "quote_currency");
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
+        String symbol = (String) this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
         Long timestamp = this.safeInteger(data, "timestamp");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
@@ -261,12 +261,12 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
-        Object last = this.safeString(ticker, "last");
-        Object baseId = this.safeString(ticker, "target_currency");
-        Object quoteId = this.safeString(ticker, "quote_currency");
+        String last = (String) this.safeString(ticker, "last");
+        String baseId = (String) this.safeString(ticker, "target_currency");
+        String quoteId = (String) this.safeString(ticker, "quote_currency");
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
-        Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
+        String symbol = (String) this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -395,8 +395,8 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         {
             side = ((Helpers.isTrue((Helpers.isEqual(isSellerMaker, true))))) ? "sell" : "buy";
         }
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "qty");
+        String priceString = (String) this.safeString(trade, "price");
+        String amountString = (String) this.safeString(trade, "qty");
         final Object finalMarket = market;
         final Object finalSide = side;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
@@ -425,7 +425,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         //         "message": "Invalid Topic"
         //     }
         //
-        Object type = this.safeString(message, "response_type", "");
+        String type = (String) this.safeString(message, "response_type", "");
         if (Helpers.isTrue(Helpers.isEqual(type, "ERROR")))
         {
             return true;
@@ -439,7 +439,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         {
             return;
         }
-        Object type = this.safeString(message, "response_type");
+        String type = (String) this.safeString(message, "response_type");
         if (Helpers.isTrue(Helpers.isEqual(type, "PONG")))
         {
             this.handlePong(client, message);
