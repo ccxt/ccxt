@@ -418,14 +418,14 @@ public class BtcboxCore extends BtcboxApi
 
     public Object parseBalance(Object response)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object currencyId = Helpers.GetValue(currency, "id");
             Object free = Helpers.add(currencyId, "_balance");
             if (Helpers.isTrue(Helpers.inOp(response, free)))
@@ -458,7 +458,7 @@ public class BtcboxCore extends BtcboxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostBalance(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -485,14 +485,14 @@ public class BtcboxCore extends BtcboxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object numSymbols = Helpers.getArrayLength(this.symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numSymbols, 1)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
             }
-            Object response = (this.publicGetDepth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetDepth(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"));
         });
 
@@ -546,14 +546,14 @@ public class BtcboxCore extends BtcboxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object numSymbols = Helpers.getArrayLength(this.symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numSymbols, 1)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
             }
-            Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             return this.parseTicker(response, market);
         });
 
@@ -578,7 +578,7 @@ public class BtcboxCore extends BtcboxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             return this.parseTickers(response, symbols);
         });
 
@@ -646,14 +646,14 @@ public class BtcboxCore extends BtcboxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object numSymbols = Helpers.getArrayLength(this.symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numSymbols, 1)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
             }
-            Object response = (this.publicGetOrders(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetOrders(this.extend(request, parameters))).join();
             //
             //     [
             //          {
@@ -694,14 +694,14 @@ public class BtcboxCore extends BtcboxApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "price", price );
                 put( "type", side );
                 put( "coin", Helpers.GetValue(market, "baseId") );
             }};
-            Object response = (this.privatePostTradeAdd(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeAdd(this.extend(request, parameters))).join();
             //
             //     {
             //         "result":true,
@@ -739,12 +739,12 @@ public class BtcboxCore extends BtcboxApi
             {
                 symbol = "BTC/JPY";
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "coin", Helpers.GetValue(market, "baseId") );
             }};
-            Object response = (this.privatePostTradeCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeCancel(this.extend(request, parameters))).join();
             //
             //     {"result":true, "id":"11"}
             //
@@ -755,7 +755,7 @@ public class BtcboxCore extends BtcboxApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "part", "open" );
             put( "all", "closed" );
             put( "cancelled", "canceled" );
@@ -861,12 +861,12 @@ public class BtcboxCore extends BtcboxApi
             {
                 symbol = "BTC/JPY";
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object request = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "coin", Helpers.GetValue(market, "baseId") );
             }}, parameters);
-            Object response = (this.privatePostTradeView(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostTradeView(this.extend(request, parameters))).join();
             //
             //      {
             //          "id":11,
@@ -902,13 +902,13 @@ public class BtcboxCore extends BtcboxApi
             {
                 symbol = "BTC/JPY";
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalType = type;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", finalType );
                 put( "coin", Helpers.GetValue(market, "baseId") );
             }};
-            Object response = (this.privatePostTradeList(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostTradeList(this.extend(request, parameters))).join();
             //
             // [
             //      {

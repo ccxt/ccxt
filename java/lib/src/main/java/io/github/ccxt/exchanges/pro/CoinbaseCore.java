@@ -187,7 +187,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             final Object finalUnWatchMessageHash = unWatchMessageHash;
             final Object finalWatchMessageHash = watchMessageHash;
             final Object finalSymbol = symbol;
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalUnWatchMessageHash)) );
                 put( "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList(finalWatchMessageHash)) );
                 put( "topic", topic );
@@ -235,7 +235,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
                 ((java.util.List<Object>)productIds).add(marketId);
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(name, "::"), symbol));
@@ -291,7 +291,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object marketId = Helpers.GetValue(market, "id");
                 ((java.util.List<Object>)productIds).add(marketId);
                 ((java.util.List<Object>)watchMessageHashes).add(Helpers.add(Helpers.add(name, "::"), symbol));
@@ -309,7 +309,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
                 message = this.extend(message, this.createWSAuth(name, productIds));
             }
             final Object finalSymbols = symbols;
-            Object subscription = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "messageHashes", unWatchMessageHashes );
                 put( "subMessageHashes", watchMessageHashes );
                 put( "topic", topic );
@@ -327,7 +327,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
 
     public Object createWSAuth(Object name, Object productIds)
     {
-        Object subscribe = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{}};
         Object timestamp = this.numberToString(this.seconds());
         this.checkRequiredCredentials();
         Object isCloudAPiKey = Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(this.apiKey, "organizations/"), 0))) || Helpers.isTrue((((String)this.secret).startsWith(((String)"-----BEGIN"))));
@@ -436,7 +436,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             Object ticker = (this.subscribeMultiple(name, false, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object tickers = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 Helpers.addElementToObject(tickers, symbol, ticker);
                 return tickers;
@@ -851,7 +851,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets()).join();
             }
             Object name = "level2";
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object orderbook = (this.subscribe(name, false, symbol, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
@@ -948,7 +948,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object trade = this.safeDict(trades, 0);
         Object marketId = this.safeString(trade, "product_id");
         String symbol = (String) this.safeSymbol(marketId);
-        Object messageHash = Helpers.add("market_trades::", symbol);
+        String messageHash = (String) Helpers.add("market_trades::", symbol);
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
@@ -1045,7 +1045,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         {
             Object marketId = Helpers.GetValue(marketIds, i);
             String symbol = (String) this.safeSymbol(marketId);
-            Object messageHash = Helpers.add("user::", symbol);
+            String messageHash = (String) Helpers.add("user::", symbol);
             client.resolve(this.orders, messageHash);
             this.tryResolveUsdc(client, messageHash, this.orders);
         }
@@ -1162,9 +1162,9 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             Object updates = this.safeList(eventVar, "updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("level2::", symbol);
+            String messageHash = (String) Helpers.add("level2::", symbol);
             Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
             Object limit = this.safeInteger(subscription, "limit");
             Object type = this.safeString(eventVar, "type");
@@ -1177,7 +1177,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 continue;
             }
-            Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+            io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
             this.handleOrderBookHelper(orderbook, updates);
             Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
             Helpers.addElementToObject(orderbook, "datetime", datetime);
@@ -1262,7 +1262,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
     public void handleMessage(Client client, Object message)
     {
         Object channel = this.safeString(message, "channel");
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "subscriptions", "handleSubscriptionStatus");
             put( "ticker", "handleTickers");
             put( "ticker_batch", "handleTickers");

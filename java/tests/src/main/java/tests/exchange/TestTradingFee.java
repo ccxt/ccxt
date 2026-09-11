@@ -20,7 +20,7 @@ public class TestTradingFee extends BaseTest {
                 put( "symbol", true );
             }}, skippedProperties);
         }
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "symbol", "ETH/BTC" );
             put( "maker", exchange.parseNumber("0.002") );

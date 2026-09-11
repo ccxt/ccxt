@@ -226,10 +226,10 @@ public class HyperliquidCore extends HyperliquidApi
             return new java.util.HashMap<String, Object>() {{}};
         }
         Object parts = Helpers.split(description, "|");
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parts)); i++)
         {
-            Object part = Helpers.GetValue(parts, i);
+            String part = (String) Helpers.GetValue(parts, i);
             Object colonIndex = Helpers.getIndexOf(part, ":");
             if (Helpers.isTrue(Helpers.isGreaterThan(colonIndex, Helpers.opNeg(1))))
             {
@@ -372,7 +372,7 @@ public class HyperliquidCore extends HyperliquidApi
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(questionSlug, null))) && Helpers.isTrue((!Helpers.isEqual(questionSlug, "")))))
             {
                 Object outcomeSlug = this.shortenSlug(name);
-                Object genericOutcomeNames = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> genericOutcomeNames = new java.util.HashMap<String, Object>() {{
                     put( "RECURRING", true );
                     put( "RECURRING_FALLBACK", true );
                     put( "RECURRING_NAMED_OUTCOME", true );
@@ -451,7 +451,7 @@ public class HyperliquidCore extends HyperliquidApi
             }}, parameters))).join();
             Object outcomesList = this.safeList(response, "outcomes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object questionsList = this.safeList(response, "questions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object outcomesToQuestions = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> outcomesToQuestions = new java.util.HashMap<String, Object>() {{}};
             for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(questionsList)); qi++)
             {
                 Object question = this.safeDict(questionsList, qi, new java.util.HashMap<String, Object>() {{}});
@@ -543,7 +543,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object expPartsLength = Helpers.getArrayLength(expParts);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(expPartsLength, 1)) && Helpers.isTrue(Helpers.isEqual(((String)Helpers.GetValue(expParts, 0)).length(), 8))))
             {
-                Object ymd = Helpers.GetValue(expParts, 0);
+                String ymd = (String) Helpers.GetValue(expParts, 0);
                 Object hm = ((Helpers.isTrue((Helpers.isGreaterThanOrEqual(expPartsLength, 2))))) ? Helpers.GetValue(expParts, 1) : "0000";
                 Object isoStr = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.slice(ymd, 0, 4), "-"), Helpers.slice(ymd, 4, 6)), "-"), Helpers.slice(ymd, 6, 8)), "T"), Helpers.slice(hm, 0, 2)), ":"), Helpers.slice(hm, 2, 4)), ":00Z");
                 expiryMs = this.parse8601(isoStr);
@@ -556,7 +556,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object quoteCurrency = this.safeString(this.options, "outcomeQuoteCurrency", "USDH");
         Object szDecimals = 4; // outcomes use 4 decimal places
         Object active = true;
-        Object outcomePrecision = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> outcomePrecision = new java.util.HashMap<String, Object>() {{
             put( "amount", HyperliquidCore.this.parseNumber(HyperliquidCore.this.parsePrecision(String.valueOf(szDecimals))) );
             put( "price", 0.0001 );
         }};
@@ -602,7 +602,7 @@ public class HyperliquidCore extends HyperliquidApi
 }}));
         final Object finalExpiryMs = expiryMs;
         final Object finalExpiryDatetime = expiryDatetime;
-        Object marketRow = this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> marketRow = (java.util.Map<String, Object>) this.safeMarketStructure(new java.util.HashMap<String, Object>() {{
             put( "id", String.valueOf(outcomeId) );
             put( "market", finalParentSymbol );
             put( "base", Helpers.GetValue(Helpers.split(finalParentSymbol, "/"), 0) );
@@ -684,7 +684,7 @@ public class HyperliquidCore extends HyperliquidApi
         }
         Object midStr = this.numberToString(midPx);
         Object parts = Helpers.split(midStr, ".");
-        Object intPart = Helpers.GetValue(parts, 0);
+        String intPart = (String) Helpers.GetValue(parts, 0);
         Object significantDigits = Helpers.mathMax(5, ((String)intPart).length());
         Object maxDecimals = Helpers.subtract(8, szDecimals);
         Object pricePrecisionDecimals = Helpers.mathMax(1, Helpers.mathMin(maxDecimals, Helpers.subtract(significantDigits, ((String)intPart).length())));
@@ -716,7 +716,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object outcomeObj = this.outcome(outcome);
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
             Object coin = this.safeString(info, "coinName");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "l2Book" );
                 put( "coin", coin );
             }};
@@ -756,7 +756,7 @@ public class HyperliquidCore extends HyperliquidApi
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object requestedOutcomeSymbols = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> requestedOutcomeSymbols = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
             {
                 // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
@@ -786,7 +786,7 @@ public class HyperliquidCore extends HyperliquidApi
                 allMids = response;
             }
             Object mids = this.safeDict(allMids, "mids", allMids);
-            Object tickers = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
             Object outcomesMap = ((Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))))) ? this.outcomes : new java.util.HashMap<String, Object>() {{}};
             Object outcomeHandles = Helpers.objectKeys(outcomesMap);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomeHandles)); i++)
@@ -915,7 +915,7 @@ public class HyperliquidCore extends HyperliquidApi
             (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "l2Book" );
                 put( "coin", HyperliquidCore.this.safeString(info, "coinName") );
             }};
@@ -980,7 +980,7 @@ public class HyperliquidCore extends HyperliquidApi
             (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             // markets are keyed by the parent market outcome, not the outcome handle ("MARKET:LABEL")
-            Object market = this.market(this.safeString(outcomeObj, "market"));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(this.safeString(outcomeObj, "market"));
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
             Object until = this.safeInteger(parameters, "until", this.milliseconds());
             Object startTime = since;
@@ -1000,7 +1000,7 @@ public class HyperliquidCore extends HyperliquidApi
                 }
             }
             final Object finalStartTime = startTime;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "candleSnapshot" );
                 put( "req", new java.util.HashMap<String, Object>() {{
                     put( "coin", HyperliquidCore.this.safeString(info, "coinName") );
@@ -1086,7 +1086,7 @@ public class HyperliquidCore extends HyperliquidApi
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "spotClearinghouseState" );
                 put( "user", finalUserAddress );
             }};
@@ -1100,7 +1100,7 @@ public class HyperliquidCore extends HyperliquidApi
             //         ]
             //     }
             //
-            Object result = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
             Object balances = this.safeList(response, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1140,7 +1140,7 @@ public class HyperliquidCore extends HyperliquidApi
 
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object requestedOutcomeSymbols = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> requestedOutcomeSymbols = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
             {
                 // one warm-up for the whole list (a cold cache bulk-loads once via loadAllOutcomes),
@@ -1163,7 +1163,7 @@ public class HyperliquidCore extends HyperliquidApi
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "spotClearinghouseState" );
                 put( "user", finalUserAddress );
             }};
@@ -1399,7 +1399,7 @@ public class HyperliquidCore extends HyperliquidApi
         }
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(this.markets, null))) && Helpers.isTrue((Helpers.inOp(this.markets, outcomeInput))))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(this.markets_by_id, null))) && Helpers.isTrue((Helpers.inOp(this.markets_by_id, outcomeInput)))))))
         {
-            Object market = this.safeMarket(outcomeInput);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(outcomeInput);
             Object sideHintOrDefault = ((Helpers.isTrue((!Helpers.isEqual(sideHint, null))))) ? sideHint : "YES";
             Object found = this.findOutcomeInMarket(market, sideHintOrDefault);
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(found)), 0)))
@@ -1442,7 +1442,7 @@ public class HyperliquidCore extends HyperliquidApi
             // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
             // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
             Object marketSymbol = this.safeString(outcomeObj, "market");
-            Object market = this.market(marketSymbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketSymbol);
             Object outcomeInfo = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
             Object nonce = this.milliseconds();
             Object isBuy = (Helpers.isEqual(((String)side).toUpperCase(), "BUY"));
@@ -1482,13 +1482,13 @@ public class HyperliquidCore extends HyperliquidApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() could not determine price")) ;
             }
             Object sz = this.amountToPrecision(marketSymbol, amount);
-            Object orderType = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> orderType = new java.util.HashMap<String, Object>() {{
                 put( "limit", new java.util.HashMap<String, Object>() {{
                     put( "tif", tif );
                 }} );
             }};
             final Object finalPx = px;
-            Object orderObj = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> orderObj = new java.util.HashMap<String, Object>() {{
                 put( "a", assetId );
                 put( "b", isBuy );
                 put( "p", finalPx );
@@ -1505,7 +1505,7 @@ public class HyperliquidCore extends HyperliquidApi
             vaultAddress = ((java.util.List<Object>) vaultAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
-            Object orderAction = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> orderAction = new java.util.HashMap<String, Object>() {{
                 put( "type", "order" );
                 put( "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList(orderObj)) );
                 put( "grouping", "na" );
@@ -1527,7 +1527,7 @@ public class HyperliquidCore extends HyperliquidApi
     }});
             }
             Object signature = this.signL1Action(orderAction, nonce, vaultAddress);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "action", orderAction );
                 put( "nonce", nonce );
                 put( "signature", signature );
@@ -1536,7 +1536,7 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 Helpers.addElementToObject(request, "vaultAddress", vaultAddress);
             }
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             //
             //     {
             //         "status": "ok",
@@ -1643,7 +1643,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object clientOrderId = this.safeValue2(parameters, "clientOrderId", "client_id");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId", "client_id")));
             Object cancelReq = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object cancelAction = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> cancelAction = new java.util.HashMap<String, Object>() {{
                 put( "type", "cancel" );
                 put( "cancels", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             }};
@@ -1678,7 +1678,7 @@ public class HyperliquidCore extends HyperliquidApi
             parameters = ((java.util.List<Object>) vaultAddressparametersVariable).get(1);
             vaultAddress = this.formatVaultAddress(vaultAddress);
             Object signature = this.signL1Action(cancelAction, nonce, vaultAddress);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "action", cancelAction );
                 put( "nonce", nonce );
                 put( "signature", signature );
@@ -1687,7 +1687,7 @@ public class HyperliquidCore extends HyperliquidApi
             {
                 Helpers.addElementToObject(request, "vaultAddress", vaultAddress);
             }
-            Object response = (this.privatePostExchange(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostExchange(request)).join();
             Object innerResponse = this.safeDict(response, "response");
             Object data = this.safeDict(innerResponse, "data");
             Object statuses = this.safeList(data, "statuses", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1720,7 +1720,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Object requestId = this.safeString(requestIds, i, this.safeString(requestIds, 0));
                 final Object finalClientOrderId = clientOrderId;
                 final Object finalStatus = status;
-                Object order = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> order = new java.util.HashMap<String, Object>() {{
                     put( "id", requestId );
                     put( "clientOrderId", ((Helpers.isTrue((!Helpers.isEqual(finalClientOrderId, null))))) ? requestId : null );
                     put( "info", finalStatus );
@@ -1771,7 +1771,7 @@ public class HyperliquidCore extends HyperliquidApi
             parameters = ((java.util.List<Object>) methodparametersVariable).get(1);
             final Object finalMethod = method;
             final Object finalUserAddress = userAddress;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", finalMethod );
                 put( "user", finalUserAddress );
             }};
@@ -1828,13 +1828,13 @@ public class HyperliquidCore extends HyperliquidApi
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "historicalOrders" );
                 put( "user", finalUserAddress );
             }};
             Object response = (this.publicPostInfo(this.extend(request, parameters))).join();
             // Deduplicate by oid keeping most recent statusTimestamp
-            Object deduped = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> deduped = new java.util.HashMap<String, Object>() {{}};
             Object historicalOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isArray(response)))
             {
@@ -1904,7 +1904,7 @@ public class HyperliquidCore extends HyperliquidApi
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             Object clientOrderId = this.safeString(parameters, "clientOrderId");
             final Object finalUserAddress = userAddress;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "orderStatus" );
                 put( "user", finalUserAddress );
             }};
@@ -2027,7 +2027,7 @@ public class HyperliquidCore extends HyperliquidApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "triggered", "open" );
             put( "filled", "closed" );
             put( "open", "open" );
@@ -2052,7 +2052,7 @@ public class HyperliquidCore extends HyperliquidApi
 
     public String parseOrderType(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "stop limit", "limit" );
             put( "stop market", "market" );
         }};
@@ -2062,7 +2062,7 @@ public class HyperliquidCore extends HyperliquidApi
 
     public String parseTimeInForce(Object timeInForce)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "gtc", "GTC" );
             put( "ioc", "IOC" );
             put( "fok", "FOK" );
@@ -2094,7 +2094,7 @@ public class HyperliquidCore extends HyperliquidApi
             (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "recentTrades" );
                 put( "coin", HyperliquidCore.this.safeString(info, "coinName") );
             }};
@@ -2151,7 +2151,7 @@ public class HyperliquidCore extends HyperliquidApi
             userAddress = ((java.util.List<Object>) userAddressparametersVariable).get(0);
             parameters = ((java.util.List<Object>) userAddressparametersVariable).get(1);
             final Object finalUserAddress = userAddress;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "user", finalUserAddress );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -2292,7 +2292,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object marketsDict = (this.loadMarkets()).join();
             Object marketValues = this.toArray(marketsDict);
             // Group markets by parentSymbol
-            Object groupMap = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> groupMap = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(queries, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchEvents() missing queries")) ;
@@ -2330,7 +2330,7 @@ public class HyperliquidCore extends HyperliquidApi
                         Object allWords = true;
                         for (var wi = 0; Helpers.isLessThan(wi, wordsLength); wi++)
                         {
-                            Object word = Helpers.GetValue(words, wi);
+                            String word = (String) Helpers.GetValue(words, wi);
                             // `< 0` (not `=== -1`) — the php transpiler maps `< 0` to `=== false`
                             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(word, ""))) && Helpers.isTrue((Helpers.isLessThan(Helpers.getIndexOf(haystack, word), 0)))))
                             {
@@ -2417,7 +2417,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object partsLength = Helpers.getArrayLength(parts);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(partsLength, 1)) && Helpers.isTrue(Helpers.isEqual(((String)Helpers.GetValue(parts, 0)).length(), 8))))
             {
-                Object ymd = Helpers.GetValue(parts, 0);
+                String ymd = (String) Helpers.GetValue(parts, 0);
                 Object hm = ((Helpers.isTrue((Helpers.isGreaterThanOrEqual(partsLength, 2))))) ? Helpers.GetValue(parts, 1) : "0000";
                 Object isoStr = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.slice(ymd, 0, 4), "-"), Helpers.slice(ymd, 4, 6)), "-"), Helpers.slice(ymd, 6, 8)), "T"), Helpers.slice(hm, 0, 2)), ":"), Helpers.slice(hm, 2, 4)), ":00Z");
                 expiryMs = this.parse8601(isoStr);
@@ -2470,7 +2470,7 @@ public class HyperliquidCore extends HyperliquidApi
 
     public Object amountToPrecision(Object outcome, Object amount)
     {
-        Object market = this.market(outcome);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(outcome);
         Object prec = this.safeNumber(this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}}), "amount", 0.0001);
         // Convert precision to decimal places
         Object decimals = 4;
@@ -2487,7 +2487,7 @@ public class HyperliquidCore extends HyperliquidApi
 
     public Object priceToPrecision(Object outcome, Object price)
     {
-        Object market = this.market(outcome);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(outcome);
         Object prec = this.safeNumber(this.safeDict(market, "precision", new java.util.HashMap<String, Object>() {{}}), "price", 0.0001);
         Object decimals = 4;
         if (Helpers.isTrue(Helpers.isEqual(prec, null)))
@@ -2562,13 +2562,13 @@ public class HyperliquidCore extends HyperliquidApi
         Object isTestnet = this.safeBool(this.options, "sandboxMode", false);
         Object phantomAgent = this.constructPhantomAgent(hash, isTestnet);
         Object zeroAddress = this.safeString(this.options, "zeroAddress");
-        Object domain = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
             put( "chainId", 1337 );
             put( "name", "Exchange" );
             put( "verifyingContract", zeroAddress );
             put( "version", "1" );
         }};
-        Object messageTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
             put( "Agent", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "name", "source" );
     put( "type", "string" );
@@ -2585,7 +2585,7 @@ public class HyperliquidCore extends HyperliquidApi
     {
         Object zeroAddress = this.safeString(this.options, "zeroAddress");
         Object chainId = 421614;
-        Object domain = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> domain = new java.util.HashMap<String, Object>() {{
             put( "chainId", chainId );
             put( "name", "HyperliquidSignTransaction" );
             put( "verifyingContract", zeroAddress );
@@ -2598,7 +2598,7 @@ public class HyperliquidCore extends HyperliquidApi
 
     public Object buildApproveBuilderFeeSig(Object message)
     {
-        Object messageTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> messageTypes = new java.util.HashMap<String, Object>() {{
             put( "HyperliquidTransaction:ApproveBuilderFee", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "name", "hyperliquidChain" );
     put( "type", "string" );
@@ -2633,14 +2633,14 @@ public class HyperliquidCore extends HyperliquidApi
             Object nonce = this.milliseconds();
             Object isSandboxMode = this.safeBool(this.options, "sandboxMode", false);
             final Object finalIsSandboxMode = isSandboxMode;
-            Object payload = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
                 put( "hyperliquidChain", ((Helpers.isTrue((Helpers.isEqual(finalIsSandboxMode, true))))) ? "Testnet" : "Mainnet" );
                 put( "maxFeeRate", maxFeeRate );
                 put( "builder", builder );
                 put( "nonce", nonce );
             }};
             Object sig = this.buildApproveBuilderFeeSig(payload);
-            Object action = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> action = new java.util.HashMap<String, Object>() {{
                 put( "hyperliquidChain", Helpers.GetValue(payload, "hyperliquidChain") );
                 put( "signatureChainId", "0x66eee" );
                 put( "maxFeeRate", Helpers.GetValue(payload, "maxFeeRate") );
@@ -2648,7 +2648,7 @@ public class HyperliquidCore extends HyperliquidApi
                 put( "nonce", nonce );
                 put( "type", "approveBuilderFee" );
             }};
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "action", action );
                 put( "nonce", nonce );
                 put( "signature", sig );

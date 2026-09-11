@@ -282,7 +282,7 @@ public class BinanceCore extends BinanceApi
                 }
                 final Object finalOffset = offset;
                 final Object finalReqLimit = reqLimit;
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "offset", finalOffset );
                     put( "limit", finalReqLimit );
                 }};
@@ -352,7 +352,7 @@ public class BinanceCore extends BinanceApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "marketTopicId", topicId );
             }};
             return (this.sapiPrivateGetMarketDetail(this.extend(request, parameters))).join();
@@ -475,7 +475,7 @@ public class BinanceCore extends BinanceApi
                 rawTopics = new java.util.ArrayList<Object>(java.util.Arrays.asList(detail));
             } else
             {
-                Object listingRequest = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> listingRequest = new java.util.HashMap<String, Object>() {{}};
                 if (Helpers.isTrue(!Helpers.isEqual(l1Category, null)))
                 {
                     Helpers.addElementToObject(listingRequest, "l1Category", l1Category);
@@ -553,7 +553,7 @@ public class BinanceCore extends BinanceApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object limit = limit3;
             Object rest = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object seen = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
             Object collected = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object queriesLength = Helpers.getArrayLength(queries);
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
@@ -566,7 +566,7 @@ public class BinanceCore extends BinanceApi
             for (var qi = 0; Helpers.isLessThan(qi, queriesLength); qi++)
             {
                 final Object finalQi = qi;
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "query", Helpers.GetValue(queries, finalQi) );
                 }};
                 Helpers.addElementToObject(request, "topK", limit);
@@ -774,7 +774,7 @@ public class BinanceCore extends BinanceApi
         Object feeRate = this.parseNumber(Precise.stringDiv(feeRateBps, "10000"));
         Object decimalPrecision = this.safeString(rawMarket, "decimalPrecision", "2");
         Object pricePrecision = this.parseNumber(this.parsePrecision(decimalPrecision));
-        Object precision = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> precision = new java.util.HashMap<String, Object>() {{
             put( "amount", 0.01 );
             put( "price", pricePrecision );
         }};
@@ -926,7 +926,7 @@ final Object finalMarketSymbol = marketSymbol;
             (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "marketId", BinanceCore.this.safeString(info, "marketId") );
             }};
             Object response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
@@ -1030,8 +1030,8 @@ final Object finalMarketSymbol = marketSymbol;
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTickers() requires an outcomes argument — the venue has no all-tickers endpoint; pass the outcome handles to fetch (discover them via fetchEvents ())")) ;
             }
             (this.loadOutcomes(outcomes)).join();
-            Object responsesByMarketId = new java.util.HashMap<String, Object>() {{}};
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> responsesByMarketId = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object outcomesLength = Helpers.getArrayLength(outcomes);
             for (var i = 0; Helpers.isLessThan(i, outcomesLength); i++)
             {
@@ -1046,7 +1046,7 @@ final Object finalMarketSymbol = marketSymbol;
                 if (Helpers.isTrue(Helpers.isEqual(response, null)))
                 {
                     final Object finalMarketId = marketId;
-                    Object request = new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                         put( "marketId", finalMarketId );
                     }};
                     response = (this.sapiPrivateGetOrderBookLastTradePrice(this.extend(request, parameters))).join();
@@ -1081,7 +1081,7 @@ final Object finalMarketSymbol = marketSymbol;
             (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object info = this.safeDict(outcomeObj, "info", new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "vendor", BinanceCore.this.safeString(info, "vendor", BinanceCore.this.safeString(BinanceCore.this.options, "defaultVendor")) );
                 put( "marketId", BinanceCore.this.safeString(info, "marketId") );
                 put( "tokenId", BinanceCore.this.safeString2(outcomeObj, "outcomeId", "id") );
@@ -1134,7 +1134,7 @@ final Object finalMarketSymbol = marketSymbol;
             //     ]
             // }
             //
-            Object result = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
                 put( "info", response );
             }};
             Object balances = this.safeList(response, "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -1199,7 +1199,7 @@ final Object finalMarketSymbol = marketSymbol;
         {
             Object marketId = this.safeString(order, "marketId");
             String outcome = (String)this.safeStringUpper(order, "outcome");
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object outcomeName = this.safeString(market, "market");
             if (Helpers.isTrue(Helpers.isEqual(outcomeName, null)))
             {
@@ -1242,7 +1242,7 @@ final Object finalMarketSymbol = marketSymbol;
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "OPENING", "open" );
             put( "FILLED", "closed" );
         }};
@@ -1298,7 +1298,7 @@ final Object finalMarketSymbol = marketSymbol;
                 return (this.fetchPaginatedCallIncremental("fetchOpenOrders", outcome, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
             Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if (Helpers.isTrue(Helpers.isGreaterThan(offSet, 0)))
             {
@@ -1309,7 +1309,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 (this.loadOutcome(outcome)).join();
                 outcomeObj = this.outcome(outcome);
-                Object market = this.market(Helpers.GetValue(outcomeObj, "market"));
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(outcomeObj, "market"));
                 Helpers.addElementToObject(request, "marketId", Helpers.GetValue(market, "id"));
             }
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1399,7 +1399,7 @@ final Object finalMarketSymbol = marketSymbol;
                 return (this.fetchPaginatedCallIncremental("fetchOrders", outcome, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
             Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
             if (Helpers.isTrue(Helpers.isGreaterThan(offSet, 0)))
             {
@@ -1488,7 +1488,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object outcomes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             (this.loadOutcomes()).join();
-            Object requestedOutcomeSymbols = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> requestedOutcomeSymbols = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
@@ -1500,7 +1500,7 @@ final Object finalMarketSymbol = marketSymbol;
                 }
             }
             Object wallet = (this.fetchWallet("fetchPositions", parameters)).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "walletAddress", Helpers.GetValue(wallet, "walletAddress") );
             }};
             Object response = (this.sapiPrivateGetPositionList(this.extend(request, parameters))).join();
@@ -1590,13 +1590,13 @@ final Object finalMarketSymbol = marketSymbol;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
             Object outcome = outcome3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object outcomeObj = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
                 (this.loadOutcome(outcome)).join();
                 outcomeObj = this.outcome(outcome);
-                Object market = this.market(Helpers.GetValue(outcomeObj, "market"));
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(outcomeObj, "market"));
                 Helpers.addElementToObject(request, "marketTopicId", Helpers.GetValue(Helpers.GetValue(market, "info"), "marketTopicId"));
             }
             Object wallet = (this.fetchWallet("fetchOrders", parameters)).join();
@@ -1628,7 +1628,7 @@ final Object finalMarketSymbol = marketSymbol;
         {
             Object marketId = this.safeString(position, "marketId");
             String outcome = (String)this.safeStringUpper(position, "outcomeName");
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object outcomeName = this.safeString(market, "market");
             if (Helpers.isTrue(Helpers.isEqual(outcomeName, null)))
             {
@@ -1710,7 +1710,7 @@ final Object finalMarketSymbol = marketSymbol;
                 return (this.fetchPaginatedCallIncremental("fetchMyTrades", outcome, since, limit, parameters, pageKey, maxEntriesPerRequest)).join();
             }
             Object page = Helpers.subtract(this.safeInteger(parameters, pageKey, 1), 1);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "FILLED" );
             }};
             Object offSet = this.safeInteger(parameters, "offset", Helpers.multiply(page, maxEntriesPerRequest));
@@ -1826,7 +1826,7 @@ final Object finalMarketSymbol = marketSymbol;
         {
             Object marketId = this.safeString(trade, "marketId");
             String outcome = (String)this.safeStringUpper(trade, "outcome");
-            Object market = this.safeMarket(marketId);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object outcomeName = this.safeString(market, "market");
             if (Helpers.isTrue(Helpers.isEqual(outcomeName, null)))
             {
@@ -1998,7 +1998,7 @@ final Object finalMarketSymbol = marketSymbol;
 
     public Object priceToPrecision(Object outcome, Object price)
     {
-        Object market = this.market(outcome);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(outcome);
         Object prec = this.safeNumber(this.safeDict(((Object)market), "precision", new java.util.HashMap<String, Object>() {{}}), "price", 0.0001);
         Object decimals = 4;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(prec, null))) && Helpers.isTrue((Helpers.isGreaterThan(prec, 0)))))
@@ -2010,7 +2010,7 @@ final Object finalMarketSymbol = marketSymbol;
 
     public Object amountToPrecision(Object outcome, Object amount)
     {
-        Object market = this.market(outcome);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(outcome);
         Object prec = this.safeNumber(this.safeDict(((Object)market), "precision", new java.util.HashMap<String, Object>() {{}}), "amount", 0.01);
         Object decimals = 2;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(prec, null))) && Helpers.isTrue((Helpers.isGreaterThan(prec, 0)))))
@@ -2053,7 +2053,7 @@ final Object finalMarketSymbol = marketSymbol;
             // markets are keyed by the parent market outcome; the outcome handle ("MARKET:LABEL")
             // is not a market id, so resolve the market and price/amount precision via outcomeObj['market']
             Object marketSymbol = ((String)this.safeString(outcomeObj, "market"));
-            Object market = this.market(marketSymbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(marketSymbol);
             Object typeUpper = ((String)type).toUpperCase();
             Object sideUpper = ((String)side).toUpperCase();
             Object wallet = (this.fetchWallet("createOrder", parameters)).join();
@@ -2062,7 +2062,7 @@ final Object finalMarketSymbol = marketSymbol;
             Object cost = this.safeString(parameters, "cost");
             Object slippageBps = this.parseToInt(Precise.stringMul(slippage, "10000"));
             final Object finalTypeUpper = typeUpper;
-            Object commonRequest = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> commonRequest = new java.util.HashMap<String, Object>() {{
                 put( "walletAddress", Helpers.GetValue(wallet, "walletAddress") );
                 put( "orderType", finalTypeUpper );
                 put( "slippageBps", slippageBps );
@@ -2171,7 +2171,7 @@ final Object finalMarketSymbol = marketSymbol;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object req = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                 put( "cost", cost );
             }};
             return (this.createOrder((Object)(symbol), (Object)("market"), (Object)(side), (Object)(cost), (Object)(null), (Object)(this.extend(req, parameters)))).join();
@@ -2226,7 +2226,7 @@ final Object finalMarketSymbol = marketSymbol;
                 outcomeObj = this.outcome(outcome);
             }
             Object wallet = (this.fetchWallet("cancelOrders", parameters)).join();
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "walletAddress", Helpers.GetValue(wallet, "walletAddress") );
                 put( "walletId", Helpers.GetValue(wallet, "walletId") );
             }};
@@ -2276,7 +2276,7 @@ final Object finalMarketSymbol = marketSymbol;
             {
                 Object status = Helpers.GetValue(canceledOrders, i);
                 final Object finalOutcomeObj = outcomeObj;
-                Object order = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> order = new java.util.HashMap<String, Object>() {{
                     put( "id", status );
                     put( "clientOrderId", null );
                     put( "info", status );

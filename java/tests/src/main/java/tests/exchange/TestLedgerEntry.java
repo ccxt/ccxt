@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestLedgerEntry extends BaseTest {
     public static void testLedgerEntry(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode, Object now)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "id", "x1234" );
             put( "currency", "BTC" );

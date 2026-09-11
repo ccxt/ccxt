@@ -14,7 +14,7 @@ import io.github.ccxt.base.Precise;
 public class TestLiquidation extends BaseTest {
     public static void testLiquidation(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object symbol)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "symbol", "ETH/BTC" );
             put( "contracts", exchange.parseNumber("1.234") );

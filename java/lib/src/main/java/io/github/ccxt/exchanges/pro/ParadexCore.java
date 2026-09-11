@@ -67,13 +67,13 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
-            Object messageHash = "authenticated";
+            String messageHash = (String) "authenticated";
             Object future = client.reusableFuture("authenticated");
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 Object token = (this.authenticateRest()).join();
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "jsonrpc", "2.0" );
                     put( "id", ParadexCore.this.requestId() );
                     put( "method", "auth" );
@@ -135,7 +135,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object messageHash = "trades.";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 messageHash = Helpers.add(messageHash, Helpers.GetValue(market, "id"));
             } else
             {
@@ -143,7 +143,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalMessageHash = messageHash;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -217,10 +217,10 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object messageHash = Helpers.add(Helpers.add("order_book.", Helpers.GetValue(market, "id")), ".snapshot@15@100ms");
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            String messageHash = (String) Helpers.add(Helpers.add("order_book.", Helpers.GetValue(market, "id")), ".snapshot@15@100ms");
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -267,14 +267,14 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "market");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object timestamp = this.safeInteger(data, "last_updated_at");
         Object symbol = Helpers.GetValue(market, "symbol");
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
-        Object orderbookData = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> orderbookData = new java.util.HashMap<String, Object>() {{
             put( "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
             put( "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()) );
         }};
@@ -293,7 +293,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
                 ((java.util.List<Object>)Helpers.GetValue(orderbookData, "asks")).add(new java.util.ArrayList<Object>(java.util.Arrays.asList(price, size)));
             }
         }
-        Object orderbook = Helpers.GetValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         Object snapshot = this.parseOrderBook(orderbookData, symbol, timestamp, "bids", "asks");
         Helpers.addElementToObject(snapshot, "nonce", this.safeInteger(data, "seq_no"));
         Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
@@ -324,7 +324,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object channel = "markets_summary";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalChannel = channel;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -361,7 +361,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object channel = "markets_summary";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalChannel = channel;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -383,7 +383,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object newTicker = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object result = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newTicker, "symbol"), newTicker);
                 return result;
             }
@@ -421,7 +421,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object channel = "orders.";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 symbol = Helpers.GetValue(market, "symbol");
                 channel = Helpers.add(channel, Helpers.GetValue(market, "id"));
                 messageHash = Helpers.add(messageHash, Helpers.add(":", symbol));
@@ -431,7 +431,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             }
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalChannel = channel;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -525,7 +525,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "symbol");
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object channel = this.safeString(parameters, "channel");
         Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
@@ -559,7 +559,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object channel = "funding_data";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalChannel = channel;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -596,7 +596,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object channel = "funding_data";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             final Object finalChannel = channel;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "method", "subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{
@@ -625,7 +625,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object newFundingRates = (this.watchMultiple(url, messageHashes, this.deepExtend(request, parameters), messageHashes, null)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object result = new java.util.HashMap<String, Object>() {{}};
+                java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Helpers.addElementToObject(result, Helpers.GetValue(newFundingRates, "symbol"), newFundingRates);
                 return result;
             }
@@ -788,7 +788,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
             Object channel = this.safeString(data, "channel");
             Object parts = Helpers.split(((String)channel), ".");
             Object name = this.safeString(parts, 0);
-            Object methods = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "trades", "handleTrade");
                 put( "order_book", "handleOrderBook");
                 put( "markets_summary", "handleTicker");

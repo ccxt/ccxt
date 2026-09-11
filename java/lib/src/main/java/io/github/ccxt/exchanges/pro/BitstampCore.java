@@ -75,12 +75,12 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("orderbook:", symbol);
+            String messageHash = (String) Helpers.add("orderbook:", symbol);
             Object channel = Helpers.add("diff_order_book_", Helpers.GetValue(market, "id"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );
                 put( "data", new java.util.HashMap<String, Object>() {{
                     put( "channel", channel );
@@ -126,7 +126,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         Object parts = Helpers.split(channel, "_");
         Object marketId = this.safeString(parts, 3);
         String symbol = (String) this.safeSymbol(marketId);
-        Object storedOrderBook = this.safeValue(this.orderbooks, symbol);
+        io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
         Object nonce = this.safeValue(storedOrderBook, "nonce");
         Object delta = this.safeValue(message, "data");
         Object deltaNonce = this.safeInteger(delta, "microtimestamp");
@@ -134,7 +134,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        Object messageHash = Helpers.add("orderbook:", symbol);
+        String messageHash = (String) Helpers.add("orderbook:", symbol);
         if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
         {
             Object cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(storedOrderBook, "cache")));
@@ -226,12 +226,12 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("trades:", symbol);
+            String messageHash = (String) Helpers.add("trades:", symbol);
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object channel = Helpers.add("live_trades_", Helpers.GetValue(market, "id"));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );
                 put( "data", new java.util.HashMap<String, Object>() {{
                     put( "channel", channel );
@@ -323,9 +323,9 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         }
         Object parts = Helpers.split(channel, "_");
         Object marketId = this.safeString(parts, 2);
-        Object market = this.safeMarket(marketId);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object messageHash = Helpers.add("trades:", symbol);
+        String messageHash = (String) Helpers.add("trades:", symbol);
         Object data = this.safeValue(message, "data");
         Object trade = this.parseWsTrade(data, market);
         Object tradesArray = this.safeValue(this.trades, symbol);
@@ -366,7 +366,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object channel = "private-my_orders";
             Object messageHash = Helpers.add(Helpers.add(channel, "_"), Helpers.GetValue(market, "id"));
@@ -418,7 +418,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         Object stored = this.orders;
         Object subscription = ((Helpers.isTrue((Helpers.isEqual(channel, null))))) ? null : this.safeValue(client.subscriptions, channel);
         Object symbol = this.safeString(subscription, "symbol");
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Helpers.addElementToObject(order, "event", this.safeString(message, "event"));
         Object parsed = this.parseWsOrder(order, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -597,7 +597,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        Object methods = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "live_trades", "handleTrade");
             put( "diff_order_book", "handleOrderBook");
             put( "private-my_orders", "handleOrders");
@@ -701,7 +701,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
                 // the flight is registered in client.futures and settled through
                 // client.resolve / client.reject, so every mutation of that map
                 // goes through the client's own accessors in the ported languages
-                Object messageHash = "authenticateFlight";
+                String messageHash = (String) "authenticateFlight";
                 Client client = this.client("authenticationFlights");
                 if (Helpers.isTrue(Helpers.inOp(client.futures, messageHash)))
                 {
@@ -713,7 +713,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
                 io.github.ccxt.ws.Future future = client.reusableFuture((String)messageHash);
                 try
                 {
-                    Object response = (this.privatePostWebsocketsToken(parameters)).join();
+                    java.util.Map<String, Object> response = (this.privatePostWebsocketsToken(parameters)).join();
                     //
                     // {
                     //     "valid_sec":60,
@@ -759,7 +759,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             (this.authenticate()).join();
             messageHash = Helpers.add(messageHash, Helpers.add("-", Helpers.GetValue(this.options, "userId")));
             final Object finalMessageHash = messageHash;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "bts:subscribe" );
                 put( "data", new java.util.HashMap<String, Object>() {{
                     put( "channel", finalMessageHash );

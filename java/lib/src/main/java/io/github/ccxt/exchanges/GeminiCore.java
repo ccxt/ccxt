@@ -723,7 +723,7 @@ public class GeminiCore extends GeminiApi
         Object isFiat = Helpers.isTrue((!Helpers.isEqual(fiatFlag, null))) && Helpers.isTrue((!Helpers.isEqual(fiatFlag, "")));
         Object type = ((Helpers.isTrue(isFiat))) ? "fiat" : "crypto";
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(rawCurrency, 5)));
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         String networkId = this.safeString(rawCurrency, 9);
         Object networkCode = null;
         if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
@@ -832,7 +832,7 @@ public class GeminiCore extends GeminiApi
             // skip the first element (empty string)
             for (var i = 1; Helpers.isLessThan(i, numRows); i++)
             {
-                Object row = Helpers.GetValue(rows, i);
+                String row = (String) Helpers.GetValue(rows, i);
                 Object cells = Helpers.split(row, "</td>\n"); // eslint-disable-line quotes
                 Object numCells = Helpers.getArrayLength(cells);
                 if (Helpers.isTrue(Helpers.isLessThan(numCells, 5)))
@@ -921,7 +921,7 @@ public class GeminiCore extends GeminiApi
 
     public Object parseMarketActive(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "open", true );
             put( "closed", false );
             put( "cancel_only", true );
@@ -952,11 +952,11 @@ public class GeminiCore extends GeminiApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fetchUsdtMarkets)); i++)
             {
                 Object marketId = Helpers.GetValue(fetchUsdtMarkets, i);
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "symbol", marketId );
                 }};
                 // don't use Promise.all here, for some reason the exchange can't handle it and crashes
-                Object rawResponse = (this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> rawResponse = (this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters))).join();
                 ((java.util.List<Object>)result).add(this.parseMarket(rawResponse));
             }
             return result;
@@ -970,7 +970,7 @@ public class GeminiCore extends GeminiApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object marketIdsRaw = (this.publicGetV1Symbols(parameters)).join();
+            java.util.List<Object> marketIdsRaw = (this.publicGetV1Symbols(parameters)).join();
             //
             //     [
             //         "btcusd",
@@ -1000,7 +1000,7 @@ public class GeminiCore extends GeminiApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
                 {
                     Object marketId = Helpers.GetValue(marketIds, i);
-                    Object request = new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                         put( "symbol", marketId );
                     }};
                     ((java.util.List<Object>)promises).add(this.publicGetV1SymbolsDetailsSymbol(this.extend(request, parameters)));
@@ -1247,8 +1247,8 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1256,7 +1256,7 @@ public class GeminiCore extends GeminiApi
                 Helpers.addElementToObject(request, "limit_bids", limit);
                 Helpers.addElementToObject(request, "limit_asks", limit);
             }
-            Object response = (this.publicGetV1BookSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1BookSymbol(this.extend(request, parameters))).join();
             return this.parseOrderBook(response, Helpers.GetValue(market, "symbol"), null, "bids", "asks", "price", "amount");
         });
 
@@ -1272,11 +1272,11 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetV1PubtickerSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1PubtickerSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "bid":"9117.95",
@@ -1304,11 +1304,11 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetV2TickerSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV2TickerSymbol(this.extend(request, parameters))).join();
             //
             //     {
             //         "symbol":"BTCUSD",
@@ -1503,7 +1503,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetV1Pricefeed(parameters)).join();
+            java.util.List<Object> response = (this.publicGetV1Pricefeed(parameters)).join();
             //
             //     [
             //         {
@@ -1566,7 +1566,7 @@ public class GeminiCore extends GeminiApi
         String orderId = this.safeString(trade, "order_id");
         String feeCurrencyId = this.safeString(trade, "fee_currency");
         String feeCurrencyCode = (String) this.safeCurrencyCode(feeCurrencyId);
-        Object fee = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{
             put( "cost", GeminiCore.this.safeString(trade, "fee_amount") );
             put( "currency", feeCurrencyCode );
         }};
@@ -1614,8 +1614,8 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -1626,7 +1626,7 @@ public class GeminiCore extends GeminiApi
             {
                 Helpers.addElementToObject(request, "timestamp", since);
             }
-            Object response = (this.publicGetV1TradesSymbol(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetV1TradesSymbol(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1647,7 +1647,7 @@ public class GeminiCore extends GeminiApi
 
     public Object parseBalance(Object response)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
@@ -1684,7 +1684,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostV1Notionalvolume(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostV1Notionalvolume(parameters)).join();
             //
             //      {
             //          "web_maker_fee_bps": 25,
@@ -1719,8 +1719,8 @@ public class GeminiCore extends GeminiApi
             Object takerString = Precise.stringDiv(takerBps, "10000");
             Object maker = this.parseNumber(makerString);
             Object taker = this.parseNumber(takerString);
-            Object result = new java.util.HashMap<String, Object>() {{}};
-            Object symbols = this.symbols;
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
+            java.util.List<Object> symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -1756,7 +1756,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostV1Balances(parameters)).join();
+            java.util.Map<String, Object> response = (this.privatePostV1Balances(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -1963,10 +1963,10 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privatePostV1OrderStatus(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1OrderStatus(this.extend(request, parameters))).join();
             //
             //      {
             //          "order_id":"106028543717",
@@ -2019,7 +2019,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privatePostV1Orders(parameters)).join();
+            java.util.List<Object> response = (this.privatePostV1Orders(parameters)).join();
             //
             //      [
             //          {
@@ -2089,11 +2089,11 @@ public class GeminiCore extends GeminiApi
             {
                 clientOrderId = String.valueOf(this.milliseconds());
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object amountString = this.amountToPrecision(symbol, amount);
             Object priceString = this.priceToPrecision(symbol, price);
             final Object finalClientOrderId = clientOrderId;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "client_order_id", finalClientOrderId );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "amount", amountString );
@@ -2144,7 +2144,7 @@ public class GeminiCore extends GeminiApi
                     Helpers.addElementToObject(request, "options", new java.util.ArrayList<Object>(java.util.Arrays.asList(options)));
                 }
             }
-            Object response = (this.privatePostV1OrderNew(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1OrderNew(this.extend(request, parameters))).join();
             //
             //      {
             //          "order_id":"106027397702",
@@ -2194,10 +2194,10 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privatePostV1OrderCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1OrderCancel(this.extend(request, parameters))).join();
             //
             //      {
             //          "order_id":"106028543717",
@@ -2255,8 +2255,8 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -2267,7 +2267,7 @@ public class GeminiCore extends GeminiApi
             {
                 Helpers.addElementToObject(request, "timestamp", this.parseToInt(Helpers.divide(since, 1000)));
             }
-            Object response = (this.privatePostV1Mytrades(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostV1Mytrades(this.extend(request, parameters))).join();
             return this.parseTrades(response, market, since, limit);
         });
 
@@ -2300,13 +2300,13 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
                 put( "address", address );
             }};
-            Object response = (this.privatePostV1WithdrawCurrency(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1WithdrawCurrency(this.extend(request, parameters))).join();
             //
             //   for BTC
             //     {
@@ -2374,7 +2374,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit_transfers", limit);
@@ -2383,7 +2383,7 @@ public class GeminiCore extends GeminiApi
             {
                 Helpers.addElementToObject(request, "timestamp", since);
             }
-            Object response = (this.privatePostV1Transfers(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostV1Transfers(this.extend(request, parameters))).join();
             return this.parseTransactions(response);
         });
 
@@ -2454,7 +2454,7 @@ public class GeminiCore extends GeminiApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "Advanced", "ok" );
             put( "Complete", "ok" );
         }};
@@ -2532,7 +2532,7 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             code = Helpers.GetValue(currency, "code");
             Object networkCode = null;
             var networkCodeparametersVariable = this.handleNetworkCodeAndParams(parameters);
@@ -2543,10 +2543,10 @@ public class GeminiCore extends GeminiApi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddresses() requires a network parameter")) ;
             }
             Object networkId = this.networkCodeToId(networkCode, Helpers.GetValue(currency, "code"));
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "network", networkId );
             }};
-            Object response = (this.privatePostV1AddressesNetwork(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privatePostV1AddressesNetwork(this.extend(request, parameters))).join();
             final Object finalNetworkCode = networkCode;
             final Object finalCode = code;
             Object results = this.parseDepositAddresses(response, new java.util.ArrayList<Object>(java.util.Arrays.asList(code)), false, new java.util.HashMap<String, Object>() {{
@@ -2572,7 +2572,7 @@ public class GeminiCore extends GeminiApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object apiKey = this.apiKey;
+            String apiKey = this.apiKey;
             if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(apiKey, "account"), 0)))
             {
                 throw new AuthenticationError((String)Helpers.add(this.id, " sign() requires an account-key, master-keys are not-supported")) ;
@@ -2668,11 +2668,11 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privatePostV1DepositCurrencyNewAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1DepositCurrencyNewAddress(this.extend(request, parameters))).join();
             String address = this.safeString(response, "address");
             this.checkAddress(address);
             return new java.util.HashMap<String, Object>() {{
@@ -2711,13 +2711,13 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "timeframe", timeframeId );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetV2CandlesSymbolTimeframe(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetV2CandlesSymbolTimeframe(this.extend(request, parameters))).join();
             //
             //     [
             //         [1591515000000,0.02509,0.02509,0.02509,0.02509,0],
@@ -2754,11 +2754,11 @@ public class GeminiCore extends GeminiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetV1RiskstatsSymbol(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1RiskstatsSymbol(this.extend(request, parameters))).join();
             //
             //    {
             //        product_type: 'PerpetualSwapContract',

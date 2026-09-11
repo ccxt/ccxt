@@ -456,7 +456,7 @@ public Object describe()
             return new java.util.ArrayList<Object>(java.util.Arrays.asList());
         }
         Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object seen = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
         Object keys = Helpers.objectKeys(this.events);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
@@ -600,7 +600,7 @@ public Object describe()
 
     public String shortenSlug(Object slug)
     {
-        Object replacements = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> replacements = new java.util.HashMap<String, Object>() {{
             put( "federal-reserve", "fed" );
             put( "interest-rates", "rates" );
             put( "interest-rate", "rate" );
@@ -660,7 +660,7 @@ public Object describe()
         Object parts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawParts)); i++)
         {
-            Object w = Helpers.GetValue(rawParts, i);
+            String w = (String) Helpers.GetValue(rawParts, i);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThan(((String)w).length(), 0)) && !Helpers.isTrue(this.inArray(w, stopWords))))
             {
                 ((java.util.List<Object>)parts).add(w);
@@ -1028,7 +1028,7 @@ public Object describe()
         Object letters = "abcdefghijklmnopqrstuvwxyz";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawWords)); i++)
         {
-            Object word = Helpers.GetValue(rawWords, i);
+            String word = (String) Helpers.GetValue(rawWords, i);
             // inline .length so the php transpiler emits strlen() — the standalone
             // `const n = str.length;` statement form wrongly becomes count() (array)
             if (Helpers.isTrue(Helpers.isEqual(((String)word).length(), 0)))
@@ -1865,7 +1865,7 @@ public Object describe()
         final Object finalCost = cost;
         final Object finalFee = fee;
         final Object finalPostOnly = postOnly;
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "id", PredictionExchange.this.safeString(outcomeOrder, "id") );
             put( "clientOrderId", PredictionExchange.this.safeString(outcomeOrder, "clientOrderId") );
             put( "timestamp", timestamp );
@@ -1917,7 +1917,7 @@ public Object describe()
         final Object finalPrice = price;
         final Object finalAmount = amount;
         final Object finalCost = cost;
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "id", PredictionExchange.this.safeString(trade, "id") );
             put( "order", PredictionExchange.this.safeString(trade, "order") );
             put( "timestamp", timestamp );
@@ -1975,7 +1975,7 @@ public Object describe()
         final Object finalChange = change;
         final Object finalPercentage = percentage;
         final Object finalAverage = average;
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "timestamp", timestamp );
             put( "datetime", finalDatetime );
             put( "high", PredictionExchange.this.safeNumber(ticker, "high") );
@@ -2014,7 +2014,7 @@ public Object describe()
             datetime = this.iso8601(timestamp);
         }
         final Object finalDatetime = datetime;
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "id", PredictionExchange.this.safeString(position, "id") );
             put( "timestamp", timestamp );
             put( "datetime", finalDatetime );
@@ -2349,13 +2349,13 @@ public Object describe()
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object payload = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> payload = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "id", 1 );
                 put( "method", method );
                 put( "params", rpcParams );
             }};
-            Object headers = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
             }};
             Object response = (this.fetch(rpcUrl, "POST", headers, this.json(payload))).join();
@@ -2378,7 +2378,7 @@ public Object describe()
 
             Object nonce = (this.ethRpc(rpcUrl, "eth_getTransactionCount", new java.util.ArrayList<Object>(java.util.Arrays.asList(fromAddress, "pending")))).join();
             Object gasPrice = (this.ethRpc(rpcUrl, "eth_gasPrice", new java.util.ArrayList<Object>(java.util.Arrays.asList()))).join();
-            Object tx = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> tx = new java.util.HashMap<String, Object>() {{
                 put( "chainId", chainId );
                 put( "nonce", nonce );
                 put( "maxPriorityFeePerGas", gasPrice );

@@ -76,10 +76,10 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            String messageHash = (String) Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", Helpers.add(Helpers.GetValue(market, "id"), "-orderbook") );
             }};
@@ -126,7 +126,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
             orderbook = Helpers.GetValue(this.orderbooks, symbol);
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         }
-        Object messageHash = Helpers.add("orderbook:", symbol);
+        String messageHash = (String) Helpers.add("orderbook:", symbol);
         client.resolve(orderbook, messageHash);
     }
 
@@ -153,11 +153,11 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
+            String messageHash = (String) Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "channel", Helpers.add(Helpers.GetValue(market, "id"), "-trades") );
             }};
@@ -203,7 +203,7 @@ public class CoincheckCore extends io.github.ccxt.exchanges.Coincheck
             Object trade = this.parseWsTrade(data);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
-        Object messageHash = Helpers.add("trade:", symbol);
+        String messageHash = (String) Helpers.add("trade:", symbol);
         client.resolve(stored, messageHash);
     }
 

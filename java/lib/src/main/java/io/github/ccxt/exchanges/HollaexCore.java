@@ -378,7 +378,7 @@ public class HollaexCore extends HollaexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetConstants(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetConstants(parameters)).join();
             //
             //     {
             //         "coins": {
@@ -504,7 +504,7 @@ public class HollaexCore extends HollaexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetConstants(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetConstants(parameters)).join();
             //
             //    {
             //        "coins": {
@@ -586,7 +586,7 @@ public class HollaexCore extends HollaexApi
         String rawType = this.safeString(rawCurrency, "type");
         Object type = ((Helpers.isTrue((Helpers.isEqual(rawType, "blockchain"))))) ? "crypto" : "other";
         Object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new java.util.HashMap<String, Object>() {{}});
-        Object networks = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object networkIds = Helpers.objectKeys(rawNetworks);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
         {
@@ -662,8 +662,8 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetOrderbooks(parameters)).join();
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> response = (this.publicGetOrderbooks(parameters)).join();
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object marketIds = Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
@@ -699,11 +699,11 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetOrderbook(this.extend(request, parameters))).join();
             //
             //     {
             //         "btc-usdt": {
@@ -749,11 +749,11 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             //
             //     {
             //         "open": 8615.55,
@@ -791,7 +791,7 @@ public class HollaexCore extends HollaexApi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object response = (this.publicGetTickers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             //
             //     {
             //         "bch-usdt": {
@@ -816,14 +816,14 @@ public class HollaexCore extends HollaexApi
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         Object keys = Helpers.objectKeys(tickers);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
             Object ticker = Helpers.GetValue(tickers, key);
             String marketId = this.safeString(ticker, "symbol", key);
-            Object market = this.safeMarket(marketId, null, "-");
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
             Object symbol = Helpers.GetValue(market, "symbol");
             Helpers.addElementToObject(result, symbol, this.extend(this.parseTicker(ticker, market), parameters));
         }
@@ -911,11 +911,11 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "btc-usdt": [
@@ -1016,7 +1016,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetTiers(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetTiers(parameters)).join();
             //
             //     {
             //         "1": {
@@ -1049,11 +1049,11 @@ public class HollaexCore extends HollaexApi
             Object fees = this.safeValue(firstTier, "fees", new java.util.HashMap<String, Object>() {{}});
             Object makerFees = this.safeValue(fees, "maker", new java.util.HashMap<String, Object>() {{}});
             Object takerFees = this.safeValue(fees, "taker", new java.util.HashMap<String, Object>() {{}});
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(this.symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(this.symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 String makerString = this.safeString(makerFees, Helpers.GetValue(market, "id"));
                 String takerString = this.safeString(takerFees, Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(result, symbol, new java.util.HashMap<String, Object>() {{
@@ -1096,8 +1096,8 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "resolution", HollaexCore.this.safeString(HollaexCore.this.timeframes, timeframe, timeframe) );
             }};
@@ -1125,7 +1125,7 @@ public class HollaexCore extends HollaexApi
             Helpers.addElementToObject(request, "from", this.parseToInt(Helpers.divide(start, 1000))); // convert to seconds
             Helpers.addElementToObject(request, "to", this.parseToInt(Helpers.divide(until, 1000))); // convert to seconds
             parameters = this.omit(parameters, "until");
-            Object response = (this.publicGetChart(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.publicGetChart(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1164,7 +1164,7 @@ public class HollaexCore extends HollaexApi
     public Object parseBalance(Object response)
     {
         Long timestamp = this.parse8601(this.safeString(response, "updated_at"));
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
             put( "datetime", HollaexCore.this.iso8601(timestamp) );
@@ -1208,7 +1208,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetUserBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetUserBalance(parameters)).join();
             //
             //     {
             //         "updated_at": "2020-03-02T22:27:38.428Z",
@@ -1247,10 +1247,10 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privateGetOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "id": "string",
@@ -1300,7 +1300,7 @@ public class HollaexCore extends HollaexApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "open", true );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
@@ -1328,7 +1328,7 @@ public class HollaexCore extends HollaexApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "open", false );
             }};
             return (this.fetchOrders(symbol, since, limit, this.extend(request, parameters))).join();
@@ -1357,10 +1357,10 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privateGetOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrder(this.extend(request, parameters))).join();
             //             {
             //                 "id": "string",
             //                 "side": "sell",
@@ -1418,7 +1418,7 @@ public class HollaexCore extends HollaexApi
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -1432,7 +1432,7 @@ public class HollaexCore extends HollaexApi
             {
                 Helpers.addElementToObject(request, "limit", limit); // default 50, max 100
             }
-            Object response = (this.privateGetOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetOrders(this.extend(request, parameters))).join();
             //
             //     {
             //         "count": 1,
@@ -1470,7 +1470,7 @@ public class HollaexCore extends HollaexApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "new", "open" );
             put( "pfilled", "open" );
             put( "filled", "closed" );
@@ -1573,9 +1573,9 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalType = type;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "side", side );
                 put( "size", HollaexCore.this.amountToPrecision(symbol, amount) );
@@ -1601,7 +1601,7 @@ public class HollaexCore extends HollaexApi
     }});
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("postOnly", "timeInForce", "stopPrice", "triggerPrice", "stop")));
-            Object response = (this.privatePostOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "fee": 0,
@@ -1651,10 +1651,10 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateDeleteOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "title": "string",
@@ -1697,11 +1697,11 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             market = this.market(symbol);
             Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
-            Object response = (this.privateDeleteOrderAll(this.extend(request, parameters))).join();
+            java.util.List<Object> response = (this.privateDeleteOrderAll(this.extend(request, parameters))).join();
             //
             //     [
             //         {
@@ -1746,7 +1746,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1761,7 +1761,7 @@ public class HollaexCore extends HollaexApi
             {
                 Helpers.addElementToObject(request, "start_date", this.iso8601(since));
             }
-            Object response = (this.privateGetUserTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetUserTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "count": 1,
@@ -1842,7 +1842,7 @@ public class HollaexCore extends HollaexApi
             }
             String network = this.safeString(parameters, "network");
             parameters = this.omit(parameters, "network");
-            Object response = (this.privateGetUser(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetUser(parameters)).join();
             //
             //     {
             //         "id":620,
@@ -1919,7 +1919,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -1934,7 +1934,7 @@ public class HollaexCore extends HollaexApi
             {
                 Helpers.addElementToObject(request, "start_date", this.iso8601(since));
             }
-            Object response = (this.privateGetUserDeposits(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetUserDeposits(this.extend(request, parameters))).join();
             //
             //     {
             //         "count": 1,
@@ -1985,7 +1985,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "transaction_id", id );
             }};
             Object currency = null;
@@ -1994,7 +1994,7 @@ public class HollaexCore extends HollaexApi
                 currency = this.currency(code);
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
             }
-            Object response = (this.privateGetUserWithdrawals(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetUserWithdrawals(this.extend(request, parameters))).join();
             //
             //     {
             //         "count": 1,
@@ -2049,7 +2049,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object currency = null;
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
@@ -2064,7 +2064,7 @@ public class HollaexCore extends HollaexApi
             {
                 Helpers.addElementToObject(request, "start_date", this.iso8601(since));
             }
-            Object response = (this.privateGetUserWithdrawals(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetUserWithdrawals(this.extend(request, parameters))).join();
             //
             //     {
             //         "count": 1,
@@ -2236,7 +2236,7 @@ public class HollaexCore extends HollaexApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             if (Helpers.isTrue(!Helpers.isEqual(tag, null)))
             {
                 address = Helpers.add(address, Helpers.add(":", tag));
@@ -2249,13 +2249,13 @@ public class HollaexCore extends HollaexApi
             parameters = this.omit(parameters, "network");
             final Object finalAddress = address;
             final Object finalNetwork = network;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "amount", amount );
                 put( "address", finalAddress );
                 put( "network", HollaexCore.this.networkCodeToId(finalNetwork, code) );
             }};
-            Object response = (this.privatePostUserWithdrawal(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostUserWithdrawal(this.extend(request, parameters))).join();
             //
             //     {
             //         "message": "Withdrawal request is in the queue and will be processed.",
@@ -2304,7 +2304,7 @@ public class HollaexCore extends HollaexApi
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
                 put( "fee", null );
@@ -2367,7 +2367,7 @@ public class HollaexCore extends HollaexApi
 
             Object codes = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetConstants(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetConstants(parameters)).join();
             //
             //     {
             //         "coins":{

@@ -22,7 +22,7 @@ public class TestTrade extends BaseTest {
                 put( "fees", true );
             }}, skippedProperties);
         }
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "id", "12345-67890:09876/54321" );
             put( "timestamp", 1502962946216L );

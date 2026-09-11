@@ -923,7 +923,7 @@ public class DeribitCore extends DeribitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetGetTime(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetGetTime(parameters)).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -953,7 +953,7 @@ public class DeribitCore extends DeribitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetGetCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetGetCurrencies(parameters)).join();
             //
             //    {
             //        "jsonrpc": "2.0",
@@ -1040,7 +1040,7 @@ public class DeribitCore extends DeribitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetStatus(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetStatus(parameters)).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -1086,7 +1086,7 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.privateGetGetSubaccounts(parameters)).join();
+            java.util.Map<String, Object> response = (this.privateGetGetSubaccounts(parameters)).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -1168,18 +1168,18 @@ public class DeribitCore extends DeribitApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object instrumentsResponses = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object parsedMarkets = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> parsedMarkets = new java.util.HashMap<String, Object>() {{}};
             Object fetchAllMarkets = null;
             var fetchAllMarketsparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
             fetchAllMarkets = ((java.util.List<Object>) fetchAllMarketsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) fetchAllMarketsparametersVariable).get(1);
             if (Helpers.isTrue(fetchAllMarkets))
             {
-                Object instrumentsResponse = (this.publicGetGetInstruments(parameters)).join();
+                java.util.Map<String, Object> instrumentsResponse = (this.publicGetGetInstruments(parameters)).join();
                 ((java.util.List<Object>)instrumentsResponses).add(instrumentsResponse);
             } else
             {
-                Object currenciesResponse = (this.publicGetGetCurrencies(parameters)).join();
+                java.util.Map<String, Object> currenciesResponse = (this.publicGetGetCurrencies(parameters)).join();
                 //
                 //     {
                 //         "jsonrpc": "2.0",
@@ -1208,10 +1208,10 @@ public class DeribitCore extends DeribitApi
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currenciesResult)); i++)
                 {
                     String currencyId = this.safeString(Helpers.GetValue(currenciesResult, i), "currency");
-                    Object request = new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                         put( "currency", currencyId );
                     }};
-                    Object instrumentsResponse = (this.publicGetGetInstruments(this.extend(request, parameters))).join();
+                    java.util.Map<String, Object> instrumentsResponse = (this.publicGetGetInstruments(this.extend(request, parameters))).join();
                     //
                     //     {
                     //         "jsonrpc":"2.0",
@@ -1438,7 +1438,7 @@ public class DeribitCore extends DeribitApi
 
     public Object parseBalance(Object balance)
     {
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", balance );
         }};
         Object summaries = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1488,7 +1488,7 @@ public class DeribitCore extends DeribitApi
             }
             String code = this.safeString(parameters, "code");
             parameters = this.omit(parameters, "code");
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 Helpers.addElementToObject(request, "currency", this.currencyId(code));
@@ -1568,11 +1568,11 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privateGetCreateDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetCreateDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -1618,11 +1618,11 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.privateGetGetCurrentDepositAddress(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetGetCurrentDepositAddress(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -1753,11 +1753,11 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -1821,7 +1821,7 @@ public class DeribitCore extends DeribitApi
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
                 {
-                    Object market = this.market(Helpers.GetValue(symbols, i));
+                    java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
                     if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue(!Helpers.isEqual(code, Helpers.GetValue(market, "base")))))
                     {
                         throw new BadRequest((String)Helpers.add(this.id, " fetchTickers the base currency must be the same for all symbols, this endpoint only supports one base currency at a time. Read more about it here: https://docs.deribit.com/#public-get_book_summary_by_currency")) ;
@@ -1837,8 +1837,8 @@ public class DeribitCore extends DeribitApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchTickers requires a currency/code (eg: BTC/ETH/USDT) parameter to fetch tickers for")) ;
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(type, null)))
@@ -1859,7 +1859,7 @@ public class DeribitCore extends DeribitApi
                     Helpers.addElementToObject(request, "kind", requestType);
                 }
             }
-            Object response = (this.publicGetGetBookSummaryByCurrency(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetGetBookSummaryByCurrency(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -1891,7 +1891,7 @@ public class DeribitCore extends DeribitApi
             //     }
             //
             Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object tickers = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object ticker = this.parseTicker(Helpers.GetValue(result, i));
@@ -1941,8 +1941,8 @@ public class DeribitCore extends DeribitApi
             {
                 return (this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, 5000)).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "resolution", DeribitCore.this.safeString(DeribitCore.this.timeframes, timeframe, timeframe) );
             }};
@@ -1974,7 +1974,7 @@ public class DeribitCore extends DeribitApi
                 parameters = this.omit(parameters, "until");
                 Helpers.addElementToObject(request, "end_timestamp", until);
             }
-            Object response = (this.publicGetGetTradingviewChartData(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetGetTradingviewChartData(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -2125,8 +2125,8 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "include_old", true );
             }};
@@ -2203,12 +2203,12 @@ public class DeribitCore extends DeribitApi
                 (this.loadMarkets()).join();
             }
             Object code = this.codeFromOptions("fetchTradingFees", parameters);
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "extended", true );
             }};
-            Object response = (this.privateGetGetAccountSummary(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetGetAccountSummary(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -2260,9 +2260,9 @@ public class DeribitCore extends DeribitApi
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object fees = this.safeList(result, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object perpetualFee = new java.util.HashMap<String, Object>() {{}};
-            Object futureFee = new java.util.HashMap<String, Object>() {{}};
-            Object optionFee = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> perpetualFee = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> futureFee = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> optionFee = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
             {
                 Object fee = Helpers.GetValue(fees, i);
@@ -2290,12 +2290,12 @@ public class DeribitCore extends DeribitApi
                     }};
                 }
             }
-            Object parsedFees = new java.util.HashMap<String, Object>() {{}};
-            Object symbols = this.symbols;
+            java.util.Map<String, Object> parsedFees = new java.util.HashMap<String, Object>() {{}};
+            java.util.List<Object> symbols = this.symbols;
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object fee = new java.util.HashMap<String, Object>() {{
                     put( "info", market );
                     put( "symbol", symbol );
@@ -2342,15 +2342,15 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "depth", limit);
             }
-            Object response = (this.publicGetGetOrderBook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetGetOrderBook(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -2402,7 +2402,7 @@ public class DeribitCore extends DeribitApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "open", "open" );
             put( "cancelled", "canceled" );
             put( "filled", "closed" );
@@ -2414,7 +2414,7 @@ public class DeribitCore extends DeribitApi
 
     public String parseTimeInForce(Object timeInForce)
     {
-        Object timeInForces = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
             put( "good_til_cancelled", "GTC" );
             put( "fill_or_kill", "FOK" );
             put( "immediate_or_cancel", "IOC" );
@@ -2424,7 +2424,7 @@ public class DeribitCore extends DeribitApi
 
     public String parseOrderType(Object orderType)
     {
-        Object orderTypes = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> orderTypes = new java.util.HashMap<String, Object>() {{
             put( "stop_limit", "limit" );
             put( "take_limit", "limit" );
             put( "stop_market", "market" );
@@ -2568,7 +2568,7 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
             Object market = null;
@@ -2576,7 +2576,7 @@ public class DeribitCore extends DeribitApi
             {
                 market = this.market(symbol);
             }
-            Object response = (this.privateGetGetOrderState(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetGetOrderState(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -2638,9 +2638,9 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             final Object finalType = type;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "amount", DeribitCore.this.amountToPrecision(symbol, amount) );
                 put( "type", finalType );
@@ -2837,7 +2837,7 @@ public class DeribitCore extends DeribitApi
                 (this.loadMarkets()).join();
             }
             final Object finalAmount = amount;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
                 put( "amount", DeribitCore.this.amountToPrecision(symbol, finalAmount) );
             }};
@@ -2852,7 +2852,7 @@ public class DeribitCore extends DeribitApi
                 Helpers.addElementToObject(request, "trigger_offset", this.parseToNumeric(trailingAmount));
                 parameters = this.omit(parameters, "trigger_offset");
             }
-            Object response = (this.privateGetEdit(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetEdit(this.extend(request, parameters))).join();
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object order = this.safeValue(result, "order");
             Object trades = this.safeValue(result, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2883,10 +2883,10 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privateGetCancel(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetCancel(this.extend(request, parameters))).join();
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result);
         });
@@ -2914,14 +2914,14 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 response = (this.privateGetCancelAll(this.extend(request, parameters))).join();
             } else
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Helpers.addElementToObject(request, "instrument_name", Helpers.GetValue(market, "id"));
                 response = (this.privateGetCancelAllByInstrument(this.extend(request, parameters))).join();
             }
@@ -2968,13 +2968,13 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 Object code = this.codeFromOptions("fetchOpenOrders", parameters);
-                Object currency = this.currency(code);
+                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
                 response = (this.privateGetGetOpenOrdersByCurrency(this.extend(request, parameters))).join();
             } else
@@ -3014,7 +3014,7 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object market = null;
             Object response = null;
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
@@ -3027,7 +3027,7 @@ public class DeribitCore extends DeribitApi
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 Object code = this.codeFromOptions("fetchClosedOrders", parameters);
-                Object currency = this.currency(code);
+                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
                 response = (this.privateGetGetOrderHistoryByCurrency(this.extend(request, parameters))).join();
             } else
@@ -3067,10 +3067,10 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }};
-            Object response = (this.privateGetGetUserTradesByOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetGetUserTradesByOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -3137,7 +3137,7 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "include_old", true );
             }};
             Object market = null;
@@ -3149,7 +3149,7 @@ public class DeribitCore extends DeribitApi
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
             {
                 Object code = this.codeFromOptions("fetchMyTrades", parameters);
-                Object currency = this.currency(code);
+                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
                 if (Helpers.isTrue(Helpers.isEqual(since, null)))
                 {
@@ -3240,15 +3240,15 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
-            Object response = (this.privateGetGetDeposits(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetGetDeposits(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -3304,15 +3304,15 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
-            Object response = (this.privateGetGetWithdrawals(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetGetWithdrawals(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -3346,7 +3346,7 @@ public class DeribitCore extends DeribitApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "completed", "ok" );
             put( "unconfirmed", "pending" );
         }};
@@ -3520,11 +3520,11 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetGetPosition(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetGetPosition(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -3581,14 +3581,14 @@ public class DeribitCore extends DeribitApi
                 (this.loadMarkets()).join();
             }
             String code = this.safeString(parameters, "currency");
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
             {
                 parameters = this.omit(parameters, "currency");
-                Object currency = this.currency(code);
+                java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
             }
-            Object response = (this.privateGetGetPositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetGetPositions(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -3643,11 +3643,11 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object response = (this.publicGetGetHistoricalVolatility(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetGetHistoricalVolatility(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -3727,15 +3727,15 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
-            Object response = (this.privateGetGetTransfers(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetGetTransfers(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -3799,8 +3799,8 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "destination", toAccount );
@@ -3880,7 +3880,7 @@ public class DeribitCore extends DeribitApi
 
     public String parseTransferStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "prepared", "pending" );
             put( "confirmed", "ok" );
             put( "cancelled", "cancelled" );
@@ -3916,8 +3916,8 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "address", address );
                 put( "amount", amount );
@@ -3926,7 +3926,7 @@ public class DeribitCore extends DeribitApi
             {
                 Helpers.addElementToObject(request, "tfa", totp(this.twofa));
             }
-            Object response = (this.privateGetWithdraw(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetWithdraw(this.extend(request, parameters))).join();
             return this.parseTransaction(response, currency);
         });
 
@@ -3981,7 +3981,7 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetGetCurrencies(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetGetCurrencies(parameters)).join();
             //
             //    {
             //      "jsonrpc": "2.0",
@@ -4031,15 +4031,15 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object time = this.milliseconds();
             final Object finalTime = time;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "start_timestamp", Helpers.subtract(finalTime, (Helpers.multiply(Helpers.multiply(Helpers.multiply(8, 60), 60), 1000))) );
                 put( "end_timestamp", finalTime );
             }};
-            Object response = (this.publicGetGetFundingRateValue(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetGetFundingRateValue(this.extend(request, parameters))).join();
             //
             //   {
             //       "jsonrpc":"2.0",
@@ -4081,7 +4081,7 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object paginate = false;
             var paginateparametersVariable = this.handleOptionAndParams(parameters, "fetchFundingRateHistory", "paginate");
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
@@ -4107,7 +4107,7 @@ public class DeribitCore extends DeribitApi
                 time = Helpers.add(since, month);
             }
             final Object finalSince = since;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "start_timestamp", Helpers.subtract(finalSince, 1) );
             }};
@@ -4130,7 +4130,7 @@ public class DeribitCore extends DeribitApi
                 Object maxUntil = this.sum(since, Helpers.multiply(limit, duration));
                 Helpers.addElementToObject(request, "end_timestamp", Helpers.mathMin(Helpers.GetValue(request, "end_timestamp"), maxUntil));
             }
-            Object response = (this.publicGetGetFundingRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetGetFundingRateHistory(this.extend(request, parameters))).join();
             //
             //    {
             //        "jsonrpc": "2.0",
@@ -4237,12 +4237,12 @@ public class DeribitCore extends DeribitApi
             {
                 return (this.fetchPaginatedCallCursor("fetchLiquidations", symbol, since, limit, parameters, "continuation", "continuation")).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchLiquidations() does not support "), Helpers.GetValue(market, "type")), " markets")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "type", "bankruptcy" );
             }};
@@ -4254,7 +4254,7 @@ public class DeribitCore extends DeribitApi
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
-            Object response = (this.publicGetGetLastSettlementsByInstrument(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetGetLastSettlementsByInstrument(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -4334,12 +4334,12 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " fetchMyLiquidations() does not support "), Helpers.GetValue(market, "type")), " markets")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
                 put( "type", "bankruptcy" );
             }};
@@ -4351,7 +4351,7 @@ public class DeribitCore extends DeribitApi
             {
                 Helpers.addElementToObject(request, "count", limit);
             }
-            Object response = (this.privateGetGetSettlementHistoryByInstrument(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetGetSettlementHistoryByInstrument(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -4431,11 +4431,11 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -4576,11 +4576,11 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetGetBookSummaryByInstrument(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetGetBookSummaryByInstrument(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -4639,12 +4639,12 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
                 put( "kind", "option" );
             }};
-            Object response = (this.publicGetGetBookSummaryByCurrency(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetGetBookSummaryByCurrency(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",
@@ -4756,15 +4756,15 @@ public class DeribitCore extends DeribitApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOpenInterest() supports contract markets only")) ;
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instrument_name", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetGetBookSummaryByInstrument(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetGetBookSummaryByInstrument(this.extend(request, parameters))).join();
             //
             //     {
             //         "jsonrpc": "2.0",

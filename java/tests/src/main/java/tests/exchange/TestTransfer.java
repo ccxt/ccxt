@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestTransfer extends BaseTest {
     public static void testTransfer(BaseExchange exchange, Object skippedProperties, Object method, Object entry, Object requestedCode)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "id", "1234" );
             put( "timestamp", 1502962946216L );

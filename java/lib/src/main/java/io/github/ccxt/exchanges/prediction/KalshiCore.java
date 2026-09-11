@@ -403,7 +403,7 @@ public class KalshiCore extends KalshiApi
             // loadMarkets cannot run away through every kalshi market via the cursor.
             Object maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "maxFetchMarketsLimit", 1000));
             Object flatMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object eventsDict = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> eventsDict = new java.util.HashMap<String, Object>() {{}};
             Object cursor = null;
             // don't request a full 1000-market page (3+ MB) when the caller wants fewer
             Object pageLimit = this.safeInteger(this.options, "marketsPageLimit", 1000);
@@ -414,7 +414,7 @@ public class KalshiCore extends KalshiApi
             Object status = this.safeString(rest, "status", "open");
             while (true)
             {
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "limit", limit );
                     put( "status", status );
                 }};
@@ -422,7 +422,7 @@ public class KalshiCore extends KalshiApi
                 {
                     Helpers.addElementToObject(request, "cursor", cursor);
                 }
-                Object response = (this.kalshiPublicGetMarkets(this.extend(request, rest))).join();
+                java.util.Map<String, Object> response = (this.kalshiPublicGetMarkets(this.extend(request, rest))).join();
                 Object rawMarkets = this.safeList(response, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object rawMarketsLength = Helpers.getArrayLength(rawMarkets);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
@@ -602,7 +602,7 @@ public class KalshiCore extends KalshiApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object seen = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomeSymbols)); i++)
             {
                 Object outcomeSymbol = Helpers.GetValue(outcomeSymbols, i);
@@ -639,11 +639,11 @@ public class KalshiCore extends KalshiApi
                 {
                     ((java.util.List<Object>)chunk).add(Helpers.GetValue(tickers, i));
                 }
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "tickers", String.join((String)",", (java.util.List<String>)chunk) );
                     put( "limit", chunkSize );
                 }};
-                Object response = (this.kalshiPublicGetMarkets(request)).join();
+                java.util.Map<String, Object> response = (this.kalshiPublicGetMarkets(request)).join();
                 Object rawMarkets = this.safeList(response, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
                 {
@@ -812,7 +812,7 @@ public class KalshiCore extends KalshiApi
             pricePrecision = this.parseNumber(stepDollars);
         }
         final Object finalPricePrecision = pricePrecision;
-        Object precision = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> precision = new java.util.HashMap<String, Object>() {{
             put( "amount", 1 );
             put( "price", finalPricePrecision );
         }};
@@ -823,7 +823,7 @@ public class KalshiCore extends KalshiApi
         Object resolvedOutcome = null;
         for (var oi = 0; Helpers.isLessThan(oi, Helpers.getArrayLength(outcomeLabels)); oi++)
         {
-            Object label = Helpers.GetValue(outcomeLabels, oi);
+            String label = (String) Helpers.GetValue(outcomeLabels, oi);
             Object outcomeHandle = this.slugToOutcomeSymbol(eventTicker, subtitleOrTicker, label);
             Object winnerRaw = null;
             Object settleFractionRaw = null;
@@ -960,10 +960,10 @@ final Object finalOi = oi;
             (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker", ticker );
             }};
-            Object response = (this.kalshiPublicGetMarketsTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.kalshiPublicGetMarketsTicker(this.extend(request, parameters))).join();
             //
             //     {
             //         "market": {
@@ -1039,7 +1039,7 @@ final Object finalOi = oi;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.kalshiPublicGetExchangeStatus(parameters)).join();
+            java.util.Map<String, Object> response = (this.kalshiPublicGetExchangeStatus(parameters)).join();
             //
             //     { "exchange_active": true, "trading_active": true }
             //
@@ -1074,10 +1074,10 @@ final Object finalOi = oi;
             (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker", ticker );
             }};
-            Object response = (this.kalshiPublicGetMarketsTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.kalshiPublicGetMarketsTicker(this.extend(request, parameters))).join();
             Object raw = this.safeDict(response, "market", response);
             return this.parsePredictionOpenInterest(raw, ((Object)outcomeObj));
         });
@@ -1280,7 +1280,7 @@ final Object finalOi = oi;
                 ((java.util.List<Object>)targets).add(Helpers.GetValue(outcomes, i));
             }
             // group requested outcomes by their market ticker, yes and no outcomes share one market
-            Object outcomesByTicker = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> outcomesByTicker = new java.util.HashMap<String, Object>() {{}};
             Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(targets)); i++)
             {
@@ -1301,7 +1301,7 @@ final Object finalOi = oi;
                 Helpers.addElementToObject(outcomesByTicker, ticker, grouped);
             }
             Object chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 100);
-            Object result = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object tickersLength = Helpers.getArrayLength(tickers);
             Object startIndex = 0;
             while (Helpers.isLessThan(startIndex, tickersLength))
@@ -1316,11 +1316,11 @@ final Object finalOi = oi;
                 {
                     ((java.util.List<Object>)chunk).add(Helpers.GetValue(tickers, i));
                 }
-                Object request = new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                     put( "tickers", String.join((String)",", (java.util.List<String>)chunk) );
                     put( "limit", chunkSize );
                 }};
-                Object response = (this.kalshiPublicGetMarkets(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> response = (this.kalshiPublicGetMarkets(this.extend(request, parameters))).join();
                 Object rawMarkets = this.safeList(response, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawMarkets)); i++)
                 {
@@ -1369,10 +1369,10 @@ final Object finalOi = oi;
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
             Object isNo = Helpers.isEqual(Helpers.GetValue(outcomeObj, "label"), "NO");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker", ticker );
             }};
-            Object response = (this.kalshiPublicGetMarketsTickerOrderbook(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.kalshiPublicGetMarketsTickerOrderbook(this.extend(request, parameters))).join();
             //
             //     {
             //         "orderbook_fp": {
@@ -1490,7 +1490,7 @@ final Object finalOi = oi;
                 throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support the "), timeframe), " timeframe (supported: "), supported), ")")) ;
             }
             final Object finalPeriodMin = periodMin;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "series_ticker", seriesTicker );
                 put( "ticker", ticker );
                 put( "period_interval", finalPeriodMin );
@@ -1517,7 +1517,7 @@ final Object finalOi = oi;
                 Helpers.addElementToObject(request, "end_ts", now);
                 Helpers.addElementToObject(request, "start_ts", Helpers.subtract(now, (Helpers.multiply(candlesCount, tf))));
             }
-            Object response = (this.kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.kalshiPublicGetSeriesSeriesTickerMarketsTickerCandlesticks(this.extend(request, parameters))).join();
             //
             //     {
             //         "candlesticks": [
@@ -1651,14 +1651,14 @@ final Object finalOi = oi;
             (this.loadOutcome(outcome)).join();
             Object outcomeObj = this.outcome(outcome);
             Object ticker = this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker");
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker", ticker );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            Object response = (this.kalshiPublicGetMarketsTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.kalshiPublicGetMarketsTrades(this.extend(request, parameters))).join();
             Object trades = this.safeList(response, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object filteredTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
@@ -1772,7 +1772,7 @@ final Object finalOi = oi;
             {
                 (this.loadOutcome(outcome)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object outcomeObj = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
@@ -1789,7 +1789,7 @@ final Object finalOi = oi;
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.kalshiPrivateGetPortfolioFills(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.kalshiPrivateGetPortfolioFills(this.extend(request, parameters))).join();
             Object fills = this.safeList(response, "fills", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object fillsLength = Helpers.getArrayLength(fills);
             Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1925,7 +1925,7 @@ final Object finalOi = oi;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.kalshiPrivateGetPortfolioBalance(parameters)).join();
+            java.util.Map<String, Object> response = (this.kalshiPrivateGetPortfolioBalance(parameters)).join();
             return this.parseBalance(response);
         });
 
@@ -1942,7 +1942,7 @@ final Object finalOi = oi;
     public Object parseBalance(Object response)
     {
         // Kalshi balance in cents → divide by 100
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object balanceCents = this.safeNumber(response, "balance");
@@ -1987,7 +1987,7 @@ final Object finalOi = oi;
             }
             // no bulk warm-up on the unfiltered path: the portfolio request is self-contained and
             // labels resolve cache-only via safeOutcome (raw tickers when the cache is cold)
-            Object response = (this.kalshiPrivateGetPortfolioPositions(parameters)).join();
+            java.util.Map<String, Object> response = (this.kalshiPrivateGetPortfolioPositions(parameters)).join();
             Object positions = this.safeList(response, "market_positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             // filter by the requested outcomes' market tickers — a kalshi position is per market
             // ticker and covers both the YES and the NO leg
@@ -1996,7 +1996,7 @@ final Object finalOi = oi;
             {
                 return parsed;
             }
-            Object wantedTickers = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> wantedTickers = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(outcomes, null)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchPositions() missing outcomes")) ;
@@ -2051,12 +2051,12 @@ final Object finalOi = oi;
             {
                 (this.loadOutcome(outcome)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.kalshiPrivateGetPortfolioSettlements(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.kalshiPrivateGetPortfolioSettlements(this.extend(request, parameters))).join();
             Object rawSettlements = this.safeList(response, "settlements", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawSettlementsLength = Helpers.getArrayLength(rawSettlements);
             Object parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2241,7 +2241,7 @@ final Object finalOi = oi;
             {
                 (this.loadOutcome(outcome)).join();
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "resting" );
             }};
             Object outcomeObj = null;
@@ -2254,7 +2254,7 @@ final Object finalOi = oi;
                 }
                 Helpers.addElementToObject(request, "ticker", this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker"));
             }
-            Object response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
             Object orders = (java.util.List<Object>)(this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
             return this.parsePredictionOrders(orders, outcomeObj, since, limit);
         });
@@ -2286,7 +2286,7 @@ final Object finalOi = oi;
                 (this.loadOutcome(outcome)).join();
             }
             // no status filter — the endpoint returns every order; pass params.status to narrow
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object outcomeObj = null;
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
             {
@@ -2297,7 +2297,7 @@ final Object finalOi = oi;
                 }
                 Helpers.addElementToObject(request, "ticker", this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker"));
             }
-            Object response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrders(this.extend(request, parameters))).join();
             Object orders = (java.util.List<Object>)(this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
             return this.parsePredictionOrders(orders, outcomeObj, since, limit);
         });
@@ -2365,7 +2365,7 @@ final Object finalOi = oi;
             {
                 (this.loadOutcome(outcome)).join();
             }
-            Object response = (this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> response = (this.kalshiPrivateGetPortfolioOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }}, parameters))).join();
             return this.parsePredictionOrder(this.safeValue(response, "order", response));
@@ -2475,7 +2475,7 @@ final Object finalOi = oi;
      */
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "resting", "open" );
             put( "executed", "closed" );
             put( "canceled", "canceled" );
@@ -2561,7 +2561,7 @@ final Object finalOi = oi;
             final Object finalAmount = amount;
             final Object finalTimeInForce = timeInForce;
             final Object finalStp = stp;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker", ticker );
                 put( "side", finalBookSide );
                 put( "count", KalshiCore.this.numberToString(finalAmount) );
@@ -2572,7 +2572,7 @@ final Object finalOi = oi;
             {
                 Helpers.addElementToObject(request, "price", this.numberToString(yesPrice));
             }
-            Object response = (this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.kalshiPrivatePostPortfolioEventsOrders(this.extend(request, parameters))).join();
             // the V2 create response is minimal (order_id, fill_count, remaining_count), so backfill
             // the known order details and resolve the status from the remaining count
             Object order = this.parsePredictionOrder(response, outcomeObj);
@@ -2674,7 +2674,7 @@ final Object finalOi = oi;
             }
             // v2 cancel: DELETE /portfolio/events/orders/{order_id} (the /portfolio/orders/{id}
             // and /portfolio/orders/batched paths are deprecated v1 endpoints returning 410 Gone)
-            Object response = (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> response = (this.kalshiPrivateDeletePortfolioEventsOrdersOrderId(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "order_id", id );
             }}, parameters))).join();
             // the delete response is minimal (no ticker/action/id/status): pass the resolved outcome so
@@ -2716,7 +2716,7 @@ final Object finalOi = oi;
             // kalshi has no "cancel all" / batch-cancel endpoint (the v1 DELETE /portfolio/orders
             // and /portfolio/orders/batched paths are 410 Gone) — fetch the resting orders and
             // cancel them one by one via the v2 DELETE /portfolio/events/orders/{order_id}
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "status", "resting" );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(outcome, null)))
@@ -2724,7 +2724,7 @@ final Object finalOi = oi;
                 Object outcomeObj = this.outcome(outcome);
                 Helpers.addElementToObject(request, "ticker", this.safeString(Helpers.GetValue(outcomeObj, "info"), "ticker"));
             }
-            Object restingResponse = (this.kalshiPrivateGetPortfolioOrders(request)).join();
+            java.util.Map<String, Object> restingResponse = (this.kalshiPrivateGetPortfolioOrders(request)).join();
             Object restingOrders = this.safeList(restingResponse, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object restingOrdersLength = Helpers.getArrayLength(restingOrders);
             Object canceledOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -2872,13 +2872,13 @@ final Object finalOi = oi;
             Object rest = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object pageSize = ((Helpers.isTrue((!Helpers.isEqual(limit, null))))) ? limit : this.safeInteger(this.options, "searchSeriesLimit", 25);
             // free-text query -> kalshi's series search endpoint (elections web host, ranked server-side)
-            Object seen = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
             Object eventTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object queriesLength = Helpers.getArrayLength(queries);
             for (var qi = 0; Helpers.isLessThan(qi, queriesLength); qi++)
             {
                 final Object finalQi = qi;
-                Object searchResponse = (this.electionsPublicGetSearchSeries(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> searchResponse = (this.electionsPublicGetSearchSeries(new java.util.HashMap<String, Object>() {{
                     put( "query", Helpers.GetValue(queries, finalQi) );
                     put( "order_by", "querymatch" );
                     put( "page_size", pageSize );
@@ -2940,11 +2940,11 @@ final Object finalOi = oi;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event_ticker", ticker );
                 put( "with_nested_markets", true );
             }};
-            Object response = (this.kalshiPublicGetEventsEventTicker(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.kalshiPublicGetEventsEventTicker(this.extend(request, parameters))).join();
             Object fullEvent = this.safeDict(response, "event", response);
             Object nestedMarkets = this.safeList(fullEvent, "markets");
             if (Helpers.isTrue(Helpers.isEqual(nestedMarkets, null)))
@@ -2977,7 +2977,7 @@ final Object finalOi = oi;
             for (var ti = 0; Helpers.isLessThan(ti, tagsLength); ti++)
             {
                 final Object finalTi = ti;
-                Object seriesResponse = (this.kalshiPublicGetSeries(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(new java.util.HashMap<String, Object>() {{
                     put( "tags", Helpers.GetValue(tags, finalTi) );
                 }})).join();
                 Object seriesList = this.safeList(seriesResponse, "series", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2995,7 +2995,7 @@ final Object finalOi = oi;
             if (Helpers.isTrue(!Helpers.isEqual(category, null)))
             {
                 final Object finalCategory = category;
-                Object seriesResponse = (this.kalshiPublicGetSeries(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> seriesResponse = (this.kalshiPublicGetSeries(new java.util.HashMap<String, Object>() {{
                     put( "category", finalCategory );
                 }})).join();
                 Object seriesList = this.safeList(seriesResponse, "series", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -3021,7 +3021,7 @@ final Object finalOi = oi;
                 }
             }
             // deduplicate preserving order
-            Object seen = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
             Object ordered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object collectedLength = Helpers.getArrayLength(collected);
             for (var ci = 0; Helpers.isLessThan(ci, collectedLength); ci++)
@@ -3085,7 +3085,7 @@ final Object finalOi = oi;
                     }
                     final Object finalSi = si;
                     final Object finalReqLimit = reqLimit;
-                    Object request = new java.util.HashMap<String, Object>() {{
+                    java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                         put( "series_ticker", Helpers.GetValue(seriesTickers, finalSi) );
                         put( "status", status );
                         put( "with_nested_markets", true );
@@ -3095,7 +3095,7 @@ final Object finalOi = oi;
                     {
                         Helpers.addElementToObject(request, "cursor", cursor);
                     }
-                    Object response = (this.kalshiPublicGetEvents(this.extend(request, rest))).join();
+                    java.util.Map<String, Object> response = (this.kalshiPublicGetEvents(this.extend(request, rest))).join();
                     Object pageEvents = this.safeList(response, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     Object pageEventsLength = Helpers.getArrayLength(pageEvents);
                     for (var ei = 0; Helpers.isLessThan(ei, pageEventsLength); ei++)

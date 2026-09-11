@@ -13,7 +13,7 @@ import io.github.ccxt.errors.*;
 public class TestAccount extends BaseTest {
     public static void testAccount(BaseExchange exchange, Object skippedProperties, Object method, Object entry)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "info", new java.util.HashMap<String, Object>() {{}} );
             put( "code", "BTC" );
             put( "type", "spot" );

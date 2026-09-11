@@ -55,7 +55,7 @@ public class TestFeatures extends BaseTest {
     }
     public static void testFeaturesInner(BaseExchange exchange, Object skippedProperties, Object featureObj)
     {
-        Object format = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> format = new java.util.HashMap<String, Object>() {{
             put( "sandbox", false );
             put( "createOrder", new java.util.HashMap<String, Object>() {{
                 put( "marginMode", false );

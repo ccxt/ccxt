@@ -170,7 +170,7 @@ public class TestCreateOrder extends BaseTest {
             Object entryorderFetched = (TestSharedMethods.fetchOrder(exchange, symbol, Helpers.GetValue(entryorderFilled, "id"), skippedProperties)).join();
             tcoAssertFilledOrder(exchange, market, logPrefix, skippedProperties, entryorderFilled, entryorderFetched, entrySide, entryAmount);
             Object amountToClose = exchange.parseToNumeric(exchange.safeString(entryorderFetched, "filled"));
-            Object parameters = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> parameters = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(isSwapFuture))
             {
                 Helpers.addElementToObject(parameters, "reduceOnly", true);

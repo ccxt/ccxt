@@ -540,7 +540,7 @@ public class BydfiCore extends BydfiApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object response = (this.publicGetV1FapiMarketExchangeInfo(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetV1FapiMarketExchangeInfo(parameters)).join();
             //
             //     {
             //         "code": "200",
@@ -721,15 +721,15 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", this.getClosestLimit(limit));
             }
-            Object response = (this.publicGetV1FapiMarketDepth(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1FapiMarketDepth(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -808,15 +808,15 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
                 Helpers.addElementToObject(request, "limit", Helpers.mathMin(limit, 1000));
             }
-            Object response = (this.publicGetV1FapiMarketTrades(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1FapiMarketTrades(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -884,7 +884,7 @@ public class BydfiCore extends BydfiApi
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
             }};
             Object market = null;
@@ -898,7 +898,7 @@ public class BydfiCore extends BydfiApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetV1FapiTradeHistoryTrade(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1FapiTradeHistoryTrade(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -1009,7 +1009,7 @@ public class BydfiCore extends BydfiApi
 
     public String parseTradeType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "1", "limit" );
             put( "2", "market" );
             put( "3", "liquidation" );
@@ -1052,9 +1052,9 @@ public class BydfiCore extends BydfiApi
             {
                 return this.fetchPaginatedCallDeterministic("fetchOHLCV", symbol, since, limit, timeframe, parameters, maxLimit);
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String interval = this.safeString(this.timeframes, timeframe, timeframe);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "interval", interval );
             }};
@@ -1092,7 +1092,7 @@ public class BydfiCore extends BydfiApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.publicGetV1FapiMarketKlines(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1FapiMarketKlines(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -1155,7 +1155,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object response = (this.publicGetV1FapiMarketTicker24hr(parameters)).join();
+            java.util.Map<String, Object> response = (this.publicGetV1FapiMarketTicker24hr(parameters)).join();
             //
             //     {
             //         "code": 200,
@@ -1199,11 +1199,11 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetV1FapiMarketTicker24hr(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1FapiMarketTicker24hr(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object ticker = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
@@ -1276,11 +1276,11 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.publicGetV1FapiMarketFundingRate(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1FapiMarketFundingRate(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -1366,8 +1366,8 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
@@ -1386,7 +1386,7 @@ public class BydfiCore extends BydfiApi
             {
                 Helpers.addElementToObject(request, "endTime", until);
             }
-            Object response = (this.publicGetV1FapiMarketFundingRateHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.publicGetV1FapiMarketFundingRateHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -1466,7 +1466,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             Object wallet = "W001";
             var walletparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "wallet", wallet);
@@ -1476,7 +1476,7 @@ public class BydfiCore extends BydfiApi
             orderRequest = this.extend(orderRequest, new java.util.HashMap<String, Object>() {{
                 put( "wallet", finalWallet );
             }});
-            Object response = (this.privatePostV1FapiTradePlaceOrder(orderRequest)).join();
+            java.util.Map<String, Object> response = (this.privatePostV1FapiTradePlaceOrder(orderRequest)).join();
             //
             //     {
             //         "code": 200,
@@ -1525,13 +1525,13 @@ public class BydfiCore extends BydfiApi
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
         }
         final Object finalSide = side;
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "side", ((String)finalSide).toUpperCase() );
         }};
@@ -1646,7 +1646,7 @@ public class BydfiCore extends BydfiApi
 
     public String encodeWorkingType(Object workingType)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "markPrice", "MARK_PRICE" );
             put( "mark", "MARK_PRICE" );
             put( "contractPrice", "CONTRACT_PRICE" );
@@ -1699,11 +1699,11 @@ public class BydfiCore extends BydfiApi
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "wallet", finalWallet );
                 put( "orders", ordersRequests );
             }};
-            Object response = (this.privatePostV1FapiTradeBatchPlaceOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1FapiTradeBatchPlaceOrder(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data);
         });
@@ -1744,7 +1744,7 @@ public class BydfiCore extends BydfiApi
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             Helpers.addElementToObject(request, "wallet", wallet);
-            Object response = (this.privatePostV1FapiTradeEditOrder(request)).join();
+            java.util.Map<String, Object> response = (this.privatePostV1FapiTradeEditOrder(request)).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         });
@@ -1794,11 +1794,11 @@ public class BydfiCore extends BydfiApi
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "wallet", finalWallet );
                 put( "editOrders", ordersRequests );
             }};
-            Object response = (this.privatePostV1FapiTradeBatchEditOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1FapiTradeBatchEditOrder(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data);
         });
@@ -1811,7 +1811,7 @@ public class BydfiCore extends BydfiApi
         Object price = Helpers.getArg(optionalArgs, 1, null);
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         String clientOrderId = this.safeString(parameters, "clientOrderId");
-        Object request = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(id, null))) && Helpers.isTrue((Helpers.isEqual(clientOrderId, null)))))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an id argument or a clientOrderId parameter")) ;
@@ -1819,7 +1819,7 @@ public class BydfiCore extends BydfiApi
         {
             Helpers.addElementToObject(request, "orderId", id);
         }
-        Object market = this.market(symbol);
+        java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
@@ -1861,17 +1861,17 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object wallet = "W001";
             var walletparametersVariable = this.handleOptionAndParams(parameters, "cancelAllOrders", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "wallet", finalWallet );
             }};
-            Object response = (this.privatePostV1FapiTradeCancelAllOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1FapiTradeCancelAllOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -1941,13 +1941,13 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object wallet = "W001";
             var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchOpenOrders", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "wallet", finalWallet );
             }};
@@ -2030,8 +2030,8 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             String clientOrderId = this.safeString(parameters, "clientOrderId");
@@ -2110,7 +2110,7 @@ public class BydfiCore extends BydfiApi
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
             }};
             Object market = null;
@@ -2124,7 +2124,7 @@ public class BydfiCore extends BydfiApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetV1FapiTradeHistoryOrder(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1FapiTradeHistoryOrder(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -2213,7 +2213,7 @@ public class BydfiCore extends BydfiApi
         }
         final Object finalStartTime = startTime;
         final Object finalUntil = until;
-        Object request = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "startTime", finalStartTime );
             put( "endTime", finalUntil );
         }};
@@ -2302,7 +2302,7 @@ public class BydfiCore extends BydfiApi
             postOnly = true;
         }
         String rawStatus = this.safeString(order, "status");
-        Object fee = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> fee = new java.util.HashMap<String, Object>() {{}};
         Object quoteFee = this.safeNumber(order, "quoteFee");
         if (Helpers.isTrue(!Helpers.isEqual(quoteFee, null)))
         {
@@ -2344,7 +2344,7 @@ public class BydfiCore extends BydfiApi
 
     public String parseOrderType(Object type)
     {
-        Object types = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "LIMIT", "limit" );
             put( "MARKET", "market" );
             put( "STOP", "limit" );
@@ -2358,7 +2358,7 @@ public class BydfiCore extends BydfiApi
 
     public String parseOrderTimeInForce(Object timeInForce)
     {
-        Object timeInForces = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> timeInForces = new java.util.HashMap<String, Object>() {{
             put( "GTC", "GTC" );
             put( "FOK", "FOK" );
             put( "IOC", "IOC" );
@@ -2370,7 +2370,7 @@ public class BydfiCore extends BydfiApi
 
     public String parseOrderStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "NEW", "open" );
             put( "PARTIALLY_FILLED", "open" );
             put( "FILLED", "closed" );
@@ -2409,18 +2409,18 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object wallet = "W001";
             var walletparametersVariable = this.handleOptionAndParams(parameters, "setLeverage", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "leverage", leverage );
                 put( "wallet", finalWallet );
             }};
-            Object response = (this.privatePostV1FapiTradeLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1FapiTradeLeverage(this.extend(request, parameters))).join();
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return data;
         });
@@ -2451,17 +2451,17 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object wallet = "W001";
             var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchLeverage", "wallet", wallet);
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalWallet = wallet;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "wallet", finalWallet );
             }};
-            Object response = (this.privateGetV1FapiTradeLeverage(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1FapiTradeLeverage(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -2520,10 +2520,10 @@ public class BydfiCore extends BydfiApi
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
             }};
-            Object response = (this.privateGetV1FapiTradePositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1FapiTradePositions(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -2573,17 +2573,17 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object contractType = "FUTURE";
             var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositions", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
-            Object response = (this.privateGetV1FapiTradePositions(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1FapiTradePositions(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parsePositions(data, new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "symbol"))));
         });
@@ -2707,7 +2707,7 @@ public class BydfiCore extends BydfiApi
 
     public Object parsePositionSide(Object side)
     {
-        Object sides = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> sides = new java.util.HashMap<String, Object>() {{
             put( "BUY", "long" );
             put( "SELL", "short" );
         }};
@@ -2740,13 +2740,13 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object contractType = "FUTURE";
             var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchPositionHistory", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "contractType", finalContractType );
             }};
@@ -2755,7 +2755,7 @@ public class BydfiCore extends BydfiApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetV1FapiTradePositionHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1FapiTradePositionHistory(this.extend(request, parameters))).join();
             //
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
@@ -2797,7 +2797,7 @@ public class BydfiCore extends BydfiApi
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) contractTypeparametersVariable).get(1);
             final Object finalContractType = contractType;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
             }};
             parameters = this.handleSinceAndUntil("fetchPositionsHistory", since, parameters);
@@ -2805,7 +2805,7 @@ public class BydfiCore extends BydfiApi
             {
                 Helpers.addElementToObject(request, "limit", limit);
             }
-            Object response = (this.privateGetV1FapiTradePositionHistory(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1FapiTradePositionHistory(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -2876,7 +2876,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object contractType = "FUTURE";
             var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "fetchMarginMode", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
@@ -2887,12 +2887,12 @@ public class BydfiCore extends BydfiApi
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
             final Object finalContractType = contractType;
             final Object finalWallet = wallet;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "wallet", finalWallet );
             }};
-            Object response = (this.privateGetV1FapiUserDataAssetsMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1FapiUserDataAssetsMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -2954,7 +2954,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Object contractType = "FUTURE";
             var contractTypeparametersVariable = this.handleOptionAndParams(parameters, "setMarginMode", "contractType", contractType);
             contractType = ((java.util.List<Object>) contractTypeparametersVariable).get(0);
@@ -2966,7 +2966,7 @@ public class BydfiCore extends BydfiApi
             final Object finalContractType = contractType;
             final Object finalMarginMode = marginMode;
             final Object finalWallet = wallet;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "marginType", ((String)finalMarginMode).toUpperCase() );
@@ -3021,7 +3021,7 @@ public class BydfiCore extends BydfiApi
             final Object finalContractType = contractType;
             final Object finalWallet = wallet;
             final Object finalSettleCoin = settleCoin;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
                 put( "wallet", finalWallet );
                 put( "positionType", positionType );
@@ -3078,18 +3078,18 @@ public class BydfiCore extends BydfiApi
                 parameters = ((java.util.List<Object>) settleCoinparametersVariable).get(1);
             } else
             {
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 settleCoin = Helpers.GetValue(market, "settleId");
             }
             final Object finalContractType = contractType;
             final Object finalSettleCoin = settleCoin;
             final Object finalWallet = wallet;
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "contractType", finalContractType );
                 put( "settleCoin", finalSettleCoin );
                 put( "wallet", finalWallet );
             }};
-            Object response = (this.privateGetV1FapiUserDataPositionSideDual(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1FapiUserDataPositionSideDual(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -3147,7 +3147,7 @@ public class BydfiCore extends BydfiApi
             var walletparametersVariable = this.handleOptionAndParams(parameters, "fetchBalance", "wallet");
             wallet = ((java.util.List<Object>) walletparametersVariable).get(0);
             parameters = ((java.util.List<Object>) walletparametersVariable).get(1);
-            Object request = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             Object response = null;
             if (Helpers.isTrue(Helpers.isEqual(wallet, null)))
             {
@@ -3213,7 +3213,7 @@ public class BydfiCore extends BydfiApi
     public Object parseBalance(Object response)
     {
         Object timestamp = this.milliseconds();
-        Object result = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", timestamp );
             put( "datetime", BydfiCore.this.iso8601(timestamp) );
@@ -3256,17 +3256,17 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
                 put( "amount", BydfiCore.this.currencyToPrecision(code, amount) );
                 put( "fromType", fromId );
                 put( "toType", toId );
             }};
-            Object response = (this.privatePostV1AccountTransfer(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostV1AccountTransfer(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -3321,7 +3321,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object paginate = this.safeBool(parameters, "paginate", false);
             if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
@@ -3333,7 +3333,7 @@ public class BydfiCore extends BydfiApi
                 Object paginatedResponse = (this.fetchPaginatedCallDynamic("fetchTransfers", Helpers.GetValue(currency, "code"), since, limit, parameters, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
             Object until = null;
@@ -3354,7 +3354,7 @@ public class BydfiCore extends BydfiApi
             {
                 Helpers.addElementToObject(request, "rows", limit);
             }
-            Object response = (this.privateGetV1AccountTransferRecords(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privateGetV1AccountTransferRecords(this.extend(request, parameters))).join();
             //
             //     {
             //         "code": 200,
@@ -3426,7 +3426,7 @@ public class BydfiCore extends BydfiApi
 
     public String paraseTransferStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "SUCCESS", "ok" );
             put( "WAIT", "pending" );
             put( "FAILED", "failed" );
@@ -3504,7 +3504,7 @@ public class BydfiCore extends BydfiApi
             {
                 (this.loadMarkets()).join();
             }
-            Object currency = this.currency(code);
+            java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object paginate = this.safeBool(parameters, "paginate", false);
             if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
@@ -3516,7 +3516,7 @@ public class BydfiCore extends BydfiApi
                 Object paginatedResponse = (this.fetchPaginatedCallDynamic(methodName, Helpers.GetValue(currency, "code"), since, limit, parameters, maxLimit, true)).join();
                 return this.sortBy(paginatedResponse, "timestamp");
             }
-            Object request = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "asset", Helpers.GetValue(currency, "id") );
             }};
             Object until = null;
@@ -3590,7 +3590,7 @@ public class BydfiCore extends BydfiApi
             }
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             final Object finalType = type;
-            Object transactionParams = new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> transactionParams = new java.util.HashMap<String, Object>() {{
                 put( "type", finalType );
             }};
             parameters = this.extend(parameters, transactionParams);
@@ -3658,7 +3658,7 @@ public class BydfiCore extends BydfiApi
 
     public String parseTransactionStatus(Object status)
     {
-        Object statuses = new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
             put( "success", "ok" );
             put( "wait", "pending" );
             put( "failed", "failed" );

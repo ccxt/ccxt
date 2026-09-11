@@ -131,6 +131,9 @@
 // expression is untouched except for the explicit checkcasts above, which move no box.
 
 import ts from 'typescript6';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 
 // ===== tables =====
 
@@ -189,6 +192,48 @@ const LOCAL_THIS_RETURN_TYPES = {
     'safeCurrencyCode': { type: 'String', cast: '(String)' },
 };
 
+// ===== market/currency structure locals =====
+//
+// A market/currency row in generated Java is a plain `java.util.HashMap<String, Object>`
+// (or LinkedHashMap), never a nominal wrapper: fetchMarkets bodies build rows with the
+// printer's object-literal emit, setMarkets merges them through deepExtend/indexBy, and
+// markets_by_id / currencies_by_id hold those same boxes. `io.github.ccxt.types.
+// MarketInterface` is a generated wrapper class used only by a handful of hand-written
+// facade files; naming it in generated code would change the box. `java.util.Map<String,
+// Object>` is the lossless spelling — the same conclusion the C# port reached with
+// `Dictionary<string, object>`.
+//
+// The accessors are declared `Object` in the generated BaseExchange (the printer erases
+// every non-boolean return annotation), so the narrowed declaration carries an explicit
+// checkcast on the box these methods already return — it moves no runtime value:
+//
+//   * BaseExchange: safeMarketStructure / safeCurrencyStructure build the row with an
+//     object-literal emit or deepExtend(...); safeMarket returns a markets_by_id element,
+//     a safeMarketStructure result, the caller-passed row, or createExpiredOptionMarket
+//     (an object-literal row in every venue override); safeCurrency likewise reads
+//     currencies_by_id or safeCurrencyStructure; market()/currency() read this.markets /
+//     this.markets_by_id / this.currencies / this.currencies_by_id (rows by construction).
+//   * Venue overrides (hyperliquid/binance market; okx/binance/bitflyer/gate/deribit/
+//     apex/delta/bybit/bithumb safeMarket): every one delegates to super.<name>(...) or
+//     returns a row built by createExpiredOptionMarket / Helpers.add, same contract. The
+//     gate is therefore `resolvesToMethodNamed` (any declaration of that name), not the
+//     base-file gate the parse* accessors use.
+//
+// CONSUMERS. Generated code reads these locals through Helpers.GetValue(x, k) /
+// this.safeString(x, k) / Helpers.addElementToObject(x, ...) / this.deepExtend(x, ...) —
+// every one of those takes Object, and a Map<String, Object> argument binds them exactly
+// as before. Java has no implicit downcast, which is why the declaration carries the cast.
+const JAVA_STRUCTURE_TYPE = 'java.util.Map<String, Object>';
+
+const STRUCTURE_THIS_RETURN_TYPES = {
+    'safeMarket': JAVA_STRUCTURE_TYPE,
+    'safeCurrency': JAVA_STRUCTURE_TYPE,
+    'safeMarketStructure': JAVA_STRUCTURE_TYPE,
+    'safeCurrencyStructure': JAVA_STRUCTURE_TYPE,
+    'market': JAVA_STRUCTURE_TYPE,
+    'currency': JAVA_STRUCTURE_TYPE,
+};
+
 // ts sources that may hold the resolved declaration of an admitted accessor call —
 // anything else (a venue override) never classifies
 const ACCESSOR_SOURCE_FILES = [
@@ -201,6 +246,455 @@ const ACCESSOR_SOURCE_FILES = [
 // resolves no declaration for the call; they are hand-written Java methods with no
 // generated override (census), accepted by name
 const FIELD_FUNCTION_NAMES = new Set ([ 'parse8601', 'iso8601' ]);
+
+// ===== string-element access locals =====
+//
+// The printer declares every initialised body local as `Object` and prints element
+// reads through the generic helper:
+//
+//     Object transactionDate = Helpers.GetValue(parts, 0);
+//
+// This family narrows the locals whose initializer is a whole element read
+// `recv[key]` / `recv[index]` when the receiver's runtime elements are provably
+// strings — because of how the PRINTED Java builds them:
+//
+//     String transactionDate = (String) Helpers.GetValue(parts, 0);
+//
+// `Helpers.GetValue(Object, Object)` returns the boxed element of a List (or null
+// off-range / for a null receiver or key). `(String)` is a checkcast on that box: it
+// can only ever fire on a box the old `Object` path would have failed on later anyway —
+// for the receivers below it CANNOT fire at all, because every element they can hold is
+// a java.lang.String instance by construction of the printed producer:
+//
+//   * `x.split (sep)` prints `Helpers.split(x, sep)`, whose every path is
+//     `Arrays.asList(<String[]> ...)` or `Collections.emptyList()` — a String[] carries
+//     String instances only (Java's real String.split).
+//   * `['a', 'b', ...]` of string literals prints
+//     `new java.util.ArrayList<Object>(java.util.Arrays.asList("a", "b"))` —
+//     ArrayList of String instances.
+//
+// WHAT IS DELIBERATELY NOT CLASSIFIED: `Object.keys (x)`. It prints
+// `Helpers.objectKeys(x)`, which copies `Map<?,?>.keySet()` (erased — the cast is
+// unchecked, so a map with non-String keys passes it). A `(String)` on the element
+// would then throw where the `Object` path returned the key — a moved failure.
+//
+// RECEIVER GUARD (mirror of build/csharp-local-types.js receiverUseIsWrite): the
+// receiver must be an identifier with exactly ONE binding in the enclosing function
+// (name-based, so shadowing rejects conservatively), declared before the site, with a
+// producer initializer, and every other use of the name must be a plain read — any
+// write, element write / delete, mutating list method
+// (push/pop/shift/unshift/splice/sort/reverse/fill/copyWithin), alias
+// (`const o = recv`), escape (call/new argument, return) or ++/-- keeps the receiver's
+// elements unprovable and the site stays Object.
+//
+// THE `+` TRAP (strictPlus): before narrowing `Helpers.add(site, y)` binds
+// add(Object, Object); after, add(String, *) — the two agree for a provably-string
+// right operand (including null on either side) but diverge when y can be a Double
+// (add(Object,Object) goes numeric) or on a bare null-left. So a site local used as the
+// LEFT of `+` is only accepted when every right operand of its chain is a string
+// literal, which is why this family marks its entries `strictPlus` (the parse* family
+// predates the guard and is left alone).
+
+// TS method names that rebuild / mutate a list in place — any use of the receiver
+// through one disqualifies it (the same set the C# port uses).
+const LIST_MUTATING_METHODS = new Set ([
+    'push', 'pop', 'shift', 'unshift', 'splice', 'sort', 'reverse', 'fill', 'copyWithin',
+]);
+
+// every assignment operator kind (ts.SyntaxKind.FirstAssignment .. LastAssignment)
+const ASSIGNMENT_OPERATORS = (() => {
+    const operators = [];
+    for (let kind = ts.SyntaxKind.FirstAssignment; kind <= ts.SyntaxKind.LastAssignment; kind++) {
+        operators.push (kind);
+    }
+    return operators;
+}) ();
+
+// does the PRINTED Java for this initializer hand a list whose every runtime element is
+// a String instance? `Object.keys` is excluded on purpose — see above.
+function stringElementsProducer (initializer) {
+    const node = unwrapParens (initializer);
+    if (node === undefined) {
+        return false;
+    }
+    if (ts.isCallExpression (node)) {
+        const callee = node.expression;
+        if (!ts.isPropertyAccessExpression (callee)) {
+            return false;
+        }
+        return callee.name?.escapedText === 'split';
+    }
+    if (ts.isArrayLiteralExpression (node)) {
+        return node.elements.length > 0 && node.elements.every ((element) =>
+            element.kind === ts.SyntaxKind.StringLiteral
+            || element.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
+    }
+    return false;
+}
+
+// is this occurrence of the receiver able to change what the list holds, hand it to
+// another scope, or rebuild it? Any such use disqualifies the receiver.
+function receiverUseIsWrite (identifier) {
+    const parent = identifier.parent;
+    if (!parent) {
+        return true;
+    }
+    switch (parent.kind) {
+    case ts.SyntaxKind.BinaryExpression:
+        return (parent.left === identifier || parent.right === identifier)
+            && ASSIGNMENT_OPERATORS.includes (parent.operatorToken.kind);
+    case ts.SyntaxKind.ElementAccessExpression: {
+        if (parent.expression !== identifier) {
+            return false;
+        }
+        const grand = parent.parent;
+        if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+            return true;
+        }
+        return grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent
+            && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind);
+    }
+    case ts.SyntaxKind.PropertyAccessExpression:
+        return parent.expression === identifier && LIST_MUTATING_METHODS.has (parent.name?.escapedText);
+    case ts.SyntaxKind.VariableDeclaration:
+        return parent.initializer === identifier; // `const other = recv` aliases the list
+    case ts.SyntaxKind.CallExpression:
+    case ts.SyntaxKind.NewExpression:
+        return (parent.arguments ?? []).some ((argument) => argument === identifier);
+    case ts.SyntaxKind.ReturnStatement:
+        return true; // the caller can mutate what it gets back
+    case ts.SyntaxKind.DeleteExpression:
+    case ts.SyntaxKind.BindingElement:
+    case ts.SyntaxKind.PostfixUnaryExpression:
+    case ts.SyntaxKind.PrefixUnaryExpression:
+        return true;
+    }
+    return false;
+}
+
+// the element type of `recv[key]` when recv is a local whose elements are provably
+// strings. The receiver must have exactly one binding in the enclosing function (no
+// shadowing), that binding must be a declaration BEFORE the site with a string-elements
+// producer, and every other use of the name must be a read.
+function elementAccessHasStringElements (initializer) {
+    const site = unwrapParens (initializer);
+    if (site?.kind !== ts.SyntaxKind.ElementAccessExpression) {
+        return false;
+    }
+    const receiver = site.expression;
+    if (receiver?.kind !== ts.SyntaxKind.Identifier) {
+        return false;
+    }
+    const scope = enclosingFunction (site);
+    if (scope === undefined) {
+        return false;
+    }
+    const uses = identifierIndex (scope).get (receiver.escapedText);
+    if (!uses) {
+        return false;
+    }
+    let declaration;
+    let bindings = 0;
+    for (const n of uses) {
+        const parent = n.parent;
+        if ((parent?.kind === ts.SyntaxKind.VariableDeclaration || parent?.kind === ts.SyntaxKind.Parameter) && parent.name === n) {
+            bindings++;
+            declaration = parent;
+        }
+    }
+    if (bindings !== 1
+        || declaration?.kind !== ts.SyntaxKind.VariableDeclaration
+        || declaration.initializer === undefined
+        || !stringElementsProducer (declaration.initializer)) {
+        return false;
+    }
+    if (declaration.getStart () > site.getStart ()) {
+        return false; // the list is not provably built before the read
+    }
+    for (const n of uses) {
+        if (n === receiver || n === declaration.name) {
+            continue;
+        }
+        if (receiverUseIsWrite (n)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+// a string literal `x + 'lit'` binds add(String, String) AFTER narrowing where it bound
+// add(Object, Object) before; the two only agree when the right operand is provably a
+// string (see the `+` trap comment above).
+function isProvablyStringOperand (node) {
+    const value = unwrapParens (node);
+    return value !== undefined
+        && (value.kind === ts.SyntaxKind.StringLiteral
+            || value.kind === ts.SyntaxKind.NoSubstitutionTemplateLiteral);
+}
+
+// walk up through `+` parents: at every level where our chain is the LEFT operand the
+// printed add switches overload family after narrowing, so its right operand must be a
+// provably-string literal. Uses in the RIGHT operand keep add(Object, Object).
+function plusUsesAreSafe (identifier) {
+    let child = identifier;
+    let current = identifier.parent;
+    while (current !== undefined && ts.isBinaryExpression (current) && current.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        if (current.left === child && !isProvablyStringOperand (current.right)) {
+            return false;
+        }
+        child = current;
+        current = current.parent;
+    }
+    return true;
+}
+
+// ===== WS / pro locals =====
+//
+// The --ws transpile path runs through the same printer patch (setupTranspiler installs
+// this module for every tier; java-worker.ts imports it directly), so the families below
+// classify pro bodies too. They are restricted to ts/src/pro files: that is the only
+// place their shapes occur (REST code reads the same fields with different value types).
+//
+//   * this.orderBook() / indexedOrderBook() / countedOrderBook() — hand-written
+//     BaseExchange methods DECLARED `public io.github.ccxt.ws.WsOrderBook[.IndexedOrderBook|
+//     .CountedOrderBook]`, so the declaration is retyped cast-free.
+//   * this.trades[key] / this.safeValue(this.trades, key[, default]) and the same for
+//     this.orderbooks — every generated ws class stores only ArrayCache-family
+//     constructors in this.trades and only orderBook() results in this.orderbooks
+//     (census: 81 + 111 addElementToObject sites, 0 other values), so the local can be
+//     declared ArrayCache / WsOrderBook with a checkcast (the printed read is
+//     Helpers.GetValue / this.safeValue, both declared Object).
+//   * locals NAMED messageHash<digits> whose initializer prints statically String —
+//     'lit' + x chains print Helpers.add(String, *), this.safeString(...) is declared
+//     String, a copy of another String-typed messageHash, etc. The Java name is not
+//     reserved, so the print is plain `<name>` and the declared type is invisible to
+//     the ws Object-taking methods these locals feed.
+const ARRAYCACHE_TYPE = 'io.github.ccxt.ws.ArrayCache';
+const ORDERBOOK_TYPE = 'io.github.ccxt.ws.WsOrderBook';
+
+const WS_THIS_CALL_TYPES = {
+    'orderBook': ORDERBOOK_TYPE,
+    'indexedOrderBook': ORDERBOOK_TYPE + '.IndexedOrderBook',
+    'countedOrderBook': ORDERBOOK_TYPE + '.CountedOrderBook',
+};
+
+const WS_MAP_READ_TYPES = {
+    'trades': ARRAYCACHE_TYPE,
+    'orderbooks': ORDERBOOK_TYPE,
+};
+
+// the resolved TS declaration must live in ts/src/base/** so an exchange-local override
+// (printed with its own signature) never classifies
+const BASE_SOURCE_FILE = /[\\/]ts[\\/]src[\\/]base[\\/]/;
+
+function thisPropName (node) {
+    if (node !== undefined && ts.isPropertyAccessExpression (node)
+        && node.expression.kind === ts.SyntaxKind.ThisKeyword) {
+        return node.name.escapedText;
+    }
+    return undefined;
+}
+
+// Java type of a ws map read: `this.<map>[key]` (prints Helpers.GetValue) or
+// `this.safeValue(this.<map>, key)` (prints itself), or undefined
+function wsMapReadType (node) {
+    node = unwrapParens (node);
+    if (node !== undefined && ts.isElementAccessExpression (node)) {
+        return WS_MAP_READ_TYPES[thisPropName (node.expression)];
+    }
+    if (isThisCall (node)) {
+        const name = node.expression.name.escapedText;
+        if (name === 'safeValue' || name === 'safeValue2' || name === 'safeValueN') {
+            return WS_MAP_READ_TYPES[thisPropName (node.arguments[0])];
+        }
+    }
+    return undefined;
+}
+
+const WS_TYPES = new Set ([
+    ARRAYCACHE_TYPE, ORDERBOOK_TYPE,
+    ORDERBOOK_TYPE + '.IndexedOrderBook', ORDERBOOK_TYPE + '.CountedOrderBook',
+]);
+
+function isWsType (javaType) {
+    return WS_TYPES.has (javaType);
+}
+
+// `this.<name>(...)` whose resolved declaration lives in ts/src/base/**
+function isBaseDeclaration (printer, callNode) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (callNode)?.declaration;
+    } catch (e) {
+        return false;
+    }
+    return declaration !== undefined && BASE_SOURCE_FILE.test (declaration.getSourceFile ().fileName);
+}
+
+const SAFE_STRING_ACCESSORS = new Set ([ 'safeString', 'safeString2', 'safeStringN' ]);
+
+// does the PRINTED Java for this expression have the static type String ALREADY (no
+// cast needed)? Covers the shapes the ws cores build message hashes with.
+function isProvablyStringExpression (printer, node, selfName, narrowed) {
+    node = unwrapParens (node);
+    if (node === undefined) {
+        return false;
+    }
+    switch (node.kind) {
+        case ts.SyntaxKind.StringLiteral:
+        case ts.SyntaxKind.NoSubstitutionTemplateLiteral:
+        case ts.SyntaxKind.NullKeyword:
+            return true;
+        case ts.SyntaxKind.Identifier:
+            if (node.escapedText === 'undefined' || node.escapedText === selfName) {
+                return true;
+            }
+            if (narrowed !== undefined) {
+                let declaration;
+                try {
+                    declaration = printer.getChecker ().getSymbolAtLocation (node)?.valueDeclaration;
+                } catch (e) {
+                    declaration = undefined;
+                }
+                if (declaration !== undefined && narrowed.get (declaration) === 'String') {
+                    return true;
+                }
+            }
+            return false;
+        case ts.SyntaxKind.ConditionalExpression:
+            return isProvablyStringExpression (printer, node.whenTrue, selfName, narrowed)
+                && isProvablyStringExpression (printer, node.whenFalse, selfName, narrowed);
+        case ts.SyntaxKind.BinaryExpression:
+            // `a + b` prints Helpers.add(a, b); add(String, *) is declared String
+            return node.operatorToken.kind === ts.SyntaxKind.PlusToken
+                && isProvablyStringExpression (printer, node.left, selfName, narrowed);
+        case ts.SyntaxKind.AsExpression:
+        case ts.SyntaxKind.TypeAssertionExpression:
+            return node.type?.kind === ts.SyntaxKind.StringKeyword; // prints ((String)x)
+        case ts.SyntaxKind.PropertyAccessExpression:
+            return ts.isIdentifier (node.name) && thisPropName (node) !== undefined
+                && THIS_MEMBER_TYPES[String (node.name.escapedText)] === 'String';
+        case ts.SyntaxKind.CallExpression: {
+            if (!isThisCall (node)) {
+                return false;
+            }
+            const name = node.expression.name.escapedText;
+            if (SAFE_STRING_ACCESSORS.has (name) || name === 'iso8601') {
+                return true; // hand-written BaseExchange declarations, `public String`
+            }
+            if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
+                return resolvesToMethodNamed (printer, node, name);
+            }
+            return isBaseDeclaration (printer, node) && baseMethodReturnsString (printer, node, name);
+        }
+        default:
+            return false;
+    }
+}
+
+// this.<member> — hand-written BaseExchange fields whose Java declaration is concrete
+// (used by the ws String prover and the error-path member family; the fields are audited
+// tree-wide: no generated exchange class redeclares any of them)
+const THIS_MEMBER_TYPES = {
+    'id': 'String', 'version': 'String', 'name': 'String', 'secret': 'String',
+    'apiKey': 'String', 'password': 'String', 'uid': 'String', 'login': 'String',
+    'url': 'String', 'hostname': 'String',
+    'symbols': 'java.util.List<Object>',
+    'markets_by_id': 'java.util.Map<String, Object>',
+};
+
+// the Java declaration of this base method returns String (checked on the printer's own
+// resolved declaration through the checker's declared return type)
+function baseMethodReturnsString (printer, node, name) {
+    let declaration;
+    try {
+        declaration = printer.getChecker ().getResolvedSignature (node)?.declaration;
+    } catch (e) {
+        return false;
+    }
+    const type = declaration?.type;
+    if (type === undefined) {
+        return false;
+    }
+    if (type.kind === ts.SyntaxKind.StringKeyword) {
+        return true;
+    }
+    if (ts.isTypeReferenceNode (type) && ts.isIdentifier (type.typeName)) {
+        const name2 = String (type.typeName.escapedText);
+        return name2 === 'Str';
+    }
+    return false;
+}
+
+// ===== awaited generated-api locals =====
+//
+// `await this.<endpoint>(...)` prints `(this.<endpoint>(...)).join()`. The generated
+// implicit-api wrappers declare one
+// `public java.util.concurrent.CompletableFuture<T> <name> (Object... optionalArgs)`
+// per endpoint, so `.join()` has the static type T exactly and the declaration needs no
+// cast. T is read from the ON-DISK Java file the compiler reads — a local declared T can
+// never disagree with its callee. Only concrete T is accepted (Map / List / String);
+// `CompletableFuture<Object>` endpoints stay Object.
+const JAVA_API_METHOD = /^\s*public java\.util\.concurrent\.CompletableFuture<(.+?)>\s+(\w+) \(Object\.\.\. optionalArgs\)/;
+const JAVA_API_FOLDER = path.join (path.dirname (fileURLToPath (import.meta.url)), '..', 'java', 'lib', 'src', 'main', 'java', 'io', 'github', 'ccxt', 'api');
+const awaitedApiTables = new Map ();
+
+function awaitedApiReturnTypes (exchange) {
+    if (awaitedApiTables.has (exchange)) {
+        return awaitedApiTables.get (exchange);
+    }
+    let table;
+    const capital = exchange.charAt (0).toUpperCase () + exchange.slice (1);
+    const candidates = [
+        path.join (JAVA_API_FOLDER, capital + 'Api.java'),
+        path.join (JAVA_API_FOLDER, 'prediction', capital + 'Api.java'),
+    ];
+    for (const file of candidates) {
+        let content;
+        try {
+            content = fs.readFileSync (file, 'utf8');
+        } catch (e) {
+            continue; // not a generated venue — never fatal
+        }
+        table = new Map ();
+        for (const line of content.split ('\n')) {
+            const match = JAVA_API_METHOD.exec (line);
+            if (match && match[1] !== 'Object') {
+                table.set (match[2], match[1]);
+            }
+        }
+        break;
+    }
+    awaitedApiTables.set (exchange, table);
+    return table;
+}
+
+// the source file's basename is the exchange id: ts/src/kucoin.ts -> kucoin,
+// ts/src/pro/kucoin.ts -> kucoin, ts/src/prediction/kalshi.ts -> kalshi. The ws and
+// prediction tiers reuse the REST api wrappers through their generated class chain.
+function sourceExchangeId (node) {
+    const fileName = node.getSourceFile?.()?.fileName ?? '';
+    const base = fileName.split (/[\\/]/).pop () ?? '';
+    return base.replace (/\.(ts|js)$/, '');
+}
+
+// the Java type of `await this.<name>(...)`, or undefined when the callee's
+// CompletableFuture<T> cannot be proven from an on-disk Java signature
+function awaitedThisCallType (node) {
+    if (node?.kind !== ts.SyntaxKind.AwaitExpression) {
+        return undefined;
+    }
+    const call = node.expression;
+    if (call?.kind !== ts.SyntaxKind.CallExpression || !isThisCall (call)) {
+        return undefined;
+    }
+    const methodName = call.expression.name?.escapedText;
+    if (methodName === undefined) {
+        return undefined;
+    }
+    const table = awaitedApiReturnTypes (sourceExchangeId (node));
+    return table?.get (methodName);
+}
 
 // ===== helpers =====
 
@@ -364,9 +858,70 @@ function returnCastFor (printer, node, methodName) {
 
 // ===== local narrowing (initializer -> Java type) =====
 
-function localInitializerType (printer, declaration) {
+function localInitializerType (printer, declaration, isProFile, narrowed) {
     const initializer = unwrapParens (declaration.initializer);
-    if (initializer === undefined || !isThisCall (initializer)) {
+    if (initializer === undefined) {
+        return undefined;
+    }
+    // string-element access: `const x = parts[0]` where `parts` is provably a list of
+    // String instances — printed `Helpers.GetValue(parts, 0)`, the cast is exact
+    if (elementAccessHasStringElements (initializer)) {
+        return { type: 'String', cast: '(String)', valuePrefix: 'Helpers.GetValue(', strictPlus: true };
+    }
+    // awaited generated api calls: `(this.<endpoint>(...)).join()` has the T of the
+    // endpoint's on-disk `CompletableFuture<T>` — cast-free
+    if (initializer.kind === ts.SyntaxKind.AwaitExpression) {
+        const awaited = awaitedThisCallType (initializer);
+        if (awaited !== undefined) {
+            return { type: awaited, valuePrefix: '(this.', strictPlus: awaited === 'String' };
+        }
+        return undefined;
+    }
+    // WS/pro families (see the section above)
+    if (isProFile === true) {
+        if (isThisCall (initializer)) {
+            const wsCall = WS_THIS_CALL_TYPES[initializer.expression.name.escapedText];
+            if (wsCall !== undefined && isBaseDeclaration (printer, initializer)) {
+                return { type: wsCall };
+            }
+        }
+        const readType = wsMapReadType (initializer);
+        if (readType !== undefined) {
+            // `this.<map>[key]` prints Helpers.GetValue(this.<map>, key);
+            // `this.safeValue*(this.<map>, key)` prints itself
+            const prefixes = ts.isElementAccessExpression (initializer)
+                ? [ 'Helpers.' ] : [ 'this.' ];
+            return { type: readType, cast: '(' + readType + ')', valuePrefixes: prefixes, skipInheritedAsyncGuard: true };
+        }
+        if (/^messageHash\d*$/.test (declaration.name.escapedText)
+            && isProvablyStringExpression (printer, initializer, declaration.name.escapedText, narrowed)) {
+            // the (String) prefix also defeats postProcessWsJava's "String type fixes"
+            // revert regex (`String x = this.<m>(` / `String x = Helpers.` -> Object),
+            // which runs on every pro file after printing; a checkcast on a String box
+            // is free
+            return { type: 'String', cast: '(String)', strictPlus: true, skipInheritedAsyncGuard: true, anyValueShape: true };
+        }
+    }
+    // ===== error paths: request/params object literals and typed base members =====
+    //
+    // `const request = {}` prints `new java.util.HashMap<String, Object>() {{}}` —
+    // assignable to java.util.Map<String, Object> with no cast (the box already is one).
+    // `Object x = this.<member>` reads a hand-written BaseExchange field whose Java
+    // declaration is concrete (`public String id`, `public volatile List<Object> symbols`,
+    // `public volatile Map<String, Object> markets_by_id`); no generated exchange class
+    // redeclares these (tree census: 0), so the local can carry the declared type.
+    // handleErrors has no Java return value (it throws) and the catch variable already
+    // prints `Exception` — both are no-ops today (see the header notes).
+    if (ts.isObjectLiteralExpression (initializer)) {
+        return { type: JAVA_STRUCTURE_TYPE, anyValueShape: true };
+    }
+    if (ts.isPropertyAccessExpression (initializer) && thisPropName (initializer) !== undefined) {
+        const memberType = THIS_MEMBER_TYPES[String (initializer.name.escapedText)];
+        if (memberType !== undefined) {
+            return { type: memberType };
+        }
+    }
+    if (!isThisCall (initializer)) {
         return undefined;
     }
     const name = initializer.expression.name.escapedText;
@@ -381,6 +936,10 @@ function localInitializerType (printer, declaration) {
     const accessor = LOCAL_THIS_RETURN_TYPES[name];
     if (accessor !== undefined && resolvesToBaseAccessor (printer, initializer, name)) {
         return { type: accessor.type, cast: accessor.cast };
+    }
+    const structure = STRUCTURE_THIS_RETURN_TYPES[name];
+    if (structure !== undefined && resolvesToMethodNamed (printer, initializer, name)) {
+        return { type: structure, cast: '(' + structure + ')' };
     }
     return undefined;
 }
@@ -402,12 +961,31 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 && isProvablyOfType (printer, node.whenFalse, javaType, selfName);
         case ts.SyntaxKind.AsExpression:
             return false;
+        case ts.SyntaxKind.BinaryExpression:
+            // `x = 'a' + b` prints Helpers.add(String, *) -> String; accepted for a
+            // String-typed local (the write needs no cast — the call already returns
+            // String in Java)
+            return javaType === 'String' && node.operatorToken.kind === ts.SyntaxKind.PlusToken
+                && isProvablyStringExpression (printer, node.left, selfName, undefined);
+        case ts.SyntaxKind.AwaitExpression:
+            // `x = await this.<endpoint>(...)` — same T as the declaration's callee
+            return awaitedThisCallType (node) === javaType;
+        case ts.SyntaxKind.ElementAccessExpression:
+            // `x = this.trades[key]` / `this.orderbooks[key]` — a ws map read
+            return isWsType (javaType) && wsMapReadType (node) === javaType;
         case ts.SyntaxKind.CallExpression: {
             const callee = node.expression;
             if (!ts.isPropertyAccessExpression (callee) || callee.expression.kind !== ts.SyntaxKind.ThisKeyword) {
                 return false;
             }
             const name = callee.name.escapedText;
+            if (isWsType (javaType)) {
+                // `x = this.safeValue(this.trades, key)` — a ws map read
+                return wsMapReadType (node) === javaType;
+            }
+            if (javaType === JAVA_STRUCTURE_TYPE) {
+                return STRUCTURE_THIS_RETURN_TYPES[name] !== undefined && resolvesToMethodNamed (printer, node, name);
+            }
             if (javaType === 'String') {
                 if (name === 'parse8601') {
                     return false;
@@ -449,6 +1027,11 @@ function isProvablyOfType (printer, node, javaType, selfName) {
         }
         case ts.SyntaxKind.ArrayLiteralExpression:
             return javaType === JAVA_ARRAY_TYPE;
+        case ts.SyntaxKind.ObjectLiteralExpression:
+            return javaType === JAVA_STRUCTURE_TYPE;
+        case ts.SyntaxKind.PropertyAccessExpression:
+            return thisPropName (node) !== undefined
+                && THIS_MEMBER_TYPES[String (node.name.escapedText)] === javaType;
         default:
             return false;
     }
@@ -472,6 +1055,19 @@ const LIST_RECEIVER_METHODS = new Set ([
     'add', 'size', 'isEmpty', 'get', 'set', 'insert', 'append',
 ]);
 const LONG_RECEIVER_METHODS = new Set ([ 'toString', 'valueOf', 'intValue', 'longValue', 'doubleValue' ]);
+// java.util.Map<String, Object>-safe receiver methods: only the prints that route
+// through an Object-taking helper (Helpers.getIndexOf / Helpers.slice / Helpers.split /
+// Helpers.concat / String.valueOf / Helpers.getArrayLength). Map has no `contains`,
+// no list casts and no String members.
+const MAP_RECEIVER_METHODS = new Set ([ 'toString', 'indexOf', 'split', 'concat', 'toFixed', 'slice' ]);
+// WS cache/orderbook receivers: every method the printer knows prints through an
+// Object-taking helper — postProcessWsJava's text pass rewrites the dynamic-dispatch
+// names to `Helpers.callDynamically(x, "name", ...)`, which takes Object, and the
+// ArrayCache/WsOrderBook members below are plain Java calls that exist on the box.
+const WS_RECEIVER_METHODS = new Set ([
+    'append', 'reset', 'store', 'storeArray', 'getLimit', 'limit',
+    'clear', 'snapshot', 'get', 'put', 'containsKey', 'entrySet', 'toMap', 'copy',
+]);
 
 function receiverCallIsSafe (method, javaType) {
     if (javaType === 'String') {
@@ -482,6 +1078,12 @@ function receiverCallIsSafe (method, javaType) {
     }
     if (javaType === JAVA_ARRAY_TYPE) {
         return LIST_RECEIVER_METHODS.has (method);
+    }
+    if (javaType === JAVA_STRUCTURE_TYPE) {
+        return MAP_RECEIVER_METHODS.has (method);
+    }
+    if (WS_TYPES.has (javaType) || javaType === 'Client') {
+        return WS_RECEIVER_METHODS.has (method);
     }
     return false;
 }
@@ -530,7 +1132,7 @@ function feedsInheritedAsyncCall (printer, n, scope) {
 }
 
 // reject the refinement when a later use needs the local to stay `Object`
-function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile) {
+function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, info) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
         return false;
@@ -551,6 +1153,20 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile) 
             // `obj.<name>` is a member read, but `x.<method>(...)` is a receiver call
             // the printer may cast to a fixed type
             continue;
+        }
+        if (ts.isElementAccessExpression (parent) && parent.expression === n) {
+            // `x[k]` reads print Helpers.GetValue(x, k) and stay valid for every
+            // family; a write / delete through a STRING local prints a receiver cast
+            // the String cannot satisfy ("...".remove((String)k) / List cast), so it
+            // rejects. Map/List/ws locals take the Object-parameter helper unchanged.
+            const grand = parent.parent;
+            if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
+                return false;
+            }
+            if (javaType === 'String' && grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent
+                && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind)) {
+                return false;
+            }
         }
         if (ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.parent !== undefined
             && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
@@ -585,26 +1201,33 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile) 
                 return false;
             }
         }
-        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
+        // strictPlus families (string-element access): the printed Helpers.add moves
+        // from add(Object, Object) to add(String, *) when the local is the LEFT of a
+        // `+` chain, and the two diverge for a null left / non-string right
+        if (info?.strictPlus === true && ts.isBinaryExpression (parent)
+            && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && !plusUsesAreSafe (n)) {
+            return false;
+        }
+        if (isProFile && info?.skipInheritedAsyncGuard !== true && feedsInheritedAsyncCall (printer, n, scope)) {
             return false;
         }
     }
     return true;
 }
 
-function javaLocalTypeOf (printer, declaration) {
+function javaLocalTypeOf (printer, declaration, narrowed) {
     if (!ts.isIdentifier (declaration.name)) {
-        return undefined;
-    }
-    const info = localInitializerType (printer, declaration);
-    if (info === undefined) {
         return undefined;
     }
     // scan by the SOURCE name: ReservedKeywordsReplacements renames the printed one
     const sourceName = declaration.name.escapedText;
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
-    if (!isSafeToNarrow (printer, declaration, sourceName, info.type, isProFile)) {
+    const info = localInitializerType (printer, declaration, isProFile, narrowed);
+    if (info === undefined) {
+        return undefined;
+    }
+    if (!isSafeToNarrow (printer, declaration, sourceName, info.type, isProFile, info)) {
         return undefined;
     }
     return info;
@@ -661,7 +1284,7 @@ export function installJavaLocalTypes (transpiler) {
         if (declaration.initializer === undefined) {
             return printed;
         }
-        const info = javaLocalTypeOf (printer, declaration);
+        const info = javaLocalTypeOf (printer, declaration, narrowed);
         if (info === undefined) {
             return printed;
         }
@@ -672,8 +1295,12 @@ export function installJavaLocalTypes (transpiler) {
             return printed;
         }
         const value = printed.slice (at + marker.length);
-        if (!value.startsWith ('this.')) {
-            return printed; // unexpected shape — leave it as the printer emitted it
+        if (info.anyValueShape !== true) {
+            const prefixes = info.valuePrefixes !== undefined ? info.valuePrefixes
+                : [ info.valuePrefix === undefined ? 'this.' : info.valuePrefix ];
+            if (!prefixes.some ((prefix) => value.startsWith (prefix))) {
+                return printed; // unexpected shape — leave it as the printer emitted it
+            }
         }
         narrowed.set (declaration, info.type);
         const cast = info.cast === undefined ? '' : info.cast + ' ';
@@ -688,13 +1315,34 @@ export function installJavaLocalTypes (transpiler) {
             return printed;
         }
         const right = unwrapParens (node.right);
-        if (right === undefined || !isThisCall (right)) {
+        if (right === undefined) {
             return printed;
         }
         const symbol = printer.getChecker ().getSymbolAtLocation (node.left);
         const declaration = symbol?.valueDeclaration;
         const javaType = (declaration !== undefined) ? narrowed.get (declaration) : undefined;
         if (javaType === undefined) {
+            return printed;
+        }
+        // ws map reads (`x = this.trades[k]` / `x = this.safeValue(this.trades, k)`)
+        // take the same checkcast the declaration got
+        if (isWsType (javaType)) {
+            if (wsMapReadType (right) !== javaType) {
+                return printed;
+            }
+            const marker = `${printer.printNode (node.left, 0)} = `;
+            const at = printed.indexOf (marker);
+            if (at === -1) {
+                return printed;
+            }
+            const head = at + marker.length;
+            const rest = printed.slice (head);
+            if (rest.startsWith ('(')) {
+                return printed; // already cast (never expected for a ws read)
+            }
+            return printed.slice (0, head) + '(' + javaType + ') ' + printed.slice (head);
+        }
+        if (!isThisCall (right)) {
             return printed;
         }
         if (!isProvablyOfType (printer, right, javaType, undefined)) {
@@ -706,12 +1354,15 @@ export function installJavaLocalTypes (transpiler) {
         // parse8601/iso8601) need none
         const accessor = LOCAL_THIS_RETURN_TYPES[call];
         const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType)
+            || (javaType === JAVA_STRUCTURE_TYPE && STRUCTURE_THIS_RETURN_TYPES[call] !== undefined)
             || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'))
             || (javaType === 'String' && (JAVA_STRING_RETURN_METHODS_CASE_CAST.has (call)
                 || call === 'safeStringUpper' || call === 'safeStringLower'
                 || call === 'safeStringUpper2' || call === 'safeStringLower2'
                 || call === 'safeStringUpperN' || call === 'safeStringLowerN'));
-        const cast = needsCast ? (javaType === 'String' ? '(String)' : '(Long)') : '';
+        const cast = !needsCast ? ''
+            : (javaType === 'String' ? '(String)'
+                : javaType === JAVA_STRUCTURE_TYPE ? '(' + JAVA_STRUCTURE_TYPE + ')' : '(Long)');
         if (cast === '') {
             return printed;
         }
