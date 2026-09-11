@@ -178,7 +178,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public"), Helpers.GetValue(market, "type"));
             Object requestId = this.requestId();
             Client client = this.client(url);
-            Object existingSubscription = this.safeDict(client.subscriptions, messageHash);
+            java.util.Map<String, Object> existingSubscription = (java.util.Map<String, Object>) this.safeDict(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(existingSubscription, null)))
             {
                 throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " no subscription for "), messageHash)) ;
@@ -261,7 +261,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(response, null)))
                 {
-                    Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                    java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                     listenKey = this.safeString(data, "listenkey");
                     if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
                     {
@@ -376,9 +376,9 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //         }
         //     ]
         //
-        Object response = this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> response = (java.util.List<Object>) this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
@@ -540,9 +540,9 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //         ]
         //     }
         //
-        Object response = this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> response = (java.util.List<Object>) this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
@@ -673,7 +673,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object timeframes = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> timeframes = (java.util.Map<String, Object>) this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             Object interval = this.safeString(timeframes, timeframe, timeframe);
             String messageHash = (String) Helpers.add(Helpers.add(Helpers.add(Helpers.add("ohlcv", "::"), symbol), "::"), timeframe);
             Object suffix = Helpers.add("_", interval);
@@ -710,7 +710,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
             }
             Object market = this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object timeframes = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> timeframes = (java.util.Map<String, Object>) this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             Object interval = this.safeString(timeframes, timeframe, timeframe);
             String messageHash = (String) Helpers.add(Helpers.add(Helpers.add(Helpers.add("ohlcv", "::"), symbol), "::"), timeframe);
             Object suffix = Helpers.add("_", interval);
@@ -749,9 +749,9 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //         ]
         //     }
         //
-        Object response = this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> response = (java.util.List<Object>) this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
@@ -873,9 +873,9 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //         "mt": 1760975816446
         //     }
         //
-        Object response = this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> response = (java.util.List<Object>) this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
@@ -906,9 +906,9 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
 
     public void handleOrderBookSnapshot(Client client, Object message)
     {
-        Object entries = this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(entries, 0, new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> entries = (java.util.List<Object>) this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(entries, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
@@ -920,7 +920,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entries)); i++)
         {
             Object entry = Helpers.GetValue(entries, i);
-            Object entryData = this.safeDict(entry, "d", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> entryData = (java.util.Map<String, Object>) this.safeDict(entry, "d", new java.util.HashMap<String, Object>() {{}});
             Object side = this.safeString(entryData, "D");
             Double price = this.safeNumber(entryData, "P");
             Double volume = this.safeNumber(entryData, "V");
@@ -968,7 +968,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         Long timestamp = this.safeInteger(message, "mt", 0);
         if (Helpers.isTrue(Helpers.isGreaterThan(timestamp, Helpers.GetValue(orderbook, "timestamp"))))
         {
-            Object response = this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> response = (java.util.List<Object>) this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             this.handleDeltas(orderbook, response);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
@@ -977,7 +977,7 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
 
     public void handleDelta(Object orderbook, Object entry)
     {
-        Object data = this.safeDict(entry, "d", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(entry, "d", new java.util.HashMap<String, Object>() {{}});
         Object bids = Helpers.GetValue(orderbook, "bids");
         Object asks = Helpers.GetValue(orderbook, "asks");
         Object side = this.safeString(data, "D");
@@ -1066,9 +1066,9 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //         ]
         //     }
         //
-        Object result = this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(first, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> result = (java.util.List<Object>) this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(first, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
@@ -1161,9 +1161,9 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //         ]
         //     }
         //
-        Object result = this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(first, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> result = (java.util.List<Object>) this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(first, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
@@ -1326,9 +1326,9 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //         ]
         //     }
         //
-        Object result = this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(first, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> result = (java.util.List<Object>) this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(result, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(first, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "I");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "/");
         String symbol = (String) this.safeSymbol(marketId, market);
@@ -1486,18 +1486,18 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //         ]
         //     }
         //
-        Object response = this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> response = (java.util.List<Object>) this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Object action = this.safeString(data, "A"); // 1 = subscribe, 0 = unsubscribe
         if (Helpers.isTrue(Helpers.isEqual(action, "0")))
         {
             java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
             Long subId = this.safeInteger(data, "L");
-            Object subscription = this.safeDict(subscriptionsById, subId, new java.util.HashMap<String, Object>() {{}}); // original watch subscription
+            java.util.Map<String, Object> subscription = (java.util.Map<String, Object>) this.safeDict(subscriptionsById, subId, new java.util.HashMap<String, Object>() {{}}); // original watch subscription
             Object subHash = this.safeString(subscription, "subHash");
             Object unsubHash = Helpers.add("unsubscribe::", subHash);
-            Object unsubsciption = this.safeDict(client.subscriptions, unsubHash, new java.util.HashMap<String, Object>() {{}}); // unWatch subscription
+            java.util.Map<String, Object> unsubsciption = (java.util.Map<String, Object>) this.safeDict(client.subscriptions, unsubHash, new java.util.HashMap<String, Object>() {{}}); // unWatch subscription
             this.handleUnSubscription(client, unsubsciption);
         }
     }
@@ -1530,12 +1530,12 @@ public class DeepcoinCore extends io.github.ccxt.exchanges.Deepcoin
         //     }
         //
         Object messageText = this.safeString(message, "m", "");
-        Object response = this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> response = (java.util.List<Object>) this.safeList(message, "r", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(first, "d", new java.util.HashMap<String, Object>() {{}});
         Long requestId = this.safeInteger(data, "L");
         java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Object subscription = this.safeDict(subscriptionsById, requestId, new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> subscription = (java.util.Map<String, Object>) this.safeDict(subscriptionsById, requestId, new java.util.HashMap<String, Object>() {{}});
         Object messageHash = this.safeString(subscription, "subHash");
         Object feedback = Helpers.add(Helpers.add(this.id, " "), this.json(message));
         try

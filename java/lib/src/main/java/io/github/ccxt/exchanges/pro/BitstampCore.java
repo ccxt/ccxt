@@ -123,7 +123,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        Object parts = Helpers.split(channel, "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(channel, "_");
         Object marketId = this.safeString(parts, 3);
         String symbol = (String) this.safeSymbol(marketId);
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) this.safeValue(this.orderbooks, symbol);
@@ -137,7 +137,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         String messageHash = (String) Helpers.add("orderbook:", symbol);
         if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
         {
-            Object cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(storedOrderBook, "cache")));
+            Integer cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(storedOrderBook, "cache")));
             // the rest API is very delayed
             // usually it takes at least 4-5 deltas to resolve
             Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 6);
@@ -321,7 +321,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        Object parts = Helpers.split(channel, "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(channel, "_");
         Object marketId = this.safeString(parts, 2);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -409,7 +409,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         // }
         //
         Object channel = this.safeString(message, "channel");
-        Object order = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -522,7 +522,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
         {
             return;
         }
-        Object parts = Helpers.split(channel, "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(channel, "_");
         Object marketId = this.safeString(parts, 3);
         String symbol = (String) this.safeSymbol(marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());

@@ -1151,6 +1151,96 @@ function returnCastFor (printer, node, methodName) {
     return undefined;
 }
 
+// ===== 5. dict/list/bool accessor locals (JN-12) =====
+//
+// `this.safeDict / safeList / safeBool` (and their 2-variants) are DECLARED `Object`
+// in the generated BaseExchange, but every path that can return hands back one box:
+//
+//   * safeDict(x, key[, default])  -> the value ONLY when `this.isDictionary(value)`
+//     (non-null && `value instanceof java.util.Map`), otherwise the caller's default;
+//     with the optional arg absent, Helpers.getArg(optionalArgs, 0, null) supplies null.
+//   * safeList(x, key[, default])  -> the value ONLY when non-null && `Helpers.isArray
+//     (value)` (a java.util.List), otherwise the default.
+//   * safeBool(x, key[, default])  -> the value ONLY when `value instanceof Boolean`,
+//     otherwise the default.
+//
+// So the runtime box is <the named type> or the caller's DEFAULT. The declaration may
+// carry the type only when the default is itself provable — absent (null), a literal
+// (object -> HashMap / array -> ArrayList / true|false), or null/undefined — which makes
+// the box `<type> | null` on every path, so the checkcast can never throw. A
+// caller-supplied variable default (`this.safeDict (x, k, allMids)`) is not provable and
+// keeps the local Object; so does a venue override (resolvesToBaseAccessor requires the
+// resolved signature to live in ts/src/base).
+//
+// Boxes verified in java/lib/src/main/java/io/github/ccxt/BaseExchange.java:
+// safeBool(4265), safeDict(4303), safeList(4389), safeDict2(4324), isDictionary(811);
+// the safeDict/safeList/... bodies were COMMENTED-OUT Map/List-returning drafts
+// (BaseExchange.java:1140) — this section names the box at the CALL SITE instead of
+// changing the shared helper signatures (no runtime change at all).
+const JAVA_GATED_ACCESSOR_TYPES = {
+    'safeDict':  { type: JAVA_STRUCTURE_TYPE, kind: 'map', args: [ 2, 3 ] },
+    'safeDict2': { type: JAVA_STRUCTURE_TYPE, kind: 'map', args: [ 3, 4 ] },
+    'safeList':  { type: JAVA_ARRAY_TYPE, kind: 'list', args: [ 2, 3 ] },
+    'safeList2': { type: JAVA_ARRAY_TYPE, kind: 'list', args: [ 3, 4 ] },
+    'safeBool':  { type: 'Boolean', kind: 'bool', args: [ 2, 3 ] },
+    'safeBool2': { type: 'Boolean', kind: 'bool', args: [ 3, 4 ] },
+};
+
+// the provable-default gate: absent / null / undefined always qualify; a literal must
+// match the accessor's family (object literal for Map, array literal for List, boolean
+// literal for Boolean) — everything else (variables, calls, ternaries, other families'
+// literals) keeps the local Object.
+function gatedAccessorDefaultIsProvable (entry, node) {
+    const args = node.arguments ?? [];
+    const defaultArg = args[entry.args[0]];
+    if (defaultArg === undefined) {
+        return true; // no optional arg: Helpers.getArg(optionalArgs, 0, null) -> null
+    }
+    const inner = unwrapParens (defaultArg);
+    if (inner === undefined) {
+        return false;
+    }
+    switch (inner.kind) {
+        case ts.SyntaxKind.NullKeyword:
+            return true;
+        case ts.SyntaxKind.Identifier:
+            return inner.escapedText === 'undefined';
+        case ts.SyntaxKind.ObjectLiteralExpression:
+            return entry.kind === 'map';
+        case ts.SyntaxKind.ArrayLiteralExpression:
+            return entry.kind === 'list';
+        case ts.SyntaxKind.TrueKeyword:
+        case ts.SyntaxKind.FalseKeyword:
+            return entry.kind === 'bool';
+        default:
+            return false;
+    }
+}
+
+// the box type of a whole base-tier `this.safeDict/safeList/safeBool(...)` call, or
+// undefined when the call is not one of the gated families (or the gate fails)
+function gatedAccessorCallType (printer, node) {
+    if (!isThisCall (node)) {
+        return undefined;
+    }
+    const name = node.expression.name.escapedText;
+    const entry = JAVA_GATED_ACCESSOR_TYPES[name];
+    if (entry === undefined) {
+        return undefined;
+    }
+    const argCount = node.arguments?.length ?? 0;
+    if (!entry.args.includes (argCount)) {
+        return undefined;
+    }
+    if (!resolvesToBaseAccessor (printer, node, name)) {
+        return undefined;
+    }
+    if (!gatedAccessorDefaultIsProvable (entry, node)) {
+        return undefined;
+    }
+    return entry;
+}
+
 // ===== local narrowing (initializer -> Java type) =====
 
 // a local initialised from a non-`this` call the printer rewrites to a known Java shape
@@ -1245,9 +1335,11 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         }
     }
     if (!isThisCall (initializer)) {
-        return undefined;
-    }
-    if (!isThisCall (initializer)) {
+        // JN-12: this branch was unreachable at the 853ab685540 integration — the
+        // accessor/table section's own early return sat in front of it, so the JAVA-RE-2
+        // method-call family (split/join/length/toUpperCase/... -> receiverMethodLocalType)
+        // never fired (census: 1,412 locals). The tables + rules are the slice's
+        // compile-verified originals; restored here as the single non-this-call exit.
         return receiverMethodLocalType (initializer);
     }
     const name = initializer.expression.name.escapedText;
@@ -1266,6 +1358,12 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     const structure = STRUCTURE_THIS_RETURN_TYPES[name];
     if (structure !== undefined && resolvesToMethodNamed (printer, initializer, name)) {
         return { type: structure, cast: '(' + structure + ')' };
+    }
+    // dict/list/bool accessors whose box is the named type or the caller's provable
+    // default (see the section-5 header above)
+    const gated = gatedAccessorCallType (printer, initializer);
+    if (gated !== undefined) {
+        return { type: gated.type, cast: '(' + gated.type + ')' };
     }
     return undefined;
 }
@@ -1320,6 +1418,13 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                 return false;
             }
             const name = callee.name.escapedText;
+            const gatedWrite = gatedAccessorCallType (printer, node);
+            if (gatedWrite !== undefined) {
+                // `x = this.safeDict(...)` / `x = this.safeList(...)` / `x = this.safeBool(...)`
+                // on an already-narrowed local: same gate as the declaration, and the
+                // reassignment hook injects the same checkcast
+                return gatedWrite.type === javaType;
+            }
             if (isWsType (javaType)) {
                 // `x = this.safeValue(this.trades, key)` — a ws map read
                 return wsMapReadType (node) === javaType;
@@ -3033,9 +3138,18 @@ export function installJavaLocalTypes (transpiler) {
         }
         const value = printed.slice (at + marker.length);
         if (info.anyValueShape !== true) {
-            const prefixes = info.valuePrefixes !== undefined ? info.valuePrefixes
-                : [ info.valuePrefix === undefined ? 'this.' : info.valuePrefix ];
-            if (!prefixes.some ((prefix) => value.startsWith (prefix))) {
+            // JN-12: the receiver-method entries carry `prefixes` (a list of legal print
+            // heads: `Helpers.split(`, `((String)`, `String.valueOf(`, ...) or `match`
+            // (the `.contains(` rewrite); `printedValueMatches` is the predicate the
+            // JAVA-RE-2 slice used. The integration left it defined but never called and
+            // only honored `valuePrefix`/`valuePrefixes`, so every receiver-family
+            // declaration failed the shape check and stayed Object (census: 1,412).
+            const matches = (info.prefixes !== undefined || info.match !== undefined)
+                ? printedValueMatches (info, value)
+                : (info.valuePrefixes !== undefined ? info.valuePrefixes
+                    : [ info.valuePrefix === undefined ? 'this.' : info.valuePrefix ])
+                    .some ((prefix) => value.startsWith (prefix));
+            if (!matches) {
                 return printed; // unexpected shape — leave it as the printer emitted it
             }
         }
@@ -3096,8 +3210,10 @@ export function installJavaLocalTypes (transpiler) {
         // declaration got; calls to retyped signatures (and the hand-written
         // parse8601/iso8601) need none
         const accessor = LOCAL_THIS_RETURN_TYPES[call];
+        const gated = gatedAccessorCallType (printer, right);
         const needsCast = (accessor !== undefined && accessor.cast !== undefined && accessor.type === javaType)
             || (javaType === JAVA_STRUCTURE_TYPE && STRUCTURE_THIS_RETURN_TYPES[call] !== undefined)
+            || (gated !== undefined && gated.type === javaType)
             || (javaType === 'Long' && (call === 'safeInteger' || call === 'safeInteger2' || call === 'safeIntegerN'))
             || (javaType === 'String' && (JAVA_STRING_RETURN_METHODS_CASE_CAST.has (call)
                 || call === 'safeStringUpper' || call === 'safeStringLower'
@@ -3105,7 +3221,9 @@ export function installJavaLocalTypes (transpiler) {
                 || call === 'safeStringUpperN' || call === 'safeStringLowerN'));
         const cast = !needsCast ? ''
             : (javaType === 'String' ? '(String)'
-                : javaType === JAVA_STRUCTURE_TYPE ? '(' + JAVA_STRUCTURE_TYPE + ')' : '(Long)');
+                : javaType === JAVA_STRUCTURE_TYPE ? '(' + JAVA_STRUCTURE_TYPE + ')'
+                    : (gated !== undefined && gated.type === javaType) ? '(' + javaType + ')'
+                        : '(Long)');
         if (cast === '') {
             return printed;
         }

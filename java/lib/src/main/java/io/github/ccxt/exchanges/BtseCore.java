@@ -736,8 +736,8 @@ public class BtseCore extends BtseApi
                 (this.loadTimeDifference()).join();
             }
             java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Markets(parameters)).join();
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object markets = this.safeList(data, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> markets = (java.util.List<Object>) this.safeList(data, "symbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -826,7 +826,7 @@ public class BtseCore extends BtseApi
         String minPriceString = this.safeString(market, "minOrderPrice");
         String pricePrecision = this.safeString(market, "minPriceIncrement");
         String amountPrecision = this.safeString(market, "minSizeIncrement");
-        Object active = this.safeBool(market, "active");
+        Boolean active = (Boolean) this.safeBool(market, "active");
         String type = "spot";
         Object expiry = null;
         Object contractSize = null;
@@ -1002,7 +1002,7 @@ public class BtseCore extends BtseApi
             //         "time": 1786604274378
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = this.parseOHLCVs(data, market, timeframe, since, limit);
             return result;
         });
@@ -1069,7 +1069,7 @@ public class BtseCore extends BtseApi
             //         "time": 1786605670833
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Long timestamp = this.safeInteger(data, "timestamp");
             return this.parseOrderBook(data, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks");
         });
@@ -1152,7 +1152,7 @@ public class BtseCore extends BtseApi
             //         "time": 1786607775380
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rates = this.parseFundingRateHistories(data, market, since, limit);
             if (Helpers.isTrue(Helpers.isEqual(until, null)))
             {
@@ -1265,12 +1265,12 @@ public class BtseCore extends BtseApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(response)); i++)
         {
             Object row = Helpers.GetValue(response, i);
-            Object assets = this.safeList(row, "assets");
+            java.util.List<Object> assets = (java.util.List<Object>) this.safeList(row, "assets");
             if (Helpers.isTrue(!Helpers.isEqual(assets, null)))
             {
                 // futures wallet row: per-currency totals in assets, locked amounts in assetsInUse
                 // several wallet rows can report the same currency, so amounts are aggregated
-                Object inUse = this.safeList(row, "assetsInUse", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> inUse = (java.util.List<Object>) this.safeList(row, "assetsInUse", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(inUse)); j++)
                 {
                     Object usedRow = Helpers.GetValue(inUse, j);
@@ -1339,7 +1339,7 @@ public class BtseCore extends BtseApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
                     String requestedSymbol = this.safeString(symbols, 0);
@@ -1367,10 +1367,10 @@ public class BtseCore extends BtseApi
             //
             // a single-symbol request returns the entry directly in data
             //
-            Object data = this.safeList(response, "data");
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data");
             if (Helpers.isTrue(Helpers.isEqual(data, null)))
             {
-                Object single = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> single = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                 data = new java.util.ArrayList<Object>(java.util.Arrays.asList(single));
             }
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
@@ -1382,7 +1382,7 @@ public class BtseCore extends BtseApi
                 Object symbol = Helpers.GetValue(market, "symbol");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbols, null)) || Helpers.isTrue(this.inArray(symbol, symbols))))
                 {
-                    Object levels = this.safeList(entry, "riskLimits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                    java.util.List<Object> levels = (java.util.List<Object>) this.safeList(entry, "riskLimits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                     java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(levels)); j++)
                     {
@@ -1477,7 +1477,7 @@ public class BtseCore extends BtseApi
             // the unified endpoint serves all market types in one call, the legacy type param is accepted and ignored
             parameters = this.omit(parameters, "type");
             java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data, symbols);
         });
 
@@ -1537,11 +1537,11 @@ public class BtseCore extends BtseApi
             //     }
             //
             // a single-symbol query returns data as one object, a multi-symbol or bare query returns an array
-            Object data = this.safeDict(response, "data");
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
             if (Helpers.isTrue(Helpers.isEqual(data, null)))
             {
-                Object rows = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                data = this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
+                java.util.List<Object> rows = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                data = (java.util.Map<String, Object>) this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
             }
             return this.parseTicker(data, market);
         });
@@ -1623,11 +1623,11 @@ public class BtseCore extends BtseApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters))).join();
-            Object interest = this.safeDict(response, "data");
+            java.util.Map<String, Object> interest = (java.util.Map<String, Object>) this.safeDict(response, "data");
             if (Helpers.isTrue(Helpers.isEqual(interest, null)))
             {
-                Object rows = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                interest = this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
+                java.util.List<Object> rows = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                interest = (java.util.Map<String, Object>) this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
             }
             return this.parseOpenInterest(interest, market);
         });
@@ -1653,7 +1653,7 @@ public class BtseCore extends BtseApi
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
             java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> rows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -1714,11 +1714,11 @@ public class BtseCore extends BtseApi
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "data");
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data");
             if (Helpers.isTrue(Helpers.isEqual(data, null)))
             {
-                Object rows = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                data = this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
+                java.util.List<Object> rows = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                data = (java.util.Map<String, Object>) this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
             }
             return this.parseFundingRate(data, market);
         });
@@ -1744,7 +1744,7 @@ public class BtseCore extends BtseApi
             (this.loadMarkets()).join();
             symbols = this.marketSymbols(symbols);
             java.util.Map<String, Object> response = (this.publicGetPublicApiMarketV1Ticker24hr(parameters)).join();
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> rows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -1881,7 +1881,7 @@ public class BtseCore extends BtseApi
             //         "time": 1786605671650
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> trades = this.parseTrades(data, market, since, limit);
             if (Helpers.isTrue(Helpers.isEqual(until, null)))
             {
@@ -1926,7 +1926,7 @@ public class BtseCore extends BtseApi
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             (this.loadMarkets()).join();
-            Object paginate = this.safeBool(parameters, "paginate", false);
+            Boolean paginate = (Boolean) this.safeBool(parameters, "paginate", false);
             if (Helpers.isTrue(Helpers.isEqual(paginate, true)))
             {
                 parameters = this.omit(parameters, "paginate");
@@ -2293,7 +2293,7 @@ public class BtseCore extends BtseApi
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             type = ((String)type).toUpperCase();
-            Object upperSide = ((String)((String)side)).toUpperCase();
+            String upperSide = ((String)((String)side)).toUpperCase();
             final Object finalUpperSide = upperSide;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -2484,7 +2484,7 @@ public class BtseCore extends BtseApi
                 }
                 response = (this.privatePostSpotApiV4TradeOrdersAlgo(this.extend(request, parameters))).join();
             }
-            Object order = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         });
 
@@ -2603,8 +2603,8 @@ public class BtseCore extends BtseApi
                 }
             }
             // here we handling with attached take profit and stop loss orders
-            Object takeProfit = this.safeDict(parameters, "takeProfit");
-            Object stopLoss = this.safeDict(parameters, "stopLoss");
+            java.util.Map<String, Object> takeProfit = (java.util.Map<String, Object>) this.safeDict(parameters, "takeProfit");
+            java.util.Map<String, Object> stopLoss = (java.util.Map<String, Object>) this.safeDict(parameters, "stopLoss");
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takeProfit, null))) || Helpers.isTrue((!Helpers.isEqual(stopLoss, null)))))
             {
                 String takeProfitTriggerPrice = this.safeString(takeProfit, "triggerPrice");
@@ -2881,7 +2881,7 @@ public class BtseCore extends BtseApi
             {
                 Helpers.addElementToObject(request, "orderPrice", this.priceToPrecision(symbol, price));
             }
-            Object isSlide = this.safeBool(parameters, "slide", false);
+            Boolean isSlide = (Boolean) this.safeBool(parameters, "slide", false);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(amount, null))) && Helpers.isTrue((Helpers.isEqual(price, null)))) && Helpers.isTrue((Helpers.isEqual(triggerPrice, null)))) && Helpers.isTrue((!Helpers.isEqual(isSlide, true)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " editOrder() requires an amount argument, a price argument or a triggerPrice parameter")) ;
@@ -2915,7 +2915,7 @@ public class BtseCore extends BtseApi
                 }
                 response = (this.privatePutFuturesApiV3TradeOrders(this.extend(request, parameters))).join();
             }
-            Object order = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         });
 
@@ -2985,7 +2985,7 @@ public class BtseCore extends BtseApi
                 Helpers.addElementToObject(request, "symbol", this.futuresRequestId(market));
                 response = (this.privateDeleteFuturesApiV3TradeOrders(this.extend(request, parameters))).join();
             }
-            Object order = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(order, market);
         });
 
@@ -3384,7 +3384,7 @@ public class BtseCore extends BtseApi
             Object since = Helpers.getArg(optionalArgs, 1, null);
             Object limit = Helpers.getArg(optionalArgs, 2, null);
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
-            Object typesList = this.safeList(new java.util.HashMap<String, Object>() {{
+            java.util.List<Object> typesList = (java.util.List<Object>) this.safeList(new java.util.HashMap<String, Object>() {{
                 put( "types", historyTypes );
             }}, "types", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             (this.loadMarkets()).join();
@@ -3853,7 +3853,7 @@ public class BtseCore extends BtseApi
                 response = (this.privateGetFuturesApiV23UserFees(this.extend(request, parameters))).join();
             }
             Object rows = this.safeList(response, "data", ((Object)response));
-            Object feeInfo = this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> feeInfo = (java.util.Map<String, Object>) this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
             Double makerFee = this.safeNumber(feeInfo, "makerFee");
             Double takerFee = this.safeNumber(feeInfo, "takerFee");
             return new java.util.HashMap<String, Object>() {{
@@ -3972,7 +3972,7 @@ public class BtseCore extends BtseApi
         String marketId = this.safeString(position, "positionId");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
-            Object parts = Helpers.split(marketId, "|");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "|");
             marketId = this.safeString(parts, 0);
         } else
         {
@@ -3984,9 +3984,9 @@ public class BtseCore extends BtseApi
         String side = (String)this.safeStringLower2(position, "positionDirection", "side");
         String positionMode = this.safeString(position, "positionMode");
         Boolean hedged = Helpers.isTrue((Helpers.isEqual(positionMode, "HEDGE"))) || Helpers.isTrue((Helpers.isEqual(positionMode, "ISOLATED")));
-        Object takeProfitOrder = this.safeDict(position, "takeProfitOrder", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> takeProfitOrder = (java.util.Map<String, Object>) this.safeDict(position, "takeProfitOrder", new java.util.HashMap<String, Object>() {{}});
         String takeProfitPrice = this.safeString(takeProfitOrder, "triggerPrice");
-        Object stopLossOrder = this.safeDict(position, "stopLossOrder", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> stopLossOrder = (java.util.Map<String, Object>) this.safeDict(position, "stopLossOrder", new java.util.HashMap<String, Object>() {{}});
         String stopLossPrice = this.safeString(stopLossOrder, "triggerPrice");
         final Object finalMarket = market;
         return this.safePosition(new java.util.HashMap<String, Object>() {{
@@ -4075,7 +4075,7 @@ public class BtseCore extends BtseApi
             //         }
             //     ]
             //
-            Object data = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             String positionMode = this.safeString(data, "positionMode");
             Boolean hedged = Helpers.isTrue((Helpers.isEqual(positionMode, "HEDGE"))) || Helpers.isTrue((Helpers.isEqual(positionMode, "ISOLATED")));
             return new java.util.HashMap<String, Object>() {{
@@ -4145,7 +4145,7 @@ public class BtseCore extends BtseApi
                 put( "symbol", BtseCore.this.futuresRequestId(market) );
             }};
             java.util.List<Object> response = (this.privateGetFuturesApiV3TradeLeverage(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseMarginMode(data, market);
         });
 
@@ -4215,7 +4215,7 @@ public class BtseCore extends BtseApi
             {
                 throw new BadRequest((String)Helpers.add(this.id, " setMarginMode() marginMode argument should be either cross or isolated")) ;
             }
-            Object hedged = this.safeBool(parameters, "hedged");
+            Boolean hedged = (Boolean) this.safeBool(parameters, "hedged");
             if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
             {
                 if (!Helpers.isTrue((Helpers.inOp(parameters, "hedged"))))
@@ -4440,7 +4440,7 @@ public class BtseCore extends BtseApi
         //     {"status":400,"errorCode":-2,"message":"symbol parameter is mandatory","extraData":null}
         //     {"status":400,"errorCode":-7,"message":"Authenticate failed","extraData":null}
         //
-        Object success = this.safeBool(response, "success", true);
+        Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             String spotErrorCode = this.safeString(response, "code");

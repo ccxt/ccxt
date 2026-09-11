@@ -579,7 +579,7 @@ public class LbankCore extends LbankApi
             //        "ts": "1747973911431"
             //    }
             //
-            Object currenciesData = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> currenciesData = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> grouped = this.groupBy(currenciesData, "assetCode");
             Object values = Helpers.objectValues(grouped);
             return this.parseCurrencies(values);
@@ -697,13 +697,13 @@ public class LbankCore extends LbankApi
             //         "ts": 1691560288484
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object market = Helpers.GetValue(data, i);
                 String marketId = this.safeString(market, "symbol");
-                Object parts = Helpers.split(((String)marketId), "_");
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)marketId), "_");
                 String baseId = (String) Helpers.GetValue(parts, 0);
                 String quoteId = (String) Helpers.GetValue(parts, 1);
                 String base = (String) this.safeCurrencyCode(baseId);
@@ -803,7 +803,7 @@ public class LbankCore extends LbankApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -992,7 +992,7 @@ public class LbankCore extends LbankApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(first, market);
         });
 
@@ -1023,7 +1023,7 @@ public class LbankCore extends LbankApi
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 symbols = this.marketSymbols(symbols);
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -1089,7 +1089,7 @@ public class LbankCore extends LbankApi
             //         "success": true
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(data, symbols);
         });
 
@@ -1263,7 +1263,7 @@ public class LbankCore extends LbankApi
         String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(side, null)))
         {
-            Object parts = Helpers.split(side, "_");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(side, "_");
             side = this.safeString(parts, 0);
             String typePart = this.safeString(parts, 1);
             type = "limit";
@@ -1391,7 +1391,7 @@ public class LbankCore extends LbankApi
             //           "ts":1647021999308
             //      }
             //
-            Object trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         });
 
@@ -1461,7 +1461,7 @@ public class LbankCore extends LbankApi
                 put( "size", parsedLimit );
             }};
             java.util.Map<String, Object> response = (this.spotPublicGetKline(this.extend(request, parameters))).join();
-            Object ohlcvs = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> ohlcvs = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             //
             //
             // [
@@ -1579,7 +1579,7 @@ public class LbankCore extends LbankApi
         if (Helpers.isTrue(!Helpers.isEqual(toBtc, null)))
         {
             Object used = this.safeValue(data, "freeze", new java.util.HashMap<String, Object>() {{}});
-            Object free = this.safeDict(data, "free", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> free = (java.util.Map<String, Object>) this.safeDict(data, "free", new java.util.HashMap<String, Object>() {{}});
             Object currencies = Helpers.objectKeys(free);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
             {
@@ -1762,7 +1762,7 @@ public class LbankCore extends LbankApi
             //     "result": "true",
             //     "success": True,
             // }
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseFundingRates(data, symbols);
         });
 
@@ -1909,7 +1909,7 @@ public class LbankCore extends LbankApi
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             java.util.Map<String, Object> response = (this.spotPrivatePostSupplementCustomerTradeFee(this.extend(request, parameters))).join();
-            Object fees = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> fees = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fees)); i++)
             {
@@ -1983,7 +1983,7 @@ public class LbankCore extends LbankApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String clientOrderId = this.safeString2(parameters, "custom_id", "clientOrderId");
-            Object postOnly = this.safeBool(parameters, "postOnly", false);
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly", false);
             String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("custom_id", "clientOrderId", "timeInForce", "postOnly")));
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2199,7 +2199,7 @@ public class LbankCore extends LbankApi
         Boolean postOnly = false;
         String type = "limit";
         String rawType = this.safeString2(order, "type", "tradeType"); // buy, sell, buy_market, sell_market, buy_maker,sell_maker,buy_ioc,sell_ioc, buy_fok, sell_fok
-        Object parts = Helpers.split(((String)rawType), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)rawType), "_");
         String side = this.safeString(parts, 0);
         String typePart = this.safeString(parts, 1); // market, maker, ioc, fok or undefined (limit)
         if (Helpers.isTrue(Helpers.isEqual(typePart, "market")))
@@ -2336,7 +2336,7 @@ public class LbankCore extends LbankApi
             //          "ts":1648164471827
             //      }
             //
-            Object result = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(result);
         });
 
@@ -2384,8 +2384,8 @@ public class LbankCore extends LbankApi
             //          "ts":1647455270776
             //      }
             //
-            Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object numOrders = Helpers.getArrayLength(result);
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Integer numOrders = Helpers.getArrayLength(result);
             if (Helpers.isTrue(Helpers.isEqual(numOrders, 1)))
             {
                 return this.parseOrder(Helpers.GetValue(result, 0));
@@ -2461,7 +2461,7 @@ public class LbankCore extends LbankApi
             //          "ts":1648509742164
             //      }
             //
-            Object trades = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         });
 
@@ -2537,7 +2537,7 @@ public class LbankCore extends LbankApi
             //      }
             //
             Object result = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(result, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(result, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
 
@@ -2611,7 +2611,7 @@ public class LbankCore extends LbankApi
             //     }
             //
             Object result = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object orders = this.safeList(result, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> orders = (java.util.List<Object>) this.safeList(result, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(orders, market, since, limit);
         });
 
@@ -2667,7 +2667,7 @@ public class LbankCore extends LbankApi
             //      "error_code":0,
             //      "ts":1648501286196
             //  }
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         });
 
@@ -2719,7 +2719,7 @@ public class LbankCore extends LbankApi
             //          "ts":1648506641468
             //      }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data);
         });
 
@@ -3118,7 +3118,7 @@ public class LbankCore extends LbankApi
             //      }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object deposits = this.safeList(data, "depositOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> deposits = (java.util.List<Object>) this.safeList(data, "depositOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(deposits, currency, since, limit);
         });
 
@@ -3187,7 +3187,7 @@ public class LbankCore extends LbankApi
             //      }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object withdraws = this.safeList(data, "withdraws", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> withdraws = (java.util.List<Object>) this.safeList(data, "withdraws", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(withdraws, currency, since, limit);
         });
 
@@ -3282,14 +3282,14 @@ public class LbankCore extends LbankApi
             //        "code": 0
             //    }
             //
-            Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> withdrawFees = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object entry = Helpers.GetValue(result, i);
                 String currencyId = this.safeString(entry, "coin");
                 String code = (String) this.safeCurrencyCode(currencyId);
-                Object networkList = this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> networkList = (java.util.List<Object>) this.safeList(entry, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 if (Helpers.isTrue(!Helpers.isEqual(code, null)))
                 {
                     Helpers.addElementToObject(withdrawFees, code, new java.util.HashMap<String, Object>() {{}});
@@ -3362,7 +3362,7 @@ public class LbankCore extends LbankApi
             //        "ts": "1663364435973"
             //    }
             //
-            Object result = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> withdrawFees = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
@@ -3489,7 +3489,7 @@ public class LbankCore extends LbankApi
             //        "code": 0
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseDepositWithdrawFees(data, codes, "coin");
         });
 
@@ -3639,7 +3639,7 @@ public class LbankCore extends LbankApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object result = this.depositWithdrawFee(fee);
         String code = this.safeString(currency, "code");
-        Object networkList = this.safeList(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> networkList = (java.util.List<Object>) this.safeList(fee, "networkList", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkList)); j++)
         {
             Object networkEntry = Helpers.GetValue(networkList, j);
@@ -3701,7 +3701,7 @@ public class LbankCore extends LbankApi
         } else
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.milliseconds());
+            String timestamp = String.valueOf(this.milliseconds());
             Object echostr = Helpers.add(this.uuid22(), this.uuid16());
             query = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "api_key", LbankCore.this.apiKey );
@@ -3722,11 +3722,11 @@ public class LbankCore extends LbankApi
             }}, query)));
             Object encoded = this.encode(auth);
             Object hash = this.hash(encoded, md5());
-            Object uppercaseHash = ((String)hash).toUpperCase();
+            String uppercaseHash = ((String)hash).toUpperCase();
             Object sign = null;
             if (Helpers.isTrue(Helpers.isEqual(signatureMethod, "RSA")))
             {
-                Object cacheSecretAsPem = this.safeBool(this.options, "cacheSecretAsPem", true);
+                Boolean cacheSecretAsPem = (Boolean) this.safeBool(this.options, "cacheSecretAsPem", true);
                 Object pem = null;
                 if (Helpers.isTrue(Helpers.isEqual(cacheSecretAsPem, true)))
                 {

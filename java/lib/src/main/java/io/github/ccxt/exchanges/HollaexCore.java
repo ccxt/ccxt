@@ -423,7 +423,7 @@ public class HollaexCore extends HollaexApi
             //         "status": true
             //     }
             //
-            Object pairs = this.safeDict(response, "pairs", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> pairs = (java.util.Map<String, Object>) this.safeDict(response, "pairs", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(pairs);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -571,7 +571,7 @@ public class HollaexCore extends HollaexApi
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            Object coins = this.safeDict(response, "coins", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> coins = (java.util.Map<String, Object>) this.safeDict(response, "coins", new java.util.HashMap<String, Object>() {{}});
             Object values = Helpers.objectValues(coins);
             return this.parseCurrencies(values);
         });
@@ -582,16 +582,16 @@ public class HollaexCore extends HollaexApi
     {
         String id = this.safeString(rawCurrency, "symbol");
         String code = (String) this.safeCurrencyCode(id);
-        Object withdrawalLimits = this.safeList(rawCurrency, "withdrawal_limits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> withdrawalLimits = (java.util.List<Object>) this.safeList(rawCurrency, "withdrawal_limits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String rawType = this.safeString(rawCurrency, "type");
         String type = ((Helpers.isTrue((Helpers.isEqual(rawType, "blockchain"))))) ? "crypto" : "other";
-        Object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> rawNetworks = (java.util.Map<String, Object>) this.safeDict(rawCurrency, "withdrawal_fees", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object networkIds = Helpers.objectKeys(rawNetworks);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
         {
             Object networkId = Helpers.GetValue(networkIds, j);
-            Object networkEntry = this.safeDict(rawNetworks, networkId);
+            java.util.Map<String, Object> networkEntry = (java.util.Map<String, Object>) this.safeDict(rawNetworks, networkId);
             Object networkCode = this.networkIdToCode(networkId, code);
             if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
             {
@@ -668,7 +668,7 @@ public class HollaexCore extends HollaexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object orderbook = this.safeDict(response, marketId, new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> orderbook = (java.util.Map<String, Object>) this.safeDict(response, marketId, new java.util.HashMap<String, Object>() {{}});
                 String symbol = (String) this.safeSymbol(marketId, null, "-");
                 Long timestamp = this.parse8601(this.safeString(orderbook, "timestamp"));
                 Helpers.addElementToObject(result, symbol, this.parseOrderBook(orderbook, symbol, timestamp));
@@ -1521,7 +1521,7 @@ public class HollaexCore extends HollaexApi
         String filled = this.safeString(order, "filled");
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         Object meta = this.safeValue(order, "meta", new java.util.HashMap<String, Object>() {{}});
-        Object postOnly = this.safeBool(meta, "post_only", false);
+        Boolean postOnly = (Boolean) this.safeBool(meta, "post_only", false);
         return this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", id );
             put( "clientOrderId", null );
@@ -1583,7 +1583,7 @@ public class HollaexCore extends HollaexApi
             }};
             Double triggerPrice = this.safeNumberN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("triggerPrice", "stopPrice", "stop")));
             Object meta = this.safeValue(parameters, "meta", new java.util.HashMap<String, Object>() {{}});
-            Object exchangeSpecificParam = this.safeBool(meta, "post_only", false);
+            Boolean exchangeSpecificParam = (Boolean) this.safeBool(meta, "post_only", false);
             Boolean isMarketOrder = Helpers.isEqual(type, "market");
             Object postOnly = this.isPostOnly(isMarketOrder, exchangeSpecificParam, parameters);
             if (!Helpers.isTrue(isMarketOrder))
@@ -1800,7 +1800,7 @@ public class HollaexCore extends HollaexApi
         Object tag = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
-            Object parts = Helpers.split(address, ":");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(address, ":");
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
         }
@@ -2019,7 +2019,7 @@ public class HollaexCore extends HollaexApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object transaction = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> transaction = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(transaction, currency);
         });
 
@@ -2142,7 +2142,7 @@ public class HollaexCore extends HollaexApi
         Object tagFrom = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
-            Object parts = Helpers.split(address, ":");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(address, ":");
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
             addressTo = address;
@@ -2328,7 +2328,7 @@ public class HollaexCore extends HollaexApi
         if (Helpers.isTrue(!Helpers.isEqual(withdrawalFees, null)))
         {
             Object keys = Helpers.objectKeys(withdrawalFees);
-            Object keysLength = Helpers.getArrayLength(keys);
+            Integer keysLength = Helpers.getArrayLength(keys);
             for (var i = 0; Helpers.isLessThan(i, keysLength); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -2340,7 +2340,7 @@ public class HollaexCore extends HollaexApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a networkCode argument")) ;
                 }
-                Object networkCodeUpper = ((String)networkCode).toUpperCase(); // default to the upper case network code
+                String networkCodeUpper = ((String)networkCode).toUpperCase(); // default to the upper case network code
                 Double withdrawalFee = this.safeNumber(value, "value");
                 Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCodeUpper, new java.util.HashMap<String, Object>() {{
     put( "deposit", null );
@@ -2403,7 +2403,7 @@ public class HollaexCore extends HollaexApi
             //         "network":"https://api.hollaex.network"
             //     }
             //
-            Object coins = this.safeDict(response, "coins", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> coins = (java.util.Map<String, Object>) this.safeDict(response, "coins", new java.util.HashMap<String, Object>() {{}});
             return this.parseDepositWithdrawFees(coins, codes, "symbol");
         });
 
@@ -2431,7 +2431,7 @@ public class HollaexCore extends HollaexApi
             this.checkRequiredCredentials();
             Long defaultExpires = (Long) this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(Helpers.divide(this.timeout, 1000)));
             Object expires = this.sum(this.seconds(), defaultExpires);
-            Object expiresString = String.valueOf(expires);
+            String expiresString = String.valueOf(expires);
             Object auth = Helpers.add(Helpers.add(method, path), expiresString);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "api-key", HollaexCore.this.apiKey );
@@ -2481,7 +2481,7 @@ public class HollaexCore extends HollaexApi
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             String message = this.safeString(response, "message");
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
-            Object status = String.valueOf(code);
+            String status = String.valueOf(code);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), status, feedback);
         }
         return null;

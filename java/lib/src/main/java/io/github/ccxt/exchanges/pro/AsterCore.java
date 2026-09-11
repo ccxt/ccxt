@@ -193,7 +193,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             }
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             String methodName = null;
             java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTickers");
             methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
@@ -259,7 +259,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             }
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             String methodName = null;
             java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchTickers");
             methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
@@ -369,7 +369,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             }
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             String methodName = null;
             java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchMarkPrices");
             methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
@@ -386,7 +386,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 put( "method", "SUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
-            Object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+            Boolean use1sFreq = (Boolean) this.safeBool(parameters, "use1sFreq", true);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -436,7 +436,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             }
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             String methodName = null;
             java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchMarkPrices");
             methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
@@ -453,7 +453,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 put( "method", "UNSUBSCRIBE" );
                 put( "params", subscriptionArgs );
             }};
-            Object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+            Boolean use1sFreq = (Boolean) this.safeBool(parameters, "use1sFreq", true);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -585,7 +585,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             }
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchBidsAsks() requires a non-empty array of symbols")) ;
@@ -646,7 +646,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             }
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchBidsAsks() requires a non-empty array of symbols")) ;
@@ -794,7 +794,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             String methodName = null;
             java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchTradesForSymbols");
             methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
@@ -855,7 +855,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             String methodName = null;
             java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchTradesForSymbols");
             methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
@@ -1163,7 +1163,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             String methodName = null;
             java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOrderBookForSymbols");
             methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
@@ -1223,7 +1223,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object firstMarket = this.getMarketFromSymbols(symbols);
             Object type = this.safeString(firstMarket, "type", "swap");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             String methodName = null;
             java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchOrderBookForSymbols");
             methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
@@ -1383,7 +1383,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 (this.loadMarkets()).join();
             }
-            Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
+            Integer symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             String methodName = null;
             java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "watchOHLCVForSymbols");
             methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
@@ -1453,7 +1453,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 (this.loadMarkets()).join();
             }
-            Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
+            Integer symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             String methodName = null;
             java.util.List<Object> methodNameparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "callerMethodName", "unWatchOHLCVForSymbols");
             methodName = (String) ((java.util.List<Object>) methodNameparametersVariable).get(0);
@@ -1527,7 +1527,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         Object marketId = this.safeString(data, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object kline = this.safeDict(data, "k");
+        java.util.Map<String, Object> kline = (java.util.Map<String, Object>) this.safeDict(data, "k");
         Object timeframeId = this.safeString(kline, "i");
         Object timeframe = this.findTimeframe(timeframeId);
         if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
@@ -1566,9 +1566,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object type = Helpers.getArg(optionalArgs, 0, "spot");
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Long time = this.milliseconds();
-            Object lastAuthenticatedTimeOptions = this.safeDict(this.options, "lastAuthenticatedTime", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> lastAuthenticatedTimeOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "lastAuthenticatedTime", new java.util.HashMap<String, Object>() {{}});
             Long lastAuthenticatedTime = this.safeInteger(lastAuthenticatedTimeOptions, type, 0);
-            Object listenKeyRefreshRateOptions = this.safeDict(this.options, "listenKeyRefreshRate", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> listenKeyRefreshRateOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "listenKeyRefreshRate", new java.util.HashMap<String, Object>() {{}});
             Long listenKeyRefreshRate = this.safeInteger(listenKeyRefreshRateOptions, type, 3600000); // 1 hour
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.subtract(time, lastAuthenticatedTime), listenKeyRefreshRate)))
             {
@@ -1640,7 +1640,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object type = this.safeString(parameters, "type", "spot");
-            Object listenKeyOptions = this.safeDict(this.options, "listenKey", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> listenKeyOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "listenKey", new java.util.HashMap<String, Object>() {{}});
             Object listenKey = this.safeString(listenKeyOptions, type);
             if (Helpers.isTrue(Helpers.isEqual(listenKey, null)))
             {
@@ -1670,7 +1670,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                 return null;
             }
             // whether or not to schedule another listenKey keepAlive request
-            Object listenKeyRefreshOptions = this.safeDict(this.options, "listenKeyRefresh", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> listenKeyRefreshOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "listenKeyRefresh", new java.util.HashMap<String, Object>() {{}});
             Long listenKeyRefreshRate = this.safeInteger(listenKeyRefreshOptions, "listenKeyRefreshRate", 3600000);
             this.scheduleCallback(listenKeyRefreshRate, "keepAliveListenKey", parameters);
             return null;
@@ -1681,7 +1681,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
     public Object getPrivateUrl(Object... optionalArgs)
     {
         Object type = Helpers.getArg(optionalArgs, 0, "spot");
-        Object listenKeyOptions = this.safeDict(this.options, "listenKey", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> listenKeyOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "listenKey", new java.util.HashMap<String, Object>() {{}});
         Object listenKey = this.safeString(listenKeyOptions, type);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), type), "/"), listenKey);
         return url;
@@ -1715,9 +1715,9 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             Object url = this.getPrivateUrl(type);
             Client client = this.client(url);
             this.setBalanceCache(client, type);
-            Object options = this.safeDict(this.options, "watchBalance");
-            Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-            Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "watchBalance");
+            Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+            Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchBalanceSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitBalanceSnapshot, true)))))
             {
                 client.future((String)Helpers.add(type, ":fetchBalanceSnapshot")).getFuture().join();
@@ -1736,7 +1736,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             return;
         }
         Object options = this.safeValue(this.options, "watchBalance");
-        Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (Helpers.isTrue(Helpers.isEqual(fetchBalanceSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
@@ -1839,7 +1839,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         }
         Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), "info", message);
         message = this.safeDict(message, "a", message);
-        Object B = this.safeList(message, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> B = (java.util.List<Object>) this.safeList(message, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object wallet = this.safeString(this.options, "wallet", "wb");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(B)); i++)
         {
@@ -2012,8 +2012,8 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object data = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeList(data, "P", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> rawPositions = (java.util.List<Object>) this.safeList(data, "P", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
@@ -2291,7 +2291,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                             Helpers.addElementToObject(order, "fee", tradeFee);
                         }
                         // save this trade in the order
-                        Object orderTrades = this.safeList(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        java.util.List<Object> orderTrades = (java.util.List<Object>) this.safeList(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                         ((java.util.List<Object>)orderTrades).add(trade);
                         Helpers.addElementToObject(order, "trades", orderTrades);
                     }

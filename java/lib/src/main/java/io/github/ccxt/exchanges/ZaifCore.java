@@ -417,7 +417,7 @@ public class ZaifCore extends ZaifApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object funds = this.safeDict(balances, "funds", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> funds = (java.util.Map<String, Object>) this.safeDict(balances, "funds", new java.util.HashMap<String, Object>() {{}});
         Object currencyIds = Helpers.objectKeys(funds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
@@ -662,10 +662,10 @@ public class ZaifCore extends ZaifApi
             //      ]
             //
             java.util.List<Object> trades = this.toArray(response);
-            Object numTrades = Helpers.getArrayLength(trades);
+            Integer numTrades = Helpers.getArrayLength(trades);
             if (Helpers.isTrue(Helpers.isEqual(numTrades, 1)))
             {
-                Object firstTrade = this.safeDict(trades, 0, new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> firstTrade = (java.util.Map<String, Object>) this.safeDict(trades, 0, new java.util.HashMap<String, Object>() {{}});
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.getArrayLength(Helpers.objectKeys(firstTrade)), 0)))
                 {
                     trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -713,7 +713,7 @@ public class ZaifCore extends ZaifApi
                 put( "price", price );
             }};
             java.util.Map<String, Object> response = (this.privatePostTrade(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.safeOrder(new java.util.HashMap<String, Object>() {{
                 put( "info", response );
                 put( "id", String.valueOf(Helpers.GetValue(data, "order_id")) );
@@ -757,7 +757,7 @@ public class ZaifCore extends ZaifApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrder(data);
         });
 
@@ -854,7 +854,7 @@ public class ZaifCore extends ZaifApi
                 Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             }
             java.util.Map<String, Object> response = (this.privatePostActiveOrders(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -892,7 +892,7 @@ public class ZaifCore extends ZaifApi
                 Helpers.addElementToObject(request, "currency_pair", Helpers.GetValue(market, "id"));
             }
             java.util.Map<String, Object> response = (this.privatePostTradeHistory(this.extend(request, parameters))).join();
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -956,7 +956,7 @@ public class ZaifCore extends ZaifApi
             //         }
             //     }
             //
-            Object returnData = this.safeDict(result, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> returnData = (java.util.Map<String, Object>) this.safeDict(result, "return", new java.util.HashMap<String, Object>() {{}});
             return this.parseTransaction(returnData, currency);
         });
 
@@ -1090,7 +1090,7 @@ public class ZaifCore extends ZaifApi
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), error, feedback);
             throw new ExchangeError((String)feedback) ;
         }
-        Object success = this.safeBool(response, "success", true);
+        Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             throw new ExchangeError((String)feedback) ;

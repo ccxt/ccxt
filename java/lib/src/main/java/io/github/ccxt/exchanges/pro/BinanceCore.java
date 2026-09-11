@@ -283,8 +283,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             // if (firstProtocol !== -1 && baseUrl.indexOf ('://', firstProtocol + 3) !== -1) {
             //     return baseUrl;
             // }
-            Object baseUrlSplit = Helpers.split(baseUrl, "://");
-            Object baseUrlSplitLength = Helpers.getArrayLength(baseUrlSplit);
+            java.util.List<Object> baseUrlSplit = (java.util.List<Object>) Helpers.split(baseUrl, "://");
+            Integer baseUrlSplitLength = Helpers.getArrayLength(baseUrlSplit);
             if (Helpers.isTrue(Helpers.isGreaterThan(baseUrlSplitLength, 2)))
             {
                 return baseUrl;
@@ -472,7 +472,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchLiquidationsForSymbols() does not support options markets, there is no public liquidation stream for eOptions")) ;
             }
-            Object numSubscriptions = Helpers.getArrayLength(subscriptionHashes);
+            Integer numSubscriptions = Helpers.getArrayLength(subscriptionHashes);
             Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory("forceOrder")), "/"), this.stream(type, streamHash, numSubscriptions));
             Object requestId = this.requestId(url);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -876,7 +876,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object streamHash = "multipleOrderbook";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 200)))
                 {
                     throw new BadRequest((String)Helpers.add(this.id, " watchOrderBookForSymbols() accepts 200 symbols at most. To watch more symbols call watchOrderBookForSymbols() multiple times")) ;
@@ -911,7 +911,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 Object symbolHash = Helpers.add(Helpers.add(Helpers.add(subscriptionHash, "@"), String.valueOf(watchOrderBookRate)), "ms");
                 ((java.util.List<Object>)subParams).add(symbolHash);
             }
-            Object messageHashesLength = Helpers.getArrayLength(messageHashes);
+            Integer messageHashesLength = Helpers.getArrayLength(messageHashes);
             Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, messageHashesLength));
             Object requestId = this.requestId(url);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -993,7 +993,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 Object symbolHash = Helpers.add(Helpers.add(Helpers.add(subscriptionHash, "@"), watchOrderBookRate), "ms");
                 ((java.util.List<Object>)subParams).add(symbolHash);
             }
-            Object messageHashesLength = Helpers.getArrayLength(subMessageHashes);
+            Integer messageHashesLength = Helpers.getArrayLength(subMessageHashes);
             Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory("depth")), "/"), this.stream(type, streamHash, messageHashesLength));
             Object requestId = this.requestId(url);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1077,7 +1077,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), marketType);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderBookWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -1126,7 +1126,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //    }
         //
         Object messageHash = this.safeString(message, "id");
-        Object result = this.safeDict(message, "result");
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(message, "result");
         Long timestamp = this.safeInteger(result, "T");
         Object orderbook = this.parseOrderBook(result, null, timestamp);
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger2(result, "lastUpdateId", "u"));
@@ -1417,7 +1417,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         {
             Helpers.callDynamically(this, method, new Object[] {client, message, subscription});
         }
-        Object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
+        Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (Helpers.isTrue(Helpers.isEqual(isUnSubMessage, true)))
         {
             this.handleUnSubscription(client, subscription);
@@ -1427,8 +1427,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
 
     public void handleUnSubscription(Client client, Object subscription)
     {
-        Object messageHashes = this.safeList(subscription, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object subMessageHashes = this.safeList(subscription, "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> messageHashes = (java.util.List<Object>) this.safeList(subscription, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> subMessageHashes = (java.util.List<Object>) this.safeList(subscription, "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(messageHashes)); j++)
         {
             Object unsubHash = Helpers.GetValue(messageHashes, j);
@@ -1469,7 +1469,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object streamHash = "multipleTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 200)))
                 {
                     throw new BadRequest((String)Helpers.add(this.id, " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times")) ;
@@ -1524,7 +1524,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 }
             }
             Object query = this.omit(parameters, "type");
-            Object subParamsLength = Helpers.getArrayLength(subParams);
+            Integer subParamsLength = Helpers.getArrayLength(subParams);
             Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength));
             Object requestId = this.requestId(url);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1574,7 +1574,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object streamHash = "multipleTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 200)))
                 {
                     throw new BadRequest((String)Helpers.add(this.id, " watchTradesForSymbols() accepts 200 symbols at most. To watch more symbols call watchTradesForSymbols() multiple times")) ;
@@ -1632,7 +1632,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 }
             }
             Object query = this.omit(parameters, "type");
-            Object subParamsLength = Helpers.getArrayLength(subParams);
+            Integer subParamsLength = Helpers.getArrayLength(subParams);
             Object url = Helpers.add(Helpers.add(this.getWsUrl(type, this.getFutureWsCategory(name)), "/"), this.stream(type, streamHash, subParamsLength));
             Object requestId = this.requestId(url);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -2326,7 +2326,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "method", "handleTickerWs");
             }};
@@ -2390,7 +2390,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), marketType);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOHLCVWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -2462,7 +2462,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //        ]
         //    }
         //
-        Object result = this.safeList(message, "result");
+        java.util.List<Object> result = (java.util.List<Object>) this.safeList(message, "result");
         java.util.List<Object> parsed = this.parseOHLCVs(result);
         // use a reverse lookup in a static map instead
         Object messageHash = this.safeString(message, "id");
@@ -2835,7 +2835,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             symbols = this.marketSymbols(symbols, null, true, false, true);
             Boolean isBidAsk = (Helpers.isEqual(channelName, "bookTicker"));
             Boolean isMarkPrice = (Helpers.isEqual(channelName, "markPrice"));
-            Object use1sFreq = this.safeBool(parameters, "use1sFreq", true);
+            Boolean use1sFreq = (Boolean) this.safeBool(parameters, "use1sFreq", true);
             Object firstMarket = null;
             Object marketType = null;
             Boolean symbolsDefined = (!Helpers.isEqual(symbols, null));
@@ -2927,7 +2927,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                         // eOptions tickers: group by underlying + expiry date (<underlying>@optionTicker@<YYMMDD>)
                         // market id format: BTC-240328-70000-C → expiry part is parts[1] = '240328'
                         Object marketId = this.safeString(market, "id", "");
-                        Object parts = Helpers.split(marketId, "-");
+                        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "-");
                         Object expiryDate = this.safeString(parts, 1);
                         String baseIdLower = (String)this.safeStringLower(market, "baseId", "");
                         String quoteIdLower = (String)this.safeStringLower(market, "quoteId", "");
@@ -3358,7 +3358,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             client.resolve(parsedTicker, messageHash);
         }
         // resolve batch endpoint
-        Object length = Helpers.getArrayLength(resolvedMessageHashes);
+        Integer length = Helpers.getArrayLength(resolvedMessageHashes);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 0)))
         {
             Object batchMessageHash = Helpers.add(Helpers.add(unifiedPrefix, "s:"), channelName);
@@ -3438,7 +3438,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             client.future((String)messageHash); // created ahead of the request below, so concurrent callers can find it
             Helpers.addElementToObject(client.subscriptions, marketType, true);
             Object requestId = this.requestId(url);
-            Object requestHash = String.valueOf(requestId);
+            String requestHash = String.valueOf(requestId);
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "id", requestHash );
                 put( "method", "userDataStream.subscribe.signature" );
@@ -3479,7 +3479,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         Object subscriptions = client.subscriptions;
         Object subscriptionsKeys = Helpers.objectKeys(subscriptions);
         Object accountType = this.getAccountTypeFromSubscriptions(subscriptionsKeys);
-        Object result = this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
         Long subscriptionId = this.safeInteger(result, "subscriptionId");
         if (Helpers.isTrue(Helpers.isEqual(subscriptionId, null)))
         {
@@ -3510,7 +3510,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object marketType = Helpers.getArg(optionalArgs, 0, "margin");
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), "spot");
-            Object options = this.safeDict(this.options, marketType, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, marketType, new java.util.HashMap<String, Object>() {{}});
             Long lastAuthenticatedTime = this.safeInteger(options, "lastAuthenticatedTime", 0);
             Long listenTokenRefreshRate = this.safeInteger(this.options, "listenTokenRefreshRate", 82800000); // 23 hours default
             Long time = this.milliseconds();
@@ -3533,7 +3533,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 {
                     // Step 1: Create listenToken via REST API
                     Object symbol = this.safeString(parameters, "symbol");
-                    Object isIsolated = this.safeBool(parameters, "isIsolated", false);
+                    Boolean isIsolated = (Boolean) this.safeBool(parameters, "isIsolated", false);
                     Long validity = this.safeInteger(parameters, "validity");
                     Object request = new java.util.HashMap<String, Object>() {{}};
                     if (Helpers.isTrue(Helpers.isEqual(isIsolated, true)))
@@ -3559,7 +3559,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     Long expirationTime = this.safeInteger(response, "expirationTime");
                     // Step 2: Subscribe to user data stream via WebSocket API
                     Object requestId = this.requestId(url);
-                    Object requestHash = String.valueOf(requestId);
+                    String requestHash = String.valueOf(requestId);
                     final Object finalListenToken = listenToken;
                     java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                         put( "id", requestHash );
@@ -3621,9 +3621,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object type = this.safeString(parameters, "type", "margin");
-            Object options = this.safeDict(this.options, type, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, type, new java.util.HashMap<String, Object>() {{}});
             Object symbol = this.safeString(options, "symbol");
-            Object isIsolated = this.safeBool(options, "isIsolated", false);
+            Boolean isIsolated = (Boolean) this.safeBool(options, "isIsolated", false);
             Long validity = this.safeInteger(options, "validity");
             Object renewParams = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -3913,7 +3913,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clients)); i++)
             {
                 Client client = (Client)Helpers.GetValue(clients, i);
-                Object clientSubscriptions = this.safeDict(client, "subscriptions", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> clientSubscriptions = (java.util.Map<String, Object>) this.safeDict(client, "subscriptions", new java.util.HashMap<String, Object>() {{}});
                 Object subscriptionKeys = Helpers.objectKeys(clientSubscriptions);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subscriptionKeys)); j++)
                 {
@@ -3938,7 +3938,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             return;
         }
         Object options = this.safeValue(this.options, "watchBalance");
-        Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (Helpers.isTrue(Helpers.isEqual(fetchBalanceSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
@@ -4015,7 +4015,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchBalanceWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -4056,7 +4056,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         } else
         {
             // account.status
-            Object result = this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
             rawBalance = this.safeList(result, "assets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         }
         Object parsedBalances = this.parseBalanceCustom(rawBalance);
@@ -4112,7 +4112,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         // swap
         //
         Object messageHash = this.safeString(message, "id");
-        Object result = this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
         Object parsedBalances = this.parseBalanceCustom(result);
         client.resolve(parsedBalances, messageHash);
     }
@@ -4165,7 +4165,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             symbols = this.marketSymbols(symbols, "swap", true, true, true);
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -4185,7 +4185,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchPositionsWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -4244,7 +4244,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //
         //
         Object messageHash = this.safeString(message, "id");
-        Object result = this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> result = (java.util.List<Object>) this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> positions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
         {
@@ -4309,7 +4309,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     urlType = "papi";
                 } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
                 {
-                    Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+                    Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue(this.isSandboxModeEnabled)))
                     {
                         throw new NotSupported((String)Helpers.add(this.id, " watchBalance() does not support option markets in demo/testnet mode")) ;
@@ -4321,9 +4321,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Client client = this.client(url);
             this.setBalanceCache(client, type, isPortfolioMargin);
             this.setPositionsCache(client, type, null, isPortfolioMargin);
-            Object options = this.safeDict(this.options, "watchBalance");
-            Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-            Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "watchBalance");
+            Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+            Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchBalanceSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitBalanceSnapshot, true)))))
             {
                 client.future((String)Helpers.add(type, ":fetchBalanceSnapshot")).getFuture().join();
@@ -4439,7 +4439,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         } else
         {
             message = this.safeDict(message, "a", message);
-            Object B = this.safeList(message, "B");
+            java.util.List<Object> B = (java.util.List<Object>) this.safeList(message, "B");
             if (Helpers.isTrue(Helpers.isEqual(B, null)))
             {
                 return;
@@ -4573,8 +4573,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), marketType);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
-            Object sor = this.safeBool2(parameters, "sor", "SOR", false);
+            String messageHash = String.valueOf(requestId);
+            Boolean sor = (Boolean) this.safeBool2(parameters, "sor", "SOR", false);
             parameters = this.omit(parameters, "sor", "SOR");
             Object triggerPrice = this.safeString2(parameters, "triggerPrice", "stopPrice");
             Object stopLossPrice = this.safeString(parameters, "stopLossPrice", triggerPrice);
@@ -4592,7 +4592,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
             parameters = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(1);
             Helpers.addElementToObject(payload, "returnRateLimits", returnRateLimits);
-            Object test = this.safeBool(parameters, "test", false);
+            Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             parameters = this.omit(parameters, "test");
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "linear"), true))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))) && Helpers.isTrue(isConditional)))
             {
@@ -4676,7 +4676,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //    }
         //
         Object messageHash = this.safeString(message, "id");
-        Object result = this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
         Object order = this.parseOrder(result);
         client.resolve(order, messageHash);
     }
@@ -4721,7 +4721,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //    }
         //
         Object messageHash = this.safeString(message, "id");
-        Object result = this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> result = (java.util.List<Object>) this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> orders = this.parseOrders(result);
         client.resolve(orders, messageHash);
     }
@@ -4762,7 +4762,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), marketType);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             Boolean isSwap = (Helpers.isTrue(Helpers.isEqual(marketType, "future")) || Helpers.isTrue(Helpers.isEqual(marketType, "delivery")));
             Object payload = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isEqual(marketType, "spot")))
@@ -4893,8 +4893,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //    }
         //
         Object messageHash = this.safeString(message, "id");
-        Object result = this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
-        Object newSpotOrder = this.safeDict(result, "newOrderResponse");
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> newSpotOrder = (java.util.Map<String, Object>) this.safeDict(result, "newOrderResponse");
         Object order = null;
         if (Helpers.isTrue(!Helpers.isEqual(newSpotOrder, null)))
         {
@@ -4940,7 +4940,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Object type = this.getMarketType("cancelOrderWs", market, parameters);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelOrderWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -5024,7 +5024,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "cancelAllOrdersWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -5084,7 +5084,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrderWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -5157,7 +5157,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOrdersWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -5250,7 +5250,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchOpenOrdersWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -5320,7 +5320,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 (this.authenticate(this.extend(parameters, new java.util.HashMap<String, Object>() {{
                     put( "type", "stock" );
                 }}))).join();
-                Object stockOptions = this.safeDict(this.options, "stock", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> stockOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "stock", new java.util.HashMap<String, Object>() {{}});
                 Object stockListenKey = this.safeString(stockOptions, "listenKey");
                 if (Helpers.isTrue(Helpers.isEqual(stockListenKey, null)))
                 {
@@ -5398,7 +5398,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     urlType = "papi";
                 } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
                 {
-                    Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+                    Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue(this.isSandboxModeEnabled)))
                     {
                         throw new NotSupported((String)Helpers.add(this.id, " watchOrders() does not support option markets in demo/testnet mode")) ;
@@ -5853,11 +5853,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //         "e": "price"
         //     }
         //
-        Object rates = this.safeList(message, "rates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> rates = (java.util.List<Object>) this.safeList(message, "rates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rates)); i++)
         {
-            Object rate = this.safeDict(rates, i, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> rate = (java.util.Map<String, Object>) this.safeDict(rates, i, new java.util.HashMap<String, Object>() {{}});
             Object stockSymbol = this.safeString(rate, "s");
             Object symbol = this.getStockUnifiedSymbol(stockSymbol, "USDC");
             if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
@@ -5943,11 +5943,11 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //         ]
         //     }
         //
-        Object orders = this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> orders = (java.util.List<Object>) this.safeList(message, "o", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
         {
             Object order = Helpers.GetValue(orders, i);
-            Object fills = this.safeList(order, "fi", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> fills = (java.util.List<Object>) this.safeList(order, "fi", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawQty = this.safeString(order, "q", "0");
             String side = "BUY";
             if (Helpers.isTrue(Precise.stringLt(rawQty, "0")))
@@ -6072,7 +6072,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                 urlType = "papi";
             } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
             {
-                Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+                Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue(this.isSandboxModeEnabled)))
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " watchPositions() does not support option markets in demo/testnet mode")) ;
@@ -6216,8 +6216,8 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Helpers.addElementToObject(this.positions, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
         Object cache = Helpers.GetValue(this.positions, accountType);
-        Object data = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
-        Object rawPositions = this.safeList(data, "P", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> rawPositions = (java.util.List<Object>) this.safeList(data, "P", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
@@ -6233,9 +6233,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -6400,7 +6400,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchMyTradesWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -6473,7 +6473,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "ws-api"), type);
             Object requestId = this.requestId(url);
-            Object messageHash = String.valueOf(requestId);
+            String messageHash = String.valueOf(requestId);
             Object returnRateLimits = false;
             java.util.List<Object> returnRateLimitsparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "fetchTradesWs", "returnRateLimits", false);
             returnRateLimits = ((java.util.List<Object>) returnRateLimitsparametersVariable).get(0);
@@ -6550,7 +6550,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //    }
         //
         Object messageHash = this.safeString(message, "id");
-        Object result = this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> result = (java.util.List<Object>) this.safeList(message, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> trades = this.parseTrades(result);
         client.resolve(trades, messageHash);
     }
@@ -6630,7 +6630,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                     urlType = "papi";
                 } else if (Helpers.isTrue(Helpers.isEqual(type, "option")))
                 {
-                    Object demoMode = this.safeBool(this.options, "enableDemoTrading", false);
+                    Boolean demoMode = (Boolean) this.safeBool(this.options, "enableDemoTrading", false);
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(demoMode, true))) || Helpers.isTrue(this.isSandboxModeEnabled)))
                     {
                         throw new NotSupported((String)Helpers.add(this.id, " watchMyTrades() does not support option markets in demo/testnet mode")) ;
@@ -6723,7 +6723,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                             Helpers.addElementToObject(order, "fee", tradeFee);
                         }
                         // save this trade in the order
-                        Object orderTrades = this.safeList(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        java.util.List<Object> orderTrades = (java.util.List<Object>) this.safeList(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                         ((java.util.List<Object>)orderTrades).add(trade);
                         Helpers.addElementToObject(order, "trades", orderTrades);
                         // write the updated order back into the cache: php
@@ -6832,7 +6832,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         {
             return;
         }
-        Object B = this.safeList(message, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> B = (java.util.List<Object>) this.safeList(message, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(B)); i++)
         {
             Object entry = Helpers.GetValue(B, i);
@@ -6860,7 +6860,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             Helpers.addElementToObject(this.positions, accountType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
         Object cache = Helpers.GetValue(this.positions, accountType);
-        Object P = this.safeList(message, "P", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> P = (java.util.List<Object>) this.safeList(message, "P", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(P)); i++)
         {
@@ -6875,9 +6875,9 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -6900,7 +6900,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //
         Object id = this.safeString(message, "id");
         Boolean rejected = false;
-        Object error = this.safeDict(message, "error", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> error = (java.util.Map<String, Object>) this.safeDict(message, "error", new java.util.HashMap<String, Object>() {{}});
         Object code = this.safeInteger(error, "code");
         Object msg = this.safeString(error, "msg");
         Object codeValue = ((Helpers.isTrue((Helpers.isEqual(code, null))))) ? 0 : code;
@@ -6970,13 +6970,13 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             message = this.safeDict(message, "data", message);
         }
         // handle WebSocketAPI
-        Object eventMsg = this.safeDict(message, "event");
+        java.util.Map<String, Object> eventMsg = (java.util.Map<String, Object>) this.safeDict(message, "event");
         if (Helpers.isTrue(!Helpers.isEqual(eventMsg, null)))
         {
             message = eventMsg;
         }
         // handle combined stream wrapper payloads
-        Object eventData = this.safeDict(message, "data");
+        java.util.Map<String, Object> eventData = (java.util.Map<String, Object>) this.safeDict(message, "data");
         if (Helpers.isTrue(!Helpers.isEqual(eventData, null)))
         {
             message = eventData;

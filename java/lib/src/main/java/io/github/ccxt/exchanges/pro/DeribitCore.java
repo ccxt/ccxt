@@ -100,7 +100,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             (this.authenticate(parameters)).join();
             String messageHash = (String) "balance";
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
-            Object currencies = this.safeList(this.options, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> currencies = (java.util.List<Object>) this.safeList(this.options, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
             {
@@ -397,8 +397,8 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> parameters = (java.util.Map<String, Object>) this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object ticker = this.parseWsBidAsk(data);
         Object symbol = Helpers.GetValue(ticker, "symbol");
         Helpers.addElementToObject(this.bidsasks, ((String)symbol), ticker);
@@ -481,7 +481,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object trades = (this.watchMultipleWrapper("trades", interval, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object first = this.safeDict(trades, 0);
+                java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(trades, 0);
                 Object tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -513,14 +513,14 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> parameters = (java.util.Map<String, Object>) this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object channel = this.safeString(parameters, "channel", "");
-        Object parts = Helpers.split(channel, ".");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(channel, ".");
         Object marketId = this.safeString(parts, 1);
         Object interval = this.safeString(parts, 2);
         String symbol = (String) this.safeSymbol(marketId);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        Object trades = this.safeList(parameters, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> trades = (java.util.List<Object>) this.safeList(parameters, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(this.trades, symbol), null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -764,9 +764,9 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object parameters = this.safeValue(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeValue(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object channel = this.safeString(parameters, "channel");
-        Object parts = Helpers.split(((String)channel), ".");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), ".");
         Object descriptor = "";
-        Object partsLength = Helpers.getArrayLength(parts);
+        Integer partsLength = Helpers.getArrayLength(parts);
         Boolean isDetailed = Helpers.isEqual(partsLength, 5);
         if (Helpers.isTrue(isDetailed))
         {
@@ -787,8 +787,8 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Helpers.addElementToObject(this.orderbooks, symbol, this.countedOrderBook());
         }
         io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-        Object asks = this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object bids = this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> asks = (java.util.List<Object>) this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> bids = (java.util.List<Object>) this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         this.handleDeltas(Helpers.GetValue(storedOrderBook, "asks"), asks);
         this.handleDeltas(Helpers.GetValue(storedOrderBook, "bids"), bids);
         Helpers.addElementToObject(storedOrderBook, "nonce", timestamp);
@@ -802,8 +802,8 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
 
     public Object cleanOrderBook(Object data)
     {
-        Object bids = this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object asks = this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> bids = (java.util.List<Object>) this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> asks = (java.util.List<Object>) this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> cleanedBids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bids)); i++)
         {
@@ -1006,7 +1006,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
+            Integer symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT', '1m'], ['LTC/USDT', '5m']]")) ;
@@ -1045,15 +1045,15 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         //         }
         //     }
         //
-        Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> parameters = (java.util.Map<String, Object>) this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object channel = this.safeString(parameters, "channel", "");
-        Object parts = Helpers.split(channel, ".");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(channel, ".");
         Object marketId = this.safeString(parts, 2);
         Object rawTimeframe = this.safeString(parts, 3);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object wsOptions = this.safeDict(this.options, "ws", new java.util.HashMap<String, Object>() {{}});
-        Object timeframes = this.safeDict(wsOptions, "timeframes", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> wsOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "ws", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> timeframes = (java.util.Map<String, Object>) this.safeDict(wsOptions, "timeframes", new java.util.HashMap<String, Object>() {{}});
         Object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeDict(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), unifiedTimeframe), null)))
@@ -1062,7 +1062,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)unifiedTimeframe));
-        Object ohlcv = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> ohlcv = (java.util.Map<String, Object>) this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         // data contains a single OHLCV candle
         Object parsed = this.parseWsOHLCV(ohlcv, market);
         Helpers.callDynamically(stored, "append", new Object[]{parsed});
@@ -1224,7 +1224,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object channel = this.safeString(parameters, "channel");
         if (Helpers.isTrue(!Helpers.isEqual(channel, null)))
         {
-            Object parts = Helpers.split(channel, ".");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(channel, ".");
             Object channelId = this.safeString(parts, 0);
             java.util.Map<String, Object> userHandlers = new java.util.HashMap<String, Object>() {{
                 put( "trades", "handleMyTrades");

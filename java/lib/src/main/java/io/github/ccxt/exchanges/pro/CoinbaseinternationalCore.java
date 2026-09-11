@@ -107,7 +107,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             {
                 symbols = this.getActiveSymbols();
             }
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
             {
@@ -129,7 +129,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             {
                 throw new NotSupported((String)Helpers.add(this.id, " is not supported in sandbox environment")) ;
             }
-            Object timestamp = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.nonce());
             Object auth = Helpers.add(Helpers.add(Helpers.add(timestamp, this.apiKey), "CBINTLMD"), this.password);
             Object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalName = name;
@@ -572,7 +572,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object options = this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "timeframes", new java.util.HashMap<String, Object>() {{}});
             Object interval = this.safeString(options, timeframe, timeframe);
             Object ohlcv = (this.subscribe(interval, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)), parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -616,7 +616,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe), new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue()));
         }
         Object stored = Helpers.GetValue(Helpers.GetValue(this.ohlcvs, symbol), ((String)timeframe));
-        Object data = this.safeList(message, "candles", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "candles", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object tick = Helpers.GetValue(data, i);
@@ -676,7 +676,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             Object trades = (this.subscribeMultiple("MATCH", symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object first = this.safeDict(trades, 0);
+                java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(trades, 0);
                 Object tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -850,7 +850,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             Helpers.addElementToObject(orderbook, "symbol", symbol);
         } else
         {
-            Object changes = this.safeList(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> changes = (java.util.List<Object>) this.safeList(message, "changes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             this.handleDeltas(orderbook, changes);
         }
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "sequence"));

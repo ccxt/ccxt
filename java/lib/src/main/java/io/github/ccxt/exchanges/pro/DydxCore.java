@@ -144,8 +144,8 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         Object marketId = this.safeString(message, "id");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object content = this.safeDict(message, "contents");
-        Object rawTrades = this.safeList(content, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> content = (java.util.Map<String, Object>) this.safeDict(message, "contents");
+        java.util.List<Object> rawTrades = (java.util.List<Object>) this.safeList(content, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -290,15 +290,15 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         Object marketId = this.safeString(message, "id");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object content = this.safeDict(message, "contents");
+        java.util.Map<String, Object> content = (java.util.Map<String, Object>) this.safeDict(message, "contents");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
         {
             orderbook = this.orderBook();
         }
         Helpers.addElementToObject(orderbook, "symbol", symbol);
-        Object asks = this.safeList(content, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object bids = this.safeList(content, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> asks = (java.util.List<Object>) this.safeList(content, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> bids = (java.util.List<Object>) this.safeList(content, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
         this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
         Helpers.addElementToObject(orderbook, "nonce", this.safeInteger(message, "message_id"));
@@ -455,14 +455,14 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         // }
         //
         Object id = this.safeString(message, "id", "");
-        Object part = Helpers.split(id, "/");
+        java.util.List<Object> part = (java.util.List<Object>) Helpers.split(id, "/");
         Object interval = this.safeString(part, 1);
         Object timeframe = this.findTimeframe(interval);
         Object marketId = this.safeString(part, 0);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object content = this.safeDict(message, "contents");
-        Object candles = this.safeList(content, "candles");
+        java.util.Map<String, Object> content = (java.util.Map<String, Object>) this.safeDict(message, "contents");
+        java.util.List<Object> candles = (java.util.List<Object>) this.safeList(content, "candles");
         String messageHash = (String) Helpers.add("ohlcv:", symbol);
         Object ohlcv = this.safeDict(candles, 0, content);
         Object parsed = this.parseOHLCV(ohlcv, market);

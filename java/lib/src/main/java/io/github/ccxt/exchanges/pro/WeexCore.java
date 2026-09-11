@@ -109,7 +109,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object subscription = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             Object id = this.requestId();
             String method = "SUBSCRIBE";
-            Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
             if (Helpers.isTrue(Helpers.isEqual(unsubscribe, true)))
             {
                 method = "UNSUBSCRIBE";
@@ -142,7 +142,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type), "/private");
             this.authenticate(url);
             String method = "SUBSCRIBE";
-            Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+            Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
             if (Helpers.isTrue(Helpers.isEqual(unsubscribe, true)))
             {
                 method = "UNSUBSCRIBE";
@@ -385,8 +385,8 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         {
             return;
         }
-        Object tickers = this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object data = this.safeDict(tickers, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(tickers, 0, new java.util.HashMap<String, Object>() {{}});
         Object ticker = this.parseWsTicker(data, market);
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = (String) Helpers.add("ticker::", symbol);
@@ -624,11 +624,11 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Helpers.addElementToObject(this.trades, symbol, new ArrayCache(((Number)limit).intValue()));
         }
         io.github.ccxt.ws.ArrayCache tradesArray = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
-        Object data = this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> newTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object rawTrade = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> rawTrade = (java.util.Map<String, Object>) this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
             Object trade = this.parseWsTrade(rawTrade, market);
             ((java.util.List<Object>)newTrades).add(trade);
         }
@@ -733,7 +733,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             parameters = this.omit(parameters, "callerMethodName");
             Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object firstEntry = this.safeList(symbolsAndTimeframes, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> firstEntry = (java.util.List<Object>) this.safeList(symbolsAndTimeframes, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object firstSymbol = this.safeString(firstEntry, 0);
             java.util.Map<String, Object> firstMarket = (java.util.Map<String, Object>) this.market(firstSymbol);
             Object isContract = Helpers.GetValue(firstMarket, "contract");
@@ -746,7 +746,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
-                Object data = this.safeList(symbolsAndTimeframes, i);
+                java.util.List<Object> data = (java.util.List<Object>) this.safeList(symbolsAndTimeframes, i);
                 Object symbolString = this.safeString(data, 0);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbolString);
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), Helpers.GetValue(firstMarket, "type"))))
@@ -824,7 +824,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> subHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object unSubHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object firstEntry = this.safeList(symbolsAndTimeframes, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> firstEntry = (java.util.List<Object>) this.safeList(symbolsAndTimeframes, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object firstSymbol = this.safeString(firstEntry, 0);
             java.util.Map<String, Object> firstMarket = (java.util.Map<String, Object>) this.market(firstSymbol);
             Object isContract = Helpers.GetValue(firstMarket, "contract");
@@ -837,7 +837,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             }
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
-                Object data = this.safeList(symbolsAndTimeframes, i);
+                java.util.List<Object> data = (java.util.List<Object>) this.safeList(symbolsAndTimeframes, i);
                 Object symbolString = this.safeString(data, 0);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbolString);
                 if (Helpers.isTrue(!Helpers.isEqual(Helpers.GetValue(market, "type"), Helpers.GetValue(firstMarket, "type"))))
@@ -903,8 +903,8 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         {
             Helpers.addElementToObject(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}});
         }
-        Object data = this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object firstEntry = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> firstEntry = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
         Object interval = this.safeString(firstEntry, "i");
         Object timeframe = this.findTimeframe(interval);
         Object stored = this.safeValue(this.safeValue(this.ohlcvs, symbol), timeframe);
@@ -919,7 +919,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object entry = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> entry = (java.util.Map<String, Object>) this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
             Object parsed = this.parseWsOHLCV(entry);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
@@ -1132,7 +1132,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         String messageHash = (String) Helpers.add("orderbook::", symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
-            Object subscription = this.safeDict(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> subscription = (java.util.Map<String, Object>) this.safeDict(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
             Long limit = this.safeInteger(subscription, "limit");
             if (Helpers.isTrue(!Helpers.isEqual(limit, null)))
             {
@@ -1153,8 +1153,8 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Helpers.callDynamically(orderbook, "reset", new Object[]{parsed});
         } else
         {
-            Object asks = this.safeList(message, "a", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object bids = this.safeList(message, "b", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> asks = (java.util.List<Object>) this.safeList(message, "a", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> bids = (java.util.List<Object>) this.safeList(message, "b", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -1468,11 +1468,11 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             this.myTrades = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
         Object trades = this.myTrades;
-        Object data = this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object trade = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
             Object parsed = this.parseWsMyTrade(trade);
             Object symbol = Helpers.GetValue(parsed, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -1714,7 +1714,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         //         ]
         //     }
         //
-        Object data = this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -1724,7 +1724,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         Object orders = this.orders;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object rawOrder = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> rawOrder = (java.util.Map<String, Object>) this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
             Object parsed = this.parseWsOrder(rawOrder);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
             Object symbol = Helpers.GetValue(parsed, "symbol");
@@ -1947,9 +1947,9 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             this.authenticate(url);
             Client client = this.client(url);
             this.setBalanceCache(client, type);
-            Object options = this.safeDict(this.options, "watchBalance");
-            Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
-            Object awaitBalanceSnapshot = this.safeBool(options, "awaitBalanceSnapshot", true);
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "watchBalance");
+            Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
+            Boolean awaitBalanceSnapshot = (Boolean) this.safeBool(options, "awaitBalanceSnapshot", true);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchBalanceSnapshot, true))) && Helpers.isTrue((Helpers.isEqual(awaitBalanceSnapshot, true)))))
             {
                 client.future((String)Helpers.add(type, ":fetchBalanceSnapshot")).getFuture().join();
@@ -1966,8 +1966,8 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         {
             return;
         }
-        Object options = this.safeDict(this.options, "watchBalance");
-        Object fetchBalanceSnapshot = this.safeBool(options, "fetchBalanceSnapshot", false);
+        java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "watchBalance");
+        Boolean fetchBalanceSnapshot = (Boolean) this.safeBool(options, "fetchBalanceSnapshot", false);
         if (Helpers.isTrue(Helpers.isEqual(fetchBalanceSnapshot, true)))
         {
             Object messageHash = Helpers.add(type, ":fetchBalanceSnapshot");
@@ -2078,10 +2078,10 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Helpers.addElementToObject(this.balance, accountType, new java.util.HashMap<String, Object>() {{}});
         }
         Helpers.addElementToObject(Helpers.GetValue(this.balance, accountType), "info", message);
-        Object balanceUpdates = this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> balanceUpdates = (java.util.List<Object>) this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balanceUpdates)); i++)
         {
-            Object entry = this.safeDict(balanceUpdates, i);
+            java.util.Map<String, Object> entry = (java.util.Map<String, Object>) this.safeDict(balanceUpdates, i);
             Object currencyId = this.safeString(entry, "coin");
             String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
@@ -2275,10 +2275,10 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         }
         Object cache = this.positions;
         java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object data = this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "d", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object rawPosition = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> rawPosition = (java.util.Map<String, Object>) this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
             Object position = this.parseWsPosition(rawPosition);
             Helpers.callDynamically(cache, "append", new Object[]{position});
             ((java.util.List<Object>)newPositions).add(position);
@@ -2287,9 +2287,9 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -2351,13 +2351,13 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         //
         Object id = this.safeString(message, "id");
         java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Object subscription = this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
-        Object unsubscribe = this.safeBool(subscription, "unsubscribe", false);
+        java.util.Map<String, Object> subscription = (java.util.Map<String, Object>) this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
+        Boolean unsubscribe = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (Helpers.isTrue(Helpers.isEqual(unsubscribe, true)))
         {
-            Object subHashIsPrefix = this.safeBool(subscription, "subHashIsPrefix", false);
-            Object messageHashes = this.safeList(subscription, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object subHashes = this.safeList(subscription, "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Boolean subHashIsPrefix = (Boolean) this.safeBool(subscription, "subHashIsPrefix", false);
+            java.util.List<Object> messageHashes = (java.util.List<Object>) this.safeList(subscription, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> subHashes = (java.util.List<Object>) this.safeList(subscription, "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
             {
                 Object unSubHash = this.safeString(messageHashes, i);
@@ -2378,7 +2378,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
         //         "msg": "INVALID_ARGUMENT: invalid symbol : ASDFS_SPBL"
         //     }
         //
-        Object result = this.safeBool(message, "result", true);
+        Boolean result = (Boolean) this.safeBool(message, "result", true);
         if (Helpers.isTrue(!Helpers.isEqual(result, true)))
         {
             Object msg = this.safeString(message, "msg", "");

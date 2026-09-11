@@ -391,7 +391,7 @@ public class P2bCore extends P2bApi
             //        ]
             //    }
             //
-            Object markets = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> markets = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseMarkets(markets);
         });
 
@@ -404,7 +404,7 @@ public class P2bCore extends P2bApi
         String quoteId = this.safeString(market, "money");
         Object base = ((String)this.safeCurrencyCode(baseId));
         Object quote = ((String)this.safeCurrencyCode(quoteId));
-        Object limits = this.safeDict(market, "limits");
+        java.util.Map<String, Object> limits = (java.util.Map<String, Object>) this.safeDict(market, "limits");
         String maxAmount = this.safeString(limits, "max_amount");
         String maxPrice = this.safeString(limits, "max_price");
         final Object finalBase = base;
@@ -754,7 +754,7 @@ public class P2bCore extends P2bApi
             //        current_time: '1699255571.413828'
             //    }
             //
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(result, market, since, limit);
         });
 
@@ -891,7 +891,7 @@ public class P2bCore extends P2bApi
             //        current_time: '1699256375.030494'
             //    }
             //
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOHLCVs(result, market, timeframe, since, limit);
         });
 
@@ -1179,7 +1179,7 @@ public class P2bCore extends P2bApi
             //        ]
             //    }
             //
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(result, market, since, limit);
         });
 
@@ -1246,7 +1246,7 @@ public class P2bCore extends P2bApi
             //    }
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object records = this.safeList(result, "records", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> records = (java.util.List<Object>) this.safeList(result, "records", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(records, market, since, limit);
         });
 
@@ -1344,7 +1344,7 @@ public class P2bCore extends P2bApi
             //    }
             //
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object deals = this.safeList(result, "deals", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> deals = (java.util.List<Object>) this.safeList(result, "deals", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(deals, market, since, limit);
         });
 
@@ -1583,7 +1583,7 @@ public class P2bCore extends P2bApi
         //     {"success":false,"errorCode":1010,"message":"This action is unauthorized.","result":[]}
         //     {"success":true,"errorCode":"","message":"","result":{...},"cache_time":1787611797.535462,"current_time":1787611797.535973}
         //
-        Object success = this.safeBool(response, "success", true);
+        Boolean success = (Boolean) this.safeBool(response, "success", true);
         if (Helpers.isTrue(!Helpers.isEqual(success, true)))
         {
             String errorCode = this.safeString(response, "errorCode");

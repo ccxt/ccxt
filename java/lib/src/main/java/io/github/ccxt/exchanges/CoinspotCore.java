@@ -776,7 +776,7 @@ public class CoinspotCore extends CoinspotApi
             java.util.Map<String, Object> response = (this.publicGetLatest(parameters)).join();
             Object id = this.safeString(market, "id", "");
             id = ((String)id).toLowerCase();
-            Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> prices = (java.util.Map<String, Object>) this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
             //
             //     {
             //         "status":"ok",
@@ -789,7 +789,7 @@ public class CoinspotCore extends CoinspotApi
             //         }
             //     }
             //
-            Object ticker = this.safeDict(prices, id, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.safeDict(prices, id, new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         });
 
@@ -834,7 +834,7 @@ public class CoinspotCore extends CoinspotApi
             //    }
             //
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> prices = (java.util.Map<String, Object>) this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
             Object ids = Helpers.objectKeys(prices);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
@@ -888,7 +888,7 @@ public class CoinspotCore extends CoinspotApi
             //         ],
             //     }
             //
-            Object trades = this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> trades = (java.util.List<Object>) this.safeList(response, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTrades(trades, market, since, limit);
         });
 
@@ -955,12 +955,12 @@ public class CoinspotCore extends CoinspotApi
             //          },
             //      ]
             // }
-            Object buyTrades = this.safeList(response, "buyorders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> buyTrades = (java.util.List<Object>) this.safeList(response, "buyorders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(buyTrades)); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(buyTrades, i), "side", "buy");
             }
-            Object sellTrades = this.safeList(response, "sellorders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> sellTrades = (java.util.List<Object>) this.safeList(response, "sellorders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sellTrades)); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(sellTrades, i), "side", "sell");
@@ -1078,7 +1078,7 @@ public class CoinspotCore extends CoinspotApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;
             }
-            Object sideUpper = ((String)side).toUpperCase();
+            String sideUpper = ((String)side).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() allows limit orders only")) ;

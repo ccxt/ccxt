@@ -1484,7 +1484,7 @@ public class UpbitCore extends UpbitApi
             }
             if (Helpers.isTrue(Helpers.isEqual(timeframeValue, "minutes")))
             {
-                Object numMinutes = Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(timeframePeriod, 60))));
+                Long numMinutes = Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(timeframePeriod, 60))));
                 Helpers.addElementToObject(request, "unit", numMinutes);
                 response = (this.publicGetCandlesTimeframeUnit(this.extend(request, parameters))).join();
             } else
@@ -1604,7 +1604,7 @@ public class UpbitCore extends UpbitApi
             Object postOnly = this.isPostOnly(Helpers.isEqual(type, "market"), false, parameters);
             String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             String selfTradePrevention = this.safeString2(parameters, "selfTradePrevention", "smp_type");
-            Object test = this.safeBool(parameters, "test", false);
+            Boolean test = (Boolean) this.safeBool(parameters, "test", false);
             if (Helpers.isTrue(Helpers.isTrue(postOnly) && Helpers.isTrue((!Helpers.isEqual(selfTradePrevention, null)))))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " createOrder() does not support post_only and selfTradePrevention simultaneously.")) ;
@@ -2369,13 +2369,13 @@ public class UpbitCore extends UpbitApi
         String feeCost = this.safeString(order, "paid_fee");
         String marketId = this.safeString(order, "market");
         market = this.safeMarket(marketId, market);
-        Object trades = this.safeList(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> trades = (java.util.List<Object>) this.safeList(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         final Object finalType = type;
         trades = this.parseTrades(trades, market, null, null, new java.util.HashMap<String, Object>() {{
             put( "order", id );
             put( "type", finalType );
         }});
-        Object numTrades = Helpers.getArrayLength(trades);
+        Integer numTrades = Helpers.getArrayLength(trades);
         if (Helpers.isTrue(Helpers.isGreaterThan(numTrades, 0)))
         {
             // the timestamp in fetchOrder trades is missing
@@ -3012,7 +3012,7 @@ public class UpbitCore extends UpbitApi
                 put( "access_key", UpbitCore.this.apiKey );
                 put( "nonce", nonce );
             }};
-            Object hasQuery = Helpers.getArrayLength(Helpers.objectKeys(query));
+            Integer hasQuery = Helpers.getArrayLength(Helpers.objectKeys(query));
             Object auth = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(method, "GET"))) && Helpers.isTrue((!Helpers.isEqual(method, "DELETE")))))
             {

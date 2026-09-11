@@ -374,7 +374,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         //         ]
         //     }
         //
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
@@ -503,7 +503,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         //        ]
         //    }
         //
-        Object rawLiquidations = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> rawLiquidations = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> newLiquidations = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(this.liquidations, null)))
         {
@@ -807,7 +807,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
 
     public void handleAuthenticationMessage(Client client, Object message)
     {
-        Object authenticated = this.safeBool(message, "success", false);
+        Boolean authenticated = (Boolean) this.safeBool(message, "success", false);
         String messageHash = (String) "authenticated";
         if (Helpers.isTrue(Helpers.isEqual(authenticated, true)))
         {
@@ -1027,7 +1027,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object rawPositions = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> rawPositions = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
@@ -1041,9 +1041,9 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 // the cached position for this symbol, otherwise appending would break
                 // the ArrayCacheBySymbolBySide index (see issue #29001).
                 Object symbol = this.safeString(position, "symbol");
-                Object cachedBySide = this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> cachedBySide = (java.util.Map<String, Object>) this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
                 Object cachedSides = Helpers.objectKeys(cachedBySide);
-                Object sidesLength = Helpers.getArrayLength(cachedSides);
+                Integer sidesLength = Helpers.getArrayLength(cachedSides);
                 if (Helpers.isTrue(Helpers.isEqual(sidesLength, 1)))
                 {
                     side = Helpers.GetValue(cachedSides, 0);
@@ -1061,9 +1061,9 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1272,10 +1272,10 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         //         ]
         //     }
         //
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String messageHash = "order";
         // initial subscription response with multiple orders
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
@@ -1436,7 +1436,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Helpers.callDynamically(stored, "append", new Object[]{trade});
             Helpers.addElementToObject(symbols, ((String)symbol), trade);
         }
-        Object numTrades = Helpers.getArrayLength(trades);
+        Integer numTrades = Helpers.getArrayLength(trades);
         if (Helpers.isTrue(Helpers.isGreaterThan(numTrades, 0)))
         {
             client.resolve(stored, messageHash);
@@ -1696,7 +1696,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         Object interval = Helpers.replace((String)((String)table), (String)"tradeBin", (String)"");
         Object timeframe = this.findTimeframe(interval);
         Object duration = this.parseTimeframe(timeframe);
-        Object candles = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> candles = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> results = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(candles)); i++)
         {
@@ -1799,11 +1799,11 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         {
             return;  // protecting from weird updates
         }
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         // if it's an initial snapshot
         if (Helpers.isTrue(Helpers.isEqual(action, "partial")))
         {
-            Object filter = this.safeDict(message, "filter", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> filter = (java.util.Map<String, Object>) this.safeDict(message, "filter", new java.util.HashMap<String, Object>() {{}});
             Object marketId = this.safeValue(filter, "symbol");
             if (Helpers.isTrue(Helpers.isEqual(marketId, null)))
             {
@@ -1932,8 +1932,8 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
             Object request = this.safeValue(message, "request", new java.util.HashMap<String, Object>() {{}});
-            Object args = this.safeList(request, "args", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object numArgs = Helpers.getArrayLength(args);
+            java.util.List<Object> args = (java.util.List<Object>) this.safeList(request, "args", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            Integer numArgs = Helpers.getArrayLength(args);
             if (Helpers.isTrue(Helpers.isGreaterThan(numArgs, 0)))
             {
                 Object messageHash = Helpers.GetValue(args, 0);

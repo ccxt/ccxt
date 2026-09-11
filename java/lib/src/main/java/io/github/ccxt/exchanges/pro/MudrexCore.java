@@ -69,9 +69,9 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
         {
             return;
         }
-        Object wsOptions = this.safeDict(this.options, "ws", new java.util.HashMap<String, Object>() {{}});
-        Object innerOptions = this.safeDict(wsOptions, "options", new java.util.HashMap<String, Object>() {{}});
-        Object headers = this.safeDict(innerOptions, "headers", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> wsOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "ws", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> innerOptions = (java.util.Map<String, Object>) this.safeDict(wsOptions, "options", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> headers = (java.util.Map<String, Object>) this.safeDict(innerOptions, "headers", new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(headers, "Partner-Id", brokerId);
         Helpers.addElementToObject(innerOptions, "headers", headers);
         Helpers.addElementToObject(wsOptions, "options", innerOptions);
@@ -209,7 +209,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
         {
             return;
         }
-        Object error = this.safeDict(message, "error");
+        java.util.Map<String, Object> error = (java.util.Map<String, Object>) this.safeDict(message, "error");
         if (Helpers.isTrue(!Helpers.isEqual(error, null)))
         {
             this.handleErrorMessage(client, message);
@@ -230,7 +230,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
 
     public void handleErrorMessage(Client client, Object message)
     {
-        Object error = this.safeDict(message, "error", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> error = (java.util.Map<String, Object>) this.safeDict(message, "error", new java.util.HashMap<String, Object>() {{}});
         Object code = this.safeString(error, "code");
         Object msg = this.safeString(error, "msg");
         Object feedback = Helpers.add(Helpers.add(this.id, " "), msg);
@@ -248,10 +248,10 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
         {
             return;
         }
-        Object parts = Helpers.split(stream, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(stream, "@");
         String interval = (String) Helpers.GetValue(parts, 1);
         Object tf = this.findTimeframe(interval);
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object s = this.safeString(data, "s");
         if (Helpers.isTrue(Helpers.isEqual(s, null)))
         {
@@ -278,7 +278,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
 
     public void handleTicker(Client client, Object message)
     {
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object t = Helpers.GetValue(data, i);

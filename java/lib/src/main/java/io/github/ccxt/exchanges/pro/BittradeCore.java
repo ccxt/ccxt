@@ -131,7 +131,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         {
             return message;
         }
-        Object parts = Helpers.split(ch, ".");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object ticker = this.parseTicker(tick, market);
@@ -226,7 +226,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         {
             return message;
         }
-        Object parts = Helpers.split(ch, ".");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -325,7 +325,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         {
             return;
         }
-        Object parts = Helpers.split(ch, ".");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -570,7 +570,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //
         Object messageHash = this.safeString(message, "ch");
         Object ch = this.safeValue(message, "ch");
-        Object parts = Helpers.split(ch, ".");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(ch, ".");
         Object marketId = this.safeString(parts, 1);
         String symbol = (String) this.safeSymbol(marketId);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
@@ -672,7 +672,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //     }
         //
         Object ch = this.safeValue(message, "ch");
-        Object parts = Helpers.split(ch, ".");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(ch, ".");
         Object type = this.safeString(parts, 0);
         if (Helpers.isTrue(Helpers.isEqual(type, "market")))
         {

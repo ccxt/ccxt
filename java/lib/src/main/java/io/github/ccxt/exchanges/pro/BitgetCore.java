@@ -670,7 +670,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             {
                 (this.loadMarkets()).join();
             }
-            Object timeframes = this.safeDict(this.options, "timeframes");
+            java.util.Map<String, Object> timeframes = (java.util.Map<String, Object>) this.safeDict(this.options, "timeframes");
             Object interval = this.safeString(timeframes, timeframe);
             Object channel = null;
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -798,7 +798,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             stored = new ArrayCache.ArrayCacheByTimestamp(((Number)limit).intValue());
             Helpers.addElementToObject(Helpers.GetValue(this.ohlcvs, symbol), timeframe, stored);
         }
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object parsed = this.parseWsOHLCV(Helpers.GetValue(data, i), market);
@@ -1097,8 +1097,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 Helpers.addElementToObject(this.orderbooks, symbol, ob);
             }
             io.github.ccxt.ws.WsOrderBook storedOrderBook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
-            Object asks = this.safeList2(rawOrderBook, "asks", "a", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object bids = this.safeList2(rawOrderBook, "bids", "b", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> asks = (java.util.List<Object>) this.safeList2(rawOrderBook, "asks", "a", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> bids = (java.util.List<Object>) this.safeList2(rawOrderBook, "bids", "b", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(storedOrderBook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(storedOrderBook, "bids"), bids);
             Helpers.addElementToObject(storedOrderBook, "timestamp", timestamp);
@@ -1112,8 +1112,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             {
                 Object storedAsks = Helpers.GetValue(storedOrderBook, "asks");
                 Object storedBids = Helpers.GetValue(storedOrderBook, "bids");
-                Object asksLength = Helpers.getArrayLength(storedAsks);
-                Object bidsLength = Helpers.getArrayLength(storedBids);
+                Integer asksLength = Helpers.getArrayLength(storedAsks);
+                Integer bidsLength = Helpers.getArrayLength(storedBids);
                 Object payloadArray = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, 25); i++)
                 {
@@ -1128,7 +1128,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                         ((java.util.List<Object>)payloadArray).add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(storedAsks, i), 2), 1));
                     }
                 }
-                Object payload = String.join((String)":", (java.util.List<String>)payloadArray);
+                String payload = String.join((String)":", (java.util.List<String>)payloadArray);
                 Object calculatedChecksum = this.crc32(payload, true);
                 if (Helpers.isTrue(!Helpers.isEqual(calculatedChecksum, responseChecksum)))
                 {
@@ -1242,7 +1242,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -1377,8 +1377,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             stored = new ArrayCache(((Number)limit).intValue());
             Helpers.addElementToObject(this.trades, symbol, stored);
         }
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object length = Helpers.getArrayLength(data);
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Integer length = Helpers.getArrayLength(data);
         // fix chronological order by reversing
         for (var i = 0; Helpers.isLessThan(i, length); i++)
         {
@@ -1504,8 +1504,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             market = this.safeMarket(instId, null, null, defaultType);
         }
         Long timestamp = this.safeIntegerN(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("uTime", "cTime", "ts", "T", "execTime")));
-        Object feeDetail = this.safeList(trade, "feeDetail", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(feeDetail, 0);
+        java.util.List<Object> feeDetail = (java.util.List<Object>) this.safeList(trade, "feeDetail", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(feeDetail, 0);
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(first, null)))
         {
@@ -1688,7 +1688,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //         "ts": 1730711666652
         //     }
         //
-        Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> arg = (java.util.Map<String, Object>) this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
         Object instType = this.safeString(arg, "instType", "");
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
@@ -1700,7 +1700,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Helpers.addElementToObject(this.positions, instType, new ArrayCache.ArrayCacheBySymbolBySide());
         }
         Object cache = Helpers.GetValue(this.positions, instType);
-        Object rawPositions = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> rawPositions = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> newPositions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawPositions)); i++)
         {
@@ -1715,9 +1715,9 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -2059,7 +2059,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //         "ts": 1742367838124
         //     }
         //
-        Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> arg = (java.util.Map<String, Object>) this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
         Object channel = this.safeString2(arg, "channel", "topic", "");
         String instType = (String)this.safeStringLower(arg, "instType");
         Object argInstId = this.safeString(arg, "instId");
@@ -2074,8 +2074,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         {
             marketType = "contract";
         }
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
         Object category = this.safeStringLower(first, "category", instType);
         Boolean isLinearSwap = (Helpers.isEqual(category, "usdt-futures"));
         Boolean isInverseSwap = (Helpers.isEqual(category, "coin-futures"));
@@ -2642,10 +2642,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             this.myTrades = new ArrayCache(((Number)limit).intValue());
         }
         Object stored = this.myTrades;
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object length = Helpers.getArrayLength(data);
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Integer length = Helpers.getArrayLength(data);
         String messageHash = (String) "myTrades";
-        Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> arg = (java.util.Map<String, Object>) this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
         String instType = (String)this.safeStringLower(arg, "instType");
         for (var i = 0; Helpers.isLessThan(i, length); i++)
         {
@@ -2849,15 +2849,15 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //         "ts": 1740546523244
         //     }
         //
-        Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> arg = (java.util.Map<String, Object>) this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
         String instType = (String)this.safeStringLower(arg, "instType");
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object rawBalance = Helpers.GetValue(data, i);
             if (Helpers.isTrue(Helpers.isEqual(instType, "uta")))
             {
-                Object coins = this.safeList(rawBalance, "coin", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> coins = (java.util.List<Object>) this.safeList(rawBalance, "coin", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(coins)); j++)
                 {
                     Object entry = Helpers.GetValue(coins, j);
@@ -2922,7 +2922,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object uta = uta3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
-            Object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+            Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
             {
                 Object instType = this.safeString(args, "instType");
@@ -2954,7 +2954,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object uta = uta3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
-            Object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+            Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
             {
                 Object instType = this.safeString(args, "instType");
@@ -2986,10 +2986,10 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object uta = uta3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPublic") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
-            Object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+            Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
             {
-                Object argsArrayFirst = this.safeDict(argsArray, 0, new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> argsArrayFirst = (java.util.Map<String, Object>) this.safeDict(argsArray, 0, new java.util.HashMap<String, Object>() {{}});
                 Object instType = this.safeString(argsArrayFirst, "instType");
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(instType, "SCOIN-FUTURES"))) && Helpers.isTrue((!Helpers.isEqual(instType, "SUSDT-FUTURES")))) && Helpers.isTrue((!Helpers.isEqual(instType, "SUSDC-FUTURES")))))
                 {
@@ -3020,7 +3020,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
-                Object timestamp = String.valueOf(this.seconds());
+                String timestamp = String.valueOf(this.seconds());
                 Object auth = Helpers.add(Helpers.add(timestamp, "GET"), "/user/verify");
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
                 String operation = "login";
@@ -3049,7 +3049,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object uta = uta3;
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object url = ((Helpers.isTrue((Helpers.isEqual(uta, true))))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "utaPrivate") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private");
-            Object sandboxMode = this.safeBool2(this.options, "sandboxMode", "sandbox", false);
+            Boolean sandboxMode = (Boolean) this.safeBool2(this.options, "sandboxMode", "sandbox", false);
             if (Helpers.isTrue(Helpers.isEqual(sandboxMode, true)))
             {
                 Object instType = this.safeString(args, "instType");
@@ -3304,7 +3304,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //
         //    {"event":"unsubscribe","arg":{"instType":"spot","topic":"books","symbol":"BTCUSDT"}}
         //
-        Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> arg = (java.util.Map<String, Object>) this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
         String instType = (String)this.safeStringLower(arg, "instType");
         String type = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
         Object instId = this.safeString2(arg, "instId", "symbol");
@@ -3337,7 +3337,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
         //
-        Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> arg = (java.util.Map<String, Object>) this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
         String instType = (String)this.safeStringLower(arg, "instType");
         String type = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
         Object instId = this.safeString2(arg, "instId", "symbol");
@@ -3370,7 +3370,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //
         //    {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"trade","instId":"BTCUSDT"}}
         //
-        Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> arg = (java.util.Map<String, Object>) this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
         String instType = (String)this.safeStringLower(arg, "instType");
         String type = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
         Object instId = this.safeString2(arg, "instId", "symbol");
@@ -3407,7 +3407,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //
         //    {"event":"unsubscribe","arg":{"instType":"spot","topic":"kline","symbol":"BTCUSDT","interval":"1m"}}
         //
-        Object arg = this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> arg = (java.util.Map<String, Object>) this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}});
         String instType = (String)this.safeStringLower(arg, "instType");
         String type = ((Helpers.isTrue((Helpers.isEqual(instType, "spot"))))) ? "spot" : "contract";
         Object instId = this.safeString2(arg, "instId", "symbol");
@@ -3468,7 +3468,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         //  or
         // {"event":"unsubscribe","arg":{"instType":"SPOT","channel":"books","instId":"BTCUSDT"}}
         //
-        Object argsList = this.safeList(message, "args");
+        java.util.List<Object> argsList = (java.util.List<Object>) this.safeList(message, "args");
         if (Helpers.isTrue(Helpers.isEqual(argsList, null)))
         {
             argsList = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeDict(message, "arg", new java.util.HashMap<String, Object>() {{}})));

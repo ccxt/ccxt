@@ -511,7 +511,7 @@ public class CoinmateCore extends CoinmateApi
             //         ]
             //     }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
@@ -580,7 +580,7 @@ public class CoinmateCore extends CoinmateApi
 
     public Object parseBalance(Object response)
     {
-        Object balances = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> balances = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
@@ -650,7 +650,7 @@ public class CoinmateCore extends CoinmateApi
                 put( "groupByPriceLimit", "False" );
             }};
             java.util.Map<String, Object> response = (this.publicGetOrderBook(this.extend(request, parameters))).join();
-            Object orderbook = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> orderbook = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object timestamp = this.safeTimestamp(orderbook, "timestamp");
             return this.parseOrderBook(orderbook, Helpers.GetValue(market, "symbol"), timestamp, "bids", "asks", "price", "amount");
         });
@@ -745,7 +745,7 @@ public class CoinmateCore extends CoinmateApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(data);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -842,7 +842,7 @@ public class CoinmateCore extends CoinmateApi
                 Helpers.addElementToObject(request, "currency", Helpers.GetValue(currency, "id"));
             }
             java.util.Map<String, Object> response = (this.privatePostTransferHistory(this.extend(request, parameters))).join();
-            Object items = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> items = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactions(items, null, since, limit);
         });
 
@@ -970,7 +970,7 @@ public class CoinmateCore extends CoinmateApi
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object withdrawOptions = this.safeValue(this.options, "withdraw", new java.util.HashMap<String, Object>() {{}});
-            Object methods = this.safeDict(withdrawOptions, "methods", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> methods = (java.util.Map<String, Object>) this.safeDict(withdrawOptions, "methods", new java.util.HashMap<String, Object>() {{}});
             String method = this.safeString(methods, code);
             if (Helpers.isTrue(Helpers.isEqual(method, null)))
             {
@@ -1029,7 +1029,7 @@ public class CoinmateCore extends CoinmateApi
             //
             Object data = this.safeValue(response, "data");
             Object transaction = this.parseTransaction(data, currency);
-            Object fillResponseFromRequest = this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(withdrawOptions, "fillResponseFromRequest", true);
             if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 Helpers.addElementToObject(transaction, "amount", amount);
@@ -1287,7 +1287,7 @@ public class CoinmateCore extends CoinmateApi
             java.util.Map<String, Object> extension = new java.util.HashMap<String, Object>() {{
                 put( "status", "open" );
             }};
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, null, since, limit, extension);
         });
 
@@ -1331,7 +1331,7 @@ public class CoinmateCore extends CoinmateApi
                 Helpers.addElementToObject(request, "limit", limit);
             }
             java.util.Map<String, Object> response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(data, market, since, limit);
         });
 
@@ -1621,7 +1621,7 @@ public class CoinmateCore extends CoinmateApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object auth = Helpers.add(Helpers.add(nonce, this.uid), this.apiKey);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalNonce = nonce;

@@ -319,9 +319,9 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "1061717"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
         Object selector = this.safeString(message, "selector", "");
-        Object parts = Helpers.split(selector, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -437,9 +437,9 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
         Object selector = this.safeString(message, "selector", "");
-        Object parts = Helpers.split(selector, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -570,9 +570,9 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
         Object selector = this.safeString(message, "selector", "");
-        Object parts = Helpers.split(selector, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -655,7 +655,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             channel = ((java.util.List<Object>) channelparametersVariable).get(0);
             parameters = ((java.util.List<Object>) channelparametersVariable).get(1);
             Boolean isSnapshot = Helpers.isEqual(channel, "v1.book.s");
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -721,9 +721,9 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
         Object selector = this.safeString(message, "selector", "");
-        Object parts = Helpers.split(selector, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(selector, "@");
         Object marketId = this.safeString(parts, 0);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -743,8 +743,8 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
-            Object asks = this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object bids = this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> asks = (java.util.List<Object>) this.safeList(data, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> bids = (java.util.List<Object>) this.safeList(data, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "asks"), asks, "price", "size");
             this.handleDeltasWithKeys(Helpers.GetValue(orderbook, "bids"), bids, "price", "size");
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);
@@ -772,7 +772,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             this.checkRequiredCredentials();
             (this.signIn()).join();
-            Object wsOptions = this.safeDict(this.options, "ws", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> wsOptions = (java.util.Map<String, Object>) this.safeDict(this.options, "ws", new java.util.HashMap<String, Object>() {{}});
             Object authenticated = this.safeString(wsOptions, "token");
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
@@ -892,7 +892,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "0"
         //    }
         //
-        Object data = this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "feed", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);
@@ -1001,7 +1001,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
-        Object data = this.safeDict(message, "feed");
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "feed");
         Object position = this.parseWsPosition(data);
         Object symbol = this.safeString(position, "symbol");
         Helpers.callDynamically(this.positions, "append", new Object[]{position});
@@ -1136,7 +1136,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //        "prev_sequence_number": "16"
         //    }
         //
-        Object data = this.safeDict(message, "feed");
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "feed");
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -1168,7 +1168,7 @@ public class GrvtCore extends io.github.ccxt.exchanges.Grvt
         //        "method": "subscribe"
         //    }
         //
-        Object error = this.safeDict(response, "error");
+        java.util.Map<String, Object> error = (java.util.Map<String, Object>) this.safeDict(response, "error");
         Object errorCode = this.safeString(error, "code");
         if (Helpers.isTrue(!Helpers.isEqual(errorCode, null)))
         {

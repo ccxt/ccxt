@@ -972,7 +972,7 @@ public class PhemexCore extends PhemexApi
         {
             // "1 USD"
             // "0.005 ETH"
-            Object parts = Helpers.split(contractSizeString, " ");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(contractSizeString, " ");
             contractSize = this.parseNumber(Helpers.GetValue(parts, 0));
         } else
         {
@@ -1351,14 +1351,14 @@ public class PhemexCore extends PhemexApi
             //         ]
             //     }
             //
-            Object v2ProductsData = this.safeDict(v2Products, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> v2ProductsData = (java.util.Map<String, Object>) this.safeDict(v2Products, "data", new java.util.HashMap<String, Object>() {{}});
             Object products = this.safeList(v2ProductsData, "products", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object perpetualProductsV2 = this.safeList(v2ProductsData, "perpProductsV2", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> perpetualProductsV2 = (java.util.List<Object>) this.safeList(v2ProductsData, "perpProductsV2", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             products = this.arrayConcat(products, perpetualProductsV2);
             Object riskLimits = this.safeList(v2ProductsData, "riskLimits", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object riskLimitsV2 = this.safeList(v2ProductsData, "riskLimitsV2", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> riskLimitsV2 = (java.util.List<Object>) this.safeList(v2ProductsData, "riskLimitsV2", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             riskLimits = this.arrayConcat(riskLimits, riskLimitsV2);
-            Object currencies = this.safeList(v2ProductsData, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> currencies = (java.util.List<Object>) this.safeList(v2ProductsData, "currencies", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> riskLimitsById = this.indexBy(riskLimits, "symbol");
             java.util.Map<String, Object> v1ProductsById = this.indexBy(v1ProductsData, "symbol");
             java.util.Map<String, Object> currenciesByCode = this.indexBy(currencies, "currency");
@@ -1370,15 +1370,15 @@ public class PhemexCore extends PhemexApi
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "perpetual"))) || Helpers.isTrue((Helpers.isEqual(type, "perpetualv2")))) || Helpers.isTrue((Helpers.isEqual(type, "perpetualpilot")))))
                 {
                     String id = this.safeString(market, "symbol");
-                    Object riskLimitValues = this.safeDict(riskLimitsById, id, new java.util.HashMap<String, Object>() {{}});
+                    java.util.Map<String, Object> riskLimitValues = (java.util.Map<String, Object>) this.safeDict(riskLimitsById, id, new java.util.HashMap<String, Object>() {{}});
                     market = this.extend(market, riskLimitValues);
-                    Object v1ProductsValues = this.safeDict(v1ProductsById, id, new java.util.HashMap<String, Object>() {{}});
+                    java.util.Map<String, Object> v1ProductsValues = (java.util.Map<String, Object>) this.safeDict(v1ProductsById, id, new java.util.HashMap<String, Object>() {{}});
                     market = this.extend(market, v1ProductsValues);
                     market = this.parseSwapMarket(market);
                 } else
                 {
                     String baseCurrency = this.safeString(market, "baseCurrency");
-                    Object currencyValues = this.safeDict(currenciesByCode, baseCurrency, new java.util.HashMap<String, Object>() {{}});
+                    java.util.Map<String, Object> currencyValues = (java.util.Map<String, Object>) this.safeDict(currenciesByCode, baseCurrency, new java.util.HashMap<String, Object>() {{}});
                     String valueScale = this.safeString(currencyValues, "valueScale", "8");
                     market = this.extend(market, new java.util.HashMap<String, Object>() {{
                         put( "valueScale", valueScale );
@@ -1608,7 +1608,7 @@ public class PhemexCore extends PhemexApi
         var precise = new Precise(((String)stringN));
         precise.decimals = Helpers.subtract(precise.decimals, scale);
         precise.reduce();
-        Object preciseString = String.valueOf(precise);
+        String preciseString = String.valueOf(precise);
         return this.parseToNumeric(preciseString);
     }
 
@@ -2045,7 +2045,7 @@ public class PhemexCore extends PhemexApi
             {
                 response = (this.v2GetMdV2Ticker24hrAll(query)).join();
             }
-            Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> result = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTickers(result, symbols);
         });
 
@@ -2312,7 +2312,7 @@ public class PhemexCore extends PhemexApi
         String takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isArray(trade)))
         {
-            Object tradeLength = Helpers.getArrayLength(trade);
+            Integer tradeLength = Helpers.getArrayLength(trade);
             timestamp = this.safeIntegerProduct(trade, 0, 0.000001);
             if (Helpers.isTrue(Helpers.isGreaterThan(tradeLength, 4)))
             {
@@ -2475,7 +2475,7 @@ public class PhemexCore extends PhemexApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object balance = Helpers.GetValue(data, i);
@@ -3137,7 +3137,7 @@ public class PhemexCore extends PhemexApi
     public Object parseOrder(Object order, Object... optionalArgs)
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object isSwap = this.safeBool(market, "swap", false);
+        Boolean isSwap = (Boolean) this.safeBool(market, "swap", false);
         Boolean hasPnl = Helpers.isTrue(Helpers.isTrue((Helpers.inOp(order, "closedPnl"))) || Helpers.isTrue((Helpers.inOp(order, "closedPnlRv")))) || Helpers.isTrue((Helpers.inOp(order, "totalPnlRv")));
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(isSwap, true))) || Helpers.isTrue(hasPnl)))
         {
@@ -3268,14 +3268,14 @@ public class PhemexCore extends PhemexApi
                 }
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "swap"), true)))
             {
-                Object hedged = this.safeBool(parameters, "hedged", false);
+                Boolean hedged = (Boolean) this.safeBool(parameters, "hedged", false);
                 parameters = this.omit(parameters, "hedged");
                 Object posSide = this.safeStringLower(parameters, "posSide");
                 if (Helpers.isTrue(Helpers.isEqual(posSide, null)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(hedged, true)))
                     {
-                        Object reduceOnly = this.safeBool(parameters, "reduceOnly");
+                        Boolean reduceOnly = (Boolean) this.safeBool(parameters, "reduceOnly");
                         if (Helpers.isTrue(Helpers.isEqual(reduceOnly, true)))
                         {
                             side = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "sell" : "buy";
@@ -3780,7 +3780,7 @@ public class PhemexCore extends PhemexApi
             Object order = data;
             if (Helpers.isTrue(Helpers.isArray(data)))
             {
-                Object numOrders = Helpers.getArrayLength(data);
+                Integer numOrders = Helpers.getArrayLength(data);
                 if (Helpers.isTrue(Helpers.isLessThan(numOrders, 1)))
                 {
                     if (Helpers.isTrue(!Helpers.isEqual(clientOrderId, null)))
@@ -3794,7 +3794,7 @@ public class PhemexCore extends PhemexApi
                 order = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "spot"), true)))
             {
-                Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> rows = (java.util.List<Object>) this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 order = this.safeDict(rows, 0, new java.util.HashMap<String, Object>() {{}});
             }
             return this.parseOrder(order, market);
@@ -4251,9 +4251,9 @@ public class PhemexCore extends PhemexApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", Helpers.GetValue(currency, "id") );
             }};
-            Object defaultNetworks = this.safeDict(this.options, "defaultNetworks");
+            java.util.Map<String, Object> defaultNetworks = (java.util.Map<String, Object>) this.safeDict(this.options, "defaultNetworks");
             String defaultNetwork = (String)this.safeStringUpper(defaultNetworks, code);
-            Object networks = this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(this.options, "networks", new java.util.HashMap<String, Object>() {{}});
             Object network = this.safeStringUpper2(parameters, "network", "chainName", defaultNetwork);
             network = this.safeString(networks, network, network);
             if (Helpers.isTrue(Helpers.isEqual(network, null)))
@@ -4710,7 +4710,7 @@ public class PhemexCore extends PhemexApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object positions = this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> positions = (java.util.List<Object>) this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positions)); i++)
             {
@@ -4783,7 +4783,7 @@ public class PhemexCore extends PhemexApi
             //        ]
             //    }
             //
-            Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> data = (java.util.List<Object>) this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object positions = this.parsePositions(data, new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol)));
             return this.filterBySymbolSinceLimit(positions, symbol, since, limit);
         });
@@ -5049,7 +5049,7 @@ public class PhemexCore extends PhemexApi
             //     }
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> rows = (java.util.List<Object>) this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
@@ -5514,7 +5514,7 @@ public class PhemexCore extends PhemexApi
             //
             //
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object riskLimits = this.safeList(data, "riskLimits");
+            java.util.List<Object> riskLimits = (java.util.List<Object>) this.safeList(data, "riskLimits");
             return this.parseLeverageTiers(riskLimits, symbols, "symbol");
         });
 
@@ -5590,7 +5590,7 @@ final Object finalI = i;
             Long timestamp = this.seconds();
             Long xPhemexRequestExpiry = this.safeInteger(this.options, "x-phemex-request-expiry", 60);
             Object expiry = this.sum(timestamp, xPhemexRequestExpiry);
-            Object expiryString = String.valueOf(expiry);
+            String expiryString = String.valueOf(expiry);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "x-phemex-access-token", PhemexCore.this.apiKey );
                 put( "x-phemex-request-expiry", expiryString );
@@ -5661,7 +5661,7 @@ final Object finalI = i;
             {
                 (this.loadMarkets()).join();
             }
-            Object isHedged = this.safeBool(parameters, "hedged", false);
+            Boolean isHedged = (Boolean) this.safeBool(parameters, "hedged", false);
             Object longLeverageRr = this.safeInteger(parameters, "longLeverageRr");
             Object shortLeverageRr = this.safeInteger(parameters, "shortLeverageRr");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -5777,7 +5777,7 @@ final Object finalI = i;
                 transfer = this.parseTransfer(response);
             }
             Object transferOptions = this.safeValue(this.options, "transfer", new java.util.HashMap<String, Object>() {{}});
-            Object fillResponseFromRequest = this.safeBool(transferOptions, "fillResponseFromRequest", true);
+            Boolean fillResponseFromRequest = (Boolean) this.safeBool(transferOptions, "fillResponseFromRequest", true);
             if (Helpers.isTrue(Helpers.isEqual(fillResponseFromRequest, true)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(transfer, "fromAccount"), null)))
@@ -6199,7 +6199,7 @@ final Object finalI = i;
             //        }
             //    }
             //
-            Object result = this.safeDict(response, "result");
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result");
             return this.parseOpenInterest(result, market);
         });
 
@@ -6345,7 +6345,7 @@ final Object finalI = i;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String fromCurrencyId = this.safeString(data, "fromCurrency");
             java.util.Map<String, Object> fromResult = (java.util.Map<String, Object>) this.safeCurrency(fromCurrencyId, fromCurrency);
             String toCurrencyId = this.safeString(data, "toCurrency");
@@ -6421,8 +6421,8 @@ final Object finalI = i;
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> rows = (java.util.List<Object>) this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseConversions(rows, code, "fromCurrency", "toCurrency", since, limit);
         });
 
@@ -6474,7 +6474,7 @@ final Object finalI = i;
         //
         Object fromCurrency = Helpers.getArg(optionalArgs, 0, null);
         Object toCurrency = Helpers.getArg(optionalArgs, 1, null);
-        Object quoteArgs = this.safeDict(conversion, "quoteArgs", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> quoteArgs = (java.util.Map<String, Object>) this.safeDict(conversion, "quoteArgs", new java.util.HashMap<String, Object>() {{}});
         Long requestTime = this.safeInteger(quoteArgs, "requestAt");
         Long timestamp = this.safeInteger(conversion, "createTime", requestTime);
         String fromCoin = this.safeString(conversion, "fromCurrency", this.safeString(fromCurrency, "code"));
@@ -6589,7 +6589,7 @@ final Object finalI = i;
                 response = (this.privateGetAccountsAccountPositions(this.extend(request, parameters))).join();
             }
             Object data = this.safeValue(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object ranks = this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> ranks = (java.util.List<Object>) this.safeList(data, "positions", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ranks)); i++)
             {

@@ -186,7 +186,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             {
                 status = "open";
             }
-            Object order = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object orderId = this.safeString(order, "i");
             Object clientOrderId = this.safeString(order, "I");
             final Object finalStatus = status;
@@ -266,7 +266,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             {
                 status = "open";
             }
-            Object order = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object orderId = this.safeString(order, "i");
             Object clientOrderId = this.safeString(order, "I");
             final Object finalStatus = status;
@@ -343,14 +343,14 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             //   "type": "batch_orders"
             // }
             //
-            Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object results = this.safeList(data, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> results = (java.util.List<Object>) this.safeList(data, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> ordersToReturn = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object order = Helpers.GetValue(results, i);
                 Object error = this.safeString(order, "error");
-                Object success = this.safeBool(order, "success", false);
+                Boolean success = (Boolean) this.safeBool(order, "success", false);
                 Object marketId = this.safeString(order, "symbol");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object orderId = this.safeString(order, "i");
@@ -443,7 +443,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             {
                 status = "open";
             }
-            Object order = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object orderId = this.safeString(order, "i");
             Object clientOrderId = this.safeString(order, "I");
             final Object finalStatus = status;
@@ -637,11 +637,11 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         //   }
         // }
         //
-        Object entry = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> entry = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(entry, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object levels = this.safeList(entry, "l", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> levels = (java.util.List<Object>) this.safeList(entry, "l", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "bids", PacificaCore.this.safeList(levels, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
             put( "asks", PacificaCore.this.safeList(levels, 1, new java.util.ArrayList<Object>(java.util.Arrays.asList())) );
@@ -891,7 +891,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         // }
         //
         java.util.List<Object> parsedTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object info = Helpers.GetValue(data, i);
@@ -946,8 +946,8 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         }
         Object trades = this.myTrades;
         java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object dataLength = Helpers.getArrayLength(data);
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;
@@ -1079,8 +1079,8 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         //   ]
         // }
         //
-        Object entry = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object first = this.safeDict(entry, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> entry = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(entry, 0, new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(first, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -1093,7 +1093,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         io.github.ccxt.ws.ArrayCache trades = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entry)); i++)
         {
-            Object data = this.safeDict(entry, i, new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(entry, i, new java.util.HashMap<String, Object>() {{}});
             Object trade = this.parseWsTrade(data);
             Helpers.callDynamically(trades, "append", new Object[]{trade});
         }
@@ -1306,7 +1306,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         //   }
         // }
         //
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -1468,13 +1468,13 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         //     }
         //   ]
         // }
-        Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;
@@ -1511,7 +1511,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         //
         Object error = this.safeString(message, "err", "");
         Object postType = this.safeString(message, "type", "");
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object id = this.safeString(message, "id");
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
@@ -1633,11 +1633,11 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         //      }
         //  }
         //
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object method = this.safeString(message, "channel");
         if (Helpers.isTrue(Helpers.isEqual(method, "unsubscribe")))
         {
-            Object subscription = this.safeDict(data, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> subscription = (java.util.Map<String, Object>) this.safeDict(data, "data", new java.util.HashMap<String, Object>() {{}});
             Object type = this.safeString(subscription, "source");
             if (Helpers.isTrue(Helpers.isEqual(type, "book")))
             {

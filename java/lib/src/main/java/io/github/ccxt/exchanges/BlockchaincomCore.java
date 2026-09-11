@@ -734,7 +734,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String orderType = this.safeString(parameters, "ordType", type);
-            Object uppercaseOrderType = ((String)orderType).toUpperCase();
+            String uppercaseOrderType = ((String)orderType).toUpperCase();
             String clientOrderId = this.safeString2(parameters, "clientOrderId", "clOrdId", this.uuid16());
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("ordType", "clientOrderId", "clOrdId")));
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
@@ -1138,7 +1138,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             Object address = null;
             if (Helpers.isTrue(!Helpers.isEqual(rawAddress, null)))
             {
-                Object addressParts = Helpers.split(rawAddress, ";");
+                java.util.List<Object> addressParts = (java.util.List<Object>) Helpers.split(rawAddress, ";");
                 // if a tag or memo is used it is separated by a colon in the 'address' value
                 tag = this.safeString(addressParts, 0);
                 address = this.safeString(addressParts, 1);

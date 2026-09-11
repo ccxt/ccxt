@@ -749,8 +749,8 @@ public class KrakenCore extends KrakenApi
             //         }
             //     }
             //
-            Object markets = this.safeDict(assetsResponse, "result", new java.util.HashMap<String, Object>() {{}});
-            Object cachedCurrencies = this.safeDict(this.options, "cachedCurrencies", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> markets = (java.util.Map<String, Object>) this.safeDict(assetsResponse, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> cachedCurrencies = (java.util.Map<String, Object>) this.safeDict(this.options, "cachedCurrencies", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(markets);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -768,24 +768,24 @@ public class KrakenCore extends KrakenApi
                 Object quoteId = this.safeCurrencyCode(quoteIdRaw);
                 Object base = baseId;
                 Object quote = quoteId;
-                Object makerFees = this.safeList(market, "fees_maker", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object firstMakerFee = this.safeList(makerFees, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> makerFees = (java.util.List<Object>) this.safeList(market, "fees_maker", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> firstMakerFee = (java.util.List<Object>) this.safeList(makerFees, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 String firstMakerFeeRate = this.safeString(firstMakerFee, 1);
                 Object maker = null;
                 if (Helpers.isTrue(!Helpers.isEqual(firstMakerFeeRate, null)))
                 {
                     maker = this.parseNumber(Precise.stringDiv(firstMakerFeeRate, "100"));
                 }
-                Object takerFees = this.safeList(market, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object firstTakerFee = this.safeList(takerFees, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> takerFees = (java.util.List<Object>) this.safeList(market, "fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                java.util.List<Object> firstTakerFee = (java.util.List<Object>) this.safeList(takerFees, 0, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 String firstTakerFeeRate = this.safeString(firstTakerFee, 1);
                 Object taker = null;
                 if (Helpers.isTrue(!Helpers.isEqual(firstTakerFeeRate, null)))
                 {
                     taker = this.parseNumber(Precise.stringDiv(firstTakerFeeRate, "100"));
                 }
-                Object leverageBuy = this.safeList(market, "leverage_buy", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object leverageBuyLength = Helpers.getArrayLength(leverageBuy);
+                java.util.List<Object> leverageBuy = (java.util.List<Object>) this.safeList(market, "leverage_buy", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                Integer leverageBuyLength = Helpers.getArrayLength(leverageBuy);
                 Object precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, "pair_decimals")));
                 Object precisionAmount = this.parseNumber(this.parsePrecision(this.safeString(market, "lot_decimals")));
                 Boolean spot = true;
@@ -898,7 +898,7 @@ public class KrakenCore extends KrakenApi
             //     result: { status: 'online', timestamp: '2024-07-22T16:34:44Z' }
             // }
             //
-            Object result = this.safeDict(response, "result");
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result");
             String statusRaw = this.safeString(result, "status");
             final Object finalStatusRaw = statusRaw;
             return new java.util.HashMap<String, Object>() {{
@@ -981,7 +981,7 @@ public class KrakenCore extends KrakenApi
             //         },
             //     }
             //
-            Object currencies = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> currencies = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object enhancedArray = this.addKeyInArrayItems(currencies, "_coin_id");
             return this.parseCurrencies(enhancedArray);
         });
@@ -1076,7 +1076,7 @@ public class KrakenCore extends KrakenApi
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(currencyId, "."), 0)))
         {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
-            Object parts = Helpers.split(currencyId, ".");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(currencyId, ".");
             String firstPart = this.safeString(parts, 0);
             String secondPart = this.safeString(parts, 1);
             return Helpers.add(Helpers.add(super.safeCurrencyCode(firstPart, currency), "."), secondPart);
@@ -1324,7 +1324,7 @@ public class KrakenCore extends KrakenApi
                 Helpers.addElementToObject(request, "pair", String.join((String)",", (java.util.List<String>)marketIds));
             }
             java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
-            Object tickers = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> tickers = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object ids = Helpers.objectKeys(tickers);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
@@ -1364,7 +1364,7 @@ public class KrakenCore extends KrakenApi
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
-            Object tickerResult = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> tickerResult = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object ticker = this.safeValue(tickerResult, Helpers.GetValue(market, "id"));
             return this.parseTicker(ticker, market);
         });
@@ -1595,7 +1595,7 @@ public class KrakenCore extends KrakenApi
             //                                                    "fee": "0.0050000000",
             //                                                "balance": "0.0000051000"           },
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object ledger = this.safeDict(result, "ledger", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> ledger = (java.util.Map<String, Object>) this.safeDict(result, "ledger", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(ledger);
             java.util.List<Object> items = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -1637,7 +1637,7 @@ public class KrakenCore extends KrakenApi
             //                                       "amount": "-0.2805800000",
             //                                          "fee": "0.0050000000",
             //                                      "balance": "0.0000051000"           } } }
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(result);
             java.util.List<Object> items = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -1747,7 +1747,7 @@ public class KrakenCore extends KrakenApi
             type = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, 4), "l"))))) ? "limit" : "market";
             price = this.safeString(trade, 0);
             amount = this.safeString(trade, 1);
-            Object tradeLength = Helpers.getArrayLength(trade);
+            Integer tradeLength = Helpers.getArrayLength(trade);
             if (Helpers.isTrue(Helpers.isGreaterThan(tradeLength, 6)))
             {
                 id = this.safeString(trade, 6); // artificially added as per #1794
@@ -1802,7 +1802,7 @@ public class KrakenCore extends KrakenApi
             symbol = Helpers.GetValue(market, "symbol");
         }
         String cost = this.safeString(trade, "cost");
-        Object maker = this.safeBool(trade, "maker");
+        Boolean maker = (Boolean) this.safeBool(trade, "maker");
         String takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(maker, null)))
         {
@@ -1893,10 +1893,10 @@ public class KrakenCore extends KrakenApi
             //         }
             //     }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object trades = this.safeValue(result, id);
             // trades is a sorted array: last (most recent trade) goes last
-            Object length = Helpers.getArrayLength(trades);
+            Integer length = Helpers.getArrayLength(trades);
             if (Helpers.isTrue(Helpers.isLessThanOrEqual(length, 0)))
             {
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1912,7 +1912,7 @@ public class KrakenCore extends KrakenApi
 
     public Object parseBalance(Object response)
     {
-        Object balances = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> balances = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
             put( "timestamp", null );
@@ -2136,7 +2136,7 @@ public class KrakenCore extends KrakenApi
                 String side = this.safeString(rawOrder, "side");
                 Object amount = this.safeValue(rawOrder, "amount");
                 Object price = this.safeValue(rawOrder, "price");
-                Object orderParams = this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
+                java.util.Map<String, Object> orderParams = (java.util.Map<String, Object>) this.safeDict(rawOrder, "params", new java.util.HashMap<String, Object>() {{}});
                 Object parsedAmount = this.amountToPrecision(Helpers.GetValue(market, "symbol"), amount);
                 java.util.Map<String, Object> req = new java.util.HashMap<String, Object>() {{
                     put( "type", side );
@@ -2176,7 +2176,7 @@ public class KrakenCore extends KrakenApi
             //       ]
             //     }
             //
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             return this.parseOrders(this.safeList(result, "orders"));
         });
 
@@ -2184,7 +2184,7 @@ public class KrakenCore extends KrakenApi
 
     public Object findMarketByAltnameOrId(Object id)
     {
-        Object marketsByAltname = this.safeDict(this.options, "marketsByAltname", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> marketsByAltname = (java.util.Map<String, Object>) this.safeDict(this.options, "marketsByAltname", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(Helpers.inOp(marketsByAltname, id)))
         {
             return Helpers.GetValue(marketsByAltname, id);
@@ -2220,8 +2220,8 @@ public class KrakenCore extends KrakenApi
             quoteIdStart = 4;
             quoteIdEnd = 7;
         }
-        Object baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
-        Object quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
+        String baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
+        String quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -2366,10 +2366,10 @@ public class KrakenCore extends KrakenApi
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object isUsingCost = this.safeBool(order, "usingCost", false);
+        Boolean isUsingCost = (Boolean) this.safeBool(order, "usingCost", false);
         order = this.omit(order, "usingCost");
-        Object description = this.safeDict(order, "descr", new java.util.HashMap<String, Object>() {{}});
-        Object orderDescriptionObj = this.safeDict(order, "descr"); // can be null
+        java.util.Map<String, Object> description = (java.util.Map<String, Object>) this.safeDict(order, "descr", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> orderDescriptionObj = (java.util.Map<String, Object>) this.safeDict(order, "descr"); // can be null
         Object orderDescription = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderDescriptionObj, null)))
         {
@@ -2387,7 +2387,7 @@ public class KrakenCore extends KrakenApi
         Object triggerPrice = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderDescription, null)))
         {
-            Object parts = Helpers.split(orderDescription, " ");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(orderDescription, " ");
             side = this.safeString(parts, 0);
             if (Helpers.isTrue(!Helpers.isEqual(isUsingCost, true)))
             {
@@ -2471,12 +2471,12 @@ public class KrakenCore extends KrakenApi
         String id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "txid", "order_id", "amend_id")));
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(id, null))) || Helpers.isTrue((((String)id).startsWith(((String)"["))))))
         {
-            Object txid = this.safeList(order, "txid");
+            java.util.List<Object> txid = (java.util.List<Object>) this.safeList(order, "txid");
             id = this.safeString(txid, 0);
         }
         String userref = this.safeString(order, "userref");
         String clientOrderId = this.safeString(order, "cl_ord_id", userref);
-        Object rawTrades = this.safeList(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> rawTrades = (java.util.List<Object>) this.safeList(order, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.List<Object> trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
         {
@@ -2617,7 +2617,7 @@ final Object finalId = id;
         {
             Helpers.addElementToObject(request, "price", this.priceToPrecision(symbol, price));
         }
-        Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
+        Boolean reduceOnly = (Boolean) this.safeBool2(parameters, "reduceOnly", "reduce_only");
         if (Helpers.isTrue(isStopLossOrTakeProfitTrigger))
         {
             if (Helpers.isTrue(isStopLossTriggerOrder))
@@ -2961,7 +2961,7 @@ final Object finalId = id;
             }
             Object options = this.safeValue(this.options, "fetchOrderTrades", new java.util.HashMap<String, Object>() {{}});
             Long batchSize = this.safeInteger(options, "batchSize", 20);
-            Object numTradeIds = Helpers.getArrayLength(tradeIds);
+            Integer numTradeIds = Helpers.getArrayLength(tradeIds);
             Object numBatches = this.parseToInt(Helpers.divide(numTradeIds, batchSize));
             numBatches = this.sum(numBatches, 1);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -3041,7 +3041,7 @@ final Object finalId = id;
                 put( "trades", true );
                 put( "txid", String.join((String)",", (java.util.List<String>)ids) );
             }}, parameters))).join();
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object orderIds = Helpers.objectKeys(result);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderIds)); i++)
@@ -3125,8 +3125,8 @@ final Object finalId = id;
             //         },
             //     }
             //
-            Object tradesResult = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object trades = this.safeDict(tradesResult, "trades", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> tradesResult = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> trades = (java.util.Map<String, Object>) this.safeDict(tradesResult, "trades", new java.util.HashMap<String, Object>() {{}});
             Object ids = Helpers.objectKeys(trades);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
@@ -3409,8 +3409,8 @@ final Object finalId = id;
             {
                 market = this.market(symbol);
             }
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object open = this.safeDict(result, "open", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> open = (java.util.Map<String, Object>) this.safeDict(result, "open", new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object orderIds = Helpers.objectKeys(open);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderIds)); i++)
@@ -3518,8 +3518,8 @@ final Object finalId = id;
             {
                 market = this.market(symbol);
             }
-            Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object closed = this.safeDict(result, "closed", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> closed = (java.util.Map<String, Object>) this.safeDict(result, "closed", new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object orderIds = Helpers.objectKeys(closed);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderIds)); i++)
@@ -3748,7 +3748,7 @@ final Object finalId = id;
             //                       "time":  1529223212,
             //                     "status": "Success"                                                       } ] }
             //
-            Object depositResult = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> depositResult = (java.util.List<Object>) this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseTransactionsByType("deposit", depositResult, code, since, limit);
         });
 
@@ -3896,7 +3896,7 @@ final Object finalId = id;
     {
         String cursor = this.safeString(result, "next_cursor");
         Object data = this.safeValue(result, "withdrawals");
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(cursor, null)) && Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0))))
         {
             Object last = Helpers.GetValue(data, Helpers.subtract(dataLength, 1));
@@ -4412,7 +4412,7 @@ final Object finalId = id;
             Boolean isCancelOrderBatch = (Helpers.isEqual(path, "CancelOrderBatch"));
             Boolean isBatchOrder = (Helpers.isEqual(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isCancelOrderBatch) || Helpers.isTrue(isTriggerPercent)) || Helpers.isTrue(isBatchOrder)))
             {
                 final Object finalNonce = nonce;
@@ -4482,7 +4482,7 @@ final Object finalId = id;
                 Object message = Helpers.add(Helpers.add(this.id, " "), body);
                 if (Helpers.isTrue(Helpers.inOp(response, "error")))
                 {
-                    Object numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
+                    Integer numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
                     if (Helpers.isTrue(Helpers.isGreaterThan(numErrors, 0)))
                     {
                         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(Helpers.GetValue(response, "error"))); i++)
@@ -4497,10 +4497,10 @@ final Object finalId = id;
                 // handleCreateOrdersErrors:
                 if (Helpers.isTrue(Helpers.inOp(response, "result")))
                 {
-                    Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
+                    java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
                     if (Helpers.isTrue(Helpers.inOp(result, "orders")))
                     {
-                        Object orders = this.safeList(result, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+                        java.util.List<Object> orders = (java.util.List<Object>) this.safeList(result, "orders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
                         {
                             Object order = Helpers.GetValue(orders, i);

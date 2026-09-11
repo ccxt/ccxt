@@ -725,9 +725,9 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         String id = this.safeString(rawCurrency, "id");
         String name = this.safeString(rawCurrency, "name");
         String code = (String) this.safeCurrencyCode(id);
-        Object details = this.safeDict(rawCurrency, "details", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> details = (java.util.Map<String, Object>) this.safeDict(rawCurrency, "details", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
-        Object supportedNetworks = this.safeList(rawCurrency, "supported_networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> supportedNetworks = (java.util.List<Object>) this.safeList(rawCurrency, "supported_networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(supportedNetworks)); j++)
         {
             Object network = Helpers.GetValue(supportedNetworks, j);
@@ -2748,7 +2748,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object payload = "";
             if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
             {

@@ -362,7 +362,7 @@ public class Bit2cCore extends Bit2cApi
             Object code = Helpers.GetValue(codes, i);
             Object account = this.account();
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object uppercase = ((String)Helpers.GetValue(currency, "id")).toUpperCase();
+            String uppercase = ((String)Helpers.GetValue(currency, "id")).toUpperCase();
             if (Helpers.isTrue(Helpers.inOp(response, uppercase)))
             {
                 Helpers.addElementToObject(account, "free", this.safeString(response, Helpers.add("AVAILABLE_", uppercase)));
@@ -472,8 +472,8 @@ public class Bit2cCore extends Bit2cApi
             // feed filters these rows out, so a non-positive amount is a dead order
             // their full snapshot failed to purge - it is removed here, which also
             // uncrosses the book. rows are positional price and amount pairs
-            Object rawBids = this.safeList(orderbook, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rawAsks = this.safeList(orderbook, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> rawBids = (java.util.List<Object>) this.safeList(orderbook, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> rawAsks = (java.util.List<Object>) this.safeList(orderbook, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBids)); i++)
@@ -666,7 +666,7 @@ public class Bit2cCore extends Bit2cApi
             //         }
             //     }
             //
-            Object fees = this.safeDict(response, "Fees", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> fees = (java.util.Map<String, Object>) this.safeDict(response, "Fees", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(fees);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -808,7 +808,7 @@ public class Bit2cCore extends Bit2cApi
             java.util.Map<String, Object> response = (this.privateGetOrderMyOrders(this.extend(request, parameters))).join();
             Object orders = this.safeValue(response, Helpers.GetValue(market, "id"), new java.util.HashMap<String, Object>() {{}});
             Object asks = this.safeValue(orders, "ask", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object bids = this.safeList(orders, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> bids = (java.util.List<Object>) this.safeList(orders, "bid", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             return this.parseOrders(this.arrayConcat(asks, bids), market, since, limit);
         });
 
@@ -1087,7 +1087,7 @@ public class Bit2cCore extends Bit2cApi
     public Object removeCommaFromValue(Object str)
     {
         Object newString = "";
-        Object strParts = Helpers.split(str, ",");
+        java.util.List<Object> strParts = (java.util.List<Object>) Helpers.split(str, ",");
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(strParts)); i++)
         {
             newString = Helpers.add(newString, Helpers.GetValue(strParts, i));
@@ -1146,7 +1146,7 @@ public class Bit2cCore extends Bit2cApi
             price = this.safeString(trade, "price");
             price = this.removeCommaFromValue(price);
             amount = this.safeString(trade, "firstAmount");
-            Object reference_parts = Helpers.split(reference, "|"); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
+            java.util.List<Object> reference_parts = (java.util.List<Object>) Helpers.split(reference, "|"); // reference contains 'pair|orderId_by_taker|orderId_by_maker'
             String marketId = this.safeString(trade, "pair");
             market = this.safeMarket(marketId, market);
             market = this.safeMarket(Helpers.GetValue(reference_parts, 0), market);

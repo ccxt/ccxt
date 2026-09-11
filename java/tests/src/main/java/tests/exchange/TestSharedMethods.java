@@ -57,7 +57,7 @@ public class TestSharedMethods extends BaseTest {
         Boolean formatIsEmptyArray = false;
         if (Helpers.isTrue(Helpers.isArray(formatKeyVal)))
         {
-            Object formatLen = Helpers.getArrayLength(formatKeyVal);
+            Integer formatLen = Helpers.getArrayLength(formatKeyVal);
             formatIsEmptyArray = (Helpers.isEqual(formatLen, 0));
         }
         Boolean same_object = Helpers.isTrue(exchange.isDictionary(entryKeyVal)) && Helpers.isTrue((Helpers.isTrue(exchange.isDictionary(formatKeyVal)) || Helpers.isTrue(formatIsEmptyArray)));
@@ -79,8 +79,8 @@ public class TestSharedMethods extends BaseTest {
         if (Helpers.isTrue(Helpers.isArray(format)))
         {
             Assert(Helpers.isArray(entry), Helpers.add("entry is not an array", logText));
-            Object realLength = Helpers.getArrayLength(entry);
-            Object expectedLength = Helpers.getArrayLength(format);
+            Integer realLength = Helpers.getArrayLength(entry);
+            Integer expectedLength = Helpers.getArrayLength(format);
             Assert(Helpers.isEqual(realLength, expectedLength), Helpers.add(Helpers.add("entry length is not equal to expected length of ", String.valueOf(expectedLength)), logText));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(format)); i++)
             {
@@ -206,7 +206,7 @@ public class TestSharedMethods extends BaseTest {
                 {
                     Assert(false, Helpers.add(Helpers.add("datetime is not parseable: ", dt), logText));
                 }
-                Object diff = Helpers.mathAbs(Double.parseDouble(Helpers.toString(Helpers.subtract(dtParsed, tsMs))));
+                Double diff = (Double) Helpers.mathAbs(Double.parseDouble(Helpers.toString(Helpers.subtract(dtParsed, tsMs))));
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(diff, 500)))
                 {
                     Object dtParsedString = exchange.iso8601(dtParsed);
@@ -731,7 +731,7 @@ public class TestSharedMethods extends BaseTest {
         Boolean isEmptyArrayResponse = false;
         if (Helpers.isTrue(Helpers.isArray(response)))
         {
-            Object responseLength = Helpers.getArrayLength(response);
+            Integer responseLength = Helpers.getArrayLength(response);
             isEmptyArrayResponse = (Helpers.isEqual(responseLength, 0));
         }
         String hintText = "";
@@ -828,7 +828,7 @@ public class TestSharedMethods extends BaseTest {
                 }
                 if (Helpers.isTrue(!Helpers.isEqual(ohlcv, null)))
                 {
-                    Object ohlcvLength = Helpers.getArrayLength(ohlcv);
+                    Integer ohlcvLength = Helpers.getArrayLength(ohlcv);
                     if (Helpers.isTrue(Helpers.isLessThanOrEqual(ohlcvLength, 1)))
                     {
                         // if only 1 day of listing, then allow it

@@ -522,7 +522,7 @@ public class BitteamCore extends BitteamApi
     {
         String id = this.safeString(market, "name");
         Long numericId = this.safeInteger(market, "id");
-        Object parts = Helpers.split(((String)id), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)id), "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = (String) this.safeCurrencyCode(baseId);
@@ -532,7 +532,7 @@ public class BitteamCore extends BitteamApi
         Long created = this.parse8601(timeStart);
         Object minCost = null;
         Object currenciesValuedInUsd = this.handleOption("fetchMarkets", "currenciesValuedInUsd", new java.util.HashMap<String, Object>() {{}});
-        Object quoteInUsd = this.safeBool(currenciesValuedInUsd, quote, false);
+        Boolean quoteInUsd = (Boolean) this.safeBool(currenciesValuedInUsd, quote, false);
         if (Helpers.isTrue(Helpers.isEqual(quoteInUsd, true)))
         {
             Object settings = this.safeValue(market, "settings", new java.util.HashMap<String, Object>() {{}});
@@ -736,7 +736,7 @@ public class BitteamCore extends BitteamApi
         String id = this.safeString(currency, "symbol");
         Long numericId = this.safeInteger(currency, "id");
         String code = (String) this.safeCurrencyCode(id);
-        Object active = this.safeBool(currency, "active", false);
+        Boolean active = (Boolean) this.safeBool(currency, "active", false);
         Object precision = this.parseNumber(this.parsePrecision(this.safeString(currency, "precision")));
         Object txLimits = this.safeValue(currency, "txLimits", new java.util.HashMap<String, Object>() {{}});
         String minWithdraw = this.safeString(txLimits, "minWithdraw");
@@ -2772,13 +2772,13 @@ public class BitteamCore extends BitteamApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/ccxt/order/"), 0))) && Helpers.isTrue((Helpers.isEqual(method, "GET")))))
                 {
-                    Object parts = Helpers.split(url, "/order/");
+                    java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(url, "/order/");
                     String orderId = this.safeString(parts, 1);
                     throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(this.id, " order "), orderId), " not found")) ;
                 }
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/cmc/orderbook/"), 0)))
                 {
-                    Object parts = Helpers.split(url, "/cmc/orderbook/");
+                    java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(url, "/cmc/orderbook/");
                     String symbolId = this.safeString(parts, 1);
                     throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " symbolId "), symbolId), " not found")) ;
                 }

@@ -149,7 +149,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 put( "symbols", symbols );
                 put( "topic", topic );
             }};
-            Object symbolsAndTimeframes = this.safeList(parameters, "symbolsAndTimeframes");
+            java.util.List<Object> symbolsAndTimeframes = (java.util.List<Object>) this.safeList(parameters, "symbolsAndTimeframes");
             if (Helpers.isTrue(!Helpers.isEqual(symbolsAndTimeframes, null)))
             {
                 Helpers.addElementToObject(subscription, "symbolsAndTimeframes", symbolsAndTimeframes);
@@ -675,7 +675,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             {
                 url = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), marketType);
             }
-            Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
             Long depth = this.safeInteger(options, "depth", 100);
             Object subscriptionHash = Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), "depth"), this.numberToString(depth));
             Object messageHash = this.getMessageHash("orderbook", Helpers.GetValue(market, "symbol"));
@@ -736,7 +736,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object options = this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> options = (java.util.Map<String, Object>) this.safeDict(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
             Long depth = this.safeInteger(options, "depth", 100);
             Object subMessageHash = Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(market, "id"), "@"), "depth"), this.numberToString(depth));
             String messageHash = (String) Helpers.add("unsubscribe::", subMessageHash);
@@ -823,9 +823,9 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //         }
         //     }
         //
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object dataType = this.safeString(message, "dataType", "");
-        Object parts = Helpers.split(dataType, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(dataType, "@");
         String firstPart = (String) Helpers.GetValue(parts, 0);
         Boolean isAllEndpoint = (Helpers.isEqual(firstPart, "all"));
         Object marketId = this.safeString(data, "symbol", firstPart);
@@ -962,7 +962,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //
         Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
         Object dataType = this.safeString(message, "dataType", "");
-        Object parts = Helpers.split(dataType, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(dataType, "@");
         String firstPart = (String) Helpers.GetValue(parts, 0);
         Boolean isAllEndpoint = (Helpers.isEqual(firstPart, "all"));
         Object marketId = this.safeString(message, "s", firstPart);
@@ -980,14 +980,14 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             }
         } else
         {
-            Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
             candles = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeDict(data, "K", new java.util.HashMap<String, Object>() {{}})));
         }
         Object symbol = Helpers.GetValue(market, "symbol");
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         Object rawTimeframe = Helpers.GetValue(Helpers.split(dataType, "_"), 1);
-        Object marketOptions = this.safeDict(this.options, marketType);
-        Object timeframes = this.safeDict(marketOptions, "timeframes", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> marketOptions = (java.util.Map<String, Object>) this.safeDict(this.options, marketType);
+        java.util.Map<String, Object> timeframes = (java.util.Map<String, Object>) this.safeDict(marketOptions, "timeframes", new java.util.HashMap<String, Object>() {{}});
         Object unifiedTimeframe = this.findTimeframe(rawTimeframe, timeframes);
         if (Helpers.isTrue(Helpers.isEqual(this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), rawTimeframe), null)))
         {
@@ -1666,7 +1666,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
         }
         Object cache = this.positions;
-        Object data = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
         if (!Helpers.isTrue((Helpers.inOp(data, "P"))))
         {
             return;
@@ -1692,9 +1692,9 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object filteredSymbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> filteredSymbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", filteredSymbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -2029,7 +2029,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //    }
         //
         Boolean isSpot = (Helpers.inOp(message, "dataType"));
-        Object result = this.safeDict2(message, "data", "o", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeDict2(message, "data", "o", new java.util.HashMap<String, Object>() {{}});
         Object cachedTrades = this.myTrades;
         if (Helpers.isTrue(Helpers.isEqual(cachedTrades, null)))
         {
@@ -2088,7 +2088,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //         }
         //     }
         //
-        Object a = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> a = (java.util.Map<String, Object>) this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeList(a, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Long timestamp = (Long) this.safeInteger2(message, "T", "E");
         Object spotUrl = this.safeString(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "spot");
@@ -2204,8 +2204,8 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //
         Object id = this.safeString(message, "id");
         java.util.Map<String, Object> subscriptionsById = this.indexBy(client.subscriptions, "id");
-        Object subscription = this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
-        Object isUnSubMessage = this.safeBool(subscription, "unsubscribe", false);
+        java.util.Map<String, Object> subscription = (java.util.Map<String, Object>) this.safeDict(subscriptionsById, id, new java.util.HashMap<String, Object>() {{}});
+        Boolean isUnSubMessage = (Boolean) this.safeBool(subscription, "unsubscribe", false);
         if (Helpers.isTrue(Helpers.isEqual(isUnSubMessage, true)))
         {
             this.handleUnSubscription(client, subscription);

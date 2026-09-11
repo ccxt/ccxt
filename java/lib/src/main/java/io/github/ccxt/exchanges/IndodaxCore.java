@@ -495,7 +495,7 @@ public class IndodaxCore extends IndodaxApi
     public Object parseBalance(Object response)
     {
         Object balances = this.safeValue(response, "return", new java.util.HashMap<String, Object>() {{}});
-        Object free = this.safeDict(balances, "balance", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> free = (java.util.Map<String, Object>) this.safeDict(balances, "balance", new java.util.HashMap<String, Object>() {{}});
         Object used = this.safeValue(balances, "balance_hold", new java.util.HashMap<String, Object>() {{}});
         Object timestamp = this.safeTimestamp(balances, "server_time");
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
@@ -686,7 +686,7 @@ public class IndodaxCore extends IndodaxApi
             //         }
             //     }
             //
-            Object ticker = this.safeDict(response, "ticker", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.safeDict(response, "ticker", new java.util.HashMap<String, Object>() {{}});
             return this.parseTicker(ticker, market);
         });
 
@@ -729,14 +729,14 @@ public class IndodaxCore extends IndodaxApi
             // }
             //
             java.util.Map<String, Object> response = (this.publicGetApiTickerAll(parameters)).join();
-            Object tickers = this.safeDict(response, "tickers", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> tickers = (java.util.Map<String, Object>) this.safeDict(response, "tickers", new java.util.HashMap<String, Object>() {{}});
             Object keys = Helpers.objectKeys(tickers);
             java.util.Map<String, Object> parsedTickers = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
                 Object rawTicker = Helpers.GetValue(tickers, key);
-                Object marketId = Helpers.replace((String)key, (String)"_", (String)"");
+                String marketId = Helpers.replace((String)key, (String)"_", (String)"");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object parsed = this.parseTicker(rawTicker, market);
                 Helpers.addElementToObject(parsedTickers, marketId, parsed);
@@ -1034,7 +1034,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "order_id", id );
             }};
             java.util.Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
-            Object orders = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> orders = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object order = this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }}, Helpers.GetValue(orders, "order")), market);
@@ -1076,7 +1076,7 @@ public class IndodaxCore extends IndodaxApi
                 Helpers.addElementToObject(request, "pair", Helpers.GetValue(market, "id"));
             }
             java.util.Map<String, Object> response = (this.privatePostOpenOrders(this.extend(request, parameters))).join();
-            Object openOrdersResult = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> openOrdersResult = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object rawOrders = Helpers.GetValue(openOrdersResult, "orders");
             // { success: 1, return: { orders: null }} if no orders
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(rawOrders, null))) || Helpers.isTrue((Helpers.isEqual(rawOrders, null)))))
@@ -1137,7 +1137,7 @@ public class IndodaxCore extends IndodaxApi
                 put( "pair", Helpers.GetValue(market, "id") );
             }};
             java.util.Map<String, Object> response = (this.privatePostOrderHistory(this.extend(request, parameters))).join();
-            Object historyResult = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> historyResult = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object orders = this.parseOrders(Helpers.GetValue(historyResult, "orders"), market);
             orders = this.filterBy(orders, "status", "closed");
             return this.filterBySymbolSinceLimit(orders, symbol, since, limit);
@@ -1378,7 +1378,7 @@ public class IndodaxCore extends IndodaxApi
             //         }
             //     }
             //
-            Object data = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
             Object result = this.depositWithdrawFee(response);
             Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "fee", this.safeNumber(data, "withdraw_fee"));
             Helpers.addElementToObject(Helpers.GetValue(result, "withdraw"), "percentage", false);
@@ -1479,8 +1479,8 @@ public class IndodaxCore extends IndodaxApi
             //     }
             //
             Object data = this.safeValue(response, "return", new java.util.HashMap<String, Object>() {{}});
-            Object withdraw = this.safeDict(data, "withdraw", new java.util.HashMap<String, Object>() {{}});
-            Object deposit = this.safeDict(data, "deposit", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> withdraw = (java.util.Map<String, Object>) this.safeDict(data, "withdraw", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> deposit = (java.util.Map<String, Object>) this.safeDict(data, "deposit", new java.util.HashMap<String, Object>() {{}});
             Object transactions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object currency = null;
             if (Helpers.isTrue(Helpers.isEqual(code, null)))
@@ -1723,9 +1723,9 @@ public class IndodaxCore extends IndodaxApi
             //        }
             //    }
             //
-            Object data = this.safeDict(response, "return");
-            Object addresses = this.safeDict(data, "address", new java.util.HashMap<String, Object>() {{}});
-            Object networks = this.safeDict(data, "network", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(response, "return");
+            java.util.Map<String, Object> addresses = (java.util.Map<String, Object>) this.safeDict(data, "address", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> networks = (java.util.Map<String, Object>) this.safeDict(data, "network", new java.util.HashMap<String, Object>() {{}});
             Object addressKeys = Helpers.objectKeys(addresses);
             Object result = new java.util.HashMap<String, Object>() {{
                 put( "info", data );
@@ -1753,7 +1753,7 @@ public class IndodaxCore extends IndodaxApi
                             {
                                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddresses() missing networkId")) ;
                             }
-                            Object networkIds = Helpers.split(networkId, ",");
+                            java.util.List<Object> networkIds = (java.util.List<Object>) Helpers.split(networkId, ",");
                             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
                             {
                                 Object _netIdTmp = this.networkIdToCode(Helpers.GetValue(networkIds, j), code);

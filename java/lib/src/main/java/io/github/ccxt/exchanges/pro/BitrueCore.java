@@ -445,7 +445,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        Object parts = Helpers.split(((String)channel), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
         Object channelKind = this.safeString(parts, 1);
         Boolean isFutures = (Helpers.isEqual(channelKind, "e"));
         Object market = null;
@@ -464,8 +464,8 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         Object parseable = tick;
         if (Helpers.isTrue(isFutures))
         {
-            Object rawAsks = this.safeList(tick, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rawBuys = this.safeList(tick, "buys", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> rawAsks = (java.util.List<Object>) this.safeList(tick, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> rawBuys = (java.util.List<Object>) this.safeList(tick, "buys", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             final Object finalSymbol = symbol;
             parseable = new java.util.HashMap<String, Object>() {{
                 put( "asks", BitrueCore.this.parseContractBidsAsks(rawAsks, finalSymbol) );
@@ -613,7 +613,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        Object parts = Helpers.split(((String)channel), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
@@ -622,7 +622,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         }
         Object symbol = Helpers.GetValue(market, "symbol");
         Object tick = this.safeValue(message, "tick", new java.util.HashMap<String, Object>() {{}});
-        Object data = this.safeList(tick, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> data = (java.util.List<Object>) this.safeList(tick, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Boolean appended = false;
         Object stored = this.safeValue(this.trades, symbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
@@ -701,7 +701,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
             {
                 throw new NotSupported((String)Helpers.add(this.id, " watchOHLCV is only supported for swap markets")) ;
             }
-            Object futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new java.util.HashMap<String, Object>() {{}});
+            java.util.Map<String, Object> futuresTimeframes = (java.util.Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new java.util.HashMap<String, Object>() {{}});
             Object interval = this.safeString(futuresTimeframes, timeframe);
             if (Helpers.isTrue(Helpers.isEqual(interval, null)))
             {
@@ -752,7 +752,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        Object parts = Helpers.split(((String)channel), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
@@ -761,7 +761,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         }
         Object symbol = Helpers.GetValue(market, "symbol");
         Object wsInterval = this.safeString(parts, 4);
-        Object futuresTimeframes = this.safeDict(this.options, "futuresTimeframes", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> futuresTimeframes = (java.util.Map<String, Object>) this.safeDict(this.options, "futuresTimeframes", new java.util.HashMap<String, Object>() {{}});
         Object timeframe = this.findTimeframe(wsInterval, futuresTimeframes);
         Object tick = this.safeValue(message, "tick");
         if (Helpers.isTrue(Helpers.isEqual(tick, null)))
@@ -862,7 +862,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         //     }
         //
         Object channel = this.safeString(message, "channel");
-        Object parts = Helpers.split(((String)channel), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)channel), "_");
         String wsBaseQuote = (String)this.safeStringLower(parts, 2);
         Object market = this.findSwapMarketByWsBaseQuote(((String)wsBaseQuote));
         if (Helpers.isTrue(Helpers.isEqual(market, null)))

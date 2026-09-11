@@ -597,7 +597,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
             timestamp = this.parse8601(datetime);
         }
         Object rawSide = this.safeString2(trade, "direction", 3);
-        Object parts = Helpers.split(((String)rawSide), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)rawSide), "_");
         Object firstPart = this.safeString(parts, 0);
         Object secondPart = this.safeString(parts, 1);
         Object side = firstPart;
@@ -763,7 +763,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object orderUpdate = this.safeValue(order, "orderUpdate", new java.util.HashMap<String, Object>() {{}});
         Object rawType = this.safeString(orderUpdate, "type", "");
-        Object typeParts = Helpers.split(rawType, "_");
+        java.util.List<Object> typeParts = (java.util.List<Object>) Helpers.split(rawType, "_");
         Object side = this.safeString(typeParts, 0);
         Object exchangeType = this.safeString(typeParts, 1);
         String type = null;
@@ -869,7 +869,7 @@ public class LbankCore extends io.github.ccxt.exchanges.Lbank
         //         "TS": "2021-07-26T19:48:03.548"
         //     }
         //
-        Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
+        java.util.Map<String, Object> data = (java.util.Map<String, Object>) this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Long timestamp = this.parse8601(this.safeString(message, "TS"));
         Object datetime = this.iso8601(timestamp);
         Helpers.addElementToObject(this.balance, "info", data);

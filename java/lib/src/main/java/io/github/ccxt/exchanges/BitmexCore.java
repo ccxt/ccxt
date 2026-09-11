@@ -763,7 +763,7 @@ public class BitmexCore extends BitmexApi
         String code = (String) this.safeCurrencyCode(asset);
         String id = this.safeString(currency, "currency");
         String name = this.safeString(currency, "name");
-        Object chains = this.safeList(currency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> chains = (java.util.List<Object>) this.safeList(currency, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Boolean depositEnabled = false;
         Boolean withdrawEnabled = false;
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
@@ -777,8 +777,8 @@ public class BitmexCore extends BitmexApi
             Object network = this.networkIdToCode(networkId, code);
             String withdrawalFeeRaw = this.safeString(chain, "withdrawalFee");
             Object withdrawalFee = this.parseNumber(Precise.stringMul(withdrawalFeeRaw, precisionString));
-            Object isDepositEnabled = this.safeBool(chain, "depositEnabled", false);
-            Object isWithdrawEnabled = this.safeBool(chain, "withdrawalEnabled", false);
+            Boolean isDepositEnabled = (Boolean) this.safeBool(chain, "depositEnabled", false);
+            Boolean isWithdrawEnabled = (Boolean) this.safeBool(chain, "withdrawalEnabled", false);
             Boolean active = (Helpers.isTrue((Helpers.isEqual(isDepositEnabled, true))) && Helpers.isTrue((Helpers.isEqual(isWithdrawEnabled, true))));
             if (Helpers.isTrue(Helpers.isEqual(isDepositEnabled, true)))
             {
@@ -1502,7 +1502,7 @@ public class BitmexCore extends BitmexApi
                 }} );
             }};
             Object response = (this.fetchOrders(symbol, null, null, this.deepExtend(filter, parameters))).join();
-            Object numResults = Helpers.getArrayLength(response);
+            Integer numResults = Helpers.getArrayLength(response);
             if (Helpers.isTrue(Helpers.isEqual(numResults, 1)))
             {
                 return Helpers.GetValue(response, 0);
@@ -2724,7 +2724,7 @@ public class BitmexCore extends BitmexApi
                     throw new InvalidOrder((String)Helpers.add(Helpers.add(Helpers.add(this.id, " createOrder() does not support reduceOnly for "), Helpers.GetValue(market, "type")), " orders, reduceOnly orders are supported for swap and future markets only")) ;
                 }
             }
-            Object postOnly = this.safeBool(parameters, "postOnly");
+            Boolean postOnly = (Boolean) this.safeBool(parameters, "postOnly");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "postOnly")));
             String brokerId = this.safeString(this.options, "brokerId", "CCXT");
             Long qty = this.parseToInt(this.amountToPrecision(symbol, amount));
@@ -2745,7 +2745,7 @@ public class BitmexCore extends BitmexApi
             {
                 ((java.util.List<Object>)execInstructions).add("ParticipateDoNotInitiate");
             }
-            Object execInstLength = Helpers.getArrayLength(execInstructions);
+            Integer execInstLength = Helpers.getArrayLength(execInstructions);
             if (Helpers.isTrue(Helpers.isGreaterThan(execInstLength, 0)))
             {
                 Helpers.addElementToObject(request, "execInst", String.join((String)",", (java.util.List<String>)execInstructions));
@@ -3513,7 +3513,7 @@ public class BitmexCore extends BitmexApi
                 Object item = Helpers.GetValue(rawItems, i);
                 String marketId = this.safeString(item, "symbol");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-                Object swap = this.safeBool(market, "swap", false);
+                Boolean swap = (Boolean) this.safeBool(market, "swap", false);
                 if (Helpers.isTrue(Helpers.isEqual(swap, true)))
                 {
                     ((java.util.List<Object>)filteredResponse).add(item);
@@ -3596,8 +3596,8 @@ public class BitmexCore extends BitmexApi
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(code, "id"));
             } else if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
-                Object splitSymbol = Helpers.split(symbol, ":");
-                Object splitSymbolLength = Helpers.getArrayLength(splitSymbol);
+                java.util.List<Object> splitSymbol = (java.util.List<Object>) Helpers.split(symbol, ":");
+                Integer splitSymbolLength = Helpers.getArrayLength(splitSymbol);
                 java.util.List<Object> timeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList("nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(splitSymbolLength, 1))) && Helpers.isTrue(this.inArray(Helpers.GetValue(splitSymbol, 1), timeframes))))
                 {
@@ -3837,8 +3837,8 @@ public class BitmexCore extends BitmexApi
         //    }
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object networks = this.safeList(fee, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object networksLength = Helpers.getArrayLength(networks);
+        java.util.List<Object> networks = (java.util.List<Object>) this.safeList(fee, "networks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        Integer networksLength = Helpers.getArrayLength(networks);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -4643,7 +4643,7 @@ public class BitmexCore extends BitmexApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " sign() missing expires")) ;
             }
-            Object stringExpires = String.valueOf(expires);
+            String stringExpires = String.valueOf(expires);
             auth = Helpers.add(auth, stringExpires);
             Helpers.addElementToObject(headers, "api-expires", stringExpires);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "POST")) || Helpers.isTrue(Helpers.isEqual(method, "PUT"))) || Helpers.isTrue(Helpers.isEqual(method, "DELETE"))))

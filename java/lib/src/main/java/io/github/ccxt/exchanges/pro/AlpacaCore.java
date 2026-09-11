@@ -306,7 +306,7 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
         String symbol = (String) this.safeSymbol(marketId);
         Object datetime = this.safeString(message, "t");
         Long timestamp = this.parse8601(datetime);
-        Object isSnapshot = this.safeBool(message, "r", false);
+        Boolean isSnapshot = (Boolean) this.safeBool(message, "r", false);
         if (!Helpers.isTrue((Helpers.inOp(this.orderbooks, symbol))))
         {
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
@@ -318,8 +318,8 @@ public class AlpacaCore extends io.github.ccxt.exchanges.Alpaca
             Helpers.callDynamically(orderbook, "reset", new Object[]{snapshot});
         } else
         {
-            Object asks = this.safeList(message, "a", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object bids = this.safeList(message, "b", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> asks = (java.util.List<Object>) this.safeList(message, "a", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> bids = (java.util.List<Object>) this.safeList(message, "b", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             this.handleDeltas(Helpers.GetValue(orderbook, "asks"), asks);
             this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
             Helpers.addElementToObject(orderbook, "timestamp", timestamp);

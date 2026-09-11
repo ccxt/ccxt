@@ -567,14 +567,14 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         //
         //
         Object channel = this.safeString(message, "channel");
-        Object events = this.safeList(message, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.List<Object> events = (java.util.List<Object>) this.safeList(message, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object datetime = this.safeString(message, "timestamp");
         Long timestamp = this.parse8601(datetime);
         java.util.List<Object> newTickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object tickersObj = Helpers.GetValue(events, i);
-            Object tickers = this.safeList(tickersObj, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> tickers = (java.util.List<Object>) this.safeList(tickersObj, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(tickers)); j++)
             {
                 Object ticker = Helpers.GetValue(tickers, j);
@@ -734,7 +734,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             Object trades = (this.subscribeMultiple(name, false, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
-                Object first = this.safeDict(trades, 0);
+                java.util.Map<String, Object> first = (java.util.Map<String, Object>) this.safeDict(trades, 0);
                 Object tradeSymbol = this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
@@ -938,14 +938,14 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         //        ]
         //    }
         //
-        Object events = this.safeList(message, "events");
+        java.util.List<Object> events = (java.util.List<Object>) this.safeList(message, "events");
         if (Helpers.isTrue(Helpers.isEqual(events, null)))
         {
             return;
         }
         Object eventVar = this.safeValue(events, 0);
-        Object trades = this.safeList(eventVar, "trades");
-        Object trade = this.safeDict(trades, 0);
+        java.util.List<Object> trades = (java.util.List<Object>) this.safeList(eventVar, "trades");
+        java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.safeDict(trades, 0);
         Object marketId = this.safeString(trade, "product_id");
         String symbol = (String) this.safeSymbol(marketId);
         String messageHash = (String) Helpers.add("market_trades::", symbol);
@@ -959,13 +959,13 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object currentEvent = Helpers.GetValue(events, i);
-            Object currentTrades = this.safeList(currentEvent, "trades");
+            java.util.List<Object> currentTrades = (java.util.List<Object>) this.safeList(currentEvent, "trades");
             if (Helpers.isTrue(Helpers.isEqual(currentTrades, null)))
             {
                 continue;
             }
             // coinbase sends trades newest-first, append them in reverse so the cache stays sorted by ascending timestamp
-            Object tradesLength = Helpers.getArrayLength(currentTrades);
+            Integer tradesLength = Helpers.getArrayLength(currentTrades);
             for (var j = 0; Helpers.isLessThan(j, tradesLength); j++)
             {
                 Object item = Helpers.GetValue(currentTrades, Helpers.subtract(Helpers.subtract(tradesLength, j), 1));
@@ -1006,7 +1006,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         //        ]
         //    }
         //
-        Object events = this.safeList(message, "events");
+        java.util.List<Object> events = (java.util.List<Object>) this.safeList(message, "events");
         if (Helpers.isTrue(Helpers.isEqual(events, null)))
         {
             return;
@@ -1020,7 +1020,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
-            Object responseOrders = this.safeList(eventVar, "orders");
+            java.util.List<Object> responseOrders = (java.util.List<Object>) this.safeList(eventVar, "orders");
             if (Helpers.isTrue(Helpers.isEqual(responseOrders, null)))
             {
                 continue;
@@ -1150,7 +1150,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         //        ]
         //    }
         //
-        Object events = this.safeList(message, "events");
+        java.util.List<Object> events = (java.util.List<Object>) this.safeList(message, "events");
         if (Helpers.isTrue(Helpers.isEqual(events, null)))
         {
             return;
@@ -1159,7 +1159,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
-            Object updates = this.safeList(eventVar, "updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> updates = (java.util.List<Object>) this.safeList(eventVar, "updates", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object marketId = this.safeString(eventVar, "product_id");
             // sometimes we subscribe to BTC/USDC and coinbase returns BTC/USD, as they are aliases
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
@@ -1217,16 +1217,16 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         //        events: [ { subscriptions: {} } ]
         //      }
         //
-        Object events = this.safeList(message, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object firstEvent = this.safeDict(events, 0, new java.util.HashMap<String, Object>() {{}});
+        java.util.List<Object> events = (java.util.List<Object>) this.safeList(message, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+        java.util.Map<String, Object> firstEvent = (java.util.Map<String, Object>) this.safeDict(events, 0, new java.util.HashMap<String, Object>() {{}});
         Boolean isUnsub = (Helpers.inOp(firstEvent, "subscriptions"));
         Object subKeys = Helpers.objectKeys(Helpers.GetValue(firstEvent, "subscriptions"));
-        Object subKeysLength = Helpers.getArrayLength(subKeys);
+        Integer subKeysLength = Helpers.getArrayLength(subKeys);
         if (Helpers.isTrue(Helpers.isTrue(isUnsub) && Helpers.isTrue(Helpers.isEqual(subKeysLength, 0))))
         {
-            Object unSubObject = this.safeDict(this.options, "unSubscription", new java.util.HashMap<String, Object>() {{}});
-            Object messageHashes = this.safeList(unSubObject, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object subMessageHashes = this.safeList(unSubObject, "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.Map<String, Object> unSubObject = (java.util.Map<String, Object>) this.safeDict(this.options, "unSubscription", new java.util.HashMap<String, Object>() {{}});
+            java.util.List<Object> messageHashes = (java.util.List<Object>) this.safeList(unSubObject, "messageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
+            java.util.List<Object> subMessageHashes = (java.util.List<Object>) this.safeList(unSubObject, "subMessageHashes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
             {
                 Object messageHash = Helpers.GetValue(messageHashes, i);
