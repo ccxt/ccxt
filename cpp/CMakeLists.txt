@@ -49,6 +49,10 @@ target_sources (ccxt PRIVATE ${EXCHANGE_TUS} ${PRO_TUS} ${PREDICTION_TUS})
 # (nlohmann + the big-int quoting pass) and pay ~12x at -O0: parsing a 22MB
 # markets payload drops from ~17s to ~2.5s with this one TU at -O2.
 set_source_files_properties (ccxt/base/ExchangeBase.cpp PROPERTIES COMPILE_OPTIONS "-O2")
+# helpers.cpp holds the per-key/per-value free helpers (getValue/setValue/
+# isEqual/safeString/...) that setMarkets-style generated code calls millions
+# of times through std::any; same one-TU -O2 treatment.
+set_source_files_properties (ccxt/base/helpers.cpp PROPERTIES COMPILE_OPTIONS "-O2")
 target_include_directories (ccxt PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 target_link_libraries (ccxt PUBLIC Threads::Threads CURL::libcurl OpenSSL::SSL OpenSSL::Crypto)
 
