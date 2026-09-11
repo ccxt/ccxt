@@ -291,7 +291,7 @@ public class MudrexCore extends MudrexApi
                         put( "headers", finalRequestHeaders );
                     }};
                 }
-                Object bodyStr = this.json(query);
+                String bodyStr = this.json(query);
                 final Object finalUrl_2 = url;
                 final Object finalMethodUpper_2 = methodUpper;
                 final Object finalRequestHeaders_2 = requestHeaders;

@@ -2350,7 +2350,7 @@ final Object finalMarketSymbol = marketSymbol;
         Object querystring = this.urlencodeNested(extendedParams);
         querystring = Helpers.replaceAll((String)querystring, (String)"%5B", (String)"[");
         querystring = Helpers.replaceAll((String)querystring, (String)"%5D", (String)"]");
-        Object signature = this.hmac(this.encode(querystring), this.encode(this.secret), sha256());
+        String signature = (String) this.hmac(this.encode(querystring), this.encode(this.secret), sha256());
         querystring = Helpers.add(Helpers.add(querystring, "&signature="), signature);
         headers = new java.util.HashMap<String, Object>() {{
             put( "X-MBX-APIKEY", BinanceCore.this.apiKey );

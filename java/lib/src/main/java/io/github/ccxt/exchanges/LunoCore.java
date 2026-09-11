@@ -2073,7 +2073,7 @@ public class LunoCore extends LunoApi
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(api, "private"))) || Helpers.isTrue((Helpers.isEqual(api, "exchangePrivate")))))
         {
             this.checkRequiredCredentials();
-            Object auth = this.stringToBase64(Helpers.add(Helpers.add(this.apiKey, ":"), this.secret));
+            String auth = this.stringToBase64(Helpers.add(Helpers.add(this.apiKey, ":"), this.secret));
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Authorization", Helpers.add("Basic ", auth) );
             }};

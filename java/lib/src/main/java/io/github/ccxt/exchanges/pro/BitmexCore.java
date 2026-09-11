@@ -792,7 +792,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 this.checkRequiredCredentials();
                 Object timestamp = this.milliseconds();
                 Object payload = Helpers.add(Helpers.add("GET", "/realtime"), String.valueOf(timestamp));
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256());
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "op", "authKeyExpires" );
                     put( "args", new java.util.ArrayList<Object>(java.util.Arrays.asList(BitmexCore.this.apiKey, timestamp, signature)) );

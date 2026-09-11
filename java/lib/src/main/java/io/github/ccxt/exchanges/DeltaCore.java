@@ -4713,7 +4713,7 @@ public class DeltaCore extends DeltaApi
                 auth = Helpers.add(auth, body);
                 Helpers.addElementToObject(headers, "Content-Type", "application/json");
             }
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Helpers.addElementToObject(headers, "signature", signature);
         }
         final Object finalUrl = url;

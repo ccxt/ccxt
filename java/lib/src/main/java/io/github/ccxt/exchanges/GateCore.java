@@ -6092,8 +6092,8 @@ final Object finalPointFee = pointFee;
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             Object costRequest = Precise.stringMul(amountString, priceString);
                             quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
@@ -9104,7 +9104,7 @@ final Object finalI = i;
             Object payloadArray = new java.util.ArrayList<Object>(java.util.Arrays.asList(((String)method).toUpperCase(), signaturePath, rawQueryString, bodySignature, timestampString));
             // eslint-disable-next-line quotes
             Object payload = String.join((String)"\n", (java.util.List<String>)payloadArray);
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512());
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha512());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "KEY", GateCore.this.apiKey );
                 put( "Timestamp", timestampString );

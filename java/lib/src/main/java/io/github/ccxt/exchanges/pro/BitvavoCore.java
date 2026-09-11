@@ -2235,7 +2235,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 Object timestamp = this.milliseconds();
                 Object stringTimestamp = String.valueOf(timestamp);
                 Object auth = Helpers.add(Helpers.add(Helpers.add(stringTimestamp, "GET/"), this.version), "/websocket");
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 Object action = "authenticate";
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "action", action );

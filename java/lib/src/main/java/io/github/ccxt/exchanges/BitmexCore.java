@@ -859,7 +859,7 @@ public class BitmexCore extends BitmexApi
     {
         Object currency = this.currency(code);
         String precision = this.safeString(currency, "precision");
-        Object amountString = this.numberToString(amount);
+        String amountString = this.numberToString(amount);
         Object finalAmount = Precise.stringDiv(amountString, precision);
         return this.parseNumber(finalAmount);
     }
@@ -2408,13 +2408,13 @@ public class BitmexCore extends BitmexApi
         Long timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         String priceString = this.safeString2(trade, "avgPx", "price");
         Object amountString = this.convertFromRawQuantity(symbol, this.safeString2(trade, "size", "lastQty"));
-        Object execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
+        String execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
         String id = this.safeString(trade, "trdMatchID");
         String order = this.safeString(trade, "orderID");
         String side = (String)this.safeStringLower(trade, "side");
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         Object fee = null;
-        Object feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
+        String feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             String currencyId = this.safeString2(trade, "settlCurrency", "currency");
@@ -2546,7 +2546,7 @@ public class BitmexCore extends BitmexApi
         }
         String average = this.safeString(order, "avgPx");
         Object filled = null;
-        Object cumQty = this.numberToString(this.convertFromRawQuantity(symbol, this.safeString(order, "cumQty")));
+        String cumQty = this.numberToString(this.convertFromRawQuantity(symbol, this.safeString(order, "cumQty")));
         if (Helpers.isTrue(isInverse))
         {
             filled = Precise.stringDiv(cumQty, average);
@@ -2714,7 +2714,7 @@ public class BitmexCore extends BitmexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object orderType = this.capitalize(type);
+            String orderType = this.capitalize(type);
             Object capitalizeOrderType = orderType;
             Object reduceOnly = this.safeValue(parameters, "reduceOnly");
             if (Helpers.isTrue(!Helpers.isEqual(reduceOnly, null)))

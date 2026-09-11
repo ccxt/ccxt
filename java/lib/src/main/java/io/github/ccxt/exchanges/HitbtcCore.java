@@ -4132,7 +4132,7 @@ public class HitbtcCore extends HitbtcApi
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " modifyMarginHelper() requires a leverage parameter for swap markets")) ;
                 }
             }
-            Object stringAmount = this.numberToString(amount);
+            String stringAmount = this.numberToString(amount);
             if (Helpers.isTrue(!Helpers.isEqual(stringAmount, "0")))
             {
                 amount = this.amountToPrecision(symbol, stringAmount);
@@ -4670,7 +4670,7 @@ public class HitbtcCore extends HitbtcApi
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object query = this.omit(parameters, this.extractParams(path));
-        Object implodedPath = this.implodeParams(path, parameters);
+        String implodedPath = (String) this.implodeParams(path, parameters);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), implodedPath);
         Object getRequest = null;
         Object keys = Helpers.objectKeys(query);
@@ -4709,9 +4709,9 @@ public class HitbtcCore extends HitbtcApi
             }
             ((java.util.List<Object>)payload).add(timestamp);
             Object payloadString = String.join((String)"", (java.util.List<String>)payload);
-            Object signature = this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
+            String signature = (String) this.hmac(this.encode(payloadString), this.encode(this.secret), sha256(), "hex");
             Object secondPayload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.apiKey, ":"), signature), ":"), timestamp);
-            Object encoded = this.stringToBase64(secondPayload);
+            String encoded = this.stringToBase64(secondPayload);
             Helpers.addElementToObject(headers, "Authorization", Helpers.add("HS256 ", encoded));
         }
         final Object finalUrl = url;

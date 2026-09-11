@@ -2327,8 +2327,8 @@ public class BitrueCore extends BitrueApi
                         throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument with swap market buy orders to calculate total order cost (amount to spend), where cost = amount * price. Supply a price argument to createOrder() call if you want the cost to be calculated for you from price and amount, or, alternatively, add .options[\"createMarketBuyOrderRequiresPrice\"] = false to supply the cost in the amount argument (the exchange-specific behaviour)")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         Object quoteAmount = Precise.stringMul(amountString, priceString);
                         Object requestAmount = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                         Helpers.addElementToObject(request, "amount", this.costToPrecision(symbol, requestAmount));
@@ -3746,11 +3746,11 @@ public class BitrueCore extends BitrueApi
             Object recvWindow = this.safeInteger(this.options, "recvWindow", 5000);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "spot")) || Helpers.isTrue(Helpers.isEqual(type, "open"))))
             {
-                Object query = this.urlencode(this.extend(new java.util.HashMap<String, Object>() {{
+                String query = this.urlencode(this.extend(new java.util.HashMap<String, Object>() {{
                     put( "timestamp", BitrueCore.this.nonce() );
                     put( "recvWindow", recvWindow );
                 }}, parameters));
-                Object signature = this.hmac(this.encode(query), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(query), this.encode(this.secret), sha256());
                 query = Helpers.add(query, Helpers.add(Helpers.add("&", "signature="), signature));
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "X-MBX-APIKEY", BitrueCore.this.apiKey );
@@ -3784,7 +3784,7 @@ public class BitrueCore extends BitrueApi
                     {
                         signMessage = Helpers.add(signMessage, Helpers.add("?", this.urlencode(parameters)));
                     }
-                    Object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
+                    String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
                     final Object finalTimestamp = timestamp;
                     headers = new java.util.HashMap<String, Object>() {{
                         put( "X-CH-APIKEY", BitrueCore.this.apiKey );
@@ -3799,7 +3799,7 @@ public class BitrueCore extends BitrueApi
                     }}, parameters);
                     body = this.json(query);
                     signMessage = Helpers.add(signMessage, body);
-                    Object signature = this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
+                    String signature = (String) this.hmac(this.encode(signMessage), this.encode(this.secret), sha256());
                     final Object finalTimestamp_2 = timestamp;
                     headers = new java.util.HashMap<String, Object>() {{
                         put( "Content-Type", "application/json" );

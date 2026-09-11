@@ -3454,7 +3454,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 signatureParams = this.keysort(signatureParams);
                 Object auth = this.urlencode(signatureParams, true); // true required in go
                 Object payload = String.join((String)"\n", (java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>(java.util.Arrays.asList("GET", hostname, relativePath, auth))); // eslint-disable-line quotes
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 Object request = null;
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
                 {

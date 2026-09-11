@@ -2567,7 +2567,7 @@ public class BybitCore extends BybitApi
         // and we shouldn't crash in those cases
         Object market = this.market(symbol);
         Object emptyPrecisionAmount = (Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), null));
-        Object amountString = this.numberToString(amount);
+        String amountString = this.numberToString(amount);
         if (Helpers.isTrue(!Helpers.isTrue(emptyPrecisionAmount) && Helpers.isTrue((!Helpers.isEqual(amountString, "0")))))
         {
             return this.amountToPrecision(symbol, amount);
@@ -9079,7 +9079,7 @@ public class BybitCore extends BybitApi
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             // engage in leverage setting
             // we reuse the code here instead of having two methods
-            Object leverageString = this.numberToString(leverage);
+            String leverageString = this.numberToString(leverage);
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "buyLeverage", leverageString );
@@ -12414,7 +12414,7 @@ final Object finalMarket = market;
                     body = "{}";
                 }
                 Object payload = Helpers.add(Helpers.add(timestamp, this.apiKey), body);
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 final Object finalTimestamp = timestamp;
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "Content-Type", "application/json" );
@@ -12436,7 +12436,7 @@ final Object finalMarket = market;
                     Helpers.addElementToObject(headers, "X-BAPI-SIGN-TYPE", "2");
                 }
                 Object query = this.extend(new java.util.HashMap<String, Object>() {{}}, parameters);
-                Object queryEncoded = this.rawencode(query);
+                String queryEncoded = this.rawencode(query);
                 Object auth_base = Helpers.add(Helpers.add(String.valueOf(timestamp), this.apiKey), String.valueOf(Helpers.GetValue(this.options, "recvWindow")));
                 Object authFull = null;
                 if (Helpers.isTrue(Helpers.isEqual(method, "POST")))
@@ -12466,7 +12466,7 @@ final Object finalMarket = market;
                     put( "timestamp", finalTimestamp_3 );
                 }});
                 Object sortedQuery = this.keysort(query);
-                Object auth = this.rawencode(sortedQuery, true);
+                String auth = this.rawencode(sortedQuery, true);
                 Object signature = null;
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(this.secret, "PRIVATE KEY"), Helpers.opNeg(1))))
                 {

@@ -1377,8 +1377,8 @@ public class BtcmarketsCore extends BtcmarketsApi
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "quote"), "AUD")))
         {
             currency = Helpers.GetValue(market, "quote");
-            Object amountString = this.numberToString(amount);
-            Object priceString = this.numberToString(price);
+            String amountString = this.numberToString(amount);
+            String priceString = this.numberToString(price);
             Object otherUnitsAmount = Precise.stringMul(amountString, priceString);
             cost = this.costToPrecision(symbol, otherUnitsAmount);
         } else
@@ -1787,7 +1787,7 @@ public class BtcmarketsCore extends BtcmarketsApi
                 body = this.json(query);
                 auth = Helpers.add(auth, body);
             }
-            Object signature = this.hmac(this.encode(auth), secret, sha512(), "base64");
+            String signature = (String) this.hmac(this.encode(auth), secret, sha512(), "base64");
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Accept", "application/json" );
                 put( "Accept-Charset", "UTF-8" );

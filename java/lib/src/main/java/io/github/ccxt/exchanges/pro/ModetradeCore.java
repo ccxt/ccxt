@@ -748,7 +748,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                     Object parts = Helpers.split(secret, "ed25519:");
                     secret = Helpers.GetValue(parts, 1);
                 }
-                Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
+                String signature = (String) eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "event", eventVar );
                     put( "params", new java.util.HashMap<String, Object>() {{

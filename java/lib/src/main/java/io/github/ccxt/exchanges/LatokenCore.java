@@ -562,7 +562,7 @@ public class LatokenCore extends LatokenApi
                         continue;
                     }
                     Object lowercaseQuote = ((String)quote).toLowerCase();
-                    Object capitalizedQuote = this.capitalize(lowercaseQuote);
+                    String capitalizedQuote = this.capitalize(lowercaseQuote);
                     String status = this.safeString(market, "status");
     final Object finalBase = base;
                     final Object finalQuote = quote;
@@ -2245,7 +2245,7 @@ public class LatokenCore extends LatokenApi
         Object request = Helpers.add(Helpers.add(Helpers.add("/", this.version), "/"), this.implodeParams(path, parameters));
         Object requestString = request;
         Object query = this.omit(parameters, this.extractParams(path));
-        Object urlencodedQuery = this.urlencode(query);
+        String urlencodedQuery = this.urlencode(query);
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
@@ -2257,7 +2257,7 @@ public class LatokenCore extends LatokenApi
         {
             this.checkRequiredCredentials();
             Object auth = Helpers.add(Helpers.add(method, request), urlencodedQuery);
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha512());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "X-LA-APIKEY", LatokenCore.this.apiKey );
                 put( "X-LA-SIGNATURE", signature );

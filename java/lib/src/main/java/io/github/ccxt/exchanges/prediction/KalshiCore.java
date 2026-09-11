@@ -3337,7 +3337,7 @@ final Object finalOi = oi;
         Object access = ((Helpers.isTrue((api instanceof String)))) ? "public" : Helpers.GetValue(api, 1);
         Object baseUrls = Helpers.GetValue(this.urls, "api");
         Object baseUrl = this.safeString(baseUrls, apiGroup, Helpers.GetValue(baseUrls, "kalshi"));
-        Object implodedPath = this.implodeParams(path, parameters);
+        String implodedPath = (String) this.implodeParams(path, parameters);
         Object url = Helpers.add(Helpers.add(baseUrl, "/"), implodedPath);
         Object query = this.omit(parameters, this.extractParams(path));
         Object querystring = this.urlencode(query);
@@ -3364,7 +3364,7 @@ final Object finalOi = oi;
             // RSA-PSS SHA-256 signature with the private key PEM
             Object keyParts = Helpers.split(this.privateKey, "\\n");
             Object cleanPrivateKey = String.join((String)"\n", (java.util.List<String>)keyParts);
-            Object signature = rsa(payload, cleanPrivateKey, sha256(), "pss");
+            String signature = rsa(payload, cleanPrivateKey, sha256(), "pss");
             final Object finalTimestamp = timestamp;
             headers = this.extend(headers, new java.util.HashMap<String, Object>() {{
                 put( "KALSHI-ACCESS-KEY", KalshiCore.this.apiKey );

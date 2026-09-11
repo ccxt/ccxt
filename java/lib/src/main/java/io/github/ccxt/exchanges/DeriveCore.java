@@ -1644,7 +1644,7 @@ public class DeriveCore extends DeriveApi
         Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
-        Object v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
+        String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
         return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), v);
     }
 
@@ -1712,7 +1712,7 @@ public class DeriveCore extends DeriveApi
             Object ACTION_TYPEHASH = this.base16ToBinary("4d7a9f27c403ff9c0f19bce61d76d82f9aa29f8d6d4b0c5474607d9770d1af17");
             Object sandboxMode = this.safeBool(this.options, "sandboxMode", false);
             Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
-            Object priceString = this.numberToString(price);
+            String priceString = this.numberToString(price);
             Object maxFee = null;
             var maxFeeparametersVariable = this.handleOptionAndParams(parameters, "createOrder", "max_fee");
             maxFee = ((java.util.List<Object>) maxFeeparametersVariable).get(0);
@@ -1721,8 +1721,8 @@ public class DeriveCore extends DeriveApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a max_fee argument in params")) ;
             }
-            Object maxFeeString = this.numberToString(maxFee);
-            Object amountString = this.numberToString(amount);
+            String maxFeeString = this.numberToString(maxFee);
+            String amountString = this.numberToString(amount);
             Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy))), keccak(), "binary");
             Object deriveWalletAddress = null;
             var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("createOrder", parameters);
@@ -1916,7 +1916,7 @@ public class DeriveCore extends DeriveApi
             Object TRADE_MODULE_ADDRESS = ((Helpers.isTrue((Helpers.isEqual(sandboxMode, true))))) ? "0x87F2863866D85E3192a35A73b388BD625D83f2be" : "0xB8D20c2B7a1Ad2EE33Bc50eF10876eD3035b5e7b";
             Object priceString = ((String)this.numberToString(price));
             String maxFeeString = this.safeString(parameters, "max_fee", "0");
-            Object amountString = this.numberToString(amount);
+            String amountString = this.numberToString(amount);
             Object tradeModuleDataHash = this.hash(this.ethAbiEncode(new java.util.ArrayList<Object>(java.util.Arrays.asList("address", "uint", "int", "int", "uint", "uint", "bool")), new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_address"), this.parseToNumeric(Helpers.GetValue(Helpers.GetValue(market, "info"), "base_asset_sub_id")), this.convertToBigInt(((String)this.parseUnits(priceString))), this.convertToBigInt(((String)this.parseUnits(((String)this.amountToPrecision(symbol, amountString))))), this.convertToBigInt(((String)this.parseUnits(maxFeeString))), subaccountId, orderSideIsBuy))), keccak(), "binary");
             Object deriveWalletAddress = null;
             var deriveWalletAddressparametersVariable = this.handleDeriveWalletAddress("editOrder", parameters);

@@ -895,8 +895,8 @@ public class CryptomusCore extends CryptomusApi
                 Helpers.addElementToObject(request, "client_order_id", clientOrderId);
             }
             Object sideBuy = Helpers.isEqual(side, "buy");
-            Object amountToString = this.numberToString(amount);
-            Object priceToString = this.numberToString(price);
+            String amountToString = this.numberToString(amount);
+            String priceToString = this.numberToString(price);
             Object cost = null;
             var costparametersVariable = this.handleParamString(parameters, "cost");
             cost = ((java.util.List<Object>) costparametersVariable).get(0);
@@ -1403,7 +1403,7 @@ public class CryptomusCore extends CryptomusApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object endpoint = this.implodeParams(path, parameters);
+        String endpoint = (String) this.implodeParams(path, parameters);
         parameters = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), endpoint);
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
@@ -1420,7 +1420,7 @@ public class CryptomusCore extends CryptomusApi
                 Helpers.addElementToObject(headers, "Content-Type", "application/json");
             } else
             {
-                Object query = this.urlencode(parameters);
+                String query = this.urlencode(parameters);
                 if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
                 {
                     url = Helpers.add(url, Helpers.add("?", query));
@@ -1432,7 +1432,7 @@ public class CryptomusCore extends CryptomusApi
             Helpers.addElementToObject(headers, "sign", signature);
         } else
         {
-            Object query = this.urlencode(parameters);
+            String query = this.urlencode(parameters);
             if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));

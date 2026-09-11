@@ -2848,7 +2848,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object time = this.seconds();
             // unfortunately, PHP demands double quotes for the escaped newline symbol
             Object signatureString = String.join((String)"\n", (java.util.List<String>)(java.util.List)new java.util.ArrayList<Object>(java.util.Arrays.asList(eventVar, channel, this.json(reqParams), String.valueOf(time)))); // eslint-disable-line quotes
-            Object signature = this.hmac(this.encode(signatureString), this.encode(this.secret), sha512(), "hex");
+            String signature = (String) this.hmac(this.encode(signatureString), this.encode(this.secret), sha512(), "hex");
             final Object finalRequestId = requestId;
             Object payload = new java.util.HashMap<String, Object>() {{
                 put( "req_id", finalRequestId );
@@ -2904,7 +2904,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object time = this.seconds();
             Object eventVar = "subscribe";
             Object signaturePayload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("channel=", channel), "&"), "event="), eventVar), "&"), "time="), String.valueOf(time));
-            Object signature = this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512(), "hex");
+            String signature = (String) this.hmac(this.encode(signaturePayload), this.encode(this.secret), sha512(), "hex");
             Object auth = new java.util.HashMap<String, Object>() {{
                 put( "method", "api_key" );
                 put( "KEY", GateCore.this.apiKey );

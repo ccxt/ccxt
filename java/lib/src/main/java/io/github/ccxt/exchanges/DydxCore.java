@@ -1782,7 +1782,7 @@ public class DydxCore extends DydxApi
     {
         String nameSp = this.safeString(this.options, "namespace", "0f9da948-a6fb-4c45-9edc-4685c3f3317d");
         Object prefixAddress = Helpers.add(Helpers.add(address, "-"), String.valueOf(subAccountNumber));
-        Object prefix = this.uuid5(nameSp, prefixAddress);
+        String prefix = this.uuid5(nameSp, prefixAddress);
         Object orderInfo = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(prefix, "-"), this.numberToString(clientOrderId)), "-"), this.numberToString(clobPairId)), "-"), this.numberToString(orderFlags));
         return this.uuid5(nameSp, orderInfo);
     }
@@ -3083,7 +3083,7 @@ public class DydxCore extends DydxApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object pathWithParams = this.implodeParams(path, parameters);
+        String pathWithParams = (String) this.implodeParams(path, parameters);
         Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), section);
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);

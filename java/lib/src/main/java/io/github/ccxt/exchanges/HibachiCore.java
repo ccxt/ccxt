@@ -1000,7 +1000,7 @@ public class HibachiCore extends HibachiApi
         // - Price: Internal = External * (2^32) * (10^(settlementDecimals-underlyingDecimals))
         // - FeeRate: Internal = External * (10^8)
         Object amountStr = this.amountToPrecision(this.safeString(market, "symbol"), amount);
-        Object feeRateStr = this.numberToString(feeRate);
+        String feeRateStr = this.numberToString(feeRate);
         Object info = this.safeDict(market, "info");
         Object underlying = Helpers.add("1e", this.safeString(info, "underlyingDecimals"));
         Object settlement = Helpers.add("1e", this.safeString(info, "settlementDecimals"));
@@ -1010,19 +1010,19 @@ public class HibachiCore extends HibachiApi
         Object quantityInternal = Precise.stringDiv(Precise.stringMul(amountStr, underlying), one, 0);
         Object feeRateInternal = Precise.stringDiv(Precise.stringMul(feeRateStr, feeRateFactor), one, 0);
         // Encoding
-        Object nonce16 = this.intToBase16(nonce);
+        String nonce16 = this.intToBase16(nonce);
         Object noncePadded = Helpers.padStart((String)nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedNonce = this.base16ToBinary(noncePadded);
-        Object numericId = this.intToBase16(this.safeInteger(market, "numericId"));
+        String numericId = this.intToBase16(this.safeInteger(market, "numericId"));
         Object numericIdPadded = Helpers.padStart((String)numericId, ((Number)8).intValue(), ((String)"0").charAt(0));
         Object encodedMarketId = this.base16ToBinary(numericIdPadded);
-        Object quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
+        String quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
         Object quantityPadded = Helpers.padStart((String)quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedQuantity = this.base16ToBinary(quantityPadded);
-        Object sideInternal16 = this.intToBase16(sideInternal);
+        String sideInternal16 = this.intToBase16(sideInternal);
         Object sidePadded = Helpers.padStart((String)sideInternal16, ((Number)8).intValue(), ((String)"0").charAt(0));
         Object encodedSide = this.base16ToBinary(sidePadded);
-        Object feeRateInternal16 = this.intToBase16(this.parseToInt(feeRateInternal));
+        String feeRateInternal16 = this.intToBase16(this.parseToInt(feeRateInternal));
         Object feeRatePadded = Helpers.padStart((String)feeRateInternal16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedFeeRate = this.base16ToBinary(feeRatePadded);
         Object encodedPrice = this.binaryConcat();
@@ -1030,7 +1030,7 @@ public class HibachiCore extends HibachiApi
         {
             Object priceStr = this.priceToPrecision(this.safeString(market, "symbol"), price);
             Object priceInternal = Precise.stringDiv(Precise.stringDiv(Precise.stringMul(Precise.stringMul(priceStr, priceFactor), settlement), underlying), one, 0);
-            Object price16 = this.intToBase16(this.parseToInt(priceInternal));
+            String price16 = this.intToBase16(this.parseToInt(priceInternal));
             Object pricePadded = Helpers.padStart((String)price16, ((Number)16).intValue(), ((String)"0").charAt(0));
             // @ts-expect-error
             encodedPrice = this.base16ToBinary(pricePadded);
@@ -1342,7 +1342,7 @@ public class HibachiCore extends HibachiApi
     public Object cancelOrderRequest(Object id)
     {
         Object bigid = this.convertToBigInt(id);
-        Object idbase16 = this.intToBase16(bigid);
+        String idbase16 = this.intToBase16(bigid);
         Object idPadded = Helpers.padStart((String)idbase16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object message = this.base16ToBinary(idPadded);
         Object signature = this.signMessage(message, this.privateKey);
@@ -1454,7 +1454,7 @@ public class HibachiCore extends HibachiApi
                 (this.loadMarkets()).join();
             }
             Object nonce = this.nonce();
-            Object nonce16 = this.intToBase16(nonce);
+            String nonce16 = this.intToBase16(nonce);
             Object noncePadded = Helpers.padStart((String)nonce16, ((Number)16).intValue(), ((String)"0").charAt(0));
             Object message = this.base16ToBinary(noncePadded);
             Object signature = this.signMessage(message, this.privateKey);
@@ -1488,19 +1488,19 @@ public class HibachiCore extends HibachiApi
         // We only have USDT as our currency as this time
         Object USDTAssetId = 1;
         Object USDTFactor = "1000000";
-        Object amountStr = this.numberToString(amount);
-        Object maxFeesStr = this.numberToString(maxFees);
+        String amountStr = this.numberToString(amount);
+        String maxFeesStr = this.numberToString(maxFees);
         Object one = "1";
         Object quantityInternal = Precise.stringDiv(Precise.stringMul(amountStr, USDTFactor), one, 0);
         Object maxFeesInternal = Precise.stringDiv(Precise.stringMul(maxFeesStr, USDTFactor), one, 0);
         // Encoding
-        Object usdtAsset16 = this.intToBase16(USDTAssetId);
+        String usdtAsset16 = this.intToBase16(USDTAssetId);
         Object usdtAssetPadded = Helpers.padStart((String)usdtAsset16, ((Number)8).intValue(), ((String)"0").charAt(0));
         Object encodedAssetId = this.base16ToBinary(usdtAssetPadded);
-        Object quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
+        String quantity16 = this.intToBase16(this.parseToInt(quantityInternal));
         Object quantityPadded = Helpers.padStart((String)quantity16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedQuantity = this.base16ToBinary(quantityPadded);
-        Object maxFees16 = this.intToBase16(this.parseToInt(maxFeesInternal));
+        String maxFees16 = this.intToBase16(this.parseToInt(maxFeesInternal));
         Object maxFeesPadded = Helpers.padStart((String)maxFees16, ((Number)16).intValue(), ((String)"0").charAt(0));
         Object encodedMaxFees = this.base16ToBinary(maxFeesPadded);
         Object encodedAddress = this.base16ToBinary(address);
@@ -1606,7 +1606,7 @@ public class HibachiCore extends HibachiApi
             Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
             Object r = Helpers.GetValue(signature, "r");
             Object s = Helpers.GetValue(signature, "s");
-            Object v = this.intToBase16(Helpers.GetValue(signature, "v"));
+            String v = this.intToBase16(Helpers.GetValue(signature, "v"));
             return Helpers.add(Helpers.add(Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0)), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart((String)v, ((Number)2).intValue(), ((String)"0").charAt(0)));
         }
     }
@@ -2179,7 +2179,7 @@ public class HibachiCore extends HibachiApi
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
             Object request = this.omit(parameters, this.extractParams(path));
-            Object query = this.urlencode(request);
+            String query = this.urlencode(request);
             if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
             {
                 url = Helpers.add(url, Helpers.add("?", query));

@@ -2432,7 +2432,7 @@ public class ZebpayCore extends ZebpayApi
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(method, "GET")) || Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(method, "DELETE")) && Helpers.isTrue(isSpot)))))
             {
                 // For GET/DELETE: Append params to URL and sign the query string
-                Object queryString = this.urlencode(parameters);
+                String queryString = this.urlencode(parameters);
                 signature = this.hmac(this.encode(queryString), this.encode(this.secret), sha256(), "hex");
                 url = Helpers.add(url, Helpers.add("?", queryString));
             } else

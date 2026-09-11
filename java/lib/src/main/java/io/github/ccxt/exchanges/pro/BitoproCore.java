@@ -483,7 +483,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             put( "identity", BitoproCore.this.login );
         }});
         Object payload = this.stringToBase64(rawData);
-        Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384());
+        String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384());
         Object defaultOptions = new java.util.HashMap<String, Object>() {{
             put( "ws", new java.util.HashMap<String, Object>() {{
                 put( "options", new java.util.HashMap<String, Object>() {{

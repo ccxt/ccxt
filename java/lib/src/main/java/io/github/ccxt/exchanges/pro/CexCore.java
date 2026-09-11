@@ -1849,7 +1849,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
                 this.checkRequiredCredentials();
                 Object nonce = String.valueOf(this.seconds());
                 Object auth = Helpers.add(nonce, this.apiKey);
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalNonce = nonce;
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "e", "auth" );

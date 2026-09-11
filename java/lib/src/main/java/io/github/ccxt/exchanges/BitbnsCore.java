@@ -1577,7 +1577,7 @@ public class BitbnsCore extends BitbnsApi
                 put( "X-BITBNS-APIKEY", BitbnsCore.this.apiKey );
             }};
         }
-        Object baseUrl = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api));
+        String baseUrl = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api));
         Object url = Helpers.add(Helpers.add(baseUrl, "/"), this.implodeParams(path, parameters));
         Object query = this.omit(parameters, this.extractParams(path));
         Object nonce = String.valueOf(this.nonce());
@@ -1601,8 +1601,8 @@ public class BitbnsCore extends BitbnsApi
                 put( "timeStamp_nonce", nonce );
                 put( "body", finalBody );
             }};
-            Object payload = this.stringToBase64(this.json(auth));
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha512());
+            String payload = this.stringToBase64(this.json(auth));
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha512());
             headers = ((Helpers.isTrue((Helpers.isEqual(headers, null))))) ? new java.util.HashMap<String, Object>() {{}} : headers;
             Helpers.addElementToObject(headers, "X-BITBNS-PAYLOAD", payload);
             Helpers.addElementToObject(headers, "X-BITBNS-SIGNATURE", signature);

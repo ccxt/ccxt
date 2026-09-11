@@ -1019,7 +1019,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
                     put( "nonce", BithumbCore.this.uuid() );
                     put( "timestamp", BithumbCore.this.milliseconds() );
                 }};
-                Object jwtToken = jwt(payload, this.encode(this.secret), sha256());
+                String jwtToken = jwt(payload, this.encode(this.secret), sha256());
                 Helpers.addElementToObject(wsOptions, "token", jwtToken);
                 Helpers.addElementToObject(wsOptions, "options", new java.util.HashMap<String, Object>() {{
         put( "headers", new java.util.HashMap<String, Object>() {{

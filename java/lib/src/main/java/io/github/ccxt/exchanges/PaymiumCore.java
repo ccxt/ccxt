@@ -829,7 +829,7 @@ public class PaymiumCore extends PaymiumApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
                 {
-                    Object queryString = this.urlencode(query);
+                    String queryString = this.urlencode(query);
                     auth = Helpers.add(auth, queryString);
                     url = Helpers.add(url, Helpers.add("?", queryString));
                 }

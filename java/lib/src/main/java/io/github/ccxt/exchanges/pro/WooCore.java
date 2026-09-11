@@ -1138,7 +1138,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             {
                 Object ts = String.valueOf(this.nonce());
                 Object auth = Helpers.add("|", ts);
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "event", eventVar );
                     put( "params", new java.util.HashMap<String, Object>() {{

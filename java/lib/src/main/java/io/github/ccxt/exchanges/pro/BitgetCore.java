@@ -3022,7 +3022,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             {
                 Object timestamp = String.valueOf(this.seconds());
                 Object auth = Helpers.add(Helpers.add(timestamp, "GET"), "/user/verify");
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
                 Object operation = "login";
                 final Object finalTimestamp = timestamp;
                 Object request = new java.util.HashMap<String, Object>() {{

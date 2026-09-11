@@ -2988,7 +2988,7 @@ public class CoinbaseinternationalCore extends CoinbaseinternationalApi
                 }
             }
             Object auth = Helpers.add(Helpers.add(Helpers.add(nonce, method), savedPath), payload);
-            Object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalNonce = nonce;
             headers = new java.util.HashMap<String, Object>() {{
                 put( "CB-ACCESS-TIMESTAMP", finalNonce );

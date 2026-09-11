@@ -1595,7 +1595,7 @@ public class CoinoneCore extends CoinoneApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object request = this.implodeParams(path, parameters);
+        String request = (String) this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "rest"), "/");
         if (Helpers.isTrue(Helpers.isEqual(api, "v2Public")))
@@ -1630,14 +1630,14 @@ public class CoinoneCore extends CoinoneApi
                 nonce = String.valueOf(this.nonce());
             }
             final Object finalNonce = nonce;
-            Object json = this.json(this.extend(new java.util.HashMap<String, Object>() {{
+            String json = this.json(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "access_token", CoinoneCore.this.apiKey );
                 put( "nonce", finalNonce );
             }}, parameters));
-            Object payload = this.stringToBase64(json);
+            String payload = this.stringToBase64(json);
             body = payload;
             Object secret = ((String)this.secret).toUpperCase();
-            Object signature = this.hmac(this.encode(payload), this.encode(secret), sha512());
+            String signature = (String) this.hmac(this.encode(payload), this.encode(secret), sha512());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/json" );
                 put( "X-COINONE-PAYLOAD", payload );

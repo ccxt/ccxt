@@ -972,6 +972,12 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
             return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
+        if (kind === 'guarded-string' && (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent))) {
+            // a TS cast on the local prints a Java cast of the asserted type; for the
+            // narrowed type the spelled cast can be inconvertible (String -> Double is a
+            // compile error) — keep Object (the C# campaign's reject family, reused here)
+            return false;
+        }
         if (ts.isBinaryExpression (parent) && parent.left === n) {
             const op = parent.operatorToken.kind;
             if (op === ts.SyntaxKind.EqualsToken) {

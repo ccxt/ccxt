@@ -2384,7 +2384,7 @@ public class BitstampCore extends BitstampApi
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientOrderId")));
             }
             Object response = null;
-            Object capitalizedSide = this.capitalize(side);
+            String capitalizedSide = this.capitalize(side);
             if (Helpers.isTrue(Helpers.isEqual(type, "market")))
             {
                 if (Helpers.isTrue(Helpers.isEqual(capitalizedSide, "Buy")))
@@ -3721,7 +3721,7 @@ public class BitstampCore extends BitstampApi
         {
             this.checkRequiredCredentials();
             Object xAuth = Helpers.add("BITSTAMP ", this.apiKey);
-            Object xAuthNonce = this.uuid();
+            String xAuthNonce = this.uuid();
             Object xAuthTimestamp = String.valueOf(this.milliseconds());
             Object xAuthVersion = "v2";
             Object contentType = "";
@@ -3754,7 +3754,7 @@ public class BitstampCore extends BitstampApi
             }
             Object authBody = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(body, null)) && Helpers.isTrue(!Helpers.isEqual(body, "")))))) ? body : "";
             Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(xAuth, method), Helpers.replace((String)url, (String)"https://", (String)"")), contentType), xAuthNonce), xAuthTimestamp), xAuthVersion), authBody);
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             Helpers.addElementToObject(headers, "X-Auth-Signature", signature);
         }
         final Object finalUrl = url;

@@ -1228,7 +1228,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
             {
                 Object nonce = this.milliseconds();
                 Object payload = Helpers.add("AUTH", String.valueOf(nonce));
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha384(), "hex");
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha384(), "hex");
                 Object eventVar = "auth";
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "apiKey", BitfinexCore.this.apiKey );

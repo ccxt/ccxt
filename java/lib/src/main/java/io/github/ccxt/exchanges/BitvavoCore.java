@@ -1796,8 +1796,8 @@ final Object finalBase = base;
             Object cost = null;
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
-                Object priceString = this.numberToString(price);
-                Object amountString = this.numberToString(amount);
+                String priceString = this.numberToString(price);
+                String amountString = this.numberToString(amount);
                 Object quoteAmount = Precise.stringMul(amountString, priceString);
                 cost = this.parseNumber(quoteAmount);
             } else
@@ -3258,7 +3258,7 @@ final Object finalBase = base;
             }
             Object timestamp = String.valueOf(this.milliseconds());
             Object auth = Helpers.add(Helpers.add(Helpers.add(timestamp, method), url), payload);
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             String accessWindow = this.safeString2(this.options, "recvWindow", "BITVAVO-ACCESS-WINDOW", "10000");
             final Object finalTimestamp = timestamp;
             headers = new java.util.HashMap<String, Object>() {{

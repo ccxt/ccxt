@@ -2910,7 +2910,7 @@ public class BackpackCore extends BackpackApi
                 payload = this.generateBatchPayload(sortedParams, ts, recvWindow, instruction);
             } else
             {
-                Object queryString = this.urlencode(sortedParams);
+                String queryString = this.urlencode(sortedParams);
                 if (Helpers.isTrue(Helpers.isGreaterThan(((String)queryString).length(), 0)))
                 {
                     queryString = Helpers.add(queryString, "&");
@@ -2919,7 +2919,7 @@ public class BackpackCore extends BackpackApi
             }
             Object secretBytes = this.base64ToBinary(this.secret);
             Object seed = this.arraySlice(secretBytes, 0, 32);
-            Object signature = eddsa(this.encode(payload), seed, ed25519());
+            String signature = (String) eddsa(this.encode(payload), seed, ed25519());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "X-Timestamp", ts );
                 put( "X-Window", recvWindow );
@@ -2935,7 +2935,7 @@ public class BackpackCore extends BackpackApi
         }
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            Object query = this.urlencode(sortedParams);
+            String query = this.urlencode(sortedParams);
             if (Helpers.isTrue(!Helpers.isEqual(((String)query).length(), 0)))
             {
                 endpoint = Helpers.add(endpoint, Helpers.add("?", query));
@@ -2961,7 +2961,7 @@ public class BackpackCore extends BackpackApi
         {
             Object order = this.safeDict(parameters, i, new java.util.HashMap<String, Object>() {{}});
             Object sortedOrder = this.keysort(order);
-            Object orderQuery = this.urlencode(sortedOrder);
+            String orderQuery = this.urlencode(sortedOrder);
             payload = Helpers.add(payload, Helpers.add(Helpers.add(Helpers.add(Helpers.add("instruction=", instruction), "&"), orderQuery), "&"));
             if (Helpers.isTrue(Helpers.isEqual(i, (Helpers.subtract(Helpers.getArrayLength(parameters), 1)))))
             {

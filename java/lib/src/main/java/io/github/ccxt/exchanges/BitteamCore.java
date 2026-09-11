@@ -2726,7 +2726,7 @@ public class BitteamCore extends BitteamApi
         Object request = this.omit(parameters, this.extractParams(path));
         Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
         Object url = Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), endpoint);
-        Object query = this.urlencode(request);
+        String query = this.urlencode(request);
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
@@ -2738,7 +2738,7 @@ public class BitteamCore extends BitteamApi
                 url = Helpers.add(url, Helpers.add("?", query));
             }
             Object auth = Helpers.add(Helpers.add(this.apiKey, ":"), this.secret);
-            Object auth64 = this.stringToBase64(auth);
+            String auth64 = this.stringToBase64(auth);
             Object signature = Helpers.add("Basic ", auth64);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Authorization", signature );

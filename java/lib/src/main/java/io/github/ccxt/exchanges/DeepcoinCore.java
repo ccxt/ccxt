@@ -3855,7 +3855,7 @@ public class DeepcoinCore extends DeepcoinApi
         Object requestPath = path;
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            Object query = this.urlencode(parameters);
+            String query = this.urlencode(parameters);
             if (Helpers.isTrue(Helpers.isGreaterThan(((String)query).length(), 0)))
             {
                 requestPath = Helpers.add(requestPath, Helpers.add("?", query));
@@ -3881,7 +3881,7 @@ public class DeepcoinCore extends DeepcoinApi
                 Helpers.addElementToObject(headers, "Content-Type", "application/json");
                 payload = Helpers.add(payload, body);
             }
-            Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
             Helpers.addElementToObject(headers, "DC-ACCESS-SIGN", signature);
         }
         final Object finalMethod = method;

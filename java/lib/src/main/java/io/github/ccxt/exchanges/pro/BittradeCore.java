@@ -88,7 +88,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             Object hostname = new java.util.HashMap<String, Object>() {{
                 put( "hostname", BittradeCore.this.hostname );
             }};
-            Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
+            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
             Object requestId = this.requestId();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sub", messageHash );
@@ -174,7 +174,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             Object hostname = new java.util.HashMap<String, Object>() {{
                 put( "hostname", BittradeCore.this.hostname );
             }};
-            Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
+            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
             Object requestId = this.requestId();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sub", messageHash );
@@ -278,7 +278,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             Object hostname = new java.util.HashMap<String, Object>() {{
                 put( "hostname", BittradeCore.this.hostname );
             }};
-            Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
+            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
             Object requestId = this.requestId();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sub", messageHash );
@@ -378,7 +378,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             Object hostname = new java.util.HashMap<String, Object>() {{
                 put( "hostname", BittradeCore.this.hostname );
             }};
-            Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
+            String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
             Object requestId = this.requestId();
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "sub", messageHash );
@@ -458,7 +458,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
                 Object hostname = new java.util.HashMap<String, Object>() {{
                     put( "hostname", BittradeCore.this.hostname );
                 }};
-                Object url = this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
+                String url = (String) this.implodeParams(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), api), "public"), hostname);
                 Object requestId = this.requestId();
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "req", messageHash );

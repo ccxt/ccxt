@@ -1700,7 +1700,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
                 put( "id", requestId );
                 put( "future", messageHash );
             }};
-            Object hmac = this.hmac(this.encode(timestamp), this.encode(this.secret), sha256(), "hex");
+            String hmac = (String) this.hmac(this.encode(timestamp), this.encode(this.secret), sha256(), "hex");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", requestId );
                 put( "method", "server.sign" );

@@ -3181,7 +3181,7 @@ public class PhemexCore extends PhemexApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object requestSide = this.capitalize(side);
+            String requestSide = this.capitalize(side);
             type = this.capitalize(type);
             final Object finalType = type;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -3249,8 +3249,8 @@ public class PhemexCore extends PhemexApi
                     {
                         if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             Object quoteAmount = Precise.stringMul(amountString, priceString);
                             cost = this.parseNumber(quoteAmount);
                         } else if (Helpers.isTrue(Helpers.isEqual(cost, null)))
@@ -3391,7 +3391,7 @@ public class PhemexCore extends PhemexApi
                     Helpers.addElementToObject(request, "priceRp", this.priceToPrecision(symbol, price));
                 } else
                 {
-                    Object priceString = this.numberToString(price);
+                    String priceString = this.numberToString(price);
                     Helpers.addElementToObject(request, "priceEp", this.toEp(priceString, market));
                 }
             }
@@ -4900,7 +4900,7 @@ public class PhemexCore extends PhemexApi
         String markPriceString = this.safeString2(position, "markPrice", "markPriceRp");
         String contracts = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("size", "sizeRq", "closedSizeRq")));
         Object contractSize = this.safeValue(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         Object leverage = this.parseNumber(Precise.stringAbs((this.safeString2(position, "leverage", "leverageRr"))));
         String entryPriceString = this.safeStringN(position, new java.util.ArrayList<Object>(java.util.Arrays.asList("avgEntryPrice", "avgEntryPriceRp", "openPrice")));
         String rawSide = this.safeString(position, "side");

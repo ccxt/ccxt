@@ -4331,7 +4331,7 @@ public class PacificaCore extends PacificaApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object isTestnet = this.isSandboxModeEnabled;
         Object urlKey = ((Helpers.isTrue((isTestnet)))) ? "test" : "api";
-        Object host = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), api));
+        String host = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, urlKey), api));
         Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(host, "/api/"), this.version), "/"), this.implodeParams(path, parameters));
         parameters = this.omit(parameters, this.extractParams(path));
         Object paramsLen = Helpers.getArrayLength(Helpers.objectKeys(parameters));
@@ -4426,7 +4426,7 @@ public class PacificaCore extends PacificaApi
         Object messageBytes = this.encode(message);
         Object secretBytes = this.base58ToBinary(privateKey);
         Object seed = this.arraySlice(secretBytes, 0, 32);
-        Object signatureBase64 = eddsa(messageBytes, seed, ed25519());
+        String signatureBase64 = (String) eddsa(messageBytes, seed, ed25519());
         Object signatureBinary = this.base64ToBinary(signatureBase64);
         Object signatureBase58 = this.binaryToBase58(signatureBinary);
         return signatureBase58;

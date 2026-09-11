@@ -2872,8 +2872,8 @@ public class MexcCore extends MexcApi
                     Helpers.addElementToObject(request, "quantity", this.amountToPrecision(symbol, amount));
                 } else
                 {
-                    Object amountString = this.numberToString(amount);
-                    Object priceString = this.numberToString(price);
+                    String amountString = this.numberToString(amount);
+                    String priceString = this.numberToString(price);
                     Object quoteAmount = Precise.stringMul(amountString, priceString);
                     amount = quoteAmount;
                     Helpers.addElementToObject(request, "quoteOrderQty", this.costToPrecision(symbol, amount));
@@ -7369,7 +7369,7 @@ final Object finalRiskIncrVol = riskIncrVol;
             if (Helpers.isTrue(Helpers.isEqual(access, "private")))
             {
                 this.checkRequiredCredentials();
-                Object signature = this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(paramsEncoded), this.encode(this.secret), sha256());
                 url = Helpers.add(url, Helpers.add(Helpers.add("&", "signature="), signature));
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "X-MEXC-APIKEY", MexcCore.this.apiKey );
@@ -7416,7 +7416,7 @@ final Object finalRiskIncrVol = riskIncrVol;
                     }
                 }
                 auth = Helpers.add(Helpers.add(this.apiKey, timestamp), auth);
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 Helpers.addElementToObject(headers, "Signature", signature);
             }
         }

@@ -155,7 +155,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                 Object id = this.requestId();
                 Object timestamp = String.valueOf(this.milliseconds());
                 Object payload = Helpers.add(this.apiKey, timestamp);
-                Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
+                String signature = (String) this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                     put( "method", "LOGIN" );

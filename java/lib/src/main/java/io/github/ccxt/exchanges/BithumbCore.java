@@ -2020,8 +2020,8 @@ public class BithumbCore extends BithumbApi
                         throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         cost = Precise.stringMul(amountString, priceString);
                     }
                 } else
@@ -2208,7 +2208,7 @@ public class BithumbCore extends BithumbApi
                 throw new BadRequest((String)Helpers.add(this.id, " createTwapOrder() is only supported for the generation 2 API")) ;
             }
             Object market = this.market(symbol);
-            Object durationString = this.numberToString(duration);
+            String durationString = this.numberToString(duration);
             Object durationSeconds = Precise.stringDiv(durationString, "1000");
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "market", BithumbCore.this.getGen2MarketId(market) );
@@ -3982,7 +3982,7 @@ public class BithumbCore extends BithumbApi
                     Helpers.addElementToObject(request, "query_hash", this.hash(this.encode(authString), sha512()));
                     Helpers.addElementToObject(request, "query_hash_alg", "SHA512");
                 }
-                Object token = jwt(request, this.encode(this.secret), sha256());
+                String token = jwt(request, this.encode(this.secret), sha256());
                 Helpers.addElementToObject(headers, "Authorization", Helpers.add("Bearer ", token));
             } else
             {
@@ -3995,8 +3995,8 @@ public class BithumbCore extends BithumbApi
                 body = String.join((String)"+", (java.util.List<String>)bodyParts);
                 Object nonce = String.valueOf(this.nonce());
                 Object auth = Helpers.add(Helpers.add(Helpers.add(Helpers.add(endpoint, "\\"), body), "\\"), nonce); // eslint-disable-line quotes
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512());
-                Object signature64 = this.stringToBase64(signature);
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha512());
+                String signature64 = this.stringToBase64(signature);
                 headers = new java.util.HashMap<String, Object>() {{
                     put( "Accept", "application/json" );
                     put( "Content-Type", "application/x-www-form-urlencoded" );

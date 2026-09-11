@@ -131,7 +131,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             }
             Object timestamp = String.valueOf(this.nonce());
             Object auth = Helpers.add(Helpers.add(Helpers.add(timestamp, this.apiKey), "CBINTLMD"), this.password);
-            Object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalName = name;
             final Object finalTimestamp = timestamp;
             Object subscribe = new java.util.HashMap<String, Object>() {{
@@ -200,7 +200,7 @@ public class CoinbaseinternationalCore extends io.github.ccxt.exchanges.Coinbase
             }
             Object timestamp = this.numberToString(this.seconds());
             Object auth = Helpers.add(Helpers.add(Helpers.add(timestamp, this.apiKey), "CBINTLMD"), this.password);
-            Object signature = this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
+            String signature = (String) this.hmac(this.encode(auth), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalTimestamp = timestamp;
             final Object finalName = name;
             Object subscribe = new java.util.HashMap<String, Object>() {{

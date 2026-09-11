@@ -2546,7 +2546,7 @@ public class FoxbitCore extends FoxbitApi
         {
             this.checkRequiredCredentials();
             Object preHash = Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.numberToString(timestamp), method), fullPath), signatureQuery), bodyToSignature);
-            Object signature = this.hmac(this.encode(preHash), this.encode(this.secret), sha256(), "hex");
+            String signature = (String) this.hmac(this.encode(preHash), this.encode(this.secret), sha256(), "hex");
             Helpers.addElementToObject(headers, "X-FB-ACCESS-KEY", this.apiKey);
             Helpers.addElementToObject(headers, "X-FB-ACCESS-TIMESTAMP", this.numberToString(timestamp));
             Helpers.addElementToObject(headers, "X-FB-ACCESS-SIGNATURE", signature);

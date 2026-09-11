@@ -1906,7 +1906,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
                 Object method = "GET";
                 Object path = "/users/self/verify";
                 Object auth = Helpers.add(Helpers.add(timestamp, method), path);
-                Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
+                String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha256(), "base64");
                 Object operation = "login";
                 final Object finalTimestamp = timestamp;
                 Object request = new java.util.HashMap<String, Object>() {{

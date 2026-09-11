@@ -736,8 +736,8 @@ public class Bit2cCore extends Bit2cApi
             } else
             {
                 Helpers.addElementToObject(request, "Price", price);
-                Object amountString = this.numberToString(amount);
-                Object priceString = this.numberToString(price);
+                String amountString = this.numberToString(amount);
+                String priceString = this.numberToString(price);
                 Helpers.addElementToObject(request, "Total", this.parseToNumeric(Precise.stringMul(amountString, priceString)));
                 Helpers.addElementToObject(request, "IsBid", (Helpers.isEqual(side, "buy")));
                 response = (this.privatePostOrderAddOrder(this.extend(request, parameters))).join();
@@ -1303,7 +1303,7 @@ public class Bit2cCore extends Bit2cApi
             Object query = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "nonce", nonce );
             }}, parameters);
-            Object auth = this.urlencode(query);
+            String auth = this.urlencode(query);
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(query)), 0)))
@@ -1314,7 +1314,7 @@ public class Bit2cCore extends Bit2cApi
             {
                 body = auth;
             }
-            Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha512(), "base64");
+            String signature = (String) this.hmac(this.encode(auth), this.encode(this.secret), sha512(), "base64");
             headers = new java.util.HashMap<String, Object>() {{
                 put( "Content-Type", "application/x-www-form-urlencoded" );
                 put( "key", Bit2cCore.this.apiKey );

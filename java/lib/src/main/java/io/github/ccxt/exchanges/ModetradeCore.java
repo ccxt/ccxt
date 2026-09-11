@@ -3370,7 +3370,7 @@ public class ModetradeCore extends ModetradeApi
         Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
-        Object v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
+        String v = this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")));
         return Helpers.add(Helpers.add(Helpers.add("0x", Helpers.padStart((String)r, ((Number)64).intValue(), ((String)"0").charAt(0))), Helpers.padStart((String)s, ((Number)64).intValue(), ((String)"0").charAt(0))), v);
     }
 
@@ -3810,7 +3810,7 @@ public class ModetradeCore extends ModetradeApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object version = Helpers.GetValue(section, 0);
         Object access = Helpers.GetValue(section, 1);
-        Object pathWithParams = this.implodeParams(path, parameters);
+        String pathWithParams = (String) this.implodeParams(path, parameters);
         Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), access), "/"), version), "/");
         parameters = this.omit(parameters, this.extractParams(path));
         parameters = this.keysort(parameters);
@@ -3886,7 +3886,7 @@ public class ModetradeCore extends ModetradeApi
                 Object parts = Helpers.split(secret, "ed25519:");
                 secret = Helpers.GetValue(parts, 1);
             }
-            Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
+            String signature = (String) eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());
             Helpers.addElementToObject(headers, "orderly-signature", this.urlencodeBase64(this.base64ToBinary(signature)));
         }
         final Object finalUrl = url;

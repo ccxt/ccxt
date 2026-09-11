@@ -1883,8 +1883,8 @@ public class WooCore extends WooApi
                         quoteAmount = this.costToPrecision(symbol, cost);
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         Object costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }
@@ -3962,7 +3962,7 @@ public class WooCore extends WooApi
         Object body = Helpers.getArg(optionalArgs, 4, null);
         Object version = Helpers.GetValue(section, 0);
         Object access = Helpers.GetValue(section, 1);
-        Object pathWithParams = this.implodeParams(path, parameters);
+        String pathWithParams = (String) this.implodeParams(path, parameters);
         Object url = this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), access));
         url = Helpers.add(url, Helpers.add(Helpers.add("/", version), "/"));
         parameters = this.omit(parameters, this.extractParams(path));
@@ -4022,7 +4022,7 @@ public class WooCore extends WooApi
                 {
                     if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
                     {
-                        Object query = this.urlencode(parameters);
+                        String query = this.urlencode(parameters);
                         url = Helpers.add(url, Helpers.add("?", query));
                         auth = Helpers.add(auth, Helpers.add("?", query));
                     }

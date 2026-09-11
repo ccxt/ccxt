@@ -841,7 +841,7 @@ public class HyperliquidCore extends HyperliquidApi
     public Object calculatePricePrecision(Object price, Object amountPrecision, Object maxDecimals)
     {
         Object pricePrecision = 0;
-        Object priceStr = this.numberToString(price);
+        String priceStr = this.numberToString(price);
         if (Helpers.isTrue(Helpers.isEqual(priceStr, null)))
         {
             return 0;
@@ -994,9 +994,9 @@ public class HyperliquidCore extends HyperliquidApi
                 {
                     pricePrecision = this.calculatePricePrecision(price, amountPrecision, 8);
                 }
-                Object pricePrecisionStr = this.numberToString(pricePrecision);
+                String pricePrecisionStr = this.numberToString(pricePrecision);
                 // const quotePrecision = this.parseNumber (this.parsePrecision (this.safeString (innerQuoteTokenInfo, 'szDecimals')));
-                Object baseId = this.numberToString(Helpers.add(index, 10000));
+                String baseId = this.numberToString(Helpers.add(index, 10000));
                 final Object finalMappedBase = mappedBase;
                 final Object finalBaseName = baseName;
                 final Object finalQuoteId = quoteId;
@@ -1117,7 +1117,7 @@ public class HyperliquidCore extends HyperliquidApi
         {
             pricePrecision = this.calculatePricePrecision(price, amountPrecision, 6);
         }
-        Object pricePrecisionStr = this.numberToString(pricePrecision);
+        String pricePrecisionStr = this.numberToString(pricePrecision);
         Object isDelisted = this.safeBool(market, "isDelisted");
         Object active = true;
         if (Helpers.isTrue(!Helpers.isEqual(isDelisted, null)))
@@ -1839,7 +1839,7 @@ public class HyperliquidCore extends HyperliquidApi
         Object priceStr = this.numberToString(price);
         Object integerPart = Helpers.GetValue(Helpers.split(((String)priceStr), "."), 0);
         Object significantDigits = Helpers.mathMax(5, ((String)integerPart).length());
-        Object result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
+        String result = this.decimalToPrecision(price, ROUND, significantDigits, SIGNIFICANT_DIGITS, this.paddingMode);
         Object maxDecimals = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "spot"), true))))) ? 8 : 6;
         Object subtractedValue = Helpers.subtract(maxDecimals, this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "amount")));
         return this.decimalToPrecision(result, ROUND, subtractedValue, DECIMAL_PLACES, this.paddingMode);
@@ -4973,7 +4973,7 @@ final Object finalClientOrderId = clientOrderId;
                 {
                     throw new NotSupported((String)Helpers.add(this.id, " transfer() only support spot <> swap transfer")) ;
                 }
-                Object strAmount = this.numberToString(amount);
+                String strAmount = this.numberToString(amount);
                 Object vaultAddress = this.safeString2(parameters, "vaultAddress", "subAccountAddress");
                 if (Helpers.isTrue(!Helpers.isEqual(vaultAddress, null)))
                 {

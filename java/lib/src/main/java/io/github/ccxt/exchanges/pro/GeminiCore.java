@@ -1118,7 +1118,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 put( "nonce", GeminiCore.this.nonce() );
             }};
             Object b64 = this.stringToBase64(this.json(payload));
-            Object signature = this.hmac(this.encode(b64), this.encode(this.secret), sha384(), "hex");
+            String signature = (String) this.hmac(this.encode(b64), this.encode(this.secret), sha384(), "hex");
             Object defaultOptions = new java.util.HashMap<String, Object>() {{
                 put( "ws", new java.util.HashMap<String, Object>() {{
                     put( "options", new java.util.HashMap<String, Object>() {{

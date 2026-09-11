@@ -1338,10 +1338,10 @@ public class AlpacaCore extends AlpacaApi
     public Object generateClientOrderId(Object parameters)
     {
         String clientOrderIdprefix = this.safeString(this.options, "clientOrderId");
-        Object uuid = this.uuid();
+        String uuid = this.uuid();
         Object parts = Helpers.split(uuid, "-");
         Object random_id = String.join((String)"", (java.util.List<String>)parts);
-        Object defaultClientId = this.implodeParams(clientOrderIdprefix, new java.util.HashMap<String, Object>() {{
+        String defaultClientId = (String) this.implodeParams(clientOrderIdprefix, new java.util.HashMap<String, Object>() {{
             put( "id", random_id );
         }});
         String clientOrderId = this.safeString(parameters, "clientOrderId", defaultClientId);

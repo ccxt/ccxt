@@ -2037,8 +2037,8 @@ public class LbankCore extends LbankApi
                             throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                         } else
                         {
-                            Object amountString = this.numberToString(amount);
-                            Object priceString = this.numberToString(price);
+                            String amountString = this.numberToString(amount);
+                            String priceString = this.numberToString(price);
                             Object costRequest = Precise.stringMul(amountString, priceString);
                             quoteAmount = this.costToPrecision(symbol, costRequest);
                         }
@@ -3715,7 +3715,7 @@ public class LbankCore extends LbankApi
                 signatureMethod = "HmacSHA256";
             }
             Object finalSig = signatureMethod; // java req
-            Object auth = this.rawencode(this.keysort(this.extend(new java.util.HashMap<String, Object>() {{
+            String auth = this.rawencode(this.keysort(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "echostr", echostr );
                 put( "signature_method", finalSig );
                 put( "timestamp", timestamp );
