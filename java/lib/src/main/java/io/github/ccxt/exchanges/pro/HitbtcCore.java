@@ -315,7 +315,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         Object snapshot = this.safeDict(message, "snapshot");
         Object data = this.safeDict2(message, "snapshot", "update", new java.util.HashMap<String, Object>() {{}});
         String type = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(snapshot, null)) && Helpers.isTrue(!Helpers.isEqual(snapshot, null)))))) ? "snapshot" : "update";
-        Object marketIds = Helpers.objectKeys(data);
+        java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -499,7 +499,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         String topic = "tickers";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
@@ -643,7 +643,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //     }
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         String topic = "bidask";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
@@ -763,7 +763,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object data = this.safeDict2(message, "snapshot", "update", new java.util.HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -914,7 +914,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         //    }
         //
         Object data = this.safeDict2(message, "snapshot", "update", new java.util.HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(data);
+        java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
         Object channel = this.safeString(message, "ch", "");
         Object splitChannel = Helpers.split(channel, "/");
         Object period = this.safeString(splitChannel, 1);

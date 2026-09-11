@@ -1998,7 +1998,7 @@ public class BitsoCore extends BitsoApi
                 }
             }
             Object withdrawalFees = this.safeValue(payload, "withdrawal_fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object currencyIds = Helpers.objectKeys(withdrawalFees);
+            java.util.List<String> currencyIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(withdrawalFees);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
             {
                 Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -2166,7 +2166,7 @@ public class BitsoCore extends BitsoApi
                 }
             }
         }
-        Object withdrawalKeys = Helpers.objectKeys(withdrawalResponse);
+        java.util.List<String> withdrawalKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(withdrawalResponse);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(withdrawalKeys)); i++)
         {
             Object currencyId = Helpers.GetValue(withdrawalKeys, i);

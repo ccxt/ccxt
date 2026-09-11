@@ -305,7 +305,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 Helpers.callDynamically(stored, "append", new Object[]{trade});
                 Helpers.addElementToObject(storesForSymbols, symbol, stored);
             }
-            Object symbols = Helpers.objectKeys(storesForSymbols);
+            java.util.List<String> symbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(storesForSymbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);

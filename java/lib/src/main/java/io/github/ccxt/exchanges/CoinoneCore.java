@@ -631,7 +631,7 @@ public class CoinoneCore extends CoinoneApi
             put( "info", response );
         }};
         Object balances = this.omit(response, new java.util.ArrayList<Object>(java.util.Arrays.asList("errorCode", "result", "normalWallets")));
-        Object currencyIds = Helpers.objectKeys(balances);
+        java.util.List<String> currencyIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(balances);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -1542,7 +1542,7 @@ public class CoinoneCore extends CoinoneApi
             //     }
             //
             Object walletAddress = this.safeDict(response, "walletAddress", new java.util.HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(walletAddress);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(walletAddress);
             Object result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {

@@ -361,7 +361,7 @@ public class CoincheckCore extends CoincheckApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object codes = Helpers.objectKeys(this.currencies);
+        java.util.List<String> codes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);

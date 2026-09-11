@@ -340,7 +340,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         Client client = this.client(url);
         Object subscriptions = client.subscriptions;
         java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object keys = Helpers.objectKeys(subscriptions);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

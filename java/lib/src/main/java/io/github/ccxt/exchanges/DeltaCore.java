@@ -789,7 +789,7 @@ public class DeltaCore extends DeltaApi
         {
             return null;
         }
-        Object keys = Helpers.objectKeys(input);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(input);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

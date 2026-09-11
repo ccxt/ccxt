@@ -2739,7 +2739,7 @@ public class CoinsphCore extends CoinsphApi
     {
         Object query = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object encodedArrayParams = "";
-        Object keys = Helpers.objectKeys(query);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(query);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

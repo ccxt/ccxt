@@ -1704,7 +1704,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         //
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object rawPositions = this.safeDict(data, "positions", new java.util.HashMap<String, Object>() {{}});
-        Object postitionsIds = Helpers.objectKeys(rawPositions);
+        java.util.List<String> postitionsIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(rawPositions);
         if (Helpers.isTrue(Helpers.isEqual(this.positions, null)))
         {
             this.positions = new ArrayCache.ArrayCacheBySymbolBySide();
@@ -1787,7 +1787,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
         //
         Object data = this.safeValue(message, "data");
         Object balances = this.safeValue(data, "balances");
-        Object keys = Helpers.objectKeys(balances);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(balances);
         Long ts = this.safeInteger(message, "ts");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", ts);

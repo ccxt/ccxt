@@ -1106,7 +1106,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         client.resolve(this.orders, Helpers.add("orders:", symbol));
         client.resolve(this.orders, "orders");
         // update balance
-        java.util.List<Object> balanceKeys = new java.util.ArrayList<Object>(java.util.Arrays.asList("locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"));
+        java.util.List<String> balanceKeys = new java.util.ArrayList<String>(java.util.Arrays.asList("locked", "unlocked", "spent", "spent_on_fees", "credited", "deducted"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balanceKeys)); i++)
         {
             Object newBalance = this.safeValue(update, Helpers.GetValue(balanceKeys, i));
@@ -1230,10 +1230,10 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
                 Helpers.addElementToObject(Helpers.GetValue(subscription, marketId), timeframe, true);
             }
             java.util.List<Object> properties = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object marketIds = Helpers.objectKeys(subscription);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(subscription);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
-                Object marketIdtimeframes = Helpers.objectKeys(Helpers.GetValue(subscription, Helpers.GetValue(marketIds, i)));
+                java.util.List<String> marketIdtimeframes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(Helpers.GetValue(subscription, Helpers.GetValue(marketIds, i)));
                 for (var ii = 0; Helpers.isLessThan(ii, Helpers.getArrayLength(marketIdtimeframes)); ii++)
                 {
                     Object marketTimeframeId = this.safeValue(timeframes, timeframe);
@@ -1333,7 +1333,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " findTimeframe() timeframes is required")) ;
         }
-        Object keys = Helpers.objectKeys(timeframes);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(timeframes);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

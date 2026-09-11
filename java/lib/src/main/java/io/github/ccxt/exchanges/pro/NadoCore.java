@@ -2080,7 +2080,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         //
         Long timestamp = this.safeInteger(message, "time");
         Object bbos = this.safeDict(message, "bbos", new java.util.HashMap<String, Object>() {{}});
-        Object marketIds = Helpers.objectKeys(bbos);
+        java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(bbos);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
@@ -2110,7 +2110,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
     public void handleAllBidsAsks(Client client, Object message)
     {
         Object tickers = this.parseWsAllBidsAsks(message);
-        Object symbols = Helpers.objectKeys(tickers);
+        java.util.List<String> symbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(tickers);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
@@ -2156,7 +2156,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
         Object lastMaxTimestamp = this.safeString(message, "last_max_timestamp");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(maxTimestamp, null))) && Helpers.isTrue((!Helpers.isEqual(lastMaxTimestamp, null)))) && Helpers.isTrue((!Helpers.isEqual(maxTimestamp, lastMaxTimestamp)))))
         {
-            Object subscriptions = Helpers.objectKeys(client.subscriptions);
+            java.util.List<String> subscriptions = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.subscriptions);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subscriptions)); i++)
             {
                 Object subscriptionHash = Helpers.GetValue(subscriptions, i);
@@ -2258,7 +2258,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             client.resolve(message, unsubscribeHash);
             return;
         }
-        Object subscriptions = Helpers.objectKeys(client.subscriptions);
+        java.util.List<String> subscriptions = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subscriptions)); i++)
         {
             Object unsubscribeHash = Helpers.GetValue(subscriptions, i);

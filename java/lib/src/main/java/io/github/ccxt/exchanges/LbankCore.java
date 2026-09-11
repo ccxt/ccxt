@@ -1580,7 +1580,7 @@ public class LbankCore extends LbankApi
         {
             Object used = this.safeValue(data, "freeze", new java.util.HashMap<String, Object>() {{}});
             Object free = this.safeDict(data, "free", new java.util.HashMap<String, Object>() {{}});
-            Object currencies = Helpers.objectKeys(free);
+            java.util.List<String> currencies = (java.util.List<String>)(java.util.List) Helpers.objectKeys(free);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
             {
                 Object currencyId = Helpers.GetValue(currencies, i);

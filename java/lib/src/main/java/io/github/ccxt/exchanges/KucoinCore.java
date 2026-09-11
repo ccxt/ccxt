@@ -2159,7 +2159,7 @@ public class KucoinCore extends KucoinApi
             {
                 return (this.fetchUTAMarkets(parameters)).join();
             }
-            java.util.List<Object> defaultTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "contract"));
+            java.util.List<String> defaultTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "swap", "future", "contract"));
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
             Object types = this.safeList(fetchMarketsOptions, "types", defaultTypes);
             Object credentialsSet = this.checkRequiredCredentials(false);
@@ -3232,7 +3232,7 @@ public class KucoinCore extends KucoinApi
         String type = this.safeString(accountsByType, requestedType);
         if (Helpers.isTrue(Helpers.isEqual(type, null)))
         {
-            Object keys = Helpers.objectKeys(accountsByType);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(accountsByType);
             throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " isFuturesMethod() type must be one of "), String.join((String)", ", (java.util.List<String>)keys))) ;
         }
         parameters = this.omit(parameters, "type");
@@ -7591,7 +7591,7 @@ public class KucoinCore extends KucoinApi
     {
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String tradeType = this.safeString(order, "tradeType");
-        java.util.List<Object> utaTradeTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("SPOT", "CROSS", "ISOLATED", "FUTURES")); // tradeType specific for uta endpoint
+        java.util.List<String> utaTradeTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("SPOT", "CROSS", "ISOLATED", "FUTURES")); // tradeType specific for uta endpoint
         Object isUtaOrder = this.inArray(tradeType, utaTradeTypes);
         if (Helpers.isTrue(Helpers.inOp(order, "sizeUnit")))
         {
@@ -11530,7 +11530,7 @@ public class KucoinCore extends KucoinApi
                 ((java.util.List<Object>)borrowRateHistoriesCode).add(borrowRateStructure);
             }
         }
-        Object keys = Helpers.objectKeys(borrowRateHistories);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(borrowRateHistories);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object code = Helpers.GetValue(keys, i);

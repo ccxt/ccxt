@@ -963,7 +963,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             }
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object currentMessageHash = Helpers.add("myTrades:", Helpers.GetValue(keys, i));
@@ -1493,7 +1493,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
                 Helpers.addElementToObject(marketSymbols, symbol, true);
             }
         }
-        Object keys = Helpers.objectKeys(marketSymbols);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(marketSymbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
@@ -1561,7 +1561,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         String subMessageHash = "tickers";
         String messageHash = (String) Helpers.add("unsubscribe:", subMessageHash);
         this.cleanUnsubscription(client, subMessageHash, messageHash);
-        Object symbols = Helpers.objectKeys(this.tickers);
+        java.util.List<String> symbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.tickers);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             ((java.util.Map<String,Object>)this.tickers).remove((String)Helpers.GetValue(symbols, i));
@@ -1705,7 +1705,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             this.handleWsPost(client, message);
             return;
         }
-        Object keys = Helpers.objectKeys(methods);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(methods);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

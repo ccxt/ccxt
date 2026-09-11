@@ -5213,7 +5213,7 @@ final Object finalI = i;
                 }
             }
         }
-        Object depositWithdrawCodes = Helpers.objectKeys(depositWithdrawFees);
+        java.util.List<String> depositWithdrawCodes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(depositWithdrawFees);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(depositWithdrawCodes)); i++)
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);

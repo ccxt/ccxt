@@ -455,7 +455,7 @@ public class ZebpayCore extends ZebpayApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
-            java.util.List<Object> defaultMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap"));
+            java.util.List<String> defaultMarkets = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "swap"));
             Object types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(types)); i++)
             {

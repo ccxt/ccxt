@@ -1246,7 +1246,7 @@ public class XtCore extends io.github.ccxt.exchanges.Xt
             String symbolsString = (String) Helpers.GetValue(parts, 2);
             Object symbols = Helpers.split(symbolsString, ",");
             Object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            Object tickersSymbols = Helpers.objectKeys(tickers);
+            java.util.List<String> tickersSymbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(tickers);
             Object numTickers = Helpers.getArrayLength(tickersSymbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numTickers, 0)))
             {

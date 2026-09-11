@@ -1749,7 +1749,7 @@ public class BackpackCore extends BackpackApi
         //         }
         //     }
         //
-        Object balanceKeys = Helpers.objectKeys(response);
+        java.util.List<String> balanceKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balanceKeys)); i++)
         {

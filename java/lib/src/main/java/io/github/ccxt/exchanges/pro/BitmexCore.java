@@ -520,7 +520,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         }
         client.resolve(newLiquidations, "liquidations");
         java.util.Map<String, Object> liquidationsBySymbol = this.indexBy(newLiquidations, "symbol");
-        Object symbols = Helpers.objectKeys(liquidationsBySymbol);
+        java.util.List<String> symbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(liquidationsBySymbol);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
@@ -729,7 +729,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         String table = "trade";
         Object data = this.safeValue(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         java.util.Map<String, Object> dataByMarketIds = this.groupBy(data, "symbol");
-        Object marketIds = Helpers.objectKeys(dataByMarketIds);
+        java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(dataByMarketIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
@@ -1042,7 +1042,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 // the ArrayCacheBySymbolBySide index (see issue #29001).
                 Object symbol = this.safeString(position, "symbol");
                 Object cachedBySide = this.safeDict(((io.github.ccxt.ws.ArrayCache)cache).hashmap, symbol, new java.util.HashMap<String, Object>() {{}});
-                Object cachedSides = Helpers.objectKeys(cachedBySide);
+                java.util.List<String> cachedSides = (java.util.List<String>)(java.util.List) Helpers.objectKeys(cachedBySide);
                 Object sidesLength = Helpers.getArrayLength(cachedSides);
                 if (Helpers.isTrue(Helpers.isEqual(sidesLength, 1)))
                 {
@@ -1301,7 +1301,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 Helpers.addElementToObject(symbols, ((String)symbol), true);
             }
             client.resolve(this.orders, messageHash);
-            Object keys = Helpers.objectKeys(symbols);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object symbol = Helpers.GetValue(keys, i);
@@ -1441,7 +1441,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
         {
             client.resolve(stored, messageHash);
         }
-        Object keys = Helpers.objectKeys(symbols);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             client.resolve(stored, Helpers.add(Helpers.add(messageHash, ":"), Helpers.GetValue(keys, i)));
@@ -1717,7 +1717,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             Helpers.callDynamically(stored, "append", new Object[]{result});
             Helpers.addElementToObject(results, messageHash, stored);
         }
-        Object messageHashes = Helpers.objectKeys(results);
+        java.util.List<String> messageHashes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(results);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
@@ -1867,7 +1867,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 Helpers.addElementToObject(orderbook, "timestamp", this.parse8601(datetime));
                 Helpers.addElementToObject(orderbook, "datetime", datetime);
             }
-            Object marketIds = Helpers.objectKeys(numUpdatesByMarketId);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(numUpdatesByMarketId);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);

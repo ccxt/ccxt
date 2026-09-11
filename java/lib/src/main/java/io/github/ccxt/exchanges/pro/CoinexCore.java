@@ -185,7 +185,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             String symbolsString = (String) Helpers.GetValue(parts, 1);
             Object symbols = Helpers.split(symbolsString, ",");
             Object tickers = this.filterByArray(newTickers, "symbol", symbols);
-            Object tickersSymbols = Helpers.objectKeys(tickers);
+            java.util.List<String> tickersSymbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(tickers);
             Object numTickers = Helpers.getArrayLength(tickersSymbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numTickers, 0)))
             {
@@ -785,7 +785,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
-            java.util.List<Object> subscriptionHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList("all@ticker"));
+            java.util.List<String> subscriptionHashes = new java.util.ArrayList<String>(java.util.Arrays.asList("all@ticker"));
             final Object finalMarketIds = marketIds;
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "state.subscribe" );
@@ -1502,7 +1502,7 @@ public class CoinexCore extends io.github.ccxt.exchanges.Coinex
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), type);
-            java.util.List<Object> subscriptionHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList("all@bidsasks"));
+            java.util.List<String> subscriptionHashes = new java.util.ArrayList<String>(java.util.Arrays.asList("all@bidsasks"));
             java.util.Map<String, Object> subscribe = new java.util.HashMap<String, Object>() {{
                 put( "method", "bbo.subscribe" );
                 put( "params", new java.util.HashMap<String, Object>() {{

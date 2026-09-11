@@ -885,7 +885,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
                     {
                         java.util.Map<String, Object> info = this.extend(Helpers.GetValue(previousOrder, "info"), message);
                         Object order = this.parseWsOrder(info);
-                        Object keys = Helpers.objectKeys(order);
+                        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(order);
                         // update the reference
                         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
                         {

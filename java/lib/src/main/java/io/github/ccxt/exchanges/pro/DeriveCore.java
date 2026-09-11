@@ -464,7 +464,7 @@ public class DeriveCore extends io.github.ccxt.exchanges.Derive
         Object status = this.safeDict(result, "status");
         if (Helpers.isTrue(!Helpers.isEqual(status, null)))
         {
-            Object topics = Helpers.objectKeys(status);
+            java.util.List<String> topics = (java.util.List<String>)(java.util.List) Helpers.objectKeys(status);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(topics)); i++)
             {
                 Object topic = Helpers.GetValue(topics, i);

@@ -1483,7 +1483,7 @@ public class WoofiproCore extends io.github.ccxt.exchanges.Woofipro
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object balances = this.safeDict(data, "balances", new java.util.HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(balances);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(balances);
         Long ts = this.safeInteger(message, "ts");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", ts);

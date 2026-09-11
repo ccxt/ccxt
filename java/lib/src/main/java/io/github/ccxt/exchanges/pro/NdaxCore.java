@@ -226,7 +226,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 Helpers.addElementToObject(updates, symbol, true);
             }
         }
-        Object symbols = Helpers.objectKeys(updates);
+        java.util.List<String> symbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(updates);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);
@@ -332,7 +332,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 Helpers.addElementToObject(updates, marketId, new java.util.HashMap<String, Object>() {{}});
             }
             Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
-            Object keys = Helpers.objectKeys(this.timeframes);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.timeframes);
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
             {
                 Object timeframe = Helpers.GetValue(keys, j);
@@ -393,11 +393,11 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
             }
         }
         String name = "SubscribeTicker";
-        Object marketIds = Helpers.objectKeys(updates);
+        java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(updates);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
         {
             Object marketId = Helpers.GetValue(marketIds, i);
-            Object timeframes = Helpers.objectKeys(Helpers.GetValue(updates, marketId));
+            java.util.List<String> timeframes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(Helpers.GetValue(updates, marketId));
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(timeframes)); j++)
             {
                 Object timeframe = Helpers.GetValue(timeframes, j);

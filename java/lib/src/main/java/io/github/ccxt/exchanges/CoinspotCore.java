@@ -835,7 +835,7 @@ public class CoinspotCore extends CoinspotApi
             //
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             Object prices = this.safeDict(response, "prices", new java.util.HashMap<String, Object>() {{}});
-            Object ids = Helpers.objectKeys(prices);
+            java.util.List<String> ids = (java.util.List<String>)(java.util.List) Helpers.objectKeys(prices);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);

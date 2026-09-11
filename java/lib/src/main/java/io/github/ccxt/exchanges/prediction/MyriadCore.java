@@ -1949,7 +1949,7 @@ public class MyriadCore extends MyriadApi
             }
             Object fetchedInfo = this.safeDict(fetched, "info", new java.util.HashMap<String, Object>() {{}});
             Object rawOrder = this.safeDict(fetched, "order", new java.util.HashMap<String, Object>() {{}});
-            Object rawOrderKeys = Helpers.objectKeys(rawOrder);
+            java.util.List<String> rawOrderKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(rawOrder);
             Object rawOrderKeysLength = Helpers.getArrayLength(rawOrderKeys);
             if (Helpers.isTrue(Helpers.isEqual(rawOrderKeysLength, 0)))
             {
@@ -2105,7 +2105,7 @@ public class MyriadCore extends MyriadApi
                 }
                 Object fetchedInfo = this.safeDict(fetched, "info", new java.util.HashMap<String, Object>() {{}});
                 Object rawOrder = this.safeDict(fetched, "order", new java.util.HashMap<String, Object>() {{}});
-                Object rawOrderKeys = Helpers.objectKeys(rawOrder);
+                java.util.List<String> rawOrderKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(rawOrder);
                 Object rawOrderKeysLength = Helpers.getArrayLength(rawOrderKeys);
                 if (Helpers.isTrue(Helpers.isEqual(rawOrderKeysLength, 0)))
                 {
@@ -3991,7 +3991,7 @@ final Object finalNetworkId = networkId;
 
     public void handleCentrifugoFrame(Client client, Object msg)
     {
-        Object keys = Helpers.objectKeys(msg);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(msg);
         Object keysLength = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(Helpers.isEqual(keysLength, 0)))
         {
@@ -4139,7 +4139,7 @@ final Object finalNetworkId = networkId;
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(ts));
             Helpers.addElementToObject(updated, sym, true);
         }
-        Object updatedSymbols = Helpers.objectKeys(updated);
+        java.util.List<String> updatedSymbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(updated);
         Object updatedLength = Helpers.getArrayLength(updatedSymbols);
         for (var k = 0; Helpers.isLessThan(k, updatedLength); k++)
         {
@@ -4829,7 +4829,7 @@ final Object finalNetworkId = networkId;
         // included — the previous logic only sent a body for authenticated requests)
         if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
         {
-            Object queryKeys = Helpers.objectKeys(query);
+            java.util.List<String> queryKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(query);
             Object queryKeysLength = Helpers.getArrayLength(queryKeys);
             if (Helpers.isTrue(Helpers.isGreaterThan(queryKeysLength, 0)))
             {

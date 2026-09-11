@@ -22,7 +22,7 @@ public class TestLoadMarkets extends BaseTest {
         Assert(Helpers.isArray(exchange.symbols), ".symbols is not an array");
         Object symbolsLength = Helpers.getArrayLength(exchange.symbols);
         Assert(!Helpers.isEqual(exchange.markets, null), ".markets is undefined");
-        Object marketKeys = Helpers.objectKeys(exchange.markets);
+        java.util.List<String> marketKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(exchange.markets);
         Object marketKeysLength = Helpers.getArrayLength(marketKeys);
         Assert(Helpers.isGreaterThan(symbolsLength, 0), ".symbols count <= 0 (less than or equal to zero)");
         Assert(Helpers.isGreaterThan(marketKeysLength, 0), ".markets objects keys length <= 0 (less than or equal to zero)");
@@ -33,7 +33,7 @@ public class TestLoadMarkets extends BaseTest {
             TestMarket.testMarket(exchange, skippedProperties, method, Helpers.GetValue(marketValues, i));
         }
         // market-type coverage (inlined: a nested helper breaks Java emit into a missing TestLoadedMarketTypes class)
-        java.util.List<Object> marketTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option", "index"));
+        java.util.List<String> marketTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "swap", "future", "option", "index"));
         java.util.List<Object> collectedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object allMarkets = Helpers.objectValues(exchange.markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allMarkets)); i++)

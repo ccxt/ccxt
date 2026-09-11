@@ -418,7 +418,7 @@ public class ZaifCore extends ZaifApi
             put( "datetime", null );
         }};
         Object funds = this.safeDict(balances, "funds", new java.util.HashMap<String, Object>() {{}});
-        Object currencyIds = Helpers.objectKeys(funds);
+        java.util.List<String> currencyIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(funds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);

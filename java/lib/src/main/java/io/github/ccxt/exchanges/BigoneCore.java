@@ -1220,7 +1220,7 @@ public class BigoneCore extends BigoneApi
 
     public Object parseContractBidsAsks(Object bidsAsks)
     {
-        Object bidsAsksKeys = Helpers.objectKeys(bidsAsks);
+        java.util.List<String> bidsAsksKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(bidsAsks);
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidsAsksKeys)); i++)
         {

@@ -138,13 +138,13 @@ public class TestMarket extends BaseTest {
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, market, "maker", "-100");
         TestSharedMethods.AssertLess(exchange, skippedProperties, method, market, "maker", "100");
         // validate type ('prediction' for prediction-market exchanges)
-        java.util.List<Object> validTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
+        java.util.List<String> validTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "margin", "swap", "future", "option", "index", "prediction", "other"));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "type", validTypes);
         // validate subTypes
         java.util.List<Object> validSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse", "quanto", null));
         TestSharedMethods.AssertInArray(exchange, skippedProperties, method, market, "subType", validSubTypes);
         // check if 'type' is consistent
-        java.util.List<Object> checkedTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
+        java.util.List<String> checkedTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "swap", "future", "option"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedTypes)); i++)
         {
             Object type = Helpers.GetValue(checkedTypes, i);
@@ -156,7 +156,7 @@ public class TestMarket extends BaseTest {
         // check if 'subType' is consistent
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(swap, true))) || Helpers.isTrue((Helpers.isEqual(future, true)))))
         {
-            java.util.List<Object> checkedSubTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
+            java.util.List<String> checkedSubTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("linear", "inverse"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(checkedSubTypes)); i++)
             {
                 Object subType = Helpers.GetValue(checkedSubTypes, i);
@@ -261,7 +261,7 @@ public class TestMarket extends BaseTest {
             Assert(Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "expiry"), null))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(market, "expiryDatetime"), null))), Helpers.add("\"expiry\" and \"expiryDatetime\" must be undefined when it is not future|option market", logText));
         }
         // check precisions
-        Object precisionKeys = Helpers.objectKeys(Helpers.GetValue(market, "precision"));
+        java.util.List<String> precisionKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(Helpers.GetValue(market, "precision"));
         Object precisionKeysLen = Helpers.getArrayLength(precisionKeys);
         Assert(Helpers.isGreaterThanOrEqual(precisionKeysLen, 2), Helpers.add("precision should have \"amount\" and \"price\" keys at least", logText));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(precisionKeys)); i++)
@@ -282,7 +282,7 @@ public class TestMarket extends BaseTest {
             }
         }
         // check limits
-        Object limitsKeys = Helpers.objectKeys(Helpers.GetValue(market, "limits"));
+        java.util.List<String> limitsKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(Helpers.GetValue(market, "limits"));
         Object limitsKeysLength = Helpers.getArrayLength(limitsKeys);
         Assert(Helpers.isGreaterThanOrEqual(limitsKeysLength, 3), Helpers.add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(limitsKeys)); i++)

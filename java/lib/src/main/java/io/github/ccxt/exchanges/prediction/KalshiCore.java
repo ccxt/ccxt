@@ -817,7 +817,7 @@ public class KalshiCore extends KalshiApi
             put( "price", finalPricePrecision );
         }};
         // Build outcomes
-        java.util.List<Object> outcomeLabels = new java.util.ArrayList<Object>(java.util.Arrays.asList("YES", "NO"));
+        java.util.List<String> outcomeLabels = new java.util.ArrayList<String>(java.util.Arrays.asList("YES", "NO"));
         java.util.List<Object> outcomeIds = new java.util.ArrayList<Object>(java.util.Arrays.asList(ticker, Helpers.add(ticker, "-NO")));
         java.util.List<Object> outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object resolvedOutcome = null;
@@ -1485,7 +1485,7 @@ final Object finalOi = oi;
             {
                 // reject an unsupported timeframe locally instead of silently returning 1-minute candles.
                 // hoist Object.keys(...).join(...) to a local — inline in a throw mangles in PHP
-                Object tfKeys = Helpers.objectKeys(this.timeframes);
+                java.util.List<String> tfKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.timeframes);
                 Object supported = String.join((String)", ", (java.util.List<String>)tfKeys);
                 throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() does not support the "), timeframe), " timeframe (supported: "), supported), ")")) ;
             }

@@ -1482,7 +1482,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
         String messageHash = "myTrades";
-        Object symbolKeys = Helpers.objectKeys(symbols);
+        java.util.List<String> symbolKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
         Object market = this.getMarketFromSymbols(symbolKeys);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {
@@ -1734,7 +1734,7 @@ public class WeexCore extends io.github.ccxt.exchanges.Weex
             }
         }
         String messageHash = "orders";
-        Object symbolKeys = Helpers.objectKeys(symbols);
+        java.util.List<String> symbolKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
         Object market = this.getMarketFromSymbols(symbolKeys);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "contract"), true)))
         {

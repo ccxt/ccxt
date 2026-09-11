@@ -353,7 +353,7 @@ public class BlockchaincomCore extends BlockchaincomApi
             //
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> markets = (this.publicGetSymbols(parameters)).join();
-            Object marketIds = Helpers.objectKeys(markets);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(markets);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {

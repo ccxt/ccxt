@@ -995,7 +995,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         java.util.List<Object> request = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "ticket", "ccxt" );
 }}));
-        Object keys = Helpers.objectKeys(subscriptions);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             ((java.util.List<Object>)request).add(Helpers.GetValue(subscriptions, Helpers.GetValue(keys, i)));

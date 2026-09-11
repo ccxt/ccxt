@@ -490,7 +490,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
         {
             return null;
         }
-        Object symbols = Helpers.objectKeys(markets);
+        java.util.List<String> symbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             Object candidate = Helpers.GetValue(markets, Helpers.GetValue(symbols, i));

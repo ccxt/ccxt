@@ -896,7 +896,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object currentMessageHash = Helpers.add("myTrades:", Helpers.GetValue(keys, i));
@@ -952,7 +952,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
-        Object symbolsArray = Helpers.objectKeys(symbols);
+        java.util.List<String> symbolsArray = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsArray)); i++)
         {
             Object currentMessageHash = Helpers.add("orders:", Helpers.GetValue(symbolsArray, i));
@@ -1252,7 +1252,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
             return;
         }
-        Object keys = Helpers.objectKeys(methods);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(methods);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

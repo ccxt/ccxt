@@ -21,7 +21,7 @@ public class TestFetchCurrencies extends BaseTest {
         // todo: try to invent something to avoid undefined undefined, i.e. maybe move into private and force it to have a value
         Object numInactiveCurrencies = 0;
         Object maxInactiveCurrenciesPercentage = exchange.safeInteger(skippedProperties, "maxInactiveCurrenciesPercentage", 50); // no more than X% currencies should be inactive
-        java.util.List<Object> requiredActiveCurrencies = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC", "ETH", "USDT", "USDC"));
+        java.util.List<String> requiredActiveCurrencies = new java.util.ArrayList<String>(java.util.Arrays.asList("BTC", "ETH", "USDT", "USDC"));
         Object features = exchange.features;
         Object featuresSpot = exchange.safeDict(features, "spot", new java.util.HashMap<String, Object>() {{}});
         Object fetchCurrencies = exchange.safeDict(featuresSpot, "fetchCurrencies", new java.util.HashMap<String, Object>() {{}});
@@ -72,7 +72,7 @@ public class TestFetchCurrencies extends BaseTest {
     {
         // detect if there are currencies with different ids for the same code
         java.util.Map<String, Object> ids = new java.util.HashMap<String, Object>() {{}};
-        Object keys = Helpers.objectKeys(currencyValues);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(currencyValues);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

@@ -2004,7 +2004,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
         Object rawPositions = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         if (Helpers.isTrue(this.isEmpty(rawPositions)))
         {
-            java.util.List<Object> prefixes = new java.util.ArrayList<Object>(java.util.Arrays.asList("cross:positions", "isolated:positions"));
+            java.util.List<String> prefixes = new java.util.ArrayList<String>(java.util.Arrays.asList("cross:positions", "isolated:positions"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(prefixes)); i++)
             {
                 Object messageHashes = this.findMessageHashes(client, Helpers.GetValue(prefixes, i));
@@ -2040,7 +2040,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             ((java.util.List<Object>)Helpers.GetValue(positionsByMarginMode, marginMode)).add(position);
             Helpers.callDynamically(cache, "append", new Object[]{position});
         }
-        Object marginModes = Helpers.objectKeys(positionsByMarginMode);
+        java.util.List<String> marginModes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(positionsByMarginMode);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marginModes)); i++)
         {
             Object marginMode = Helpers.GetValue(marginModes, i);

@@ -1724,7 +1724,7 @@ public class CoinbaseCore extends CoinbaseApi
             Object data = this.safeList(currencies, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> dataById = this.indexBy(data, "id");
             Object rates = this.safeDict(this.safeDict(exchangeRates, "data", new java.util.HashMap<String, Object>() {{}}), "rates", new java.util.HashMap<String, Object>() {{}});
-            Object baseIds = Helpers.objectKeys(rates);
+            java.util.List<String> baseIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(rates);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(baseIds)); i++)
             {
@@ -2381,7 +2381,7 @@ public class CoinbaseCore extends CoinbaseApi
             Object cryptoData = this.safeList(cryptoResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object ratesData = this.safeDict(ratesResponse, "data", new java.util.HashMap<String, Object>() {{}});
             Object rates = this.safeDict(ratesData, "rates", new java.util.HashMap<String, Object>() {{}});
-            Object ratesIds = Helpers.objectKeys(rates);
+            java.util.List<String> ratesIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(rates);
             java.util.List<Object> currencies = (java.util.List<Object>) this.arrayConcat(fiatData, cryptoData);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
@@ -2525,7 +2525,7 @@ public class CoinbaseCore extends CoinbaseApi
             Object rates = this.safeDict(data, "rates", new java.util.HashMap<String, Object>() {{}});
             String quoteId = this.safeString(data, "currency");
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object baseIds = Helpers.objectKeys(rates);
+            java.util.List<String> baseIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(rates);
             String delimiter = "-";
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(baseIds)); i++)
             {

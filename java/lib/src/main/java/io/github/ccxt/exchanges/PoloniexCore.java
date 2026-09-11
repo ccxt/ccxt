@@ -3288,7 +3288,7 @@ public class PoloniexCore extends PoloniexApi
             //         "USDTTRON" : "Txxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxp"
             //     }
             //
-            Object keys = Helpers.objectKeys(response);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
             Object length = Helpers.getArrayLength(keys);
             if (Helpers.isTrue(Helpers.isLessThan(length, 1)))
             {
@@ -3695,7 +3695,7 @@ public class PoloniexCore extends PoloniexApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(entries)); i++)
             {
                 Object entry = Helpers.GetValue(entries, i);
-                Object currencies = Helpers.objectKeys(entry);
+                java.util.List<String> currencies = (java.util.List<String>)(java.util.List) Helpers.objectKeys(entry);
                 String currencyId = this.safeString(currencies, 0);
                 Helpers.addElementToObject(data, ((String)currencyId), Helpers.GetValue(entry, ((String)currencyId)));
             }
@@ -3731,7 +3731,7 @@ public class PoloniexCore extends PoloniexApi
         Object currencyIdKey = Helpers.getArg(optionalArgs, 1, null);
         java.util.Map<String, Object> depositWithdrawFees = new java.util.HashMap<String, Object>() {{}};
         codes = this.marketCodes(codes);
-        Object responseKeys = Helpers.objectKeys(response);
+        java.util.List<String> responseKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(responseKeys)); i++)
         {
             Object currencyId = Helpers.GetValue(responseKeys, i);

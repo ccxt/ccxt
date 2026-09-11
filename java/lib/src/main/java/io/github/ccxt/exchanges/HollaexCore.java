@@ -424,7 +424,7 @@ public class HollaexCore extends HollaexApi
             //     }
             //
             Object pairs = this.safeDict(response, "pairs", new java.util.HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(pairs);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(pairs);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
@@ -587,7 +587,7 @@ public class HollaexCore extends HollaexApi
         String type = ((Helpers.isTrue((Helpers.isEqual(rawType, "blockchain"))))) ? "crypto" : "other";
         Object rawNetworks = this.safeDict(rawCurrency, "withdrawal_fees", new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
-        Object networkIds = Helpers.objectKeys(rawNetworks);
+        java.util.List<String> networkIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(rawNetworks);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
         {
             Object networkId = Helpers.GetValue(networkIds, j);
@@ -664,7 +664,7 @@ public class HollaexCore extends HollaexApi
             }
             java.util.Map<String, Object> response = (this.publicGetOrderbooks(parameters)).join();
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object marketIds = Helpers.objectKeys(response);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -817,7 +817,7 @@ public class HollaexCore extends HollaexApi
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-        Object keys = Helpers.objectKeys(tickers);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(tickers);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -1174,7 +1174,7 @@ public class HollaexCore extends HollaexApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " currencies not loaded")) ;
         }
-        Object currencyIds = Helpers.objectKeys(currenciesById);
+        java.util.List<String> currencyIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(currenciesById);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -2327,7 +2327,7 @@ public class HollaexCore extends HollaexApi
         Object withdrawalFees = this.safeValue(fee, "withdrawal_fees");
         if (Helpers.isTrue(!Helpers.isEqual(withdrawalFees, null)))
         {
-            Object keys = Helpers.objectKeys(withdrawalFees);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(withdrawalFees);
             Object keysLength = Helpers.getArrayLength(keys);
             for (var i = 0; Helpers.isLessThan(i, keysLength); i++)
             {

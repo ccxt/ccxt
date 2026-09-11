@@ -893,7 +893,7 @@ public class BitfinexCore extends BitfinexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object labels = new java.util.ArrayList<Object>(java.util.Arrays.asList("pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"));
+            java.util.List<String> labels = new java.util.ArrayList<String>(java.util.Arrays.asList("pub:info:pair", "pub:info:pair:futures", "pub:list:pair:securities", "pub:list:pair:margin"));
             Object config = String.join((String)",", (java.util.List<String>)labels);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "config", config );
@@ -1031,7 +1031,7 @@ public class BitfinexCore extends BitfinexApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object labels = new java.util.ArrayList<Object>(java.util.Arrays.asList("pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"));
+            java.util.List<String> labels = new java.util.ArrayList<String>(java.util.Arrays.asList("pub:list:currency", "pub:map:currency:sym", "pub:map:currency:label", "pub:map:currency:unit", "pub:map:currency:undl", "pub:map:currency:pool", "pub:map:currency:explorer", "pub:map:currency:tx:fee", "pub:map:tx:method", "pub:info:tx:status", "pub:list:currency:margin"));
             Object config = String.join((String)",", (java.util.List<String>)labels);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "config", config );
@@ -1278,7 +1278,7 @@ public class BitfinexCore extends BitfinexApi
             String accountType = this.safeString(accountsByType, requestedType, requestedType);
             if (Helpers.isTrue(Helpers.isEqual(accountType, null)))
             {
-                Object keys = Helpers.objectKeys(accountsByType);
+                java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(accountsByType);
                 throw new ExchangeError((String)Helpers.add(Helpers.add(this.id, " fetchBalance() type parameter must be one of "), String.join((String)", ", (java.util.List<String>)keys))) ;
             }
             Boolean isDerivative = Helpers.isEqual(requestedType, "derivatives");

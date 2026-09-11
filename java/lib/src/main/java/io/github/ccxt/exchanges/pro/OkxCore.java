@@ -2592,7 +2592,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         }
         Object messageHash = Helpers.add(channel, "::myTrades");
         client.resolve(this.myTrades, messageHash);
-        Object tradeSymbols = Helpers.objectKeys(symbols);
+        java.util.List<String> tradeSymbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tradeSymbols)); i++)
         {
             Object symbolMessageHash = Helpers.add(Helpers.add(messageHash, "::"), Helpers.GetValue(tradeSymbols, i));

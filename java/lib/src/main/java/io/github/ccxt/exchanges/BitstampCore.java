@@ -1669,7 +1669,7 @@ public class BitstampCore extends BitstampApi
             return currencyId;
         }
         transaction = this.omit(transaction, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee", "price", "datetime", "type", "status", "id")));
-        Object ids = Helpers.objectKeys(transaction);
+        java.util.List<String> ids = (java.util.List<String>)(java.util.List) Helpers.objectKeys(transaction);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
         {
             Object id = Helpers.GetValue(ids, i);
@@ -1688,7 +1688,7 @@ public class BitstampCore extends BitstampApi
     public Object getMarketFromTrade(Object trade)
     {
         trade = this.omit(trade, new java.util.ArrayList<Object>(java.util.Arrays.asList("fee", "price", "datetime", "tid", "type", "order_id", "side")));
-        Object currencyIds = Helpers.objectKeys(trade);
+        java.util.List<String> currencyIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(trade);
         Object numCurrencyIds = Helpers.getArrayLength(currencyIds);
         if (Helpers.isTrue(Helpers.isGreaterThan(numCurrencyIds, 2)))
         {
@@ -1763,7 +1763,7 @@ public class BitstampCore extends BitstampApi
         Object rawMarketId = null;
         if (Helpers.isTrue(Helpers.isEqual(market, null)))
         {
-            Object keys = Helpers.objectKeys(trade);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(trade);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object currentKey = Helpers.GetValue(keys, i);
@@ -2252,7 +2252,7 @@ public class BitstampCore extends BitstampApi
         Object codes = Helpers.getArg(optionalArgs, 0, null);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         java.util.Map<String, Object> currencies = this.indexBy(response, "currency");
-        Object ids = Helpers.objectKeys(currencies);
+        java.util.List<String> ids = (java.util.List<String>)(java.util.List) Helpers.objectKeys(currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
         {
             Object id = Helpers.GetValue(ids, i);
@@ -3248,7 +3248,7 @@ public class BitstampCore extends BitstampApi
         {
             Object parsedTrade = this.parseTrade(item);
             Object market = null;
-            Object keys = Helpers.objectKeys(item);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(item);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(Helpers.GetValue(keys, i), "_"), 0)))
@@ -3790,7 +3790,7 @@ public class BitstampCore extends BitstampApi
                 ((java.util.List<Object>)errors).add(error);
             } else if (Helpers.isTrue(!Helpers.isEqual(error, null)))
             {
-                Object keys = Helpers.objectKeys(error);
+                java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(error);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
                 {
                     Object key = Helpers.GetValue(keys, i);

@@ -101,7 +101,7 @@ public class TestSharedMethods extends BaseTest {
         } else
         {
             Assert(exchange.isDictionary(entry), Helpers.add("entry is not a dict", logText));
-            Object keys = Helpers.objectKeys(format);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(format);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -470,7 +470,7 @@ public class TestSharedMethods extends BaseTest {
             // TICK_SIZE should be above zero
             AssertGreater(exchange, skippedProperties, method, entry, key, "0");
             // the below array of integers are inexistent tick-sizes (theoretically technically possible, but not in real-world cases), so in our case, such values probably indicate an incorrectly implemented tick-sizes calculation, so we throw new RuntimeException(e)rror
-            java.util.List<Object> decimalNumbers = new java.util.ArrayList<Object>(java.util.Arrays.asList("2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"));
+            java.util.List<String> decimalNumbers = new java.util.ArrayList<String>(java.util.Arrays.asList("2", "3", "4", "5", "6", "7", "8", "9", "11", "12", "13", "14", "15", "16"));
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(key, "amount")) && Helpers.isTrue(Helpers.inOp(skippedProperties, "precisionAmountAbnormal"))))
             {
                 return;
@@ -546,7 +546,7 @@ public class TestSharedMethods extends BaseTest {
         // set 'since' to 5 minute ago for optimal results
         Object sinceTime = Helpers.subtract(exchange.milliseconds(), Helpers.multiply(Helpers.multiply(1000, 60), 5));
         // iterate
-        java.util.List<Object> methods_singular = new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"));
+        java.util.List<String> methods_singular = new java.util.ArrayList<String>(java.util.Arrays.asList("fetchOrder", "fetchOpenOrder", "fetchClosedOrder", "fetchCanceledOrder"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methods_singular)); i++)
         {
             String singularFetchName = (String) Helpers.GetValue(methods_singular, i);
@@ -565,7 +565,7 @@ public class TestSharedMethods extends BaseTest {
         // search through plural methods
         if (Helpers.isTrue(Helpers.isEqual(fetchedOrder, null)))
         {
-            java.util.List<Object> methods_plural = new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"));
+            java.util.List<String> methods_plural = new java.util.ArrayList<String>(java.util.Arrays.asList("fetchOrders", "fetchOpenOrders", "fetchClosedOrders", "fetchCanceledOrders"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methods_plural)); i++)
             {
                 String pluralFetchName = (String) Helpers.GetValue(methods_plural, i);

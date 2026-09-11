@@ -769,7 +769,7 @@ public class BitrueCore extends BitrueApi
             //
             //     {}
             //
-            Object keys = Helpers.objectKeys(response);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
             Object keysLength = Helpers.getArrayLength(keys);
             String formattedStatus = ((Helpers.isTrue((Helpers.isGreaterThan(keysLength, 0))))) ? "maintenance" : "ok";
             return new java.util.HashMap<String, Object>() {{
@@ -947,7 +947,7 @@ public class BitrueCore extends BitrueApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object types = null;
-            java.util.List<Object> defaultTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse"));
+            java.util.List<String> defaultTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "linear", "inverse"));
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOptions, null)))
             {
@@ -3778,7 +3778,7 @@ public class BitrueCore extends BitrueApi
                 Object signMessage = Helpers.add(Helpers.add(timestamp, method), signPath);
                 if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
                 {
-                    Object keys = Helpers.objectKeys(parameters);
+                    java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(parameters);
                     Object keysLength = Helpers.getArrayLength(keys);
                     if (Helpers.isTrue(Helpers.isGreaterThan(keysLength, 0)))
                     {

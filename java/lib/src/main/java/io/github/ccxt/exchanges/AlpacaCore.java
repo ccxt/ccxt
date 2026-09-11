@@ -1295,7 +1295,7 @@ public class AlpacaCore extends AlpacaApi
             //
             java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object snapshots = this.safeDict(response, "snapshots", new java.util.HashMap<String, Object>() {{}});
-            Object marketIds = Helpers.objectKeys(snapshots);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(snapshots);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);

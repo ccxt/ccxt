@@ -517,7 +517,7 @@ public class ExtendedCore extends ExtendedApi
         {
             return null;
         }
-        Object keys = Helpers.objectKeys(input);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(input);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -4266,7 +4266,7 @@ public class ExtendedCore extends ExtendedApi
         {
             decimalString = ((String)this.numberToString(value));
         }
-        java.util.List<Object> hexChars = new java.util.ArrayList<Object>(java.util.Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"));
+        java.util.List<String> hexChars = new java.util.ArrayList<String>(java.util.Arrays.asList("0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "a", "b", "c", "d", "e", "f"));
         Object result = "";
         while (Precise.stringGt(decimalString, "0"))
         {

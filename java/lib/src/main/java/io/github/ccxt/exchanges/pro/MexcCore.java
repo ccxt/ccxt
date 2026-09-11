@@ -2256,7 +2256,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(symbol, "unsubscribe"), 0)))
                 {
                     // unWatchTickers
-                    Object symbols = Helpers.objectKeys(this.tickers);
+                    java.util.List<String> symbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.tickers);
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(symbols)); j++)
                     {
                         ((java.util.Map<String,Object>)this.tickers).remove((String)Helpers.GetValue(symbols, j));

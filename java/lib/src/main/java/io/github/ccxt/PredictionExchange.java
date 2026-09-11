@@ -457,7 +457,7 @@ public Object describe()
         }
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
-        Object keys = Helpers.objectKeys(this.events);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.events);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object eventVar = Helpers.GetValue(this.events, Helpers.GetValue(keys, i));
@@ -627,7 +627,7 @@ public Object describe()
             put( "trillion", "T" );
             put( "percent", "pct" );
         }};
-        java.util.List<Object> stopWords = new java.util.ArrayList<Object>(java.util.Arrays.asList("will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"));
+        java.util.List<String> stopWords = new java.util.ArrayList<String>(java.util.Arrays.asList("will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"));
         Object lower = ((Helpers.isTrue((Helpers.isEqual(slug, null))))) ? "" : ((String)slug).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
@@ -646,7 +646,7 @@ public Object describe()
                 lastDash = true;
             }
         }
-        Object replacementKeys = Helpers.objectKeys(replacements);
+        java.util.List<String> replacementKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(replacements);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(replacementKeys)); i++)
         {
             Object replacementKey = Helpers.GetValue(replacementKeys, i);
@@ -750,7 +750,7 @@ public Object describe()
         // strip the alias back off the stored rows — venues assemble user-visible event
         // structures from this.markets (hyperliquid groups its outcome markets that way),
         // so a leftover 'symbol' key would leak the deprecated field back to the caller
-        Object marketKeys = Helpers.objectKeys(stored);
+        java.util.List<String> marketKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(stored);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
         {
             Object key = Helpers.GetValue(marketKeys, i);
@@ -833,7 +833,7 @@ public Object describe()
         {
             return;
         }
-        Object marketKeys = Helpers.objectKeys(this.markets);
+        java.util.List<String> marketKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
         {
             this.indexMarketOutcomes(Helpers.GetValue(this.markets, Helpers.GetValue(marketKeys, i)));

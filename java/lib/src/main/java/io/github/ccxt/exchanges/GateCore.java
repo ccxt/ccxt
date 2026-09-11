@@ -3581,7 +3581,7 @@ public class GateCore extends GateApi
                     withdrawFees = this.safeNumber(entry, "withdraw_fix");
                 } else
                 {
-                    Object networkIds = Helpers.objectKeys(withdrawFixOnChains);
+                    java.util.List<String> networkIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(withdrawFixOnChains);
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
                     {
                         Object networkId = Helpers.GetValue(networkIds, j);
@@ -3684,7 +3684,7 @@ public class GateCore extends GateApi
         }};
         if (Helpers.isTrue(!Helpers.isEqual(withdrawFixOnChains, null)))
         {
-            Object chainKeys = Helpers.objectKeys(withdrawFixOnChains);
+            java.util.List<String> chainKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(withdrawFixOnChains);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(chainKeys)); i++)
             {
                 Object chainKey = Helpers.GetValue(chainKeys, i);
@@ -4535,7 +4535,7 @@ public class GateCore extends GateApi
                 Object balances = this.safeValue(data, "balances", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 // inject currency and create an artificial balance object
                 // so it can follow the existent flow
-                Object keys = Helpers.objectKeys(balances);
+                java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(balances);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
                 {
                     Object currencyId = Helpers.GetValue(keys, i);

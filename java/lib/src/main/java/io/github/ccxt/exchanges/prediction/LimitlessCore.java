@@ -457,7 +457,7 @@ public class LimitlessCore extends LimitlessApi
                 }
             }
             java.util.Map<String, Object> eventsDict = new java.util.HashMap<String, Object>() {{}};
-            Object eventKeys = Helpers.objectKeys(eventGroups);
+            java.util.List<String> eventKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(eventGroups);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(eventKeys)); i++)
             {
                 Object eventKey = Helpers.GetValue(eventKeys, i);
@@ -584,7 +584,7 @@ public class LimitlessCore extends LimitlessApi
             put( "price", 0.001 );
         }};
         java.util.List<Object> outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object tokenEntries = Helpers.objectKeys(tokens);
+        java.util.List<String> tokenEntries = (java.util.List<String>)(java.util.List) Helpers.objectKeys(tokens);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tokenEntries)); i++)
         {
             Object outcomeLabel = Helpers.GetValue(tokenEntries, i);
@@ -3352,7 +3352,7 @@ public class LimitlessCore extends LimitlessApi
             //
             Object clob = this.safeList(response, "clob", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> labels = new java.util.ArrayList<Object>(java.util.Arrays.asList("yes", "no"));
+            java.util.List<String> labels = new java.util.ArrayList<String>(java.util.Arrays.asList("yes", "no"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clob)); i++)
             {
                 Object entry = this.safeDict(clob, i);
@@ -3586,7 +3586,7 @@ public class LimitlessCore extends LimitlessApi
                 }
             }
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object eventKeys = Helpers.objectKeys(eventGroups);
+            java.util.List<String> eventKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(eventGroups);
             Object eventKeysLength = Helpers.getArrayLength(eventKeys);
             for (var i = 0; Helpers.isLessThan(i, eventKeysLength); i++)
             {

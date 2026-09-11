@@ -1720,7 +1720,7 @@ final Object finalClobTokenId = clobTokenId;
             Object parameters = Helpers.getArg(optionalArgs, 3, new java.util.HashMap<String, Object>() {{}});
             if (!Helpers.isTrue((Helpers.inOp(this.timeframes, timeframe))))
             {
-                Object supportedKeys = Helpers.objectKeys(this.timeframes);
+                java.util.List<String> supportedKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.timeframes);
                 throw new BadRequest((String)Helpers.add(Helpers.add(Helpers.add(Helpers.add(this.id, " fetchOHLCV() unsupported timeframe "), timeframe), ", supported timeframes are "), String.join((String)", ", (java.util.List<String>)supportedKeys))) ;
             }
             Object outcomeObj = (this.loadOutcome(outcome)).join();
@@ -1815,7 +1815,7 @@ final Object finalClobTokenId = clobTokenId;
                     Helpers.addElementToObject(buckets, bucketKey, candle); // reassign after mutation, php arrays are value types
                 }
             }
-            Object bucketKeys = Helpers.objectKeys(buckets);
+            java.util.List<String> bucketKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(buckets);
             java.util.List<Object> unsortedCandles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bucketKeys)); i++)
             {
@@ -3986,7 +3986,7 @@ final Object finalOutcome = outcome;
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
             Helpers.addElementToObject(updated, outcome, true);
         }
-        Object updatedSymbols = Helpers.objectKeys(updated);
+        java.util.List<String> updatedSymbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(updated);
         for (var k = 0; Helpers.isLessThan(k, Helpers.getArrayLength(updatedSymbols)); k++)
         {
             Object outcome = Helpers.GetValue(updatedSymbols, k);

@@ -1390,7 +1390,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
             Helpers.addElementToObject(marketIds, symbol, timeframe);
         }
-        Object keys = Helpers.objectKeys(marketIds);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(marketIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);
@@ -1519,7 +1519,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 Helpers.addElementToObject(marketIds, symbol, true);
             }
         }
-        Object keys = Helpers.objectKeys(marketIds);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(marketIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object market = Helpers.GetValue(keys, i);
@@ -2082,7 +2082,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
                 Helpers.addElementToObject(marketIds, Helpers.GetValue(market, "id"), true);
             }
         }
-        Object keys = Helpers.objectKeys(marketIds);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(marketIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object messageHash = Helpers.add(Helpers.add(hashPrefix, ":"), Helpers.GetValue(keys, i));
@@ -2466,7 +2466,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
         // }
         //
         Object id = this.safeString(message, "id");
-        Object keys = Helpers.objectKeys(client.subscriptions);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object messageHash = Helpers.GetValue(keys, i);
@@ -2699,7 +2699,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             put( "delivery", "future" );
             put( "fx", "swap" );
         }};
-        Object keys = Helpers.objectKeys(findBy);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(findBy);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

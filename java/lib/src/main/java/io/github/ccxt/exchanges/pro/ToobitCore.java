@@ -1518,7 +1518,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             {
                 Object url = this.getUserStreamUrl();
                 Client client = this.client(url);
-                Object messageHashes = Helpers.objectKeys(client.futures);
+                java.util.List<String> messageHashes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.futures);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
                 {
                     Object messageHash = Helpers.GetValue(messageHashes, i);

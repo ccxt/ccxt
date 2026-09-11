@@ -788,7 +788,7 @@ public class HyperliquidCore extends HyperliquidApi
             Object mids = this.safeDict(allMids, "mids", allMids);
             java.util.Map<String, Object> tickers = new java.util.HashMap<String, Object>() {{}};
             Object outcomesMap = ((Helpers.isTrue((!Helpers.isEqual(this.outcomes, null))))) ? this.outcomes : new java.util.HashMap<String, Object>() {{}};
-            Object outcomeHandles = Helpers.objectKeys(outcomesMap);
+            java.util.List<String> outcomeHandles = (java.util.List<String>)(java.util.List) Helpers.objectKeys(outcomesMap);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomeHandles)); i++)
             {
                 Object outcomeHandle = Helpers.GetValue(outcomeHandles, i);
@@ -2371,7 +2371,7 @@ public class HyperliquidCore extends HyperliquidApi
                 }
             }
             java.util.List<Object> events = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object groupKeys = Helpers.objectKeys(groupMap);
+            java.util.List<String> groupKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(groupMap);
             for (var gi = 0; Helpers.isLessThan(gi, Helpers.getArrayLength(groupKeys)); gi++)
             {
                 Object key = Helpers.GetValue(groupKeys, gi);

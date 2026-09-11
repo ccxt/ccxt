@@ -602,7 +602,7 @@ public class BitstampCore extends io.github.ccxt.exchanges.Bitstamp
             put( "diff_order_book", "handleOrderBook");
             put( "private-my_orders", "handleOrders");
         }};
-        Object keys = Helpers.objectKeys(methods);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(methods);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

@@ -4687,7 +4687,7 @@ public class OkxCore extends OkxApi
                 }
                 attachAlgoOrd = this.extend(attachAlgoOrd, tpOrder);
             }
-            Object attachOrdKeys = Helpers.objectKeys(attachAlgoOrd);
+            java.util.List<String> attachOrdKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(attachAlgoOrd);
             Object attachOrdLen = Helpers.getArrayLength(attachOrdKeys);
             if (Helpers.isTrue(Helpers.isGreaterThan(attachOrdLen, 0)))
             {
@@ -7115,7 +7115,7 @@ public class OkxCore extends OkxApi
                 return Helpers.GetValue(response, codeNetwork);
             }
             // if the network is not specified, return the first address
-            Object keys = Helpers.objectKeys(response);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
             String first = this.safeString(keys, 0, "");
             return this.safeDict(response, first);
         });
@@ -9273,7 +9273,7 @@ public class OkxCore extends OkxApi
                 ((java.util.List<Object>)borrrowRateCode).add(borrowRateStructure);
             }
         }
-        Object keys = Helpers.objectKeys(borrowRateHistories);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(borrowRateHistories);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object code = Helpers.GetValue(keys, i);
@@ -10378,7 +10378,7 @@ public class OkxCore extends OkxApi
                 }
             }
         }
-        Object depositWithdrawCodes = Helpers.objectKeys(depositWithdrawFees);
+        java.util.List<String> depositWithdrawCodes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(depositWithdrawFees);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(depositWithdrawCodes)); i++)
         {
             Object code = Helpers.GetValue(depositWithdrawCodes, i);

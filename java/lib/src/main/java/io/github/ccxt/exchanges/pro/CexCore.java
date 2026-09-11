@@ -124,7 +124,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", data );
         }};
-        Object currencyIds = Helpers.objectKeys(freeBalance);
+        java.util.List<String> currencyIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(freeBalance);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -179,7 +179,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Client client = (Client)this.safeValue(this.clients, url);
             if (Helpers.isTrue(!Helpers.isEqual(client, null)))
             {
-                Object subscriptionKeys = Helpers.objectKeys(client.subscriptions);
+                java.util.List<String> subscriptionKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.subscriptions);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subscriptionKeys)); i++)
                 {
                     Object subscriptionKey = Helpers.GetValue(subscriptionKeys, i);

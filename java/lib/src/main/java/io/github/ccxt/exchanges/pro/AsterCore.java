@@ -1659,7 +1659,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), type), "/"), listenKey);
                 Client client = this.client(url);
-                Object messageHashes = Helpers.objectKeys(client.futures);
+                java.util.List<String> messageHashes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.futures);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
                 {
                     Object messageHash = Helpers.GetValue(messageHashes, i);

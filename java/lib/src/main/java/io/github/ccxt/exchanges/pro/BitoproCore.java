@@ -555,7 +555,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
         Object data = this.safeValue(message, "data");
         Long timestamp = this.safeInteger(message, "timestamp");
         Object datetime = this.safeString(message, "datetime");
-        Object currencies = Helpers.objectKeys(data);
+        java.util.List<String> currencies = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", data );
             put( "timestamp", timestamp );

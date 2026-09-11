@@ -4385,7 +4385,7 @@ public class PacificaCore extends PacificaApi
         if (Helpers.isTrue(this.isDictionary(value)))
         {
             Object result = new java.util.HashMap<String, Object>() {{}};
-            Object keys = Helpers.objectKeys(value);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(value);
             Object sortedKeys = this.sort(keys);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sortedKeys)); i++)
             {

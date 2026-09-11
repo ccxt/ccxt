@@ -356,7 +356,7 @@ public class Bit2cCore extends Bit2cApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object codes = Helpers.objectKeys(this.currencies);
+        java.util.List<String> codes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -667,7 +667,7 @@ public class Bit2cCore extends Bit2cApi
             //     }
             //
             Object fees = this.safeDict(response, "Fees", new java.util.HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(fees);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(fees);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {

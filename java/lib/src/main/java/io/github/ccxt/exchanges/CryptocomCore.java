@@ -2797,7 +2797,7 @@ public class CryptocomCore extends CryptocomApi
             {
                 return Helpers.GetValue(depositAddresses, ((String)network));
             }
-            Object keys = Helpers.objectKeys(depositAddresses);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(depositAddresses);
             return Helpers.GetValue(depositAddresses, Helpers.GetValue(keys, 0));
         });
 
@@ -4257,7 +4257,7 @@ public class CryptocomCore extends CryptocomApi
             paramsKeys = obj;
         } else
         {
-            Object objectKeys = Helpers.objectKeys(obj);
+            java.util.List<String> objectKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(obj);
             paramsKeys = this.sort(objectKeys);
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(paramsKeys))); i++)
@@ -4503,7 +4503,7 @@ public class CryptocomCore extends CryptocomApi
             this.checkRequiredCredentials();
             Object nonce = String.valueOf(this.nonce());
             java.util.Map<String, Object> requestParams = this.extend(new java.util.HashMap<String, Object>() {{}}, parameters);
-            Object paramsKeys = Helpers.objectKeys(requestParams);
+            java.util.List<String> paramsKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(requestParams);
             Object strSortKey = this.paramsToString(requestParams, 0);
             Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(path, nonce), this.apiKey), strSortKey), nonce);
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());

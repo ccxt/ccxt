@@ -281,7 +281,7 @@ public class BtcboxCore extends BtcboxApi
             var response2 = ((java.util.List<Object>) response1response2Variable).get(1);
             //
             Object result2Data = this.safeDict(response2, "data", new java.util.HashMap<String, Object>() {{}});
-            Object marketIds = Helpers.objectKeys(response1);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response1);
             java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
@@ -421,7 +421,7 @@ public class BtcboxCore extends BtcboxApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object codes = Helpers.objectKeys(this.currencies);
+        java.util.List<String> codes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);

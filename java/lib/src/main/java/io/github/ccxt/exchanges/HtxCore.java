@@ -2486,7 +2486,7 @@ public class HtxCore extends HtxApi
             parameters = ((java.util.List<Object>) typesparametersVariable).get(1);
             Object allMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object keys = Helpers.objectKeys(types);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(types);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -4537,7 +4537,7 @@ public class HtxCore extends HtxApi
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         Object networkId = Helpers.getArg(optionalArgs, 0, null);
         Object currencyCode = Helpers.getArg(optionalArgs, 1, null);
-        Object keys = Helpers.objectKeys(Helpers.GetValue(this.options, "networkNamesByChainIds"));
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(Helpers.GetValue(this.options, "networkNamesByChainIds"));
         Object keysLength = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(Helpers.isEqual(keysLength, 0)))
         {
@@ -4558,7 +4558,7 @@ public class HtxCore extends HtxApi
         {
             return super.networkCodeToId(networkCode);
         }
-        Object keys = Helpers.objectKeys(Helpers.GetValue(this.options, "networkChainIdsByNames"));
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(Helpers.GetValue(this.options, "networkChainIdsByNames"));
         Object keysLength = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(Helpers.isEqual(keysLength, 0)))
         {
@@ -4851,7 +4851,7 @@ public class HtxCore extends HtxApi
                                 Helpers.addElementToObject(subResult, code, this.parseMarginBalanceHelper(balance, code, subResult));
                             }
                         }
-                        Object subCodes = Helpers.objectKeys(subResult);
+                        java.util.List<String> subCodes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(subResult);
                         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subCodes)); j++)
                         {
                             Object subCode = Helpers.GetValue(subCodes, j);

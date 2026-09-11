@@ -638,12 +638,12 @@ public class LunoCore extends LunoApi
                 // rates below are read from Luno's own Help Centre fee article for the ZAR
                 // market; markets quoted in other fiat currencies are left on the
                 // exchange-wide default until their schedules are verified the same way.
-                java.util.List<Object> fiats = new java.util.ArrayList<Object>(java.util.Arrays.asList("ZAR"));
+                java.util.List<String> fiats = new java.util.ArrayList<String>(java.util.Arrays.asList("ZAR"));
                 // live-but-unverified counters, kept on the exchange-wide default; the market
                 // list is geo-filtered so this is a superset of any one region's view, and
                 // ZARU is Luno's tokenized rand ("ZAR Universal"), not fiat, but equally unverified
-                java.util.List<Object> unverifiedQuotes = new java.util.ArrayList<Object>(java.util.Arrays.asList("MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"));
-                java.util.List<Object> stablecoins = new java.util.ArrayList<Object>(java.util.Arrays.asList("USDT", "USDC"));
+                java.util.List<String> unverifiedQuotes = new java.util.ArrayList<String>(java.util.Arrays.asList("MYR", "NGN", "IDR", "KES", "UGX", "AUD", "GBP", "EUR", "USD", "ZARU"));
+                java.util.List<String> stablecoins = new java.util.ArrayList<String>(java.util.Arrays.asList("USDT", "USDC"));
                 Object taker = null;
                 Object maker = null;
                 if (Helpers.isTrue(this.inArray(quote, fiats)))
@@ -1163,7 +1163,7 @@ public class LunoCore extends LunoApi
             java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             Object rawTickers = this.safeList(response, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> tickers = this.indexBy(rawTickers, "pair");
-            Object ids = Helpers.objectKeys(tickers);
+            java.util.List<String> ids = (java.util.List<String>)(java.util.List) Helpers.objectKeys(tickers);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {

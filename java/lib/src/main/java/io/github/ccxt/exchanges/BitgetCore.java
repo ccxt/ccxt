@@ -3735,7 +3735,7 @@ public class BitgetCore extends BitgetApi
 
             Object types = null;
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
-            java.util.List<Object> defaultMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap"));
+            java.util.List<String> defaultMarkets = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "swap"));
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOptions, null)))
             {
                 types = this.safeList(fetchMarketsOptions, "types", defaultMarkets);
@@ -3751,7 +3751,7 @@ public class BitgetCore extends BitgetApi
                 Object type = Helpers.GetValue(types, i);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(type, "swap"))) || Helpers.isTrue((Helpers.isEqual(type, "future")))))
                 {
-                    java.util.List<Object> subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
+                    java.util.List<String> subTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES", "SUSDT-FUTURES", "SCOIN-FUTURES", "SUSDC-FUTURES"));
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subTypes)); j++)
                     {
     final Object finalJ = j;
@@ -4056,7 +4056,7 @@ public class BitgetCore extends BitgetApi
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            java.util.List<Object> subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"));
+            java.util.List<String> subTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("SPOT", "USDT-FUTURES", "COIN-FUTURES", "USDC-FUTURES"));
             java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subTypes)); i++)
             {
@@ -14598,7 +14598,7 @@ final Object finalMinNotional = minNotional;
         Object query = this.omit(parameters, this.extractParams(path));
         if (Helpers.isTrue(!Helpers.isTrue(signed) && Helpers.isTrue((Helpers.isEqual(method, "GET")))))
         {
-            Object keys = Helpers.objectKeys(query);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(query);
             Object keysLength = Helpers.getArrayLength(keys);
             if (Helpers.isTrue(Helpers.isGreaterThan(keysLength, 0)))
             {

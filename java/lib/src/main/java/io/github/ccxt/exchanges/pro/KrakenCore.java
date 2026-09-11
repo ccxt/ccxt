@@ -1170,7 +1170,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             Object depth = Helpers.getArrayLength(a);
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, depth));
             orderbook = Helpers.GetValue(this.orderbooks, symbol);
-            java.util.List<Object> keys = new java.util.ArrayList<Object>(java.util.Arrays.asList("asks", "bids"));
+            java.util.List<String> keys = new java.util.ArrayList<String>(java.util.Arrays.asList("asks", "bids"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 String key = (String) Helpers.GetValue(keys, i);
@@ -1482,7 +1482,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             }
             String name = "myTrades";
             client.resolve(this.myTrades, name);
-            Object keys = Helpers.objectKeys(symbols);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(keys, i));
@@ -1655,7 +1655,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
             }
             String name = "orders";
             client.resolve(this.orders, name);
-            Object keys = Helpers.objectKeys(symbols);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object messageHash = Helpers.add(Helpers.add(name, ":"), Helpers.GetValue(keys, i));

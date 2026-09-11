@@ -459,7 +459,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
                 Helpers.callDynamically(this, exacMethod, new Object[] {client, message});
                 return;
             }
-            Object keys = Helpers.objectKeys(methods);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(methods);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);

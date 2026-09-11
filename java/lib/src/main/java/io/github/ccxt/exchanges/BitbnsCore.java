@@ -640,7 +640,7 @@ public class BitbnsCore extends BitbnsApi
             put( "datetime", BitbnsCore.this.iso8601(timestamp) );
         }};
         Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(data);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

@@ -143,7 +143,7 @@ public class TestMain extends BaseTest
     {
         if (Helpers.isTrue(!Helpers.isEqual(methodArgv, null)))
         {
-            Object testFileNames = Helpers.objectKeys(this.testFiles);
+            java.util.List<String> testFileNames = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.testFiles);
             Object possibleMethodNames = Helpers.split(methodArgv, ","); // i.e. `test.ts binance fetchBalance,fetchDeposits`
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getArrayLength(possibleMethodNames), 1)))
             {
@@ -188,7 +188,7 @@ public class TestMain extends BaseTest
     {
         Object exchangeId = exchange.id;
         Object reqCreds = getExchangeProp(exchange, Helpers.add("re", "quiredCredentials")); // dont glue the r-e-q-u-i-r-e phrase, because leads to messed up transpilation
-        Object objkeys = Helpers.objectKeys(reqCreds);
+        java.util.List<String> objkeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(reqCreds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(objkeys)); i++)
         {
             Object credential = Helpers.GetValue(objkeys, i);
@@ -228,7 +228,7 @@ public class TestMain extends BaseTest
         Object exchangeSettings = exchange.safeValue(allSettings, exchangeId, new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(!Helpers.isEqual(exchangeSettings, null)))
         {
-            Object settingKeys = Helpers.objectKeys(exchangeSettings);
+            java.util.List<String> settingKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(exchangeSettings);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settingKeys)); i++)
             {
                 Object key = Helpers.GetValue(settingKeys, i);
@@ -402,7 +402,7 @@ public class TestMain extends BaseTest
             put( "depositWithdraw", new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchDepositsWithdrawals", "fetchDeposits", "fetchWithdrawals")) );
             put( "depositWithdrawFee", new java.util.ArrayList<Object>(java.util.Arrays.asList("fetchDepositWithdrawFee", "fetchDepositWithdrawFees")) );
         }};
-        Object objectNames = Helpers.objectKeys(objectSkips);
+        java.util.List<String> objectNames = (java.util.List<String>)(java.util.List) Helpers.objectKeys(objectSkips);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(objectNames)); i++)
         {
             Object objectName = Helpers.GetValue(objectNames, i);
@@ -633,7 +633,7 @@ public class TestMain extends BaseTest
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            Object testNames = Helpers.objectKeys(tests);
+            java.util.List<String> testNames = (java.util.List<String>)(java.util.List) Helpers.objectKeys(tests);
             java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(testNames)); i++)
             {
@@ -739,7 +739,7 @@ public class TestMain extends BaseTest
         Object spot = Helpers.getArg(optionalArgs, 0, true);
         java.util.Map<String, Object> res = new java.util.HashMap<String, Object>() {{}};
         Object markets = exchange.markets;
-        Object keys = Helpers.objectKeys(markets);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(markets);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -759,7 +759,7 @@ public class TestMain extends BaseTest
     {
         Object spot = Helpers.getArg(optionalArgs, 0, true);
         Object currentTypeMarkets = this.getMarketsFromExchange(exchange, spot);
-        java.util.List<Object> codes = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"));
+        java.util.List<String> codes = new java.util.ArrayList<String>(java.util.Arrays.asList("BTC", "ETH", "XRP", "LTC", "BNB", "DASH", "DOGE", "ETC", "TRX", "USDT", "USDC", "USD", "GUSD", "EUR", "TUSD", "CNY", "JPY", "BRL"));
         java.util.List<Object> spotSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC/USDT", "BTC/USDC", "BTC/USD", "BTC/CNY", "BTC/EUR", "BTC/AUD", "BTC/BRL", "BTC/JPY", "ETH/USDT", "ETH/USDC", "ETH/USD", "ETH/CNY", "ETH/EUR", "ETH/AUD", "ETH/BRL", "ETH/JPY", "EUR/USDT", "EUR/USD", "EUR/USDC", "USDT/EUR", "USD/EUR", "USDC/EUR", "BTC/ETH", "ETH/BTC"));
         java.util.List<Object> swapSymbols = new java.util.ArrayList<Object>(java.util.Arrays.asList("BTC/USDT:USDT", "BTC/USD:USDT", "BTC/USDC:USDC", "BTC/USD:USDC", "BTC/USD:USD", "ETH/USDT:USDT", "ETH/USD:USDT", "ETH/USDC:USDC", "ETH/USD:USDC", "ETH/USD:USD", "BTC/USD:BTC", "ETH/USD:ETH"));
         java.util.List<Object> targetSymbols = ((Helpers.isTrue(spot))) ? spotSymbols : swapSymbols;
@@ -772,7 +772,7 @@ public class TestMain extends BaseTest
                 String currentCode = (String) Helpers.GetValue(codes, i);
                 Object marketsArrayForCurrentCode = exchange.filterBy(currentTypeMarkets, "base", currentCode);
                 Object indexedMkts = exchange.indexBy(marketsArrayForCurrentCode, "symbol");
-                Object symbolsArrayForCurrentCode = Helpers.objectKeys(indexedMkts);
+                java.util.List<String> symbolsArrayForCurrentCode = (java.util.List<String>)(java.util.List) Helpers.objectKeys(indexedMkts);
                 Object symbolsLength = Helpers.getArrayLength(symbolsArrayForCurrentCode);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
@@ -883,7 +883,7 @@ public class TestMain extends BaseTest
             Object quote = exchange.safeString(defaultMarket, "quote");
             Object settle = exchange.safeString(defaultMarket, "settle");
             java.util.List<Object> candidates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object tickerSymbols = Helpers.objectKeys(tickers);
+            java.util.List<String> tickerSymbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(tickers);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickerSymbols)); i++)
             {
                 Object tickerSymbol = Helpers.GetValue(tickerSymbols, i);
@@ -1059,7 +1059,7 @@ public class TestMain extends BaseTest
                 // validate the pin against the live listing - venues can rotate ids/handles
                 // (hyperliquid re-assigns outcome ids), which would strand a stale pin
                 Boolean pinFound = false;
-                Object pinnedKeys = Helpers.objectKeys(exchange.markets);
+                java.util.List<String> pinnedKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(exchange.markets);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(pinnedKeys)); i++)
                 {
                     Object pinnedMarket = Helpers.GetValue(exchange.markets, Helpers.GetValue(pinnedKeys, i));
@@ -1085,7 +1085,7 @@ public class TestMain extends BaseTest
             }
             if (Helpers.isTrue(Helpers.isEqual(outcomeSymbol, null)))
             {
-                Object marketKeys = Helpers.objectKeys(exchange.markets);
+                java.util.List<String> marketKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(exchange.markets);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketKeys)); i++)
                 {
                     Object market = Helpers.GetValue(exchange.markets, Helpers.GetValue(marketKeys, i));
@@ -1611,7 +1611,7 @@ public class TestMain extends BaseTest
             Object ticker = (exchange.fetchTicker("BTC/USDT")).join();
             Object info = Helpers.GetValue(ticker, "info");
             Object headers = Helpers.GetValue(info, "responseHeaders");
-            Object headersKeys = Helpers.objectKeys(headers);
+            java.util.List<String> headersKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(headers);
             Assert(Helpers.isGreaterThan(Helpers.getArrayLength(headersKeys), 0), "Response headers should not be empty");
             Object headerValues = Helpers.objectValues(headers);
             Assert(Helpers.isGreaterThan(Helpers.getArrayLength(headerValues), 0), "Response headers values should not be empty");
@@ -1882,7 +1882,7 @@ public class TestMain extends BaseTest
         }
         if (Helpers.isTrue(exchange.isDictionary(value)))
         {
-            Object keys = Helpers.objectKeys(value);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(value);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 if (!Helpers.isTrue(this.isVacantValue(exchange, Helpers.GetValue(value, Helpers.GetValue(keys, i)))))
@@ -1899,7 +1899,7 @@ public class TestMain extends BaseTest
     {
         // count the keys of `target`, skipping those the other side does not have at
         // all and which carry no data here (see isVacantValue)
-        Object keys = Helpers.objectKeys(target);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(target);
         Object count = 0;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
@@ -1946,8 +1946,8 @@ public class TestMain extends BaseTest
         }
         if (Helpers.isTrue(Helpers.isTrue(exchange.isDictionary(storedOutput)) && Helpers.isTrue(exchange.isDictionary(newOutput))))
         {
-            Object storedOutputKeys = Helpers.objectKeys(storedOutput);
-            Object newOutputKeys = Helpers.objectKeys(newOutput);
+            java.util.List<String> storedOutputKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(storedOutput);
+            java.util.List<String> newOutputKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(newOutput);
             Object storedKeysLength = Helpers.getArrayLength(storedOutputKeys);
             Object newKeysLength = Helpers.getArrayLength(newOutputKeys);
             if (Helpers.isTrue(Helpers.isEqual(this.lang, "C#")))
@@ -2487,7 +2487,7 @@ public class TestMain extends BaseTest
             Object testName = Helpers.getArg(optionalArgs, 0, null);
             Object globalOptions = ((Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchangeData, "options"), null)))) ? new java.util.HashMap<String, Object>() {{}} : Helpers.GetValue(exchangeData, "options");
             Object methods = ((Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(exchangeData, "methods"), null)))) ? new java.util.HashMap<String, Object>() {{}} : Helpers.GetValue(exchangeData, "methods");
-            Object methodsNames = Helpers.objectKeys(methods);
+            java.util.List<String> methodsNames = (java.util.List<String>)(java.util.List) Helpers.objectKeys(methods);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methodsNames)); i++)
             {
                 Object method = Helpers.GetValue(methodsNames, i);
@@ -2728,7 +2728,7 @@ public class TestMain extends BaseTest
             // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
             exchange.extendExchangeOptions(globalOptions);
             Object methods = exchange.safeValue(exchangeData, "methods", new java.util.HashMap<String, Object>() {{}});
-            Object methodsNames = Helpers.objectKeys(methods);
+            java.util.List<String> methodsNames = (java.util.List<String>)(java.util.List) Helpers.objectKeys(methods);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methodsNames)); i++)
             {
                 Object method = Helpers.GetValue(methodsNames, i);
@@ -2827,7 +2827,7 @@ public class TestMain extends BaseTest
             Object options = exchange.safeValue(exchangeData, "options", new java.util.HashMap<String, Object>() {{}});
             // exchange.options = exchange.deepExtend (exchange.options, options); // custom options to be used in the tests
             exchange.extendExchangeOptions(options);
-            Object methodsNames = Helpers.objectKeys(methods);
+            java.util.List<String> methodsNames = (java.util.List<String>)(java.util.List) Helpers.objectKeys(methods);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methodsNames)); i++)
             {
                 Object method = Helpers.GetValue(methodsNames, i);
@@ -2899,7 +2899,7 @@ public class TestMain extends BaseTest
         }
         Object sum = 0;
         Object methods = Helpers.GetValue(exchangeData, "methods");
-        Object methodsNames = Helpers.objectKeys(methods);
+        java.util.List<String> methodsNames = (java.util.List<String>)(java.util.List) Helpers.objectKeys(methods);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(methodsNames)); i++)
         {
             Object method = Helpers.GetValue(methodsNames, i);
@@ -2992,7 +2992,7 @@ public class TestMain extends BaseTest
             {
                 return true;
             }
-            Object exchanges = Helpers.objectKeys(staticData);
+            java.util.List<String> exchanges = (java.util.List<String>)(java.util.List) Helpers.objectKeys(staticData);
             Exchange exchange = ((Exchange)initExchange("Exchange", new java.util.HashMap<String, Object>() {{}})); // tmp to do the calculations until we have the ast-transpiler transpiling this code
             java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object sum = 0;

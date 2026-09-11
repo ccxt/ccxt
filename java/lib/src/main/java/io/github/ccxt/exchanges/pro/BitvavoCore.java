@@ -631,7 +631,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 ((java.util.List<Object>)messageHashes).add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("multi:", name), "@"), Helpers.GetValue(market, "id")), "_"), interval));
             }
             java.util.List<Object> channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object intervals = Helpers.objectKeys(marketIdsByInterval);
+            java.util.List<String> intervals = (java.util.List<String>)(java.util.List) Helpers.objectKeys(marketIdsByInterval);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(intervals)); i++)
             {
                 Object interval = Helpers.GetValue(intervals, i);
@@ -723,7 +723,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 ((java.util.List<Object>)subMessageHashes).add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("multi:", name), "@"), Helpers.GetValue(market, "id")), "_"), interval));
             }
             Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object intervals = Helpers.objectKeys(marketIdsByInterval);
+            java.util.List<String> intervals = (java.util.List<String>)(java.util.List) Helpers.objectKeys(marketIdsByInterval);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(intervals)); i++)
             {
                 Object interval = Helpers.GetValue(intervals, i);
@@ -1163,7 +1163,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //
         // the confirmation carries the remaining subscriptions without identifying
         // which unsubscribe request it belongs to, so settle every pending unsubscription
-        Object keys = Helpers.objectKeys(client.subscriptions);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -2206,7 +2206,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
             put( "book", "handleOrderBookSubscriptions");
         }};
-        Object names = Helpers.objectKeys(subscriptions);
+        java.util.List<String> names = (java.util.List<String>)(java.util.List) Helpers.objectKeys(subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(names)); i++)
         {
             Object name = Helpers.GetValue(names, i);

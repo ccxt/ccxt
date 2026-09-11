@@ -42,7 +42,7 @@ public class TestTrade extends BaseTest {
         }};
         // todo: add takeOrMaker as mandatory (atm, many exchanges fail)
         // removed side because some public endpoints return trades without side
-        java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("fees", "fee", "symbol", "order", "id", "takerOrMaker"));
+        java.util.List<String> emptyAllowedFor = new java.util.ArrayList<String>(java.util.Arrays.asList("fees", "fee", "symbol", "order", "id", "takerOrMaker"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry, now);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, entry, "symbol", symbol);

@@ -2117,7 +2117,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 Helpers.addElementToObject(marketSymbols, symbol, true);
             }
         }
-        Object keys = Helpers.objectKeys(marketSymbols);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(marketSymbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object symbol = Helpers.GetValue(keys, i);

@@ -560,7 +560,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             }
             String messageHash = "orders";
             client.resolve(orders, messageHash);
-            Object keys = Helpers.objectKeys(symbols);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object hashSymbol = Helpers.GetValue(keys, i);
@@ -693,7 +693,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             }
             String messageHash = "myTrades";
             client.resolve(trades, messageHash);
-            Object keys = Helpers.objectKeys(symbols);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object hashSymbol = Helpers.GetValue(keys, i);

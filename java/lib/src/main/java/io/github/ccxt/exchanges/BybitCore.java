@@ -2854,7 +2854,7 @@ public class BybitCore extends BybitApi
             }
             java.util.List<Object> promisesUnresolved = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object types = null;
-            java.util.List<Object> defaultTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse", "option"));
+            java.util.List<String> defaultTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "linear", "inverse", "option"));
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOptions, null)))
             {
@@ -5255,7 +5255,7 @@ public class BybitCore extends BybitApi
         String status = this.parseOrderStatus(rawStatus);
         Object fee = null;
         Object cumFeeDetail = this.safeDict(order, "cumFeeDetail", new java.util.HashMap<String, Object>() {{}});
-        Object feeCoins = Helpers.objectKeys(cumFeeDetail);
+        java.util.List<String> feeCoins = (java.util.List<String>)(java.util.List) Helpers.objectKeys(cumFeeDetail);
         String feeCoinId = this.safeString(feeCoins, 0);
         if (Helpers.isTrue(!Helpers.isEqual(feeCoinId, null)))
         {
@@ -11121,7 +11121,7 @@ public class BybitCore extends BybitApi
         Object idKey = ((Helpers.isTrue((Helpers.isEqual(marketIdKey, null))))) ? "symbol" : marketIdKey;
         Object filteredResults = this.filterByArray(response, idKey, marketIds, false);
         java.util.Map<String, Object> grouped = this.groupBy(filteredResults, idKey);
-        Object keys = Helpers.objectKeys(grouped);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(grouped);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);

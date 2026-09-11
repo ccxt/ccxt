@@ -878,7 +878,7 @@ public class HitbtcCore extends HitbtcApi
             //     }
             //
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object ids = Helpers.objectKeys(response);
+            java.util.List<String> ids = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -1275,7 +1275,7 @@ public class HitbtcCore extends HitbtcApi
                 response = (this.privateGetFuturesBalance(parameters)).join();
             } else
             {
-                Object keys = Helpers.objectKeys(accountsByType);
+                java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(accountsByType);
                 throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " fetchBalance() type parameter must be one of "), String.join((String)", ", (java.util.List<String>)keys))) ;
             }
             //
@@ -1381,7 +1381,7 @@ public class HitbtcCore extends HitbtcApi
             //     }
             //
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object keys = Helpers.objectKeys(response);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);
@@ -1483,7 +1483,7 @@ public class HitbtcCore extends HitbtcApi
             }
             java.util.Map<String, Object> response = (this.publicGetPublicTrades(this.extend(request, parameters))).join();
             Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object marketIds = Helpers.objectKeys(response);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -1969,7 +1969,7 @@ public class HitbtcCore extends HitbtcApi
             }
             java.util.Map<String, Object> response = (this.publicGetPublicOrderbook(this.extend(request, parameters))).join();
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object marketIds = Helpers.objectKeys(response);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -3348,7 +3348,7 @@ public class HitbtcCore extends HitbtcApi
             }
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fromNetwork, null))) || Helpers.isTrue((Helpers.isEqual(toNetwork, null)))))
             {
-                Object keys = Helpers.objectKeys(networks);
+                java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(networks);
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(this.id, " convertCurrencyNetwork() requires a fromNetwork parameter and a toNetwork parameter, supported networks are "), String.join((String)", ", (java.util.List<String>)keys))) ;
             }
             final Object finalFromNetwork = fromNetwork;
@@ -3488,7 +3488,7 @@ public class HitbtcCore extends HitbtcApi
             //         }
             //     }
             //
-            Object marketIds = Helpers.objectKeys(response);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
             java.util.Map<String, Object> fundingRates = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
@@ -3577,7 +3577,7 @@ public class HitbtcCore extends HitbtcApi
             //        ...
             //    }
             //
-            Object contracts = Helpers.objectKeys(response);
+            java.util.List<String> contracts = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
             java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(contracts)); i++)
             {
@@ -3962,7 +3962,7 @@ public class HitbtcCore extends HitbtcApi
             //     }
             //
             java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object markets = Helpers.objectKeys(response);
+            java.util.List<String> markets = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object marketId = Helpers.GetValue(markets, i);
@@ -4673,7 +4673,7 @@ public class HitbtcCore extends HitbtcApi
         Object implodedPath = this.implodeParams(path, parameters);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), implodedPath);
         String getRequest = null;
-        Object keys = Helpers.objectKeys(query);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(query);
         Object queryLength = Helpers.getArrayLength(keys);
         headers = new java.util.HashMap<String, Object>() {{
             put( "Content-Type", "application/json" );

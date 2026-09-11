@@ -770,7 +770,7 @@ public class DeepcoinCore extends DeepcoinApi
     {
         Object currencies = Helpers.getArg(optionalArgs, 0, null);
         Object result = super.setMarkets(markets, currencies);
-        Object symbols = Helpers.objectKeys(result);
+        java.util.List<String> symbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(result);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
         {
             Object symbol = Helpers.GetValue(symbols, i);

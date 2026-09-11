@@ -1749,7 +1749,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                 }})).join(); // extend the expiry
             } catch(Exception error)
             {
-                java.util.List<Object> types = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse"));
+                java.util.List<String> types = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "linear", "inverse"));
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(types)); i++)
                 {
                     String type = (String) Helpers.GetValue(types, i);
@@ -1760,7 +1760,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                     }
                     Object url = Helpers.add(Helpers.add(baseUrl, "?listenKey="), listenKey);
                     Client client = this.client(url);
-                    Object messageHashes = Helpers.objectKeys(client.futures);
+                    java.util.List<String> messageHashes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.futures);
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(messageHashes)); j++)
                     {
                         Object messageHash = Helpers.GetValue(messageHashes, j);

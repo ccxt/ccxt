@@ -1876,7 +1876,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
     public void handleUnsubscribe(Client client, Object message)
     {
         Object id = this.safeString(message, "id");
-        Object keys = Helpers.objectKeys(client.subscriptions);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object messageHash = Helpers.GetValue(keys, i);

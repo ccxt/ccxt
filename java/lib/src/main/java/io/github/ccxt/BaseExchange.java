@@ -4469,7 +4469,7 @@ public Object describe()
         {
             timeframes = this.timeframes;
         }
-        Object keys = Helpers.objectKeys(timeframes);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(timeframes);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -4673,7 +4673,7 @@ public Object describe()
     public Object findMessageHashes(Client client, Object element)
     {
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object messageHashes = Helpers.objectKeys(client.futures);
+        java.util.List<String> messageHashes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.futures);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
@@ -5763,8 +5763,8 @@ public Object describe()
         // reconstruct
         Object initialFeatures = this.features;
         this.features = new java.util.HashMap<String, Object>() {{}};
-        java.util.List<Object> unifiedMarketTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "swap", "future", "option"));
-        java.util.List<Object> subTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("linear", "inverse"));
+        java.util.List<String> unifiedMarketTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "swap", "future", "option"));
+        java.util.List<String> subTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("linear", "inverse"));
         // atm only support basic methods, eg: 'createOrder', 'fetchOrder', 'fetchOrders', 'fetchMyTrades'
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(unifiedMarketTypes)); i++)
         {
@@ -5833,7 +5833,7 @@ public Object describe()
             }
         }
         // other methods
-        Object keys = Helpers.objectKeys(featuresObj);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(featuresObj);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -6084,7 +6084,7 @@ public Object describe()
     {
         // derive data from networks: deposit, withdraw, active, fee, limits, precision
         Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(networks);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(networks);
         Object length = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(!Helpers.isEqual(length, 0)))
         {
@@ -6316,7 +6316,7 @@ public Object describe()
             // otherwise an explicit `taker: undefined` (from safeMarketStructure)
             // would clobber the fee defaults from this.fees['trading'] in the merge
             java.util.Map<String, Object> valueDefined = new java.util.HashMap<String, Object>() {{}};
-            Object valueKeys = Helpers.objectKeys(value);
+            java.util.List<String> valueKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(value);
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(valueKeys)); j++)
             {
                 Object valueKey = Helpers.GetValue(valueKeys, j);
@@ -6349,7 +6349,7 @@ public Object describe()
         Object numCurrencies = 0;
         if (Helpers.isTrue(!Helpers.isEqual(currencies, null)))
         {
-            Object keys = Helpers.objectKeys(currencies);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(currencies);
             numCurrencies = Helpers.getArrayLength(keys);
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(numCurrencies, 0)))
@@ -6392,7 +6392,7 @@ public Object describe()
             this.quoteCurrencies = this.mapToSafeMap(this.indexBy(quoteCurrencies, "code"));
             java.util.List<Object> allCurrencies = (java.util.List<Object>) this.arrayConcat(baseCurrencies, quoteCurrencies);
             java.util.Map<String, Object> groupedCurrencies = this.groupBy(allCurrencies, "code");
-            Object codes = Helpers.objectKeys(groupedCurrencies);
+            java.util.List<String> codes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(groupedCurrencies);
             java.util.List<Object> resultingCurrencies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
             {
@@ -6470,7 +6470,7 @@ public Object describe()
     public Object safeBalance(Object balance)
     {
         Object balances = this.omit(balance, new java.util.ArrayList<Object>(java.util.Arrays.asList("info", "timestamp", "datetime", "free", "used", "total")));
-        Object codes = Helpers.objectKeys(balances);
+        java.util.List<String> codes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(balances);
         Helpers.addElementToObject(balance, "free", new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(balance, "used", new java.util.HashMap<String, Object>() {{}});
         Helpers.addElementToObject(balance, "total", new java.util.HashMap<String, Object>() {{}});
@@ -6506,7 +6506,7 @@ public Object describe()
                 Helpers.addElementToObject(debtBalance, code, Helpers.GetValue(Helpers.GetValue(balance, code), "debt"));
             }
         }
-        Object debtBalanceArray = Helpers.objectKeys(debtBalance);
+        java.util.List<String> debtBalanceArray = (java.util.List<String>)(java.util.List) Helpers.objectKeys(debtBalance);
         Object length = Helpers.getArrayLength(debtBalanceArray);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(length, null))) && Helpers.isTrue((!Helpers.isEqual(length, 0)))))
         {
@@ -6911,7 +6911,7 @@ public Object describe()
             }
         } else
         {
-            Object ids = Helpers.objectKeys(orders);
+            java.util.List<String> ids = (java.util.List<String>)(java.util.List) Helpers.objectKeys(orders);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Object id = Helpers.GetValue(ids, i);
@@ -7186,7 +7186,7 @@ public Object describe()
     public Object addKeyInArrayItems(Object obj, Object keyName)
     {
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        Object keys = Helpers.objectKeys(obj);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(obj);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -7205,7 +7205,7 @@ public Object describe()
     public Object invertFlatStringDictionary(Object dict)
     {
         java.util.Map<String, Object> reversed = new java.util.HashMap<String, Object>() {{}};
-        Object keys = Helpers.objectKeys(dict);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(dict);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -7999,7 +7999,7 @@ public Object describe()
             return null;
         }
         Object replacements = this.safeDict(this.options, "defaultNetworkCodeReplacements", new java.util.HashMap<String, Object>() {{}});
-        Object keys = Helpers.objectKeys(replacements);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(replacements);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object baseCoin = Helpers.GetValue(keys, i);
@@ -8167,7 +8167,7 @@ public Object describe()
         // this method is used against raw & unparse network entries, which are just indexed by network id
         Object isIndexedByUnifiedNetworkCode = Helpers.getArg(optionalArgs, 0, false);
         Object chosenNetworkId = null;
-        Object availableNetworkIds = Helpers.objectKeys(indexedNetworkEntries);
+        java.util.List<String> availableNetworkIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(indexedNetworkEntries);
         Object responseNetworksLength = Helpers.getArrayLength(availableNetworkIds);
         if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
         {
@@ -8290,7 +8290,7 @@ public Object describe()
             }
         } else
         {
-            Object keys = Helpers.objectKeys(response);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);
@@ -9194,7 +9194,7 @@ public Object describe()
         * @returns {boolean} true if all required credentials have been set, otherwise false or an error is thrown is param error=true
         */
         Object error = Helpers.getArg(optionalArgs, 0, true);
-        Object keys = Helpers.objectKeys(this.requiredCredentials);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.requiredCredentials);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -9638,7 +9638,7 @@ public Object describe()
     public Object findBroadlyMatchedKey(Object broad, Object str)
     {
         // a helper for matching error strings exactly vs broadly
-        Object keys = Helpers.objectKeys(broad);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(broad);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -10213,7 +10213,7 @@ public Object describe()
                     return this.safeDict(addressStructures, network);
                 } else
                 {
-                    Object keys = Helpers.objectKeys(addressStructures);
+                    java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(addressStructures);
                     Object key = Helpers.GetValue(keys, 0);
                     return this.safeDict(addressStructures, key);
                 }
@@ -10261,7 +10261,7 @@ public Object describe()
             Helpers.addElementToObject(result, code, account);
             return result;
         }
-        java.util.List<Object> fields = new java.util.ArrayList<Object>(java.util.Arrays.asList("free", "used", "total", "debt"));
+        java.util.List<String> fields = new java.util.ArrayList<String>(java.util.Arrays.asList("free", "used", "total", "debt"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fields)); i++)
         {
             String field = (String) Helpers.GetValue(fields, i);
@@ -10293,7 +10293,7 @@ public Object describe()
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " currency() requires a code argument")) ;
         }
-        Object keys = Helpers.objectKeys(this.currencies);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.currencies);
         Object numCurrencies = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(Helpers.isEqual(numCurrencies, 0)))
         {
@@ -10358,7 +10358,7 @@ public Object describe()
     {
         Object checkBaseCoin = Helpers.getArg(optionalArgs, 0, false);
         Object existingCurrencies = Helpers.getArg(optionalArgs, 1, null);
-        java.util.List<Object> leverageSuffixes = new java.util.ArrayList<Object>(java.util.Arrays.asList("2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"));
+        java.util.List<String> leverageSuffixes = new java.util.ArrayList<String>(java.util.Arrays.asList("2L", "2S", "3L", "3S", "4L", "4S", "5L", "5S", "UP", "DOWN", "BULL", "BEAR"));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(leverageSuffixes)); i++)
         {
             String leverageSuffix = (String) Helpers.GetValue(leverageSuffixes, i);
@@ -10709,7 +10709,7 @@ public Object describe()
             }
         } else
         {
-            Object marketIds = Helpers.objectKeys(pricesData);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(pricesData);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -10759,7 +10759,7 @@ public Object describe()
             }
         } else
         {
-            Object marketIds = Helpers.objectKeys(tickers);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(tickers);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -11496,7 +11496,7 @@ public Object describe()
         * @returns {object} A deposit withdraw fee structure
         */
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object networkKeys = Helpers.objectKeys(Helpers.GetValue(fee, "networks"));
+        java.util.List<String> networkKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(Helpers.GetValue(fee, "networks"));
         Object numNetworks = Helpers.getArrayLength(networkKeys);
         if (Helpers.isTrue(Helpers.isEqual(numNetworks, 1)))
         {
@@ -12210,7 +12210,7 @@ public Object describe()
 
     public Object removeKeysFromDict(Object dict, Object removeKeys)
     {
-        Object keys = Helpers.objectKeys(dict);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(dict);
         java.util.Map<String, Object> newDict = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
@@ -12313,7 +12313,7 @@ public Object describe()
             }
         } else
         {
-            Object marketIds = Helpers.objectKeys(greeks);
+            java.util.List<String> marketIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(greeks);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
@@ -12723,7 +12723,7 @@ public Object describe()
             }
         } else
         {
-            Object clientSubscriptions = Helpers.objectKeys(client.subscriptions);
+            java.util.List<String> clientSubscriptions = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.subscriptions);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clientSubscriptions)); i++)
             {
                 Object sub = Helpers.GetValue(clientSubscriptions, i);
@@ -12732,7 +12732,7 @@ public Object describe()
                     ((java.util.Map<String,Object>)client.subscriptions).remove((String)sub);
                 }
             }
-            Object clientFutures = Helpers.objectKeys(client.futures);
+            java.util.List<String> clientFutures = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.futures);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clientFutures)); i++)
             {
                 Object future = Helpers.GetValue(clientFutures, i);
@@ -12829,7 +12829,7 @@ public Object describe()
                 }
             } else if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(Helpers.isEqual(topic, "ticker")) || Helpers.isTrue(Helpers.isEqual(topic, "markPrice")))) && Helpers.isTrue((!Helpers.isEqual(this.tickers, null)))))
             {
-                Object tickerSymbols = Helpers.objectKeys(this.tickers);
+                java.util.List<String> tickerSymbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.tickers);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickerSymbols)); i++)
                 {
                     Object tickerSymbol = Helpers.GetValue(tickerSymbols, i);
@@ -12840,7 +12840,7 @@ public Object describe()
                 }
             } else if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(topic, "bidsasks")) && Helpers.isTrue((!Helpers.isEqual(this.bidsasks, null)))))
             {
-                Object bidsaskSymbols = Helpers.objectKeys(this.bidsasks);
+                java.util.List<String> bidsaskSymbols = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.bidsasks);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidsaskSymbols)); i++)
                 {
                     Object bidsaskSymbol = Helpers.GetValue(bidsaskSymbols, i);

@@ -1220,7 +1220,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
         Object events = this.safeList(message, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object firstEvent = this.safeDict(events, 0, new java.util.HashMap<String, Object>() {{}});
         Boolean isUnsub = (Helpers.inOp(firstEvent, "subscriptions"));
-        Object subKeys = Helpers.objectKeys(Helpers.GetValue(firstEvent, "subscriptions"));
+        java.util.List<String> subKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(Helpers.GetValue(firstEvent, "subscriptions"));
         Object subKeysLength = Helpers.getArrayLength(subKeys);
         if (Helpers.isTrue(Helpers.isTrue(isUnsub) && Helpers.isTrue(Helpers.isEqual(subKeysLength, 0))))
         {

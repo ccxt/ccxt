@@ -1817,7 +1817,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Helpers.addElementToObject(symbols, symbol, true);
             Helpers.callDynamically(trades, "append", new Object[]{parsed});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object currentMessageHash = Helpers.add("myTrades:", Helpers.GetValue(keys, i));
@@ -2451,7 +2451,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Helpers.addElementToObject(symbols, symbol, true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
-        Object symbolsArray = Helpers.objectKeys(symbols);
+        java.util.List<String> symbolsArray = (java.util.List<String>)(java.util.List) Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsArray)); i++)
         {
             Object currentMessageHash = Helpers.add("orders:", Helpers.GetValue(symbolsArray, i));
@@ -3061,7 +3061,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             this.handleOrderBook(client, message);
             return;
         }
-        Object keys = Helpers.objectKeys(methods);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(methods);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -3189,7 +3189,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //     },
         // }
         Object reqId = this.safeString(message, "req_id");
-        Object keys = Helpers.objectKeys(client.subscriptions);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object messageHash = Helpers.GetValue(keys, i);

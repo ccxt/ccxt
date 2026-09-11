@@ -1106,7 +1106,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                 Helpers.addElementToObject(marketIds, symbol, true);
             }
         }
-        Object keys = Helpers.objectKeys(marketIds);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(marketIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object market = Helpers.GetValue(keys, i);
@@ -1394,7 +1394,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             }
             Helpers.addElementToObject(marketIds, symbol, true);
         }
-        Object keys = Helpers.objectKeys(marketIds);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(marketIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object currentMessageHash = Helpers.add(Helpers.add("orders", ":"), Helpers.GetValue(keys, i));

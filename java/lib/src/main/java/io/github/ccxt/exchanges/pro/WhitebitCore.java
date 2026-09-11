@@ -392,7 +392,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         // watchTicker
         client.resolve(ticker, messageHash);
         // watchTickers
-        Object messageHashes = Helpers.objectKeys(client.futures);
+        java.util.List<String> messageHashes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.futures);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object currentMessageHash = Helpers.GetValue(messageHashes, i);
@@ -1028,7 +1028,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 }
             } else
             {
-                Object keys = Helpers.objectKeys(balanceDict);
+                java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(balanceDict);
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
                 {
                     Object currencyId = Helpers.GetValue(keys, j);

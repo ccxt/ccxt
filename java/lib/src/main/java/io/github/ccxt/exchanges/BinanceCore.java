@@ -4983,7 +4983,7 @@ public class BinanceCore extends BinanceApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object rawFetchMarkets = null;
-            java.util.List<Object> defaultTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse"));
+            java.util.List<String> defaultTypes = new java.util.ArrayList<String>(java.util.Arrays.asList("spot", "linear", "inverse"));
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOptions, null)))
             {
@@ -16052,7 +16052,7 @@ final Object finalMarket = market;
         Object networkCode = null;
         java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(currencyCode);
         Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
-        Object networkCodes = Helpers.objectKeys(networks);
+        java.util.List<String> networkCodes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(networks);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networkCodes)); i++)
         {
             Object currentNetworkCode = Helpers.GetValue(networkCodes, i);

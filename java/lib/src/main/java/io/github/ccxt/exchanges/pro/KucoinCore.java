@@ -2041,7 +2041,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
             if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
             {
                 Object cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(orderbook, "cache")));
-                Object subscriptions = Helpers.objectKeys(client.subscriptions);
+                java.util.List<String> subscriptions = (java.util.List<String>)(java.util.List) Helpers.objectKeys(client.subscriptions);
                 Object subscription = null;
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subscriptions)); i++)
                 {
@@ -3658,7 +3658,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         String messageHash = (String) Helpers.add("position:", symbol);
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object newPosition = this.parsePosition(data);
-        Object keys = Helpers.objectKeys(newPosition);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(newPosition);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -3709,7 +3709,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         Object cache = this.positions;
         Object currentPosition = this.getCurrentPosition(symbol);
         Object newPosition = this.parseWsUtaPosition(data);
-        Object keys = Helpers.objectKeys(newPosition);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(newPosition);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

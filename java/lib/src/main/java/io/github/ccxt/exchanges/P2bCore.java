@@ -974,7 +974,7 @@ public class P2bCore extends P2bApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object keys = Helpers.objectKeys(response);
+        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object currencyId = Helpers.GetValue(keys, i);
@@ -1446,7 +1446,7 @@ public class P2bCore extends P2bApi
             //
             Object result = this.safeValue(response, "result");
             Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object keys = Helpers.objectKeys(result);
+            java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(result);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object marketId = Helpers.GetValue(keys, i);
