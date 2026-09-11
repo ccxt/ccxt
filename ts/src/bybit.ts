@@ -1389,6 +1389,7 @@ export default class bybit extends Exchange {
                     'editOrders': {
                         'max': 10,
                     },
+                    'rollingWindow': true,
                 },
                 'spot': {
                     'extends': 'default',

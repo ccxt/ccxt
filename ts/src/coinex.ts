@@ -587,6 +587,7 @@ export default class coinex extends Exchange {
                     'fetchOHLCV': {
                         'limit': 1000,
                     },
+                    'rollingWindow': true,
                 },
                 'forDerivatives': {
                     'extends': 'spot',
