@@ -10,20 +10,23 @@ import java.util.List;
  *
  * Asks: ascending price order (index stores positive prices)
  * Bids: descending price order (index stores negated prices)
+ *
+ * Element type: every row is a `List<Object>` level `[price, amount(, count/id)]`
+ * stored by storeArray/store — the shape the whole family already casts to.
  */
-public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.IOrderBookSide {
+public class OrderBookSide extends ArrayList<List<Object>> implements io.github.ccxt.IOrderBookSide {
 
     protected final boolean side; // true = bids (descending), false = asks (ascending)
     protected int depth;
     protected final ArrayList<BigDecimal> index = new ArrayList<>();
 
-    public OrderBookSide(List<Object> deltas, Object depthObj, boolean side) {
+    public OrderBookSide(List<List<Object>> deltas, Object depthObj, boolean side) {
         super();
         this.side = side;
         this.depth = (depthObj == null) ? Integer.MAX_VALUE : ((Number) depthObj).intValue();
         if (deltas != null) {
             synchronized (this) {
-                for (Object delta : deltas) {
+                for (List<Object> delta : deltas) {
                     this.storeArrayUnsafe(delta);
                 }
             }
@@ -125,7 +128,7 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
     }
 
     /** Snapshot copy for safe iteration outside the side's monitor. */
-    public synchronized List<Object> snapshot() {
+    public synchronized List<List<Object>> snapshot() {
         return new ArrayList<>(this);
     }
 
@@ -156,12 +159,12 @@ public class OrderBookSide extends ArrayList<Object> implements io.github.ccxt.I
     // ─── Subclasses ───
 
     public static class Asks extends OrderBookSide {
-        public Asks(List<Object> deltas, Object depth) { super(deltas, depth, false); }
+        public Asks(List<List<Object>> deltas, Object depth) { super(deltas, depth, false); }
         public Asks() { super(false); }
     }
 
     public static class Bids extends OrderBookSide {
-        public Bids(List<Object> deltas, Object depth) { super(deltas, depth, true); }
+        public Bids(List<List<Object>> deltas, Object depth) { super(deltas, depth, true); }
         public Bids() { super(true); }
     }
 }

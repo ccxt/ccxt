@@ -26,7 +26,7 @@ public class IndexedOrderBookSide extends OrderBookSide {
 
     protected final HashMap<String, BigDecimal> hashmap = new HashMap<>();
 
-    public IndexedOrderBookSide(List<Object> deltas, Object depth, boolean side) {
+    public IndexedOrderBookSide(List<List<Object>> deltas, Object depth, boolean side) {
         // the base constructor seeds through storeArrayUnsafe, which this
         // class overrides, but the override touches this.hashmap, whose field
         // initializer only runs after super() returns — so the base is given
@@ -34,7 +34,7 @@ public class IndexedOrderBookSide extends OrderBookSide {
         super(null, depth, side);
         if (deltas != null) {
             synchronized (this) {
-                for (Object delta : deltas) {
+                for (List<Object> delta : deltas) {
                     this.storeArrayUnsafe(delta);
                 }
             }
@@ -181,8 +181,8 @@ public class IndexedOrderBookSide extends OrderBookSide {
             out = new IndexedOrderBookSide(null, this.depth, this.side);
         }
         synchronized (out) {
-            for (Object row : this) {
-                out.add(new ArrayList<>((List<Object>) row));
+            for (List<Object> row : this) {
+                out.add(new ArrayList<>(row));
             }
             out.index.addAll(this.index);
             out.hashmap.putAll(this.hashmap);
@@ -193,12 +193,12 @@ public class IndexedOrderBookSide extends OrderBookSide {
     // ─── Side conveniences ───
 
     public static class IndexedAsks extends IndexedOrderBookSide {
-        public IndexedAsks(List<Object> deltas, Object depth) { super(deltas, depth, false); }
+        public IndexedAsks(List<List<Object>> deltas, Object depth) { super(deltas, depth, false); }
         public IndexedAsks() { super(false); }
     }
 
     public static class IndexedBids extends IndexedOrderBookSide {
-        public IndexedBids(List<Object> deltas, Object depth) { super(deltas, depth, true); }
+        public IndexedBids(List<List<Object>> deltas, Object depth) { super(deltas, depth, true); }
         public IndexedBids() { super(true); }
     }
 }
