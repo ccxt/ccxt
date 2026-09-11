@@ -13,9 +13,11 @@ public final class ADL {
     public Long timestamp;
     public String datetime;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public ADL(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.rank = TypeHelper.safeInteger(data, "rank");

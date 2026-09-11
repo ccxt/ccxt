@@ -9,9 +9,11 @@ public final class Fee {
     public Double rate;
     public Double cost;
     public String currency;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Fee(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.rate = TypeHelper.safeFloat(data, "rate");
         this.cost = TypeHelper.safeFloat(data, "cost");

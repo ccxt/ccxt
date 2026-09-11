@@ -14,9 +14,11 @@ public final class OpenInterest {
     public Long timestamp;
     public String datetime;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public OpenInterest(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.openInterestAmount = TypeHelper.safeFloat(data, "openInterestAmount");

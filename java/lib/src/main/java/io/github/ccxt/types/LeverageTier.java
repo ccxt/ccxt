@@ -14,9 +14,11 @@ public final class LeverageTier {
     public Double maintenanceMarginRate;
     public Double maxLeverage;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public LeverageTier(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.tier = TypeHelper.safeFloat(data, "tier");
         this.symbol = TypeHelper.safeString(data, "symbol");

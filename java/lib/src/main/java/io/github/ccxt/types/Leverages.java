@@ -9,9 +9,13 @@ import java.util.NoSuchElementException;
 
 public final class Leverages {
     public Map<String, Leverage> leverages;
+    // Lossless inverse support (build/typeEmitters/java.ts): TypedCores helpers
+    // hand this payload back, never a field-set rebuild.
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Leverages(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.leverages = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {

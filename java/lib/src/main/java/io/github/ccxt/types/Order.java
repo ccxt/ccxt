@@ -34,9 +34,11 @@ public final class Order {
     public Fee fee;
     public List<Trade> trades;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Order(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.clientOrderId = TypeHelper.safeString(data, "clientOrderId");

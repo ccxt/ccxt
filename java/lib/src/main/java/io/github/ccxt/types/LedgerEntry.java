@@ -21,9 +21,11 @@ public final class LedgerEntry {
     public String status;
     public Fee fee;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public LedgerEntry(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

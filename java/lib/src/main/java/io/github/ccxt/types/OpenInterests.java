@@ -9,9 +9,13 @@ import java.util.NoSuchElementException;
 
 public final class OpenInterests {
     public Map<String, OpenInterest> interests;
+    // Lossless inverse support (build/typeEmitters/java.ts): TypedCores helpers
+    // hand this payload back, never a field-set rebuild.
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public OpenInterests(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.interests = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {

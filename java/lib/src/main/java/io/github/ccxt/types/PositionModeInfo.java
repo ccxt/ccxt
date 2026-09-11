@@ -8,9 +8,11 @@ import java.util.Map;
 public final class PositionModeInfo {
     public Boolean hedged;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public PositionModeInfo(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.hedged = TypeHelper.safeBool(data, "hedged");
         this.info = TypeHelper.getInfo(data);

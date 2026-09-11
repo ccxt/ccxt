@@ -16,9 +16,11 @@ public final class Liquidation {
     public Double contractSize;
     public String side;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Liquidation(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.symbol = TypeHelper.safeString(data, "symbol");
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

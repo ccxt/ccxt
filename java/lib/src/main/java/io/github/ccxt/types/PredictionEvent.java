@@ -32,9 +32,11 @@ public final class PredictionEvent {
     public String image;
     public String url;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public PredictionEvent(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.eventId = TypeHelper.safeString(data, "event");

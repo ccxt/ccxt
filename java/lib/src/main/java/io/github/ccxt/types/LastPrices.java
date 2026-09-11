@@ -9,9 +9,13 @@ import java.util.NoSuchElementException;
 
 public final class LastPrices {
     public Map<String, LastPrice> prices;
+    // Lossless inverse support (build/typeEmitters/java.ts): TypedCores helpers
+    // hand this payload back, never a field-set rebuild.
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public LastPrices(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.prices = new LinkedHashMap<>();
         for (Map.Entry<String, Object> entry : data.entrySet()) {

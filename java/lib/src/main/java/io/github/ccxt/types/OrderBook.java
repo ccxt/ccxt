@@ -11,9 +11,13 @@ public final class OrderBook {
     public Long timestamp;
     public String datetime;
     public Long nonce;
+    // Lossless inverse support (see build/typeEmitters/java.ts#renderInterface):
+    // TypedCores.fromOrderBook() hands this back, never a field-set rebuild.
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public OrderBook(Object raw) {
+        this.__raw = raw;
         // Handle WsOrderBook (WebSocket) — extract data directly from its typed fields
         // Handle WsOrderBook (WebSocket) — copy live data from its OrderBookSide fields
         if (raw instanceof io.github.ccxt.ws.WsOrderBook wsOb) {

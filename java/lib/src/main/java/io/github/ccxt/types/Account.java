@@ -10,9 +10,11 @@ public final class Account {
     public String type;
     public String code;
     public Map<String, Object> info;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Account(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.id = TypeHelper.safeString(data, "id");
         this.type = TypeHelper.safeString(data, "type");

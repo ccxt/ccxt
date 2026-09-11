@@ -11,9 +11,13 @@ public final class Balances {
     public Long timestamp;
     public String datetime;
     public Map<String, Object> info;
+    // Lossless inverse support (see build/typeEmitters/java.ts#renderInterface):
+    // TypedCores.fromBalances() hands this back, never a field-set rebuild.
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public Balances(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.info = TypeHelper.getInfo(data);
         this.timestamp = TypeHelper.safeInteger(data, "timestamp");

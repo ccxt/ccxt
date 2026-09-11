@@ -21,9 +21,11 @@ public final class PredictionOrderBook {
     public String outcome;
     public String outcomeId;
     public String market;
+    public final Object __raw;
 
     @SuppressWarnings("unchecked")
     public PredictionOrderBook(Object raw) {
+        this.__raw = raw;
         Map<String, Object> data = TypeHelper.toMap(raw);
         this.bids = parseEntries(data.get("bids"));
         this.asks = parseEntries(data.get("asks"));
