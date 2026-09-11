@@ -410,7 +410,7 @@ class limitless extends Exchange {
         $groupId = $this->safe_string_n($raw, array( 'groupSlug', 'groupId' ), $slug);
         // CTF condition id — needed to redeem a resolved winning position
         $conditionId = $this->safe_string($raw, 'conditionId');
-        $tokens = $this->safe_value($raw, 'tokens', array());
+        $tokens = $this->safe_dict($raw, 'tokens', array());
         // the listing exposes `expired` . `status` (FUNDED/RESOLVED/…), not an `$active` flag; a
         // market is tradeable only while it is FUNDED and not yet expired
         $isExpired = $this->safe_bool($raw, 'expired', false);
@@ -3172,20 +3172,20 @@ class limitless extends Exchange {
         return $allRaw;
     }
 
-    public function sign(mixed $path, mixed $section = 'limitless', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
+    public function sign(mixed $path, mixed $api = 'limitless', $method = 'GET', $params = array(), mixed $headers = null, mixed $body = null) {
         /**
          * @ignore
          * builds the request URL and attaches the lmts authentication $headers for private endpoints
          * @param {string} $path the endpoint $path
-         * @param {string|string[]} [$section] the api group and $access level
+         * @param {string|string[]} [$api] the $api group and $access level
          * @param {string} [$method] HTTP $method
          * @param {array} [$params] request parameters
          * @param {array} [$headers] request $headers
          * @param {array} [$body] request $body
          * @return {array} a dictionary with $url, $method, $body and $headers
          */
-        $apiGroup = gettype($section) === 'string' ? $section : $section[0];
-        $access = gettype($section) === 'string' ? 'public' : $section[1];
+        $apiGroup = gettype($api) === 'string' ? $api : $api[0];
+        $access = gettype($api) === 'string' ? 'public' : $api[1];
         $baseUrls = $this->urls['api'];
         $baseUrl = $this->safe_string($baseUrls, $apiGroup, $baseUrls['limitless']);
         $url = '/' . $this->implode_params($path, $params);
@@ -3214,10 +3214,13 @@ class limitless extends Exchange {
             $payload = $timestamp . $newline . $method . $newline . $url . $newline . $bodyString;
             $signature = $this->hmac($this->encode($payload), base64_decode($this->secret), 'sha256', 'base64');
             $headers = $this->extend($headers, array(
-                'lmts-api-key' => $this->apiKey,
                 'lmts-timestamp' => $timestamp,
                 'lmts-signature' => $signature,
             ));
+            $headerKey = 'lmts-api' . '-key'; // concatenating because of the php version
+            $headersKey = array();
+            $headersKey[$headerKey] = $this->apiKey;
+            $headers = $this->extend($headers, $headersKey);
         }
         $url = $baseUrl . $url;
         return array( 'url' => $url, 'method' => $method, 'body' => $body, 'headers' => $headers );

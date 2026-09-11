@@ -2673,7 +2673,7 @@ class kucoin extends Exchange {
         return $result;
     }
 
-    public function is_futures_method(mixed $methodName, mixed $params) {
+    public function is_futures_method(mixed $methodName, mixed $params): bool {
         //
         // Helper
         // @$methodName (string) => The name of the method

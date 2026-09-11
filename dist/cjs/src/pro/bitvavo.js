@@ -170,7 +170,7 @@ class bitvavo extends bitvavo$1["default"] {
         //
         this.handleBidAsk(client, message);
         const event = this.safeString(message, 'event');
-        const tickers = this.safeValue(message, 'data', []);
+        const tickers = this.safeList(message, 'data', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
@@ -205,7 +205,7 @@ class bitvavo extends bitvavo$1["default"] {
     }
     handleBidAsk(client, message) {
         const event = 'bidask';
-        const tickers = this.safeValue(message, 'data', []);
+        const tickers = this.safeList(message, 'data', []);
         const result = [];
         for (let i = 0; i < tickers.length; i++) {
             const data = tickers[i];
@@ -1698,7 +1698,7 @@ class bitvavo extends bitvavo$1["default"] {
         //         }
         //     }
         //
-        const subscriptions = this.safeValue(message, 'subscriptions', {});
+        const subscriptions = this.safeDict(message, 'subscriptions', {});
         const methods = {
             'book': this.handleOrderBookSubscriptions,
         };

@@ -92,7 +92,7 @@ class deribit(ccxt.async_support.deribit):
         await self.authenticate(params)
         messageHash = 'balance'
         url = self.urls['api']['ws']
-        currencies = self.safe_value(self.options, 'currencies', [])
+        currencies = self.safe_list(self.options, 'currencies', [])
         channels = []
         for i in range(0, len(currencies)):
             currencyCode = currencies[i]

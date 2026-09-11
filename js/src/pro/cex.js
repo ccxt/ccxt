@@ -99,7 +99,7 @@ export default class cex extends cexRest {
         //     }
         //
         const data = this.safeValue(message, 'data', {});
-        const freeBalance = this.safeValue(data, 'balance', {});
+        const freeBalance = this.safeDict(data, 'balance', {});
         const usedBalance = this.safeValue(data, 'obalance', {});
         const result = {
             'info': data,
@@ -921,7 +921,7 @@ export default class cex extends cexRest {
         //     }
         //
         const symbol = this.safeString(message, 'oid'); // symbol is set as requestId in watchOrders
-        const rawOrders = this.safeValue(message, 'data', []);
+        const rawOrders = this.safeList(message, 'data', []);
         let myOrders = this.orders;
         if (myOrders === undefined) {
             const limit = this.safeInteger(this.options, 'ordersLimit', 1000);
@@ -1198,7 +1198,7 @@ export default class cex extends cexRest {
         //         "pair": "BTC:USD"
         //     }
         //
-        const data = this.safeValue(message, 'data', []);
+        const data = this.safeList(message, 'data', []);
         const pair = this.safeString(message, 'pair');
         const symbol = this.pairToSymbol(pair);
         const messageHash = 'ohlcv:' + symbol;

@@ -901,7 +901,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //            ...
         //        ]
         //    }
-        const orders = this.safeValue(message, 'orders', []);
+        const orders = this.safeList(message, 'orders', []);
         const limit = this.safeInteger(this.options, 'ordersLimit');
         this.orders = new ArrayCacheBySymbolById(limit);
         const feed = this.safeString(message, 'feed');
@@ -1459,7 +1459,7 @@ export default class krakenfutures extends krakenfuturesRest {
             client.resolve(this.balance['margin'], messageHash + 'futures');
         }
         if (flexFutures !== undefined) {
-            const flexFutureCurrencies = this.safeValue(flexFutures, 'currencies', {});
+            const flexFutureCurrencies = this.safeDict(flexFutures, 'currencies', {});
             const flexFuturesKeys = Object.keys(flexFutureCurrencies); // multi-collateral margin account
             const flexFuturesResult = {
                 'info': message,
@@ -1510,7 +1510,7 @@ export default class krakenfutures extends krakenfuturesRest {
         //        ]
         //    }
         //
-        const trades = this.safeValue(message, 'fills', []);
+        const trades = this.safeList(message, 'fills', []);
         let stored = this.myTrades;
         if (stored === undefined) {
             const limit = this.safeInteger(this.options, 'tradesLimit', 1000);

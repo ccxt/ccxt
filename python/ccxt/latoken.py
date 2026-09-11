@@ -607,7 +607,7 @@ class latoken(Exchange, ImplicitAPI):
         types = self.safe_value(self.options, 'types', {})
         accountType = self.safe_string(types, type, type)
         balancesByType = self.group_by(response, 'type')
-        balances = self.safe_value(balancesByType, accountType, [])
+        balances = self.safe_list(balancesByType, accountType, [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'currency')

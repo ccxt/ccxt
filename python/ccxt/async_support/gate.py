@@ -6771,7 +6771,7 @@ class gate(Exchange, ImplicitAPI):
                 if method == 'PATCH':
                     body = self.json(query)
             else:
-                urlQueryParams = self.safe_value(query, 'query', {})
+                urlQueryParams = self.safe_dict(query, 'query', {})
                 if len(urlQueryParams) > 0:
                     queryString = self.urlencode(urlQueryParams)
                     url += '?' + queryString

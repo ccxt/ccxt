@@ -461,7 +461,7 @@ class cryptocom extends \ccxt\async\cryptocom {
             $stored = new ArrayCache($limit);
             $this->trades[$symbol] = $stored;
         }
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         $dataLength = count($data);
         if ($dataLength === 0) {
             return;
@@ -654,7 +654,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         $messageHash = $this->safe_string($message, 'subscription');
         $marketId = $this->safe_string($message, 'instrument_name');
         $market = $this->safe_market($marketId);
-        $data = $this->safe_value($message, 'data', array());
+        $data = $this->safe_list($message, 'data', array());
         for ($i = 0; $i < count($data); $i++) {
             $ticker = $data[$i];
             $parsed = $this->parse_ws_ticker($ticker, $market);
@@ -947,7 +947,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         //
         $channel = $this->safe_string($message, 'channel');
         $symbolSpecificMessageHash = $this->safe_string($message, 'subscription');
-        $orders = $this->safe_value($message, 'data', array());
+        $orders = $this->safe_list($message, 'data', array());
         $ordersLength = count($orders);
         if ($ordersLength > 0) {
             if ($this->orders === null) {
@@ -1083,7 +1083,7 @@ class cryptocom extends \ccxt\async\cryptocom {
         // and has exactly one subscriptionhash which is the account type
         $data = $this->safe_value($message, 'data', array());
         $firstData = $this->safe_value($data, 0, array());
-        $rawPositions = $this->safe_value($firstData, 'positions', array());
+        $rawPositions = $this->safe_list($firstData, 'positions', array());
         if ($this->positions === null) {
             $this->positions = new ArrayCacheBySymbolBySide();
         }
@@ -1173,8 +1173,8 @@ class cryptocom extends \ccxt\async\cryptocom {
         //     }
         //
         $messageHash = $this->safe_string($message, 'subscription');
-        $data = $this->safe_value($message, 'data', array());
-        $positionBalances = $this->safe_value($data[0], 'position_balances', array());
+        $data = $this->safe_list($message, 'data', array());
+        $positionBalances = $this->safe_list($data[0], 'position_balances', array());
         $this->balance['info'] = $data;
         for ($i = 0; $i < count($positionBalances); $i++) {
             $balance = $positionBalances[$i];

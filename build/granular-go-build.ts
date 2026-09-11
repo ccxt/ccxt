@@ -79,8 +79,7 @@ function createExchangeDynamicFile(exchanges: string[], ws = false, prediction =
 
     const caseStatements = exchanges.map(exchange => {
         const statement = `    case "${exchange}":
-            ${exchange}Itf := New${capitalizeFirstLetter(exchange)}Core()
-            ${exchange}Itf.Init(exchangeArgs)
+            ${exchange}Itf := New${capitalizeFirstLetter(exchange)}(exchangeArgs)
             return ${exchange}Itf, true`;
         if (prediction) {
             return fs.existsSync('./ts/src/prediction/' + exchange + '.ts') ? statement : '';

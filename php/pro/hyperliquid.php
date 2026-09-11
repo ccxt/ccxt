@@ -601,7 +601,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_ws_tickers(Client $client, mixed $message) {
+    public function handle_ws_tickers(Client $client, mixed $message): bool {
         // hip3 $mids
         // {
         //     channel => 'allMids',
@@ -641,7 +641,7 @@ class hyperliquid extends \ccxt\async\hyperliquid {
         return true;
     }
 
-    public function handle_active_asset_ctx(Client $client, mixed $message) {
+    public function handle_active_asset_ctx(Client $client, mixed $message): bool {
         //
         //     {
         //         "channel" => "activeAssetCtx",

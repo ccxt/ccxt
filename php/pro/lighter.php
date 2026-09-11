@@ -758,7 +758,7 @@ class lighter extends \ccxt\async\lighter {
         ), $market);
     }
 
-    public function handle_my_trades(Client $client, mixed $message) {
+    public function handle_my_trades(Client $client, mixed $message): bool {
         //
         //     {
         //         "channel" => "account_all_trades:723310",
@@ -1069,7 +1069,7 @@ class lighter extends \ccxt\async\lighter {
         }
     }
 
-    public function handle_balance(Client $client, mixed $message) {
+    public function handle_balance(Client $client, mixed $message): bool {
         //
         //    spot $balance
         //    {
@@ -1367,7 +1367,7 @@ class lighter extends \ccxt\async\lighter {
         $client->resolve($message, 'jsonapi/sendtx:' . $id);
     }
 
-    public function handle_orders(Client $client, mixed $message) {
+    public function handle_orders(Client $client, mixed $message): bool {
         //
         //    {
         //        "account" => {ACCOUNT_INDEX},
@@ -1417,7 +1417,7 @@ class lighter extends \ccxt\async\lighter {
         return true;
     }
 
-    public function handle_error_message(Client $client, mixed $message) {
+    public function handle_error_message(Client $client, mixed $message): bool {
         //
         //     {
         //         "error" => {

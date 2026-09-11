@@ -562,7 +562,7 @@ class lbank(Exchange, ImplicitAPI):
         #         "ts": 1691560288484
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -657,7 +657,7 @@ class lbank(Exchange, ImplicitAPI):
         #         "success": True
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = []
         for i in range(0, len(data)):
             market = data[i]
@@ -1305,7 +1305,7 @@ class lbank(Exchange, ImplicitAPI):
         toBtc = self.safe_value(data, 'toBtc')
         if toBtc is not None:
             used = self.safe_value(data, 'freeze', {})
-            free = self.safe_value(data, 'free', {})
+            free = self.safe_dict(data, 'free', {})
             currencies = list(free.keys())
             for i in range(0, len(currencies)):
                 currencyId = currencies[i]
@@ -1554,7 +1554,7 @@ class lbank(Exchange, ImplicitAPI):
             self.load_markets()
         request = {}
         response = self.spotPrivatePostSupplementCustomerTradeFee(self.extend(request, params))
-        fees = self.safe_value(response, 'data', [])
+        fees = self.safe_list(response, 'data', [])
         result = {}
         for i in range(0, len(fees)):
             fee = self.parse_trading_fee(fees[i])
@@ -1915,7 +1915,7 @@ class lbank(Exchange, ImplicitAPI):
         #          "ts":1647455270776
         #      }
         #
-        result = self.safe_value(response, 'data', [])
+        result = self.safe_list(response, 'data', [])
         numOrders = len(result)
         if numOrders == 1:
             return self.parse_order(result[0])
@@ -2613,13 +2613,13 @@ class lbank(Exchange, ImplicitAPI):
         #        "code": 0
         #    }
         #
-        result = self.safe_value(response, 'data', [])
+        result = self.safe_list(response, 'data', [])
         withdrawFees = {}
         for i in range(0, len(result)):
             entry = result[i]
             currencyId = self.safe_string(entry, 'coin')
             code = self.safe_currency_code(currencyId)
-            networkList = self.safe_value(entry, 'networkList', [])
+            networkList = self.safe_list(entry, 'networkList', [])
             if code is not None:
                 withdrawFees[code] = {}
             for j in range(0, len(networkList)):
@@ -2669,7 +2669,7 @@ class lbank(Exchange, ImplicitAPI):
         #        "ts": "1663364435973"
         #    }
         #
-        result = self.safe_value(response, 'data', [])
+        result = self.safe_list(response, 'data', [])
         withdrawFees = {}
         for i in range(0, len(result)):
             item = result[i]
@@ -2871,7 +2871,7 @@ class lbank(Exchange, ImplicitAPI):
         #
         result = self.deposit_withdraw_fee(fee)
         code = self.safe_string(currency, 'code')
-        networkList = self.safe_value(fee, 'networkList', [])
+        networkList = self.safe_list(fee, 'networkList', [])
         for j in range(0, len(networkList)):
             networkEntry = networkList[j]
             networkCode = self.network_id_to_code(self.safe_string(networkEntry, 'name'), code)

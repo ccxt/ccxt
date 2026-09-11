@@ -509,7 +509,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
         message = self.extend(request, params)
         return await self.watch(url, messageHash, message, messageHash)
 
-    def handle_ws_tickers(self, client: Client, message: object):
+    def handle_ws_tickers(self, client: Client, message: object) -> bool:
         # hip3 mids
         # {
         #     channel: 'allMids',
@@ -545,7 +545,7 @@ class hyperliquid(ccxt.async_support.hyperliquid):
             client.resolve(self.tickers, messageHash)
         return True
 
-    def handle_active_asset_ctx(self, client: Client, message: object):
+    def handle_active_asset_ctx(self, client: Client, message: object) -> bool:
         #
         #     {
         #         "channel": "activeAssetCtx",

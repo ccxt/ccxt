@@ -8,101 +8,101 @@
 package ccxtprediction
 
 // OpinionPublicGetMarket returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetMarket(args ...any) <-chan any {
+func (this *Opinion) OpinionPublicGetMarket(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPublicGetMarket", args...)
 }
 
 // OpinionPublicGetMarketMarketId returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetMarketMarketId(args ...any) <-chan any {
+func (this *Opinion) OpinionPublicGetMarketMarketId(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPublicGetMarketMarketId", args...)
 }
 
 // OpinionPublicGetMarketCategoricalMarketId returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetMarketCategoricalMarketId(args ...any) <-chan any {
+func (this *Opinion) OpinionPublicGetMarketCategoricalMarketId(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPublicGetMarketCategoricalMarketId", args...)
 }
 
 // OpinionPublicGetMarketSlugSlug returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetMarketSlugSlug(args ...any) <-chan any {
+func (this *Opinion) OpinionPublicGetMarketSlugSlug(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPublicGetMarketSlugSlug", args...)
 }
 
 // OpinionPublicGetLabel returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetLabel(args ...any) <-chan any {
+func (this *Opinion) OpinionPublicGetLabel(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPublicGetLabel", args...)
 }
 
 // OpinionPublicGetTokenLatestPrice returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetTokenLatestPrice(args ...any) <-chan any {
+func (this *Opinion) OpinionPublicGetTokenLatestPrice(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPublicGetTokenLatestPrice", args...)
 }
 
 // OpinionPublicGetTokenOrderbook returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetTokenOrderbook(args ...any) <-chan any {
+func (this *Opinion) OpinionPublicGetTokenOrderbook(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPublicGetTokenOrderbook", args...)
 }
 
 // OpinionPublicGetTokenPriceHistory returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetTokenPriceHistory(args ...any) <-chan any {
+func (this *Opinion) OpinionPublicGetTokenPriceHistory(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPublicGetTokenPriceHistory", args...)
 }
 
 // OpinionPublicGetQuoteToken returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPublicGetQuoteToken(args ...any) <-chan any {
+func (this *Opinion) OpinionPublicGetQuoteToken(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPublicGetQuoteToken", args...)
 }
 
 // OpinionPrivateGetOrder returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetOrder(args ...any) <-chan any {
+func (this *Opinion) OpinionPrivateGetOrder(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPrivateGetOrder", args...)
 }
 
 // OpinionPrivateGetOrderOrderId returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetOrderOrderId(args ...any) <-chan any {
+func (this *Opinion) OpinionPrivateGetOrderOrderId(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPrivateGetOrderOrderId", args...)
 }
 
 // OpinionPrivateGetPositionsUserWalletAddress returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetPositionsUserWalletAddress(args ...any) <-chan any {
+func (this *Opinion) OpinionPrivateGetPositionsUserWalletAddress(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPrivateGetPositionsUserWalletAddress", args...)
 }
 
 // OpinionPrivateGetTradeUserWalletAddress returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetTradeUserWalletAddress(args ...any) <-chan any {
+func (this *Opinion) OpinionPrivateGetTradeUserWalletAddress(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPrivateGetTradeUserWalletAddress", args...)
 }
 
 // OpinionPrivateGetAuthApiKey returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetAuthApiKey(args ...any) <-chan any {
+func (this *Opinion) OpinionPrivateGetAuthApiKey(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPrivateGetAuthApiKey", args...)
 }
 
 // OpinionPrivateGetUserAuth returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetUserAuth(args ...any) <-chan any {
+func (this *Opinion) OpinionPrivateGetUserAuth(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPrivateGetUserAuth", args...)
 }
 
 // OpinionPrivateGetUserBalance returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateGetUserBalance(args ...any) <-chan any {
+func (this *Opinion) OpinionPrivateGetUserBalance(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPrivateGetUserBalance", args...)
 }
 
 // OpinionPrivatePostAuthApiKey returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivatePostAuthApiKey(args ...any) <-chan any {
+func (this *Opinion) OpinionPrivatePostAuthApiKey(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPrivatePostAuthApiKey", args...)
 }
 
 // OpinionPrivatePostOrder returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivatePostOrder(args ...any) <-chan any {
+func (this *Opinion) OpinionPrivatePostOrder(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPrivatePostOrder", args...)
 }
 
 // OpinionPrivatePostOrderCancel returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivatePostOrderCancel(args ...any) <-chan any {
+func (this *Opinion) OpinionPrivatePostOrderCancel(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPrivatePostOrderCancel", args...)
 }
 
 // OpinionPrivateDeleteAuthApiKey returns a channel that yields a JSON object or a JSON array.
-func (this *OpinionCore) OpinionPrivateDeleteAuthApiKey(args ...any) <-chan any {
+func (this *Opinion) OpinionPrivateDeleteAuthApiKey(args ...any) <-chan any {
 	return this.CallEndpointAsync("opinionPrivateDeleteAuthApiKey", args...)
 }

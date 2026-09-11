@@ -5098,12 +5098,12 @@ class bingx(Exchange, ImplicitAPI):
             request['fromAccount'] = fromId
         if toAccount is not None:
             request['toAccount'] = toId
-        params = self.omit(params, ['fromAccount', 'toAccount'])
         maxLimit = 100
         paginate = False
         paginate, params = self.handle_option_and_params(params, 'fetchTransfers', 'paginate', False)
         if paginate:
-            return self.fetch_paginated_call_dynamic('fetchTransfers', None, since, limit, params, maxLimit)
+            return self.fetch_paginated_call_dynamic('fetchTransfers', code, since, limit, params, maxLimit)
+        params = self.omit(params, ['fromAccount', 'toAccount'])
         if since is not None:
             request['startTime'] = since
         if limit is not None:

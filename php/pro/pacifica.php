@@ -739,7 +739,7 @@ class pacifica extends \ccxt\async\pacifica {
         return Async\await($this->watch($url, $messageHash, $message, $messageHash));
     }
 
-    public function handle_ws_tickers(Client $client, mixed $message) {
+    public function handle_ws_tickers(Client $client, mixed $message): bool {
         //
         // {
         //     "channel" => "prices",

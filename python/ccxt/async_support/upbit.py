@@ -1815,7 +1815,7 @@ class upbit(Exchange, ImplicitAPI):
         feeCost = self.safe_string(order, 'paid_fee')
         marketId = self.safe_string(order, 'market')
         market = self.safe_market(marketId, market)
-        trades = self.safe_value(order, 'trades', [])
+        trades = self.safe_list(order, 'trades', [])
         trades = self.parse_trades(trades, market, None, None, {
             'order': id,
             'type': type,

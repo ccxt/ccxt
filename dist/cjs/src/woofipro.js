@@ -1718,7 +1718,7 @@ class woofipro extends woofipro$1["default"] {
         const childOrders = this.safeValue(order, 'childOrders');
         if (childOrders !== undefined) {
             const first = this.safeValue(childOrders, 0);
-            const innerChildOrders = this.safeValue(first, 'childOrders', []);
+            const innerChildOrders = this.safeList(first, 'childOrders', []);
             const innerChildOrdersLength = innerChildOrders.length;
             if (innerChildOrdersLength > 0) {
                 const takeProfitOrder = this.safeValue(innerChildOrders, 0);

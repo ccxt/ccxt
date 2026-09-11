@@ -8,361 +8,361 @@
 package ccxt
 
 // PublicGetApiV1Assets returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Assets(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Assets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Assets", args...)
 }
 
 // PublicGetApiV1Collateral returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Collateral(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Collateral(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Collateral", args...)
 }
 
 // PublicGetApiV1BorrowLendMarkets returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1BorrowLendMarkets(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1BorrowLendMarkets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1BorrowLendMarkets", args...)
 }
 
 // PublicGetApiV1BorrowLendMarketsHistory returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1BorrowLendMarketsHistory(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1BorrowLendMarketsHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1BorrowLendMarketsHistory", args...)
 }
 
 // PublicGetApiV1BorrowLendApy returns a channel that yields a JSON object.
-func (this *BackpackCore) PublicGetApiV1BorrowLendApy(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1BorrowLendApy(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1BorrowLendApy", args...)
 }
 
 // PublicGetApiV1Markets returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Markets(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Markets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Markets", args...)
 }
 
 // PublicGetApiV1Market returns a channel that yields a JSON object.
-func (this *BackpackCore) PublicGetApiV1Market(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Market(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Market", args...)
 }
 
 // PublicGetApiV1Ticker returns a channel that yields a JSON object.
-func (this *BackpackCore) PublicGetApiV1Ticker(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Ticker(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Ticker", args...)
 }
 
 // PublicGetApiV1Tickers returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Tickers(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Tickers(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Tickers", args...)
 }
 
 // PublicGetApiV1Depth returns a channel that yields a JSON object.
-func (this *BackpackCore) PublicGetApiV1Depth(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Depth(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Depth", args...)
 }
 
 // PublicGetApiV1Prediction returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Prediction(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Prediction(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Prediction", args...)
 }
 
 // PublicGetApiV1PredictionTags returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1PredictionTags(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1PredictionTags(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1PredictionTags", args...)
 }
 
 // PublicGetApiV1MarketSessions returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1MarketSessions(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1MarketSessions(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1MarketSessions", args...)
 }
 
 // PublicGetApiV1MarketHolidays returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1MarketHolidays(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1MarketHolidays(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1MarketHolidays", args...)
 }
 
 // PublicGetApiV1Securities returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Securities(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Securities(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Securities", args...)
 }
 
 // PublicGetApiV1Klines returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Klines(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Klines(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Klines", args...)
 }
 
 // PublicGetApiV1MarkPrices returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1MarkPrices(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1MarkPrices(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1MarkPrices", args...)
 }
 
 // PublicGetApiV1OpenInterest returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1OpenInterest(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1OpenInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1OpenInterest", args...)
 }
 
 // PublicGetApiV1FundingRates returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1FundingRates(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1FundingRates(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1FundingRates", args...)
 }
 
 // PublicGetApiV1Status returns a channel that yields a JSON object.
-func (this *BackpackCore) PublicGetApiV1Status(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Status(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Status", args...)
 }
 
 // PublicGetApiV1Ping returns a channel that yields a JSON scalar.
-func (this *BackpackCore) PublicGetApiV1Ping(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Ping(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Ping", args...)
 }
 
 // PublicGetApiV1Time returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Time(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Time(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Time", args...)
 }
 
 // PublicGetApiV1Wallets returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Wallets(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Wallets(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Wallets", args...)
 }
 
 // PublicGetApiV1Trades returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1Trades(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1Trades(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1Trades", args...)
 }
 
 // PublicGetApiV1TradesHistory returns a channel that yields a JSON array.
-func (this *BackpackCore) PublicGetApiV1TradesHistory(args ...any) <-chan any {
+func (this *Backpack) PublicGetApiV1TradesHistory(args ...any) <-chan any {
 	return this.callEndpointAsync("publicGetApiV1TradesHistory", args...)
 }
 
 // PrivateGetApiV1Account returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1Account(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1Account(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1Account", args...)
 }
 
 // PrivateGetApiV1AccountLimitsBorrow returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1AccountLimitsBorrow(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1AccountLimitsBorrow(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountLimitsBorrow", args...)
 }
 
 // PrivateGetApiV1AccountLimitsOrder returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1AccountLimitsOrder(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1AccountLimitsOrder(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountLimitsOrder", args...)
 }
 
 // PrivateGetApiV1AccountLimitsWithdrawal returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1AccountLimitsWithdrawal(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1AccountLimitsWithdrawal(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1AccountLimitsWithdrawal", args...)
 }
 
 // PrivateGetApiV1BorrowLendPositions returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetApiV1BorrowLendPositions(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1BorrowLendPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1BorrowLendPositions", args...)
 }
 
 // PrivateGetApiV1BorrowLendPositionLiquidationPrice returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1BorrowLendPositionLiquidationPrice(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1BorrowLendPositionLiquidationPrice(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1BorrowLendPositionLiquidationPrice", args...)
 }
 
 // PrivateGetApiV1Capital returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1Capital(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1Capital(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1Capital", args...)
 }
 
 // PrivateGetApiV1CapitalCollateral returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1CapitalCollateral(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1CapitalCollateral(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1CapitalCollateral", args...)
 }
 
 // PrivateGetWapiV1CapitalDeposits returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1CapitalDeposits(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1CapitalDeposits(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1CapitalDeposits", args...)
 }
 
 // PrivateGetWapiV1CapitalDepositAddress returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetWapiV1CapitalDepositAddress(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1CapitalDepositAddress(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1CapitalDepositAddress", args...)
 }
 
 // PrivateGetWapiV1CapitalWithdrawals returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1CapitalWithdrawals(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1CapitalWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1CapitalWithdrawals", args...)
 }
 
 // PrivateGetApiV1Position returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetApiV1Position(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1Position(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1Position", args...)
 }
 
 // PrivateGetWapiV1HistoryBorrowLend returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryBorrowLend(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryBorrowLend(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryBorrowLend", args...)
 }
 
 // PrivateGetWapiV1HistoryInterest returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryInterest(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryInterest(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryInterest", args...)
 }
 
 // PrivateGetWapiV1HistoryBorrowLendPositions returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryBorrowLendPositions(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryBorrowLendPositions(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryBorrowLendPositions", args...)
 }
 
 // PrivateGetWapiV1HistoryDust returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryDust(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryDust(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryDust", args...)
 }
 
 // PrivateGetWapiV1HistoryFills returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryFills(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryFills(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryFills", args...)
 }
 
 // PrivateGetWapiV1HistoryFunding returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryFunding(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryFunding(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryFunding", args...)
 }
 
 // PrivateGetWapiV1HistoryPosition returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryPosition(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryPosition(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryPosition", args...)
 }
 
 // PrivateGetWapiV1HistoryOrders returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryOrders(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryOrders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryOrders", args...)
 }
 
 // PrivateGetApiV1Rfqs returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetApiV1Rfqs(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1Rfqs(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1Rfqs", args...)
 }
 
 // PrivateGetWapiV1HistoryRfq returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryRfq(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryRfq(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryRfq", args...)
 }
 
 // PrivateGetWapiV1HistoryQuote returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryQuote(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryQuote", args...)
 }
 
 // PrivateGetWapiV1HistoryRfqFill returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryRfqFill(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryRfqFill(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryRfqFill", args...)
 }
 
 // PrivateGetWapiV1HistoryQuoteFill returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryQuoteFill(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryQuoteFill(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryQuoteFill", args...)
 }
 
 // PrivateGetWapiV1HistorySettlement returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistorySettlement(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistorySettlement(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistorySettlement", args...)
 }
 
 // PrivateGetWapiV1HistoryStrategies returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetWapiV1HistoryStrategies(args ...any) <-chan any {
+func (this *Backpack) PrivateGetWapiV1HistoryStrategies(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetWapiV1HistoryStrategies", args...)
 }
 
 // PrivateGetApiV1Strategy returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1Strategy(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1Strategy(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1Strategy", args...)
 }
 
 // PrivateGetApiV1Strategies returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetApiV1Strategies(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1Strategies(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1Strategies", args...)
 }
 
 // PrivateGetApiV1Order returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateGetApiV1Order(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1Order", args...)
 }
 
 // PrivateGetApiV1Orders returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateGetApiV1Orders(args ...any) <-chan any {
+func (this *Backpack) PrivateGetApiV1Orders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateGetApiV1Orders", args...)
 }
 
 // PrivatePostApiV1AccountConvertDust returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1AccountConvertDust(args ...any) <-chan any {
+func (this *Backpack) PrivatePostApiV1AccountConvertDust(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1AccountConvertDust", args...)
 }
 
 // PrivatePostApiV1BorrowLend returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1BorrowLend(args ...any) <-chan any {
+func (this *Backpack) PrivatePostApiV1BorrowLend(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1BorrowLend", args...)
 }
 
 // PrivatePostWapiV1CapitalWithdrawals returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostWapiV1CapitalWithdrawals(args ...any) <-chan any {
+func (this *Backpack) PrivatePostWapiV1CapitalWithdrawals(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostWapiV1CapitalWithdrawals", args...)
 }
 
 // PrivatePostApiV1Order returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1Order(args ...any) <-chan any {
+func (this *Backpack) PrivatePostApiV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1Order", args...)
 }
 
 // PrivatePostApiV1Orders returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivatePostApiV1Orders(args ...any) <-chan any {
+func (this *Backpack) PrivatePostApiV1Orders(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1Orders", args...)
 }
 
 // PrivatePostApiV1Rfq returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1Rfq(args ...any) <-chan any {
+func (this *Backpack) PrivatePostApiV1Rfq(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1Rfq", args...)
 }
 
 // PrivatePostApiV1RfqAccept returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1RfqAccept(args ...any) <-chan any {
+func (this *Backpack) PrivatePostApiV1RfqAccept(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1RfqAccept", args...)
 }
 
 // PrivatePostApiV1RfqRefresh returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1RfqRefresh(args ...any) <-chan any {
+func (this *Backpack) PrivatePostApiV1RfqRefresh(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1RfqRefresh", args...)
 }
 
 // PrivatePostApiV1RfqCancel returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1RfqCancel(args ...any) <-chan any {
+func (this *Backpack) PrivatePostApiV1RfqCancel(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1RfqCancel", args...)
 }
 
 // PrivatePostApiV1RfqQuote returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1RfqQuote(args ...any) <-chan any {
+func (this *Backpack) PrivatePostApiV1RfqQuote(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1RfqQuote", args...)
 }
 
 // PrivatePostApiV1Strategy returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePostApiV1Strategy(args ...any) <-chan any {
+func (this *Backpack) PrivatePostApiV1Strategy(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePostApiV1Strategy", args...)
 }
 
 // PrivateDeleteApiV1Order returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateDeleteApiV1Order(args ...any) <-chan any {
+func (this *Backpack) PrivateDeleteApiV1Order(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1Order", args...)
 }
 
 // PrivateDeleteApiV1Orders returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateDeleteApiV1Orders(args ...any) <-chan any {
+func (this *Backpack) PrivateDeleteApiV1Orders(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1Orders", args...)
 }
 
 // PrivateDeleteApiV1Strategy returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivateDeleteApiV1Strategy(args ...any) <-chan any {
+func (this *Backpack) PrivateDeleteApiV1Strategy(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1Strategy", args...)
 }
 
 // PrivateDeleteApiV1Strategies returns a channel that yields a JSON array.
-func (this *BackpackCore) PrivateDeleteApiV1Strategies(args ...any) <-chan any {
+func (this *Backpack) PrivateDeleteApiV1Strategies(args ...any) <-chan any {
 	return this.callEndpointAsync("privateDeleteApiV1Strategies", args...)
 }
 
 // PrivatePatchApiV1Account returns a channel that yields a JSON object.
-func (this *BackpackCore) PrivatePatchApiV1Account(args ...any) <-chan any {
+func (this *Backpack) PrivatePatchApiV1Account(args ...any) <-chan any {
 	return this.callEndpointAsync("privatePatchApiV1Account", args...)
 }

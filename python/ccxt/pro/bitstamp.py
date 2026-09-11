@@ -313,7 +313,7 @@ class bitstamp(ccxt.async_support.bitstamp):
         # }
         #
         channel = self.safe_string(message, 'channel')
-        order = self.safe_value(message, 'data', {})
+        order = self.safe_dict(message, 'data', {})
         limit = self.safe_integer(self.options, 'ordersLimit', 1000)
         if self.orders is None:
             self.orders = ArrayCacheBySymbolById(limit)

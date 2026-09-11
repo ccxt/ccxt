@@ -5390,13 +5390,13 @@ class bingx extends bingx$1["default"] {
         if (toAccount !== undefined) {
             request['toAccount'] = toId;
         }
-        params = this.omit(params, ['fromAccount', 'toAccount']);
         const maxLimit = 100;
         let paginate = false;
         [paginate, params] = this.handleOptionAndParams(params, 'fetchTransfers', 'paginate', false);
         if (paginate) {
-            return await this.fetchPaginatedCallDynamic('fetchTransfers', undefined, since, limit, params, maxLimit);
+            return await this.fetchPaginatedCallDynamic('fetchTransfers', code, since, limit, params, maxLimit);
         }
+        params = this.omit(params, ['fromAccount', 'toAccount']);
         if (since !== undefined) {
             request['startTime'] = since;
         }

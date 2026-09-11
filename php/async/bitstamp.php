@@ -2676,7 +2676,7 @@ class bitstamp extends Exchange {
         return strtolower($code);
     }
 
-    public function is_fiat(mixed $code) {
+    public function is_fiat(mixed $code): bool {
         return $code === 'USD' || $code === 'EUR' || $code === 'GBP';
     }
 
@@ -2923,7 +2923,7 @@ class bitstamp extends Exchange {
             if (gettype($reasonInner) === 'string') {
                 $errors[] = $reasonInner;
             } else {
-                $all = $this->safe_value($reasonInner, '__all__', array());
+                $all = $this->safe_list($reasonInner, '__all__', array());
                 for ($i = 0; $i < count($all); $i++) {
                     $errors[] = $all[$i];
                 }

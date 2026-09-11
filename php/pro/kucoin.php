@@ -3035,7 +3035,7 @@ class kucoin extends \ccxt\async\kucoin {
             return null;
         }
         $cache = $this->positions.hashmap;
-        $symbolCache = $this->safe_value($cache, $symbol, array());
+        $symbolCache = $this->safe_dict($cache, $symbol, array());
         $values = is_array($symbolCache) ? array_values($symbolCache) : array();
         return $this->safe_value($values, 0);
     }

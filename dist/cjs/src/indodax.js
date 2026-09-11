@@ -436,7 +436,7 @@ class indodax extends indodax$1["default"] {
     }
     parseBalance(response) {
         const balances = this.safeValue(response, 'return', {});
-        const free = this.safeValue(balances, 'balance', {});
+        const free = this.safeDict(balances, 'balance', {});
         const used = this.safeValue(balances, 'balance_hold', {});
         const timestamp = this.safeTimestamp(balances, 'server_time');
         const result = {
@@ -1232,8 +1232,8 @@ class indodax extends indodax$1["default"] {
         //     }
         //
         const data = this.safeValue(response, 'return', {});
-        const withdraw = this.safeValue(data, 'withdraw', {});
-        const deposit = this.safeValue(data, 'deposit', {});
+        const withdraw = this.safeDict(data, 'withdraw', {});
+        const deposit = this.safeDict(data, 'deposit', {});
         let transactions = [];
         let currency = undefined;
         if (code === undefined) {

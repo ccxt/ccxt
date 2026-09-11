@@ -970,7 +970,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //            ...
         //        )
         //    }
-        $orders = $this->safe_value($message, 'orders', array());
+        $orders = $this->safe_list($message, 'orders', array());
         $limit = $this->safe_integer($this->options, 'ordersLimit');
         $this->orders = new ArrayCacheBySymbolById($limit);
         $feed = $this->safe_string($message, 'feed');
@@ -1534,7 +1534,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
             $client->resolve($this->balance['margin'], $messageHash . 'futures');
         }
         if ($flexFutures !== null) {
-            $flexFutureCurrencies = $this->safe_value($flexFutures, 'currencies', array());
+            $flexFutureCurrencies = $this->safe_dict($flexFutures, 'currencies', array());
             $flexFuturesKeys = is_array($flexFutureCurrencies) ? array_keys($flexFutureCurrencies) : array(); // multi-collateral margin account
             $flexFuturesResult = array(
                 'info' => $message,
@@ -1586,7 +1586,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         //        )
         //    }
         //
-        $trades = $this->safe_value($message, 'fills', array());
+        $trades = $this->safe_list($message, 'fills', array());
         $stored = $this->myTrades;
         if ($stored === null) {
             $limit = $this->safe_integer($this->options, 'tradesLimit', 1000);
@@ -1689,7 +1689,7 @@ class krakenfutures extends \ccxt\async\krakenfutures {
         return Async\await($this->watch_multiple($url, $messageHashes, $this->extend($request, $params), $messageHashes, $subscriptionArgs));
     }
 
-    public function subscription_exists_for_hash(string $url, string $hash) {
+    public function subscription_exists_for_hash(string $url, string $hash): bool {
         $client = $this->client($url);
         return (is_array($client->subscriptions) && array_key_exists($hash ?? '', $client->subscriptions));
     }

@@ -796,7 +796,7 @@ class tokocrypto(Exchange, ImplicitAPI):
         if self.options['adjustForTimeDifference'] is True:
             await self.load_time_difference()
         data = self.safe_value(response, 'data', {})
-        list = self.safe_value(data, 'list', [])
+        list = self.safe_list(data, 'list', [])
         result = []
         for i in range(0, len(list)):
             market = list[i]
@@ -813,7 +813,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             filtersByType = self.index_by(filters, 'filterType')
             status = self.safe_string(market, 'spotTradingEnable')
             active = (status == '1')
-            permissions = self.safe_value(market, 'permissions', [])
+            permissions = self.safe_list(market, 'permissions', [])
             for j in range(0, len(permissions)):
                 if permissions[j] == 'TRD_GRP_003':
                     active = False
@@ -872,7 +872,7 @@ class tokocrypto(Exchange, ImplicitAPI):
                 'info': market,
             }
             if 'PRICE_FILTER' in filtersByType:
-                filter = self.safe_value(filtersByType, 'PRICE_FILTER', {})
+                filter = self.safe_dict(filtersByType, 'PRICE_FILTER', {})
                 entry['precision']['price'] = self.safe_number(filter, 'tickSize')
                 # PRICE_FILTER reports zero values for maxPrice
                 # since they updated filter types in November 2018
@@ -1568,7 +1568,7 @@ class tokocrypto(Exchange, ImplicitAPI):
             'datetime': self.iso8601(timestamp),
         }
         data = self.safe_value(response, 'data', {})
-        balances = self.safe_value(data, 'accountAssets', [])
+        balances = self.safe_list(data, 'accountAssets', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string(balance, 'asset')

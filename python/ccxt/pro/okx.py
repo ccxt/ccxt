@@ -303,7 +303,7 @@ class okx(ccxt.async_support.okx):
         channel = self.safe_string(arg, 'channel')
         marketId = self.safe_string(arg, 'instId')
         symbol = self.safe_symbol(marketId)
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         tradesLimit = self.safe_integer(self.options, 'tradesLimit', 1000)
         for i in range(0, len(data)):
             trade = self.parse_trade(data[i])
@@ -558,7 +558,7 @@ class okx(ccxt.async_support.okx):
         market = self.safe_market(marketId, None, '-')
         symbol = market['symbol']
         channel = self.safe_string(arg, 'channel')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         newTickers = {}
         for i in range(0, len(data)):
             ticker = self.parse_ticker(data[i])
@@ -1060,7 +1060,7 @@ class okx(ccxt.async_support.okx):
         channel = self.safe_string(arg, 'channel')
         if channel is None:
             return
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         marketId = self.safe_string(arg, 'instId')
         market = self.safe_market(marketId)
         symbol = market['symbol']
@@ -1737,7 +1737,7 @@ class okx(ccxt.async_support.okx):
         market = self.safe_market(marketId, None, '-')
         symbol = market['symbol']
         channel = self.safe_string(arg, 'channel', '')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         if self.positions is None:
             self.positions = ArrayCacheBySymbolBySide()
         cache = self.positions
@@ -1864,7 +1864,7 @@ class okx(ccxt.async_support.okx):
         self.handle_my_trades(client, message)
         arg = self.safe_value(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
-        orders = self.safe_value(message, 'data', [])
+        orders = self.safe_list(message, 'data', [])
         ordersLength = len(orders)
         if ordersLength > 0:
             limit = self.safe_integer(self.options, 'ordersLimit', 1000)
@@ -1942,7 +1942,7 @@ class okx(ccxt.async_support.okx):
         #
         arg = self.safe_value(message, 'arg', {})
         channel = self.safe_string(arg, 'channel')
-        rawOrders = self.safe_value(message, 'data', [])
+        rawOrders = self.safe_list(message, 'data', [])
         filteredOrders = []
         # filter orders with no last trade id
         for i in range(0, len(rawOrders)):

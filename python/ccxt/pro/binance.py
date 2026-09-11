@@ -224,7 +224,7 @@ class binance(ccxt.async_support.binance):
         self.options['requestId'][url] = newValue
         return newValue
 
-    def is_spot_url(self, client: Client):
+    def is_spot_url(self, client: Client) -> bool:
         return(client.url.find('/stream') > -1) or (client.url.find('demo-stream') > -1)
 
     def stream(self, type: Str, subscriptionHash: Str, numSubscriptions=1):

@@ -1250,7 +1250,7 @@ class gate extends \ccxt\async\gate {
         //     )
         // }
         //
-        $result = $this->safe_value($message, 'result', array());
+        $result = $this->safe_list($message, 'result', array());
         $tradesLength = count($result);
         if ($tradesLength === 0) {
             return;
@@ -1384,7 +1384,7 @@ class gate extends \ccxt\async\gate {
         //       )
         //   }
         //
-        $result = $this->safe_value($message, 'result', array());
+        $result = $this->safe_list($message, 'result', array());
         $this->balance['info'] = $result;
         for ($i = 0; $i < count($result); $i++) {
             $rawBalance = $result[$i];
@@ -1553,7 +1553,7 @@ class gate extends \ccxt\async\gate {
         //    }
         //
         $type = $this->get_market_type_by_url($client->url);
-        $data = $this->safe_value($message, 'result', array());
+        $data = $this->safe_list($message, 'result', array());
         $cache = $this->positions[$type];
         $newPositions = array();
         for ($i = 0; $i < count($data); $i++) {

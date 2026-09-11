@@ -1816,7 +1816,7 @@ class woofipro extends Exchange {
         $childOrders = $this->safe_value($order, 'childOrders');
         if ($childOrders !== null) {
             $first = $this->safe_value($childOrders, 0);
-            $innerChildOrders = $this->safe_value($first, 'childOrders', array());
+            $innerChildOrders = $this->safe_list($first, 'childOrders', array());
             $innerChildOrdersLength = count($innerChildOrders);
             if ($innerChildOrdersLength > 0) {
                 $takeProfitOrder = $this->safe_value($innerChildOrders, 0);

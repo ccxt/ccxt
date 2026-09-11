@@ -99,7 +99,7 @@ class deribit extends \ccxt\async\deribit {
         Async\await($this->authenticate($params));
         $messageHash = 'balance';
         $url = $this->urls['api']['ws'];
-        $currencies = $this->safe_value($this->options, 'currencies', array());
+        $currencies = $this->safe_list($this->options, 'currencies', array());
         $channels = array();
         for ($i = 0; $i < count($currencies); $i++) {
             $currencyCode = $currencies[$i];

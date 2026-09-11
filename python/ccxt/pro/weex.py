@@ -501,6 +501,12 @@ class weex(ccxt.async_support.weex):
         #
         timestamp = self.safe_integer(trade, 'T')
         symbol = None if (market is None) else market['symbol']
+        isBuyerMaker = self.safe_bool(trade, 'm')  # m is the isBuyerMaker flag of the REST trades, True means the taker sold
+        side = None
+        takerOrMaker = None
+        if isBuyerMaker is not None:
+            side = 'sell' if isBuyerMaker else 'buy'
+            takerOrMaker = 'taker'  # a public trade is reported from the aggressor's side, same as parseTrade
         return self.safe_trade({
             'info': trade,
             'id': self.safe_string(trade, 't'),
@@ -509,8 +515,8 @@ class weex(ccxt.async_support.weex):
             'symbol': symbol,
             'order': None,
             'type': None,
-            'side': None,
-            'takerOrMaker': None,
+            'side': side,
+            'takerOrMaker': takerOrMaker,
             'price': self.safe_string(trade, 'p'),
             'amount': self.safe_string(trade, 'q'),
             'cost': self.safe_string(trade, 'v'),
@@ -1781,7 +1787,7 @@ class weex(ccxt.async_support.weex):
             self.clean_cache(subscription)
         return message
 
-    def handle_error_message(self, client: Client, message: object):
+    def handle_error_message(self, client: Client, message: object) -> bool:
         #
         #     {
         #         "result": False,

@@ -555,7 +555,7 @@ class bittrade extends bittrade$1["default"] {
         //         ]
         //    }
         //
-        const markets = this.safeValue(response, 'data', []);
+        const markets = this.safeList(response, 'data', []);
         const numMarkets = markets.length;
         if (numMarkets < 1) {
             throw new errors.NetworkError(this.id + ' fetchMarkets() returned empty response: ' + this.json(markets));
@@ -831,7 +831,7 @@ class bittrade extends bittrade$1["default"] {
         }
         symbols = this.marketSymbols(symbols);
         const response = await this.marketGetTickers(params);
-        const tickers = this.safeValue(response, 'data', []);
+        const tickers = this.safeList(response, 'data', []);
         const timestamp = this.safeInteger(response, 'ts');
         const result = {};
         for (let i = 0; i < tickers.length; i++) {
@@ -1026,10 +1026,10 @@ class bittrade extends bittrade$1["default"] {
         //         ]
         //     }
         //
-        const data = this.safeValue(response, 'data', []);
+        const data = this.safeList(response, 'data', []);
         let result = [];
         for (let i = 0; i < data.length; i++) {
-            const trades = this.safeValue(data[i], 'data', []);
+            const trades = this.safeList(data[i], 'data', []);
             for (let j = 0; j < trades.length; j++) {
                 const trade = this.parseTrade(trades[j], market);
                 result.push(trade);
@@ -1211,7 +1211,7 @@ class bittrade extends bittrade$1["default"] {
         });
     }
     parseBalance(response) {
-        const balances = this.safeValue(response['data'], 'list', []);
+        const balances = this.safeList(response['data'], 'list', []);
         const result = { 'info': response };
         for (let i = 0; i < balances.length; i++) {
             const balance = balances[i];

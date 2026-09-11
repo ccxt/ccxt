@@ -501,7 +501,7 @@ class grvt extends Exchange {
         );
     }
 
-    public function uses_private_key() {
+    public function uses_private_key(): bool {
         $privateKeyDefined = $this->privateKey !== null && $this->privateKey !== '';
         $apiKeyDefined = $this->apiKey !== null && $this->apiKey !== '';
         if ($privateKeyDefined && $apiKeyDefined) {

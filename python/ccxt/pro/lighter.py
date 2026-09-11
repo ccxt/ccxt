@@ -658,7 +658,7 @@ class lighter(ccxt.async_support.lighter):
             'fee': fee,
         }, market)
 
-    def handle_my_trades(self, client: Client, message: object):
+    def handle_my_trades(self, client: Client, message: object) -> bool:
         #
         #     {
         #         "channel": "account_all_trades:723310",
@@ -931,7 +931,7 @@ class lighter(ccxt.async_support.lighter):
             request['channel'] = 'user_stats/' + self.number_to_string(accountIndex)
             return await self.subscribe_public(messageHash, self.extend(request, params))
 
-    def handle_balance(self, client: Client, message: object):
+    def handle_balance(self, client: Client, message: object) -> bool:
         #
         #    spot balance
         #    {
@@ -1192,7 +1192,7 @@ class lighter(ccxt.async_support.lighter):
         id = self.safe_string(message, 'id')
         client.resolve(message, 'jsonapi/sendtx:' + id)
 
-    def handle_orders(self, client: Client, message: object):
+    def handle_orders(self, client: Client, message: object) -> bool:
         #
         #    {
         #        "account": {ACCOUNT_INDEX},
@@ -1236,7 +1236,7 @@ class lighter(ccxt.async_support.lighter):
         client.resolve(stored, messageHash)
         return True
 
-    def handle_error_message(self, client: Client, message: object):
+    def handle_error_message(self, client: Client, message: object) -> bool:
         #
         #     {
         #         "error": {
