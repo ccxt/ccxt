@@ -3598,7 +3598,7 @@ public class BitmexCore extends BitmexApi
             {
                 Object splitSymbol = Helpers.split(symbol, ":");
                 Object splitSymbolLength = Helpers.getArrayLength(splitSymbol);
-                java.util.List<Object> timeframes = new java.util.ArrayList<Object>(java.util.Arrays.asList("nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"));
+                java.util.List<String> timeframes = new java.util.ArrayList<String>(java.util.Arrays.asList("nearest", "daily", "weekly", "monthly", "quarterly", "biquarterly", "perpetual"));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(splitSymbolLength, 1))) && Helpers.isTrue(this.inArray(Helpers.GetValue(splitSymbol, 1), timeframes))))
                 {
                     java.util.Map<String, Object> code = (java.util.Map<String, Object>) this.currency(Helpers.GetValue(splitSymbol, 0));
