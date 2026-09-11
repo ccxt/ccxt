@@ -733,7 +733,8 @@ export default class coinbaseinternational extends Exchange {
         //
         const currencyId = this.safeString (currency, 'currency');
         const code = this.safeCurrencyCode (currencyId);
-        const precision = this.safeInteger2 (currency, 'onchain_operations_precision', 'decimals');
+        const decimals = this.safeString2 (currency, 'onchain_operations_precision', 'decimals');
+        const precision = this.parseNumber (this.parsePrecision (decimals));
         const networkFee = this.safeNumber (currency, 'network_fee');
         const withdrawalFee = this.safeNumber (currency, 'withdrawal_fee');
         const rawNetworks = this.safeList (currency, 'coinbase_networks', []);

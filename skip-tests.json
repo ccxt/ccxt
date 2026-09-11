@@ -848,7 +848,8 @@
                 "deposit": "not provided",
                 "type": "todo",
                 "activeMajorCurrencies": "todo"
-            }
+            },
+            "fetchTickers": "requires custom param"
         }
     },
     "coinmetro": {
