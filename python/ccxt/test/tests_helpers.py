@@ -327,8 +327,9 @@ def ws_client_has_pending_futures(exchange, url):
     # whether the watch flow is currently awaiting a message - the frame
     # injector polls this instead of relying on a fixed head-start sleep
     client = exchange.client(url)
-    for future in client.futures.values():
-        if not future.done():
+    # REST balance snapshots do not wait for WebSocket frames.
+    for message_hash, future in client.futures.items():
+        if not message_hash.endswith(':fetchBalanceSnapshot') and not future.done():
             return True
     return False
 

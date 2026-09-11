@@ -240,7 +240,8 @@ function wsClientHasPendingFutures (exchange: any, url: string) {
     // injector polls this instead of relying on a fixed head-start sleep
     const client = exchange.client (url);
     const messageHashes = Object.keys (client.futures);
-    return messageHashes.length > 0;
+    // REST balance snapshots do not wait for WebSocket frames.
+    return messageHashes.some ((messageHash) => !messageHash.endsWith (':fetchBalanceSnapshot'));
 }
 
 function markWsTestCompleted (exchange: any, url: string) {
