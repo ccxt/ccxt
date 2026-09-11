@@ -980,6 +980,1778 @@
 				]
 			}
 		],
+		"fetchMyTrades": [
+			{
+				"description": "fetchMyTrades picks the wallet's own legs out of the matches - every fill here is a taker leg",
+				"method": "fetchMyTrades",
+				"input": [
+					"TRUMP_ACQUIRE_GREENLAND_2027:YES"
+				],
+				"httpResponse": {
+					"cursor": null,
+					"data": [
+						{
+							"amountFilled": "1000000000000000000",
+							"executedAt": "2026-09-11T07:19:22.000Z",
+							"makers": [
+								{
+									"amount": "1000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "SHARES"
+									},
+									"hash": "0xf42dc44fb2d4cc8b54305a0012d8c3d92e87493af46e5c7d4a4c67966d2e63aa",
+									"outcome": {
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									"price": "20000000000000000",
+									"quoteType": "Bid",
+									"signer": "0x5e5AdA84Fa3466260F56895BC5533D5B1acAa82A"
+								}
+							],
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 2597.002040816327
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1454.4903448275861
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"priceExecuted": "20000000000000000",
+							"settlementId": "01a08f55-d6f7-77e3-895e-81cf62d8aa09",
+							"taker": {
+								"amount": "1000000000000000000",
+								"fee": {
+									"amount": "400000000000000",
+									"type": "COLLATERAL"
+								},
+								"hash": "0x7d097327cc15754411b7ec3e3e074ff3e974394a75aa5c81fdf90b4e67e59c15",
+								"outcome": {
+									"bestAsk": {
+										"price": 0.029,
+										"size": 1454.4903448275861
+									},
+									"bestBid": {
+										"price": 0.02,
+										"size": 2597.002040816327
+									},
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+									"status": null,
+									"team": null,
+									"variantData": null
+								},
+								"price": "20000000000000000",
+								"quoteType": "Ask",
+								"signer": "0xabababababababababababababababababababab"
+							},
+							"transactionHash": "0x6ee73e138e24aff32e3ab652bce113fb5cc7ebe8516b396bfd4e3964ba86baf8"
+						},
+						{
+							"amountFilled": "1000000000000000000",
+							"executedAt": "2026-09-11T07:18:24.000Z",
+							"makers": [
+								{
+									"amount": "1000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "SHARES"
+									},
+									"hash": "0xf42dc44fb2d4cc8b54305a0012d8c3d92e87493af46e5c7d4a4c67966d2e63aa",
+									"outcome": {
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									"price": "20000000000000000",
+									"quoteType": "Bid",
+									"signer": "0x5e5AdA84Fa3466260F56895BC5533D5B1acAa82A"
+								}
+							],
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 2597.002040816327
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1454.4903448275861
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"priceExecuted": "20000000000000000",
+							"settlementId": "01a08f54-f3af-7510-9cd9-4bcfbcaebfa0",
+							"taker": {
+								"amount": "1000000000000000000",
+								"fee": {
+									"amount": "400000000000000",
+									"type": "COLLATERAL"
+								},
+								"hash": "0x898784fc50956b09cc5a32676c3121499f32c96b0e8dc12b079ab8aaee060f77",
+								"outcome": {
+									"bestAsk": {
+										"price": 0.029,
+										"size": 1454.4903448275861
+									},
+									"bestBid": {
+										"price": 0.02,
+										"size": 2597.002040816327
+									},
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+									"status": null,
+									"team": null,
+									"variantData": null
+								},
+								"price": "20000000000000000",
+								"quoteType": "Ask",
+								"signer": "0xabababababababababababababababababababab"
+							},
+							"transactionHash": "0xff2df738e511d062dd6b7f52d3c91a7a161a209ad22acf1e01ac4d68ebc3d6b9"
+						},
+						{
+							"amountFilled": "5000000000000000000",
+							"executedAt": "2026-09-08T17:41:30.000Z",
+							"makers": [
+								{
+									"amount": "5000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "SHARES"
+									},
+									"hash": "0x1ec98425300d6b15156d194838a65f0162c5c857971a162fcf26d444fd33a2d7",
+									"outcome": {
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									"price": "20000000000000000",
+									"quoteType": "Bid",
+									"signer": "0x5e5AdA84Fa3466260F56895BC5533D5B1acAa82A"
+								}
+							],
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 2597.002040816327
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1454.4903448275861
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"priceExecuted": "20000000000000000",
+							"settlementId": "01a0821c-5745-7b83-8b16-4af88300fb89",
+							"taker": {
+								"amount": "5000000000000000000",
+								"fee": {
+									"amount": "2000000000000000",
+									"type": "COLLATERAL"
+								},
+								"hash": "0x14fe9ecf1d571f31409c0536501df8dbc6d0789025e3c5af5a322c423b34cedd",
+								"outcome": {
+									"bestAsk": {
+										"price": 0.029,
+										"size": 1454.4903448275861
+									},
+									"bestBid": {
+										"price": 0.02,
+										"size": 2597.002040816327
+									},
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+									"status": null,
+									"team": null,
+									"variantData": null
+								},
+								"price": "20000000000000000",
+								"quoteType": "Ask",
+								"signer": "0xabababababababababababababababababababab"
+							},
+							"transactionHash": "0x5362aad42b5014a5976c46b0b08b9bd99f6e6fbd7a9c816d8c69a4c37276f53c"
+						},
+						{
+							"amountFilled": "1000000000000000000",
+							"executedAt": "2026-09-08T17:05:22.000Z",
+							"makers": [
+								{
+									"amount": "1000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "SHARES"
+									},
+									"hash": "0x1ec98425300d6b15156d194838a65f0162c5c857971a162fcf26d444fd33a2d7",
+									"outcome": {
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									"price": "20000000000000000",
+									"quoteType": "Bid",
+									"signer": "0x5e5AdA84Fa3466260F56895BC5533D5B1acAa82A"
+								}
+							],
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 2597.002040816327
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1454.4903448275861
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"priceExecuted": "980000000000000000",
+							"settlementId": "01a081fb-42a0-7fe3-a999-b8ae6dee6a42",
+							"taker": {
+								"amount": "1000000000000000000",
+								"fee": {
+									"amount": "408163265306122",
+									"type": "SHARES"
+								},
+								"hash": "0x590a44fc17b6b7ee1f00d8e4468cb7c6e02ecf337649d35f60729f8d12d87f8a",
+								"outcome": {
+									"bestAsk": {
+										"price": 0.98,
+										"size": 2597.002040816327
+									},
+									"bestBid": {
+										"price": 0.971,
+										"size": 1454.4903448275861
+									},
+									"indexSet": 2,
+									"name": "No",
+									"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+									"status": null,
+									"team": null,
+									"variantData": null
+								},
+								"price": "980000000000000000",
+								"quoteType": "Bid",
+								"signer": "0xabababababababababababababababababababab"
+							},
+							"transactionHash": "0x5adc9d97d01afc60225aaa174d171ba9b73e888ec35e606cfcb975d6f0e0bfd0"
+						},
+						{
+							"amountFilled": "10000000000000000000",
+							"executedAt": "2026-09-08T16:26:30.000Z",
+							"makers": [
+								{
+									"amount": "10000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "COLLATERAL"
+									},
+									"hash": "0x67a4d5d9ebed8bc0ef97f018dd48e8526c7a0b9fca787d9019a2de827f172dcd",
+									"outcome": {
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									"price": "29000000000000000",
+									"quoteType": "Ask",
+									"signer": "0x5e5AdA84Fa3466260F56895BC5533D5B1acAa82A"
+								}
+							],
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 2597.002040816327
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1454.4903448275861
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"priceExecuted": "29000000000000000",
+							"settlementId": "01a081d7-a976-73a1-811b-2b3abd39a668",
+							"taker": {
+								"amount": "10000000000000000000",
+								"fee": {
+									"amount": "200000000000000000",
+									"type": "SHARES"
+								},
+								"hash": "0xa348bd2a325026e4d93c32078e382e5313ad08e25feee72c33d338d1122021dc",
+								"outcome": {
+									"bestAsk": {
+										"price": 0.029,
+										"size": 1454.4903448275861
+									},
+									"bestBid": {
+										"price": 0.02,
+										"size": 2597.002040816327
+									},
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+									"status": null,
+									"team": null,
+									"variantData": null
+								},
+								"price": "29000000000000000",
+								"quoteType": "Bid",
+								"signer": "0xabababababababababababababababababababab"
+							},
+							"transactionHash": "0x2200db7c401d710d4dec8f9ad660df2d3fe4d0ca1c4b255b6fc3920f0b17e7c4"
+						},
+						{
+							"amountFilled": "1000000000000000000",
+							"executedAt": "2026-09-08T15:24:18.000Z",
+							"makers": [
+								{
+									"amount": "1000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "COLLATERAL"
+									},
+									"hash": "0x67a4d5d9ebed8bc0ef97f018dd48e8526c7a0b9fca787d9019a2de827f172dcd",
+									"outcome": {
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									"price": "29000000000000000",
+									"quoteType": "Ask",
+									"signer": "0x5e5AdA84Fa3466260F56895BC5533D5B1acAa82A"
+								}
+							],
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 2597.002040816327
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1454.4903448275861
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"priceExecuted": "29000000000000000",
+							"settlementId": "01a0819e-b86d-7232-a45d-9b0987fe9302",
+							"taker": {
+								"amount": "1000000000000000000",
+								"fee": {
+									"amount": "20000000000000000",
+									"type": "SHARES"
+								},
+								"hash": "0x3508ce60ca576886d9d589dbc8b0e0f1417e2f35151893236579cf445b748ddc",
+								"outcome": {
+									"bestAsk": {
+										"price": 0.029,
+										"size": 1454.4903448275861
+									},
+									"bestBid": {
+										"price": 0.02,
+										"size": 2597.002040816327
+									},
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+									"status": null,
+									"team": null,
+									"variantData": null
+								},
+								"price": "29000000000000000",
+								"quoteType": "Bid",
+								"signer": "0xabababababababababababababababababababab"
+							},
+							"transactionHash": "0xeb0bdfa3112252daa216fee110a80f5fafb3546345d75785dce4f0e75d4d17ce"
+						}
+					],
+					"success": true
+				},
+				"parsedResponse": [
+					{
+						"id": "01a0819e-b86d-7232-a45d-9b0987fe9302",
+						"order": "0x3508ce60ca576886d9d589dbc8b0e0f1417e2f35151893236579cf445b748ddc",
+						"timestamp": 1788881058000,
+						"datetime": "2026-09-08T15:24:18.000Z",
+						"type": "market",
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.029,
+						"amount": 1,
+						"cost": 0.029,
+						"fee": {
+							"currency": null,
+							"cost": 0.02
+						},
+						"realizedPnl": null,
+						"outcome": "TRUMP_ACQUIRE_GREENLAND_2027:YES",
+						"outcomeId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+						"label": "YES",
+						"market": "TRUMP_ACQUIRE_GREENLAND_2027",
+						"info": {
+							"amountFilled": "1000000000000000000",
+							"executedAt": "2026-09-08T15:24:18.000Z",
+							"makers": [
+								{
+									"amount": "1000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "COLLATERAL"
+									},
+									"hash": "0x67a4d5d9ebed8bc0ef97f018dd48e8526c7a0b9fca787d9019a2de827f172dcd",
+									"outcome": {
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									"price": "29000000000000000",
+									"quoteType": "Ask",
+									"signer": "0x5e5AdA84Fa3466260F56895BC5533D5B1acAa82A"
+								}
+							],
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 2597.002040816327
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1454.4903448275861
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"priceExecuted": "29000000000000000",
+							"settlementId": "01a0819e-b86d-7232-a45d-9b0987fe9302",
+							"taker": {
+								"amount": "1000000000000000000",
+								"fee": {
+									"amount": "20000000000000000",
+									"type": "SHARES"
+								},
+								"hash": "0x3508ce60ca576886d9d589dbc8b0e0f1417e2f35151893236579cf445b748ddc",
+								"outcome": {
+									"bestAsk": {
+										"price": 0.029,
+										"size": 1454.4903448275861
+									},
+									"bestBid": {
+										"price": 0.02,
+										"size": 2597.002040816327
+									},
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+									"status": null,
+									"team": null,
+									"variantData": null
+								},
+								"price": "29000000000000000",
+								"quoteType": "Bid",
+								"signer": "0xabababababababababababababababababababab"
+							},
+							"transactionHash": "0xeb0bdfa3112252daa216fee110a80f5fafb3546345d75785dce4f0e75d4d17ce"
+						}
+					},
+					{
+						"id": "01a081d7-a976-73a1-811b-2b3abd39a668",
+						"order": "0xa348bd2a325026e4d93c32078e382e5313ad08e25feee72c33d338d1122021dc",
+						"timestamp": 1788884790000,
+						"datetime": "2026-09-08T16:26:30.000Z",
+						"type": "market",
+						"side": "buy",
+						"takerOrMaker": "taker",
+						"price": 0.029,
+						"amount": 10,
+						"cost": 0.29,
+						"fee": {
+							"currency": null,
+							"cost": 0.2
+						},
+						"realizedPnl": null,
+						"outcome": "TRUMP_ACQUIRE_GREENLAND_2027:YES",
+						"outcomeId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+						"label": "YES",
+						"market": "TRUMP_ACQUIRE_GREENLAND_2027",
+						"info": {
+							"amountFilled": "10000000000000000000",
+							"executedAt": "2026-09-08T16:26:30.000Z",
+							"makers": [
+								{
+									"amount": "10000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "COLLATERAL"
+									},
+									"hash": "0x67a4d5d9ebed8bc0ef97f018dd48e8526c7a0b9fca787d9019a2de827f172dcd",
+									"outcome": {
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									"price": "29000000000000000",
+									"quoteType": "Ask",
+									"signer": "0x5e5AdA84Fa3466260F56895BC5533D5B1acAa82A"
+								}
+							],
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 2597.002040816327
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1454.4903448275861
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"priceExecuted": "29000000000000000",
+							"settlementId": "01a081d7-a976-73a1-811b-2b3abd39a668",
+							"taker": {
+								"amount": "10000000000000000000",
+								"fee": {
+									"amount": "200000000000000000",
+									"type": "SHARES"
+								},
+								"hash": "0xa348bd2a325026e4d93c32078e382e5313ad08e25feee72c33d338d1122021dc",
+								"outcome": {
+									"bestAsk": {
+										"price": 0.029,
+										"size": 1454.4903448275861
+									},
+									"bestBid": {
+										"price": 0.02,
+										"size": 2597.002040816327
+									},
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+									"status": null,
+									"team": null,
+									"variantData": null
+								},
+								"price": "29000000000000000",
+								"quoteType": "Bid",
+								"signer": "0xabababababababababababababababababababab"
+							},
+							"transactionHash": "0x2200db7c401d710d4dec8f9ad660df2d3fe4d0ca1c4b255b6fc3920f0b17e7c4"
+						}
+					},
+					{
+						"id": "01a0821c-5745-7b83-8b16-4af88300fb89",
+						"order": "0x14fe9ecf1d571f31409c0536501df8dbc6d0789025e3c5af5a322c423b34cedd",
+						"timestamp": 1788889290000,
+						"datetime": "2026-09-08T17:41:30.000Z",
+						"type": "market",
+						"side": "sell",
+						"takerOrMaker": "taker",
+						"price": 0.02,
+						"amount": 5,
+						"cost": 0.1,
+						"fee": {
+							"currency": "USDT",
+							"cost": 0.002
+						},
+						"realizedPnl": null,
+						"outcome": "TRUMP_ACQUIRE_GREENLAND_2027:YES",
+						"outcomeId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+						"label": "YES",
+						"market": "TRUMP_ACQUIRE_GREENLAND_2027",
+						"info": {
+							"amountFilled": "5000000000000000000",
+							"executedAt": "2026-09-08T17:41:30.000Z",
+							"makers": [
+								{
+									"amount": "5000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "SHARES"
+									},
+									"hash": "0x1ec98425300d6b15156d194838a65f0162c5c857971a162fcf26d444fd33a2d7",
+									"outcome": {
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									"price": "20000000000000000",
+									"quoteType": "Bid",
+									"signer": "0x5e5AdA84Fa3466260F56895BC5533D5B1acAa82A"
+								}
+							],
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 2597.002040816327
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1454.4903448275861
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"priceExecuted": "20000000000000000",
+							"settlementId": "01a0821c-5745-7b83-8b16-4af88300fb89",
+							"taker": {
+								"amount": "5000000000000000000",
+								"fee": {
+									"amount": "2000000000000000",
+									"type": "COLLATERAL"
+								},
+								"hash": "0x14fe9ecf1d571f31409c0536501df8dbc6d0789025e3c5af5a322c423b34cedd",
+								"outcome": {
+									"bestAsk": {
+										"price": 0.029,
+										"size": 1454.4903448275861
+									},
+									"bestBid": {
+										"price": 0.02,
+										"size": 2597.002040816327
+									},
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+									"status": null,
+									"team": null,
+									"variantData": null
+								},
+								"price": "20000000000000000",
+								"quoteType": "Ask",
+								"signer": "0xabababababababababababababababababababab"
+							},
+							"transactionHash": "0x5362aad42b5014a5976c46b0b08b9bd99f6e6fbd7a9c816d8c69a4c37276f53c"
+						}
+					},
+					{
+						"id": "01a08f54-f3af-7510-9cd9-4bcfbcaebfa0",
+						"order": "0x898784fc50956b09cc5a32676c3121499f32c96b0e8dc12b079ab8aaee060f77",
+						"timestamp": 1789111104000,
+						"datetime": "2026-09-11T07:18:24.000Z",
+						"type": "market",
+						"side": "sell",
+						"takerOrMaker": "taker",
+						"price": 0.02,
+						"amount": 1,
+						"cost": 0.02,
+						"fee": {
+							"currency": "USDT",
+							"cost": 0.0004
+						},
+						"realizedPnl": null,
+						"outcome": "TRUMP_ACQUIRE_GREENLAND_2027:YES",
+						"outcomeId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+						"label": "YES",
+						"market": "TRUMP_ACQUIRE_GREENLAND_2027",
+						"info": {
+							"amountFilled": "1000000000000000000",
+							"executedAt": "2026-09-11T07:18:24.000Z",
+							"makers": [
+								{
+									"amount": "1000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "SHARES"
+									},
+									"hash": "0xf42dc44fb2d4cc8b54305a0012d8c3d92e87493af46e5c7d4a4c67966d2e63aa",
+									"outcome": {
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									"price": "20000000000000000",
+									"quoteType": "Bid",
+									"signer": "0x5e5AdA84Fa3466260F56895BC5533D5B1acAa82A"
+								}
+							],
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 2597.002040816327
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1454.4903448275861
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"priceExecuted": "20000000000000000",
+							"settlementId": "01a08f54-f3af-7510-9cd9-4bcfbcaebfa0",
+							"taker": {
+								"amount": "1000000000000000000",
+								"fee": {
+									"amount": "400000000000000",
+									"type": "COLLATERAL"
+								},
+								"hash": "0x898784fc50956b09cc5a32676c3121499f32c96b0e8dc12b079ab8aaee060f77",
+								"outcome": {
+									"bestAsk": {
+										"price": 0.029,
+										"size": 1454.4903448275861
+									},
+									"bestBid": {
+										"price": 0.02,
+										"size": 2597.002040816327
+									},
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+									"status": null,
+									"team": null,
+									"variantData": null
+								},
+								"price": "20000000000000000",
+								"quoteType": "Ask",
+								"signer": "0xabababababababababababababababababababab"
+							},
+							"transactionHash": "0xff2df738e511d062dd6b7f52d3c91a7a161a209ad22acf1e01ac4d68ebc3d6b9"
+						}
+					},
+					{
+						"id": "01a08f55-d6f7-77e3-895e-81cf62d8aa09",
+						"order": "0x7d097327cc15754411b7ec3e3e074ff3e974394a75aa5c81fdf90b4e67e59c15",
+						"timestamp": 1789111162000,
+						"datetime": "2026-09-11T07:19:22.000Z",
+						"type": "market",
+						"side": "sell",
+						"takerOrMaker": "taker",
+						"price": 0.02,
+						"amount": 1,
+						"cost": 0.02,
+						"fee": {
+							"currency": "USDT",
+							"cost": 0.0004
+						},
+						"realizedPnl": null,
+						"outcome": "TRUMP_ACQUIRE_GREENLAND_2027:YES",
+						"outcomeId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+						"label": "YES",
+						"market": "TRUMP_ACQUIRE_GREENLAND_2027",
+						"info": {
+							"amountFilled": "1000000000000000000",
+							"executedAt": "2026-09-11T07:19:22.000Z",
+							"makers": [
+								{
+									"amount": "1000000000000000000",
+									"fee": {
+										"amount": "0",
+										"type": "SHARES"
+									},
+									"hash": "0xf42dc44fb2d4cc8b54305a0012d8c3d92e87493af46e5c7d4a4c67966d2e63aa",
+									"outcome": {
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									"price": "20000000000000000",
+									"quoteType": "Bid",
+									"signer": "0x5e5AdA84Fa3466260F56895BC5533D5B1acAa82A"
+								}
+							],
+							"market": {
+								"boostEndsAt": null,
+								"boostStartsAt": null,
+								"categorySlug": "will-trump-acquire-greenland-before-2027",
+								"conditionId": "0xdad1aee2cfb0533d53ef98e6b98c667e80c745f738898924acac9e7f20a26381",
+								"createdAt": "2026-01-09T18:08:20.140Z",
+								"decimalPrecision": 3,
+								"description": "This market will resolve to \"Yes\" if the United States officially announces that Greenland will come under US sovereignty by December 31, 2026, 11:59 PM ET. Otherwise this market will resolve to \"No\".\n\nSovereignty is defined as the transfer of the majority of the territory of Greenland from its current status as an autonomous territory within the Kingdom of Denmark to being under the formal governance or jurisdiction of the United States, either as a state, territory, or other classification within the US system.\n\nAn official announcement made by the United States and Denmark that Greenland will come under US sovereignty will qualify, even if the actual transfer of sovereignty is yet to occur. Only announcements of official agreements or actions (e.g. executive order, signed legislation, etc.) will count - mere posts on Social Media will not.\n\nThe resolution source for this market will be official information from the governments of the US, Greenland, and Denmark, however a consensus of credible reporting confirming that Greenland has come under U.S. sovereignty will also qualify.",
+								"feeRateBps": 200,
+								"id": 2107,
+								"imageUrl": "https://static.predict.fun/will-trump-acquire-greenland-before-2027-will-trump-acquire-greenland-before-2027",
+								"isBoosted": false,
+								"isNegRisk": false,
+								"isVisible": true,
+								"isYieldBearing": true,
+								"kalshiMarketTicker": null,
+								"marketType": null,
+								"marketVariant": "DEFAULT",
+								"oracleQuestionId": "0x67ac8d736a5c9cf194a48c691b3223ae28c2ac7afa42d645cf29833318179498",
+								"outcomes": [
+									{
+										"bestAsk": {
+											"price": 0.029,
+											"size": 1454.4903448275861
+										},
+										"bestBid": {
+											"price": 0.02,
+											"size": 2597.002040816327
+										},
+										"indexSet": 1,
+										"name": "Yes",
+										"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+										"status": null,
+										"team": null,
+										"variantData": null
+									},
+									{
+										"bestAsk": {
+											"price": 0.98,
+											"size": 2597.002040816327
+										},
+										"bestBid": {
+											"price": 0.971,
+											"size": 1454.4903448275861
+										},
+										"indexSet": 2,
+										"name": "No",
+										"onChainId": "11755619521560507246941857733124673401539364429068333264940202564484253415073",
+										"status": null,
+										"team": null,
+										"variantData": null
+									}
+								],
+								"polymarketConditionIds": [
+									"0xd595eb9b81885ff018738300c79047e3ec89e87294424f57a29a7fa9162bf116"
+								],
+								"question": "Will Trump acquire Greenland before 2027?",
+								"questionIndex": null,
+								"resolution": null,
+								"resolverAddress": "0x947cc06D38d3cB0a2BB5AdFB668b99B4FF53d7B4",
+								"rewards": {
+									"current": {
+										"endsAt": "2026-12-31T00:00:00.000Z",
+										"hourlyRate": 0,
+										"startsAt": "2026-05-07T04:30:00.000Z"
+									},
+									"schedule": [
+										{
+											"endsAt": "2026-05-07T04:30:00.000Z",
+											"hourlyRate": 120,
+											"startsAt": "2026-05-07T01:00:00.000Z"
+										},
+										{
+											"endsAt": "2026-12-31T00:00:00.000Z",
+											"hourlyRate": 0,
+											"startsAt": "2026-05-07T04:30:00.000Z"
+										}
+									]
+								},
+								"shareThreshold": 100,
+								"spreadThreshold": 0.06,
+								"status": "REGISTERED",
+								"team": null,
+								"title": "Will Trump acquire Greenland before 2027?",
+								"tradingStatus": "OPEN",
+								"variantData": null
+							},
+							"priceExecuted": "20000000000000000",
+							"settlementId": "01a08f55-d6f7-77e3-895e-81cf62d8aa09",
+							"taker": {
+								"amount": "1000000000000000000",
+								"fee": {
+									"amount": "400000000000000",
+									"type": "COLLATERAL"
+								},
+								"hash": "0x7d097327cc15754411b7ec3e3e074ff3e974394a75aa5c81fdf90b4e67e59c15",
+								"outcome": {
+									"bestAsk": {
+										"price": 0.029,
+										"size": 1454.4903448275861
+									},
+									"bestBid": {
+										"price": 0.02,
+										"size": 2597.002040816327
+									},
+									"indexSet": 1,
+									"name": "Yes",
+									"onChainId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+									"status": null,
+									"team": null,
+									"variantData": null
+								},
+								"price": "20000000000000000",
+								"quoteType": "Ask",
+								"signer": "0xabababababababababababababababababababab"
+							},
+							"transactionHash": "0x6ee73e138e24aff32e3ab652bce113fb5cc7ebe8516b396bfd4e3964ba86baf8"
+						}
+					}
+				]
+			}
+		],
 		"fetchOrder": [
 			{
 				"description": "fetchOrder by hash, a filled market sell",
@@ -1071,6 +2843,99 @@
 						"rewardEarningRate": 0,
 						"status": "FILLED",
 						"strategy": "MARKET"
+					}
+				}
+			},
+			{
+				"description": "fetchOrder filled limit buy derives the price from the signed legs",
+				"method": "fetchOrder",
+				"input": [
+					"0xa348bd2a325026e4d93c32078e382e5313ad08e25feee72c33d338d1122021dc"
+				],
+				"httpResponse": {
+					"data": {
+						"amount": "10000000000000000000",
+						"amountFilled": "10000000000000000000",
+						"currency": "USDT",
+						"id": "3295217402",
+						"isNegRisk": false,
+						"isYieldBearing": true,
+						"marketId": 2107,
+						"order": {
+							"expiration": 1788888389,
+							"feeRateBps": "200",
+							"hash": "0xa348bd2a325026e4d93c32078e382e5313ad08e25feee72c33d338d1122021dc",
+							"maker": "0xabababababababababababababababababababab",
+							"makerAmount": "1000000000000000000",
+							"nonce": "0",
+							"salt": "1788884789078",
+							"side": 0,
+							"signature": "0xababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
+							"signatureType": 0,
+							"signer": "0xabababababababababababababababababababab",
+							"taker": "0x0000000000000000000000000000000000000000",
+							"takerAmount": "10000000000000000000",
+							"tokenId": "102573984881343066910588521432866186873146959784593028115930766464346050769159"
+						},
+						"rewardEarningRate": 0,
+						"status": "FILLED",
+						"strategy": "LIMIT"
+					},
+					"success": true
+				},
+				"parsedResponse": {
+					"id": "0xa348bd2a325026e4d93c32078e382e5313ad08e25feee72c33d338d1122021dc",
+					"clientOrderId": null,
+					"timestamp": null,
+					"datetime": null,
+					"lastTradeTimestamp": null,
+					"lastUpdateTimestamp": null,
+					"status": "closed",
+					"type": "limit",
+					"timeInForce": null,
+					"side": "buy",
+					"price": 0.1,
+					"average": 0.1,
+					"amount": 10,
+					"filled": 10,
+					"remaining": 0,
+					"cost": 1,
+					"fee": null,
+					"reduceOnly": null,
+					"postOnly": null,
+					"trades": [],
+					"outcome": "TRUMP_ACQUIRE_GREENLAND_2027:YES",
+					"outcomeId": "102573984881343066910588521432866186873146959784593028115930766464346050769159",
+					"label": "YES",
+					"market": "TRUMP_ACQUIRE_GREENLAND_2027",
+					"event": "TRUMP_ACQUIRE_GREENLAND_2027",
+					"info": {
+						"amount": "10000000000000000000",
+						"amountFilled": "10000000000000000000",
+						"currency": "USDT",
+						"id": "3295217402",
+						"isNegRisk": false,
+						"isYieldBearing": true,
+						"marketId": 2107,
+						"order": {
+							"expiration": 1788888389,
+							"feeRateBps": "200",
+							"hash": "0xa348bd2a325026e4d93c32078e382e5313ad08e25feee72c33d338d1122021dc",
+							"maker": "0xabababababababababababababababababababab",
+							"makerAmount": "1000000000000000000",
+							"nonce": "0",
+							"salt": "1788884789078",
+							"side": 0,
+							"signature": "0xababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababababab",
+							"signatureType": 0,
+							"signer": "0xabababababababababababababababababababab",
+							"taker": "0x0000000000000000000000000000000000000000",
+							"takerAmount": "10000000000000000000",
+							"tokenId": "102573984881343066910588521432866186873146959784593028115930766464346050769159"
+						},
+						"rewardEarningRate": 0,
+						"status": "FILLED",
+						"strategy": "LIMIT"
 					}
 				}
 			}
