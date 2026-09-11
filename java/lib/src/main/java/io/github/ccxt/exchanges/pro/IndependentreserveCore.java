@@ -101,7 +101,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //    }
         //
         Object data = this.safeValue(message, "Data", new java.util.HashMap<String, Object>() {{}});
-        String marketId = this.safeString(data, "Pair");
+        String marketId = (String) this.safeString(data, "Pair");
         String symbol = (String) this.safeSymbol(marketId, null, "-");
         String messageHash = (String) Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
@@ -132,8 +132,8 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String datetime = this.safeString(trade, "TradeDate");
-        String marketId = this.safeString(market, "Pair");
+        String datetime = (String) this.safeString(trade, "TradeDate");
+        String marketId = (String) this.safeString(market, "Pair");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", IndependentreserveCore.this.safeString(trade, "TradeGuid") );
@@ -213,16 +213,16 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //        "Event": "OrderBookSnapshot",
         //    }
         //
-        String eventVar = this.safeString(message, "Event");
-        String channel = this.safeString(message, "Channel");
+        String eventVar = (String) this.safeString(message, "Event");
+        String channel = (String) this.safeString(message, "Channel");
         if (Helpers.isTrue(Helpers.isEqual(channel, null)))
         {
             return;
         }
         Object parts = Helpers.split(channel, "/");
-        String depth = this.safeString(parts, 1);
-        String baseId = this.safeString(parts, 2);
-        String quoteId = this.safeString(parts, 3);
+        String depth = (String) this.safeString(parts, 1);
+        String baseId = (String) this.safeString(parts, 2);
+        String quoteId = (String) this.safeString(parts, 3);
         String base = (String) this.safeCurrencyCode(baseId);
         String quote = (String) this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -283,7 +283,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             {
                 var error = new ChecksumError(Helpers.add(Helpers.add(this.id, " "), this.orderbookChecksumMessage(symbol)));
                 ((java.util.Map<String,Object>)client.subscriptions).remove((String)messageHash);
-                this.orderbooks.remove((String)symbol);
+                ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
                 client.reject(error, messageHash);
                 return;
             }
@@ -346,7 +346,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
 
     public void handleMessage(Client client, Object message)
     {
-        String eventVar = this.safeString(message, "Event");
+        String eventVar = (String) this.safeString(message, "Event");
         java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
             put( "Subscriptions", "handleSubscriptions");
             put( "Heartbeat", "handleHeartbeat");

@@ -84,7 +84,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             symbol = Helpers.GetValue(market, "symbol");
             // only supports a limit of 150 at this time
             String messageHash = (String) Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".detail");
-            String api = this.safeString(this.options, "api", "api");
+            String api = (String) this.safeString(this.options, "api", "api");
             java.util.Map<String, Object> hostname = new java.util.HashMap<String, Object>() {{
                 put( "hostname", BittradeCore.this.hostname );
             }};
@@ -126,13 +126,13 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //     }
         //
         Object tick = this.safeValue(message, "tick", new java.util.HashMap<String, Object>() {{}});
-        String ch = this.safeString(message, "ch");
+        String ch = (String) this.safeString(message, "ch");
         if (Helpers.isTrue(Helpers.isEqual(ch, null)))
         {
             return message;
         }
         Object parts = Helpers.split(ch, ".");
-        String marketId = this.safeString(parts, 1);
+        String marketId = (String) this.safeString(parts, 1);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object ticker = this.parseTicker(tick, market);
         Object timestamp = this.safeValue(message, "ts");
@@ -170,7 +170,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             symbol = Helpers.GetValue(market, "symbol");
             // only supports a limit of 150 at this time
             String messageHash = (String) Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".trade.detail");
-            String api = this.safeString(this.options, "api", "api");
+            String api = (String) this.safeString(this.options, "api", "api");
             java.util.Map<String, Object> hostname = new java.util.HashMap<String, Object>() {{
                 put( "hostname", BittradeCore.this.hostname );
             }};
@@ -221,13 +221,13 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //
         Object tick = this.safeValue(message, "tick", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeValue(tick, "data", new java.util.HashMap<String, Object>() {{}});
-        String ch = this.safeString(message, "ch");
+        String ch = (String) this.safeString(message, "ch");
         if (Helpers.isTrue(Helpers.isEqual(ch, null)))
         {
             return message;
         }
         Object parts = Helpers.split(ch, ".");
-        String marketId = this.safeString(parts, 1);
+        String marketId = (String) this.safeString(parts, 1);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object tradesCache = this.safeValue(this.trades, symbol);
@@ -272,9 +272,9 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            String interval = this.safeString(this.timeframes, timeframe, timeframe);
+            String interval = (String) this.safeString(this.timeframes, timeframe, timeframe);
             String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".kline."), interval);
-            String api = this.safeString(this.options, "api", "api");
+            String api = (String) this.safeString(this.options, "api", "api");
             java.util.Map<String, Object> hostname = new java.util.HashMap<String, Object>() {{
                 put( "hostname", BittradeCore.this.hostname );
             }};
@@ -320,16 +320,16 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //         }
         //     }
         //
-        String ch = this.safeString(message, "ch");
+        String ch = (String) this.safeString(message, "ch");
         if (Helpers.isTrue(Helpers.isEqual(ch, null)))
         {
             return;
         }
         Object parts = Helpers.split(ch, ".");
-        String marketId = this.safeString(parts, 1);
+        String marketId = (String) this.safeString(parts, 1);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        String interval = this.safeString(parts, 3);
+        String interval = (String) this.safeString(parts, 3);
         Object timeframe = this.findTimeframe(interval);
         Helpers.addElementToObject(this.ohlcvs, symbol, this.safeValue(this.ohlcvs, symbol, new java.util.HashMap<String, Object>() {{}}));
         Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe);
@@ -374,7 +374,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             // only supports a limit of 150 at this time
             limit = ((Helpers.isTrue((Helpers.isEqual(limit, null))))) ? 150 : limit;
             String messageHash = (String) Helpers.add(Helpers.add(Helpers.add("market.", Helpers.GetValue(market, "id")), ".mbp."), String.valueOf(limit));
-            String api = this.safeString(this.options, "api", "api");
+            String api = (String) this.safeString(this.options, "api", "api");
             java.util.Map<String, Object> hostname = new java.util.HashMap<String, Object>() {{
                 put( "hostname", BittradeCore.this.hostname );
             }};
@@ -423,8 +423,8 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //         }
         //     }
         //
-        String symbol = this.safeString(subscription, "symbol");
-        String messageHash = this.safeString(subscription, "messageHash");
+        String symbol = (String) this.safeString(subscription, "symbol");
+        String messageHash = (String) this.safeString(subscription, "messageHash");
         Long timestamp = this.safeInteger(message, "ts");
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, ((String)symbol));
         Object data = this.safeValue(message, "data");
@@ -448,13 +448,13 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
 
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
-            String messageHash = this.safeString(subscription, "messageHash");
+            String messageHash = (String) this.safeString(subscription, "messageHash");
             try
             {
-                String symbol = this.safeString(subscription, "symbol");
+                String symbol = (String) this.safeString(subscription, "symbol");
                 Long limit = this.safeInteger(subscription, "limit");
                 Object parameters = this.safeValue(subscription, "params");
-                String api = this.safeString(this.options, "api", "api");
+                String api = (String) this.safeString(this.options, "api", "api");
                 java.util.Map<String, Object> hostname = new java.util.HashMap<String, Object>() {{
                     put( "hostname", BittradeCore.this.hostname );
                 }};
@@ -568,10 +568,10 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //         }
         //     }
         //
-        String messageHash = this.safeString(message, "ch");
+        String messageHash = (String) this.safeString(message, "ch");
         Object ch = this.safeValue(message, "ch");
         Object parts = Helpers.split(ch, ".");
-        String marketId = this.safeString(parts, 1);
+        String marketId = (String) this.safeString(parts, 1);
         String symbol = (String) this.safeSymbol(marketId);
         io.github.ccxt.ws.WsOrderBook orderbook = (io.github.ccxt.ws.WsOrderBook) Helpers.GetValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(orderbook, "nonce"), null)))
@@ -586,7 +586,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
 
     public void handleOrderBookSubscription(Client client, Object message, Object subscription)
     {
-        String symbol = this.safeString(subscription, "symbol");
+        String symbol = (String) this.safeString(subscription, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {
             return;
@@ -594,7 +594,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         Long limit = this.safeInteger(subscription, "limit");
         if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
         {
-            this.orderbooks.remove((String)symbol);
+            ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
         }
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}, limit));
         // watch the snapshot in a separate async call
@@ -611,7 +611,7 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //         "ts": 1583414229143
         //     }
         //
-        String id = this.safeString(message, "id");
+        String id = (String) this.safeString(message, "id");
         if (Helpers.isTrue(Helpers.isEqual(id, null)))
         {
             return message;
@@ -673,10 +673,10 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //
         Object ch = this.safeValue(message, "ch");
         Object parts = Helpers.split(ch, ".");
-        String type = this.safeString(parts, 0);
+        String type = (String) this.safeString(parts, 0);
         if (Helpers.isTrue(Helpers.isEqual(type, "market")))
         {
-            String methodName = this.safeString(parts, 2);
+            String methodName = (String) this.safeString(parts, 2);
             java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "mbp", "handleOrderBook");
                 put( "detail", "handleTicker");
@@ -723,10 +723,10 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
         //         "id": "2"
         //     }
         //
-        String status = this.safeString(message, "status");
+        String status = (String) this.safeString(message, "status");
         if (Helpers.isTrue(Helpers.isEqual(status, "error")))
         {
-            String id = this.safeString(message, "id");
+            String id = (String) this.safeString(message, "id");
             if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
                 return false;
@@ -735,13 +735,13 @@ public class BittradeCore extends io.github.ccxt.exchanges.Bittrade
             Object subscription = this.safeValue(subscriptionsById, id);
             if (Helpers.isTrue(!Helpers.isEqual(subscription, null)))
             {
-                String errorCode = this.safeString(message, "err-code");
+                String errorCode = (String) this.safeString(message, "err-code");
                 try
                 {
                     this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, this.json(message));
                 } catch(Exception e)
                 {
-                    String messageHash = this.safeString(subscription, "messageHash");
+                    String messageHash = (String) this.safeString(subscription, "messageHash");
                     client.reject(e, messageHash);
                     client.reject(e, id);
                     if (Helpers.isTrue(Helpers.inOp(client.subscriptions, id)))

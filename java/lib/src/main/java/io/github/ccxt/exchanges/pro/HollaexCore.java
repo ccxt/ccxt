@@ -111,8 +111,8 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         //         "time":1649751425
         //     }
         //
-        String marketId = this.safeString(message, "symbol");
-        String channel = this.safeString(message, "topic");
+        String marketId = (String) this.safeString(message, "symbol");
+        String channel = (String) this.safeString(message, "topic");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
@@ -120,7 +120,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
             return;
         }
         Object data = this.safeValue(message, "data");
-        String timestamp = this.safeString(data, "timestamp");
+        String timestamp = (String) this.safeString(data, "timestamp");
         Long timestampMs = this.parse8601(timestamp);
         Object snapshot = this.parseOrderBook(data, symbol, timestampMs);
         Object orderbook = null;
@@ -194,8 +194,8 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         //         ]
         //     }
         //
-        String channel = this.safeString(message, "topic");
-        String marketId = this.safeString(message, "symbol");
+        String channel = (String) this.safeString(message, "topic");
+        String marketId = (String) this.safeString(message, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
         Object stored = this.safeValue(this.trades, symbol);
@@ -283,7 +283,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         // }
         //
         Object subscription = Helpers.getArg(optionalArgs, 0, null);
-        String channel = this.safeString(message, "topic");
+        String channel = (String) this.safeString(message, "topic");
         Object rawTrades = this.safeValue(message, "data");
         // usually the first message is an empty array
         // when the user does not have any trades yet
@@ -425,7 +425,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         //       }
         //
         Object subscription = Helpers.getArg(optionalArgs, 0, null);
-        String channel = this.safeString(message, "topic");
+        String channel = (String) this.safeString(message, "topic");
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         // usually the first message is an empty array
         Object dataLength = Helpers.getArrayLength(data);
@@ -510,7 +510,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         //         "time": 1649687396
         //     }
         //
-        String messageHash = this.safeString(message, "topic");
+        String messageHash = (String) this.safeString(message, "topic");
         Object data = this.safeValue(message, "data");
         Object keys = Helpers.objectKeys(data);
         Object timestamp = this.safeTimestamp(message, "time");
@@ -521,14 +521,14 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         {
             Object key = Helpers.GetValue(keys, i);
             Object parts = Helpers.split(key, "_");
-            String currencyId = this.safeString(parts, 0);
+            String currencyId = (String) this.safeString(parts, 0);
             String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(code, null))) && Helpers.isTrue((Helpers.inOp(this.balance, code)))))
             {
                 account = Helpers.GetValue(this.balance, code);
             }
-            String second = this.safeString(parts, 1);
+            String second = (String) this.safeString(parts, 1);
             String freeOrTotal = ((Helpers.isTrue((Helpers.isEqual(second, "available"))))) ? "free" : "total";
             Helpers.addElementToObject(account, freeOrTotal, this.safeString(data, key));
             if (Helpers.isTrue(!Helpers.isEqual(code, null)))
@@ -536,7 +536,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
                 Helpers.addElementToObject(this.balance, code, account);
             }
         }
-        this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
+        this.balance = this.safeBalance(this.balance);
         client.resolve(this.balance, messageHash);
     }
 
@@ -713,7 +713,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         {
             return;
         }
-        String content = this.safeString(message, "message");
+        String content = (String) this.safeString(message, "message");
         if (Helpers.isTrue(Helpers.isEqual(content, "pong")))
         {
             this.handlePong(client, message);

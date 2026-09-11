@@ -371,7 +371,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         if (Helpers.isTrue(!Helpers.isEqual(createUpdate, null)))
         {
             Object bidAskArray = this.customParseBidAsk(createUpdate, "price", "volume", "order_id");
-            String type = this.safeString(createUpdate, "type");
+            String type = (String) this.safeString(createUpdate, "type");
             if (Helpers.isTrue(Helpers.isEqual(type, "ASK")))
             {
                 Helpers.callDynamically(asksOrderSide, "storeArray", new Object[]{bidAskArray});
@@ -383,7 +383,7 @@ public class LunoCore extends io.github.ccxt.exchanges.Luno
         Object deleteUpdate = this.safeValue(message, "delete_update");
         if (Helpers.isTrue(!Helpers.isEqual(deleteUpdate, null)))
         {
-            String orderId = this.safeString(deleteUpdate, "order_id");
+            String orderId = (String) this.safeString(deleteUpdate, "order_id");
             Helpers.callDynamically(asksOrderSide, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(0, 0, orderId))});
             Helpers.callDynamically(bidsOrderSide, "storeArray", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(0, 0, orderId))});
         }

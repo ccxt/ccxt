@@ -119,7 +119,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             if (Helpers.isTrue(this.newUpdates))
             {
                 Object first = this.safeList(trades, 0);
-                String tradeSymbol = this.safeString(first, "symbol");
+                String tradeSymbol = (String) this.safeString(first, "symbol");
                 limit = Helpers.callDynamically(trades, "getLimit", new Object[]{tradeSymbol, limit});
             }
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
@@ -155,9 +155,9 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(trade, "timestamp");
-        String id = this.safeString2(trade, "event_id", "tid");
-        String priceString = this.safeString(trade, "price");
-        String amountString = this.safeString2(trade, "quantity", "amount");
+        String id = (String) this.safeString2(trade, "event_id", "tid");
+        String priceString = (String) this.safeString(trade, "price");
+        String amountString = (String) this.safeString2(trade, "quantity", "amount");
         String side = (String)this.safeStringLower(trade, "side");
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
@@ -342,7 +342,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            String timeframeId = this.safeString(this.timeframes, timeframe, timeframe);
+            String timeframeId = (String) this.safeString(this.timeframes, timeframe, timeframe);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "subscribe" );
                 put( "subscriptions", new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
@@ -389,7 +389,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         //         ]
         //     }
         //
-        String type = this.safeString(message, "type", "");
+        String type = (String) this.safeString(message, "type", "");
         Object timeframeId = Helpers.slice(type, 8, null);
         Object timeframeEndIndex = Helpers.getIndexOf(timeframeId, "_");
         timeframeId = Helpers.slice(timeframeId, 0, timeframeEndIndex);
@@ -487,7 +487,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             // handle https://github.com/ccxt/ccxt/issues/29210
             if (Helpers.isTrue(Helpers.inOp(this.orderbooks, symbol)))
             {
-                this.orderbooks.remove((String)symbol);
+                ((java.util.Map<String,Object>)this.orderbooks).remove((String)symbol);
             }
             Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook());
         }
@@ -594,9 +594,9 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawBidAskChanges)); i++)
         {
             Object entry = Helpers.GetValue(rawBidAskChanges, i);
-            String rawSide = this.safeString(entry, "side");
+            String rawSide = (String) this.safeString(entry, "side");
             Double price = this.safeNumber(entry, "price");
-            String sizeString = this.safeString(entry, "remaining");
+            String sizeString = (String) this.safeString(entry, "remaining");
             if (Helpers.isTrue(Precise.stringEq(sizeString, "0")))
             {
                 continue;
@@ -621,7 +621,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         client.resolve(bidsAsksDict, messageHash);
     }
 
-    public java.util.concurrent.CompletableFuture<Object> helperForWatchMultipleConstruct(String itemHashName2, Object... optionalArgs)
+    public java.util.concurrent.CompletableFuture<Object> helperForWatchMultipleConstruct(Object itemHashName2, Object... optionalArgs)
     {
         final Object itemHashName3 = itemHashName2;
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
@@ -703,7 +703,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             Object entry = Helpers.GetValue(rawOrderBookChanges, i);
             Double price = this.safeNumber(entry, "price");
             Double size = this.safeNumber(entry, "remaining");
-            String rawSide = this.safeString(entry, "side");
+            String rawSide = (String) this.safeString(entry, "side");
             if (Helpers.isTrue(Helpers.isEqual(rawSide, "bid")))
             {
                 Helpers.callDynamically(bids, "store", new Object[]{price, size});
@@ -905,10 +905,10 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(order, "timestampms");
-        String status = this.safeString(order, "type");
-        String marketId = this.safeString(order, "symbol");
-        String typeId = this.safeString(order, "order_type");
-        String behavior = this.safeString(order, "behavior");
+        String status = (String) this.safeString(order, "type");
+        String marketId = (String) this.safeString(order, "symbol");
+        String typeId = (String) this.safeString(order, "order_type");
+        String behavior = (String) this.safeString(order, "behavior");
         String timeInForce = "GTC";
         Boolean postOnly = false;
         if (Helpers.isTrue(Helpers.isEqual(behavior, "immediate-or-cancel")))
@@ -1020,7 +1020,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             this.handleOrder(client, message);
             return;
         }
-        String reason = this.safeString(message, "reason");
+        String reason = (String) this.safeString(message, "reason");
         if (Helpers.isTrue(Helpers.isEqual(reason, "error")))
         {
             this.handleError(client, message);
@@ -1031,7 +1031,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             put( "subscription_ack", "handleSubscription");
             put( "heartbeat", "handleHeartbeat");
         }};
-        String type = this.safeString(message, "type", "");
+        String type = (String) this.safeString(message, "type", "");
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "candles"), 0)))
         {
             this.handleOHLCV(client, message);
@@ -1059,9 +1059,9 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
             {
                 Object eventVar = Helpers.GetValue(events, i);
-                String eventType = this.safeString(eventVar, "type");
+                String eventType = (String) this.safeString(eventVar, "type");
                 Boolean isOrderBook = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(eventType, "change"))) && Helpers.isTrue((Helpers.inOp(eventVar, "side")))) && Helpers.isTrue(this.inArray(Helpers.GetValue(eventVar, "side"), new java.util.ArrayList<Object>(java.util.Arrays.asList("ask", "bid"))));
-                String eventReason = this.safeString(eventVar, "reason");
+                String eventReason = (String) this.safeString(eventVar, "reason");
                 Boolean isBidAsk = Helpers.isTrue((Helpers.isEqual(eventReason, "top-of-book"))) || Helpers.isTrue((Helpers.isTrue(Helpers.isTrue(isOrderBook) && Helpers.isTrue((Helpers.isEqual(eventReason, "initial")))) && Helpers.isTrue(Helpers.isEqual(eventsLength, 2))));
                 if (Helpers.isTrue(isBidAsk))
                 {
@@ -1098,7 +1098,7 @@ public class GeminiCore extends io.github.ccxt.exchanges.Gemini
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            String url = this.safeString(parameters, "url");
+            String url = (String) this.safeString(parameters, "url");
             if (Helpers.isTrue(Helpers.isEqual(url, null)))
             {
                 return null;
