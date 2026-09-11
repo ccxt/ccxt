@@ -17,6 +17,7 @@
 #include "../ccxt/base/ExchangeBase.h"
 
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <future>
 #include <iostream>
@@ -44,7 +45,7 @@ std::any numericOrString (const std::string& arg) {
 
 int main (int argc, char** argv) {
     if (argc < 3) {
-        std::cerr << "usage: ccxt-cli <exchangeId> <method> [arg...] [--verbose] [--timeout N]" << std::endl;
+        std::cerr << "usage: ccxt-cli <exchangeId> <method> [arg...] [--verbose] [--timeout N] [--prediction] [--no-markets] [--refresh-markets]" << std::endl;
         return 2;
     }
     const std::string exchangeId = argv[1];
@@ -52,6 +53,8 @@ int main (int argc, char** argv) {
     std::vector<std::any> args;
     bool verbose = false;
     bool prediction = false;
+    bool noMarkets = false;
+    bool refreshMarkets = false;
     int timeoutSeconds = 0;
     for (int i = 3; i < argc; i++) {
         const std::string arg = argv[i];
@@ -59,6 +62,10 @@ int main (int argc, char** argv) {
             verbose = true;
         } else if (arg == "--prediction") {
             prediction = true;
+        } else if (arg == "--no-markets") {
+            noMarkets = true;
+        } else if (arg == "--refresh-markets") {
+            refreshMarkets = true;
         } else if (arg == "--timeout") {
             if (i + 1 < argc) {
                 timeoutSeconds = std::atoi (argv[++i]);
@@ -98,7 +105,43 @@ int main (int argc, char** argv) {
         if (verbose) {
             exchange->verbose = std::any (true);
         }
-        exchange->loadMarkets ().get ();
+        // markets: a live fetchMarkets per invocation makes every CLI call pay
+        // several API round-trips (binance's market list is heavy). Cache the
+        // loaded markets per tier+exchange (30 min TTL, ~/.cache/ccxt-cpp),
+        // mirroring the mini-app server's markets cache; --no-markets skips the
+        // load entirely (fetchTime-style calls), --refresh-markets forces a
+        // live reload + cache rewrite.
+        if (!noMarkets) {
+            const std::string tier = prediction ? "pred" : (isWsMethod ? "pro" : "rest");
+            const char* home = std::getenv ("HOME");
+            const std::string cacheDir = (home && *home)
+                ? std::string (home) + "/.cache/ccxt-cpp"
+                : std::string ("/tmp/ccxt-cpp-cache");
+            std::filesystem::create_directories (cacheDir);
+            const std::string cachePath = cacheDir + "/" + tier + "-" + exchangeId + "-markets.json";
+            bool loadedFromCache = false;
+            if (!refreshMarkets) {
+                std::ifstream cacheFile (cachePath);
+                if (cacheFile.good ()) {
+                    const auto age = std::filesystem::file_time_type::clock::now ()
+                        - std::filesystem::last_write_time (cachePath);
+                    if (age < std::chrono::minutes (30)) {
+                        std::stringstream cacheBuffer;
+                        cacheBuffer << cacheFile.rdbuf ();
+                        const std::any cached = parser.parseJson (cacheBuffer.str ());
+                        if (ccxt::isDict (cached)) {
+                            exchange->setMarkets (cached, std::any {});
+                            loadedFromCache = true;
+                        }
+                    }
+                }
+            }
+            if (!loadedFromCache) {
+                exchange->loadMarkets ().get ();
+                std::ofstream cacheFile (cachePath);
+                cacheFile << str (exchange->json (exchange->markets)) << std::endl;
+            }
+        }
         ccxt::list callArgs;
         for (const auto& a : args) {
             callArgs.push (a);
