@@ -169,8 +169,8 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
@@ -211,8 +211,8 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchTradesForSymbols() requires a non-empty array of symbols")) ;
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
@@ -300,8 +300,8 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -343,8 +343,8 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchOrderBookForSymbols() requires a non-empty array of symbols")) ;
             }
             symbols = this.marketSymbols(symbols, null, false, true, true);
-            Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, i));
@@ -419,9 +419,9 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
             }
             (this.loadMarkets()).join();
-            Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object subscriptionParams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> subscriptionParams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
@@ -492,9 +492,9 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  [['BTC/USDT0:USDT0', '1m'], ['ETH/USDT0:USDT0', '5m']]")) ;
             }
             (this.loadMarkets()).join();
-            Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object subscriptionParams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> subscriptionParams = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
@@ -576,7 +576,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
             String messageHash = (String) "ticker";
-            Object streamType = "all_bbo";
+            String streamType = "all_bbo";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object symbolsLength = Helpers.getArrayLength(symbols);
@@ -623,7 +623,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
             String messageHash = (String) "ticker";
-            Object streamType = "all_bbo";
+            String streamType = "all_bbo";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object symbolsLength = Helpers.getArrayLength(symbols);
@@ -659,7 +659,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
             String messageHash = (String) "bidask";
-            Object streamType = "all_bbo";
+            String streamType = "all_bbo";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object symbolsLength = Helpers.getArrayLength(symbols);
@@ -706,7 +706,7 @@ public class NadoCore extends io.github.ccxt.exchanges.Nado
             symbols = this.marketSymbols(symbols, null, true, true, true);
             Object market = null;
             String messageHash = (String) "bidask";
-            Object streamType = "all_bbo";
+            String streamType = "all_bbo";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
                 Object symbolsLength = Helpers.getArrayLength(symbols);

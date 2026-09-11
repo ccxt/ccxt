@@ -5405,8 +5405,8 @@ public class AsterCore extends AsterApi
 
     public String encodeValuesWithJson(Object values)
     {
-        Object encodedString = "";
-        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(values);
+        String encodedString = "";
+        Object keys = Helpers.objectKeys(values);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -5422,7 +5422,7 @@ public class AsterCore extends AsterApi
     public Object capitalizeKeys(Object dict)
     {
         java.util.Map<String, Object> capitalized = new java.util.HashMap<String, Object>() {{}};
-        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(dict);
+        Object keys = Helpers.objectKeys(dict);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

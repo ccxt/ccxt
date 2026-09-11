@@ -2893,7 +2893,7 @@ public class BackpackCore extends BackpackApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object endpoint = Helpers.add("/", path);
+        String endpoint = Helpers.add("/", path);
         Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api);
         Object sortedParams = ((Helpers.isTrue(Helpers.isArray(parameters)))) ? parameters : this.keysort(parameters);
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
@@ -2956,7 +2956,7 @@ public class BackpackCore extends BackpackApi
 
     public Object generateBatchPayload(Object parameters, Object ts, Object recvWindow, Object instruction)
     {
-        Object payload = "";
+        String payload = "";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(parameters)); i++)
         {
             Object order = this.safeDict(parameters, i, new java.util.HashMap<String, Object>() {{}});

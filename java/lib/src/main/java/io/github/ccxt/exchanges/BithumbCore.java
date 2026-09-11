@@ -677,7 +677,7 @@ public class BithumbCore extends BithumbApi
             } else
             {
                 Object quoteCurrencies = this.safeDict(this.options, "quoteCurrencies", new java.util.HashMap<String, Object>() {{}});
-                java.util.List<String> quotes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(quoteCurrencies);
+                Object quotes = Helpers.objectKeys(quoteCurrencies);
                 java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(quotes)); i++)
                 {
@@ -692,7 +692,7 @@ public class BithumbCore extends BithumbApi
                     Object response = Helpers.GetValue(results, i);
                     Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                     Object extension = this.safeDict(quoteCurrencies, quote, new java.util.HashMap<String, Object>() {{}});
-                    java.util.List<String> currencyIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(data);
+                    Object currencyIds = Helpers.objectKeys(data);
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
                     {
                         Object currencyId = Helpers.GetValue(currencyIds, j);
@@ -804,7 +804,7 @@ public class BithumbCore extends BithumbApi
         Object balances = this.safeDict(response, "data");
         if (Helpers.isTrue(!Helpers.isEqual(balances, null)))
         {
-            java.util.List<String> codes = (java.util.List<String>)(java.util.List) Helpers.objectKeys(this.currencies);
+            Object codes = Helpers.objectKeys(this.currencies);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
             {
                 Object code = Helpers.GetValue(codes, i);
@@ -1269,7 +1269,7 @@ public class BithumbCore extends BithumbApi
                             tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
                         } else
                         {
-                            java.util.List<String> ids = (java.util.List<String>)(java.util.List) Helpers.objectKeys(response);
+                            Object ids = Helpers.objectKeys(response);
                             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(ids)); j++)
                             {
                                 Object id = Helpers.GetValue(ids, j);
@@ -1337,7 +1337,7 @@ public class BithumbCore extends BithumbApi
                     Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
                     Long timestamp = this.safeInteger(data, "date");
                     Object tickers = this.omit(data, "date");
-                    java.util.List<String> currencyIds = (java.util.List<String>)(java.util.List) Helpers.objectKeys(tickers);
+                    Object currencyIds = Helpers.objectKeys(tickers);
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(currencyIds)); j++)
                     {
                         Object currencyId = Helpers.GetValue(currencyIds, j);
@@ -3891,8 +3891,8 @@ public class BithumbCore extends BithumbApi
 
     public Object urlencodeWithArrayBrackets(Object query)
     {
-        java.util.List<String> keys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(query);
-        Object result = "";
+        Object keys = Helpers.objectKeys(query);
+        String result = "";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -3939,7 +3939,7 @@ public class BithumbCore extends BithumbApi
         String endpoint = Helpers.add("/", this.implodeParams(path, parameters));
         Object url = Helpers.add(this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api)), endpoint);
         Object query = this.omit(parameters, this.extractParams(path));
-        java.util.List<String> queryKeys = (java.util.List<String>)(java.util.List) Helpers.objectKeys(query);
+        Object queryKeys = Helpers.objectKeys(query);
         Object queryKeysLength = Helpers.getArrayLength(queryKeys);
         Boolean hasQuery = (Helpers.isGreaterThan(queryKeysLength, 0));
         if (Helpers.isTrue(Helpers.isEqual(api, "public")))

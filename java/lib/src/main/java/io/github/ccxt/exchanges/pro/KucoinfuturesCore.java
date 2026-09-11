@@ -93,12 +93,12 @@ public class KucoinfuturesCore extends io.github.ccxt.exchanges.Kucoinfutures
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            String amountToPrecision = (String) this.currencyToPrecision(code, amount);
+            Object amountToPrecision = this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "currency", KucoinfuturesCore.this.safeString(currency, "id") );
                 put( "amount", amountToPrecision );
             }};
-            String toAccountString = this.parseTransferType(toAccount);
+            String toAccountString = (String) this.parseTransferType(toAccount);
             Object response = null;
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(toAccountString, "TRADE")) || Helpers.isTrue(Helpers.isEqual(toAccountString, "MAIN"))))
             {

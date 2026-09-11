@@ -241,8 +241,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             var instTypeparametersVariable = this.getInstType("watchTickers", market, uta, parameters);
             instType = ((java.util.List<Object>) instTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) instTypeparametersVariable).get(1);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -509,8 +509,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             var instTypeparametersVariable = this.getInstType("watchBidsAsks", market, uta, parameters);
             instType = ((java.util.List<Object>) instTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) instTypeparametersVariable).get(1);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -985,8 +985,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 channel = Helpers.add(channel, String.valueOf(limit));
                 incrementalFeed = false;
             }
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchOrderBookForSymbols", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
@@ -1256,8 +1256,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchTradesForSymbols", "uta", false);
             uta = ((java.util.List<Object>) utaparametersVariable).get(0);
             parameters = ((java.util.List<Object>) utaparametersVariable).get(1);
-            Object topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> topics = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -1322,7 +1322,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object values = this.handleOptionAndParams(parameters, "watchTrades", "uta", false);
             Object uta = Helpers.GetValue(values, 0);
-            Object channelTopic = ((Helpers.isTrue(uta))) ? "publicTrade" : "trade";
+            String channelTopic = ((Helpers.isTrue(uta))) ? "publicTrade" : "trade";
             return (this.unWatchChannel(symbol, channelTopic, "trade", "watchTrades", parameters)).join();
         });
 
@@ -1565,7 +1565,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             }
             Object market = null;
             Object messageHash = "";
-            Object subscriptionHash = "positions";
+            String subscriptionHash = "positions";
             Object instType = "USDT-FUTURES";
             Object uta = null;
             java.util.List<Object> utaparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "watchPositions", "uta", false);
@@ -1870,8 +1870,8 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
             var isTriggerparametersVariable = this.isTriggerOrder(parameters);
             isTrigger = ((java.util.List<Object>) isTriggerparametersVariable).get(0);
             parameters = ((java.util.List<Object>) isTriggerparametersVariable).get(1);
-            Object messageHash = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "triggerOrder" : "order";
-            Object subscriptionHash = "order:trades";
+            String messageHash = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "triggerOrder" : "order";
+            String subscriptionHash = "order:trades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);
@@ -2470,7 +2470,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
                 (this.loadMarkets()).join();
             }
             Object market = null;
-            Object messageHash = "myTrades";
+            String messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 market = this.market(symbol);

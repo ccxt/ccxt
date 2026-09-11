@@ -1100,7 +1100,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             (this.authenticate()).join();
             String name = "order";
             String subscriptionHash = name;
-            Object messageHash = name;
+            String messageHash = name;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 symbol = this.symbol(symbol);
@@ -1337,7 +1337,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             (this.authenticate()).join();
             String name = "execution";
             String subscriptionHash = name;
-            Object messageHash = name;
+            String messageHash = name;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 symbol = this.symbol(symbol);

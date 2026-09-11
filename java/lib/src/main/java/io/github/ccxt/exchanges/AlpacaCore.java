@@ -2669,7 +2669,7 @@ public class AlpacaCore extends AlpacaApi
         Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
         Object headers = Helpers.getArg(optionalArgs, 3, null);
         Object body = Helpers.getArg(optionalArgs, 4, null);
-        Object endpoint = Helpers.add("/", this.implodeParams(path, parameters));
+        String endpoint = Helpers.add("/", this.implodeParams(path, parameters));
         String url = (String) this.implodeHostname(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), Helpers.GetValue(api, 0)));
         headers = ((Helpers.isTrue((!Helpers.isEqual(headers, null))))) ? headers : new java.util.HashMap<String, Object>() {{}};
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(api, 1), "private")))

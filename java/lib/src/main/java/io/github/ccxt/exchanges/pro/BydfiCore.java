@@ -243,9 +243,9 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHash = "ticker::";
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             String channel = "@ticker";
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -285,9 +285,9 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             Object symbols = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             symbols = this.marketSymbols(symbols, null, true);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object messageHash = "unsubscribe::ticker::";
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             String channel = "@ticker";
             Object subscription = new java.util.HashMap<String, Object>() {{
                 put( "topic", "ticker" );
@@ -448,8 +448,8 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
             }
             (this.loadMarkets()).join();
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
@@ -496,8 +496,8 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
             }
             (this.loadMarkets()).join();
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolsAndTimeframes)); i++)
             {
                 Object symbolAndTimeframe = Helpers.GetValue(symbolsAndTimeframes, i);
@@ -636,8 +636,8 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             {
                 channelSuffix = "@100ms";
             }
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -685,8 +685,8 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             {
                 channelSuffix = "@100ms";
             }
-            Object channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> channels = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
@@ -787,7 +787,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
                 ((java.util.List<Object>)messageHashes).add("orders");
@@ -958,7 +958,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, true);
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             String messageHash = "positions";
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {

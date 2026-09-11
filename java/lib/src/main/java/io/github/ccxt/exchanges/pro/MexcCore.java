@@ -1242,7 +1242,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHash = "myTrades";
+            String messageHash = "myTrades";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1257,7 +1257,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object trades = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                Object channel = "spot@private.deals.v3.api.pb";
+                String channel = "spot@private.deals.v3.api.pb";
                 trades = (this.watchSpotPrivate(channel, messageHash, parameters)).join();
             } else
             {
@@ -1455,7 +1455,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHash = "orders";
+            String messageHash = "orders";
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
@@ -1470,7 +1470,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             Object orders = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                Object channel = "spot@private.orders.v3.api.pb";
+                String channel = "spot@private.orders.v3.api.pb";
                 orders = (this.watchSpotPrivate(channel, messageHash, parameters)).join();
             } else
             {
@@ -1780,7 +1780,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             String messageHash = (String) Helpers.add("balance:", type);
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
-                Object channel = "spot@private.account.v3.api.pb";
+                String channel = "spot@private.account.v3.api.pb";
                 return (this.watchSpotPrivate(channel, messageHash, parameters)).join();
             } else
             {
@@ -1873,7 +1873,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             String messageHash = (String) Helpers.add("fundingRate:", Helpers.GetValue(market, "symbol"));
-            Object channel = "sub.funding.rate";
+            String channel = "sub.funding.rate";
             Object requestParams = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
             }};

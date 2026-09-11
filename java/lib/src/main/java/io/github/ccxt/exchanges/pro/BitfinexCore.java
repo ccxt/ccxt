@@ -1464,7 +1464,7 @@ public class BitfinexCore extends io.github.ccxt.exchanges.Bitfinex
         Object rawState = this.safeString(order, 13, "");
         Object stateParts = Helpers.split(rawState, " ");
         Object trimmedStatus = this.safeString(stateParts, 0);
-        Object status = this.parseWsOrderStatus(trimmedStatus);
+        String status = (String) this.parseWsOrderStatus(trimmedStatus);
         Object price = this.safeString(order, 16);
         Long timestamp = (Long) this.safeInteger2(order, 5, 4);
         Object average = this.safeString(order, 17);

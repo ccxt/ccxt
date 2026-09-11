@@ -3772,7 +3772,7 @@ public class LbankCore extends LbankApi
         Object secretLength = Helpers.subtract(Helpers.getArrayLength(secret), 0);
         Object numLines = this.parseToInt(Helpers.divide(secretLength, lineLength));
         numLines = this.sum(numLines, 1);
-        Object pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
+        String pem = "-----BEGIN PRIVATE KEY-----\n"; // eslint-disable-line
         for (var i = 0; Helpers.isLessThan(i, numLines); i++)
         {
             Object start = Helpers.multiply(i, lineLength);

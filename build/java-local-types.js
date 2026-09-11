@@ -3785,6 +3785,79 @@ const DATAFLOW_WS_SOURCE_FILE = /[\\/](pro|prediction)[\\/]/;
 // declarations whose full decision is being computed right now (`let a = a;`)
 const dataflowClassifyInProgress = new Set ();
 
+// JN-19 deepening switch: same-file interprocedural method returns (with the WS-cast
+// spelling), self-referential accumulator writes (`x += r` / `x = x + r`), `as string`
+// unwraps. `CCXT_JAVA_DATAFLOW_DEEP=0` disables exactly these additions (the base engine
+// stays active) for A/B measurement.
+const DATAFLOW_DEEP = process.env['CCXT_JAVA_DATAFLOW_DEEP'] !== '0';
+
+// The typed per-exchange wrapper (`<Venue> extends <Venue>Core`; every pro Core extends
+// `<Venue>`) declares typed method overloads, so a narrowed argument to `this.<name>(...)`
+// in a pro file can re-bind to a wrapper overload. Mirrors the emission predicate of
+// build/generateJavaWrappers.ts (shouldCreateWrapper + its BLACKLIST, plus the special
+// loadMarkets(boolean) overload), so a callee OUTSIDE this set cannot re-bind: its call
+// resolves exactly as it did with the argument still `Object`.
+const WRAPPER_OVERLOAD_PREFIXES = [
+    'fetch', 'create', 'edit', 'cancel', 'close', 'setP', 'setM', 'setL', 'transfer',
+    'withdraw', 'watch', 'unWatch', 'addMargin', 'reduceMargin', 'borrow', 'repay',
+    'loadAccounts',
+];
+const WRAPPER_OVERLOAD_BLACKLIST = new Set ([
+    'fetch', 'fetchCurrenciesWs', 'fetchMarketsWs', 'setSandBoxMode', 'loadOrderBook',
+    'loadMarketsHelper', 'createNetworksByIdObject', 'setMarketsFromExchange',
+    'setLastRequest', 'setLastRestRequestTimestamp',
+    'setProperty', 'setProxyAgents', 'watch', 'watchMultiple', 'watchMultipleSubscription',
+    'watchPrivate', 'watchPublic', 'setPositionsCache', 'setPositionCache',
+    'watchMany', 'watchMultiHelper', 'watchMultipleWrapper', 'watchMultiRequest',
+    'watchMultiTicker', 'watchMultiTickerHelper', 'watchPrivateMultiple',
+    'watchPrivateRequest', 'watchPrivateSubscribe', 'watchPublicMultiple',
+    'watchSpotPrivate', 'watchSwapPrivate', 'watchSpotPublic', 'watchSwapPublic',
+    'watchTopics', 'createContractOrder', 'createSpotOrder', 'createSwapOrder', 'createVault',
+    'fetchRestOrderBookSafe', 'fetchPortfolioDetails', 'unWatch', 'unWatchChannel', 'unWatchMultiple',
+    'unWatchPrivate', 'unWatchPublic', 'unWatchPublicMultiple', 'unWatchTopics',
+    // not prefix-eligible but emitted specially by the generator
+    'loadMarkets',
+]);
+
+function wrapperOverloadPossible (name) {
+    if (WRAPPER_OVERLOAD_BLACKLIST.has (name)) {
+        return false;
+    }
+    if (name.toLowerCase ().includes ('uta')) {
+        return false;
+    }
+    if (name.includes ('Snapshot') || name.includes ('Subscription') || name.includes ('Cache')) {
+        return false;
+    }
+    return WRAPPER_OVERLOAD_PREFIXES.some ((prefix) => name.startsWith (prefix));
+}
+
+// the callee name of the closest enclosing `this.<name>(...)` / `super.<name>(...)` call
+// the use `n` feeds as an argument (the feedsInheritedAsyncCall walk, but returning the
+// name so the wrapper-overload audit can decide whether the guard is needed)
+function dataflowInheritedAsyncCallName (printer, n, scope) {
+    let child = n;
+    let current = n.parent;
+    while (current !== undefined && current !== scope) {
+        if (ts.isCallExpression (current)) {
+            if (current.arguments.indexOf (child) !== -1 && isThisOrSuperCall (current) && isAsyncMethodCall (printer, current)) {
+                const callee = current.expression;
+                return ts.isPropertyAccessExpression (callee) ? String (callee.name.escapedText) : undefined;
+            }
+            return undefined;
+        }
+        const propagates = ts.isParenthesizedExpression (current)
+            || (ts.isBinaryExpression (current) && current.operatorToken.kind === ts.SyntaxKind.PlusToken)
+            || (ts.isConditionalExpression (current) && current.condition !== child);
+        if (!propagates) {
+            return undefined;
+        }
+        child = current;
+        current = current.parent;
+    }
+    return undefined;
+}
+
 // the pre-mutation name of an identifier. finalVarMutations records (node, previous
 // escapedText) for every in-place rewrite made while a body prints, so the FIRST record
 // for a node is its original source name. Falls back to the live escapedText.
@@ -3906,7 +3979,172 @@ function dataflowThisCallType (printer, node) {
     if (DATAFLOW_STRING_BASE_METHODS.has (name)) {
         return resolvesToBaseAccessor (printer, node, name) ? JAVA_DATAFLOW_STRING : undefined;
     }
+    // JN-19 (a): a method declared in this very file whose printed Java return type the
+    // signature tables make concrete — read off the file's own method declarations, so
+    // the proof holds even where the resolver cannot see the declaration (field
+    // functions, base-stage stripped copies). Table names retype per NAME, so any
+    // reachable declaration of the same name prints the same type too.
+    if (DATAFLOW_DEEP) {
+        return dataflowFileMethodReturnType (printer, node.getSourceFile (), name);
+    }
     return undefined;
+}
+
+// the Java return type the module's signature hook (javaMethodReturnType) will print
+// for a method declaration of `name` in this source file. Every same-named declaration
+// must retype to the SAME concrete type — the tables are per NAME, so that holds by
+// construction; a file that declares no method of the name, or a declaration that stays
+// Object, proves nothing. JN-19 (a): this is the same-file half of the interprocedural
+// decision — the declaration wrapper can treat a call to such a method as carrying the
+// concrete type even where the checker cannot resolve it via resolvesToMethodNamed.
+function dataflowFileMethodReturnType (printer, sourceFile, name) {
+    let found;
+    let sawDeclaration = false;
+    let consistent = true;
+    const visit = (n) => {
+        if (ts.isMethodDeclaration (n) && n.name !== undefined && n.name.escapedText === name) {
+            sawDeclaration = true;
+            const own = javaMethodReturnType (printer, n, 'Object');
+            if (found === undefined) {
+                found = own;
+            } else if (found !== own) {
+                consistent = false;
+            }
+        }
+        ts.forEachChild (n, visit);
+    };
+    if (sourceFile !== undefined) {
+        visit (sourceFile);
+    }
+    if (!sawDeclaration || !consistent || found === undefined) {
+        return undefined;
+    }
+    return found;
+}
+
+// JN-19 (a): the WS revert is defeatable exactly when the same file's own method
+// declaration proves the call's Java static type is String: the declaration wrapper
+// then spells the value with a `(String)` checkcast (postProcessWsJava's regex cannot
+// rewrite that spelling) and the checkcast is a provable no-op — the declared return is
+// String, so the box is a String or null on every return path.
+function dataflowWsRevertDefeated (printer, declaration) {
+    const initializer = declaration.initializer;
+    if (initializer === undefined || initializer.kind !== ts.SyntaxKind.CallExpression) {
+        return false;
+    }
+    const callee = initializer.expression;
+    if (!ts.isPropertyAccessExpression (callee) || callee.expression.kind !== ts.SyntaxKind.ThisKeyword) {
+        return false;
+    }
+    return dataflowFileMethodReturnType (printer, declaration.getSourceFile (), callee.name.escapedText) === JAVA_DATAFLOW_STRING;
+}
+
+// JN-19 (b): self-referential accumulator writes. `x += r` (printed `x = Helpers.add(x, r)`)
+// and `x = x + r` / `x = x + a + b...` write the local back into itself; the printed call
+// re-resolves against the narrowed String. For EVERY value of x (null included) it yields
+// the same box the Object-typed call yielded, provided every operand that meets x's value
+// is a provably non-null String, and every operand that only meets the (already non-null)
+// String accumulator is never a Java Double — Helpers.add's numeric branch precedes its
+// String branches (add(String, Object) returns String, add(Object, Object) returns null
+// only for (null, null-or-non-String)). The result is itself a non-null String. Returns
+// the written type ('String') when the write is one of these safe shapes.
+function dataflowSelfAddWriteType (printer, varName, write) {
+    if (write === undefined || !ts.isBinaryExpression (write)) {
+        return undefined;
+    }
+    const op = write.operatorToken.kind;
+    const isSelfRead = (e) => {
+        const u = unwrapParens (e);
+        return u !== undefined && u.kind === ts.SyntaxKind.Identifier
+            && dataflowCanonicalName (printer, u) === varName;
+    };
+    if (op === ts.SyntaxKind.PlusEqualsToken) {
+        return isProvablyNonNullStringExpression (printer, unwrapParens (write.right), varName)
+            ? JAVA_DATAFLOW_STRING : undefined;
+    }
+    if (op !== ts.SyntaxKind.EqualsToken) {
+        return undefined;
+    }
+    const rhs = unwrapParens (write.right);
+    if (rhs === undefined || !ts.isBinaryExpression (rhs)
+        || rhs.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+        return undefined;
+    }
+    const left = unwrapParens (rhs.left);
+    const right = unwrapParens (rhs.right);
+    if (isSelfRead (left)) {
+        // `x = x + r`: add(String, r-static) — r must be a provably non-null String
+        return isProvablyNonNullStringExpression (printer, right, varName) ? JAVA_DATAFLOW_STRING : undefined;
+    }
+    if (isSelfRead (right)) {
+        // `x = r + x`: the call resolves add(r-static, String) and must still be
+        // String-returning, so r must be statically String — and a provably non-null
+        // one, or add(String, String) turns (null, null) from null into "nullnull"
+        return (isStaticallyStringExpression (printer, left, varName)
+            && isProvablyNonNullStringExpression (printer, left, varName)) ? JAVA_DATAFLOW_STRING : undefined;
+    }
+    // `x = x + a + b + ...` (x is the first operand of a left-assoc chain): `a` meets
+    // x's own value and must be a provably non-null String; every later operand only
+    // meets the accumulator (non-null String by induction), so it merely must never be
+    // a Double box
+    let cur = rhs;
+    const tails = [];
+    let found = false;
+    while (ts.isBinaryExpression (cur) && cur.operatorToken.kind === ts.SyntaxKind.PlusToken) {
+        const sibling = unwrapParens (cur.right);
+        const innerLeft = unwrapParens (cur.left);
+        if (isSelfRead (innerLeft)) {
+            tails.push ({ sibling, innermost: true });
+            found = true;
+            break;
+        }
+        tails.push ({ sibling, innermost: false });
+        if (innerLeft === undefined || !ts.isBinaryExpression (innerLeft)
+            || innerLeft.operatorToken.kind !== ts.SyntaxKind.PlusToken) {
+            break;
+        }
+        cur = innerLeft;
+    }
+    if (!found) {
+        return undefined;
+    }
+    for (const { sibling, innermost } of tails) {
+        if (innermost) {
+            if (!isProvablyNonNullStringExpression (printer, sibling, varName)) {
+                return undefined;
+            }
+        } else if (isPossiblyNumericDeep (printer, sibling)) {
+            return undefined;
+        }
+    }
+    return JAVA_DATAFLOW_STRING;
+}
+
+// the right operand a narrowed String local may meet as the LEFT of `+`: a provably
+// non-null String keeps add(String, ..) equal to add(Object, Object) for every value of
+// the local (they diverge only for a null left with a null-or-non-String right — see
+// Helpers.add). `isProvablyStringOperand` is the literal base case; the deep predicate
+// adds `'lit' + ...`-led chains and ternaries of provably non-null Strings.
+function dataflowPlusRightIsSafe (printer, varName, plus) {
+    const right = unwrapParens (plus.right);
+    return isProvablyStringOperand (right)
+        || (DATAFLOW_DEEP && isProvablyNonNullStringExpression (printer, right, varName));
+}
+
+// the pro-file guard: an argument to an async `this.<name>(...)` call could re-bind to a
+// typed wrapper overload once narrowed (pro cores extend the typed `<Venue>` wrapper).
+// Narrowing can only select a different overload when the wrapper emits one for the
+// callee name (build/generateJavaWrappers.ts), so a callee outside that name set keeps
+// the guard off; detection stays exactly feedsInheritedAsyncCall.
+function dataflowInheritedAsyncGuardApplies (printer, n, scope) {
+    if (!feedsInheritedAsyncCall (printer, n, scope)) {
+        return false;
+    }
+    if (!DATAFLOW_DEEP) {
+        return true;
+    }
+    const name = dataflowInheritedAsyncCallName (printer, n, scope);
+    return name === undefined || wrapperOverloadPossible (name);
 }
 
 // the Java type of a value expression, or undefined when it cannot be proven. 'null' is
@@ -3930,6 +4168,17 @@ function dataflowValueType (printer, node, context) {
             return dataflowResolveRead (printer, context, node);
         case ts.SyntaxKind.ParenthesizedExpression:
             return dataflowValueType (printer, node.expression, context);
+        // JN-19: `x as string` prints `((String)x)` — provable exactly when the operand
+        // is already String, in which case the checkcast is a no-op on the String/null
+        // box (the rejection side for reads of a narrowed local stays in the use-scan)
+        case ts.SyntaxKind.AsExpression:
+        case ts.SyntaxKind.TypeAssertionExpression: {
+            if (!DATAFLOW_DEEP || node.type === undefined || node.type.kind !== ts.SyntaxKind.StringKeyword) {
+                return undefined;
+            }
+            const asserted = dataflowValueType (printer, node.expression, context);
+            return asserted === JAVA_DATAFLOW_STRING ? JAVA_DATAFLOW_STRING : undefined;
+        }
         case ts.SyntaxKind.ConditionalExpression:
             return dataflowUnifyArms (
                 dataflowValueType (printer, node.whenTrue, context),
@@ -4043,7 +4292,14 @@ function dataflowEmittedType (printer, declaration, context) {
         return undefined; // the printer emits `var x = ...` for a NewExpression initializer
     }
     const type = dataflowEmittedTypeUnchecked (printer, declaration, context);
-    return dataflowWsReverts (printer, declaration, type) ? undefined : type;
+    if (dataflowWsReverts (printer, declaration, type)) {
+        // JN-19 (a): a same-file method declaration proving the call's static Java type
+        // is String lets the declaration wrapper spell the value with a `(String)`
+        // checkcast — postProcessWsJava's regex cannot rewrite that spelling, and the
+        // checkcast is a no-op on a String/null box — so the type survives
+        return (DATAFLOW_DEEP && dataflowWsRevertDefeated (printer, declaration)) ? type : undefined;
+    }
+    return type;
 }
 
 // the surviving tables' decision when it exists, else the dataflow engine's
@@ -4133,11 +4389,31 @@ function dataflowTypeFromWrites (printer, context, declaration, varName, initial
             continue;
         }
         const parent = n.parent;
-        if (!(parent !== undefined && ts.isBinaryExpression (parent) && parent.left === n
-            && parent.operatorToken.kind === ts.SyntaxKind.EqualsToken)) {
-            continue; // not a plain write — the safety scan handles the rest
+        if (!(parent !== undefined && ts.isBinaryExpression (parent) && parent.left === n)) {
+            continue; // not a write — the safety scan handles the rest
         }
-        const written = dataflowValueType (printer, unwrapParens (parent.right), context);
+        const op = parent.operatorToken.kind;
+        let written;
+        if (op === ts.SyntaxKind.PlusEqualsToken) {
+            if (!DATAFLOW_DEEP) {
+                continue; // the safety scan rejects compound writes
+            }
+            // JN-19 (b): `x += r` writes back into the accumulator (prints
+            // `x = Helpers.add(x, r)`); safe only for a provably non-null String r
+            written = dataflowSelfAddWriteType (printer, varName, parent);
+            if (written === undefined) {
+                return undefined; // an unsafe compound write
+            }
+        } else if (op !== ts.SyntaxKind.EqualsToken) {
+            continue; // other compound writes — the safety scan rejects them
+        } else {
+            written = dataflowValueType (printer, unwrapParens (parent.right), context);
+            if (written === undefined && DATAFLOW_DEEP) {
+                // JN-19 (b): `x = x + r` reads x inside its own written value, which the
+                // recursive value typing cannot resolve; the self-add rule proves it
+                written = dataflowSelfAddWriteType (printer, varName, parent);
+            }
+        }
         dataflowDebug (`write ${varName} = ${written}`);
         if (written === undefined) {
             return undefined; // an unprovable write
@@ -4337,8 +4613,17 @@ function dataflowIsSafeToRetype (printer, declaration, varName, javaType, contex
                 if (op === ts.SyntaxKind.EqualsToken) {
                     // the join already proved every plain write; re-check so a write the
                     // join could not see still rejects
-                    const written = dataflowValueType (printer, unwrapParens (parent.right), context);
+                    let written = dataflowValueType (printer, unwrapParens (parent.right), context);
+                    if (written === undefined && DATAFLOW_DEEP) {
+                        written = dataflowSelfAddWriteType (printer, varName, parent);
+                    }
                     if (written === undefined || (written !== 'null' && written !== javaType)) {
+                        return false;
+                    }
+                } else if (op === ts.SyntaxKind.PlusEqualsToken && DATAFLOW_DEEP && javaType === JAVA_DATAFLOW_STRING) {
+                    // JN-19 (b): `x += r` prints `x = Helpers.add(x, r)`; only a provably
+                    // non-null String right operand keeps the call equivalent for a null x
+                    if (dataflowSelfAddWriteType (printer, varName, parent) !== JAVA_DATAFLOW_STRING) {
                         return false;
                     }
                 } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
@@ -4352,7 +4637,7 @@ function dataflowIsSafeToRetype (printer, declaration, varName, javaType, contex
         if (!isString && !isList && isClassThrowArgument (n)) {
             return false; // `throw new X((String)x)` casts the argument
         }
-        if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
+        if (isProFile && dataflowInheritedAsyncGuardApplies (printer, n, scope)) {
             return false; // the typed wrapper overload would win once the box is a String
         }
     }
@@ -4458,7 +4743,12 @@ function dataflowRewriteDeclaration (printer, node, identation, printed) {
     if (info.type === JAVA_DATAFLOW_STRING
         && (value.startsWith ('this.') || value.startsWith ('Helpers.'))
         && DATAFLOW_WS_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
-        return printed; // postProcessWsJava's String pass would revert the spelling
+        if (!(DATAFLOW_DEEP && dataflowWsRevertDefeated (printer, declaration))) {
+            return printed; // postProcessWsJava's String pass would revert the spelling
+        }
+        // JN-19 (a): the same file's own method declaration proves the call's static
+        // type is String — the checkcast is a no-op and defeats the revert regex
+        return printed.slice (0, at) + `${iden}${info.type} ${printedName} = (String) ` + value;
     }
     return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${value}`;
 }

@@ -4304,7 +4304,7 @@ public class MexcCore extends MexcApi
         {
             id = this.safeString2(order, "orderId", "id");
         }
-        Object timeInForce = this.parseOrderTimeInForce(this.safeString(order, "timeInForce"));
+        String timeInForce = this.parseOrderTimeInForce(this.safeString(order, "timeInForce"));
         String typeRaw = this.safeString(order, "type");
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, null)))
         {
@@ -5567,7 +5567,7 @@ public class MexcCore extends MexcApi
         String riskIncrVol = this.safeString(info, "riskIncrVol");
         String riskIncrMmr = this.safeString(info, "riskIncrMmr");
         String riskIncrImr = this.safeString(info, "riskIncrImr");
-        Object floor = "0";
+        String floor = "0";
         java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         String quoteId = this.safeString(info, "quoteCoin");
         if (Helpers.isTrue(Helpers.isEqual(riskIncrVol, "0")))

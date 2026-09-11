@@ -105,8 +105,8 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             // so that can't be part of the message hash, and the user can only subscribe
             // to one timeframe per symbol
             String messageHash = (String) Helpers.add("candles:", symbol);
-            Object reqParams = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketId, interval));
-            Object method = "candles_subscribe";
+            java.util.List<Object> reqParams = new java.util.ArrayList<Object>(java.util.Arrays.asList(marketId, interval));
+            String method = "candles_subscribe";
             Object ohlcv = (this.watchPublic(messageHash, method, reqParams, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -192,12 +192,12 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
                 limit = 10; // max 100
             }
             String messageHash = (String) Helpers.add(Helpers.add("orderbook", ":"), Helpers.GetValue(market, "symbol"));
-            Object method = "depth_subscribe";
+            String method = "depth_subscribe";
             Object options = this.safeValue(this.options, "watchOrderBook", new java.util.HashMap<String, Object>() {{}});
             Object defaultPriceInterval = this.safeString(options, "priceInterval", "0");
             Object priceInterval = this.safeString(parameters, "priceInterval", defaultPriceInterval);
             parameters = this.omit(parameters, "priceInterval");
-            Object reqParams = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), limit, priceInterval, true));
+            java.util.List<Object> reqParams = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), limit, priceInterval, true));
             Object orderbook = (this.watchPublic(messageHash, method, reqParams, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });
@@ -309,7 +309,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
-            Object method = "market_subscribe";
+            String method = "market_subscribe";
             String messageHash = (String) Helpers.add("ticker:", symbol);
             // every time we want to subscribe to another market we have to "re-subscribe" sending it all again
             return (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
@@ -439,7 +439,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             String messageHash = (String) Helpers.add(Helpers.add("trades", ":"), symbol);
-            Object method = "trades_subscribe";
+            String method = "trades_subscribe";
             // every time we want to subscribe to another market we have to 're-subscribe' sending it all again
             Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -530,7 +530,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             String messageHash = (String) Helpers.add("myTrades:", symbol);
-            Object method = "deals_subscribe";
+            String method = "deals_subscribe";
             Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, true, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -685,7 +685,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             String messageHash = (String) Helpers.add("orders:", symbol);
-            Object method = "ordersPending_subscribe";
+            String method = "ordersPending_subscribe";
             Object trades = (this.watchMultipleSubscription(messageHash, method, symbol, false, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -778,7 +778,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
         Object cost = this.safeString(order, "deal_money");
         Object stopPrice = this.safeString(order, "activation_price");
         Object rawType = this.safeString(order, "type");
-        Object type = this.parseWsOrderType(rawType);
+        String type = (String) this.parseWsOrderType(rawType);
         Object amount = null;
         Object remaining = null;
         if (Helpers.isTrue(Helpers.isEqual(type, "market")))
@@ -894,7 +894,7 @@ public class WhitebitCore extends io.github.ccxt.exchanges.Whitebit
             type = ((java.util.List<Object>) typeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) typeparametersVariable).get(1);
             String messageHash = (String) "wallet:";
-            Object method = null;
+            String method = null;
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 method = "balanceSpot_subscribe";

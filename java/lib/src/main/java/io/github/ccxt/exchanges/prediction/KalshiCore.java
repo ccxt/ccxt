@@ -2396,7 +2396,7 @@ final Object finalOi = oi;
             outcomeKey = Helpers.add(ticker, "-NO");
         }
         Object mkt = this.safeOutcome(outcomeKey, market);
-        Object status = this.parseOrderStatus(this.safeString(order, "status"));
+        String status = (String) this.parseOrderStatus(this.safeString(order, "status"));
         // never invent a side: a minimal response (e.g. a DELETE/cancel body) omits `action`,
         // and defaulting to 'sell' misreports a canceled buy. leave it undefined when absent.
         String action = (String)this.safeStringLower(order, "action");

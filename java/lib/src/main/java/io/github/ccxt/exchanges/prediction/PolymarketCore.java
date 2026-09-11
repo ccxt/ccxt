@@ -2493,7 +2493,7 @@ final Object finalClobTokenId = clobTokenId;
         Object tokenId = this.safeString(order, "asset_id");
         Object mkt = this.safeOutcome(tokenId, market);
         // REST returns 'status'; the user-websocket order event carries lifecycle in 'type'
-        Object status = this.parseOrderStatus(this.safeString2(order, "status", "type"));
+        String status = (String) this.parseOrderStatus(this.safeString2(order, "status", "type"));
         String side = (String)this.safeStringLower(order, "side");
         Double price = this.safeNumber(order, "price");
         Double amount = this.safeNumber(order, "original_size");
@@ -2802,7 +2802,7 @@ final Object finalClobTokenId = clobTokenId;
         Object negRiskExchangeV2 = this.safeString(this.options, "negRiskExchangeAddress", "0xe2222d279d744050d28e00520010520000310F59");
         Object exchangeAddress = ((Helpers.isTrue((Helpers.isEqual(negRisk, true))))) ? negRiskExchangeV2 : exchangeV2;
         Object domainVersion = this.safeString(this.options, "ctfExchangeVersion", "2");
-        Object signature = this.signClobOrder(message, exchangeAddress, domainVersion, signatureType);
+        String signature = (String) this.signClobOrder(message, exchangeAddress, domainVersion, signatureType);
         Object owner = this.safeString(this.options, "l2ApiKey", this.apiKey);
         final Object finalSideStr = sideStr;
         final Object finalOrderTypeStr = orderTypeStr;
@@ -3919,7 +3919,7 @@ final Object finalClobTokenId = clobTokenId;
     public void handleOrderBookSnapshot(Client client, Object eventVar)
     {
         Object tokenId = this.safeString(eventVar, "asset_id");
-        Object outcome = this.tokenIdToSymbol(tokenId);
+        String outcome = (String) this.tokenIdToSymbol(tokenId);
         if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
         {
             return;
@@ -3969,7 +3969,7 @@ final Object finalOutcome = outcome;
         {
             Object change = Helpers.GetValue(changes, i);
             Object tokenId = this.safeString(change, "asset_id");
-            Object outcome = this.tokenIdToSymbol(tokenId);
+            String outcome = (String) this.tokenIdToSymbol(tokenId);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(outcome, null))) || !Helpers.isTrue((Helpers.inOp(this.orderbooks, outcome)))))
             {
                 continue;
@@ -3999,7 +3999,7 @@ final Object finalOutcome = outcome;
     public void handleTrade(Client client, Object eventVar)
     {
         Object tokenId = this.safeString(eventVar, "asset_id");
-        Object outcome = this.tokenIdToSymbol(tokenId);
+        String outcome = (String) this.tokenIdToSymbol(tokenId);
         if (Helpers.isTrue(Helpers.isEqual(outcome, null)))
         {
             return;

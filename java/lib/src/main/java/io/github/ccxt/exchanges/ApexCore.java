@@ -2419,7 +2419,7 @@ public class ApexCore extends ApexApi
             put( "Accept", "application/json" );
             put( "Content-Type", "application/x-www-form-urlencoded" );
         }};
-        Object signPath = Helpers.add("/api/", path);
+        String signPath = Helpers.add("/api/", path);
         Object signBody = body;
         if (Helpers.isTrue(!Helpers.isEqual(((String)method).toUpperCase(), "POST")))
         {

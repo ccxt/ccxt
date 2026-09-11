@@ -462,7 +462,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "channel", "market_stats/all" );
             }};
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object symbolsLength = 0;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {

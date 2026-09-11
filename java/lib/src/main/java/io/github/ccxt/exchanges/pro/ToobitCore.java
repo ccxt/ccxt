@@ -999,7 +999,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             (this.authenticate()).join();
             Object market = this.marketOrNull(symbol);
             symbol = this.safeString(market, "symbol", symbol);
-            Object messageHash = "orders";
+            String messageHash = "orders";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
@@ -1145,7 +1145,7 @@ public class ToobitCore extends io.github.ccxt.exchanges.Toobit
             (this.authenticate()).join();
             Object market = this.marketOrNull(symbol);
             symbol = this.safeString(market, "symbol", symbol);
-            Object messageHash = "myTrades";
+            String messageHash = "myTrades";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 messageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);

@@ -130,7 +130,7 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
                 throw new BadRequest((String)Helpers.add(Helpers.add(this.id, " watchOHLCV cannot take a timeframe of "), timeframe)) ;
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object request = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), channel));
+            java.util.List<Object> request = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), channel));
             String messageHash = (String) Helpers.add("kline::", Helpers.GetValue(market, "symbol"));
             Object ohlcv = (this.subscribe("kline.subscribe", messageHash, request, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -327,14 +327,14 @@ public class P2bCore extends io.github.ccxt.exchanges.P2b
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object name = "depth.subscribe";
+            String name = "depth.subscribe";
             String messageHash = (String) Helpers.add("orderbook::", Helpers.GetValue(market, "symbol"));
             Object interval = this.safeString(parameters, "interval", "0.001");
             if (Helpers.isTrue(Helpers.isEqual(limit, null)))
             {
                 limit = 100;
             }
-            Object request = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), limit, interval));
+            java.util.List<Object> request = new java.util.ArrayList<Object>(java.util.Arrays.asList(Helpers.GetValue(market, "id"), limit, interval));
             Object orderbook = (this.subscribe(name, messageHash, request, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });

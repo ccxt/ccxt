@@ -254,7 +254,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHash = "USER_TRADE";
+            String messageHash = "USER_TRADE";
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);

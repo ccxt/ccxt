@@ -501,7 +501,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         //             "T": 1754668800000
         //     }
         //
-        Object marketType = this.getAccountTypeFromUrl(client.url);
+        String marketType = (String) this.getAccountTypeFromUrl(client.url);
         Object ticker = message;
         Object parsed = this.parseWsTicker(ticker, marketType);
         Object symbol = Helpers.GetValue(parsed, "symbol");
@@ -685,7 +685,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         //             "E": 1754896692926
         //     }
         //
-        Object marketType = this.getAccountTypeFromUrl(client.url);
+        String marketType = (String) this.getAccountTypeFromUrl(client.url);
         Object data = message;
         Object marketId = this.safeString(data, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
@@ -900,7 +900,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         //         "m": false
         //     }
         //
-        Object marketType = this.getAccountTypeFromUrl(client.url);
+        String marketType = (String) this.getAccountTypeFromUrl(client.url);
         Object trade = message;
         Object marketId = this.safeString(trade, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
@@ -1283,7 +1283,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         //             ]
         //     }
         //
-        Object marketType = this.getAccountTypeFromUrl(client.url);
+        String marketType = (String) this.getAccountTypeFromUrl(client.url);
         Object data = message;
         Object marketId = this.safeString(data, "s");
         Long timestamp = this.safeInteger(data, "T");
@@ -1522,7 +1522,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         //             }
         //     }
         //
-        Object marketType = this.getAccountTypeFromUrl(client.url);
+        String marketType = (String) this.getAccountTypeFromUrl(client.url);
         Object data = message;
         Object marketId = this.safeString(data, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, null, marketType);
@@ -1831,7 +1831,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
         //         }
         //     }
         //
-        Object accountType = this.getAccountTypeFromUrl(client.url);
+        String accountType = (String) this.getAccountTypeFromUrl(client.url);
         String messageHash = (String) Helpers.add(accountType, ":balance");
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(this.balance, accountType), null)))
         {
@@ -1886,7 +1886,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
             {
                 (this.loadMarkets()).join();
             }
-            Object type = "swap";
+            String type = "swap";
             (this.authenticate(type, parameters)).join();
             Object url = this.getPrivateUrl(type);
             Client client = this.client(url);
@@ -2489,7 +2489,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
     public Object getMarketFromOrder(Client client, Object order)
     {
         Object marketId = this.safeString(order, "s");
-        Object marketType = this.getAccountTypeFromUrl(client.url);
+        String marketType = (String) this.getAccountTypeFromUrl(client.url);
         return this.safeMarket(marketId, null, null, marketType);
     }
 

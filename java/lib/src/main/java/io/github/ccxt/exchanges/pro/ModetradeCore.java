@@ -307,7 +307,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             }
             symbols = this.marketSymbols(symbols);
             String name = "tickers";
-            Object topic = name;
+            String topic = name;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -379,7 +379,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             }
             symbols = this.marketSymbols(symbols);
             String name = "bbos";
-            Object topic = name;
+            String topic = name;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );
@@ -830,7 +830,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
             String topic = ((Helpers.isTrue((Helpers.isEqual(trigger, true))))) ? "algoexecutionreport" : "executionreport";
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("stop", "trigger")));
-            Object messageHash = topic;
+            String messageHash = topic;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
             {
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
@@ -1199,7 +1199,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
             {
                 (this.loadMarkets()).join();
             }
-            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             symbols = this.marketSymbols(symbols);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && !Helpers.isTrue(this.isEmpty(symbols))))
             {
@@ -1438,7 +1438,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 (this.loadMarkets()).join();
             }
             String topic = "balance";
-            Object messageHash = topic;
+            String messageHash = topic;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "event", "subscribe" );
                 put( "topic", topic );

@@ -2414,7 +2414,7 @@ public class BtseCore extends BtseApi
                 if (Helpers.isTrue(isConditionalOrder))
                 {
                     Helpers.addElementToObject(request, "orderType", "CONDITIONAL");
-                    Object triggerOrderType = null;
+                    String triggerOrderType = null;
                     Object triggerPriceToSend = null;
                     if (Helpers.isTrue(isStopLossOrder))
                     {

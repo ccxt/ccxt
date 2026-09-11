@@ -1071,7 +1071,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             }
             (this.authenticate()).join();
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "privateGen2");
-            Object messageHash = "myOrder";
+            String messageHash = "myOrder";
             Object codes = this.safeList(parameters, "codes", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             final Object finalMessageHash = messageHash;
             Object request = this.buildGen2SubscriptionRequest(messageHash, new java.util.HashMap<String, Object>() {{

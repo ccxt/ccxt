@@ -181,7 +181,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object channel = "ticker24h";
+            String channel = "ticker24h";
             Object tickers = (this.watchPublicMultiple(channel, channel, symbols, parameters)).join();
             return this.filterByArray(tickers, "symbol", symbols);
         });
@@ -251,7 +251,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols, null, false);
-            Object channel = "ticker24h";
+            String channel = "ticker24h";
             Object tickers = (this.watchPublicMultiple("bidask", channel, symbols, parameters)).join();
             return this.filterByArray(tickers, "symbol", symbols);
         });

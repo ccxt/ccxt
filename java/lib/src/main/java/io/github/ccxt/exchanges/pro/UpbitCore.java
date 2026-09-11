@@ -549,7 +549,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             {
                 (this.loadMarkets()).join();
             }
-            Object channel = "myOrder";
+            String channel = "myOrder";
             String messageHash = (String) "myOrder";
             Object orders = (this.watchPrivate(symbol, channel, messageHash)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -585,7 +585,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             {
                 (this.loadMarkets()).join();
             }
-            Object channel = "myOrder";
+            String channel = "myOrder";
             String messageHash = (String) "myTrades";
             Object trades = (this.watchPrivate(symbol, channel, messageHash)).join();
             if (Helpers.isTrue(this.newUpdates))
@@ -650,7 +650,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             side = "sell";
         }
         Long timestamp = this.parse8601(this.safeString(order, "order_timestamp"));
-        Object status = this.parseWsOrderStatus(this.safeString(order, "state"));
+        String status = (String) this.parseWsOrderStatus(this.safeString(order, "state"));
         Object marketId = this.safeString(order, "code");
         market = this.safeMarket(marketId, market);
         Object fee = null;
@@ -797,7 +797,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             Helpers.addElementToObject(parsed, "datetime", this.safeString(order, "datetime"));
         }
         Helpers.callDynamically(cachedOrders, "append", new Object[]{parsed});
-        Object messageHash = "myOrder";
+        String messageHash = "myOrder";
         client.resolve(this.orders, messageHash);
         messageHash = Helpers.add(Helpers.add(messageHash, ":"), symbol);
         client.resolve(this.orders, messageHash);
@@ -821,7 +821,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             {
                 (this.loadMarkets()).join();
             }
-            Object channel = "myAsset";
+            String channel = "myAsset";
             String messageHash = (String) "myAsset";
             return (this.watchPrivate(null, channel, messageHash)).join();
         });

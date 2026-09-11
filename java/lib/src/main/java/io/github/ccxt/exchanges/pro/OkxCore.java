@@ -2123,7 +2123,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             (this.authenticate(new java.util.HashMap<String, Object>() {{
                 put( "access", access );
             }})).join();
-            Object channel = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "orders-algo" : "orders";
+            String channel = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "orders-algo" : "orders";
             Object messageHash = Helpers.add(channel, "::myTrades");
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -2196,7 +2196,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instType", "ANY" );
             }};
-            Object channel = "positions";
+            String channel = "positions";
             Object newPositions = null;
             if (Helpers.isTrue(Helpers.isEqual(symbols, null)))
             {
@@ -2396,7 +2396,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "instType", finalUppercaseType );
             }};
-            Object channel = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "orders-algo" : "orders";
+            String channel = ((Helpers.isTrue((Helpers.isEqual(isTrigger, true))))) ? "orders-algo" : "orders";
             Object orders = (this.subscribe("private", channel, channel, symbol, this.extend(request, parameters))).join();
             if (Helpers.isTrue(this.newUpdates))
             {

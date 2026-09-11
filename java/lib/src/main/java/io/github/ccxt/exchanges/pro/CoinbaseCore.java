@@ -377,7 +377,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "ticker";
+            String name = "ticker";
             return (this.subscribe(name, false, symbol, parameters)).join();
         });
 
@@ -402,7 +402,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "ticker";
+            String name = "ticker";
             return (this.unSubscribe("ticker", name, false, symbol)).join();
         });
 
@@ -432,7 +432,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 symbols = this.symbols;
             }
-            Object name = "ticker_batch";
+            String name = "ticker_batch";
             Object ticker = (this.subscribeMultiple(name, false, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -671,7 +671,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object name = "market_trades";
+            String name = "market_trades";
             Object trades = (this.subscribe(name, false, symbol, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -701,7 +701,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "market_trades";
+            String name = "market_trades";
             return (this.unSubscribe("trades", name, false, symbol)).join();
         });
 
@@ -730,7 +730,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "market_trades";
+            String name = "market_trades";
             Object trades = (this.subscribeMultiple(name, false, symbols, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -762,7 +762,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "market_trades";
+            String name = "market_trades";
             return (this.unSubscribeMultiple("trades", name, false, symbols, parameters)).join();
         });
 
@@ -792,7 +792,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "user";
+            String name = "user";
             Object orders = (this.subscribe(name, true, symbol, parameters)).join();
             if (Helpers.isTrue(this.newUpdates))
             {
@@ -823,7 +823,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "user";
+            String name = "user";
             return (this.unSubscribe("orders", name, true, this.symbol(symbol))).join();
         });
 
@@ -850,7 +850,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "level2";
+            String name = "level2";
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object orderbook = (this.subscribe(name, false, symbol, parameters)).join();
@@ -879,7 +879,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
                 (this.loadMarkets()).join();
             }
             symbol = this.symbol(symbol);
-            Object name = "level2";
+            String name = "level2";
             return (this.unSubscribe("orderbook", name, false, symbol)).join();
         });
 
@@ -906,7 +906,7 @@ public class CoinbaseCore extends io.github.ccxt.exchanges.Coinbase
             {
                 (this.loadMarkets()).join();
             }
-            Object name = "level2";
+            String name = "level2";
             Object orderbook = (this.subscribeMultiple(name, false, symbols, parameters)).join();
             return Helpers.callDynamically(orderbook, "limit", new Object[]{});
         });

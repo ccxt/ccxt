@@ -2229,7 +2229,7 @@ public class LimitlessCore extends LimitlessApi
         Object mkt = this.safeOutcome(tokenId, market);
         Object outcomeSymbol = this.safeString(mkt, "outcome");
         Object rawSide = this.safeString(rawOrder, "side");
-        Object side = this.parseOrderSide(rawSide);
+        String side = (String) this.parseOrderSide(rawSide);
         Object price = this.safeString(rawOrder, "price");
         String amountKey = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "takerAmount" : "makerAmount"; // todo check
         Object amount = this.safeString(rawOrder, amountKey);
@@ -3424,11 +3424,11 @@ public class LimitlessCore extends LimitlessApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object outcomeSymbol = this.safeString(market, "outcome");
-        Object notional = this.applyScale(this.safeString(position, "marketValue"));
-        Object unrealizedPnl = this.applyScale(this.safeString(position, "unrealizedPnl"));
-        Object realizedPnl = this.applyScale(this.safeString(position, "realisedPnl"));
-        Object collateral = this.applyScale(this.safeString(position, "cost"));
-        Object entryPrice = this.applyScale(this.safeString(position, "fillPrice"));
+        String notional = (String) this.applyScale(this.safeString(position, "marketValue"));
+        String unrealizedPnl = (String) this.applyScale(this.safeString(position, "unrealizedPnl"));
+        String realizedPnl = (String) this.applyScale(this.safeString(position, "realisedPnl"));
+        String collateral = (String) this.applyScale(this.safeString(position, "cost"));
+        String entryPrice = (String) this.applyScale(this.safeString(position, "fillPrice"));
         return new java.util.HashMap<String, Object>() {{
             put( "id", null );
             put( "outcome", outcomeSymbol );

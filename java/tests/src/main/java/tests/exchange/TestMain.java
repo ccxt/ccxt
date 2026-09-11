@@ -279,7 +279,7 @@ public class TestMain extends BaseTest
     public Object addPadding(Object message, Object size)
     {
         // has to be transpilable
-        Object res = "";
+        String res = "";
         Object messageLength = ((String)message).length(); // avoid php transpilation issue
         Object missingSpace = Helpers.subtract(Helpers.subtract(size, messageLength), 0); // - 0 is added just to trick transpile to treat the .length as a string for php
         if (Helpers.isTrue(Helpers.isGreaterThan(missingSpace, 0)))
