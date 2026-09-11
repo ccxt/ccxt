@@ -3827,6 +3827,7 @@ public class BaseExchange {
     public java.util.concurrent.CompletableFuture<Object> fetchAccountsAsync(Object... args) { return fetchAccounts(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchCurrenciesAsync(Object... args) { return fetchCurrencies(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchMarketsAsync(Object... args) { return fetchMarkets(args); }
+    public java.util.concurrent.CompletableFuture<Object> fetchAllGreeksAsync(Object... args) { return fetchAllGreeks(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchBalanceWsAsync(Object... args) { return fetchBalanceWs(args); }
 
     // ------------------------------------------------------------------------

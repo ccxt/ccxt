@@ -33,9 +33,9 @@ const KNOWN_TYPES = new Set([
     'LeverageTier', 'LeverageTiers', 'Leverage', 'Leverages',
     'MarginMode', 'MarginModes', 'MarginModification', 'MarginLoan',
     'Status', 'PositionModeInfo',
-    'Transaction', 'DepositAddress', 'TransferEntry',
+    'Transaction', 'DepositAddress', 'DepositAddresses', 'TransferEntry',
     'LedgerEntry', 'TradingFeeInterface', 'TradingFees',
-    'Greeks', 'Option', 'OptionChain', 'Conversion',
+    'Greeks', 'AllGreeks', 'Option', 'OptionChain', 'Conversion',
     'LastPrice', 'LastPrices', 'LongShortRatio',
     'BorrowInterest', 'CrossBorrowRate', 'CrossBorrowRates',
     'IsolatedBorrowRate', 'IsolatedBorrowRates',
@@ -195,6 +195,12 @@ export const ZERO_REQUIRED_TYPED_WHITELIST = new Set([
     'fetchAccounts',
     'fetchCurrencies',
     'fetchMarkets',
+    // fetchAllGreeks takes only the optional `symbols` list + params, so it has
+    // the same zero-required shape. Audited per the rules above: there is NO
+    // `this.fetchAllGreeks(...)` call site anywhere in ts/src (REST, WS or
+    // tests), so no internal call can be captured by the typed truncations.
+    // Needs the untyped fetchAllGreeksAsync(Object...) alias on BaseExchange.java.
+    'fetchAllGreeks',
     // WebSocket variants — same zero-required-param shape, same typed return.
     // Only includes methods that exist on at least one exchange's TS source AND
     // have a base `Object... varargs` definition on Exchange.java (so the
