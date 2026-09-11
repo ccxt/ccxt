@@ -3937,7 +3937,7 @@ public class BingxCore extends BingxApi
             }
             if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)))
             {
-                Object stringifiedAmount = this.numberToString(amount);
+                String stringifiedAmount = this.numberToString(amount);
                 if (Helpers.isTrue(hasStopLoss))
                 {
                     String slTriggerPrice = this.safeString2(stopLossDict, "triggerPrice", "stopPrice");

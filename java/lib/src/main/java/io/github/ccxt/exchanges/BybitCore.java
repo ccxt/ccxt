@@ -2567,7 +2567,7 @@ public class BybitCore extends BybitApi
         // and we shouldn't crash in those cases
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Boolean emptyPrecisionAmount = (Helpers.isEqual(Helpers.GetValue(Helpers.GetValue(market, "precision"), "amount"), null));
-        Object amountString = this.numberToString(amount);
+        String amountString = this.numberToString(amount);
         if (Helpers.isTrue(!Helpers.isTrue(emptyPrecisionAmount) && Helpers.isTrue((!Helpers.isEqual(amountString, "0")))))
         {
             return this.amountToPrecision(symbol, amount);
@@ -9080,7 +9080,7 @@ public class BybitCore extends BybitApi
             // AND DECREASE LIQUIDATION PRICE FOR OPEN ISOLATED SHORT POSITIONS
             // engage in leverage setting
             // we reuse the code here instead of having two methods
-            Object leverageString = this.numberToString(leverage);
+            String leverageString = this.numberToString(leverage);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "buyLeverage", leverageString );
@@ -9697,7 +9697,7 @@ public class BybitCore extends BybitApi
             String fromId = this.safeString(accountTypes, fromAccount, fromAccount);
             String toId = this.safeString(accountTypes, toAccount, toAccount);
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object amountToPrecision = this.currencyToPrecision(code, amount);
+            String amountToPrecision = (String) this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "transferId", transferId );
                 put( "fromAccountType", fromId );

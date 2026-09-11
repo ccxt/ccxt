@@ -1615,7 +1615,7 @@ public class ApexCore extends ApexApi
             Object fees = this.safeDict(this.fees, "swap", new java.util.HashMap<String, Object>() {{}});
             String taker = this.safeString(fees, "taker", "0.0005");
             String maker = this.safeString(fees, "maker", "0.0002");
-            Object limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"))), TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
+            String limitFee = this.decimalToPrecision(Precise.stringAdd(Precise.stringMul(Precise.stringMul(orderPrice, orderSize), taker), this.numberToString(Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"))), TRUNCATE, Helpers.GetValue(Helpers.GetValue(market, "precision"), "price"), this.precisionMode, this.paddingMode);
             Long timeNow = this.milliseconds();
             Object triggerPrice = this.safeString(parameters, "triggerPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
@@ -2307,7 +2307,7 @@ public class ApexCore extends ApexApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object leverageString = this.numberToString(leverage);
+            String leverageString = this.numberToString(leverage);
             String initialMarginRate = Precise.stringDiv("1", leverageString, 4);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );

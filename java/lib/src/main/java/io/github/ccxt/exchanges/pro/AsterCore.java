@@ -2261,7 +2261,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(orderFee, "currency"), Helpers.GetValue(tradeFee, "currency"))))
                                 {
                                     Object feeCost = this.sum(Helpers.GetValue(tradeFee, "cost"), Helpers.GetValue(orderFee, "cost"));
-                                    Object feeCostString = this.currencyToPrecision(Helpers.GetValue(tradeFee, "currency"), feeCost);
+                                    String feeCostString = (String) this.currencyToPrecision(Helpers.GetValue(tradeFee, "currency"), feeCost);
                                     Helpers.addElementToObject(Helpers.GetValue(Helpers.GetValue(order, "fees"), i), "cost", ((Helpers.isTrue((Helpers.isEqual(feeCostString, null))))) ? null : Helpers.parseFloat(feeCostString));
                                     insertNewFeeCurrency = false;
                                     break;
@@ -2276,7 +2276,7 @@ public class AsterCore extends io.github.ccxt.exchanges.Aster
                             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(fee, "currency"), Helpers.GetValue(tradeFee, "currency"))))
                             {
                                 Object feeCost = this.sum(Helpers.GetValue(fee, "cost"), Helpers.GetValue(tradeFee, "cost"));
-                                Object feeCostString = this.currencyToPrecision(Helpers.GetValue(tradeFee, "currency"), feeCost);
+                                String feeCostString = (String) this.currencyToPrecision(Helpers.GetValue(tradeFee, "currency"), feeCost);
                                 Helpers.addElementToObject(Helpers.GetValue(order, "fee"), "cost", ((Helpers.isTrue((Helpers.isEqual(feeCostString, null))))) ? null : Helpers.parseFloat(feeCostString));
                             } else if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(fee, "currency"), null)))
                             {

@@ -3269,7 +3269,7 @@ public class HitbtcCore extends HitbtcApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object requestAmount = this.currencyToPrecision(code, amount);
+            String requestAmount = (String) this.currencyToPrecision(code, amount);
             Object accountsByType = this.safeValue(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             fromAccount = ((String)fromAccount).toLowerCase();
             toAccount = ((String)toAccount).toLowerCase();
@@ -4132,7 +4132,7 @@ public class HitbtcCore extends HitbtcApi
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " modifyMarginHelper() requires a leverage parameter for swap markets")) ;
                 }
             }
-            Object stringAmount = this.numberToString(amount);
+            String stringAmount = this.numberToString(amount);
             if (Helpers.isTrue(!Helpers.isEqual(stringAmount, "0")))
             {
                 amount = this.amountToPrecision(symbol, stringAmount);

@@ -3037,7 +3037,7 @@ public class BlofinCore extends BlofinApi
             }
         }
         Double contractSize = this.safeNumber(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         String markPriceString = this.safeString(position, "markPrice");
         String notionalString = this.safeString(position, "notionalUsd");
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
@@ -3069,7 +3069,7 @@ public class BlofinCore extends BlofinApi
             initialMarginPercentage = this.parseNumber(Precise.stringDiv(initialMarginString, notionalString, 4));
         } else if (Helpers.isTrue(Helpers.isEqual(initialMarginString, null)))
         {
-            Object initialMarginPercentageString = this.numberToString(initialMarginPercentage);
+            String initialMarginPercentageString = this.numberToString(initialMarginPercentage);
             initialMarginString = Precise.stringMul(initialMarginPercentageString, notionalString);
         }
         String rounder = "0.00005"; // round to closest 0.01%

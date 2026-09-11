@@ -2907,8 +2907,8 @@ public class CoinexCore extends CoinexApi
                         throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend in the amount argument")) ;
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         Object quoteAmount = this.parseToNumeric(Precise.stringMul(amountString, priceString));
                         Object costRequest = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                         Helpers.addElementToObject(request, "amount", this.costToPrecision(symbol, costRequest));
@@ -5294,7 +5294,7 @@ final Object finalI = i;
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
-            Object amountToPrecision = this.currencyToPrecision(code, amount);
+            String amountToPrecision = (String) this.currencyToPrecision(code, amount);
             Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
             String fromId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toId = this.safeString(accountsByType, toAccount, toAccount);

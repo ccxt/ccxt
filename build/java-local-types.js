@@ -352,6 +352,19 @@ const LOCAL_THIS_RETURN_TYPES = {
     'safeInteger2': { type: 'Long', cast: '(Long)' },
     'safeSymbol': { type: 'String', cast: '(String)' },
     'safeCurrencyCode': { type: 'String', cast: '(String)' },
+    // precision helpers (JN-23): currencyToPrecision / parsePrecision are declared
+    // `Object` in the Java base while every return path yields String or null
+    // (currencyToPrecision -> forceString (String instance | numberToString String|null)
+    // / decimalToPrecision String; parsePrecision -> null / "1" /
+    // Helpers.add(String, String) = the String concat branch), so the declaration and
+    // every same-family write carry the (String) checkcast. precisionFromString resolves
+    // through the FIELD assignment `precisionFromString = precisionFromString` (no
+    // checker declaration) and is declared `public int` in the Java base
+    // (`BaseExchange -> NumberHelpers.PrecisionFromString`), so its local autoboxes to
+    // Integer with NO cast.
+    'currencyToPrecision': { type: 'String', cast: '(String)' },
+    'parsePrecision': { type: 'String', cast: '(String)' },
+    'precisionFromString': { type: 'Integer' },
     // JAVA-RE-6 string/crypto/url helpers — see the section-4 header. `plain` entries are
     // declared String in Java; `cast` entries are declared Object but String-or-null on
     // every audited path. The classifier (classifyStringHelperCall) applies the
@@ -427,17 +440,21 @@ const STRUCTURE_THIS_RETURN_TYPES = {
 };
 
 // ts sources that may hold the resolved declaration of an admitted accessor call —
-// anything else (a venue override) never classifies
+// anything else (a venue override) never classifies. number.ts is the home of the
+// caller-assigned number helpers (precisionFromString; numberToString/decimalToPrecision
+// resolve there too), the same shape as type.ts/time.ts.
 const ACCESSOR_SOURCE_FILES = [
     /[\\/]base[\\/]functions[\\/]type\.ts$/,
     /[\\/]base[\\/]functions[\\/]time\.ts$/,
+    /[\\/]base[\\/]functions[\\/]number\.ts$/,
     /[\\/]base[\\/]Exchange\.ts$/,
 ];
 
 // time functions are assigned as instance fields (`iso8601 = iso8601;`), so the checker
 // resolves no declaration for the call; they are hand-written Java methods with no
-// generated override (census), accepted by name
-const FIELD_FUNCTION_NAMES = new Set ([ 'parse8601', 'iso8601' ]);
+// generated override (census), accepted by name. precisionFromString is the same shape
+// (`precisionFromString = precisionFromString;`, declared `public int` in the base).
+const FIELD_FUNCTION_NAMES = new Set ([ 'parse8601', 'iso8601', 'precisionFromString' ]);
 
 // ===== string-element access locals =====
 //
@@ -1445,7 +1462,19 @@ function isProvablyOfType (printer, node, javaType, selfName) {
                     const helper = classifyStringHelperCall (printer, node);
                     return helper !== undefined;
                 }
-                if (name === 'safeSymbol' || name === 'safeCurrencyCode') {
+                if (name === 'safeSymbol' || name === 'safeCurrencyCode'
+                    || name === 'currencyToPrecision' || name === 'parsePrecision') {
+                    // the precision helpers are cast-family entries of
+                    // LOCAL_THIS_RETURN_TYPES: the reassignment hook injects the same
+                    // (String) checkcast the declaration got
+                    return resolvesToBaseAccessor (printer, node, name);
+                }
+                return false;
+            }
+            if (javaType === 'Integer') {
+                // precisionFromString is declared `public int` in the Java base; the
+                // caller-assigned field resolves to no declaration (FIELD_FUNCTION_NAMES)
+                if (name === 'precisionFromString') {
                     return resolvesToBaseAccessor (printer, node, name);
                 }
                 return false;

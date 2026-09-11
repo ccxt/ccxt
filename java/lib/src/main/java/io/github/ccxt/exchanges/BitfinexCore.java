@@ -1190,7 +1190,7 @@ public class BitfinexCore extends BitfinexApi
         // numberToString instead of an `as string` cast: the describe() default for this option is the
         // NUMBER 8 (and users may override with numbers too), and the hard cast makes the C# build throw
         // InvalidCastException Int32 to String here, breaking bitfinex loadMarkets entirely in C#
-        Object precision = this.numberToString(this.handleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision));
+        String precision = this.numberToString(this.handleOption("fetchCurrencies", "defaultPrecision", defaultCurrencyPrecision));
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object networkIds = this.safeList(indexedNetworks, id, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
@@ -1359,7 +1359,7 @@ public class BitfinexCore extends BitfinexApi
             java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
             Object fromCurrencyId = this.convertDerivativesId(currency, fromAccount);
             Object toCurrencyId = this.convertDerivativesId(currency, toAccount);
-            Object requestedAmount = this.currencyToPrecision(code, amount);
+            String requestedAmount = (String) this.currencyToPrecision(code, amount);
             // this request is slightly different from v1 fromAccount -> from
             final Object finalFromId = fromId;
             final Object finalToId = toId;

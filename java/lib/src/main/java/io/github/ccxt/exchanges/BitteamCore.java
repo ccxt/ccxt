@@ -1605,7 +1605,7 @@ public class BitteamCore extends BitteamApi
         {
             return null;
         }
-        Object precisionString = this.parsePrecision(precisionRawString);
+        String precisionString = (String) this.parsePrecision(precisionRawString);
         return Precise.stringMul(valueRawString, precisionString);
     }
 

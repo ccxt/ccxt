@@ -895,8 +895,8 @@ public class CryptomusCore extends CryptomusApi
                 Helpers.addElementToObject(request, "client_order_id", clientOrderId);
             }
             Boolean sideBuy = Helpers.isEqual(side, "buy");
-            Object amountToString = this.numberToString(amount);
-            Object priceToString = this.numberToString(price);
+            String amountToString = this.numberToString(amount);
+            String priceToString = this.numberToString(price);
             Object cost = null;
             java.util.List<Object> costparametersVariable = (java.util.List<Object>) this.handleParamString(parameters, "cost");
             cost = ((java.util.List<Object>) costparametersVariable).get(0);

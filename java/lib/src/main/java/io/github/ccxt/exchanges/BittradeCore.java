@@ -2131,8 +2131,8 @@ public class BittradeCore extends BittradeApi
                         // https://github.com/ccxt/ccxt/pull/4395
                         // https://github.com/ccxt/ccxt/issues/7611
                         // we use amountToPrecision here because the exchange requires cost in base precision
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         quoteAmount = this.amountToPrecision(symbol, Precise.stringMul(amountString, priceString));
                     }
                 } else

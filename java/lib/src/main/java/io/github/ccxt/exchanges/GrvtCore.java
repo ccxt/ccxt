@@ -2777,7 +2777,7 @@ public class GrvtCore extends GrvtApi
             Object leg = Helpers.GetValue(orderLegs, i);
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(leg, "instrument"));
             Object bigInt10 = this.convertToBigIntCustom("10");
-            Object precisionValue = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "base"));
+            Integer precisionValue = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "base"));
             Object precisionValueStr = String.valueOf(precisionValue);
             Object sizeMultiplier = Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(precisionValueStr))));
             Object size = Helpers.GetValue(leg, "size");

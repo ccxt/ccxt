@@ -1245,8 +1245,8 @@ public class WeexCore extends WeexApi
         Object pricePrecision = this.safeNumber(market, "tickSize");
         if (Helpers.isTrue(Helpers.isEqual(amountPrecision, null)))
         {
-            Object amountPrecisionString = this.parsePrecision(this.safeString(market, "quantityPrecision"));
-            Object pricePrecisionString = this.parsePrecision(this.safeString(market, "pricePrecision"));
+            String amountPrecisionString = (String) this.parsePrecision(this.safeString(market, "quantityPrecision"));
+            String pricePrecisionString = (String) this.parsePrecision(this.safeString(market, "pricePrecision"));
             amountPrecision = this.parseNumber(amountPrecisionString);
             pricePrecision = this.parseNumber(pricePrecisionString);
         }
@@ -5314,7 +5314,7 @@ public class WeexCore extends WeexApi
                 throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), path), " is not available in sandbox mode, demo trading only supports fetchBalance, createOrder, fetchPositions, fetchClosedOrders and fetchCanceledOrders for swap markets")) ;
             }
             this.checkRequiredCredentials();
-            Object timestamp = this.numberToString(this.nonce());
+            String timestamp = this.numberToString(this.nonce());
             Object payload = Helpers.add(Helpers.add(Helpers.add(timestamp, method), "/"), endpoint);
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(method, "POST"))) || Helpers.isTrue(isBatch)))
             {

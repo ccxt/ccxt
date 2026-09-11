@@ -1822,7 +1822,7 @@ public class CryptocomCore extends CryptocomApi
         if (Helpers.isTrue(isTrigger))
         {
             Helpers.addElementToObject(request, "ref_price", this.priceToPrecision(symbol, triggerPrice));
-            Object priceString = this.numberToString(price);
+            String priceString = this.numberToString(price);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uppercaseType, "LIMIT"))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "STOP_LIMIT")))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
             {
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
@@ -2098,7 +2098,7 @@ public class CryptocomCore extends CryptocomApi
         Boolean isTakeProfitTrigger = (!Helpers.isEqual(takeProfitPrice, null));
         if (Helpers.isTrue(isTrigger))
         {
-            Object priceString = this.numberToString(price);
+            String priceString = this.numberToString(price);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(uppercaseType, "LIMIT"))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "STOP_LIMIT")))) || Helpers.isTrue((Helpers.isEqual(uppercaseType, "TAKE_PROFIT_LIMIT")))))
             {
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
@@ -2184,8 +2184,8 @@ public class CryptocomCore extends CryptocomApi
                     throw new InvalidOrder((String)Helpers.add(this.id, " createOrder() requires the price argument for market buy orders to calculate the total cost to spend (amount * price), alternatively set the createMarketBuyOrderRequiresPrice option or param to false and pass the cost to spend (quote quantity) in the amount argument")) ;
                 } else
                 {
-                    Object amountString = this.numberToString(amount);
-                    Object priceString = this.numberToString(price);
+                    String amountString = this.numberToString(amount);
+                    String priceString = this.numberToString(price);
                     String costRequest = Precise.stringMul(amountString, priceString);
                     quoteAmount = this.costToPrecision(symbol, costRequest);
                 }

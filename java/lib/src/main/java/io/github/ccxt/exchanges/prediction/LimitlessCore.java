@@ -1564,7 +1564,7 @@ public class LimitlessCore extends LimitlessApi
             Long timestamp = this.milliseconds();
             Object decimals = this.safeInteger(this.options, "usdcDecimals", 6);
             // sizes are scaled by 10^decimals, USDC uses 6 decimals
-            Object scaleStr = this.parsePrecision(this.numberToString(Helpers.opNeg(decimals)));
+            String scaleStr = (String) this.parsePrecision(this.numberToString(Helpers.opNeg(decimals)));
             String outcomeLabel = (String)this.safeStringLower(Helpers.GetValue(outcomeObj, "info"), "outcomeLabel", "yes");
             Boolean isYes = !Helpers.isEqual(outcomeLabel, "no");
             Object rawBids = this.safeList(response, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));

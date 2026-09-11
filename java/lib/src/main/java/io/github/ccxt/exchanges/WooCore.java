@@ -1883,8 +1883,8 @@ public class WooCore extends WooApi
                         quoteAmount = this.costToPrecision(symbol, cost);
                     } else
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String costRequest = Precise.stringMul(amountString, priceString);
                         quoteAmount = this.costToPrecision(symbol, costRequest);
                     }

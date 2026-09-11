@@ -768,7 +768,7 @@ public class BitmexCore extends BitmexApi
         Boolean withdrawEnabled = false;
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         String scale = this.safeString(currency, "scale");
-        Object precisionString = this.parsePrecision(scale);
+        String precisionString = (String) this.parsePrecision(scale);
         Object precision = this.parseNumber(precisionString);
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(chains)); j++)
         {
@@ -859,7 +859,7 @@ public class BitmexCore extends BitmexApi
     {
         java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(code);
         String precision = this.safeString(currency, "precision");
-        Object amountString = this.numberToString(amount);
+        String amountString = this.numberToString(amount);
         String finalAmount = Precise.stringDiv(amountString, precision);
         return this.parseNumber(finalAmount);
     }
@@ -2408,13 +2408,13 @@ public class BitmexCore extends BitmexApi
         Long timestamp = this.parse8601(this.safeString(trade, "timestamp"));
         String priceString = this.safeString2(trade, "avgPx", "price");
         Object amountString = this.convertFromRawQuantity(symbol, this.safeString2(trade, "size", "lastQty"));
-        Object execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
+        String execCost = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execCost")));
         String id = this.safeString(trade, "trdMatchID");
         String order = this.safeString(trade, "orderID");
         String side = (String)this.safeStringLower(trade, "side");
         // price * amount doesn't work for all symbols (e.g. XBT, ETH)
         Object fee = null;
-        Object feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
+        String feeCostString = this.numberToString(this.convertFromRawCost(symbol, this.safeString(trade, "execComm")));
         if (Helpers.isTrue(!Helpers.isEqual(feeCostString, null)))
         {
             String currencyId = this.safeString2(trade, "settlCurrency", "currency");
@@ -2545,8 +2545,8 @@ public class BitmexCore extends BitmexApi
             amount = this.convertFromRawQuantity(symbol, qty);
         }
         String average = this.safeString(order, "avgPx");
-        Object filled = null;
-        Object cumQty = this.numberToString(this.convertFromRawQuantity(symbol, this.safeString(order, "cumQty")));
+        String filled = null;
+        String cumQty = this.numberToString(this.convertFromRawQuantity(symbol, this.safeString(order, "cumQty")));
         if (Helpers.isTrue(isInverse))
         {
             filled = Precise.stringDiv(cumQty, average);
@@ -3854,7 +3854,7 @@ public class BitmexCore extends BitmexApi
         if (Helpers.isTrue(!Helpers.isEqual(networksLength, 0)))
         {
             String scale = this.safeString(fee, "scale");
-            Object precision = this.parsePrecision(scale);
+            String precision = (String) this.parsePrecision(scale);
             for (var i = 0; Helpers.isLessThan(i, networksLength); i++)
             {
                 Object network = Helpers.GetValue(networks, i);

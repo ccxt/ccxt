@@ -3901,7 +3901,7 @@ public class WhitebitCore extends WhitebitApi
             Object accountsByType = this.safeValue(this.options, "accountsByType");
             String fromAccountId = this.safeString(accountsByType, fromAccount, fromAccount);
             String toAccountId = this.safeString(accountsByType, toAccount, toAccount);
-            Object amountString = this.currencyToPrecision(code, amount);
+            String amountString = (String) this.currencyToPrecision(code, amount);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "ticker", Helpers.GetValue(currency, "id") );
                 put( "amount", amountString );

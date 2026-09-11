@@ -4703,7 +4703,7 @@ public class HashkeyCore extends HashkeyApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), type), "Margin() params[\"side\"] must be either long or short")) ;
             }
-            Object amountString = this.numberToString(amount);
+            String amountString = this.numberToString(amount);
             if (Helpers.isTrue(Helpers.isEqual(type, "reduce")))
             {
                 amountString = Precise.stringMul(amountString, "-1");

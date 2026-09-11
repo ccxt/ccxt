@@ -5377,7 +5377,7 @@ public class BinanceCore extends BinanceApi
         Object linear = null;
         Object inverse = null;
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
-        Object strike = null;
+        String strike = null;
         if (Helpers.isTrue(contract))
         {
             if (Helpers.isTrue(swap))
@@ -7782,8 +7782,8 @@ public class BinanceCore extends BinanceApi
                     Helpers.addElementToObject(request, "quoteOrderQty", this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode));
                 } else if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                 {
-                    Object amountString = this.numberToString(amount);
-                    Object priceString = this.numberToString(price);
+                    String amountString = this.numberToString(amount);
+                    String priceString = this.numberToString(price);
                     String quoteOrderQuantity = Precise.stringMul(amountString, priceString);
                     Helpers.addElementToObject(request, "quoteOrderQty", this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode));
                 } else
@@ -9419,8 +9419,8 @@ public class BinanceCore extends BinanceApi
                         notional = quoteOrderQtyNew;
                     } else if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         notional = Precise.stringMul(amountString, priceString);
                     } else
                     {
@@ -9459,8 +9459,8 @@ public class BinanceCore extends BinanceApi
                         Helpers.addElementToObject(request, "quoteOrderQty", this.decimalToPrecision(quoteOrderQtyNew, TRUNCATE, precision, this.precisionMode));
                     } else if (Helpers.isTrue(!Helpers.isEqual(price, null)))
                     {
-                        Object amountString = this.numberToString(amount);
-                        Object priceString = this.numberToString(price);
+                        String amountString = this.numberToString(amount);
+                        String priceString = this.numberToString(price);
                         String quoteOrderQuantity = Precise.stringMul(amountString, priceString);
                         Helpers.addElementToObject(request, "quoteOrderQty", this.decimalToPrecision(quoteOrderQuantity, TRUNCATE, precision, this.precisionMode));
                     } else
@@ -13932,7 +13932,7 @@ public class BinanceCore extends BinanceApi
         String liquidationPriceStringRaw = null;
         Object liquidationPrice = null;
         Object contractSize = this.safeValue(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         if (Helpers.isTrue(Precise.stringEquals(notionalString, "0")))
         {
             entryPrice = null;
@@ -13984,7 +13984,7 @@ public class BinanceCore extends BinanceApi
                 String rightSide = Precise.stringSub(Precise.stringMul(Precise.stringDiv("1", entryPriceSignString), size), walletBalance);
                 liquidationPriceStringRaw = Precise.stringDiv(leftSide, rightSide);
             }
-            Object pricePrecision = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "price"));
+            Integer pricePrecision = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "price"));
             Object pricePrecisionPlusOne = Helpers.add(pricePrecision, 1);
             Object pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
@@ -14168,7 +14168,7 @@ public class BinanceCore extends BinanceApi
         String entryPriceString = this.safeString(position, "entryPrice");
         Object entryPrice = this.parseNumber(entryPriceString);
         Object contractSize = this.safeValue(market, "contractSize");
-        Object contractSizeString = this.numberToString(contractSize);
+        String contractSizeString = this.numberToString(contractSize);
         // as oppose to notionalValue
         Boolean linear = (Helpers.inOp(position, "notional"));
         if (Helpers.isTrue(Helpers.isEqual(marginMode, "cross")))
@@ -14195,7 +14195,7 @@ public class BinanceCore extends BinanceApi
                     }
                     String inner = Precise.stringMul(liquidationPriceString, onePlusMaintenanceMarginPercentageString);
                     String leftSide = Precise.stringAdd(inner, entryPriceSignString);
-                    Object quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
+                    Integer quotePrecision = this.precisionFromString(this.safeString2(precision, "quote", "price"));
                     if (Helpers.isTrue(!Helpers.isEqual(quotePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, contractsAbs), "1", quotePrecision);
@@ -14215,7 +14215,7 @@ public class BinanceCore extends BinanceApi
                     }
                     String leftSide = Precise.stringMul(contractsAbs, contractSizeString);
                     String rightSide = Precise.stringSub(Precise.stringDiv("1", entryPriceSignString), Precise.stringDiv(onePlusMaintenanceMarginPercentageString, liquidationPriceString));
-                    Object basePrecision = this.precisionFromString(this.safeString(precision, "base"));
+                    Integer basePrecision = this.precisionFromString(this.safeString(precision, "base"));
                     if (Helpers.isTrue(!Helpers.isEqual(basePrecision, null)))
                     {
                         collateralString = Precise.stringDiv(Precise.stringMul(leftSide, rightSide), "1", basePrecision);

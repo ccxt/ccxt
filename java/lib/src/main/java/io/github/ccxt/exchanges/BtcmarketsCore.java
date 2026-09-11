@@ -1377,8 +1377,8 @@ public class BtcmarketsCore extends BtcmarketsApi
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "quote"), "AUD")))
         {
             currency = Helpers.GetValue(market, "quote");
-            Object amountString = this.numberToString(amount);
-            Object priceString = this.numberToString(price);
+            String amountString = this.numberToString(amount);
+            String priceString = this.numberToString(price);
             String otherUnitsAmount = Precise.stringMul(amountString, priceString);
             cost = this.costToPrecision(symbol, otherUnitsAmount);
         } else

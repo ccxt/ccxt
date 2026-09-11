@@ -2706,7 +2706,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(rawType, "match"))) && Helpers.isTrue((!Helpers.isEqual(matchPrice, null)))) && Helpers.isTrue((!Helpers.isEqual(matchSize, null)))))
         {
             String matchCost = Precise.stringMul(matchPrice, matchSize);
-            Object previousCost = ((Helpers.isTrue((Helpers.isEqual(order, null))))) ? "0" : this.numberToString(this.safeNumber(order, "cost", 0));
+            String previousCost = ((Helpers.isTrue((Helpers.isEqual(order, null))))) ? "0" : this.numberToString(this.safeNumber(order, "cost", 0));
             String costString = Precise.stringAdd(previousCost, matchCost);
             Helpers.addElementToObject(parsed, "cost", this.parseNumber(costString));
             Object filledString = this.numberToString(Helpers.GetValue(parsed, "filled"));

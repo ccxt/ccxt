@@ -3724,7 +3724,7 @@ final Object finalId = id;
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object sinceString = this.numberToString(since);
+                String sinceString = this.numberToString(since);
                 Helpers.addElementToObject(request, "start", Precise.stringDiv(sinceString, "1000"));
             }
             String until = this.safeString2(parameters, "until", "till");
@@ -3829,7 +3829,7 @@ final Object finalId = id;
             }
             if (Helpers.isTrue(!Helpers.isEqual(since, null)))
             {
-                Object sinceString = this.numberToString(since);
+                String sinceString = this.numberToString(since);
                 Helpers.addElementToObject(request, "start", Precise.stringDiv(sinceString, "1000"));
             }
             String until = this.safeString2(parameters, "until", "till");

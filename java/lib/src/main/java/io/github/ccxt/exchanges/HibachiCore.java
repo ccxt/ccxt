@@ -1000,7 +1000,7 @@ public class HibachiCore extends HibachiApi
         // - Price: Internal = External * (2^32) * (10^(settlementDecimals-underlyingDecimals))
         // - FeeRate: Internal = External * (10^8)
         Object amountStr = this.amountToPrecision(this.safeString(market, "symbol"), amount);
-        Object feeRateStr = this.numberToString(feeRate);
+        String feeRateStr = this.numberToString(feeRate);
         Object info = this.safeDict(market, "info");
         String underlying = Helpers.add("1e", this.safeString(info, "underlyingDecimals"));
         String settlement = Helpers.add("1e", this.safeString(info, "settlementDecimals"));
@@ -1488,8 +1488,8 @@ public class HibachiCore extends HibachiApi
         // We only have USDT as our currency as this time
         Integer USDTAssetId = 1;
         String USDTFactor = "1000000";
-        Object amountStr = this.numberToString(amount);
-        Object maxFeesStr = this.numberToString(maxFees);
+        String amountStr = this.numberToString(amount);
+        String maxFeesStr = this.numberToString(maxFees);
         String one = "1";
         String quantityInternal = Precise.stringDiv(Precise.stringMul(amountStr, USDTFactor), one, 0);
         String maxFeesInternal = Precise.stringDiv(Precise.stringMul(maxFeesStr, USDTFactor), one, 0);

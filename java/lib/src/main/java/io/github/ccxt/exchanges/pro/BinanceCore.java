@@ -6685,7 +6685,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                                 if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(orderFee, "currency"), Helpers.GetValue(tradeFee, "currency"))))
                                 {
                                     Object feeCost = this.sum(Helpers.GetValue(tradeFee, "cost"), Helpers.GetValue(orderFee, "cost"));
-                                    Object feeCostString = this.currencyToPrecision(Helpers.GetValue(tradeFee, "currency"), feeCost);
+                                    String feeCostString = (String) this.currencyToPrecision(Helpers.GetValue(tradeFee, "currency"), feeCost);
                                     if (Helpers.isTrue(Helpers.isEqual(feeCostString, null)))
                                     {
                                         feeCostString = "0";
@@ -6704,7 +6704,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
                             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(fee, "currency"), Helpers.GetValue(tradeFee, "currency"))))
                             {
                                 Object feeCost = this.sum(Helpers.GetValue(fee, "cost"), Helpers.GetValue(tradeFee, "cost"));
-                                Object feeCostString = this.currencyToPrecision(Helpers.GetValue(tradeFee, "currency"), feeCost);
+                                String feeCostString = (String) this.currencyToPrecision(Helpers.GetValue(tradeFee, "currency"), feeCost);
                                 if (Helpers.isTrue(Helpers.isEqual(feeCostString, null)))
                                 {
                                     feeCostString = "0";

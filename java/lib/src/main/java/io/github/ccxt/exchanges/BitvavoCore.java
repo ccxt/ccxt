@@ -1796,8 +1796,8 @@ final Object finalBase = base;
             Object cost = null;
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
-                Object priceString = this.numberToString(price);
-                Object amountString = this.numberToString(amount);
+                String priceString = this.numberToString(price);
+                String amountString = this.numberToString(amount);
                 String quoteAmount = Precise.stringMul(amountString, priceString);
                 cost = this.parseNumber(quoteAmount);
             } else
