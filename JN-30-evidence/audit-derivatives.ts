@@ -2,7 +2,7 @@
 // the generated Java classes on disk.
 import fs from 'fs';
 import path from 'path';
-import { extractTypesIR } from './build/typesIR.js';
+import { extractTypesIR } from '../build/typesIR.js';
 
 const FAMILIES = [
     'Position', 'FundingRate', 'FundingRates', 'FundingHistory', 'FundingRateHistory',
@@ -68,3 +68,40 @@ for (const name of FAMILIES) {
         }
     }
 }
+
+// ---- summary census over the families ----
+const PRIMITIVE = /^(double|long|boolean|int|float|short|byte|char)$/;
+let classes = 0;
+let fields = 0;
+let primitives = 0;
+let objectFields = 0;
+let mapObjectNonInfo = 0;
+let optionalNullcap = 0;
+let containers = 0;
+for (const name of FAMILIES) {
+    const ts = ir.byName[name];
+    const jf = javaFields (name);
+    if (jf.length === 0 && ts === undefined) continue;
+    classes += 1;
+    if (ts !== undefined && ts.kind === 'dictionary') {
+        containers += 1;
+    }
+    for (const f of jf) {
+        fields += 1;
+        if (PRIMITIVE.test (f.type)) primitives += 1;
+        if (f.type === 'Object') objectFields += 1;
+        if (f.type === 'Map<String, Object>' && f.name !== 'info') mapObjectNonInfo += 1;
+    }
+    if (ts !== undefined) {
+        for (const field of ts.fields) {
+            if (field.optional || /undefined|null/.test (field.tsType)) optionalNullcap += 1;
+        }
+    }
+}
+console.log ('\n\n=================== SUMMARY ===================');
+console.log ('classes: ' + classes + ' (dictionary containers: ' + containers + ')');
+console.log ('java field declarations: ' + fields);
+console.log ('  primitive (non-nullable) field declarations: ' + primitives);
+console.log ('  `Object`-typed field declarations (excl. info): ' + objectFields);
+console.log ('  `Map<String,Object>` field declarations other than `info`: ' + mapObjectNonInfo);
+console.log ('TS fields declared optional/nullable across these families: ' + optionalNullcap);

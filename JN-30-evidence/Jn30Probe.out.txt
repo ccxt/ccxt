@@ -1,0 +1,28 @@
+== scalar nominal class: absent optional keys must stay null, never 0 ==
+Position.liquidationPrice  = null
+Position.unrealizedPnl     = null
+Position.initialMargin     = null
+Position.contracts         = 1.5
+OK      new Position(null)
+
+== element class inside a container: null row ==
+OK      new FundingRate(null)
+
+== container ctors on a null raw (wrapper `new X(res)` path) ==
+THROWS  new Tickers(null)  -> java.lang.NullPointerException: Cannot invoke "java.util.Map.entrySet()" because "data" is null
+THROWS  new FundingRates(null)  -> java.lang.NullPointerException: Cannot invoke "java.util.Map.entrySet()" because "data" is null
+THROWS  new OpenInterests(null)  -> java.lang.NullPointerException: Cannot invoke "java.util.Map.entrySet()" because "data" is null
+THROWS  new MarginModes(null)  -> java.lang.NullPointerException: Cannot invoke "java.util.Map.entrySet()" because "data" is null
+THROWS  new Leverages(null)  -> java.lang.NullPointerException: Cannot invoke "java.util.Map.entrySet()" because "data" is null
+THROWS  new LeverageTiers(null)  -> java.lang.NullPointerException: Cannot invoke "java.util.Map.entrySet()" because "data" is null
+THROWS  new AllGreeks(null)  -> java.lang.NullPointerException: Cannot invoke "java.util.Map.entrySet()" because "data" is null
+THROWS  new CrossBorrowRates(null)  -> java.lang.NullPointerException: Cannot invoke "java.util.Map.entrySet()" because "data" is null
+THROWS  new IsolatedBorrowRates(null)  -> java.lang.NullPointerException: Cannot invoke "java.util.Map.entrySet()" because "data" is null
+
+== container ctors on an EMPTY map ==
+OK      new FundingRates(new HashMap<>())
+OK      new AllGreeks(new HashMap<>())
+
+== wrapper array path on a null result (BaseExchange.toTypedList) ==
+THROWS  toTypedList(null, Position::new)  -> java.lang.NullPointerException: Cannot invoke "java.util.List.stream()" because "raw" is null
+OK      toTypedList(empty list, Position::new)

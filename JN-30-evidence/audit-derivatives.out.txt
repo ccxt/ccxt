@@ -1,0 +1,327 @@
+
+=================== Position ===================
+  TS kind=interface line=625
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] id: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] contracts: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] contractSize: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] side: "Str" nullcap=false  ->  java=String
+  [scalar] notional: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] leverage: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] unrealizedPnl: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] realizedPnl: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] collateral: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] entryPrice: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] markPrice: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] liquidationPrice: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] marginMode: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] hedged: "Bool" (optional) nullcap=true  ->  java=Boolean
+  [scalar] maintenanceMargin: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] maintenanceMarginPercentage: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] initialMargin: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] initialMarginPercentage: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] marginRatio: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] lastUpdateTimestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] lastPrice: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] stopLossPrice: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] takeProfitPrice: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] percentage: "Num" (optional) nullcap=true  ->  java=Double
+
+=================== FundingRate ===================
+  TS kind=interface line=601
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] timestamp: "number" (optional) nullcap=true  ->  java=Long
+  [scalar] fundingRate: "number" (optional) nullcap=true  ->  java=Double
+  [scalar] datetime: "string" (optional) nullcap=true  ->  java=String
+  [scalar] markPrice: "number" (optional) nullcap=true  ->  java=Double
+  [scalar] indexPrice: "number" (optional) nullcap=true  ->  java=Double
+  [scalar] interestRate: "number" (optional) nullcap=true  ->  java=Double
+  [scalar] estimatedSettlePrice: "number" (optional) nullcap=true  ->  java=Double
+  [scalar] fundingTimestamp: "number" (optional) nullcap=true  ->  java=Long
+  [scalar] fundingDatetime: "string" (optional) nullcap=true  ->  java=String
+  [scalar] nextFundingTimestamp: "number" (optional) nullcap=true  ->  java=Long
+  [scalar] nextFundingDatetime: "string" (optional) nullcap=true  ->  java=String
+  [scalar] nextFundingRate: "number" (optional) nullcap=true  ->  java=Double
+  [scalar] previousFundingTimestamp: "number" (optional) nullcap=true  ->  java=Long
+  [scalar] previousFundingDatetime: "string" (optional) nullcap=true  ->  java=String
+  [scalar] previousFundingRate: "number" (optional) nullcap=true  ->  java=Double
+  [scalar] interval: "string" (optional) nullcap=true  ->  java=String
+
+=================== FundingRates ===================
+  TS kind=dictionary valueType=FundingRate line=622
+  java fields: [{"name":"rates","type":"Map<String, FundingRate>"}]
+
+=================== FundingHistory ===================
+  TS kind=interface line=807
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] code: "Str" nullcap=false  ->  java=String
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] id: "Str" nullcap=false  ->  java=String
+  [scalar] amount: "Num" nullcap=false  ->  java=Double
+
+=================== FundingRateHistory ===================
+  TS kind=interface line=745
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] fundingRate: "Num" nullcap=false  ->  java=Double
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+
+=================== OpenInterest ===================
+  TS kind=interface line=753
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] openInterestAmount: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] openInterestValue: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] baseVolume: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] quoteVolume: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+
+=================== OpenInterests ===================
+  TS kind=dictionary valueType=OpenInterest line=764
+  java fields: [{"name":"interests","type":"Map<String, OpenInterest>"}]
+
+=================== Liquidation ===================
+  TS kind=interface line=767
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] price: "Num" nullcap=false  ->  java=Double
+  [scalar] baseValue: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] quoteValue: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] contracts: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] contractSize: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] side: "OrderSide" (optional) nullcap=true  ->  java=String
+
+=================== Greeks ===================
+  TS kind=interface line=823
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] delta: "Num" nullcap=false  ->  java=Double
+  [scalar] gamma: "Num" nullcap=false  ->  java=Double
+  [scalar] theta: "Num" nullcap=false  ->  java=Double
+  [scalar] vega: "Num" nullcap=false  ->  java=Double
+  [scalar] rho: "Num" nullcap=false  ->  java=Double
+  [scalar] vanna: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] volga: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] charm: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] bidSize: "Num" nullcap=false  ->  java=Double
+  [scalar] askSize: "Num" nullcap=false  ->  java=Double
+  [scalar] bidImpliedVolatility: "Num" nullcap=false  ->  java=Double
+  [scalar] askImpliedVolatility: "Num" nullcap=false  ->  java=Double
+  [scalar] markImpliedVolatility: "Num" nullcap=false  ->  java=Double
+  [scalar] bidPrice: "Num" nullcap=false  ->  java=Double
+  [scalar] askPrice: "Num" nullcap=false  ->  java=Double
+  [scalar] markPrice: "Num" nullcap=false  ->  java=Double
+  [scalar] lastPrice: "Num" nullcap=false  ->  java=Double
+  [scalar] underlyingPrice: "Num" nullcap=false  ->  java=Double
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+
+=================== AllGreeks ===================
+  TS kind=dictionary valueType=Greeks line=849
+  java fields: [{"name":"greeks","type":"Map<String, Greeks>"},{"name":"info","type":"Map<String, Object>"}]
+
+=================== MarginMode ===================
+  TS kind=interface line=817
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] marginMode: "'isolated' | 'cross' | Str" nullcap=false  ->  java=String
+
+=================== MarginModes ===================
+  TS kind=dictionary valueType=MarginMode line=968
+  java fields: [{"name":"modes","type":"Map<String, MarginMode>"}]
+
+=================== MarketMarginModes ===================
+  TS kind=interface line=81
+  [scalar] isolated: "Bool" nullcap=false  ->  java=Boolean
+  [scalar] cross: "Bool" nullcap=false  ->  java=Boolean
+
+=================== Leverage ===================
+  TS kind=interface line=894
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] marginMode: "'isolated' | 'cross' | Str" nullcap=false  ->  java=String
+  [scalar] longLeverage: "Num" nullcap=false  ->  java=Double
+  [scalar] shortLeverage: "Num" nullcap=false  ->  java=Double
+
+=================== Leverages ===================
+  TS kind=dictionary valueType=Leverage line=957
+  java fields: [{"name":"leverages","type":"Map<String, Leverage>"}]
+
+=================== LeverageTier ===================
+  TS kind=interface line=668
+  [scalar] tier: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] symbol: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] currency: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] minNotional: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] maxNotional: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] maintenanceMarginRate: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] maxLeverage: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+
+=================== LeverageTiers ===================
+  TS kind=dictionary valueType=LeverageTier[] line=980
+  java fields: [{"name":"tiers","type":"Map<String, List<LeverageTier>>"}]
+
+=================== BorrowInterest ===================
+  TS kind=interface line=656
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] symbol: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] currency: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] interest: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] interestRate: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] amountBorrowed: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] marginMode: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+
+=================== CrossBorrowRate ===================
+  TS kind=interface line=724
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] currency: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] rate: "Num" nullcap=false  ->  java=Double
+  [scalar] period: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+
+=================== CrossBorrowRates ===================
+  TS kind=dictionary valueType=CrossBorrowRate line=977
+  java fields: [{"name":"rates","type":"Map<String, CrossBorrowRate>"}]
+
+=================== IsolatedBorrowRate ===================
+  TS kind=interface line=733
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] base: "Str" nullcap=false  ->  java=String
+  [scalar] baseRate: "Num" nullcap=false  ->  java=Double
+  [scalar] quote: "Str" nullcap=false  ->  java=String
+  [scalar] quoteRate: "Num" nullcap=false  ->  java=Double
+  [scalar] period: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+
+=================== IsolatedBorrowRates ===================
+  TS kind=dictionary valueType=IsolatedBorrowRate line=974
+  java fields: [{"name":"rates","type":"Map<String, IsolatedBorrowRate>"}]
+
+=================== ADL ===================
+  TS kind=interface line=911
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] rank: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] rating: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] percentage: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+
+=================== Conversion ===================
+  TS kind=interface line=852
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] id: "Str" nullcap=false  ->  java=String
+  [scalar] fromCurrency: "Str" nullcap=false  ->  java=String
+  [scalar] fromAmount: "Num" nullcap=false  ->  java=Double
+  [scalar] toCurrency: "Str" nullcap=false  ->  java=String
+  [scalar] toAmount: "Num" nullcap=false  ->  java=Double
+  [scalar] price: "Num" nullcap=false  ->  java=Double
+  [scalar] fee: "Num" nullcap=false  ->  java=Double
+
+=================== TransferEntry ===================
+  TS kind=interface line=712
+  [scalar] info: "any" (optional) nullcap=true  ->  java=Map<String, Object>
+  [scalar] id: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] currency: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] amount: "Num" (optional) nullcap=true  ->  java=Double
+  [scalar] fromAccount: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] toAccount: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] status: "Str" (optional) nullcap=true  ->  java=String
+
+=================== MarginModification ===================
+  TS kind=interface line=921
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] type: "'add' | 'reduce' | 'set' | undefined" nullcap=true  ->  java=String
+  [scalar] marginMode: "'cross' | 'isolated' | undefined" nullcap=true  ->  java=String
+  [scalar] amount: "Num" nullcap=false  ->  java=Double
+  [scalar] total: "Num" nullcap=false  ->  java=Double
+  [scalar] code: "Str" nullcap=false  ->  java=String
+  [scalar] status: "Str" nullcap=false  ->  java=String
+  [scalar] timestamp: "Int" nullcap=false  ->  java=Long
+  [scalar] datetime: "Str" nullcap=false  ->  java=String
+
+=================== MarginLoan ===================
+  TS kind=interface line=934
+  [scalar] id: "Str" nullcap=false  ->  java=String
+  [scalar] currency: "Str" nullcap=false  ->  java=String
+  [scalar] amount: "Num" nullcap=false  ->  java=Double
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] timestamp: "Int" nullcap=false  ->  java=Long
+  [scalar] datetime: "Str" nullcap=false  ->  java=String
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+
+=================== LongShortRatio ===================
+  TS kind=interface line=902
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] timeframe: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] longShortRatio: "Num" nullcap=false  ->  java=Double
+
+=================== Option ===================
+  TS kind=interface line=865
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+  [scalar] currency: "Str" nullcap=false  ->  java=String
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] impliedVolatility: "Num" nullcap=false  ->  java=Double
+  [scalar] openInterest: "Num" nullcap=false  ->  java=Double
+  [scalar] bidPrice: "Num" nullcap=false  ->  java=Double
+  [scalar] askPrice: "Num" nullcap=false  ->  java=Double
+  [scalar] midPrice: "Num" nullcap=false  ->  java=Double
+  [scalar] markPrice: "Num" nullcap=false  ->  java=Double
+  [scalar] lastPrice: "Num" nullcap=false  ->  java=Double
+  [scalar] underlyingPrice: "Num" nullcap=false  ->  java=Double
+  [scalar] change: "Num" nullcap=false  ->  java=Double
+  [scalar] percentage: "Num" nullcap=false  ->  java=Double
+  [scalar] baseVolume: "Num" nullcap=false  ->  java=Double
+  [scalar] quoteVolume: "Num" nullcap=false  ->  java=Double
+
+=================== OptionChain ===================
+  TS kind=dictionary valueType=Option line=971
+  java fields: [{"name":"options","type":"Map<String, Option>"}]
+
+=================== LastPrice ===================
+  TS kind=interface line=885
+  [scalar] symbol: "Str" nullcap=false  ->  java=String
+  [scalar] timestamp: "Int" (optional) nullcap=true  ->  java=Long
+  [scalar] datetime: "Str" (optional) nullcap=true  ->  java=String
+  [scalar] price: "Num" nullcap=false  ->  java=Double
+  [scalar] side: "OrderSide" (optional) nullcap=true  ->  java=String
+  [scalar] info: "any" nullcap=false  ->  java=Map<String, Object>
+
+=================== LastPrices ===================
+  TS kind=dictionary valueType=LastPrice line=960
+  java fields: [{"name":"prices","type":"Map<String, LastPrice>"}]
+
+
+=================== SUMMARY ===================
+classes: 32 (dictionary containers: 10)
+java field declarations: 223
+  primitive (non-nullable) field declarations: 0
+  `Object`-typed field declarations (excl. info): 0
+  `Map<String,Object>` field declarations other than `info`: 0
+TS fields declared optional/nullable across these families: 111
