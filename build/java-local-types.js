@@ -1475,36 +1475,43 @@ export function patchJavaDataflowTypes (transpiler) {
     const upstream = printer.printVariableDeclarationList.bind (printer);
     printer.printVariableDeclarationList = function (node, identation) {
         const printed = upstream (node, identation);
-        const declarations = node?.declarations;
-        if (declarations === undefined || declarations.length !== 1) {
-            return printed;
-        }
-        const declaration = declarations[0];
-        if (declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
-            return printed;
-        }
-        let info;
         try {
-            info = dataflowLocalTypeOf (printer, declaration, undefined);
+            return dataflowRewriteDeclaration (printer, node, identation, printed);
         } catch (e) {
             return printed; // never break the upstream print on an engine error
         }
-        if (info === undefined) {
-            return printed;
-        }
-        const iden = printer.getIden (identation);
-        const printedName = printer.printNode (declaration.name, 0);
-        const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
-        const at = printed.lastIndexOf (marker);
-        if (at === -1) {
-            return printed; // already retyped upstream / unexpected shape — leave it alone
-        }
-        const value = printed.slice (at + marker.length);
-        if (info.type === JAVA_DATAFLOW_STRING
-            && (value.startsWith ('this.') || value.startsWith ('Helpers.'))
-            && DATAFLOW_WS_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
-            return printed; // postProcessWsJava's String pass would revert the spelling
-        }
-        return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${value}`;
     };
+}
+
+// rewrite the printed `Object <name> = <value>` prefix of one declaration when the engine
+// proves the value's type. Anything unexpected (a marker the upstream wrapper already
+// replaced, a multi-declarator list, a shape the printer emitted differently) is returned
+// untouched.
+function dataflowRewriteDeclaration (printer, node, identation, printed) {
+    const declarations = node?.declarations;
+    if (declarations === undefined || declarations.length !== 1) {
+        return printed;
+    }
+    const declaration = declarations[0];
+    if (declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
+        return printed;
+    }
+    const info = dataflowLocalTypeOf (printer, declaration, undefined);
+    if (info === undefined) {
+        return printed;
+    }
+    const iden = printer.getIden (identation);
+    const printedName = printer.printNode (declaration.name, 0);
+    const marker = `${iden}${printer.VAR_TOKEN} ${printedName} = `;
+    const at = printed.lastIndexOf (marker);
+    if (at === -1) {
+        return printed; // already retyped upstream / unexpected shape — leave it alone
+    }
+    const value = printed.slice (at + marker.length);
+    if (info.type === JAVA_DATAFLOW_STRING
+        && (value.startsWith ('this.') || value.startsWith ('Helpers.'))
+        && DATAFLOW_WS_SOURCE_FILE.test (declaration.getSourceFile ().fileName)) {
+        return printed; // postProcessWsJava's String pass would revert the spelling
+    }
+    return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${value}`;
 }
