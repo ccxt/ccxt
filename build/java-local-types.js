@@ -724,7 +724,7 @@ export function installJavaLocalTypes (transpiler) {
         return printed.slice (0, head) + cast + ' ' + printed.slice (head);
     };
     printer._javaLocalTypesPatched = true;
-    patchJavaDataflowTypes (printer);
+    patchJavaDataflowTypes (transpiler);
 }
 
 // ===== 4. dataflow engine: accumulators, local propagation, ternary arms, scope safety =====
@@ -1212,7 +1212,18 @@ function unwrapParensUp (node) {
     return current;
 }
 
-// is the value an argument of a `throw new X(<value>)`? that print wraps the argument in
+// a String local as the left operand of `+` needs a provably non-null String on the
+// right; a List local used with `.join()` needs the List<String> receiver cast of
+// printJoinCall, which is inconvertible from List<Object>. Both print the same for an
+// Object-declared local (a legal downcast), so they are new hazards of any retype.
+function dataflowReceiverCallIsSafe (method, javaType) {
+    if (javaType === JAVA_ARRAY_TYPE && method === 'join') {
+        return false;
+    }
+    return receiverCallIsSafe (method, javaType);
+}
+
+// is `n` an argument of a `throw new X(<value>)`? that print wraps the argument in
 // a hard `(String)` cast, which only compiles from an Object or String receiver
 function isClassThrowArgument (n) {
     let current = n;
@@ -1288,9 +1299,14 @@ function dataflowIsSafeToRetype (printer, declaration, varName, javaType, contex
             && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
             // `x.<method>(...)` — the printer casts the receiver explicitly
             const method = String (parent.name.escapedText);
-            if (!receiverCallIsSafe (method, javaType)) {
+            if (!dataflowReceiverCallIsSafe (method, javaType)) {
                 return false;
             }
+        }
+        if (ts.isElementAccessExpression (parent) && parent.parent !== undefined && ts.isDeleteExpression (parent.parent)) {
+            // `delete x[k]` prints `((java.util.Map<String,Object>)x).remove((String)k)`:
+            // inconvertible for every type this engine emits, in either operand position
+            return false;
         }
         if (ts.isBinaryExpression (parent)) {
             const op = parent.operatorToken.kind;
