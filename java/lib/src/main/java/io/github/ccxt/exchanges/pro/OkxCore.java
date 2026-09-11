@@ -413,7 +413,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Long tradesLimit = this.safeInteger(this.options, "tradesLimit", 1000);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object trade = this.parseTrade(Helpers.GetValue(data, i));
+            java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.parseTrade(Helpers.GetValue(data, i));
             Object messageHash = Helpers.add(Helpers.add(channel, ":"), symbol);
             Object stored = this.safeValue(this.trades, symbol);
             if (Helpers.isTrue(Helpers.isEqual(stored, null)))
@@ -782,7 +782,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         java.util.Map<String, Object> newTickers = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
-            Object ticker = this.parseTicker(Helpers.GetValue(data, i));
+            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(data, i));
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             Helpers.addElementToObject(newTickers, symbol, ticker);
         }
@@ -2563,7 +2563,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
             Object tradeId = this.safeString(rawOrder, "tradeId", "");
             if (Helpers.isTrue(Helpers.isGreaterThan(((String)tradeId).length(), 0)))
             {
-                Object order = this.parseOrder(rawOrder);
+                java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(rawOrder);
                 ((java.util.List<Object>)filteredOrders).add(order);
             }
         }

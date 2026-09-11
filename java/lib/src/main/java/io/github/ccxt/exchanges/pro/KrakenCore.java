@@ -388,7 +388,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         //     }
         //
         Object result = this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(result);
+        java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(result);
         Object messageHash = this.safeString2(message, "reqid", "req_id");
         client.resolve(order, messageHash);
     }
@@ -627,7 +627,7 @@ public class KrakenCore extends io.github.ccxt.exchanges.Kraken
         final Object finalVwap = vwap;
         final Object finalBaseVolume = baseVolume;
         final Object finalQuoteVolume = quoteVolume;
-        Object result = this.safeTicker(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", null );
             put( "datetime", null );

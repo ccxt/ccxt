@@ -1007,7 +1007,7 @@ public class MudrexCore extends MudrexApi
                 put( "order_type", Helpers.GetValue(request, "order_type") );
                 put( "trigger_type", Helpers.GetValue(request, "trigger_type") );
             }});
-            Object order = this.parseOrder(merged, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(merged, market);
             Helpers.addElementToObject(order, "info", data);
             return order;
         });
@@ -1594,11 +1594,11 @@ public class MudrexCore extends MudrexApi
                     Helpers.addElementToObject(request, "limit_price", lp);
                 }
                 parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("order_type", "limit_price", "amount", "position_id")));
-                Object partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters))).join();
+                java.util.Map<String, Object> partialResponse = (this.privatePostFuturesPositionsPositionIdClosePartial(this.extend(request, parameters))).join();
                 return partialResponse;
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id")));
-            Object response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFuturesPositionsPositionIdClose(this.extend(request, parameters))).join();
             return response;
         });
 
@@ -1649,7 +1649,7 @@ public class MudrexCore extends MudrexApi
                 put( "margin", MudrexCore.this.costToPrecision(symbol, amount) );
             }};
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("position_id")));
-            Object response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.privatePostFuturesPositionsPositionIdAddMargin(this.extend(request, parameters))).join();
             return response;
         });
 

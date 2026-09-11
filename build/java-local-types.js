@@ -359,6 +359,19 @@ const LOCAL_THIS_RETURN_TYPES = {
 // as before. Java has no implicit downcast, which is why the declaration carries the cast.
 const JAVA_STRUCTURE_TYPE = 'java.util.Map<String, Object>';
 
+// JN-5 additions (return-shape census; see the report): the parse*/safe* structure
+// builders whose every generated declaration was proved to return a row or null.
+// `parseMarket / parseCurrency / parseOrder / parseTicker / parseTrade` funnel through
+// safeMarketStructure / safeCurrencyStructure / safeOrder / safeTicker / safeTrade or a
+// row literal on every one of their 52/60/93/93/96 declarations (all delegates —
+// parseSpotOrder / parseUtaOrder / parseContractOrder / parseSwapOrder / parseSpotMarket /
+// parseSwapMarket / parseContractTicker / parseDustTrade / parseMyUtaTrade /
+// parseSpotOrUtaTrade / parseContractTrade, the pro `super.parseTicker` and the handful
+// of `return result` aliases — were followed to a safeMarketStructure / extend(...) /
+// row-literal path). `safeOrder`/`safeTicker` are the base mutate-and-return builders
+// (`return this.extend (order|ticker, {...})`); `safeTrade` (not listed — 0 local sites)
+// hands the caller's row back after in-place writes, the same caller-row contract the
+// landed `safeMarket` entry already accepts.
 const STRUCTURE_THIS_RETURN_TYPES = {
     'safeMarket': JAVA_STRUCTURE_TYPE,
     'safeCurrency': JAVA_STRUCTURE_TYPE,
@@ -366,7 +379,27 @@ const STRUCTURE_THIS_RETURN_TYPES = {
     'safeCurrencyStructure': JAVA_STRUCTURE_TYPE,
     'market': JAVA_STRUCTURE_TYPE,
     'currency': JAVA_STRUCTURE_TYPE,
+    'safeTicker': JAVA_STRUCTURE_TYPE,
+    'safeOrder': JAVA_STRUCTURE_TYPE,
+    'parseMarket': JAVA_STRUCTURE_TYPE,
+    'parseCurrency': JAVA_STRUCTURE_TYPE,
+    'parseOrder': JAVA_STRUCTURE_TYPE,
+    'parseTicker': JAVA_STRUCTURE_TYPE,
+    'parseTrade': JAVA_STRUCTURE_TYPE,
 };
+
+// the as-cast type nodes printAsExpression (ast-transpiler pin) can spell for a
+// Map<String, Object> local. AnyKeyword -> `((Object) x)` (a widening cast) and every
+// other non-string/non-array kind falls through to the ERASED expression — both print
+// byte-identically to the Object path, so neither can move a box or move a failure.
+// StringKeyword -> `((String) x)` and ArrayType -> `(java.util.List<...>) (x)` are
+// inconvertible casts on a Map-typed local and keep the Object declaration.
+function structureAsCastIsSafe (typeNode) {
+    if (typeNode === undefined) {
+        return true; // no type node — printAsExpression takes the erased path
+    }
+    return typeNode.kind !== ts.SyntaxKind.StringKeyword && typeNode.kind !== ts.SyntaxKind.ArrayType;
+}
 
 // ts sources that may hold the resolved declaration of an admitted accessor call —
 // anything else (a venue override) never classifies
@@ -1786,7 +1819,12 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         if (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent)) {
             // a TS cast on the local prints a Java cast of the asserted type; for the
             // narrowed type the spelled cast can be inconvertible (String -> Double is a
-            // compile error) — keep Object (the C# campaign's reject family, reused here)
+            // compile error) — keep Object (the C# campaign's reject family, reused here).
+            // JN-5: the structure family takes the two as-cast shapes the printer spells
+            // identically to the Object path — see structureAsCastIsSafe.
+            if (javaType === JAVA_STRUCTURE_TYPE && structureAsCastIsSafe (parent.type)) {
+                continue; // `as any` / `as Dict` / any erased type: same print as Object
+            }
             return false;
         }
         if (ts.isBinaryExpression (parent) && parent.left === n) {
@@ -3173,198 +3211,6 @@ function dataflowDebug (message) {
     }
 }
 
-// JN5-CENSUS-BEGIN (TEMPORARY — remove before commit; env-gated, writes to stderr only)
-// Census of generated locals that hold market/currency/ticker/order/trade structures:
-// what the surviving tables decided, and — when they decided nothing — why. Also
-// simulates adding the parse*/safe* structure names to STRUCTURE_THIS_RETURN_TYPES.
-const MARKET_CENSUS = process.env['CCXT_JAVA_MARKET_CENSUS'] === '1';
-const CENSUS_CALL_RE = /^(?:safemarket|safecurrency|safemarketstructure|safecurrencystructure|market|currency|safeticker|safeorder|safetrade|safeposition|safeliquidation|safeorderbook|parsemarket|parsemarkets|parseticker|parsetickers|parseorder|parseorders|parsetrade|parsetrades|parsetradehelper|parsecurrency|parsecuracies|parsecurrencies)$/;
-const CENSUS_SIM_NAMES = new Set ([
-    'safeTicker', 'safeOrder', 'safeTrade', 'safePosition', 'safeLiquidation',
-    'parseMarket', 'parseMarkets', 'parseTicker', 'parseTickers', 'parseOrder',
-    'parseOrders', 'parseTrade', 'parseCurrency', 'parseCurrencies',
-]);
-const CENSUS_SIM_INFO = { type: JAVA_STRUCTURE_TYPE, cast: '(' + JAVA_STRUCTURE_TYPE + ')' };
-function censusReasonText (node) {
-    try {
-        return String (node.getText ()).replace (/\s+/g, ' ').slice (0, 70);
-    } catch (e) {
-        return '<no text>';
-    }
-}
-// mirror of isSafeToNarrow's checks in the same order; returns 'ok' or the first reason
-function censusUnsafeUseReason (printer, declaration, sourceName, javaType, isProFile, info) {
-    const scope = enclosingFunction (declaration);
-    if (scope === undefined) {
-        return 'no-scope';
-    }
-    const uses = identifierIndex (scope).get (sourceName) ?? [];
-    for (const n of uses) {
-        if (n === declaration.name) {
-            continue;
-        }
-        const parent = n.parent;
-        if (parent === undefined) {
-            continue;
-        }
-        if (ts.isVariableDeclaration (parent) && parent.name === n) {
-            continue;
-        }
-        if (ts.isPropertyAccessExpression (parent) && parent.name === n) {
-            continue;
-        }
-        if (ts.isElementAccessExpression (parent) && parent.expression === n) {
-            const grand = parent.parent;
-            if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
-                return 'delete-element [' + censusReasonText (n) + ']';
-            }
-            if (javaType === 'String' && grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent
-                && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind)) {
-                return 'element-write [' + censusReasonText (n) + ']';
-            }
-        }
-        if (ts.isPropertyAccessExpression (parent) && parent.expression === n && parent.parent !== undefined
-            && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
-            const method = String (parent.name.escapedText);
-            if (!receiverCallIsSafe (method, javaType)) {
-                return 'receiver-call:' + method + ' [' + censusReasonText (parent.parent) + ']';
-            }
-        }
-        if (ts.isCallExpression (parent)) {
-            const at = parent.arguments.indexOf (n);
-            if (at !== -1 && ts.isPropertyAccessExpression (parent.expression)) {
-                const method = String (parent.expression.name.escapedText);
-                if (!argumentCastIsSafe (method, at, javaType)) {
-                    return 'argument-cast:' + method + '#' + at + ' [' + censusReasonText (parent) + ']';
-                }
-            }
-        }
-        if (ts.isBinaryExpression (parent) && parent.left === n
-            && parent.operatorToken.kind === ts.SyntaxKind.PlusToken
-            && info?.nonNull === false) {
-            return 'plus-null-left [' + censusReasonText (parent) + ']';
-        }
-        if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
-            const op = parent.operator;
-            if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
-                return 'unary++/--';
-            }
-        }
-        if (ts.isSpreadElement (parent)) {
-            return 'spread';
-        }
-        if (ts.isTypeOfExpression (parent)) {
-            return 'typeof';
-        }
-        if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
-            && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-            return 'array-destructuring';
-        }
-        if (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent)) {
-            return 'as-cast [' + censusReasonText (parent) + ']';
-        }
-        if (ts.isBinaryExpression (parent) && parent.left === n) {
-            const op = parent.operatorToken.kind;
-            if (op === ts.SyntaxKind.EqualsToken) {
-                let ok;
-                if (javaType === 'String') {
-                    ok = isStaticallyStringExpression (printer, unwrapParens (parent.right), sourceName)
-                        || isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName);
-                } else {
-                    ok = isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName);
-                }
-                if (!ok) {
-                    return 'write [' + censusReasonText (parent) + ']';
-                }
-            } else if (op === ts.SyntaxKind.PlusEqualsToken && javaType === 'String') {
-                if (!isProvablyNonNullStringExpression (printer, parent.right, sourceName)) {
-                    return 'plus-equals [' + censusReasonText (parent) + ']';
-                }
-            } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
-                return 'compound-assign [' + censusReasonText (parent) + ']';
-            }
-        }
-        if (info?.strictPlus === true && ts.isBinaryExpression (parent)
-            && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && !plusUsesAreSafe (n)) {
-            return 'strict-plus [' + censusReasonText (parent) + ']';
-        }
-        if (isProFile && info?.skipInheritedAsyncGuard !== true && feedsInheritedAsyncCall (printer, n, scope)) {
-            return 'pro-inherited-async [' + censusReasonText (n) + ']';
-        }
-    }
-    return 'ok';
-}
-function censusMarketLocal (printer, declaration, printed) {
-    try {
-        const initializer = unwrapParens (declaration.initializer);
-        if (initializer === undefined || !ts.isCallExpression (initializer) || !isThisCall (initializer)) {
-            return;
-        }
-        const name = String (initializer.expression.name.escapedText);
-        if (!CENSUS_CALL_RE.test (name.toLowerCase ())) {
-            return;
-        }
-        const fileName = declaration.getSourceFile ().fileName;
-        const file = fileName.includes ('ts/src/') ? fileName.slice (fileName.indexOf ('ts/src/')) : fileName;
-        const scope = enclosingFunction (declaration);
-        const fn = scope?.name === undefined ? '<anon>' : String (scope.name.escapedText);
-        const local = String (declaration.name.escapedText);
-        const args = initializer.arguments?.length ?? 0;
-        const isProFile = /[\\/]pro[\\/]/.test (fileName);
-        // surviving-table decision
-        const info = javaLocalTypeOf (printer, declaration, undefined);
-        let outcome = info === undefined ? 'none' : 'typed:' + info.type;
-        // why (when none)
-        let reason = '-';
-        if (info === undefined) {
-            const initInfo = localInitializerType (printer, declaration, isProFile, undefined);
-            if (initInfo === undefined) {
-                const tableHit = STRUCTURE_THIS_RETURN_TYPES[name] !== undefined
-                    || LOCAL_THIS_RETURN_TYPES[name] !== undefined
-                    || JAVA_STRING_RETURN_METHODS.has (name) || JAVA_LIST_RETURN_METHODS.has (name);
-                if (!tableHit) {
-                    reason = 'no-table-entry';
-                } else if (!resolvesToMethodNamed (printer, initializer, name)) {
-                    reason = 'unresolved-declaration';
-                } else {
-                    reason = 'init-unprovable';
-                }
-            } else {
-                reason = 'unsafe-use:' + censusUnsafeUseReason (printer, declaration, local, initInfo.type, isProFile, initInfo);
-            }
-            if (reason.startsWith ('unsafe-use:ok')) {
-                reason = 'printed-shape-or-hook-miss';
-            }
-        }
-        // dataflow engine decision (independent)
-        let dataflowType = '-';
-        try {
-            const d = dataflowLocalTypeOf (printer, declaration, undefined);
-            dataflowType = d === undefined ? '-' : d.type;
-        } catch (e) {
-            dataflowType = 'ERR';
-        }
-        // still Object in the text at this layer?
-        const iden = printer.getIden (0);
-        const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name, 0)} = `;
-        const objectRemains = printed.includes (marker) ? 'Object' : 'retyped';
-        // harvest simulation for the parse*/safe* structure families
-        let sim = '-';
-        if (info === undefined && CENSUS_SIM_NAMES.has (name)) {
-            if (!resolvesToMethodNamed (printer, initializer, name)) {
-                sim = 'sim-unresolved';
-            } else {
-                const simReason = censusUnsafeUseReason (printer, declaration, local, CENSUS_SIM_INFO.type, isProFile, CENSUS_SIM_INFO);
-                sim = (simReason === 'ok') ? 'sim-ok' : 'sim-unsafe:' + simReason;
-            }
-        }
-        console.error ([ 'market-census', file, fn, local, name, args, outcome, reason, dataflowType, objectRemains, sim ].join ('\t'));
-    } catch (e) {
-        // never break the print
-    }
-}
-// JN5-CENSUS-END
-
 // box-identical widening edges a join may take. EMPTY on purpose (see the header).
 const JAVA_WIDENING_EDGES = [];
 
@@ -4052,9 +3898,6 @@ function dataflowRewriteDeclaration (printer, node, identation, printed) {
     const declaration = declarations[0];
     if (declaration.initializer === undefined || declaration.name?.kind !== ts.SyntaxKind.Identifier) {
         return printed;
-    }
-    if (MARKET_CENSUS) {
-        censusMarketLocal (printer, declaration, printed); // JN5-CENSUS-CALL
     }
     const info = dataflowLocalTypeOf (printer, declaration, undefined);
     if (info === undefined) {

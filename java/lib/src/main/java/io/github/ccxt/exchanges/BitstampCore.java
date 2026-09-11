@@ -2415,7 +2415,7 @@ public class BitstampCore extends BitstampApi
                 }
             }
             Object orderResponse = ((Helpers.isTrue((Helpers.isEqual(response, null))))) ? new java.util.HashMap<String, Object>() {{}} : response;
-            Object order = this.parseOrder(orderResponse, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(orderResponse, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         });
@@ -2466,7 +2466,7 @@ public class BitstampCore extends BitstampApi
                 Helpers.addElementToObject(request, "id", id);
             }
             java.util.Map<String, Object> response = (this.privatePostReplaceOrder(this.extend(request, parameters))).join();
-            Object order = this.parseOrder(response, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(response, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         });
@@ -3246,7 +3246,7 @@ public class BitstampCore extends BitstampApi
         Object type = this.parseLedgerEntryType(this.safeString(item, "type"));
         if (Helpers.isTrue(Helpers.isEqual(type, "trade")))
         {
-            Object parsedTrade = this.parseTrade(item);
+            java.util.Map<String, Object> parsedTrade = (java.util.Map<String, Object>) this.parseTrade(item);
             Object market = null;
             Object keys = Helpers.objectKeys(item);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)

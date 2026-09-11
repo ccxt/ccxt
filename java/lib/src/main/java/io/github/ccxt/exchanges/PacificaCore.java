@@ -2709,7 +2709,7 @@ public class PacificaCore extends PacificaApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object info = Helpers.GetValue(data, i);
-                Object ticker = this.parseTicker(info);
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(info);
                 String symbol = this.safeString(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {

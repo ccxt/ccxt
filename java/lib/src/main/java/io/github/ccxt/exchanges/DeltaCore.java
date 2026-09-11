@@ -1607,7 +1607,7 @@ public class DeltaCore extends DeltaApi
                 {
                     continue;
                 }
-                Object ticker = this.parseTicker(rawTicker);
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(rawTicker);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {

@@ -3221,7 +3221,7 @@ public class CoinexCore extends CoinexApi
             {
                 Object entry = Helpers.GetValue(data, i);
                 Object item = this.safeDict(entry, "data", new java.util.HashMap<String, Object>() {{}});
-                Object order = this.parseOrder(item, market);
+                java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(item, market);
                 ((java.util.List<Object>)results).add(order);
             }
             return results;
@@ -3416,7 +3416,7 @@ public class CoinexCore extends CoinexApi
                     throw new ExchangeError((String)feedback) ;
                 }
                 Object item = this.safeDict(entry, "data", new java.util.HashMap<String, Object>() {{}});
-                Object order = this.parseOrder(item);
+                java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(item);
                 ((java.util.List<Object>)result).add(order);
             }
             return result;

@@ -291,7 +291,7 @@ public class MudrexCore extends io.github.ccxt.exchanges.Mudrex
             Object symbol = Helpers.GetValue(market, "symbol");
             Long timestamp = this.milliseconds();
             Double last = this.safeNumber(t, "p");
-            Object result = this.safeTicker(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> result = (java.util.Map<String, Object>) this.safeTicker(new java.util.HashMap<String, Object>() {{
                 put( "symbol", symbol );
                 put( "timestamp", timestamp );
                 put( "datetime", MudrexCore.this.iso8601(timestamp) );

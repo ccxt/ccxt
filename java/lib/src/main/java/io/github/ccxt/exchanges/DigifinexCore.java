@@ -1379,7 +1379,7 @@ public class DigifinexCore extends DigifinexApi
                 java.util.Map<String, Object> rawTicker = this.extend(new java.util.HashMap<String, Object>() {{
                     put( "date", date );
                 }}, Helpers.GetValue(tickers, i));
-                Object ticker = this.parseTicker(rawTicker);
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(rawTicker);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {
@@ -2098,7 +2098,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 throw new NullResponse((String)Helpers.add(this.id, " createOrder() returned empty response")) ;
             }
-            Object order = this.parseOrder(response, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(response, market);
             Helpers.addElementToObject(order, "symbol", Helpers.GetValue(market, "symbol"));
             Helpers.addElementToObject(order, "type", type);
             Helpers.addElementToObject(order, "side", side);

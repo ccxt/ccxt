@@ -323,7 +323,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         Object data = this.safeValue(parameters, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "instrument_name");
         String symbol = (String) this.safeSymbol(marketId);
-        Object ticker = this.parseTicker(data);
+        java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(data);
         Object messageHash = this.safeString(parameters, "channel");
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, messageHash);
@@ -530,7 +530,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
         {
             Object trade = Helpers.GetValue(trades, i);
-            Object parsed = this.parseTrade(trade, market);
+            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseTrade(trade, market);
             Helpers.callDynamically(stored, "append", new Object[]{parsed});
         }
         Helpers.addElementToObject(this.trades, symbol, stored);
@@ -944,7 +944,7 @@ public class DeribitCore extends io.github.ccxt.exchanges.Deribit
             orders = this.parseOrders(data);
         } else
         {
-            Object order = this.parseOrder(data);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(data);
             orders = new java.util.ArrayList<Object>(java.util.Arrays.asList(order));
         }
         Object cachedOrders = this.orders;

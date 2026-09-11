@@ -1670,7 +1670,7 @@ public class BitteamCore extends BitteamApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
             {
                 Object rawTicker = Helpers.GetValue(rawTickers, i);
-                Object ticker = this.parseTicker(rawTicker);
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(rawTicker);
                 ((java.util.List<Object>)tickers).add(ticker);
             }
             return this.filterByArrayTickers(tickers, "symbol", symbols);

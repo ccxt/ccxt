@@ -4677,7 +4677,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         //
         Object messageHash = this.safeString(message, "id");
         Object result = this.safeDict(message, "result", new java.util.HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(result);
+        java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(result);
         client.resolve(order, messageHash);
     }
 
@@ -5866,7 +5866,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
             }
             Long timestamp = this.safeInteger(rate, "t");
             final Object finalSymbol = symbol;
-            Object parsed = this.safeTicker(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.safeTicker(new java.util.HashMap<String, Object>() {{
                 put( "symbol", finalSymbol );
                 put( "timestamp", timestamp );
                 put( "datetime", BinanceCore.this.iso8601(timestamp) );
@@ -5892,7 +5892,7 @@ public class BinanceCore extends io.github.ccxt.exchanges.Binance
         }
         Long timestamp = (Long) this.safeInteger2(message, "E", "T");
         final Object finalSymbol = symbol;
-        Object parsed = this.safeTicker(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", finalSymbol );
             put( "timestamp", timestamp );
             put( "datetime", BinanceCore.this.iso8601(timestamp) );

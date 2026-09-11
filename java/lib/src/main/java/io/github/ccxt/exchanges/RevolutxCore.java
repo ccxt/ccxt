@@ -516,7 +516,7 @@ public class RevolutxCore extends RevolutxApi
                 java.util.Map<String, Object> currencyData = this.extend(currency, new java.util.HashMap<String, Object>() {{
                     put( "id", key );
                 }});
-                Object parsed = this.parseCurrency(currencyData);
+                java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseCurrency(currencyData);
                 String code = this.safeString(parsed, "code", "");
                 if (Helpers.isTrue(Helpers.isEqual(code, "")))
                 {
@@ -647,7 +647,7 @@ public class RevolutxCore extends RevolutxApi
             {
                 Object tickerData = this.safeDict(data, i, new java.util.HashMap<String, Object>() {{}});
                 Helpers.addElementToObject(tickerData, "timestamp", timestamp);
-                Object ticker = this.parseTicker(tickerData);
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(tickerData);
                 String symbol = this.safeString(ticker, "symbol", "");
                 if (Helpers.isTrue(Helpers.isEqual(symbol, "")))
                 {
@@ -1227,7 +1227,7 @@ public class RevolutxCore extends RevolutxApi
             String venueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
             final Object finalType = type;
-            Object order = this.parseOrder(this.extend(orderData, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(this.extend(orderData, new java.util.HashMap<String, Object>() {{
                 put( "id", venueOrderId );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "status", state );
@@ -1740,7 +1740,7 @@ public class RevolutxCore extends RevolutxApi
             Object orderData = ((Helpers.isTrue(Helpers.isArray(data)))) ? this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}}) : this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             String newVenueOrderId = this.safeString(orderData, "venue_order_id");
             String state = this.safeString(orderData, "state");
-            Object order = this.parseOrder(this.extend(orderData, new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(this.extend(orderData, new java.util.HashMap<String, Object>() {{
                 put( "id", newVenueOrderId );
                 put( "symbol", Helpers.GetValue(market, "id") );
                 put( "status", state );

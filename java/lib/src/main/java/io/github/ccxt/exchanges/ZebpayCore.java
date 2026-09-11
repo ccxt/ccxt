@@ -1524,7 +1524,7 @@ public class ZebpayCore extends ZebpayApi
             //    }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object parsedOrder = this.parseOrder(data);
+            java.util.Map<String, Object> parsedOrder = (java.util.Map<String, Object>) this.parseOrder(data);
             return new java.util.ArrayList<Object>(java.util.Arrays.asList(parsedOrder));
         });
 
@@ -1715,7 +1715,7 @@ public class ZebpayCore extends ZebpayApi
         String timeInForce = this.safeString(order, "timeInForce");
         String status = (String)this.safeStringLower(order, "status");
         String orderId = this.safeString(order, "orderId");
-        Object parsedOrder = this.safeOrder(new java.util.HashMap<String, Object>() {{
+        java.util.Map<String, Object> parsedOrder = (java.util.Map<String, Object>) this.safeOrder(new java.util.HashMap<String, Object>() {{
             put( "id", orderId );
             put( "clientOrderId", clientOrderId );
             put( "symbol", symbol );

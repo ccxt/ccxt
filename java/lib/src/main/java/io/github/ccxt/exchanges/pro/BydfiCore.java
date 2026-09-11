@@ -366,7 +366,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         //         "o": 0.04657
         //     }
         //
-        Object ticker = this.parseTicker(message);
+        java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(message);
         Object symbol = Helpers.GetValue(ticker, "symbol");
         String messageHash = (String) Helpers.add("ticker::", symbol);
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);

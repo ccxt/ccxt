@@ -2331,7 +2331,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //
         Object messageHash = this.safeString(message, "reqId");
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(data);
+        java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(data);
         client.resolve(order, messageHash);
     }
 
@@ -2437,7 +2437,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
         {
-            Object parsed = this.parseOrder(Helpers.GetValue(rawOrders, i));
+            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseOrder(Helpers.GetValue(rawOrders, i));
             // if (isSpot) {
             //     parsed = this.parseWsSpotOrder (rawOrders[i]);
             // } else {

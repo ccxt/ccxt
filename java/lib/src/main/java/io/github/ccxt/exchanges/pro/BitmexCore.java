@@ -385,7 +385,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
             {
                 Helpers.addElementToObject(this.tickers, symbol, this.parseTicker(new java.util.HashMap<String, Object>() {{}}));
             }
-            Object updatedTicker = this.parseTicker(update);
+            java.util.Map<String, Object> updatedTicker = (java.util.Map<String, Object>) this.parseTicker(update);
             java.util.Map<String, Object> fullParsedTicker = this.deepExtend(Helpers.GetValue(this.tickers, symbol), updatedTicker);
             Helpers.addElementToObject(tickers, symbol, fullParsedTicker);
             Helpers.addElementToObject(this.tickers, symbol, fullParsedTicker);
@@ -1295,7 +1295,7 @@ public class BitmexCore extends io.github.ccxt.exchanges.Bitmex
                 {
                     rawOrder = this.extend(Helpers.GetValue(previousOrder, "info"), currentOrder);
                 }
-                Object order = this.parseOrder(rawOrder);
+                java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(rawOrder);
                 Helpers.callDynamically(stored, "append", new Object[]{order});
                 Object symbol = Helpers.GetValue(order, "symbol");
                 Helpers.addElementToObject(symbols, ((String)symbol), true);

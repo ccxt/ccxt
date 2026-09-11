@@ -1410,7 +1410,7 @@ public class DeriveCore extends DeriveApi
             {
                 continue;
             }
-            Object parsed = this.parseTrade(rawTrade, market);
+            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseTrade(rawTrade, market);
             java.util.Map<String, Object> trade = this.extend(parsed, parameters);
             ((java.util.List<Object>)result).add(trade);
         }
@@ -1863,7 +1863,7 @@ public class DeriveCore extends DeriveApi
             {
                 rawOrder = this.safeDict(result, "order", new java.util.HashMap<String, Object>() {{}});
             }
-            Object order = this.parseOrder(rawOrder, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(rawOrder, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         });
@@ -2037,7 +2037,7 @@ public class DeriveCore extends DeriveApi
             //
             Object result = this.safeDict(response, "result");
             Object rawOrder = this.safeDict(result, "order", new java.util.HashMap<String, Object>() {{}});
-            Object order = this.parseOrder(rawOrder, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(rawOrder, market);
             return order;
         });
 

@@ -3139,7 +3139,7 @@ public class HtxCore extends HtxApi
             //     }
             //
             Object tick = this.safeValue(response, "tick", new java.util.HashMap<String, Object>() {{}});
-            Object ticker = this.parseTicker(tick, market);
+            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(tick, market);
             Long timestamp = this.safeInteger(response, "ts");
             Helpers.addElementToObject(ticker, "timestamp", timestamp);
             Helpers.addElementToObject(ticker, "datetime", this.iso8601(timestamp));
@@ -4041,7 +4041,7 @@ public class HtxCore extends HtxApi
                 Object trades = this.safeList(Helpers.GetValue(data, i), "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(trades)); j++)
                 {
-                    Object trade = this.parseTrade(Helpers.GetValue(trades, j), market);
+                    java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.parseTrade(Helpers.GetValue(trades, j), market);
                     ((java.util.List<Object>)result).add(trade);
                 }
             }

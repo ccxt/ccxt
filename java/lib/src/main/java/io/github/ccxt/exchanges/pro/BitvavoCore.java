@@ -221,7 +221,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
             Object marketId = this.safeString(data, "market");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
             Object messageHash = Helpers.add(Helpers.add(eventVar, "@"), marketId);
-            Object ticker = this.parseTicker(data, market);
+            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(data, market);
             Object symbol = Helpers.GetValue(ticker, "symbol");
             Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
             ((java.util.List<Object>)result).add(ticker);
@@ -346,7 +346,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         Object symbol = Helpers.GetValue(market, "symbol");
         String name = "trades";
         Object messageHash = Helpers.add(Helpers.add(name, "@"), marketId);
-        Object trade = this.parseTrade(message, market);
+        java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.parseTrade(message, market);
         Object tradesArray = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(tradesArray, null)))
         {
@@ -2053,7 +2053,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         //    }
         //
         Object response = this.safeValue(message, "response", new java.util.HashMap<String, Object>() {{}});
-        Object order = this.parseOrder(response);
+        java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(response);
         Object messageHash = this.safeString(message, "requestId");
         client.resolve(order, messageHash);
     }
@@ -2149,7 +2149,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = (String) Helpers.add("order:", symbol);
-        Object order = this.parseOrder(message, market);
+        java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
             Long limit = this.safeInteger(this.options, "ordersLimit", 1000);
@@ -2181,7 +2181,7 @@ public class BitvavoCore extends io.github.ccxt.exchanges.Bitvavo
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
         Object symbol = Helpers.GetValue(market, "symbol");
         String messageHash = (String) Helpers.add("myTrades:", symbol);
-        Object trade = this.parseTrade(message, market);
+        java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.parseTrade(message, market);
         if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
         {
             Long limit = this.safeInteger(this.options, "tradesLimit", 1000);

@@ -302,7 +302,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         //   "acc_trade_price_24h": 2.5955306323568927,
         //   "acc_trade_volume_24h": 118.38798416,
         //   "stream_type": "SNAPSHOT" }
-        Object ticker = this.parseTicker(message);
+        java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(message);
         Object symbol = Helpers.GetValue(ticker, "symbol");
         if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
         {
@@ -386,7 +386,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
         //   "change_price": 27000,
         //   "sequential_id": 1584508285000002,
         //   "stream_type": "REALTIME" }
-        Object trade = this.parseTrade(message);
+        java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.parseTrade(message);
         Object symbol = Helpers.GetValue(trade, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(symbol, null)))
         {

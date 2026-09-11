@@ -2161,7 +2161,7 @@ public class BitmexCore extends BitmexApi
             java.util.List<Object> rawTickers = this.toArray(response);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTickers)); i++)
             {
-                Object ticker = this.parseTicker(Helpers.GetValue(rawTickers, i));
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(rawTickers, i));
                 String symbol = this.safeString(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {

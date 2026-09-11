@@ -122,7 +122,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object topic = Helpers.add("recentlyTrade.H.", Helpers.GetValue(market, "id2"));
                 ((java.util.List<Object>)topics).add(topic);
                 String messageHash = (String) Helpers.add("trade:", symbol);
@@ -283,7 +283,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 Object symbol = Helpers.GetValue(symbols, i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 if (Helpers.isTrue(Helpers.isEqual(limit, null)))
                 {
                     limit = 25;
@@ -461,7 +461,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             {
                 (this.loadMarkets()).join();
             }
-            Object market = this.market(symbol);
+            java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = this.getWsPublicUrl();
             String messageHash = (String) Helpers.add("ticker:", symbol);
@@ -499,7 +499,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(symbols))); i++)
             {
                 Object symbol = Helpers.GetValue((java.util.List<String>)(symbols), i);
-                Object market = this.market(symbol);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 Object topic = Helpers.add(Helpers.add("instrumentInfo", ".H."), Helpers.GetValue(market, "id2"));
                 ((java.util.List<Object>)topics).add(topic);
                 String messageHash = (String) Helpers.add("ticker:", symbol);
@@ -544,10 +544,10 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         Object updateType = this.safeString(message, "type", "");
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object symbol = null;
-        Object parsed = this.parseTicker(data);
+        java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseTicker(data);
         if (Helpers.isTrue((Helpers.isEqual(updateType, "snapshot"))))
         {
-            parsed = this.parseTicker(data);
+            parsed = (java.util.Map<String, Object>) this.parseTicker(data);
             symbol = Helpers.GetValue(parsed, "symbol");
         } else if (Helpers.isTrue(Helpers.isEqual(updateType, "delta")))
         {
@@ -559,7 +559,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             Object ticker = this.safeDict(this.tickers, symbol, new java.util.HashMap<String, Object>() {{}});
             Object rawTicker = this.safeDict(ticker, "info", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> merged = this.extend(rawTicker, data);
-            parsed = this.parseTicker(merged);
+            parsed = (java.util.Map<String, Object>) this.parseTicker(merged);
         }
         Long timestamp = this.safeIntegerProduct(message, "ts", 0.001);
         Helpers.addElementToObject(parsed, "timestamp", timestamp);
@@ -627,7 +627,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
             {
                 Object data = Helpers.GetValue(symbolsAndTimeframes, i);
                 Object symbolString = this.safeString(data, 0);
-                Object market = this.market(symbolString);
+                java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbolString);
                 symbolString = Helpers.GetValue(market, "id2");
                 Object unfiedTimeframe = this.safeString(data, 1, "1");
                 Object timeframeId = this.safeString(this.timeframes, unfiedTimeframe, unfiedTimeframe);
@@ -947,7 +947,7 @@ public class ApexCore extends io.github.ccxt.exchanges.Apex
         java.util.Map<String, Object> symbols = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(lists)); i++)
         {
-            Object parsed = this.parseOrder(Helpers.GetValue(lists, i));
+            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseOrder(Helpers.GetValue(lists, i));
             Object symbol = Helpers.GetValue(parsed, "symbol");
             Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{parsed});

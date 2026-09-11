@@ -269,7 +269,7 @@ public class HashkeyCore extends io.github.ccxt.exchanges.Hashkey
         //     }
         //
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object ticker = this.parseTicker(this.safeDict(data, 0));
+        java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(this.safeDict(data, 0));
         Object symbol = Helpers.GetValue(ticker, "symbol");
         String messageHash = (String) Helpers.add("ticker:", symbol);
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);

@@ -839,7 +839,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "-");
-        Object ticker = this.parseTicker(data, market);
+        java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(data, market);
         Helpers.addElementToObject(this.tickers, Helpers.GetValue(market, "symbol"), ticker);
         String messageHash = (String) Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
         client.resolve(ticker, messageHash);
@@ -1571,7 +1571,7 @@ public class KucoinCore extends io.github.ccxt.exchanges.Kucoin
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object marketId = this.safeString(data, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        Object trade = this.parseTrade(data, market);
+        java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.parseTrade(data, market);
         Object symbol = Helpers.GetValue(trade, "symbol");
         String messageHash = (String) Helpers.add("trades:", symbol);
         if (!Helpers.isTrue((Helpers.inOp(this.trades, ((String)symbol)))))

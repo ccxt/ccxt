@@ -1025,7 +1025,7 @@ public class ExtendedCore extends ExtendedApi
                 String marketId = this.safeString(marketData, "name");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object stats = this.safeDict(marketData, "marketStats", new java.util.HashMap<String, Object>() {{}});
-                Object ticker = this.parseTicker(stats, market);
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(stats, market);
                 Object symbol = Helpers.GetValue(ticker, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
                 {

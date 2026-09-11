@@ -1485,7 +1485,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
         {
             Object rawOrder = Helpers.GetValue(data, i);
-            Object order = this.parseOrder(rawOrder);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(rawOrder);
             Helpers.callDynamically(stored, "append", new Object[]{order});
             Object symbol = this.safeString(order, "symbol");
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))

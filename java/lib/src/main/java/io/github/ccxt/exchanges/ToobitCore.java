@@ -945,7 +945,7 @@ public class ToobitCore extends ToobitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(coins)); i++)
             {
                 Object coin = Helpers.GetValue(coins, i);
-                Object parsed = this.parseCurrency(coin);
+                java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseCurrency(coin);
                 if (Helpers.isTrue(!Helpers.isEqual(parsed, null)))
                 {
                     Object code = Helpers.GetValue(parsed, "code");
@@ -1177,7 +1177,7 @@ public class ToobitCore extends ToobitApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(all)); i++)
             {
                 Object market = Helpers.GetValue(all, i);
-                Object parsed = this.parseMarket(market);
+                java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseMarket(market);
                 if (Helpers.isTrue(!Helpers.isEqual(parsed, null)))
                 {
                     ((java.util.List<Object>)result).add(parsed);

@@ -2743,7 +2743,7 @@ public class CoinbaseCore extends CoinbaseApi
             //
             Object data = this.safeList(response, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object first = this.safeDict(data, 0, new java.util.HashMap<String, Object>() {{}});
-            Object ticker = this.parseTicker(first, market);
+            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(first, market);
             Helpers.addElementToObject(ticker, "bid", this.safeNumber(response, "best_bid"));
             Helpers.addElementToObject(ticker, "ask", this.safeNumber(response, "best_ask"));
             return ticker;

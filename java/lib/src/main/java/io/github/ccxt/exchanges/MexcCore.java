@@ -2981,7 +2981,7 @@ public class MexcCore extends MexcApi
             //         "transactTime": 1661992652132
             //     }
             //
-            Object order = this.parseOrder(response, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(response, market);
             Helpers.addElementToObject(order, "side", side);
             Helpers.addElementToObject(order, "type", type);
             if (Helpers.isTrue(Helpers.isEqual(this.safeString(order, "price"), null)))
@@ -5049,7 +5049,7 @@ public class MexcCore extends MexcApi
                 put( "amount", amount );
                 put( "type", addOrReduce );
             }};
-            Object response = (this.contractPrivatePostPositionChangeMargin(this.extend(request, parameters))).join();
+            java.util.Map<String, Object> response = (this.contractPrivatePostPositionChangeMargin(this.extend(request, parameters))).join();
             //
             //     {
             //         "success": true,

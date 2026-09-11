@@ -820,14 +820,14 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         Object orders = this.orders;
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
         {
-            Object order = this.parseOrder(Helpers.GetValue(rawOrders, i));
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(Helpers.GetValue(rawOrders, i));
             Object symbol = this.safeString(order, "symbol", "");
             Helpers.callDynamically(orders, "append", new Object[]{order});
             client.resolve(this.orders, Helpers.add("orders:", symbol));
             Object rawTrades = this.safeList(Helpers.GetValue(rawOrders, i), "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var ii = 0; Helpers.isLessThan(ii, Helpers.getArrayLength(rawTrades)); ii++)
             {
-                Object trade = this.parseTrade(Helpers.GetValue(rawTrades, ii));
+                java.util.Map<String, Object> trade = (java.util.Map<String, Object>) this.parseTrade(Helpers.GetValue(rawTrades, ii));
                 symbol = this.safeString(trade, "symbol", symbol);
                 Helpers.callDynamically(this.myTrades, "append", new Object[]{trade});
                 client.resolve(this.myTrades, Helpers.add("myTrades:", symbol));
@@ -1099,7 +1099,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
             Helpers.callDynamically(orders, "append", new Object[]{orderObject});
         } else
         {
-            Object parsed = this.parseOrder(update);
+            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseOrder(update);
             symbol = this.safeString(parsed, "symbol", "");
             Helpers.callDynamically(orders, "append", new Object[]{parsed});
         }
@@ -1119,7 +1119,7 @@ public class OnetradingCore extends io.github.ccxt.exchanges.Onetrading
         // update trades
         if (Helpers.isTrue(Helpers.isEqual(updateType, "TRADE_SETTLED")))
         {
-            Object parsed = this.parseTrade(update);
+            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseTrade(update);
             symbol = this.safeString(parsed, "symbol", "");
             Object myTrades = this.myTrades;
             Helpers.callDynamically(myTrades, "append", new Object[]{parsed});

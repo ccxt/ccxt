@@ -1798,7 +1798,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object editStatus = this.safeDict(response, "editStatus", new java.util.HashMap<String, Object>() {{}});
             String status = this.safeString(editStatus, "status");
             this.verifyOrderActionSuccess(status, "editOrder", new java.util.ArrayList<Object>(java.util.Arrays.asList("filled")));
-            Object order = this.parseOrder(editStatus);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(editStatus);
             Helpers.addElementToObject(order, "info", response);
             return order;
         });
@@ -1831,10 +1831,10 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             }}, parameters))).join();
             String status = this.safeString(this.safeValue(response, "cancelStatus", new java.util.HashMap<String, Object>() {{}}), "status");
             this.verifyOrderActionSuccess(status, "cancelOrder");
-            Object order = new java.util.HashMap<String, Object>() {{}};
+            java.util.Map<String, Object> order = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.inOp(response, "cancelStatus")))
             {
-                order = this.parseOrder(Helpers.GetValue(response, "cancelStatus"));
+                order = (java.util.Map<String, Object>) this.parseOrder(Helpers.GetValue(response, "cancelStatus"));
             }
             return this.extend(new java.util.HashMap<String, Object>() {{
                 put( "info", response );

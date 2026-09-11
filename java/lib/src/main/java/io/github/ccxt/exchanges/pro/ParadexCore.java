@@ -182,7 +182,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //
         Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
-        Object parsedTrade = this.parseTrade(data);
+        java.util.Map<String, Object> parsedTrade = (java.util.Map<String, Object>) this.parseTrade(data);
         Object symbol = Helpers.GetValue(parsedTrade, "symbol");
         Object messageHash = this.safeString(parameters, "channel");
         Object stored = this.safeValue(this.trades, symbol);
@@ -479,7 +479,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         //
         Object parameters = this.safeDict(message, "params", new java.util.HashMap<String, Object>() {{}});
         Object data = this.safeDict(parameters, "data", new java.util.HashMap<String, Object>() {{}});
-        Object parsed = this.parseOrder(data);
+        java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseOrder(data);
         Object symbol = this.safeString(parsed, "symbol");
         if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
         {
@@ -529,7 +529,7 @@ public class ParadexCore extends io.github.ccxt.exchanges.Paradex
         Object symbol = Helpers.GetValue(market, "symbol");
         Object channel = this.safeString(parameters, "channel");
         Object messageHash = Helpers.add(Helpers.add(channel, "."), symbol);
-        Object ticker = this.parseTicker(data, market);
+        java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(data, market);
         Helpers.addElementToObject(this.tickers, symbol, ticker);
         client.resolve(ticker, channel);
         client.resolve(ticker, messageHash);

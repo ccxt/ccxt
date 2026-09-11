@@ -738,7 +738,7 @@ public class IndodaxCore extends IndodaxApi
                 Object rawTicker = Helpers.GetValue(tickers, key);
                 Object marketId = Helpers.replace((String)key, (String)"_", (String)"");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-                Object parsed = this.parseTicker(rawTicker, market);
+                java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseTicker(rawTicker, market);
                 Helpers.addElementToObject(parsedTickers, marketId, parsed);
             }
             return this.filterByArray(parsedTickers, "symbol", symbols);
@@ -1035,7 +1035,7 @@ public class IndodaxCore extends IndodaxApi
             }};
             java.util.Map<String, Object> response = (this.privatePostGetOrder(this.extend(request, parameters))).join();
             Object orders = this.safeDict(response, "return", new java.util.HashMap<String, Object>() {{}});
-            Object order = this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(this.extend(new java.util.HashMap<String, Object>() {{
                 put( "id", id );
             }}, Helpers.GetValue(orders, "order")), market);
             Helpers.addElementToObject(order, "info", response);

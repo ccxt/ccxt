@@ -5165,7 +5165,7 @@ public Object describe()
         java.util.List<Object> arr = this.toArray(rawCurrencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(arr)); i++)
         {
-            Object parsed = this.parseCurrency(Helpers.GetValue(arr, i));
+            java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseCurrency(Helpers.GetValue(arr, i));
             if (Helpers.isTrue(Helpers.isEqual(parsed, null)))
             {
                 continue;
@@ -6905,7 +6905,7 @@ public Object describe()
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
-                Object parsed = this.parseOrder(Helpers.GetValue(orders, i), market); // don't inline this call
+                java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseOrder(Helpers.GetValue(orders, i), market); // don't inline this call
                 java.util.Map<String, Object> order = this.extend(parsed, parameters);
                 ((java.util.List<Object>)results).add(order);
             }
@@ -6918,7 +6918,7 @@ public Object describe()
                 java.util.Map<String, Object> idExtended = this.extend(new java.util.HashMap<String, Object>() {{
                     put( "id", id );
                 }}, Helpers.GetValue(orders, id));
-                Object parsedOrder = this.parseOrder(idExtended, market); // don't  inline these calls
+                java.util.Map<String, Object> parsedOrder = (java.util.Map<String, Object>) this.parseOrder(idExtended, market); // don't  inline these calls
                 java.util.Map<String, Object> order = this.extend(parsedOrder, parameters);
                 ((java.util.List<Object>)results).add(order);
             }
@@ -10753,7 +10753,7 @@ public Object describe()
         {
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
-                Object parsedTicker = this.parseTicker(Helpers.GetValue(tickers, i));
+                java.util.Map<String, Object> parsedTicker = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(tickers, i));
                 java.util.Map<String, Object> ticker = this.extend(parsedTicker, parameters);
                 ((java.util.List<Object>)results).add(ticker);
             }
@@ -10764,7 +10764,7 @@ public Object describe()
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-                Object parsed = this.parseTicker(Helpers.GetValue(tickers, marketId), market);
+                java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(tickers, marketId), market);
                 java.util.Map<String, Object> ticker = this.extend(parsed, parameters);
                 ((java.util.List<Object>)results).add(ticker);
             }
@@ -10828,7 +10828,7 @@ public Object describe()
 
     public Object parseIsolatedBorrowRates(Object info)
     {
-        Object result = new java.util.HashMap<String, Object>() {{}};
+        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(info)); i++)
         {
             Object item = Helpers.GetValue(info, i);

@@ -1072,7 +1072,7 @@ public class WoofiproCore extends WoofiproApi
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tokenRows)); i++)
             {
                 Object token = Helpers.GetValue(tokenRows, i);
-                Object parsed = this.parseCurrency(new java.util.HashMap<String, Object>() {{
+                java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseCurrency(new java.util.HashMap<String, Object>() {{
                     put( "_token", token );
                     put( "_indexedChains", indexedChains );
                 }});
@@ -2519,7 +2519,7 @@ public class WoofiproCore extends WoofiproApi
             }
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Helpers.addElementToObject(data, "timestamp", this.safeInteger(response, "timestamp"));
-            Object order = this.parseOrder(data, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(data, market);
             Helpers.addElementToObject(order, "type", type);
             return order;
         });

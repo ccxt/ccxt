@@ -312,13 +312,13 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         Object marketId = this.safeString(data, "symbol");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
-        Object parsed = this.parseTicker(data, market);
+        java.util.Map<String, Object> parsed = (java.util.Map<String, Object>) this.parseTicker(data, market);
         if (Helpers.isTrue(Helpers.isEqual(updateType, "update")))
         {
             Object ticker = this.safeDict(this.tickers, symbol, new java.util.HashMap<String, Object>() {{}});
             Object rawTicker = this.safeDict(ticker, "info", new java.util.HashMap<String, Object>() {{}});
             java.util.Map<String, Object> merged = this.extend(rawTicker, data);
-            parsed = this.parseTicker(merged, market);
+            parsed = (java.util.Map<String, Object>) this.parseTicker(merged, market);
         }
         Helpers.addElementToObject(this.tickers, symbol, parsed);
         String messageHash = (String) Helpers.add("ticker::", symbol);
@@ -550,7 +550,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawOrders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(rawOrders, i);
-                Object parsedOrder = this.parseOrder(rawOrder);
+                java.util.Map<String, Object> parsedOrder = (java.util.Map<String, Object>) this.parseOrder(rawOrder);
                 Helpers.callDynamically(orders, "append", new Object[]{parsedOrder});
                 Object symbol = this.safeString(parsedOrder, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -683,7 +683,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawTrades)); i++)
             {
                 Object rawTrade = Helpers.GetValue(rawTrades, i);
-                Object parsedTrade = this.parseTrade(rawTrade);
+                java.util.Map<String, Object> parsedTrade = (java.util.Map<String, Object>) this.parseTrade(rawTrade);
                 Helpers.callDynamically(trades, "append", new Object[]{parsedTrade});
                 Object symbol = this.safeString(parsedTrade, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))

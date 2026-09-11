@@ -363,7 +363,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
                 Object marketId = Helpers.GetValue(marketIds, i);
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object symbol = Helpers.GetValue(market, "symbol");
-                Object ticker = this.parseTicker(Helpers.GetValue(data, marketId), market);
+                java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(Helpers.GetValue(data, marketId), market);
                 Helpers.addElementToObject(this.tickers, symbol, ticker);
                 client.resolve(ticker, this.getMessageHash("ticker", symbol));
                 client.resolve(ticker, this.getMessageHash("ticker"));
@@ -373,7 +373,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Object marketId = this.safeString(data, "market_id");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
             Object symbol = Helpers.GetValue(market, "symbol");
-            Object ticker = this.parseTicker(data, market);
+            java.util.Map<String, Object> ticker = (java.util.Map<String, Object>) this.parseTicker(data, market);
             Helpers.addElementToObject(this.tickers, symbol, ticker);
             client.resolve(ticker, this.getMessageHash("ticker", symbol));
         }
@@ -1632,7 +1632,7 @@ public class LighterCore extends io.github.ccxt.exchanges.Lighter
             Object orders = this.safeList(data, marketId, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(orders)); j++)
             {
-                Object order = this.parseOrder(Helpers.GetValue(orders, j), market);
+                java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(Helpers.GetValue(orders, j), market);
                 Helpers.callDynamically(stored, "append", new Object[]{order});
                 Object symbol = Helpers.GetValue(order, "symbol");
                 if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))

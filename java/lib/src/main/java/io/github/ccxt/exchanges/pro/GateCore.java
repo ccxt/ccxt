@@ -198,7 +198,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object request = this.createOrderRequest(symbol, type, side, amount, price, parameters);
             (this.authenticate(url, messageType)).join();
             Object rawOrder = (this.requestPrivate(url, request, channel)).join();
-            Object order = this.parseOrder(rawOrder, market);
+            java.util.Map<String, Object> order = (java.util.Map<String, Object>) this.parseOrder(rawOrder, market);
             return order;
         });
 
@@ -1093,7 +1093,7 @@ public class GateCore extends io.github.ccxt.exchanges.Gate
             Object rawTicker = Helpers.GetValue(results, i);
             Object marketId = this.safeString(rawTicker, "s");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId, null, "_", marketType);
-            Object parsedItem = this.parseTicker(rawTicker, market);
+            java.util.Map<String, Object> parsedItem = (java.util.Map<String, Object>) this.parseTicker(rawTicker, market);
             Object symbol = Helpers.GetValue(parsedItem, "symbol");
             if (Helpers.isTrue(isTicker))
             {
