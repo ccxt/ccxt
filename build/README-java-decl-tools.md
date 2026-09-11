@@ -60,7 +60,11 @@ Exit codes: `0` clean · `1` violations · `2` usage error. Per-pair categories:
 
 Known deliberate limits: casts are assumed intended unless they match the
 cast-ternary-condition shape; class-reference swaps between capitalised names read as
-type changes; the comment/blank classes are warnings, not hard failures.
+type changes; the comment/blank classes are warnings, not hard failures; pure additions
+are always reported (`UNPAIRED_ADD`) — a fully additive branch yields 0 pairs and N
+addition reports, and the `[hand]`/`[gen]` label tells the reviewer where additions are
+expected (agents may legitimately add new methods to hand-written base files; for
+generated files any pure addition warrants a look).
 
 ## Evidence
 
