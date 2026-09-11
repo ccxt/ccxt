@@ -4289,8 +4289,8 @@ public class BinanceCore extends BinanceApi
     {
         // support expired option contracts
         String settle = "USDT";
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(symbol, "-");
+        java.util.List<Object> symbolBase = (java.util.List<Object>) Helpers.split(symbol, "/");
         Object base = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
@@ -5055,8 +5055,8 @@ public class BinanceCore extends BinanceApi
                 Object res = this.safeValue(results, i);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fetchMargins, true))) && Helpers.isTrue(Helpers.isArray(res))))
                 {
-                    Object keysList = Helpers.objectKeys(this.indexBy(res, "symbol"));
-                    Object length = Helpers.getArrayLength(Helpers.GetValue(this.options, "crossMarginPairsData"));
+                    java.util.List<Object> keysList = Helpers.objectKeys(this.indexBy(res, "symbol"));
+                    Integer length = Helpers.getArrayLength(Helpers.GetValue(this.options, "crossMarginPairsData"));
                     // first one is the cross-margin promise
                     if (Helpers.isTrue(Helpers.isEqual(length, 0)))
                     {
@@ -5337,7 +5337,7 @@ public class BinanceCore extends BinanceApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing id")) ;
         }
-        Object optionParts = Helpers.split(id, "-");
+        java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(id, "-");
         String optionBase = this.safeString(optionParts, 0);
         String lowercaseId = (String)this.safeStringLower(market, "symbol");
         String baseId = this.safeString(market, "baseAsset", optionBase);
@@ -6522,7 +6522,7 @@ public class BinanceCore extends BinanceApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(symbols, null))) && Helpers.isTrue((Helpers.isTrue(this.isLinear(type, subType)) || Helpers.isTrue(this.isInverse(type, subType))))))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     Helpers.addElementToObject(request, "symbol", this.marketId(Helpers.GetValue(symbols, 0)));
@@ -6989,7 +6989,7 @@ public class BinanceCore extends BinanceApi
             }
             if (Helpers.isTrue(Helpers.isEqual(price, "index")))
             {
-                Object parts = Helpers.split(marketId, "_");
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "_");
                 String pair = this.safeString(parts, 0);
                 Helpers.addElementToObject(request, "pair", pair); // Index price takes this argument instead of symbol
             } else
@@ -7720,8 +7720,8 @@ public class BinanceCore extends BinanceApi
             put( "symbol", Helpers.GetValue(market, "id") );
             put( "side", ((String)finalSide).toUpperCase() );
         }};
-        Object initialUppercaseType = ((String)type).toUpperCase();
-        Object uppercaseType = initialUppercaseType;
+        String initialUppercaseType = ((String)type).toUpperCase();
+        String uppercaseType = initialUppercaseType;
         Object postOnly = this.isPostOnly(Helpers.isEqual(initialUppercaseType, "MARKET"), Helpers.isEqual(initialUppercaseType, "LIMIT_MAKER"), parameters);
         if (Helpers.isTrue(postOnly))
         {
@@ -9169,10 +9169,10 @@ public class BinanceCore extends BinanceApi
         String marketType = this.safeString(parameters, "type", Helpers.GetValue(market, "type"));
         Object stock = this.safeBool(market, "stock", false);
         String clientOrderId = this.safeStringN(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientAlgoId", "newClientOrderId", "clientOrderId")));
-        Object initialUppercaseType = ((String)type).toUpperCase();
+        String initialUppercaseType = ((String)type).toUpperCase();
         Boolean isMarketOrder = Helpers.isEqual(initialUppercaseType, "MARKET");
         Boolean isLimitOrder = Helpers.isEqual(initialUppercaseType, "LIMIT");
-        Object upperCaseSide = ((String)side).toUpperCase();
+        String upperCaseSide = ((String)side).toUpperCase();
         final Object finalUpperCaseSide = upperCaseSide;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
@@ -9210,7 +9210,7 @@ public class BinanceCore extends BinanceApi
         Boolean isPortfolioMarginConditional = (Helpers.isTrue(isPortfolioMargin) && Helpers.isTrue(isConditional));
         Boolean isPriceMatch = !Helpers.isEqual(priceMatch, null);
         Boolean priceRequiredForTrailing = true;
-        Object uppercaseType = ((String)type).toUpperCase();
+        String uppercaseType = ((String)type).toUpperCase();
         Object stopPrice = null;
         if (Helpers.isTrue(isTrailingPercentOrder))
         {
@@ -12321,7 +12321,7 @@ public class BinanceCore extends BinanceApi
         Object accountsById = this.safeDict(this.options, "accountsById", new java.util.HashMap<String, Object>() {{}});
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
-            Object parts = Helpers.split(type, "_");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(type, "_");
             fromAccount = this.safeValue(parts, 0);
             toAccount = this.safeValue(parts, 1);
             fromAccount = this.safeString(accountsById, fromAccount, fromAccount);
@@ -12421,8 +12421,8 @@ public class BinanceCore extends BinanceApi
                     market = this.market(symbol);
                     parameters = this.omit(parameters, "symbol");
                 }
-                Object fromId = ((String)this.convertTypeToAccount(fromAccount)).toUpperCase();
-                Object toId = ((String)this.convertTypeToAccount(toAccount)).toUpperCase();
+                String fromId = ((String)this.convertTypeToAccount(fromAccount)).toUpperCase();
+                String toId = ((String)this.convertTypeToAccount(toAccount)).toUpperCase();
                 Object isolatedSymbol = null;
                 if (Helpers.isTrue(!Helpers.isEqual(market, null)))
                 {
@@ -13311,7 +13311,7 @@ public class BinanceCore extends BinanceApi
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
                 }
-                Object symbols = Helpers.objectKeys(markets);
+                java.util.List<Object> symbols = Helpers.objectKeys(markets);
                 java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.fees, "linear"), "trading"), "tiers");
@@ -13351,7 +13351,7 @@ public class BinanceCore extends BinanceApi
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
                 }
-                Object symbols = Helpers.objectKeys(markets);
+                java.util.List<Object> symbols = Helpers.objectKeys(markets);
                 java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
                 Object feeTier = this.safeInteger(response, "feeTier");
                 Object feeTiers = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.fees, "inverse"), "trading"), "tiers");
@@ -13986,10 +13986,10 @@ public class BinanceCore extends BinanceApi
             }
             Object pricePrecision = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "price"));
             Object pricePrecisionPlusOne = Helpers.add(pricePrecision, 1);
-            Object pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
+            String pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
             var rounder = new Precise(Helpers.add("5e-", pricePrecisionPlusOneString));
-            Object rounderString = String.valueOf(rounder);
+            String rounderString = String.valueOf(rounder);
             String liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             String truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(truncatedLiquidationPrice, null)) && Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(truncatedLiquidationPrice, 0), "-"))))
@@ -14621,7 +14621,7 @@ final Object finalMarket = market;
                 Object symbol = null;
                 if (Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    Object symbolsLength = Helpers.getArrayLength(symbols);
+                    Integer symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
                         throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
@@ -16052,7 +16052,7 @@ final Object finalMarket = market;
         Object networkCode = null;
         java.util.Map<String, Object> currency = (java.util.Map<String, Object>) this.currency(currencyCode);
         Object networks = this.safeDict(currency, "networks", new java.util.HashMap<String, Object>() {{}});
-        Object networkCodes = Helpers.objectKeys(networks);
+        java.util.List<Object> networkCodes = Helpers.objectKeys(networks);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networkCodes)); i++)
         {
             Object currentNetworkCode = Helpers.GetValue(networkCodes, i);
@@ -16074,7 +16074,7 @@ final Object finalMarket = market;
         {
             return null;
         }
-        Object urlParts = Helpers.split(url, "/");
+        java.util.List<Object> urlParts = (java.util.List<Object>) Helpers.split(url, "/");
         String scheme = this.safeString(urlParts, 0);
         if (Helpers.isTrue(Helpers.isEqual(scheme, null)))
         {
@@ -16209,8 +16209,8 @@ final Object finalMarket = market;
                         Helpers.addElementToObject(extendedParams, "symbol", this.encodeURIComponent(Helpers.GetValue(extendedParams, "symbol")));
                     }
                     query = this.rawencode(extendedParams);
-                    Object orderidlistLength = Helpers.getArrayLength(orderidlist);
-                    Object origclientorderidlistLength = Helpers.getArrayLength(origclientorderidlist);
+                    Integer orderidlistLength = Helpers.getArrayLength(orderidlist);
+                    Integer origclientorderidlistLength = Helpers.getArrayLength(origclientorderidlist);
                     if (Helpers.isTrue(Helpers.isGreaterThan(orderidlistLength, 0)))
                     {
                         query = Helpers.add(Helpers.add(Helpers.add(Helpers.add(query, "&"), "orderidlist=%5B"), String.join((String)"%2C", (java.util.List<String>)orderidlist)), "%5D");
@@ -16401,7 +16401,7 @@ final Object finalMarket = market;
         if (Helpers.isTrue(Helpers.isArray(response)))
         {
             // cancelOrders returns an array like this: [{"code":-2011,"msg":"Unknown order sent."}]
-            Object arrayLength = Helpers.getArrayLength(response);
+            Integer arrayLength = Helpers.getArrayLength(response);
             if (Helpers.isTrue(Helpers.isEqual(arrayLength, 1)))
             {
                 Object element = Helpers.GetValue(response, 0);
@@ -17925,7 +17925,7 @@ final Object finalMarket = market;
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));

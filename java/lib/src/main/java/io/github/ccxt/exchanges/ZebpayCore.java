@@ -1332,7 +1332,7 @@ public class ZebpayCore extends ZebpayApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object upperCaseType = ((String)type).toUpperCase();
+            String upperCaseType = ((String)type).toUpperCase();
             String takeProfitPrice = this.safeString(parameters, "takeProfitPrice");
             String stopLossPrice = this.safeString(parameters, "stopLossPrice");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("marginAsset", "takeProfitPrice", "takeProfitPrice")));
@@ -1403,7 +1403,7 @@ public class ZebpayCore extends ZebpayApi
     {
         Object price = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        Object upperCaseType = ((String)type).toUpperCase();
+        String upperCaseType = ((String)type).toUpperCase();
         String triggerPrice = this.safeString(parameters, "stopLossPrice");
         String quoteOrderQty = this.safeString2(parameters, "quoteOrderQty", "cost");
         String timeInForce = this.safeString(parameters, "timeInForce", "GTC");
@@ -2403,10 +2403,10 @@ public class ZebpayCore extends ZebpayApi
         Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), marketType);
         String tail = Helpers.add("/api/", this.implodeParams(path, parameters));
         url = Helpers.add(url, tail);
-        Object timestamp = String.valueOf(this.milliseconds());
+        String timestamp = String.valueOf(this.milliseconds());
         Object signature = "";
         Object query = this.omit(parameters, this.extractParams(path));
-        Object queryLength = Helpers.getArrayLength(Helpers.objectKeys(query));
+        Integer queryLength = Helpers.getArrayLength(Helpers.objectKeys(query));
         String access = this.safeString(api, 0, "public");
         if (Helpers.isTrue(Helpers.isEqual(access, "public")))
         {

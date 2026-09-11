@@ -598,7 +598,7 @@ public class PolymarketCore extends PolymarketApi
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object queries = (java.util.List<Object>)(this.parseSearchQueries(parameters));
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries")));
-            Object queriesLength = Helpers.getArrayLength(queries);
+            Integer queriesLength = Helpers.getArrayLength(queries);
             Object rawEvents = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
             {
@@ -696,7 +696,7 @@ public class PolymarketCore extends PolymarketApi
                 firstRequest = this.extend(this.extend(firstRequest, baseRequest), rest);
                 java.util.Map<String, Object> first = (this.gammaPublicGetPublicSearch(firstRequest)).join();
                 Object firstEvents = (java.util.List<Object>)(this.safeList(first, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-                Object firstEventsLength = Helpers.getArrayLength(firstEvents);
+                Integer firstEventsLength = Helpers.getArrayLength(firstEvents);
                 Object pagination = this.safeDict(first, "pagination", new java.util.HashMap<String, Object>() {{}});
                 Long totalResults = this.safeInteger(pagination, "totalResults", firstEventsLength);
                 Object totalPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(totalResults, pageSize))));
@@ -704,7 +704,7 @@ public class PolymarketCore extends PolymarketApi
                 // with no limit, cap the fan-out at options.maxSearchPages so a broad query stays bounded
                 if (Helpers.isTrue(!Helpers.isEqual(resultLimit, null)))
                 {
-                    Object limitPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(resultLimit, pageSize))));
+                    Double limitPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(resultLimit, pageSize))));
                     if (Helpers.isTrue(Helpers.isLessThan(limitPages, totalPages)))
                     {
                         totalPages = limitPages;
@@ -773,7 +773,7 @@ public class PolymarketCore extends PolymarketApi
      */
     public Object tagToSlug(Object tag)
     {
-        Object lower = ((String)tag).toLowerCase();
+        String lower = ((String)tag).toLowerCase();
         String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
         Object slug = "";
@@ -825,7 +825,7 @@ public class PolymarketCore extends PolymarketApi
             // scope the listing: without a search query loadMarkets would otherwise dump every
             // active event (tens of thousands of markets). Cap to `limit` events (most-traded first).
             Long limit = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 200));
-            Object maxPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(limit, pageSize))));
+            Double maxPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(limit, pageSize))));
             Object status = this.safeString(parameters, "status", this.safeString(this.options, "defaultEventStatus", "active"));
             // sort maps to the gamma `order` field; 'volume' is the default ranking
             Object sort = this.safeString(parameters, "sort");
@@ -849,7 +849,7 @@ public class PolymarketCore extends PolymarketApi
             // fetchEvents returns the tagged events rather than filtering the top-volume listing down
             // to nothing; multiple tags run one listing per tag, unioned and deduped by event id
             Object requestedTags = this.safeList(parameters, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object requestedTagsLength = Helpers.getArrayLength(requestedTags);
+            Integer requestedTagsLength = Helpers.getArrayLength(requestedTags);
             if (Helpers.isTrue(Helpers.isGreaterThan(requestedTagsLength, 1)))
             {
                 java.util.Map<String, Object> seen = new java.util.HashMap<String, Object>() {{}};
@@ -896,7 +896,7 @@ public class PolymarketCore extends PolymarketApi
             java.util.List<Object> firstPageResponse = (this.gammaPublicGetEvents(firstPageRequest)).join();
             Object firstPageIsArray = Helpers.isArray(firstPageResponse);
             java.util.List<Object> firstPage = ((Helpers.isTrue((firstPageIsArray)))) ? firstPageResponse : new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object firstPageLength = Helpers.getArrayLength(firstPage);
+            Integer firstPageLength = Helpers.getArrayLength(firstPage);
             java.util.List<Object> allRawEvents = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var fi = 0; Helpers.isLessThan(fi, firstPageLength); fi++)
             {
@@ -923,14 +923,14 @@ public class PolymarketCore extends PolymarketApi
                 for (var ri = 0; Helpers.isLessThan(ri, Helpers.getArrayLength(restPages)); ri++)
                 {
                     Object page = ((Helpers.isTrue((!Helpers.isEqual(Helpers.GetValue(restPages, ri), null))))) ? Helpers.GetValue(restPages, ri) : new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                    Object pageLength = Helpers.getArrayLength(page);
+                    Integer pageLength = Helpers.getArrayLength(page);
                     for (var pi = 0; Helpers.isLessThan(pi, pageLength); pi++)
                     {
                         ((java.util.List<Object>)allRawEvents).add(Helpers.GetValue(page, pi));
                     }
                 }
             }
-            Object allRawEventsLength = Helpers.getArrayLength(allRawEvents);
+            Integer allRawEventsLength = Helpers.getArrayLength(allRawEvents);
             if (Helpers.isTrue(Helpers.isGreaterThan(allRawEventsLength, limit)))
             {
                 return this.arraySlice(allRawEvents, 0, limit);
@@ -1083,8 +1083,8 @@ public class PolymarketCore extends PolymarketApi
             {
                 outcomePrices = parsedPrices;
             }
-            Object outcomeLabelsLength = Helpers.getArrayLength(outcomeLabels);
-            Object clobTokenIdsLength = Helpers.getArrayLength(clobTokenIds);
+            Integer outcomeLabelsLength = Helpers.getArrayLength(outcomeLabels);
+            Integer clobTokenIdsLength = Helpers.getArrayLength(clobTokenIds);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(outcomeLabelsLength, 0)) || Helpers.isTrue(Helpers.isEqual(clobTokenIdsLength, 0))))
             {
                 continue;
@@ -1244,7 +1244,7 @@ final Object finalClobTokenId = clobTokenId;
                     put( "clob_token_ids", outcomeSymbol );
                 }})).join();
                 java.util.List<Object> rawMarkets = ((Helpers.isTrue((!Helpers.isEqual(response, null))))) ? response : new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                Object rawMarketsLength = Helpers.getArrayLength(rawMarkets);
+                Integer rawMarketsLength = Helpers.getArrayLength(rawMarkets);
                 if (Helpers.isTrue(Helpers.isGreaterThan(rawMarketsLength, 0)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1254,7 +1254,7 @@ final Object finalClobTokenId = clobTokenId;
                     Object ccxtMarkets = this.parseEventToMarkets(new java.util.HashMap<String, Object>() {{
                         put( "markets", rawMarkets );
                     }});
-                    Object ccxtMarketsLength = Helpers.getArrayLength(ccxtMarkets);
+                    Integer ccxtMarketsLength = Helpers.getArrayLength(ccxtMarkets);
                     for (var i = 0; Helpers.isLessThan(i, ccxtMarketsLength); i++)
                     {
                         Object mkt = Helpers.GetValue(ccxtMarkets, i);
@@ -1304,7 +1304,7 @@ final Object finalClobTokenId = clobTokenId;
                     ((java.util.List<Object>)tokenIds).add(outcomeSymbol);
                 }
             }
-            Object tokenIdsLength = Helpers.getArrayLength(tokenIds);
+            Integer tokenIdsLength = Helpers.getArrayLength(tokenIds);
             if (Helpers.isTrue(Helpers.isGreaterThan(tokenIdsLength, 0)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
@@ -1477,7 +1477,7 @@ final Object finalClobTokenId = clobTokenId;
             }
             Long chunkSize = this.safeInteger(this.options, "fetchTickersBatchSize", 200);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object tokenIdsLength = Helpers.getArrayLength(tokenIds);
+            Integer tokenIdsLength = Helpers.getArrayLength(tokenIds);
             Object startIndex = 0;
             while (Helpers.isLessThan(startIndex, tokenIdsLength))
             {
@@ -1504,7 +1504,7 @@ final Object finalClobTokenId = clobTokenId;
                 Object lastTradesIsArray = Helpers.isArray(lastTradesResponse);
                 Object lastTrades = ((Helpers.isTrue((lastTradesIsArray)))) ? lastTradesResponse : new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 java.util.Map<String, Object> lastTradesByTokenId = new java.util.HashMap<String, Object>() {{}};
-                Object lastTradesLength = Helpers.getArrayLength(lastTrades);
+                Integer lastTradesLength = Helpers.getArrayLength(lastTrades);
                 for (var li = 0; Helpers.isLessThan(li, lastTradesLength); li++)
                 {
                     Object lastTradeEntry = Helpers.GetValue(lastTrades, li);
@@ -1514,7 +1514,7 @@ final Object finalClobTokenId = clobTokenId;
                         Helpers.addElementToObject(lastTradesByTokenId, lastTradeTokenId, lastTradeEntry);
                     }
                 }
-                Object booksLength = Helpers.getArrayLength(books);
+                Integer booksLength = Helpers.getArrayLength(books);
                 for (var i = 0; Helpers.isLessThan(i, booksLength); i++)
                 {
                     Object book = Helpers.GetValue(books, i);
@@ -1594,8 +1594,8 @@ final Object finalClobTokenId = clobTokenId;
         Double mid = this.safeNumber(midpointData, "mid");
         Object bids = (java.util.List<Object>)(this.safeList(bookData, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
         Object asks = (java.util.List<Object>)(this.safeList(bookData, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList())));
-        Object bidsLength = Helpers.getArrayLength(bids);
-        Object asksLength = Helpers.getArrayLength(asks);
+        Integer bidsLength = Helpers.getArrayLength(bids);
+        Integer asksLength = Helpers.getArrayLength(asks);
         // the CLOB book endpoint returns levels sorted away from the touch (bids ascending, asks descending), so the best level is the last entry
         Object bestBid = ((Helpers.isTrue((Helpers.isGreaterThan(bidsLength, 0))))) ? Helpers.GetValue(bids, Helpers.subtract(bidsLength, 1)) : null;
         Object bestAsk = ((Helpers.isTrue((Helpers.isGreaterThan(asksLength, 0))))) ? Helpers.GetValue(asks, Helpers.subtract(asksLength, 1)) : null;
@@ -1797,7 +1797,7 @@ final Object finalClobTokenId = clobTokenId;
                 {
                     vol = this.safeNumber(item, "v");
                 }
-                Object bucketKey = String.valueOf(snappedMs);
+                String bucketKey = String.valueOf(snappedMs);
                 if (!Helpers.isTrue((Helpers.inOp(buckets, bucketKey))))
                 {
                     Helpers.addElementToObject(buckets, bucketKey, new java.util.ArrayList<Object>(java.util.Arrays.asList(snappedMs, price, price, price, price, vol)));
@@ -1815,14 +1815,14 @@ final Object finalClobTokenId = clobTokenId;
                     Helpers.addElementToObject(buckets, bucketKey, candle); // reassign after mutation, php arrays are value types
                 }
             }
-            Object bucketKeys = Helpers.objectKeys(buckets);
+            java.util.List<Object> bucketKeys = Helpers.objectKeys(buckets);
             java.util.List<Object> unsortedCandles = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bucketKeys)); i++)
             {
                 ((java.util.List<Object>)unsortedCandles).add(Helpers.GetValue(buckets, Helpers.GetValue(bucketKeys, i)));
             }
             java.util.List<Object> candles = this.sortBy(unsortedCandles, 0);
-            Object candlesLength = Helpers.getArrayLength(candles);
+            Integer candlesLength = Helpers.getArrayLength(candles);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(limit, null))) && Helpers.isTrue((Helpers.isGreaterThan(candlesLength, limit)))))
             {
                 return this.arraySlice(candles, Helpers.opNeg(limit));
@@ -2685,7 +2685,7 @@ final Object finalClobTokenId = clobTokenId;
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
         Object outcomeObj = this.outcome(outcome);
         Object tokenId = Helpers.GetValue(outcomeObj, "outcomeId");
-        Object sideStr = ((String)((String)side)).toUpperCase();
+        String sideStr = ((String)((String)side)).toUpperCase();
         Boolean isMarket = (Helpers.isEqual(type, "market"));
         // CCXT type (limit/market) maps to a polymarket time-in-force: limit -> GTC, market -> FOK.
         // native override: params.orderType (GTC, GTD, FOK or FAK)
@@ -3217,7 +3217,7 @@ final Object finalClobTokenId = clobTokenId;
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchEvents() missing queries")) ;
             }
-            Object queriesLength = Helpers.getArrayLength(queries);
+            Integer queriesLength = Helpers.getArrayLength(queries);
             Object rawEvents = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(requestedEventId, null))) || Helpers.isTrue((!Helpers.isEqual(requestedSlug, null)))))
             {
@@ -3255,7 +3255,7 @@ final Object finalClobTokenId = clobTokenId;
                 Object rawEvent = Helpers.GetValue(rawEvents, rei);
                 Object eventForParsing = rawEvent;
                 Object ccxtMarkets = this.parseEventToMarkets(eventForParsing);
-                Object ccxtMarketsLength = Helpers.getArrayLength(ccxtMarkets);
+                Integer ccxtMarketsLength = Helpers.getArrayLength(ccxtMarkets);
                 if (Helpers.isTrue(Helpers.isEqual(ccxtMarketsLength, 0)))
                 {
                     // search results may omit the nested markets, fall back to the detail endpoint
@@ -3433,7 +3433,7 @@ final Object finalClobTokenId = clobTokenId;
         // prefer the human-readable label ("Fed Rates") over the slug — matching is
         // normalized (normalizeTagKey), so the display form is free to be the friendly one
         Object rawTags = this.safeList(rawEvent, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object rawTagsLength = Helpers.getArrayLength(rawTags);
+        Integer rawTagsLength = Helpers.getArrayLength(rawTags);
         java.util.List<Object> parsedTags = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var ti = 0; Helpers.isLessThan(ti, rawTagsLength); ti++)
         {
@@ -3538,7 +3538,7 @@ final Object finalClobTokenId = clobTokenId;
         if (Helpers.isTrue(Helpers.isArray(parameters)))
         {
             Object paramsList = (java.util.List<Object>)(parameters);
-            Object paramsListLength = Helpers.getArrayLength(paramsList);
+            Integer paramsListLength = Helpers.getArrayLength(paramsList);
             isArrayBody = Helpers.isGreaterThan(paramsListLength, 0);
         }
         Object query = new java.util.HashMap<String, Object>() {{}};
@@ -3552,7 +3552,7 @@ final Object finalClobTokenId = clobTokenId;
             // comma-joined ids); scalar-only queries keep the plain encoder — the repeat
             // encoder capitalizes booleans ("False") under the C# base
             Boolean hasArrayParam = false;
-            Object queryKeys = Helpers.objectKeys(query);
+            java.util.List<Object> queryKeys = Helpers.objectKeys(query);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(queryKeys)); i++)
             {
                 if (Helpers.isTrue(Helpers.isArray(Helpers.GetValue(query, Helpers.GetValue(queryKeys, i)))))
@@ -3570,8 +3570,8 @@ final Object finalClobTokenId = clobTokenId;
             body = this.json(parameters);
         } else
         {
-            Object queryKeys = Helpers.objectKeys(query);
-            Object queryKeysLength = Helpers.getArrayLength(queryKeys);
+            java.util.List<Object> queryKeys = Helpers.objectKeys(query);
+            Integer queryKeysLength = Helpers.getArrayLength(queryKeys);
             if (Helpers.isTrue(Helpers.isGreaterThan(queryKeysLength, 0)))
             {
                 body = this.json(query);
@@ -3599,7 +3599,7 @@ final Object finalClobTokenId = clobTokenId;
                 }
                 // the L1 signer/owner is the EOA behind the privateKey (walletAddress is the proxy/deposit wallet, not the signer)
                 Object address = this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey));
-                Object timestamp = String.valueOf(this.seconds());
+                String timestamp = String.valueOf(this.seconds());
                 Long nonce = this.safeInteger(parameters, "nonce", 0);
                 Object l1signature = this.signClobAuth(address, timestamp, nonce);
                 headers = this.extend(headers, new java.util.HashMap<String, Object>() {{
@@ -3618,7 +3618,7 @@ final Object finalClobTokenId = clobTokenId;
                 Object passphrase = this.safeString(this.options, "l2Passphrase", this.password);
                 // POLY_ADDRESS is the api-key owner = the signer EOA (derived from the privateKey when present)
                 Object address = ((Helpers.isTrue((!Helpers.isEqual(this.privateKey, null))))) ? this.ethChecksumAddress(this.ethGetAddressFromPrivateKey(this.privateKey)) : this.walletAddress;
-                Object timestamp = String.valueOf(this.seconds());
+                String timestamp = String.valueOf(this.seconds());
                 // the L2 HMAC signs only the request path (no query string), matching
                 // @polymarket/clob-client — query params are sent separately, not signed
                 Object requestPath = Helpers.add("/", this.implodeParams(path, parameters));
@@ -3670,7 +3670,7 @@ final Object finalClobTokenId = clobTokenId;
     {
         // EIP-55 mixed-case checksum; the CLOB compares the order signer to the api-key owner
         // case-sensitively and stores addresses checksummed, so every address we send must be checksummed
-        Object cleaned = ((String)this.remove0xPrefix(address)).toLowerCase();
+        String cleaned = ((String)this.remove0xPrefix(address)).toLowerCase();
         Object hashHex = this.hash(this.encode(cleaned), keccak(), "hex");
         Object addrChars = this.stringToCharsArray(cleaned);
         Object hashChars = this.stringToCharsArray(hashHex);
@@ -3986,7 +3986,7 @@ final Object finalOutcome = outcome;
             Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
             Helpers.addElementToObject(updated, outcome, true);
         }
-        Object updatedSymbols = Helpers.objectKeys(updated);
+        java.util.List<Object> updatedSymbols = Helpers.objectKeys(updated);
         for (var k = 0; Helpers.isLessThan(k, Helpers.getArrayLength(updatedSymbols)); k++)
         {
             Object outcome = Helpers.GetValue(updatedSymbols, k);

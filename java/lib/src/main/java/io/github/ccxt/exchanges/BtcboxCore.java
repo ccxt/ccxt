@@ -281,16 +281,16 @@ public class BtcboxCore extends BtcboxApi
             var response2 = ((java.util.List<Object>) response1response2Variable).get(1);
             //
             Object result2Data = this.safeDict(response2, "data", new java.util.HashMap<String, Object>() {{}});
-            Object marketIds = Helpers.objectKeys(response1);
+            java.util.List<Object> marketIds = Helpers.objectKeys(response1);
             java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object symbolParts = Helpers.split(marketId, "_");
+                java.util.List<Object> symbolParts = (java.util.List<Object>) Helpers.split(marketId, "_");
                 String baseCurr = this.safeString(symbolParts, 0, "");
                 String quote = this.safeString(symbolParts, 1, "");
-                Object quoteId = ((String)quote).toLowerCase();
-                Object id = ((String)baseCurr).toLowerCase();
+                String quoteId = ((String)quote).toLowerCase();
+                String id = ((String)baseCurr).toLowerCase();
                 Object res = this.safeDict(response1, marketId, new java.util.HashMap<String, Object>() {{}});
                 Object symbol = Helpers.add(Helpers.add(baseCurr, "/"), quote);
                 Object fee = ((Helpers.isTrue((Helpers.isEqual(id, "BTC"))))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
@@ -421,7 +421,7 @@ public class BtcboxCore extends BtcboxApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object codes = Helpers.objectKeys(this.currencies);
+        java.util.List<Object> codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -487,7 +487,7 @@ public class BtcboxCore extends BtcboxApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object numSymbols = Helpers.getArrayLength(this.symbols);
+            Integer numSymbols = Helpers.getArrayLength(this.symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numSymbols, 1)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
@@ -548,7 +548,7 @@ public class BtcboxCore extends BtcboxApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object numSymbols = Helpers.getArrayLength(this.symbols);
+            Integer numSymbols = Helpers.getArrayLength(this.symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numSymbols, 1)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
@@ -648,7 +648,7 @@ public class BtcboxCore extends BtcboxApi
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object numSymbols = Helpers.getArrayLength(this.symbols);
+            Integer numSymbols = Helpers.getArrayLength(this.symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numSymbols, 1)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
@@ -1011,7 +1011,7 @@ public class BtcboxCore extends BtcboxApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             java.util.Map<String, Object> query = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "key", BtcboxCore.this.apiKey );
                 put( "nonce", nonce );

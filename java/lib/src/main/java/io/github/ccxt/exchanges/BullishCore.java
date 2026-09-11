@@ -1011,9 +1011,9 @@ public class BullishCore extends BullishApi
             } else
             {
                 expiryDatetime = this.safeString(market, "expiryDatetime");
-                Object idParts = Helpers.split(id, "-");
+                java.util.List<Object> idParts = (java.util.List<Object>) Helpers.split(id, "-");
                 Object datePart = ((String)this.safeString(idParts, 2));
-                Object dateYmd = Helpers.slice(datePart, 2, null);
+                String dateYmd = Helpers.slice(datePart, 2, null);
                 symbol = Helpers.add(symbol, Helpers.add("-", dateYmd));
                 if (Helpers.isTrue(Helpers.isEqual(type, "future")))
                 {
@@ -2950,7 +2950,7 @@ public class BullishCore extends BullishApi
             //     ]
             //
             java.util.List<Object> safeResponse = this.toArray(response);
-            Object length = Helpers.getArrayLength(safeResponse);
+            Integer length = Helpers.getArrayLength(safeResponse);
             Object data = this.safeDict(safeResponse, 0, new java.util.HashMap<String, Object>() {{}});
             Object network = null;
             java.util.List<Object> networkparametersVariable = (java.util.List<Object>) this.handleNetworkCodeAndParams(parameters);
@@ -3622,8 +3622,8 @@ public class BullishCore extends BullishApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.microseconds());
-            Object timestamp = String.valueOf(this.getTimestamp());
+            String nonce = String.valueOf(this.microseconds());
+            String timestamp = String.valueOf(this.getTimestamp());
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
                 Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(timestamp, nonce), method), "/trading-api/"), path);

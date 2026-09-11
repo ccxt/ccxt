@@ -1703,8 +1703,8 @@ public class DeriveCore extends DeriveApi
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
             String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Object postOnly = this.safeBool(parameters, "postOnly");
-            Object orderType = ((String)type).toLowerCase();
-            Object orderSide = ((String)((String)side)).toLowerCase();
+            String orderType = ((String)type).toLowerCase();
+            String orderSide = ((String)((String)side)).toLowerCase();
             Boolean orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Long nonce = this.milliseconds();
             // Order signature expiry must be between 2592000 and 7776000 sec from now
@@ -1905,8 +1905,8 @@ public class DeriveCore extends DeriveApi
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
             String timeInForce = (String)this.safeStringLower2(parameters, "timeInForce", "time_in_force");
             Object postOnly = this.safeBool(parameters, "postOnly");
-            Object orderType = ((String)type).toLowerCase();
-            Object orderSide = ((String)((String)side)).toLowerCase();
+            String orderType = ((String)type).toLowerCase();
+            String orderSide = ((String)((String)side)).toLowerCase();
             Boolean orderSideIsBuy = (Helpers.isEqual(orderSide, "buy")); // extracted to a named local: the Rust transpiler can't lower a bare `===` bool inside a list literal (ethAbiEncode args)
             Long nonce = this.milliseconds();
             Double signatureExpiry = this.safeNumber(parameters, "signature_expiry_sec", Helpers.add(this.seconds(), 7776000));
@@ -3477,7 +3477,7 @@ public class DeriveCore extends DeriveApi
             }};
             if (Helpers.isTrue(Helpers.isEqual(api, "private")))
             {
-                Object now = String.valueOf(this.milliseconds());
+                String now = String.valueOf(this.milliseconds());
                 Object signature = this.signMessage(now, this.privateKey);
                 Helpers.addElementToObject(headers, "X-LyraWallet", this.safeString(this.options, "deriveWalletAddress"));
                 Helpers.addElementToObject(headers, "X-LyraTimestamp", now);

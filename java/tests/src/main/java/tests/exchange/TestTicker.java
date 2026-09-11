@@ -61,7 +61,7 @@ public class TestTicker extends BaseTest {
         }
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
-        Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
+        String logText = (String) TestSharedMethods.logTemplate(exchange, method, entry);
         // check market
         Object market = null;
         Boolean isUnrecognizedSymbol = false;
@@ -114,10 +114,10 @@ public class TestTicker extends BaseTest {
         //
         // close price
         //
-        Object lastString = exchange.safeString(entry, "last");
-        Object closeString = exchange.safeString(entry, "close");
+        String lastString = exchange.safeString(entry, "last");
+        String closeString = exchange.safeString(entry, "close");
         Assert(Helpers.isTrue((Helpers.isTrue((Helpers.isEqual(closeString, null))) && Helpers.isTrue((Helpers.isEqual(lastString, null))))) || Helpers.isTrue(Precise.stringEq(lastString, closeString)), Helpers.add("`last` != `close`", logText));
-        Object openPrice = exchange.safeString(entry, "open");
+        String openPrice = exchange.safeString(entry, "open");
         //
         // base & quote volumes
         //
@@ -141,7 +141,7 @@ public class TestTicker extends BaseTest {
                 String baseHigh = Precise.stringMul(baseVolume, high);
                 // to avoid abnormal long precision issues (like https://discord.com/channels/690203284119617602/1338828283902689280/1338846071278927912 )
                 Object mPrecision = exchange.safeDict(market, "precision");
-                Object amountPrecision = exchange.safeString(mPrecision, "amount");
+                String amountPrecision = exchange.safeString(mPrecision, "amount");
                 String tolerance = "1.0001";
                 if (Helpers.isTrue(!Helpers.isEqual(amountPrecision, null)))
                 {
@@ -165,7 +165,7 @@ public class TestTicker extends BaseTest {
                 // 0.01), so we widen the acceptance window by one such step on
                 // each side - big enough to forgive rounding, far too small to
                 // hide a real bug like mismatched units or a wrong-field parse
-                Object quoteVolumeDecimals = exchange.precisionFromString(quoteVolume);
+                Integer quoteVolumeDecimals = exchange.precisionFromString(quoteVolume);
                 Object quoteQuantum = exchange.parsePrecision(exchange.numberToString(quoteVolumeDecimals));
                 baseLow = Precise.stringSub(baseLow, quoteQuantum);
                 baseHigh = Precise.stringAdd(baseHigh, quoteQuantum);
@@ -190,7 +190,7 @@ public class TestTicker extends BaseTest {
         //
         // vwap
         //
-        Object vwap = exchange.safeString(entry, "vwap");
+        String vwap = exchange.safeString(entry, "vwap");
         if (Helpers.isTrue(!Helpers.isEqual(vwap, null)))
         {
             // todo
@@ -208,8 +208,8 @@ public class TestTicker extends BaseTest {
                 Assert(!Helpers.isEqual(baseVolume, null), Helpers.add("quoteVolume & vwap is defined, but baseVolume is not", logText));
             }
         }
-        Object askString = exchange.safeString(entry, "ask");
-        Object bidString = exchange.safeString(entry, "bid");
+        String askString = exchange.safeString(entry, "ask");
+        String bidString = exchange.safeString(entry, "bid");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(askString, null))) && Helpers.isTrue((!Helpers.isEqual(bidString, null)))) && !Helpers.isTrue((Helpers.inOp(skippedProperties, "spread")))))
         {
             // greater-or-equal: a locked book (bid == ask) is legitimate on thin markets, only a crossed book (ask < bid) is anomalous
@@ -224,8 +224,8 @@ public class TestTicker extends BaseTest {
             String medianHigh = Precise.stringMul(medianPrice, Precise.stringAdd("1", allowedPercentageVariation));
             Assert(Helpers.isTrue(Precise.stringGe(lastString, medianLow)) && Helpers.isTrue(Precise.stringLe(lastString, medianHigh)), Helpers.add("last price should be within 1% of the bid/ask median price", logText));
         }
-        Object percentage = exchange.safeString(entry, "percentage");
-        Object change = exchange.safeString(entry, "change");
+        String percentage = exchange.safeString(entry, "percentage");
+        String change = exchange.safeString(entry, "change");
         // option markets are exempt from the UPPER percentage/change caps only:
         // expiry-day convexity makes any finite cap wrong - a formerly-OTM
         // contract moving into the money legitimately gains 1000x+ (observed: a
@@ -251,7 +251,7 @@ public class TestTicker extends BaseTest {
             //
             // change
             //
-            Object approxValue = exchange.safeStringN(entry, new java.util.ArrayList<Object>(java.util.Arrays.asList("open", "close", "average", "bid", "ask", "vwap", "previousClose")));
+            String approxValue = exchange.safeStringN(entry, new java.util.ArrayList<Object>(java.util.Arrays.asList("open", "close", "average", "bid", "ask", "vwap", "previousClose")));
             if (Helpers.isTrue(!Helpers.isEqual(change, null)))
             {
                 // - should be above -price and (for non-options) below +price*maxIncrease

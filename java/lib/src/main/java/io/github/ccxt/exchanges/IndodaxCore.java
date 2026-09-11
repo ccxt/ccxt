@@ -503,7 +503,7 @@ public class IndodaxCore extends IndodaxApi
             put( "timestamp", timestamp );
             put( "datetime", IndodaxCore.this.iso8601(timestamp) );
         }};
-        Object currencyIds = Helpers.objectKeys(free);
+        java.util.List<Object> currencyIds = Helpers.objectKeys(free);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -730,13 +730,13 @@ public class IndodaxCore extends IndodaxApi
             //
             java.util.Map<String, Object> response = (this.publicGetApiTickerAll(parameters)).join();
             Object tickers = this.safeDict(response, "tickers", new java.util.HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(tickers);
+            java.util.List<Object> keys = Helpers.objectKeys(tickers);
             java.util.Map<String, Object> parsedTickers = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
                 Object rawTicker = Helpers.GetValue(tickers, key);
-                Object marketId = Helpers.replace((String)key, (String)"_", (String)"");
+                String marketId = Helpers.replace((String)key, (String)"_", (String)"");
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
                 Object parsed = this.parseTicker(rawTicker, market);
                 Helpers.addElementToObject(parsedTickers, marketId, parsed);
@@ -1089,7 +1089,7 @@ public class IndodaxCore extends IndodaxApi
                 return this.parseOrders(rawOrders, market, since, limit);
             }
             // { success: 1, return: { orders: { marketid: [ ... objects ] }}} if all orders are fetched
-            Object marketIds = Helpers.objectKeys(rawOrders);
+            java.util.List<Object> marketIds = Helpers.objectKeys(rawOrders);
             Object exchangeOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
@@ -1726,7 +1726,7 @@ public class IndodaxCore extends IndodaxApi
             Object data = this.safeDict(response, "return");
             Object addresses = this.safeDict(data, "address", new java.util.HashMap<String, Object>() {{}});
             Object networks = this.safeDict(data, "network", new java.util.HashMap<String, Object>() {{}});
-            Object addressKeys = Helpers.objectKeys(addresses);
+            java.util.List<Object> addressKeys = Helpers.objectKeys(addresses);
             Object result = new java.util.HashMap<String, Object>() {{
                 put( "info", data );
             }};
@@ -1753,7 +1753,7 @@ public class IndodaxCore extends IndodaxApi
                             {
                                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddresses() missing networkId")) ;
                             }
-                            Object networkIds = Helpers.split(networkId, ",");
+                            java.util.List<Object> networkIds = (java.util.List<Object>) Helpers.split(networkId, ",");
                             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
                             {
                                 Object _netIdTmp = this.networkIdToCode(Helpers.GetValue(networkIds, j), code);

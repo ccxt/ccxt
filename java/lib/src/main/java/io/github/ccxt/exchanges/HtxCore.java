@@ -2486,7 +2486,7 @@ public class HtxCore extends HtxApi
             parameters = ((java.util.List<Object>) typesparametersVariable).get(1);
             Object allMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object keys = Helpers.objectKeys(types);
+            java.util.List<Object> keys = Helpers.objectKeys(types);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -2647,7 +2647,7 @@ public class HtxCore extends HtxApi
             //     }
             //
             Object markets = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object numMarkets = Helpers.getArrayLength(markets);
+            Integer numMarkets = Helpers.getArrayLength(markets);
             if (Helpers.isTrue(Helpers.isLessThan(numMarkets, 1)))
             {
                 throw new OperationFailed((String)Helpers.add(Helpers.add(this.id, " fetchMarkets() returned an empty response: "), this.json(response))) ;
@@ -2689,7 +2689,7 @@ public class HtxCore extends HtxApi
                         {
                             throw new ExchangeError((String)Helpers.add(this.id, " method() missing id")) ;
                         }
-                        Object parts = Helpers.split(id, "-");
+                        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(id, "-");
                         baseId = this.safeStringLower(market, "symbol");
                         quoteId = this.safeStringLower(parts, 1);
                         settleId = ((Helpers.isTrue(inverse))) ? baseId : quoteId;
@@ -2708,7 +2708,7 @@ public class HtxCore extends HtxApi
                             {
                                 throw new ExchangeError((String)Helpers.add(this.id, " method() missing pair")) ;
                             }
-                            Object parts = Helpers.split(pair, "-");
+                            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(pair, "-");
                             quoteId = this.safeStringLower(parts, 1);
                             settleId = quoteId;
                         }
@@ -3587,7 +3587,7 @@ public class HtxCore extends HtxApi
         Object type = this.safeString(trade, "type");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(type, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(type, "-"), 0)))))
         {
-            Object typeParts = Helpers.split(type, "-");
+            java.util.List<Object> typeParts = (java.util.List<Object>) Helpers.split(type, "-");
             side = Helpers.GetValue(typeParts, 0);
             type = Helpers.GetValue(typeParts, 1);
         }
@@ -4537,8 +4537,8 @@ public class HtxCore extends HtxApi
         // here network-id is provided as a pair of currency & chain (i.e. trc20usdt)
         Object networkId = Helpers.getArg(optionalArgs, 0, null);
         Object currencyCode = Helpers.getArg(optionalArgs, 1, null);
-        Object keys = Helpers.objectKeys(Helpers.GetValue(this.options, "networkNamesByChainIds"));
-        Object keysLength = Helpers.getArrayLength(keys);
+        java.util.List<Object> keys = Helpers.objectKeys(Helpers.GetValue(this.options, "networkNamesByChainIds"));
+        Integer keysLength = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(Helpers.isEqual(keysLength, 0)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " networkIdToCode() - markets need to be loaded at first")) ;
@@ -4558,8 +4558,8 @@ public class HtxCore extends HtxApi
         {
             return super.networkCodeToId(networkCode);
         }
-        Object keys = Helpers.objectKeys(Helpers.GetValue(this.options, "networkChainIdsByNames"));
-        Object keysLength = Helpers.getArrayLength(keys);
+        java.util.List<Object> keys = Helpers.objectKeys(Helpers.GetValue(this.options, "networkChainIdsByNames"));
+        Integer keysLength = Helpers.getArrayLength(keys);
         if (Helpers.isTrue(Helpers.isEqual(keysLength, 0)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " networkCodeToId() - markets need to be loaded at first")) ;
@@ -4851,7 +4851,7 @@ public class HtxCore extends HtxApi
                                 Helpers.addElementToObject(subResult, code, this.parseMarginBalanceHelper(balance, code, subResult));
                             }
                         }
-                        Object subCodes = Helpers.objectKeys(subResult);
+                        java.util.List<Object> subCodes = Helpers.objectKeys(subResult);
                         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(subCodes)); j++)
                         {
                             Object subCode = Helpers.GetValue(subCodes, j);
@@ -6341,7 +6341,7 @@ public class HtxCore extends HtxApi
             {
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(rawType, "-"), 0)))
                 {
-                    Object orderType = Helpers.split(rawType, "-");
+                    java.util.List<Object> orderType = (java.util.List<Object>) Helpers.split(rawType, "-");
                     side = Helpers.GetValue(orderType, 0);
                     type = Helpers.GetValue(orderType, 1);
                 } else if (Helpers.isTrue(Helpers.isEqual(type, null)))
@@ -9463,7 +9463,7 @@ public class HtxCore extends HtxApi
                 Object auth = this.urlencode(sortedRequest, true); // true is a go only requirement
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(method, this.hostname, url, auth));
-                Object payload = String.join((String)"\n", (java.util.List<String>)content); // eslint-disable-line quotes
+                String payload = String.join((String)"\n", (java.util.List<String>)content); // eslint-disable-line quotes
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 auth = Helpers.add(auth, Helpers.add("&", this.urlencode(new java.util.HashMap<String, Object>() {{
     put( "Signature", signature );
@@ -9567,10 +9567,10 @@ public class HtxCore extends HtxApi
                     java.util.Map<String, Object> sortedQuery = this.keysort(query);
                     request = this.extend(request, sortedQuery);
                 }
-                Object auth = Helpers.replace((String)this.urlencode(request, true), (String)"%2c", (String)"%2C"); // in c# it manually needs to be uppercased
+                String auth = Helpers.replace((String)this.urlencode(request, true), (String)"%2c", (String)"%2C"); // in c# it manually needs to be uppercased
                 // unfortunately, PHP demands double quotes for the escaped newline symbol
                 Object content2 = new java.util.ArrayList<Object>(java.util.Arrays.asList(method, hostname, url, auth));
-                Object payload = String.join((String)"\n", (java.util.List<String>)content2); // eslint-disable-line quotes
+                String payload = String.join((String)"\n", (java.util.List<String>)content2); // eslint-disable-line quotes
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "base64");
                 auth = Helpers.add(auth, Helpers.add("&", this.urlencode(new java.util.HashMap<String, Object>() {{
     put( "Signature", signature );
@@ -10066,7 +10066,7 @@ public class HtxCore extends HtxApi
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     String first = this.safeString(symbols, 0);
@@ -10624,7 +10624,7 @@ public class HtxCore extends HtxApi
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     String first = this.safeString(symbols, 0);
@@ -11796,7 +11796,7 @@ public class HtxCore extends HtxApi
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 0)))
                 {
                     String first = this.safeString(symbols, 0);

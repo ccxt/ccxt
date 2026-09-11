@@ -287,7 +287,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         Object rawTrades = this.safeValue(message, "data");
         // usually the first message is an empty array
         // when the user does not have any trades yet
-        Object dataLength = Helpers.getArrayLength(rawTrades);
+        Integer dataLength = Helpers.getArrayLength(rawTrades);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;
@@ -314,7 +314,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         }
         // non-symbol specific
         client.resolve(this.myTrades, channel);
-        Object keys = Helpers.objectKeys(marketIds);
+        java.util.List<Object> keys = Helpers.objectKeys(marketIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);
@@ -428,7 +428,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         Object channel = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         // usually the first message is an empty array
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;
@@ -463,7 +463,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         }
         // non-symbol specific
         client.resolve(this.orders, channel);
-        Object keys = Helpers.objectKeys(marketIds);
+        java.util.List<Object> keys = Helpers.objectKeys(marketIds);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object marketId = Helpers.GetValue(keys, i);
@@ -512,7 +512,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         //
         Object messageHash = this.safeString(message, "topic");
         Object data = this.safeValue(message, "data");
-        Object keys = Helpers.objectKeys(data);
+        java.util.List<Object> keys = Helpers.objectKeys(data);
         Object timestamp = this.safeTimestamp(message, "time");
         Helpers.addElementToObject(this.balance, "info", data);
         Helpers.addElementToObject(this.balance, "timestamp", timestamp);
@@ -520,7 +520,7 @@ public class HollaexCore extends io.github.ccxt.exchanges.Hollaex
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
-            Object parts = Helpers.split(key, "_");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(key, "_");
             Object currencyId = this.safeString(parts, 0);
             String code = (String) this.safeCurrencyCode(currencyId);
             Object account = this.account();

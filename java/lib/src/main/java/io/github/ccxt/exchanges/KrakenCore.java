@@ -751,7 +751,7 @@ public class KrakenCore extends KrakenApi
             //
             Object markets = this.safeDict(assetsResponse, "result", new java.util.HashMap<String, Object>() {{}});
             Object cachedCurrencies = this.safeDict(this.options, "cachedCurrencies", new java.util.HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(markets);
+            java.util.List<Object> keys = Helpers.objectKeys(markets);
             java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
@@ -785,7 +785,7 @@ public class KrakenCore extends KrakenApi
                     taker = this.parseNumber(Precise.stringDiv(firstTakerFeeRate, "100"));
                 }
                 Object leverageBuy = this.safeList(market, "leverage_buy", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object leverageBuyLength = Helpers.getArrayLength(leverageBuy);
+                Integer leverageBuyLength = Helpers.getArrayLength(leverageBuy);
                 Object precisionPrice = this.parseNumber(this.parsePrecision(this.safeString(market, "pair_decimals")));
                 Object precisionAmount = this.parseNumber(this.parsePrecision(this.safeString(market, "lot_decimals")));
                 Boolean spot = true;
@@ -1076,7 +1076,7 @@ public class KrakenCore extends KrakenApi
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(currencyId, "."), 0)))
         {
             // if ID contains .M, .S or .F, then it can't contain X or Z prefix. in such case, ID equals to ALTNAME
-            Object parts = Helpers.split(currencyId, ".");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(currencyId, ".");
             String firstPart = this.safeString(parts, 0);
             String secondPart = this.safeString(parts, 1);
             return Helpers.add(Helpers.add(super.safeCurrencyCode(firstPart, currency), "."), secondPart);
@@ -1325,7 +1325,7 @@ public class KrakenCore extends KrakenApi
             }
             java.util.Map<String, Object> response = (this.publicGetTicker(this.extend(request, parameters))).join();
             Object tickers = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object ids = Helpers.objectKeys(tickers);
+            java.util.List<Object> ids = Helpers.objectKeys(tickers);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
@@ -1596,7 +1596,7 @@ public class KrakenCore extends KrakenApi
             //                                                "balance": "0.0000051000"           },
             Object result = this.safeValue(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object ledger = this.safeDict(result, "ledger", new java.util.HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(ledger);
+            java.util.List<Object> keys = Helpers.objectKeys(ledger);
             java.util.List<Object> items = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
@@ -1638,7 +1638,7 @@ public class KrakenCore extends KrakenApi
             //                                          "fee": "0.0050000000",
             //                                      "balance": "0.0000051000"           } } }
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(result);
+            java.util.List<Object> keys = Helpers.objectKeys(result);
             java.util.List<Object> items = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
@@ -1747,7 +1747,7 @@ public class KrakenCore extends KrakenApi
             type = ((Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(trade, 4), "l"))))) ? "limit" : "market";
             price = this.safeString(trade, 0);
             amount = this.safeString(trade, 1);
-            Object tradeLength = Helpers.getArrayLength(trade);
+            Integer tradeLength = Helpers.getArrayLength(trade);
             if (Helpers.isTrue(Helpers.isGreaterThan(tradeLength, 6)))
             {
                 id = this.safeString(trade, 6); // artificially added as per #1794
@@ -1896,7 +1896,7 @@ public class KrakenCore extends KrakenApi
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object trades = this.safeValue(result, id);
             // trades is a sorted array: last (most recent trade) goes last
-            Object length = Helpers.getArrayLength(trades);
+            Integer length = Helpers.getArrayLength(trades);
             if (Helpers.isTrue(Helpers.isLessThanOrEqual(length, 0)))
             {
                 return new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -1918,7 +1918,7 @@ public class KrakenCore extends KrakenApi
             put( "timestamp", null );
             put( "datetime", null );
         }};
-        Object currencyIds = Helpers.objectKeys(balances);
+        java.util.List<Object> currencyIds = Helpers.objectKeys(balances);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -2220,8 +2220,8 @@ public class KrakenCore extends KrakenApi
             quoteIdStart = 4;
             quoteIdEnd = 7;
         }
-        Object baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
-        Object quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
+        String baseId = Helpers.slice(id, baseIdStart, baseIdEnd);
+        String quoteId = Helpers.slice(id, quoteIdStart, quoteIdEnd);
         Object base = this.safeCurrencyCode(baseId);
         Object quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
@@ -2387,7 +2387,7 @@ public class KrakenCore extends KrakenApi
         Object triggerPrice = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderDescription, null)))
         {
-            Object parts = Helpers.split(orderDescription, " ");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(orderDescription, " ");
             side = this.safeString(parts, 0);
             if (Helpers.isTrue(!Helpers.isEqual(isUsingCost, true)))
             {
@@ -2961,7 +2961,7 @@ final Object finalId = id;
             }
             Object options = this.safeValue(this.options, "fetchOrderTrades", new java.util.HashMap<String, Object>() {{}});
             Long batchSize = this.safeInteger(options, "batchSize", 20);
-            Object numTradeIds = Helpers.getArrayLength(tradeIds);
+            Integer numTradeIds = Helpers.getArrayLength(tradeIds);
             Object numBatches = this.parseToInt(Helpers.divide(numTradeIds, batchSize));
             numBatches = this.sum(numBatches, 1);
             Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -3002,7 +3002,7 @@ final Object finalId = id;
                 //     }
                 //
                 Object rawTrades = this.safeValue(response, "result");
-                Object ids = Helpers.objectKeys(rawTrades);
+                java.util.List<Object> ids = Helpers.objectKeys(rawTrades);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
                 {
                     Helpers.addElementToObject(Helpers.GetValue(rawTrades, Helpers.GetValue(ids, i)), "id", Helpers.GetValue(ids, i));
@@ -3043,7 +3043,7 @@ final Object finalId = id;
             }}, parameters))).join();
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object orderIds = Helpers.objectKeys(result);
+            java.util.List<Object> orderIds = Helpers.objectKeys(result);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderIds)); i++)
             {
                 Object id = Helpers.GetValue(orderIds, i);
@@ -3127,7 +3127,7 @@ final Object finalId = id;
             //
             Object tradesResult = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object trades = this.safeDict(tradesResult, "trades", new java.util.HashMap<String, Object>() {{}});
-            Object ids = Helpers.objectKeys(trades);
+            java.util.List<Object> ids = Helpers.objectKeys(trades);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
                 Helpers.addElementToObject(Helpers.GetValue(trades, Helpers.GetValue(ids, i)), "id", Helpers.GetValue(ids, i));
@@ -3412,7 +3412,7 @@ final Object finalId = id;
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object open = this.safeDict(result, "open", new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object orderIds = Helpers.objectKeys(open);
+            java.util.List<Object> orderIds = Helpers.objectKeys(open);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderIds)); i++)
             {
                 Object id = Helpers.GetValue(orderIds, i);
@@ -3521,7 +3521,7 @@ final Object finalId = id;
             Object result = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object closed = this.safeDict(result, "closed", new java.util.HashMap<String, Object>() {{}});
             java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object orderIds = Helpers.objectKeys(closed);
+            java.util.List<Object> orderIds = Helpers.objectKeys(closed);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderIds)); i++)
             {
                 Object id = Helpers.GetValue(orderIds, i);
@@ -3896,7 +3896,7 @@ final Object finalId = id;
     {
         String cursor = this.safeString(result, "next_cursor");
         Object data = this.safeValue(result, "withdrawals");
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(cursor, null)) && Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0))))
         {
             Object last = Helpers.GetValue(data, Helpers.subtract(dataLength, 1));
@@ -4412,7 +4412,7 @@ final Object finalId = id;
             Boolean isCancelOrderBatch = (Helpers.isEqual(path, "CancelOrderBatch"));
             Boolean isBatchOrder = (Helpers.isEqual(path, "AddOrderBatch"));
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isCancelOrderBatch) || Helpers.isTrue(isTriggerPercent)) || Helpers.isTrue(isBatchOrder)))
             {
                 final Object finalNonce = nonce;
@@ -4482,7 +4482,7 @@ final Object finalId = id;
                 Object message = Helpers.add(Helpers.add(this.id, " "), body);
                 if (Helpers.isTrue(Helpers.inOp(response, "error")))
                 {
-                    Object numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
+                    Integer numErrors = Helpers.getArrayLength(Helpers.GetValue(response, "error"));
                     if (Helpers.isTrue(Helpers.isGreaterThan(numErrors, 0)))
                     {
                         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(Helpers.GetValue(response, "error"))); i++)

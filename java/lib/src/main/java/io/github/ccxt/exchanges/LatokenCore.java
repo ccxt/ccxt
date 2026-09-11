@@ -561,7 +561,7 @@ public class LatokenCore extends LatokenApi
                     {
                         continue;
                     }
-                    Object lowercaseQuote = ((String)quote).toLowerCase();
+                    String lowercaseQuote = ((String)quote).toLowerCase();
                     Object capitalizedQuote = this.capitalize(lowercaseQuote);
                     String status = this.safeString(market, "status");
     final Object finalBase = base;
@@ -1433,8 +1433,8 @@ public class LatokenCore extends LatokenApi
         Object side = null;
         if (Helpers.isTrue(!Helpers.isEqual(orderSide, null)))
         {
-            Object parts = Helpers.split(orderSide, "_");
-            Object partsLength = Helpers.getArrayLength(parts);
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(orderSide, "_");
+            Integer partsLength = Helpers.getArrayLength(parts);
             side = this.safeStringLower(parts, Helpers.subtract(partsLength, 1));
         }
         String type = this.parseOrderType(this.safeString(order, "type"));
@@ -1735,7 +1735,7 @@ public class LatokenCore extends LatokenApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(side, null)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a side argument")) ;

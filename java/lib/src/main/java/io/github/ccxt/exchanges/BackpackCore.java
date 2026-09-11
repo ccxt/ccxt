@@ -1749,7 +1749,7 @@ public class BackpackCore extends BackpackApi
         //         }
         //     }
         //
-        Object balanceKeys = Helpers.objectKeys(response);
+        java.util.List<Object> balanceKeys = Helpers.objectKeys(response);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(balanceKeys)); i++)
         {
@@ -2899,7 +2899,7 @@ public class BackpackCore extends BackpackApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object ts = String.valueOf(this.nonce());
+            String ts = String.valueOf(this.nonce());
             String recvWindow = this.safeString2(this.options, "recvWindow", "X-Window", "5000");
             Object optionInstructions = this.safeDict(this.options, "instructions", new java.util.HashMap<String, Object>() {{}});
             Object optionPathInstructions = this.safeDict(optionInstructions, path, new java.util.HashMap<String, Object>() {{}});

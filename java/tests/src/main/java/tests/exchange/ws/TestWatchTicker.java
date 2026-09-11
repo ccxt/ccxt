@@ -25,7 +25,7 @@ public class TestWatchTicker extends BaseTest {
         {
             Object response = null;
             Boolean success = true;
-            Object startTime = exchange.milliseconds();
+            Long startTime = exchange.milliseconds();
             try
             {
                 response = (exchange.watchTicker(symbol)).join();

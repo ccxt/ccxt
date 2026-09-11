@@ -433,14 +433,14 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(stored, "append", new Object[]{trade});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        java.util.List<Object> keys = Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             String messageHash = (String) Helpers.add("myTrades:", Helpers.GetValue(keys, i));
             client.resolve(stored, messageHash);
         }
         client.resolve(stored, "myTrades");
-        Object subscriptions = Helpers.objectKeys(client.subscriptions);
+        java.util.List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subscriptions)); i++)
         {
             Object messageHash = Helpers.GetValue(subscriptions, i);
@@ -549,9 +549,9 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object filtered = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(filtered)))
             {
@@ -614,14 +614,14 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
             Helpers.addElementToObject(symbols, ((String)symbol), true);
             Helpers.callDynamically(orders, "append", new Object[]{order});
         }
-        Object keys = Helpers.objectKeys(symbols);
+        java.util.List<Object> keys = Helpers.objectKeys(symbols);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             String messageHash = (String) Helpers.add("orders:", Helpers.GetValue(keys, i));
             client.resolve(orders, messageHash);
         }
         client.resolve(orders, "orders");
-        Object subscriptions = Helpers.objectKeys(client.subscriptions);
+        java.util.List<Object> subscriptions = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subscriptions)); i++)
         {
             Object messageHash = Helpers.GetValue(subscriptions, i);
@@ -1021,7 +1021,7 @@ public class ExtendedCore extends io.github.ccxt.exchanges.Extended
 
     public Object findSubscription(Client client, Object name)
     {
-        Object keys = Helpers.objectKeys(client.subscriptions);
+        java.util.List<Object> keys = Helpers.objectKeys(client.subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

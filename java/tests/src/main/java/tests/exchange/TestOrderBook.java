@@ -33,19 +33,19 @@ public class TestOrderBook extends BaseTest {
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, orderbook, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, orderbook);
         TestSharedMethods.AssertSymbol(exchange, skippedProperties, method, orderbook, "symbol", symbol);
-        Object logText = TestSharedMethods.logTemplate(exchange, method, orderbook);
+        String logText = (String) TestSharedMethods.logTemplate(exchange, method, orderbook);
         // todo: check non-emtpy arrays for bids/asks for toptier exchanges
         Object bids = Helpers.GetValue(orderbook, "bids");
-        Object bidsLength = Helpers.getArrayLength(bids);
+        Integer bidsLength = Helpers.getArrayLength(bids);
         for (var i = 0; Helpers.isLessThan(i, bidsLength); i++)
         {
-            Object currentBidString = exchange.safeString(Helpers.GetValue(bids, i), 0);
+            String currentBidString = exchange.safeString(Helpers.GetValue(bids, i), 0);
             if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareToNextItem"))))
             {
                 Object nextI = Helpers.add(i, 1);
                 if (Helpers.isTrue(Helpers.isGreaterThan(bidsLength, nextI)))
                 {
-                    Object nextBidString = exchange.safeString(Helpers.GetValue(bids, nextI), 0);
+                    String nextBidString = exchange.safeString(Helpers.GetValue(bids, nextI), 0);
                     Assert(Precise.stringGt(currentBidString, nextBidString), Helpers.add(Helpers.add(Helpers.add(Helpers.add("current bid should be > than the next one: ", currentBidString), ">"), nextBidString), logText));
                 }
             }
@@ -57,16 +57,16 @@ public class TestOrderBook extends BaseTest {
             }
         }
         Object asks = Helpers.GetValue(orderbook, "asks");
-        Object asksLength = Helpers.getArrayLength(asks);
+        Integer asksLength = Helpers.getArrayLength(asks);
         for (var i = 0; Helpers.isLessThan(i, asksLength); i++)
         {
-            Object currentAskString = exchange.safeString(Helpers.GetValue(asks, i), 0);
+            String currentAskString = exchange.safeString(Helpers.GetValue(asks, i), 0);
             if (!Helpers.isTrue((Helpers.inOp(skippedProperties, "compareToNextItem"))))
             {
                 Object nextI = Helpers.add(i, 1);
                 if (Helpers.isTrue(Helpers.isGreaterThan(asksLength, nextI)))
                 {
-                    Object nextAskString = exchange.safeString(Helpers.GetValue(asks, nextI), 0);
+                    String nextAskString = exchange.safeString(Helpers.GetValue(asks, nextI), 0);
                     Assert(Precise.stringLt(currentAskString, nextAskString), Helpers.add(Helpers.add(Helpers.add(Helpers.add("current ask should be < than the next one: ", currentAskString), "<"), nextAskString), logText));
                 }
             }
@@ -81,8 +81,8 @@ public class TestOrderBook extends BaseTest {
         {
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(bidsLength, 0))) && Helpers.isTrue((Helpers.isGreaterThan(asksLength, 0)))))
             {
-                Object firstBid = exchange.safeString(Helpers.GetValue(bids, 0), 0);
-                Object firstAsk = exchange.safeString(Helpers.GetValue(asks, 0), 0);
+                String firstBid = exchange.safeString(Helpers.GetValue(bids, 0), 0);
+                String firstAsk = exchange.safeString(Helpers.GetValue(asks, 0), 0);
                 // check bid-ask spread
                 Assert(Precise.stringLt(firstBid, firstAsk), Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("bids[0][0] (", firstBid), ") should be < than asks[0][0] ("), firstAsk), ")"), logText));
             }

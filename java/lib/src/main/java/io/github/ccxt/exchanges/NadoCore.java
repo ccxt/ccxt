@@ -2357,7 +2357,7 @@ public class NadoCore extends NadoApi
             //         }
             //     }
             //
-            Object tickers = Helpers.objectKeys(response);
+            java.util.List<Object> tickers = Helpers.objectKeys(response);
             java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
@@ -2465,7 +2465,7 @@ public class NadoCore extends NadoApi
             //         }
             //     }
             //
-            Object tickers = Helpers.objectKeys(response);
+            java.util.List<Object> tickers = Helpers.objectKeys(response);
             java.util.List<Object> interests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
@@ -3521,7 +3521,7 @@ public class NadoCore extends NadoApi
         {
             subaccount = "default";
         }
-        Object address = ((String)this.remove0xPrefix(walletAddress)).toLowerCase();
+        String address = ((String)this.remove0xPrefix(walletAddress)).toLowerCase();
         if (Helpers.isTrue(!Helpers.isEqual(Helpers.getArrayLength(address), 40)))
         {
             throw new BadRequest((String)Helpers.add(this.id, " createOrder() requires a 20-byte walletAddress")) ;
@@ -3696,7 +3696,7 @@ public class NadoCore extends NadoApi
         Object signature = ecdsa(Helpers.slice(hash, Helpers.opNeg(64), null), Helpers.slice(privateKey, Helpers.opNeg(64), null), secp256k1(), null);
         Object r = Helpers.GetValue(signature, "r");
         Object s = Helpers.GetValue(signature, "s");
-        Object v = ((String)this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")))).toLowerCase();
+        String v = ((String)this.intToBase16(this.sum(27, Helpers.GetValue(signature, "v")))).toLowerCase();
         return Helpers.add(Helpers.add(Helpers.add("0x", this.padHex(r, 64)), this.padHex(s, 64)), v);
     }
 

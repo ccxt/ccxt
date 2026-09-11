@@ -633,7 +633,7 @@ public class BigoneCore extends BigoneApi
 }});
             }
         }
-        Object chainLength = Helpers.getArrayLength(chains);
+        Integer chainLength = Helpers.getArrayLength(chains);
         String type = null;
         if (Helpers.isTrue(Helpers.isEqual(this.safeBool(rawCurrency, "is_fiat"), true)))
         {
@@ -1220,7 +1220,7 @@ public class BigoneCore extends BigoneApi
 
     public Object parseContractBidsAsks(Object bidsAsks)
     {
-        Object bidsAsksKeys = Helpers.objectKeys(bidsAsks);
+        java.util.List<Object> bidsAsksKeys = Helpers.objectKeys(bidsAsks);
         java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidsAsksKeys)); i++)
         {
@@ -1826,7 +1826,7 @@ public class BigoneCore extends BigoneApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             Boolean isBuy = (Helpers.isEqual(side, "buy"));
             String requestSide = ((Helpers.isTrue(isBuy))) ? "BID" : "ASK";
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             Boolean isLimit = Helpers.isEqual(uppercaseType, "LIMIT");
             Object exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
             Boolean postOnly = null;
@@ -2297,7 +2297,7 @@ public class BigoneCore extends BigoneApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "type", "OpenAPIV2" );
                 put( "sub", BigoneCore.this.apiKey );
@@ -2375,7 +2375,7 @@ public class BigoneCore extends BigoneApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isLessThan(dataLength, 1)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() returned empty address response")) ;

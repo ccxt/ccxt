@@ -262,7 +262,7 @@ public class MudrexCore extends MudrexApi
         {
             Helpers.addElementToObject(requestHeaders, "Partner-Id", brokerId);
         }
-        Object methodUpper = ((String)method).toUpperCase();
+        String methodUpper = ((String)method).toUpperCase();
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
@@ -335,7 +335,7 @@ public class MudrexCore extends MudrexApi
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errCode, Helpers.add(Helpers.add(this.id, " "), text));
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), text, Helpers.add(Helpers.add(this.id, " "), text));
             Object msg = Helpers.add(Helpers.add(this.id, " "), text);
-            Object low = ((String)text).toLowerCase();
+            String low = ((String)text).toLowerCase();
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(code, 401)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(low, "auth"), 0))))
             {
                 throw new AuthenticationError((String)msg) ;
@@ -643,7 +643,7 @@ public class MudrexCore extends MudrexApi
                 {
                     items = this.toArray(data);
                 }
-                Object numItems = Helpers.getArrayLength(items);
+                Integer numItems = Helpers.getArrayLength(items);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(numItems, null))) || Helpers.isTrue((Helpers.isEqual(numItems, 0)))))
                 {
                     paging = false;
@@ -1732,7 +1732,7 @@ public class MudrexCore extends MudrexApi
                 }
                 java.util.Map<String, Object> response = (this.privateGetFuturesFeeHistory(this.extend(request, parameters))).join();
                 Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object dataLength = Helpers.getArrayLength(data);
+                Integer dataLength = Helpers.getArrayLength(data);
                 for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
                 {
                     Object entry = Helpers.GetValue(data, i);

@@ -3421,7 +3421,7 @@ public class AsterCore extends AsterApi
          * @returns {object} request to be sent to the exchange
          */
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object initialUppercaseType = ((String)type).toUpperCase();
+        String initialUppercaseType = ((String)type).toUpperCase();
         Boolean isMarketOrder = Helpers.isEqual(initialUppercaseType, "MARKET");
         Boolean isLimitOrder = Helpers.isEqual(initialUppercaseType, "LIMIT");
         final Object finalSide = side;
@@ -3443,7 +3443,7 @@ public class AsterCore extends AsterApi
         Boolean isTrailingPercentOrder = !Helpers.isEqual(trailingPercent, null);
         Boolean isStopLoss = Helpers.isTrue(!Helpers.isEqual(stopLossPrice, null)) || Helpers.isTrue(!Helpers.isEqual(trailingDelta, null));
         Boolean isTakeProfit = !Helpers.isEqual(takeProfitPrice, null);
-        Object uppercaseType = initialUppercaseType;
+        String uppercaseType = initialUppercaseType;
         Object stopPrice = null;
         if (Helpers.isTrue(isTrailingPercentOrder))
         {
@@ -4868,10 +4868,10 @@ public class AsterCore extends AsterApi
             }
             Object pricePrecision = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "price"));
             Object pricePrecisionPlusOne = Helpers.add(pricePrecision, 1);
-            Object pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
+            String pricePrecisionPlusOneString = String.valueOf(pricePrecisionPlusOne);
             // round half up
             var rounder = new Precise(Helpers.add("5e-", pricePrecisionPlusOneString));
-            Object rounderString = String.valueOf(rounder);
+            String rounderString = String.valueOf(rounder);
             String liquidationPriceRoundedString = Precise.stringAdd(rounderString, liquidationPriceStringRaw);
             String truncatedLiquidationPrice = Precise.stringDiv(liquidationPriceRoundedString, "1", pricePrecision);
             if (Helpers.isTrue(Helpers.isEqual(truncatedLiquidationPrice, null)))
@@ -5406,7 +5406,7 @@ public class AsterCore extends AsterApi
     public String encodeValuesWithJson(Object values)
     {
         Object encodedString = "";
-        Object keys = Helpers.objectKeys(values);
+        java.util.List<Object> keys = Helpers.objectKeys(values);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -5422,7 +5422,7 @@ public class AsterCore extends AsterApi
     public Object capitalizeKeys(Object dict)
     {
         java.util.Map<String, Object> capitalized = new java.util.HashMap<String, Object>() {{}};
-        Object keys = Helpers.objectKeys(dict);
+        java.util.List<Object> keys = Helpers.objectKeys(dict);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -5504,7 +5504,7 @@ public class AsterCore extends AsterApi
             //    ]
             //
             java.util.List<Object> approvedBuilders = result;
-            Object length = Helpers.getArrayLength(approvedBuilders);
+            Integer length = Helpers.getArrayLength(approvedBuilders);
             Boolean found = false;
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {

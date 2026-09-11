@@ -124,7 +124,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", data );
         }};
-        Object currencyIds = Helpers.objectKeys(freeBalance);
+        java.util.List<Object> currencyIds = Helpers.objectKeys(freeBalance);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -179,7 +179,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             Client client = (Client)this.safeValue(this.clients, url);
             if (Helpers.isTrue(!Helpers.isEqual(client, null)))
             {
-                Object subscriptionKeys = Helpers.objectKeys(client.subscriptions);
+                java.util.List<Object> subscriptionKeys = Helpers.objectKeys(client.subscriptions);
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(subscriptionKeys)); i++)
                 {
                     Object subscriptionKey = Helpers.GetValue(subscriptionKeys, i);
@@ -286,7 +286,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         }
         io.github.ccxt.ws.ArrayCache stored = (io.github.ccxt.ws.ArrayCache) Helpers.GetValue(this.trades, symbol);
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         for (var i = 0; Helpers.isLessThan(i, dataLength); i++)
         {
             Object index = Helpers.subtract(Helpers.subtract(dataLength, 1), i);
@@ -1106,7 +1106,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         }
         this.orders = myOrders;
         String messageHash = (String) Helpers.add("orders:", symbol);
-        Object ordersLength = Helpers.getArrayLength(myOrders);
+        Integer ordersLength = Helpers.getArrayLength(myOrders);
         if (Helpers.isTrue(Helpers.isGreaterThan(ordersLength, 0)))
         {
             client.resolve(myOrders, messageHash);
@@ -1199,7 +1199,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
 
     public Object pairToSymbol(Object pair)
     {
-        Object parts = Helpers.split(pair, ":");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(pair, ":");
         Object baseId = this.safeString(parts, 0);
         Object quoteId = this.safeString(parts, 1);
         String base = (String) this.safeCurrencyCode(baseId);
@@ -1329,7 +1329,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
         {
             return;
         }
-        Object parts = Helpers.split(pair, ":");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(pair, ":");
         Object baseId = this.safeString(parts, 0);
         Object quoteId = this.safeString(parts, 1);
         String base = (String) this.safeCurrencyCode(baseId);
@@ -1414,7 +1414,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             java.util.List<Object> ohlcv = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.safeTimestamp(Helpers.GetValue(data, i), 0), this.safeNumber(Helpers.GetValue(data, i), 1), this.safeNumber(Helpers.GetValue(data, i), 2), this.safeNumber(Helpers.GetValue(data, i), 3), this.safeNumber(Helpers.GetValue(data, i), 4), this.safeNumber(Helpers.GetValue(data, i), 5)));
             Helpers.callDynamically(stored, "append", new Object[]{ohlcv});
         }
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0)))
         {
             client.resolve(stored, messageHash);
@@ -1847,7 +1847,7 @@ public class CexCore extends io.github.ccxt.exchanges.Cex
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
                 this.checkRequiredCredentials();
-                Object nonce = String.valueOf(this.seconds());
+                String nonce = String.valueOf(this.seconds());
                 Object auth = Helpers.add(nonce, this.apiKey);
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 final Object finalNonce = nonce;

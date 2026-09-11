@@ -1413,7 +1413,7 @@ public class ParadexCore extends ParadexApi
             Object target = "ALL";
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     target = ((String)Helpers.GetValue(this.market(Helpers.GetValue(symbols, 0)), "id"));
@@ -2185,8 +2185,8 @@ public class ParadexCore extends ParadexApi
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        Object orderType = ((String)type).toUpperCase();
-        Object orderSide = ((String)((String)side)).toUpperCase();
+        String orderType = ((String)type).toUpperCase();
+        String orderSide = ((String)((String)side)).toUpperCase();
         final Object finalOrderType = orderType;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "market", Helpers.GetValue(market, "id") );
@@ -2918,7 +2918,7 @@ public class ParadexCore extends ParadexApi
             //
             Object orders = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             String paginationCursor = this.safeString(response, "next");
-            Object ordersLength = Helpers.getArrayLength(orders);
+            Integer ordersLength = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(paginationCursor, null))) && Helpers.isTrue((Helpers.isGreaterThan(ordersLength, 0)))))
             {
                 Object first = Helpers.GetValue(orders, 0);

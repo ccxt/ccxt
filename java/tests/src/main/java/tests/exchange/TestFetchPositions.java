@@ -17,7 +17,7 @@ public class TestFetchPositions extends BaseTest {
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
         String method = "fetchPositions";
-        Object now = exchange.milliseconds();
+        Long now = exchange.milliseconds();
         // without symbol
         Object positions = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, positions, symbol);
@@ -29,7 +29,7 @@ public class TestFetchPositions extends BaseTest {
         // with symbol
         Object positionsForSymbol = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchPositions", new Object[]{new java.util.ArrayList<Object>(java.util.Arrays.asList(symbol))})).join();
         Assert(Helpers.isArray(positionsForSymbol), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " must return an array, returned "), exchange.json(positionsForSymbol)));
-        Object positionsForSymbolLength = Helpers.getArrayLength(positionsForSymbol);
+        Integer positionsForSymbolLength = Helpers.getArrayLength(positionsForSymbol);
         Assert(Helpers.isLessThanOrEqual(positionsForSymbolLength, 4), Helpers.add(Helpers.add(Helpers.add(Helpers.add(exchange.id, " "), method), " positions length for particular symbol should be less than 4, returned "), exchange.json(positionsForSymbol)));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(positionsForSymbol)); i++)
         {

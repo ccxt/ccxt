@@ -95,7 +95,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             java.util.List<Object> finalMessage = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
         put( "ticket", UpbitCore.this.uuid() );
     }}));
-            Object channelKeys = Helpers.objectKeys(subscriptions);
+            java.util.List<Object> channelKeys = Helpers.objectKeys(subscriptions);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(channelKeys)); i++)
             {
                 Object key = Helpers.GetValue(channelKeys, i);
@@ -508,7 +508,7 @@ public class UpbitCore extends io.github.ccxt.exchanges.Upbit
             // Build subscription message with all requested private channels
             // Format: [{'ticket': uuid}, {'type': 'myOrder'}, {'type': 'myAsset'}, ...]
             java.util.List<Object> requests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object channelKeys = Helpers.objectKeys(subscriptions);
+            java.util.List<Object> channelKeys = Helpers.objectKeys(subscriptions);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(channelKeys)); i++)
             {
                 ((java.util.List<Object>)requests).add(Helpers.GetValue(subscriptions, Helpers.GetValue(channelKeys, i)));

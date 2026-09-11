@@ -435,8 +435,8 @@ public class DeltaCore extends DeltaApi
     {
         // support expired option contracts
         String quote = "USDT";
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(symbol, "-");
+        java.util.List<Object> symbolBase = (java.util.List<Object>) Helpers.split(symbol, "/");
         Object base = null;
         Object expiry = null;
         Object optionType = null;
@@ -789,7 +789,7 @@ public class DeltaCore extends DeltaApi
         {
             return null;
         }
-        Object keys = Helpers.objectKeys(input);
+        java.util.List<Object> keys = Helpers.objectKeys(input);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);
@@ -4693,7 +4693,7 @@ public class DeltaCore extends DeltaApi
         } else if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.seconds());
+            String timestamp = String.valueOf(this.seconds());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "api-key", DeltaCore.this.apiKey );
                 put( "timestamp", timestamp );

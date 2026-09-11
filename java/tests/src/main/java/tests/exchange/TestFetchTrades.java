@@ -19,7 +19,7 @@ public class TestFetchTrades extends BaseTest {
         String method = "fetchTrades";
         Object trades = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchTrades", new Object[]{symbol})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, trades);
-        Object now = exchange.milliseconds();
+        Long now = exchange.milliseconds();
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(trades)); i++)
         {
             TestTrade.testTrade(exchange, skippedProperties, method, Helpers.GetValue(trades, i), symbol, now);

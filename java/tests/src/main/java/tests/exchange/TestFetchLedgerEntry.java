@@ -18,7 +18,7 @@ public class TestFetchLedgerEntry extends BaseTest {
 
         String method = "fetchLedgerEntry";
         Object items = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedger", new Object[]{code})).join();
-        Object length = Helpers.getArrayLength(items);
+        Integer length = Helpers.getArrayLength(items);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, items, code);
         if (Helpers.isTrue(Helpers.isGreaterThan(length, 0)))
         {
@@ -27,7 +27,7 @@ public class TestFetchLedgerEntry extends BaseTest {
             if (Helpers.isTrue(!Helpers.isEqual(id, null)))
             {
                 Object item = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchLedgerEntry", new Object[]{id})).join();
-                Object now = exchange.milliseconds();
+                Long now = exchange.milliseconds();
                 TestLedgerEntry.testLedgerEntry(exchange, skippedProperties, method, item, code, now);
             }
         }

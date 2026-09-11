@@ -29,7 +29,7 @@ public class TestLiquidation extends BaseTest {
         java.util.List<Object> emptyAllowedFor = new java.util.ArrayList<Object>(java.util.Arrays.asList("timestamp", "datetime", "quoteValue", "baseValue", "previousClose", "price", "contractSize", "contracts"));
         TestSharedMethods.AssertStructure(exchange, skippedProperties, method, entry, format, emptyAllowedFor);
         TestSharedMethods.AssertTimestampAndDatetime(exchange, skippedProperties, method, entry);
-        Object logText = TestSharedMethods.logTemplate(exchange, method, entry);
+        String logText = (String) TestSharedMethods.logTemplate(exchange, method, entry);
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "contracts", "0");
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "contractSize", "0");
         TestSharedMethods.AssertGreater(exchange, skippedProperties, method, entry, "price", "0");

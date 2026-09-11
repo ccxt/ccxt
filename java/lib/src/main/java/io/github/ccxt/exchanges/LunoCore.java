@@ -523,7 +523,7 @@ public class LunoCore extends LunoApi
             //
             Object currenciesData = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> grouped = this.groupBy(currenciesData, "native_currency");
-            Object values = Helpers.objectValues(grouped);
+            java.util.List<Object> values = Helpers.objectValues(grouped);
             return this.parseCurrencies(values);
         });
 
@@ -1163,7 +1163,7 @@ public class LunoCore extends LunoApi
             java.util.Map<String, Object> response = (this.publicGetTickers(parameters)).join();
             Object rawTickers = this.safeList(response, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> tickers = this.indexBy(rawTickers, "pair");
-            Object ids = Helpers.objectKeys(tickers);
+            java.util.List<Object> ids = Helpers.objectKeys(tickers);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(ids)); i++)
             {
@@ -1779,7 +1779,7 @@ public class LunoCore extends LunoApi
 
     public Object parseLedgerComment(Object comment)
     {
-        Object words = Helpers.split(comment, " ");
+        java.util.List<Object> words = (java.util.List<Object>) Helpers.split(comment, " ");
         java.util.Map<String, Object> types = new java.util.HashMap<String, Object>() {{
             put( "Withdrawal", "fee" );
             put( "Trading", "fee" );

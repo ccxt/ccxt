@@ -638,7 +638,7 @@ public class DydxCore extends DydxApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
-        Object parts = Helpers.split(marketId, "-");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "-");
         String baseName = this.safeString(parts, 0);
         String baseId = this.safeString(market, "baseId", baseName); // idk where 'baseId' comes from, but leaving as is
         String base = (String) this.safeCurrencyCode(baseId);
@@ -759,7 +759,7 @@ public class DydxCore extends DydxApi
             // }
             //
             Object data = this.safeDict(response, "markets", new java.util.HashMap<String, Object>() {{}});
-            Object markets = Helpers.objectValues(data);
+            java.util.List<Object> markets = Helpers.objectValues(data);
             return this.parseMarkets(markets);
         });
 
@@ -1615,13 +1615,13 @@ public class DydxCore extends DydxApi
             throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
         }
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false);
-        Object orderType = ((String)type).toUpperCase();
+        String orderType = ((String)type).toUpperCase();
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
         }
-        Object orderSide = ((String)side).toUpperCase();
+        String orderSide = ((String)side).toUpperCase();
         Object subaccountId = 0;
         java.util.List<Object> subaccountIdparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, "createOrder", "subAccountId", subaccountId);
         subaccountId = ((java.util.List<Object>) subaccountIdparametersVariable).get(0);
@@ -1932,7 +1932,7 @@ public class DydxCore extends DydxApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " cancelOrder() requires a clientOrderId parameter, cancelling using id is not currently supported.")) ;
             }
-            Object idString = String.valueOf(id);
+            String idString = String.valueOf(id);
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(id, null)) && Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(idString, "-"), Helpers.opNeg(1)))))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " cancelOrder() cancelling using id is not currently supported, please use provide the clientOrderId parameter.")) ;
@@ -2314,7 +2314,7 @@ public class DydxCore extends DydxApi
                 gasPrice = Helpers.GetValue(feeDenom, "CHAINTOKEN_GAS_PRICE");
                 denom = Helpers.GetValue(feeDenom, "CHAINTOKEN_DENOM");
             }
-            Object gasLimit = Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)))));
+            Double gasLimit = Math.ceil(Double.parseDouble(Helpers.toString(this.parseToNumeric(Precise.stringMul(gasUsed, defaultFeeMultiplier)))));
             Object feeAmount = Precise.stringMul(this.numberToString(gasLimit), gasPrice);
             if (Helpers.isTrue(Helpers.isEqual(feeAmount, null)))
             {

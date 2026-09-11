@@ -341,7 +341,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Object channel = this.safeString(message, "c", "");
         Object marketId = this.safeString(message, "s");
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-        Object channelStartsWithSpot = ((String)channel).startsWith(((String)"spot"));
+        Boolean channelStartsWithSpot = ((String)channel).startsWith(((String)"spot"));
         Boolean marketIdIsUndefined = Helpers.isEqual(marketId, null);
         Object isSpot = ((Helpers.isTrue(marketIdIsUndefined))) ? channelStartsWithSpot : Helpers.GetValue(market, "spot");
         String spotPrefix = "spot:";
@@ -605,7 +605,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             this.checkRequiredCredentials();
             String channel = "login";
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "swap");
-            Object timestamp = String.valueOf(this.milliseconds());
+            String timestamp = String.valueOf(this.milliseconds());
             Object payload = Helpers.add(this.apiKey, timestamp);
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -893,7 +893,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         //     { id: 0, code: 0, msg: "spot@public.increase.depth.v3.api@BTCUSDT" }
         //
         Object msg = this.safeString(message, "msg", "");
-        Object parts = Helpers.split(msg, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(msg, "@");
         Object marketId = this.safeString(parts, 2);
         String symbol = (String) this.safeSymbol(marketId);
         Helpers.addElementToObject(this.orderbooks, symbol, this.orderBook(new java.util.HashMap<String, Object>() {{}}));
@@ -1012,7 +1012,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         Boolean shouldReturn = false;
         if (Helpers.isTrue(Helpers.isEqual(nonce, null)))
         {
-            Object cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(storedOrderBook, "cache")));
+            Integer cacheLength = Helpers.getArrayLength(((java.util.List<Object>)Helpers.GetValue(storedOrderBook, "cache")));
             Object snapshotDelay = this.handleOption("watchOrderBook", "snapshotDelay", 25);
             if (Helpers.isTrue(Helpers.isEqual(cacheLength, snapshotDelay)))
             {
@@ -2256,7 +2256,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(symbol, "unsubscribe"), 0)))
                 {
                     // unWatchTickers
-                    Object symbols = Helpers.objectKeys(this.tickers);
+                    java.util.List<Object> symbols = Helpers.objectKeys(this.tickers);
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(symbols)); j++)
                     {
                         ((java.util.Map<String,Object>)this.tickers).remove((String)Helpers.GetValue(symbols, j));
@@ -2274,9 +2274,9 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
                 }
             } else if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(messageHash, "candles"), 0)))
             {
-                Object splitHashes = Helpers.split(messageHash, ":");
+                java.util.List<Object> splitHashes = (java.util.List<Object>) Helpers.split(messageHash, ":");
                 Object symbol = this.safeString(splitHashes, 2);
-                Object splitHashesLength = Helpers.getArrayLength(splitHashes); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+                Integer splitHashesLength = Helpers.getArrayLength(splitHashes); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
                 if (Helpers.isTrue(Helpers.isGreaterThan(splitHashesLength, 4)))
                 {
                     symbol = Helpers.add(symbol, Helpers.add(":", this.safeString(splitHashes, 3)));
@@ -2415,7 +2415,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             this.handlePong(client, message);
         } else if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(msg, "@"), Helpers.opNeg(1))))
         {
-            Object parts = Helpers.split(msg, "@");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(msg, "@");
             Object channel = this.safeString(parts, 1);
             java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{
                 put( "public.increase.depth.v3.api", "handleOrderBookSubscription");
@@ -2450,7 +2450,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
         //    }
         // }
         Object channel = this.safeString(message, "channel", "");
-        Object channelParts = Helpers.split(channel, "@");
+        java.util.List<Object> channelParts = (java.util.List<Object>) Helpers.split(channel, "@");
         Object channelId = this.safeString(channelParts, 1);
         if (Helpers.isTrue(Helpers.isEqual(channelId, "public.kline.v3.api.pb")))
         {
@@ -2506,7 +2506,7 @@ public class MexcCore extends io.github.ccxt.exchanges.Mexc
             channel = this.safeString(message, "channel");
         } else
         {
-            Object parts = Helpers.split(c, "@");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(c, "@");
             channel = this.safeString(parts, 1, "");
         }
         java.util.Map<String, Object> methods = new java.util.HashMap<String, Object>() {{

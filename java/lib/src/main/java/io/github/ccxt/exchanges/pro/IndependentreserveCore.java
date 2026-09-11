@@ -219,7 +219,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         {
             return;
         }
-        Object parts = Helpers.split(channel, "/");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(channel, "/");
         Object depth = this.safeString(parts, 1);
         Object baseId = this.safeString(parts, 2);
         Object quoteId = this.safeString(parts, 3);
@@ -260,8 +260,8 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         {
             Object storedAsks = Helpers.GetValue(orderbook, "asks");
             Object storedBids = Helpers.GetValue(orderbook, "bids");
-            Object asksLength = Helpers.getArrayLength(storedAsks);
-            Object bidsLength = Helpers.getArrayLength(storedBids);
+            Integer asksLength = Helpers.getArrayLength(storedAsks);
+            Integer bidsLength = Helpers.getArrayLength(storedBids);
             Object payload = "";
             for (var i = 0; Helpers.isLessThan(i, 10); i++)
             {

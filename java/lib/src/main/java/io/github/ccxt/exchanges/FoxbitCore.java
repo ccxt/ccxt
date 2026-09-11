@@ -2507,8 +2507,8 @@ public class FoxbitCore extends FoxbitApi
         Object signatureQuery = "";
         if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
         {
-            Object paramKeys = Helpers.objectKeys(parameters);
-            Object paramKeysLength = Helpers.getArrayLength(paramKeys);
+            java.util.List<Object> paramKeys = Helpers.objectKeys(parameters);
+            Integer paramKeysLength = Helpers.getArrayLength(paramKeys);
             if (Helpers.isTrue(Helpers.isGreaterThan(paramKeysLength, 0)))
             {
                 query = this.urlencode(parameters);

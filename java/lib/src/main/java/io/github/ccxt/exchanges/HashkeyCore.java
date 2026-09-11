@@ -1161,7 +1161,7 @@ public class HashkeyCore extends HashkeyApi
         Boolean isSpot = true;
         Boolean isSwap = false;
         Object suffix = "";
-        Object parts = Helpers.split(((String)marketId), "-");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)marketId), "-");
         String secondPart = this.safeString(parts, 1);
         if (Helpers.isTrue(Helpers.isEqual(secondPart, "PERPETUAL")))
         {
@@ -1211,7 +1211,7 @@ public class HashkeyCore extends HashkeyApi
             if (Helpers.isTrue(!Helpers.isEqual(riskLimits, null)))
             {
                 Object first = this.safeDict(riskLimits, 0);
-                Object arrayLength = Helpers.getArrayLength(riskLimits);
+                Integer arrayLength = Helpers.getArrayLength(riskLimits);
                 Object last = this.safeDict(riskLimits, Helpers.subtract(arrayLength, 1));
                 Object minInitialMargin = this.safeString(first, "initialMargin");
                 Object maxInitialMargin = this.safeString(last, "initialMargin");
@@ -3479,7 +3479,7 @@ public class HashkeyCore extends HashkeyApi
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object orderIds = String.join((String)",", (java.util.List<String>)ids);
+            String orderIds = String.join((String)",", (java.util.List<String>)ids);
             Helpers.addElementToObject(request, "ids", orderIds);
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbol, null)))
@@ -4109,7 +4109,7 @@ public class HashkeyCore extends HashkeyApi
 
     public Object parseOrderSideAndReduceOnly(Object unparsed)
     {
-        Object parts = Helpers.split(unparsed, "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(unparsed, "_");
         Object side = Helpers.GetValue(parts, 0);
         Object reduceOnly = null;
         String secondPart = this.safeString(parts, 1);
@@ -4371,7 +4371,7 @@ public class HashkeyCore extends HashkeyApi
                 throw new ArgumentsRequired((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() requires a symbol argument with one single market symbol")) ;
             } else
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(!Helpers.isEqual(symbolsLength, 1)))
                 {
                     throw new NotSupported((String)Helpers.add(Helpers.add(Helpers.add(this.id, " "), methodName), "() is supported for a symbol argument with one single market symbol only")) ;

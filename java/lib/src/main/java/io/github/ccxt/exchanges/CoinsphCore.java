@@ -838,7 +838,7 @@ public class CoinsphCore extends CoinsphApi
         } else if (Helpers.isTrue(Helpers.isTrue((Helpers.inOp(config, "byNumberOfSymbols"))) && Helpers.isTrue((Helpers.inOp(parameters, "symbols")))))
         {
             Object symbols = Helpers.GetValue(parameters, "symbols");
-            Object symbolsAmount = Helpers.getArrayLength(symbols);
+            Integer symbolsAmount = Helpers.getArrayLength(symbols);
             Object byNumberOfSymbols = this.safeList(config, "byNumberOfSymbols", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(byNumberOfSymbols)); i++)
             {
@@ -2739,7 +2739,7 @@ public class CoinsphCore extends CoinsphApi
     {
         Object query = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object encodedArrayParams = "";
-        Object keys = Helpers.objectKeys(query);
+        java.util.List<Object> keys = Helpers.objectKeys(query);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object key = Helpers.GetValue(keys, i);

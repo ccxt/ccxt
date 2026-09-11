@@ -825,7 +825,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //
         Object data = this.safeDict(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object dataType = this.safeString(message, "dataType", "");
-        Object parts = Helpers.split(dataType, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(dataType, "@");
         String firstPart = (String) Helpers.GetValue(parts, 0);
         Boolean isAllEndpoint = (Helpers.isEqual(firstPart, "all"));
         Object marketId = this.safeString(data, "symbol", firstPart);
@@ -962,7 +962,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         //
         Boolean isSwap = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "swap"), 0);
         Object dataType = this.safeString(message, "dataType", "");
-        Object parts = Helpers.split(dataType, "@");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(dataType, "@");
         String firstPart = (String) Helpers.GetValue(parts, 0);
         Boolean isAllEndpoint = (Helpers.isEqual(firstPart, "all"));
         Object marketId = this.safeString(message, "s", firstPart);
@@ -1692,9 +1692,9 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object filteredSymbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> filteredSymbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", filteredSymbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {
@@ -1760,7 +1760,7 @@ public class BingxCore extends io.github.ccxt.exchanges.Bingx
                     }
                     Object url = Helpers.add(Helpers.add(baseUrl, "?listenKey="), listenKey);
                     Client client = this.client(url);
-                    Object messageHashes = Helpers.objectKeys(client.futures);
+                    java.util.List<Object> messageHashes = Helpers.objectKeys(client.futures);
                     for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(messageHashes)); j++)
                     {
                         Object messageHash = Helpers.GetValue(messageHashes, j);

@@ -1216,7 +1216,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
             //     }
             //
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
-            Object marketIds = Helpers.objectKeys(response);
+            java.util.List<Object> marketIds = Helpers.objectKeys(response);
             String delimiter = "-";
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
@@ -2748,7 +2748,7 @@ public class CoinbaseexchangeCore extends CoinbaseexchangeApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object payload = "";
             if (Helpers.isTrue(!Helpers.isEqual(method, "GET")))
             {

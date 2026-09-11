@@ -2907,7 +2907,7 @@ public class BlofinCore extends BlofinApi
             Object market = null;
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
                 {
                     market = this.market(Helpers.GetValue(symbols, 0));
@@ -3760,7 +3760,7 @@ public class BlofinCore extends BlofinApi
         } else if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.milliseconds());
+            String timestamp = String.valueOf(this.milliseconds());
             headers = new java.util.HashMap<String, Object>() {{
                 put( "ACCESS-KEY", BlofinCore.this.apiKey );
                 put( "ACCESS-PASSPHRASE", BlofinCore.this.password );

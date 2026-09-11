@@ -361,7 +361,7 @@ public class CoincheckCore extends CoincheckApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object codes = Helpers.objectKeys(this.currencies);
+        java.util.List<Object> codes = Helpers.objectKeys(this.currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -1272,7 +1272,7 @@ public class CoincheckCore extends CoincheckApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object queryString = "";
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {

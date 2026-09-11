@@ -2053,8 +2053,8 @@ public class TokocryptoCore extends TokocryptoApi
                 type = "LIMIT_MAKER";
             }
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("clientId", "clientOrderId")));
-            Object initialUppercaseType = ((String)type).toUpperCase();
-            Object uppercaseType = initialUppercaseType;
+            String initialUppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = initialUppercaseType;
             Object triggerPrice = this.safeValue2(parameters, "triggerPrice", "stopPrice");
             if (Helpers.isTrue(!Helpers.isEqual(triggerPrice, null)))
             {

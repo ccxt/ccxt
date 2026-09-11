@@ -1057,7 +1057,7 @@ public class WooCore extends WooApi
     public Object parseMarket(Object market)
     {
         String marketId = this.safeString(market, "symbol", "");
-        Object parts = Helpers.split(marketId, "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "_");
         String first = this.safeString(parts, 0);
         String marketType = null;
         Boolean spot = false;
@@ -1547,7 +1547,7 @@ public class WooCore extends WooApi
             Object tokenNetworkRows = this.safeList(tokenNetworkResponse, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             java.util.Map<String, Object> networksById = this.groupBy(tokenNetworkRows, "token");
             java.util.Map<String, Object> tokensById = this.groupBy(tokenRows, "balance_token");
-            Object currencyIds = Helpers.objectKeys(tokensById);
+            java.util.List<Object> currencyIds = Helpers.objectKeys(tokensById);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
             {
                 Object id = Helpers.GetValue(currencyIds, i);
@@ -1574,7 +1574,7 @@ public class WooCore extends WooApi
         String code = (String) this.safeCurrencyCode(currencyId);
         java.util.Map<String, Object> tokensByNetworkId = this.indexBy(Helpers.GetValue(rawCurrency, "_tokens_by_id"), "network");
         java.util.Map<String, Object> chainsByNetworkId = this.indexBy(Helpers.GetValue(rawCurrency, "_networks_by_id"), "network");
-        Object keys = Helpers.objectKeys(chainsByNetworkId);
+        java.util.List<Object> keys = Helpers.objectKeys(chainsByNetworkId);
         java.util.Map<String, Object> resultingNetworks = new java.util.HashMap<String, Object>() {{}};
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(keys)); j++)
         {
@@ -1810,13 +1810,13 @@ public class WooCore extends WooApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "reduce_only")));
-            Object orderType = ((String)type).toUpperCase();
+            String orderType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object orderSide = ((String)((String)side)).toUpperCase();
+            String orderSide = ((String)((String)side)).toUpperCase();
             final Object finalOrderSide = orderSide;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3232,7 +3232,7 @@ public class WooCore extends WooApi
         Object networkEntry = ((Helpers.isTrue((Helpers.isEqual(networkCode, null))))) ? null : this.safeDict(Helpers.GetValue(currency, "networks"), networkCode);
         if (Helpers.isTrue(Helpers.isEqual(networkEntry, null)))
         {
-            Object supportedNetworks = Helpers.objectKeys(Helpers.GetValue(currency, "networks"));
+            java.util.List<Object> supportedNetworks = Helpers.objectKeys(Helpers.GetValue(currency, "networks"));
             throw new BadRequest((String)Helpers.add(Helpers.add(this.id, "  can not determine a network code, please provide unified \"network\" param, one from the following: "), this.json(supportedNetworks))) ;
         }
         String currentyNetworkId = this.safeString(networkEntry, "currencyNetworkId");
@@ -3434,8 +3434,8 @@ public class WooCore extends WooApi
             return currency;
         } else
         {
-            Object parts = Helpers.split(networkizedCode, "_");
-            Object partsLength = Helpers.getArrayLength(parts);
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(networkizedCode, "_");
+            Integer partsLength = Helpers.getArrayLength(parts);
             String firstPart = this.safeString(parts, 0);
             Object currencyId = this.safeString(parts, 1, firstPart);
             if (Helpers.isTrue(Helpers.isGreaterThan(partsLength, 2)))
@@ -4003,7 +4003,7 @@ public class WooCore extends WooApi
                 parameters = this.keysort(parameters);
             }
             Object auth = "";
-            Object ts = String.valueOf(this.nonce());
+            String ts = String.valueOf(this.nonce());
             url = Helpers.add(url, pathWithParams);
             final Object finalTs = ts;
             headers = new java.util.HashMap<String, Object>() {{
@@ -4817,7 +4817,7 @@ public class WooCore extends WooApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
@@ -5359,7 +5359,7 @@ public class WooCore extends WooApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
@@ -5450,7 +5450,7 @@ public class WooCore extends WooApi
     {
         java.util.Map<String, Object> currencyItem = (java.util.Map<String, Object>) this.currency(code);
         Object networks = Helpers.GetValue(currencyItem, "networks");
-        Object networkKeys = Helpers.objectKeys(networks);
+        java.util.List<Object> networkKeys = Helpers.objectKeys(networks);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(networkKeys)); i++)
         {
             Object network = Helpers.GetValue(networkKeys, i);

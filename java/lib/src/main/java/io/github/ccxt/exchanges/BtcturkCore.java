@@ -1302,7 +1302,7 @@ public class BtcturkCore extends BtcturkApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object secret = this.base64ToBinary(this.secret);
             Object auth = Helpers.add(this.apiKey, nonce);
             headers = new java.util.HashMap<String, Object>() {{

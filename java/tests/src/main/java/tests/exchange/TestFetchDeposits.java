@@ -19,7 +19,7 @@ public class TestFetchDeposits extends BaseTest {
         String method = "fetchDeposits";
         Object transactions = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchDeposits", new Object[]{code})).join();
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, transactions, code);
-        Object now = exchange.milliseconds();
+        Long now = exchange.milliseconds();
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(transactions)); i++)
         {
             TestDepositWithdrawal.testDepositWithdrawal(exchange, skippedProperties, method, Helpers.GetValue(transactions, i), code, now);

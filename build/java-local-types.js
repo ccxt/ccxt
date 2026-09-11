@@ -911,11 +911,19 @@ const MATH_LOCAL_ENTRIES = {
 const LENGTH_LOCAL_ENTRY = { type: 'Integer', prefixes: [ 'Helpers.getArrayLength(', '((String)' ] };
 
 // the printed initializer must be the shape the entry's type was derived from: a fixed
-// prefix list (`Helpers.split(`, `((String)`, ...) or a regex for the rewrites whose
-// print starts with the receiver's own text (`x.includes(y)` -> `<receiver>.contains(y)`)
+// prefix list (`prefixes` — the receiver-method/math/length entries; `valuePrefixes` —
+// the ws map reads; `valuePrefix` — element access/awaited calls), a regex for the
+// rewrites whose print starts with the receiver's own text (`x.includes(y)` ->
+// `<receiver>.contains(y)`), or the `this.` default of the call families
 function printedValueMatches (info, printedValue) {
     if (info.prefixes !== undefined) {
         return info.prefixes.some ((prefix) => printedValue.startsWith (prefix));
+    }
+    if (info.valuePrefixes !== undefined) {
+        return info.valuePrefixes.some ((prefix) => printedValue.startsWith (prefix));
+    }
+    if (info.valuePrefix !== undefined) {
+        return printedValue.startsWith (info.valuePrefix);
     }
     if (info.match !== undefined) {
         return info.match.test (printedValue);
@@ -1180,6 +1188,141 @@ function receiverMethodLocalType (initializer) {
     return entry !== undefined && entry.args.includes (argCount) ? entry : undefined;
 }
 
+// ===== 5. concrete calls on base-method / test-harness receivers (JN-18) =====
+//
+// The generated TEST tier reaches the base helpers through an Exchange-typed variable
+// instead of `this.` — `exchange.safeString(...)`, `exchange.milliseconds()`,
+// `exchange.keysort(...)` — so the `this.`-call tables above never see them; and
+// `Object.keys(x)` / `Object.values(x)` print the statically-declared
+// `Helpers.objectKeys` / `Helpers.objectValues`, which no family covered either. Both
+// are decidable from the on-disk Java:
+//
+//   * BASE_RECEIVER_CALL_TYPES — BaseExchange.java methods whose declared return type is
+//     concrete. The callee's resolved TS declaration must live under ts/src/base (a venue
+//     override resolves to its own venue file and declines), and Java then binds the call
+//     statically to that base declaration, so the box is the declared return type or
+//     null (`milliseconds` resolves through `milliseconds = now` to the Date.now lib.d.ts
+//     signature — the same carve-out installJavaNumericLocalTypes makes — while its Java
+//     declaration is the concrete `public Long milliseconds ()`). Census of this tree:
+//     0 declarations of any admitted name outside BaseExchange.java across cores, pro,
+//     prediction, PredictionExchange and the typed wrappers, so no overload can capture
+//     the call.
+//   * TEST_HARNESS_CALL_TYPES — the test harness's own helpers (ts/src/test/**), declared
+//     `Object` in Java but returning one box on every audited path, so the declaration
+//     carries the same checkcast the local-typing side uses elsewhere.
+//
+// The printed value must be exactly `<receiver>.<name>(` (or `<name>(` for a bare call):
+// the recorded prefix is the receiver's PRINTED text, so a surprising print shape
+// declines.
+
+const BASE_RECEIVER_CALL_TYPES = {
+    'safeString':          { type: 'String' },
+    'safeStringN':         { type: 'String' },
+    'safeNumber':          { type: 'Double' },
+    'milliseconds':        { type: 'Long', libDts: true },
+    'parseTimeframe':      { type: 'Integer' },
+    'precisionFromString': { type: 'Integer' },
+    'iso8601':             { type: 'String', fieldFunction: true },
+    'parse8601':           { type: 'Long', fieldFunction: true },
+    'capitalize':          { type: 'String' },
+    'getCcxtVersion':      { type: 'String' },
+    'numberToString':      { type: 'String' },
+    'keysort':             { type: JAVA_STRUCTURE_TYPE },
+    'deepExtend':          { type: JAVA_STRUCTURE_TYPE },
+    'groupBy':             { type: JAVA_STRUCTURE_TYPE },
+    'indexBy':             { type: JAVA_STRUCTURE_TYPE },
+    'filterBy':            { type: JAVA_ARRAY_TYPE },
+    'sortBy':              { type: JAVA_ARRAY_TYPE },
+    'inArray':             { type: 'Boolean' },
+};
+
+// test-harness helpers, audited in ts/src/test/** (every return path hands back the one
+// box named here; the Java declaration is `Object`, hence the checkcast)
+const TEST_HARNESS_CALL_TYPES = {
+    // `this.<name>(...)` inside TestMain (ts/src/test/tests.ts)
+    'urlencodedToDict':      { type: JAVA_STRUCTURE_TYPE, cast: '(' + JAVA_STRUCTURE_TYPE + ')' },
+    'removeHostnamefromUrl': { type: 'String', cast: '(String)' },
+    'isEmptyOutputValue':    { type: 'Boolean', cast: '(Boolean)' },
+    // bare / `testSharedMethods.` calls (ts/src/test/Exchange/base/test.sharedMethods.ts):
+    // `return ' <<< ' + id + ' ' + methodString + ' ::: ' + entryString + ' >>> ';`
+    'logTemplate':           { type: 'String', cast: '(String)' },
+};
+
+// the map/list shapes `Object.keys` / `Object.values` print through (declared
+// `public static List<Object>` in Helpers.java — a fresh ArrayList on every path)
+const OBJECT_STATIC_CALL_TYPES = {
+    'keys':   { type: JAVA_ARRAY_TYPE, prefixes: [ 'Helpers.objectKeys(' ] },
+    'values': { type: JAVA_ARRAY_TYPE, prefixes: [ 'Helpers.objectValues(' ] },
+};
+
+function concreteCallLocalType (printer, node) {
+    if (node === undefined || !ts.isCallExpression (node) || node.expression === undefined) {
+        return undefined;
+    }
+    const callee = node.expression;
+    if (ts.isPropertyAccessExpression (callee) && callee.name !== undefined) {
+        const name = String (callee.name.escapedText);
+        const receiver = callee.expression;
+        if (ts.isIdentifier (receiver) && receiver.escapedText === 'Object') {
+            const objectEntry = OBJECT_STATIC_CALL_TYPES[name];
+            if (objectEntry === undefined || (node.arguments?.length ?? 0) !== 1) {
+                return undefined;
+            }
+            // the printed helper is a statically-declared `List<Object>` — the prefix
+            // proves the printer lowered this very call
+            return { type: objectEntry.type, valuePrefixes: objectEntry.prefixes };
+        }
+        let receiverText;
+        let table;
+        if (receiver.kind === ts.SyntaxKind.ThisKeyword) {
+            receiverText = 'this';
+            table = TEST_HARNESS_CALL_TYPES;
+        } else if (ts.isIdentifier (receiver)) {
+            table = BASE_RECEIVER_CALL_TYPES[name] !== undefined ? BASE_RECEIVER_CALL_TYPES : TEST_HARNESS_CALL_TYPES;
+            try {
+                receiverText = printer.printNode (receiver, 0);
+            } catch (e) {
+                return undefined;
+            }
+            if (typeof receiverText !== 'string' || receiverText.includes ('\n')) {
+                return undefined;
+            }
+        } else {
+            return undefined;
+        }
+        return receiverCallLocalTypeFor (printer, node, name, table, receiverText);
+    }
+    if (ts.isIdentifier (callee)) {
+        // a bare call prints `<name>(` (the harness's own top-level helpers transpile to
+        // methods of the same class; Java binds the class's own/static method)
+        const name = String (callee.escapedText);
+        return receiverCallLocalTypeFor (printer, node, name, TEST_HARNESS_CALL_TYPES, null);
+    }
+    return undefined;
+}
+
+function receiverCallLocalTypeFor (printer, node, name, table, receiverText) {
+    const entry = table[name];
+    if (entry === undefined) {
+        return undefined;
+    }
+    const file = resolvedSignatureFile (printer, node);
+    let fileOk = file !== undefined && (entry.libDts === true
+        ? NUMERIC_LIB_DTS_FILE.test (file)
+        : HELPER_SOURCE_FILE.test (file) || /(^|[\\/])ts[\\/]src[\\/]test[\\/]/.test (file));
+    if (!fileOk && entry.fieldFunction === true && file === undefined && FIELD_FUNCTION_NAMES.has (name)) {
+        // time functions are assigned as instance fields (`parse8601 = parse8601;`), so
+        // the checker resolves no declaration for the call — same carve-out the
+        // `this.`-call tables make
+        fileOk = true;
+    }
+    if (!fileOk) {
+        return undefined;
+    }
+    const prefix = (receiverText === null) ? name + '(' : receiverText + '.' + name + '(';
+    return { type: entry.type, cast: entry.cast, valuePrefixes: [ prefix ] };
+}
+
 function localInitializerType (printer, declaration, isProFile, narrowed) {
     const initializer = unwrapParens (declaration.initializer);
     if (initializer === undefined) {
@@ -1244,10 +1387,15 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
         }
     }
     if (!isThisCall (initializer)) {
-        return undefined;
-    }
-    if (!isThisCall (initializer)) {
-        return receiverMethodLocalType (initializer);
+        // non-`this` initializer: the printer's by-name rewrites (`x.length` ->
+        // Helpers.getArrayLength(x), `x.toUpperCase()` -> ((String)x).toUpperCase(),
+        // `x.split(sep)` -> Helpers.split(x, sep), Math.*) and the `x.length` read,
+        // then the concrete base-method / `Object.keys` / bare-harness calls (section 5)
+        const receiverEntry = receiverMethodLocalType (initializer);
+        if (receiverEntry !== undefined) {
+            return receiverEntry;
+        }
+        return concreteCallLocalType (printer, initializer);
     }
     const name = initializer.expression.name.escapedText;
     if (JAVA_STRING_RETURN_METHODS.has (name) || JAVA_STRING_RETURN_METHODS_CASE_CAST.has (name)) {
@@ -1266,7 +1414,8 @@ function localInitializerType (printer, declaration, isProFile, narrowed) {
     if (structure !== undefined && resolvesToMethodNamed (printer, initializer, name)) {
         return { type: structure, cast: '(' + structure + ')' };
     }
-    return undefined;
+    // section 5: the test harness's own `this.<helper>(...)` calls (ts/src/test/**)
+    return concreteCallLocalType (printer, initializer);
 }
 
 // admissible later write of the same Java type (reassignment context)
@@ -1840,10 +1989,16 @@ function javaLocalTypeOf (printer, declaration, narrowed) {
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
     const info = localInitializerType (printer, declaration, isProFile, narrowed);
+    if (process.env.JN18_TRACE === '1' && /UppercaseType|positionsForSymbolLength|timeframeKeys|urlParts$/.test (String (sourceName))) {
+        console.error ('[JN18] info ' + String (sourceName) + ' -> ' + JSON.stringify (info) + ' @ ' + fileName);
+    }
     if (info === undefined) {
         return undefined;
     }
     if (!isSafeToNarrow (printer, declaration, sourceName, info.type, isProFile, info)) {
+        if (process.env.JN18_TRACE === '1') {
+            console.error ('[JN18] unsafe ' + String (sourceName) + ' (type ' + info.type + ') @ ' + fileName);
+        }
         return undefined;
     }
     return info;
@@ -3003,16 +3158,15 @@ export function installJavaLocalTypes (transpiler) {
         const iden = printer.getIden (identation);
         const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name)} = `;
         const at = printed.lastIndexOf (marker);
+        if (process.env.JN18_TRACE === '1' && /UppercaseType|urlParts$|positionsForSymbolLength|timeframeKeys/.test (String (declaration.name.escapedText))) {
+            console.error ('[JN18-W] ' + String (declaration.name.escapedText) + ' at=' + at + ' marker=' + JSON.stringify (marker) + ' head=' + JSON.stringify (printed.slice (0, 200)));
+        }
         if (at === -1) {
             return printed;
         }
         const value = printed.slice (at + marker.length);
-        if (info.anyValueShape !== true) {
-            const prefixes = info.valuePrefixes !== undefined ? info.valuePrefixes
-                : [ info.valuePrefix === undefined ? 'this.' : info.valuePrefix ];
-            if (!prefixes.some ((prefix) => value.startsWith (prefix))) {
-                return printed; // unexpected shape — leave it as the printer emitted it
-            }
+        if (info.anyValueShape !== true && !printedValueMatches (info, value)) {
+            return printed; // unexpected shape — leave it as the printer emitted it
         }
         narrowed.set (declaration, info.type);
         // a ternary value must be wrapped before the cast: `(String) c ? a : b` binds the

@@ -2880,7 +2880,7 @@ public class KucoinCore extends KucoinApi
         String code = (String) this.safeCurrencyCode(id);
         java.util.Map<String, Object> networks = new java.util.HashMap<String, Object>() {{}};
         Object chains = this.safeList2(entry, "chains", "items", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object chainsLength = Helpers.getArrayLength(chains);
+        Integer chainsLength = Helpers.getArrayLength(chains);
         for (var j = 0; Helpers.isLessThan(j, chainsLength); j++)
         {
             Object chain = Helpers.GetValue(chains, j);
@@ -5219,7 +5219,7 @@ public class KucoinCore extends KucoinApi
             Helpers.addElementToObject(request, "reduceOnly", true);
             Helpers.addElementToObject(request, "stopPriceType", triggerPriceTypeValue);
         }
-        Object uppercaseType = ((String)type).toUpperCase();
+        String uppercaseType = ((String)type).toUpperCase();
         String timeInForce = (String)this.safeStringUpper(parameters, "timeInForce");
         if (Helpers.isTrue(Helpers.isEqual(uppercaseType, "LIMIT")))
         {
@@ -6678,7 +6678,7 @@ public class KucoinCore extends KucoinApi
             {
                 (this.loadMarkets()).join();
             }
-            Object lowercaseStatus = ((String)status).toLowerCase();
+            String lowercaseStatus = ((String)status).toLowerCase();
             Long until = this.safeInteger(parameters, "until");
             Object trigger = this.safeBool2(parameters, "stop", "trigger", false);
             Object hf = null;
@@ -6990,7 +6990,7 @@ public class KucoinCore extends KucoinApi
             {
                 Helpers.addElementToObject(request, "pageSize", limit);
             }
-            Object lowercaseStatus = ((String)status).toLowerCase();
+            String lowercaseStatus = ((String)status).toLowerCase();
             if (Helpers.isTrue(Helpers.isEqual(lowercaseStatus, "open")))
             {
                 lowercaseStatus = "active";
@@ -9325,8 +9325,8 @@ public class KucoinCore extends KucoinApi
         Object txid = this.safeString(transaction, "walletTxId");
         if (Helpers.isTrue(!Helpers.isEqual(txid, null)))
         {
-            Object txidParts = Helpers.split(txid, "@");
-            Object numTxidParts = Helpers.getArrayLength(txidParts);
+            java.util.List<Object> txidParts = (java.util.List<Object>) Helpers.split(txid, "@");
+            Integer numTxidParts = Helpers.getArrayLength(txidParts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numTxidParts, 1)))
             {
                 if (Helpers.isTrue(Helpers.isEqual(address, null)))
@@ -11530,7 +11530,7 @@ public class KucoinCore extends KucoinApi
                 ((java.util.List<Object>)borrowRateHistoriesCode).add(borrowRateStructure);
             }
         }
-        Object keys = Helpers.objectKeys(borrowRateHistories);
+        java.util.List<Object> keys = Helpers.objectKeys(borrowRateHistories);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             Object code = Helpers.GetValue(keys, i);
@@ -12682,7 +12682,7 @@ public class KucoinCore extends KucoinApi
             symbols = this.marketSymbols(symbols);
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
                     java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(symbols, 0));
@@ -13786,7 +13786,7 @@ final Object finalMarket = market;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isLessThan(length, 11)))
                 {
                     // the endpoint does not accept more than 10 symbols at a time
@@ -14009,7 +14009,7 @@ final Object finalMarket = market;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(isPrivate) || Helpers.isTrue(isFuturePrivate)) || Helpers.isTrue(isBroker)) || Helpers.isTrue(isEarn)) || Helpers.isTrue(isUtaPrivate)))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.nonce());
             final Object finalTimestamp = timestamp;
             headers = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "KC-API-KEY-VERSION", "2" );

@@ -1305,7 +1305,7 @@ public class BtseCore extends BtseApi
                 Helpers.addElementToObject(frees, code, Precise.stringAdd(this.safeString(frees, code, "0"), this.safeString2(row, "availableAmount", "available")));
             }
         }
-        Object codes = Helpers.objectKeys(totals);
+        java.util.List<Object> codes = Helpers.objectKeys(totals);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(codes)); i++)
         {
             Object code = Helpers.GetValue(codes, i);
@@ -1339,7 +1339,7 @@ public class BtseCore extends BtseApi
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object length = Helpers.getArrayLength(symbols);
+                Integer length = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(length, 1)))
                 {
                     String requestedSymbol = this.safeString(symbols, 0);
@@ -1406,7 +1406,7 @@ public class BtseCore extends BtseApi
             // the exchange only provides the cap of each risk tier, so the floor
             // is derived from the previous tier: 0 for the first tier, and the
             // previous tier's maxNotional for every subsequent tier
-            Object symbolKeys = Helpers.objectKeys(result);
+            java.util.List<Object> symbolKeys = Helpers.objectKeys(result);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbolKeys)); i++)
             {
                 Object symbolKey = Helpers.GetValue(symbolKeys, i);
@@ -2293,7 +2293,7 @@ public class BtseCore extends BtseApi
             (this.loadMarkets()).join();
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             type = ((String)type).toUpperCase();
-            Object upperSide = ((String)((String)side)).toUpperCase();
+            String upperSide = ((String)((String)side)).toUpperCase();
             final Object finalUpperSide = upperSide;
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3972,7 +3972,7 @@ public class BtseCore extends BtseApi
         String marketId = this.safeString(position, "positionId");
         if (Helpers.isTrue(!Helpers.isEqual(marketId, null)))
         {
-            Object parts = Helpers.split(marketId, "|");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "|");
             marketId = this.safeString(parts, 0);
         } else
         {

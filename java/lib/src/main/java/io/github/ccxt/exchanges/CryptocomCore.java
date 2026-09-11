@@ -1185,7 +1185,7 @@ public class CryptocomCore extends CryptocomApi
                 Object symbol = null;
                 if (Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    Object symbolsLength = Helpers.getArrayLength(symbols);
+                    Integer symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
                         throw new BadRequest((String)Helpers.add(this.id, " fetchTickers() symbols argument cannot contain more than 1 symbol")) ;
@@ -1762,7 +1762,7 @@ public class CryptocomCore extends CryptocomApi
             throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a side argument")) ;
         }
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object uppercaseType = ((String)type).toUpperCase();
+        String uppercaseType = ((String)type).toUpperCase();
         final Object finalSide = side;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "instrument_name", Helpers.GetValue(market, "id") );
@@ -2055,7 +2055,7 @@ public class CryptocomCore extends CryptocomApi
         // namely here we don't support ref_price or spot_margin
         // and market-buy orders need to send notional instead of quantity
         java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-        Object uppercaseType = ((String)type).toUpperCase();
+        String uppercaseType = ((String)type).toUpperCase();
         final Object finalSide = side;
         java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
             put( "instrument_name", Helpers.GetValue(market, "id") );
@@ -2617,7 +2617,7 @@ public class CryptocomCore extends CryptocomApi
             var addressrawTagVariable = Helpers.split(addressString, "?");
             address = ((java.util.List<Object>) addressrawTagVariable).get(0);
             rawTag = ((java.util.List<Object>) addressrawTagVariable).get(1);
-            Object splitted = Helpers.split(((String)rawTag), "=");
+            java.util.List<Object> splitted = (java.util.List<Object>) Helpers.split(((String)rawTag), "=");
             tag = Helpers.GetValue(splitted, 1);
         } else
         {
@@ -2739,7 +2739,7 @@ public class CryptocomCore extends CryptocomApi
             //
             Object data = this.safeDict(response, "result", new java.util.HashMap<String, Object>() {{}});
             Object addresses = this.safeList(data, "deposit_address_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object addressesLength = Helpers.getArrayLength(addresses);
+            Integer addressesLength = Helpers.getArrayLength(addresses);
             if (Helpers.isTrue(Helpers.isEqual(addressesLength, 0)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddressesByNetwork() generating address...")) ;
@@ -2797,7 +2797,7 @@ public class CryptocomCore extends CryptocomApi
             {
                 return Helpers.GetValue(depositAddresses, ((String)network));
             }
-            Object keys = Helpers.objectKeys(depositAddresses);
+            java.util.List<Object> keys = Helpers.objectKeys(depositAddresses);
             return Helpers.GetValue(depositAddresses, Helpers.GetValue(keys, 0));
         });
 
@@ -3410,7 +3410,7 @@ public class CryptocomCore extends CryptocomApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object networkList = this.safeList(fee, "network_list", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object networkListLength = Helpers.getArrayLength(networkList);
+        Integer networkListLength = Helpers.getArrayLength(networkList);
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -4132,7 +4132,7 @@ public class CryptocomCore extends CryptocomApi
                 Object symbol = null;
                 if (Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    Object symbolsLength = Helpers.getArrayLength(symbols);
+                    Integer symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
                         throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;
@@ -4257,7 +4257,7 @@ public class CryptocomCore extends CryptocomApi
             paramsKeys = obj;
         } else
         {
-            Object objectKeys = Helpers.objectKeys(obj);
+            java.util.List<Object> objectKeys = Helpers.objectKeys(obj);
             paramsKeys = this.sort(objectKeys);
         }
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength((java.util.List<String>)(paramsKeys))); i++)
@@ -4501,13 +4501,13 @@ public class CryptocomCore extends CryptocomApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             java.util.Map<String, Object> requestParams = this.extend(new java.util.HashMap<String, Object>() {{}}, parameters);
-            Object paramsKeys = Helpers.objectKeys(requestParams);
+            java.util.List<Object> paramsKeys = Helpers.objectKeys(requestParams);
             Object strSortKey = this.paramsToString(requestParams, 0);
             Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(path, nonce), this.apiKey), strSortKey), nonce);
             Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
-            Object paramsKeysLength = Helpers.getArrayLength(paramsKeys);
+            Integer paramsKeysLength = Helpers.getArrayLength(paramsKeys);
             final Object finalPath = path;
             body = this.json(new java.util.HashMap<String, Object>() {{
                 put( "id", nonce );

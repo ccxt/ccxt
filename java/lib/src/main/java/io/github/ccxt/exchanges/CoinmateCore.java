@@ -584,7 +584,7 @@ public class CoinmateCore extends CoinmateApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object currencyIds = Helpers.objectKeys(balances);
+        java.util.List<Object> currencyIds = Helpers.objectKeys(balances);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -746,7 +746,7 @@ public class CoinmateCore extends CoinmateApi
             //     }
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
-            Object keys = Helpers.objectKeys(data);
+            java.util.List<Object> keys = Helpers.objectKeys(data);
             java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{}};
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
@@ -1621,7 +1621,7 @@ public class CoinmateCore extends CoinmateApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object auth = Helpers.add(Helpers.add(nonce, this.uid), this.apiKey);
             Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
             final Object finalNonce = nonce;

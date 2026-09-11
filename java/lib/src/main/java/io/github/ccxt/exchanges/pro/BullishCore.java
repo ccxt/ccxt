@@ -70,7 +70,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
     {
         // bullish does not support built-in ws protocol-level ping-pong
         // https://api.exchange.bullish.com/docs/api/rest/trading-api/v2/#overview--keep-websocket-open
-        Object id = String.valueOf(this.requestId());
+        String id = String.valueOf(this.requestId());
         return new java.util.HashMap<String, Object>() {{
             put( "jsonrpc", "2.0" );
             put( "type", "command" );
@@ -104,7 +104,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
 
             Object request = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object id = String.valueOf(this.requestId());
+            String id = String.valueOf(this.requestId());
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "type", "command" );
@@ -131,7 +131,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
                 put( "JWT_COOKIE", token );
             }};
             Helpers.addElementToObject(Helpers.GetValue(this.options, "ws"), "cookies", cookies);
-            Object id = String.valueOf(this.requestId());
+            String id = String.valueOf(this.requestId());
             java.util.Map<String, Object> message = new java.util.HashMap<String, Object>() {{
                 put( "jsonrpc", "2.0" );
                 put( "type", "command" );
@@ -537,7 +537,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         {
             rawOrders = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())); // snapshot is a list of orders
         }
-        Object numRawOrders = Helpers.getArrayLength(rawOrders); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        Integer numRawOrders = Helpers.getArrayLength(rawOrders); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if (Helpers.isTrue(Helpers.isGreaterThan(numRawOrders, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.orders, null)))
@@ -560,7 +560,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             }
             String messageHash = "orders";
             client.resolve(orders, messageHash);
-            Object keys = Helpers.objectKeys(symbols);
+            java.util.List<Object> keys = Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object hashSymbol = Helpers.GetValue(keys, i);
@@ -670,7 +670,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         {
             rawTrades = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList())); // snapshot is a list of trades
         }
-        Object numRawTrades = Helpers.getArrayLength(rawTrades); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
+        Integer numRawTrades = Helpers.getArrayLength(rawTrades); // hoisted - inline .length within conditionals becomes strlen for php, fatal on arrays
         if (Helpers.isTrue(Helpers.isGreaterThan(numRawTrades, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(this.myTrades, null)))
@@ -693,7 +693,7 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
             }
             String messageHash = "myTrades";
             client.resolve(trades, messageHash);
-            Object keys = Helpers.objectKeys(symbols);
+            java.util.List<Object> keys = Helpers.objectKeys(symbols);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
             {
                 Object hashSymbol = Helpers.GetValue(keys, i);
@@ -892,9 +892,9 @@ public class BullishCore extends io.github.ccxt.exchanges.Bullish
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             String symbolsString = (String) Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object symbolPositions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(symbolPositions)))
             {

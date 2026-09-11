@@ -172,7 +172,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
             {
                 symbols = this.symbols;
             }
-            Object symbolsLengthDefined = Helpers.getArrayLength(symbols);
+            Integer symbolsLengthDefined = Helpers.getArrayLength(symbols);
             Object url = ((Helpers.isTrue(isGenerationTwo))) ? Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "publicGen2") : Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "public");
             java.util.List<Object> streamMarketIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
@@ -995,7 +995,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
         java.util.List<Object> request = new java.util.ArrayList<Object>(java.util.Arrays.asList(new java.util.HashMap<String, Object>() {{
     put( "ticket", "ccxt" );
 }}));
-        Object keys = Helpers.objectKeys(subscriptions);
+        java.util.List<Object> keys = Helpers.objectKeys(subscriptions);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
         {
             ((java.util.List<Object>)request).add(Helpers.GetValue(subscriptions, Helpers.GetValue(keys, i)));
@@ -1250,7 +1250,7 @@ public class BithumbCore extends io.github.ccxt.exchanges.Bithumb
     {
         if (Helpers.isTrue((message instanceof String)))
         {
-            Object content = ((String)message).toLowerCase();
+            String content = ((String)message).toLowerCase();
             if (Helpers.isTrue(Helpers.isEqual(content, "pong")))
             {
                 this.handlePong(client, message);

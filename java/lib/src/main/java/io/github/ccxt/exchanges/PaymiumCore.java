@@ -222,7 +222,7 @@ public class PaymiumCore extends PaymiumApi
         java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
-        Object currencies = Helpers.objectKeys(this.currencies);
+        java.util.List<Object> currencies = Helpers.objectKeys(this.currencies);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencies)); i++)
         {
             Object code = Helpers.GetValue(currencies, i);
@@ -810,7 +810,7 @@ public class PaymiumCore extends PaymiumApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object auth = Helpers.add(nonce, url);
             final Object finalNonce = nonce;
             headers = new java.util.HashMap<String, Object>() {{

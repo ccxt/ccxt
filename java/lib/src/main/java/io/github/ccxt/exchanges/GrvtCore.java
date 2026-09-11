@@ -865,7 +865,7 @@ public class GrvtCore extends GrvtApi
             //
             Object currentBuilders = Helpers.GetValue(results, 0);
             Object approvedBuilder = this.safeList(currentBuilders, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object length = Helpers.getArrayLength(approvedBuilder);
+            Integer length = Helpers.getArrayLength(approvedBuilder);
             Boolean found = false;
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
@@ -2441,7 +2441,7 @@ public class GrvtCore extends GrvtApi
             if (Helpers.isTrue(accountIsUndefined))
             {
                 Object subAccountIds = this.safeList(Helpers.GetValue(responses, 1), "sub_account_ids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object length = Helpers.getArrayLength(subAccountIds);
+                Integer length = Helpers.getArrayLength(subAccountIds);
                 if (Helpers.isTrue(Helpers.isLessThan(length, 1)))
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " loadAccountInfos(): no sub accounts found, you might need to create an api-key in GRVT website")) ;
@@ -2778,13 +2778,13 @@ public class GrvtCore extends GrvtApi
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(Helpers.GetValue(leg, "instrument"));
             Object bigInt10 = this.convertToBigIntCustom("10");
             Object precisionValue = this.precisionFromString(this.safeString(Helpers.GetValue(market, "precision"), "base"));
-            Object precisionValueStr = String.valueOf(precisionValue);
-            Object sizeMultiplier = Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(precisionValueStr))));
+            String precisionValueStr = String.valueOf(precisionValue);
+            Double sizeMultiplier = Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(precisionValueStr))));
             Object size = Helpers.GetValue(leg, "size");
-            Object sizeParts = Helpers.split(size, ".");
+            java.util.List<Object> sizeParts = (java.util.List<Object>) Helpers.split(size, ".");
             String sizeDec = this.safeString(sizeParts, 1, "");
             Object sizeDecLength = Helpers.add(((String)sizeDec).length(), 0); // php tr
-            Object sizeDecLengthStr = String.valueOf(sizeDecLength);
+            String sizeDecLengthStr = String.valueOf(sizeDecLength);
             Object sizeInteger = Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)size, (String)".", (String)"")), sizeMultiplier), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(this.convertToBigIntCustom(sizeDecLengthStr))))));
             java.util.Map<String, Object> legOrder = new java.util.HashMap<String, Object>() {{
                 put( "assetID", Helpers.GetValue(Helpers.GetValue(market, "info"), "instrument_hash") );
@@ -2795,10 +2795,10 @@ public class GrvtCore extends GrvtApi
             if (Helpers.isTrue(!Helpers.isEqual(this.omitZero(limitPrice), null)))
             {
                 Object price = Helpers.GetValue(leg, "limit_price");
-                Object limitParts = Helpers.split(price, ".");
+                java.util.List<Object> limitParts = (java.util.List<Object>) Helpers.split(price, ".");
                 String limitDec = this.safeString(limitParts, 1, "");
                 Object limitDecLength = Helpers.add(((String)limitDec).length(), 0); // php tr
-                Object limitDecLengthStr = String.valueOf(limitDecLength);
+                String limitDecLengthStr = String.valueOf(limitDecLength);
                 Object powerNum = ((Helpers.isTrue((Helpers.isEqual(limitDecLengthStr, "0"))))) ? 0 : this.convertToBigIntCustom(limitDecLengthStr);
                 Object priceInteger = (Helpers.divide(Helpers.multiply(this.convertToBigIntCustom(Helpers.replace((String)price, (String)".", (String)"")), this.convertToBigIntCustom(priceMultiplier)), (Helpers.mathPow(Double.parseDouble(Helpers.toString(bigInt10)), Double.parseDouble(Helpers.toString(powerNum))))));
                 Helpers.addElementToObject(legOrder, "limitPrice", this.parseToInt(priceInteger));
@@ -3732,7 +3732,7 @@ public class GrvtCore extends GrvtApi
         }
         Long timestamp = this.safeIntegerProduct(metadata, "create_time", 0.000001);
         // const triggerDetails = this.safeDict (metadata, 'trigger', {});
-        Object legsLength = Helpers.getArrayLength(legs);
+        Integer legsLength = Helpers.getArrayLength(legs);
         final Object finalLegsLength = legsLength;
         final Object finalMarket = market;
         final Object finalIsPostOnly = isPostOnly;
@@ -3990,7 +3990,7 @@ public class GrvtCore extends GrvtApi
 
     public Object formatSignatureRS(Object value)
     {
-        Object padded = Helpers.padStart((String)value, ((Number)64).intValue(), ((String)"0").charAt(0));
+        String padded = Helpers.padStart((String)value, ((Number)64).intValue(), ((String)"0").charAt(0));
         if (Helpers.isTrue(((String)padded).startsWith(((String)"0x"))))
         {
             return padded;
@@ -4059,8 +4059,8 @@ public class GrvtCore extends GrvtApi
             }};
             // an empty params dict must serialize as an empty json object, not an empty json array,
             // php json_encode would produce [] here which the venue rejects with the same 1003 error
-            Object paramsKeys = Helpers.objectKeys(parameters);
-            Object paramsKeysLength = Helpers.getArrayLength(paramsKeys);
+            java.util.List<Object> paramsKeys = Helpers.objectKeys(parameters);
+            Integer paramsKeysLength = Helpers.getArrayLength(paramsKeys);
             if (Helpers.isTrue(Helpers.isEqual(paramsKeysLength, 0)))
             {
                 body = "{}";
@@ -4069,7 +4069,7 @@ public class GrvtCore extends GrvtApi
                 body = this.json(parameters);
             }
         }
-        Object isPrivate = ((String)api).startsWith(((String)"private"));
+        Boolean isPrivate = ((String)api).startsWith(((String)"private"));
         if (Helpers.isTrue(Helpers.isEqual(isPrivate, true)))
         {
             this.checkRequiredCredentials();

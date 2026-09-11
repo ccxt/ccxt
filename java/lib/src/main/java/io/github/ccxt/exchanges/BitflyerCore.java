@@ -303,8 +303,8 @@ public class BitflyerCore extends BitflyerApi
 
     public Object parseExpiryDate(Object expiry)
     {
-        Object day = Helpers.slice(expiry, 0, 2);
-        Object monthName = Helpers.slice(expiry, 2, 5);
+        String day = Helpers.slice(expiry, 0, 2);
+        String monthName = Helpers.slice(expiry, 2, 5);
         Object year = Helpers.slice(expiry, 5, 9);
         java.util.Map<String, Object> months = new java.util.HashMap<String, Object>() {{
             put( "JAN", "01" );
@@ -388,7 +388,7 @@ public class BitflyerCore extends BitflyerApi
             {
                 Object market = Helpers.GetValue(markets, i);
                 String id = this.safeString(market, "product_code");
-                Object currencies = Helpers.split(((String)id), "_");
+                java.util.List<Object> currencies = (java.util.List<Object>) Helpers.split(((String)id), "_");
                 String marketType = this.safeString(market, "market_type");
                 Boolean swap = (Helpers.isEqual(marketType, "FX"));
                 Boolean future = (Helpers.isEqual(marketType, "Futures"));
@@ -418,15 +418,15 @@ public class BitflyerCore extends BitflyerApi
                         baseId = Helpers.slice(((String)id), 0, 3);
                         quoteId = Helpers.slice(((String)id), 3, 6);
                         // last 9 chars are expiry date
-                        Object expiryDate = Helpers.slice(((String)id), Helpers.opNeg(9), null);
+                        String expiryDate = Helpers.slice(((String)id), Helpers.opNeg(9), null);
                         expiry = this.parseExpiryDate(expiryDate);
                     } else
                     {
-                        Object splitAlias = Helpers.split(alias, "_");
+                        java.util.List<Object> splitAlias = (java.util.List<Object>) Helpers.split(alias, "_");
                         String currencyIds = this.safeString(splitAlias, 0);
                         baseId = Helpers.slice(((String)currencyIds), 0, Helpers.opNeg(3));
                         quoteId = Helpers.slice(((String)currencyIds), Helpers.opNeg(3), null);
-                        Object splitId = Helpers.split(((String)id), ((String)currencyIds));
+                        java.util.List<Object> splitId = (java.util.List<Object>) Helpers.split(((String)id), ((String)currencyIds));
                         String expiryDate = this.safeString(splitId, 1);
                         expiry = this.parseExpiryDate(expiryDate);
                     }
@@ -1579,7 +1579,7 @@ public class BitflyerCore extends BitflyerApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(nonce, method, request));
             Object auth = String.join((String)"", (java.util.List<String>)content);
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))

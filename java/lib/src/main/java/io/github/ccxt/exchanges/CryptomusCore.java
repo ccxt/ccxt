@@ -405,7 +405,7 @@ public class CryptomusCore extends CryptomusApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
-        Object parts = Helpers.split(marketId, "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "_");
         String baseId = (String) Helpers.GetValue(parts, 0);
         String quoteId = (String) Helpers.GetValue(parts, 1);
         String base = (String) this.safeCurrencyCode(baseId);
@@ -505,7 +505,7 @@ public class CryptomusCore extends CryptomusApi
             //
             Object coins = this.safeList(response, "result");
             java.util.Map<String, Object> groupedById = this.groupBy(coins, "currency_code");
-            Object groupedArray = Helpers.objectValues(groupedById);
+            java.util.List<Object> groupedArray = Helpers.objectValues(groupedById);
             return this.parseCurrencies(groupedArray);
         });
 

@@ -616,10 +616,10 @@ public class BitsoCore extends BitsoApi
                 var baseIdquoteIdVariable = Helpers.split(((String)id), "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
-                Object base = ((String)baseId).toUpperCase();
-                Object quote = ((String)quoteId).toUpperCase();
-                base = this.safeCurrencyCode(base);
-                quote = this.safeCurrencyCode(quote);
+                String base = ((String)baseId).toUpperCase();
+                String quote = ((String)quoteId).toUpperCase();
+                base = (String) this.safeCurrencyCode(base);
+                quote = (String) this.safeCurrencyCode(quote);
                 Object fees = this.safeValue(market, "fees", new java.util.HashMap<String, Object>() {{}});
                 Object flatRate = this.safeValue(fees, "flat_rate", new java.util.HashMap<String, Object>() {{}});
                 String takerString = this.safeString(flatRate, "taker");
@@ -1493,7 +1493,7 @@ public class BitsoCore extends BitsoApi
             {
                 market = this.market(symbol);
             }
-            Object oids = String.join((String)",", (java.util.List<String>)ids);
+            String oids = String.join((String)",", (java.util.List<String>)ids);
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "oids", oids );
             }};
@@ -1700,7 +1700,7 @@ public class BitsoCore extends BitsoApi
             Object payload = this.safeValue(response, "payload");
             if (Helpers.isTrue(Helpers.isArray(payload)))
             {
-                Object numOrders = Helpers.getArrayLength(payload);
+                Integer numOrders = Helpers.getArrayLength(payload);
                 if (Helpers.isTrue(Helpers.isEqual(numOrders, 1)))
                 {
                     return this.parseOrder(Helpers.GetValue(payload, 0));
@@ -1889,7 +1889,7 @@ public class BitsoCore extends BitsoApi
             Object tag = null;
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)address), "?dt="), 0)))
             {
-                Object parts = Helpers.split(((String)address), "?dt=");
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)address), "?dt=");
                 address = this.safeString(parts, 0);
                 tag = this.safeString(parts, 1);
             }
@@ -1998,7 +1998,7 @@ public class BitsoCore extends BitsoApi
                 }
             }
             Object withdrawalFees = this.safeValue(payload, "withdrawal_fees", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object currencyIds = Helpers.objectKeys(withdrawalFees);
+            java.util.List<Object> currencyIds = Helpers.objectKeys(withdrawalFees);
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
             {
                 Object currencyId = Helpers.GetValue(currencyIds, i);
@@ -2166,7 +2166,7 @@ public class BitsoCore extends BitsoApi
                 }
             }
         }
-        Object withdrawalKeys = Helpers.objectKeys(withdrawalResponse);
+        java.util.List<Object> withdrawalKeys = Helpers.objectKeys(withdrawalResponse);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(withdrawalKeys)); i++)
         {
             Object currencyId = Helpers.GetValue(withdrawalKeys, i);
@@ -2372,7 +2372,7 @@ public class BitsoCore extends BitsoApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             endpoint = Helpers.add("/api", endpoint);
             Object content = new java.util.ArrayList<Object>(java.util.Arrays.asList(nonce, method, endpoint));
             Object request = String.join((String)"", (java.util.List<String>)content);

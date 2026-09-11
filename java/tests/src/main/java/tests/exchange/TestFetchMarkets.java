@@ -19,7 +19,7 @@ public class TestFetchMarkets extends BaseTest {
         String method = "fetchMarkets";
         Object markets = ((java.util.concurrent.CompletableFuture<Object>)Helpers.callDynamically(exchange, "fetchMarkets", new Object[]{})).join();
         TestSharedMethods.AssertDictionaryResponse(exchange, method, markets);
-        Object marketValues = Helpers.objectValues(markets);
+        java.util.List<Object> marketValues = Helpers.objectValues(markets);
         TestSharedMethods.AssertNonEmtpyArray(exchange, skippedProperties, method, marketValues);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketValues)); i++)
         {
