@@ -169,7 +169,6 @@ import ts from 'typescript6';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { threadId as jjnThreadId } from 'node:worker_threads'; /*JJN*/
 
 // ===== tables =====
 
@@ -1810,7 +1809,6 @@ function feedsInheritedAsyncCall (printer, n, scope) {
 function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, info) {
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
-        jjncMain ('safe:noscope'); /*JJN*/
         return false;
     }
     const uses = identifierIndex (scope).get (sourceName) ?? [];
@@ -1837,12 +1835,10 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             // rejects. Map/List/ws locals take the Object-parameter helper unchanged.
             const grand = parent.parent;
             if (grand?.kind === ts.SyntaxKind.DeleteExpression) {
-                jjncMain ('safe:delete-use'); /*JJN*/
                 return false;
             }
             if (javaType === 'String' && grand?.kind === ts.SyntaxKind.BinaryExpression && grand.left === parent
                 && ASSIGNMENT_OPERATORS.includes (grand.operatorToken.kind)) {
-                jjncMain ('safe:string-elem-write'); /*JJN*/
                 return false;
             }
         }
@@ -1850,7 +1846,6 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             && ts.isCallExpression (parent.parent) && parent.parent.expression === parent) {
             const method = String (parent.name.escapedText);
             if (!receiverCallIsSafe (method, javaType)) {
-                jjncMain ('safe:receiver:' + method + ':' + javaType); /*JJN*/
                 return false;
             }
         }
@@ -1863,7 +1858,6 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
             if (at !== -1 && ts.isPropertyAccessExpression (parent.expression)) {
                 const method = String (parent.expression.name.escapedText);
                 if (!argumentCastIsSafe (method, at, javaType)) {
-                    jjncMain ('safe:argcast:' + method + '#' + at + ':' + javaType); /*JJN*/
                     return false;
                 }
             }
@@ -1871,7 +1865,6 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         if (ts.isBinaryExpression (parent) && parent.left === n
             && parent.operatorToken.kind === ts.SyntaxKind.PlusToken
             && info?.nonNull === false) {
-            jjncMain ('safe:plus-left-nullable'); /*JJN*/
             // `x + y` prints `Helpers.add(x, y)`: a narrowed String operand switches the
             // overload to add(String, Object), which returns "nullnull" where the Object
             // overload returned null when BOTH operands are null (Helpers.add). Only a
@@ -1882,25 +1875,20 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         if (ts.isPostfixUnaryExpression (parent) || ts.isPrefixUnaryExpression (parent)) {
             const op = parent.operator;
             if (op === ts.SyntaxKind.PlusPlusToken || op === ts.SyntaxKind.MinusMinusToken) {
-                jjncMain ('safe:incdec'); /*JJN*/
                 return false;
             }
         }
         if (ts.isSpreadElement (parent)) {
-            jjncMain ('safe:spread'); /*JJN*/
             return false;
         }
         if (ts.isTypeOfExpression (parent)) {
-            jjncMain ('safe:typeof'); /*JJN*/
             return false; // prints `x instanceof <primitive box>`: inconvertible for the wrong type
         }
         if (ts.isArrayLiteralExpression (parent) && ts.isBinaryExpression (parent.parent)
             && parent.parent.left === parent && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken) {
-            jjncMain ('safe:destructure-write'); /*JJN*/
             return false; // `[x, y] = f()` prints `x = ((List) tmp).get(i)`
         }
         if (ts.isAsExpression (parent) || ts.isTypeAssertionExpression (parent)) {
-            jjncMain ('safe:as-cast:' + javaType); /*JJN*/
             // a TS cast on the local prints a Java cast of the asserted type; for the
             // narrowed type the spelled cast can be inconvertible (String -> Double is a
             // compile error) — keep Object (the C# campaign's reject family, reused here)
@@ -1920,7 +1908,6 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
                     ok = isProvablyOfType (printer, unwrapParens (parent.right), javaType, sourceName);
                 }
                 if (!ok) {
-                    jjncMain ('safe:write-unsafe:' + javaType); /*JJN*/
                     return false;
                 }
             } else if (op === ts.SyntaxKind.PlusEqualsToken && javaType === 'String') {
@@ -1929,11 +1916,9 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
                 // direct-add rule needs; the read of x in this statement is this very node,
                 // so addChainRights has no first entry for it
                 if (!isProvablyNonNullStringExpression (printer, parent.right, sourceName)) {
-                    jjncMain ('safe:plus-equals-unsafe'); /*JJN*/
                     return false;
                 }
             } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
-                jjncMain ('safe:compound-assign'); /*JJN*/
                 return false;
             }
         }
@@ -1942,11 +1927,9 @@ function isSafeToNarrow (printer, declaration, sourceName, javaType, isProFile, 
         // `+` chain, and the two diverge for a null left / non-string right
         if (info?.strictPlus === true && ts.isBinaryExpression (parent)
             && parent.operatorToken.kind === ts.SyntaxKind.PlusToken && !plusUsesAreSafe (n)) {
-            jjncMain ('safe:strictplus:' + javaType); /*JJN*/
             return false;
         }
         if (isProFile && info?.skipInheritedAsyncGuard !== true && feedsInheritedAsyncCall (printer, n, scope)) {
-            jjncMain ('safe:pro-async-arg:' + javaType); /*JJN*/
             return false;
         }
     }
@@ -1963,16 +1946,10 @@ function javaLocalTypeOf (printer, declaration, narrowed) {
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
     const info = localInitializerType (printer, declaration, isProFile, narrowed);
     if (info === undefined) {
-        if (narrowed !== undefined) {
-            jjncMainNoInit (printer, declaration); /*JJN*/
-        }
         return undefined;
     }
     if (!isSafeToNarrow (printer, declaration, sourceName, info.type, isProFile, info)) {
         return undefined;
-    }
-    if (narrowed !== undefined) {
-        jjncMain ('ACCEPT:' + info.type); /*JJN*/
     }
     return info;
 }
@@ -2638,7 +2615,6 @@ export function patchJavaHandlerLocalTypes (printer) {
             return printed; // unexpected shape (or a section that runs before this one) — keep it
         }
         tupleTypes.set (declaration, type);
-        jjncHan ('ACCEPT:' + type); /*JJN*/
         return printed.slice (0, at) + `${iden}${type} ${printedName} = ` + printed.slice (at + marker.length);
     };
     if (typeof printer.printCustomBinaryExpressionIfAny === 'function') {
@@ -3042,7 +3018,6 @@ export function patchJavaCollectionLocalTypes (transpiler) {
         // (arrayConcat, the varargs extend overload)
         const castPrefix = info.cast ? `(${info.type}) ` : '';
         narrowed.set (declaration, info.type);
-        jjncCol ('ACCEPT:' + info.type); /*JJN*/
         return printed.slice (0, at) + `${iden}${info.type} ${printedName} = ${castPrefix}` + head;
     };
     // `x = this.arrayConcat(...)` / `x = this.extend(a, b, c)` on an already-narrowed
@@ -3311,7 +3286,6 @@ const MAX_DATAFLOW_DEPTH = 8;
 const DATAFLOW_DEBUG = process.env['CCXT_JAVA_DATAFLOW_DEBUG'] === '1';
 
 function dataflowDebug (message) {
-    jjncDf (message); /*JJN*/
     if (DATAFLOW_DEBUG) {
         console.error ('[java-dataflow] ' + message);
     }
@@ -4462,7 +4436,6 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
     const isMap = javaType === LITERAL_MAP_TYPE;
     const isNumeric = LITERAL_NUMERIC_TYPES.has (javaType);
     if (literalTypeTokenShadowed (scope, javaType)) {
-        jjncLit ('safe:shadowed'); /*JJN*/
         return false;
     }
     const names = literalCaptureNames (sourceName, printer);
@@ -4482,14 +4455,12 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
         }
         // a use that would move a `this.<async>()` argument onto a typed wrapper overload
         if (isProFile && feedsInheritedAsyncCall (printer, n, scope)) {
-            jjncLit ('safe:pro-async-arg'); /*JJN*/
             return false;
         }
         switch (parent.kind) {
             case ts.SyntaxKind.PostfixUnaryExpression:
                 // `x++` / `x--` print the plain operator — numeric boxes only
                 if (!isNumeric) {
-                    jjncLit ('safe:postfix-unary'); /*JJN*/
                     return false;
                 }
                 break;
@@ -4503,32 +4474,25 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
                 }
                 if (op === ts.SyntaxKind.PlusToken) {
                     if (!isNumeric) {
-                        jjncLit ('safe:prefix-plus'); /*JJN*/
                         return false; // prints +(x)
                     }
                     break;
                 }
-                jjncLit ('safe:prefix-other'); /*JJN*/
                 return false; // ~x and friends print raw operators
             }
             case ts.SyntaxKind.SpreadElement:
-                jjncLit ('safe:spread'); /*JJN*/
                 return false;
             case ts.SyntaxKind.TypeOfExpression:
-                jjncLit ('safe:typeof'); /*JJN*/
                 return false; // `typeof x` prints `x instanceof String/Long/...`
             case ts.SyntaxKind.TaggedTemplateExpression:
-                jjncLit ('safe:tagged-template'); /*JJN*/
                 return false;
             case ts.SyntaxKind.AwaitExpression:
-                jjncLit ('safe:await'); /*JJN*/
                 return false; // prints (x).join()
             case ts.SyntaxKind.ConditionalExpression:
                 // `x ? a : b` prints through printCondition (`Helpers.isTrue(x)`) — fine.
                 // An ARM read unifies the conditional's static type, which can then flip
                 // an enclosing overload, so arm reads keep the local Object.
                 if (parent.condition !== n) {
-                    jjncLit ('safe:ternary-arm'); /*JJN*/
                     return false;
                 }
                 break;
@@ -4536,15 +4500,12 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
                 const typeNode = parent.type;
                 if (typeNode.kind === ts.SyntaxKind.StringKeyword) {
                     if (!isString) {
-                        jjncLit ('safe:as-cast'); /*JJN*/
                         return false; // ((String)x)
                     }
                 } else if (typeNode.kind === ts.SyntaxKind.AnyKeyword) {
-                    jjncLit ('safe:as-any'); /*JJN*/
                     return false; // ((Object)x) — never narrowable
                 } else if (typeNode.kind === ts.SyntaxKind.ArrayType) {
                     if (!(isList && typeNode.elementType.kind === ts.SyntaxKind.AnyKeyword)) {
-                        jjncLit ('safe:as-array'); /*JJN*/
                         return false; // (java.util.List<Object>)x / (java.util.List<String>)x
                     }
                 }
@@ -4556,14 +4517,12 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
                     && parent.parent.left === parent
                     && parent.parent.operatorToken.kind === ts.SyntaxKind.EqualsToken
                     && !isList) {
-                    jjncLit ('safe:destructure-write'); /*JJN*/
                     return false;
                 }
                 break;
             case ts.SyntaxKind.VariableDeclaration:
                 // `const [a, b] = x` prints a (java.util.List<Object>) cast of a synthetic var
                 if (parent.name?.kind === ts.SyntaxKind.ArrayBindingPattern && !isList) {
-                    jjncLit ('safe:destructure-read'); /*JJN*/
                     return false;
                 }
                 break;
@@ -4577,30 +4536,25 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
                 }
                 if (LITERAL_LIST_CAST_RECEIVERS.has (method)) {
                     if (!isList) {
-                        jjncLit ('safe:receiver:' + method); /*JJN*/
                         return false; // ((java.util.List<Object>)x).add/get/... / Collections.reverse
                     }
                     break;
                 }
                 if (LITERAL_STRING_CAST_RECEIVERS.has (method)) {
                     if (!isString) {
-                        jjncLit ('safe:receiver:' + method); /*JJN*/
                         return false; // ((String)x).trim() etc.
                     }
                     break;
                 }
                 if (LITERAL_LIST_ONLY_RECEIVERS.has (method)) {
                     if (!isList) {
-                        jjncLit ('safe:receiver:' + method); /*JJN*/
                         return false; // raw x.contains(y)
                     }
                     break;
                 }
                 if (LITERAL_REJECTED_RECEIVERS.has (method)) {
-                    jjncLit ('safe:receiver:' + method); /*JJN*/
                     return false;
                 }
-                jjncLit ('safe:receiver-unknown:' + method); /*JJN*/
                 return false; // unknown receiver print — keep Object
             }
             case ts.SyntaxKind.ElementAccessExpression: {
@@ -4608,12 +4562,10 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
                 if (grandparent !== undefined && grandparent.kind === ts.SyntaxKind.DeleteExpression) {
                     if (parent.expression === n) {
                         if (!isMap) {
-                            jjncLit ('safe:delete-receiver'); /*JJN*/
                             return false; // ((java.util.Map<String,Object>)x).remove(...)
                         }
                     } else if (parent.argumentExpression === n) {
                         if (!isString) {
-                            jjncLit ('safe:delete-key'); /*JJN*/
                             return false; // .remove((String)key)
                         }
                     }
@@ -4625,16 +4577,13 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
                 if (parent.left === n) {
                     if (op === ts.SyntaxKind.EqualsToken) {
                         if (!literalAssignable (javaType, literalTypeOfValue (printer, parent.right))) {
-                            jjncLit ('safe:write-unsafe'); /*JJN*/
                             return false;
                         }
                     } else if (op >= ts.SyntaxKind.FirstCompoundAssignment && op <= ts.SyntaxKind.LastCompoundAssignment) {
-                        jjncLit ('safe:compound-assign'); /*JJN*/
                         return false; // x = Helpers.add(x, y) — Object result / different overload
                     } else if (op === ts.SyntaxKind.PlusToken) {
                         if (isString) {
                             if (!literalIsProvablyStringValue (printer, parent.right)) {
-                                jjncLit ('safe:plus-left-unsafe'); /*JJN*/
                                 return false; // add overload family selection
                             }
                             literalRecordPlusLeftAccepted (declaration, n, parent.right);
@@ -4645,14 +4594,12 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
             }
             case ts.SyntaxKind.CallExpression: {
                 if (parent.expression === n) {
-                    jjncLit ('safe:dynamic-callee'); /*JJN*/
                     return false; // dynamic callee
                 }
                 if (parent.arguments.indexOf (n) === -1) {
                     break;
                 }
                 if (literalIsNumberIsIntegerArgument (n)) {
-                    jjncLit ('safe:number-isinteger'); /*JJN*/
                     return false;
                 }
                 const callee = parent.expression;
@@ -4661,12 +4608,10 @@ function literalIsSafeToRetype (printer, scope, declaration, sourceName, value, 
                     const index = parent.arguments.indexOf (n);
                     const stringIdx = LITERAL_STRING_CAST_ARGUMENTS[method];
                     if (stringIdx !== undefined && stringIdx.indexOf (index) !== -1 && !isString) {
-                        jjncLit ('safe:argcast-string:' + method); /*JJN*/
                         return false; // ((String)x) on the argument
                     }
                     const numberIdx = LITERAL_NUMBER_CAST_ARGUMENTS[method];
                     if (numberIdx !== undefined && numberIdx.indexOf (index) !== -1 && !isNumeric) {
-                        jjncLit ('safe:argcast-number:' + method); /*JJN*/
                         return false; // ((Number)x).intValue() on the argument
                     }
                 }
@@ -4685,12 +4630,10 @@ function literalLocalTypeCore (printer, declaration) {
     }
     const scope = enclosingFunction (declaration);
     if (scope === undefined) {
-        jjncLit ('noscope'); /*JJN*/
         return undefined;
     }
     const value = literalTypeOfValue (printer, declaration.initializer);
     if (value === undefined || value.nullish === true) {
-        jjncLit (value === undefined ? 'nofam' : 'nullish'); /*JJN*/
         return undefined;
     }
     const sourceName = declaration.name.escapedText;
@@ -4699,7 +4642,6 @@ function literalLocalTypeCore (printer, declaration) {
     if (!literalIsSafeToRetype (printer, scope, declaration, sourceName, value, isProFile)) {
         return undefined;
     }
-    jjncLit ('ACCEPT:' + value.type); /*JJN*/
     return value;
 }
 
@@ -4946,7 +4888,6 @@ const NUMERIC_RECEIVER_METHODS = new Set ([ 'toString', 'toFixed' ]);
 const JAVA_NUMERIC_DEBUG = process.env.CCXT_JAVA_NUMERIC_DEBUG === '1';
 
 function numericDebug (message) {
-    jjncNum (message); /*JJN*/
     if (JAVA_NUMERIC_DEBUG) {
         console.error ('[java-numeric] ' + message);
     }
@@ -5180,7 +5121,6 @@ function numericLocalTypeForDeclaration (printer, declaration) {
     if (!numericIsSafeToNarrow (printer, declaration, sourceName, javaType, isProFile)) {
         return undefined;
     }
-    jjncNum ('ACCEPT:' + javaType); /*JJN*/
     return javaType;
 }
 
@@ -5282,203 +5222,4 @@ export function installJavaNumericLocalTypes (transpiler) {
         return printed.slice (0, at) + `${iden}${javaType} ${printer.printNode (declaration.name)} = ` + value;
     };
     printer._javaNumericTypesPatched = true;
-    jjnInstallCensus (printer); /*JJN*/
 }
-
-// ===== JJN-CENSUS TEMP INSTRUMENTATION — MUST BE REMOVED BEFORE COMMIT =====
-// (enabled only when JJN_CENSUS=1; writes one JSON line per processed variable
-// declaration to $JJN_CENSUS_DIR/census-<pid>-<tid>.jsonl; see campaign JN-12)
-const JJN_CENSUS = process.env['JJN_CENSUS'] === '1';
-const jjnSlots = { main: null, lit: null, num: null, df: null, col: null, han: null };
-
-function jjncMain (v) { if (JJN_CENSUS) { jjnSlots.main = v; } } /*JJN*/
-function jjncLit (v) { if (JJN_CENSUS) { jjnSlots.lit = v; } } /*JJN*/
-function jjncNum (v) { if (JJN_CENSUS) { jjnSlots.num = v; } } /*JJN*/
-function jjncDf (v) { if (JJN_CENSUS) { jjnSlots.df = v; } } /*JJN*/
-function jjncCol (v) { if (JJN_CENSUS) { jjnSlots.col = v; } } /*JJN*/
-function jjncHan (v) { if (JJN_CENSUS) { jjnSlots.han = v; } } /*JJN*/
-
-let jjnFd = null; /*JJN*/
-let jjnSinkPath = null; /*JJN*/
-function jjncWrite (record) { /*JJN*/
-    if (!JJN_CENSUS) { return; }
-    try {
-        if (jjnFd === null) {
-            const dir = process.env['JJN_CENSUS_DIR'] || '/tmp/jjn-census';
-            fs.mkdirSync (dir, { recursive: true });
-            jjnSinkPath = path.join (dir, `census-${process.pid}-${jjnThreadId}.jsonl`);
-            jjnFd = fs.openSync (jjnSinkPath, 'a');
-            fs.writeSync (jjnFd, JSON.stringify ({ run: 'start', pid: process.pid, tid: jjnThreadId, sink: jjnSinkPath }) + '\n');
-        }
-        fs.writeSync (jjnFd, JSON.stringify (record) + '\n');
-    } catch (e) {}
-}
-
-function jjncUnwrap (node) { /*JJN*/
-    while (node !== undefined
-        && (node.kind === ts.SyntaxKind.ParenthesizedExpression
-            || node.kind === ts.SyntaxKind.NonNullExpression)) {
-        node = node.expression;
-    }
-    return node;
-}
-
-function jjncBaseName (expr) { /*JJN*/
-    if (expr === undefined) { return '?'; }
-    switch (expr.kind) {
-        case ts.SyntaxKind.ThisKeyword: return 'this';
-        case ts.SyntaxKind.SuperKeyword: return 'super';
-        case ts.SyntaxKind.Identifier: return String (expr.escapedText);
-        default: return '<expr>';
-    }
-}
-
-function jjncCallee (node) { /*JJN*/
-    if (node === undefined || !ts.isCallExpression (node)) { return null; }
-    const c = node.expression;
-    if (ts.isIdentifier (c)) { return 'bare:' + String (c.escapedText); }
-    if (ts.isPropertyAccessExpression (c)) { return jjncBaseName (c.expression) + '.' + String (c.name.escapedText); }
-    return '<callee>';
-}
-
-function jjncFamilyOf (declaration) { /*JJN*/
-    const init = jjncUnwrap (declaration.initializer);
-    if (init === undefined) { return 'none'; }
-    if (ts.isCallExpression (init)) {
-        const c = init.expression;
-        let kind;
-        if (ts.isPropertyAccessExpression (c)) {
-            kind = c.expression.kind === ts.SyntaxKind.ThisKeyword ? 'this'
-                : c.expression.kind === ts.SyntaxKind.SuperKeyword ? 'super'
-                    : ts.isIdentifier (c.expression) ? 'recv' : 'expr';
-        } else if (ts.isIdentifier (c)) {
-            kind = 'bare';
-        } else {
-            kind = 'othercall';
-        }
-        return kind + ':' + (jjncCallee (init) ?? '?');
-    }
-    if (init.kind === ts.SyntaxKind.AwaitExpression) {
-        return 'await:' + (jjncCallee (jjncUnwrap (init.expression)) ?? '<aw>');
-    }
-    if (ts.isPropertyAccessExpression (init)) {
-        return 'member:' + jjncBaseName (init.expression) + '.' + String (init.name.escapedText);
-    }
-    if (ts.isElementAccessExpression (init)) {
-        return 'elema:' + jjncBaseName (init.expression);
-    }
-    switch (init.kind) {
-        case ts.SyntaxKind.StringLiteral:
-        case ts.SyntaxKind.NoSubstitutionTemplateLiteral: return 'lit:string';
-        case ts.SyntaxKind.NumericLiteral: return 'lit:number';
-        case ts.SyntaxKind.TrueKeyword:
-        case ts.SyntaxKind.FalseKeyword: return 'lit:boolean';
-        case ts.SyntaxKind.NullKeyword: return 'lit:null';
-        case ts.SyntaxKind.ObjectLiteralExpression: return 'lit:object';
-        case ts.SyntaxKind.ArrayLiteralExpression: return 'lit:array';
-        case ts.SyntaxKind.TemplateExpression: return 'tmpl';
-        case ts.SyntaxKind.Identifier: return 'ident:' + String (init.escapedText);
-        case ts.SyntaxKind.ConditionalExpression: return 'ternary';
-        case ts.SyntaxKind.BinaryExpression: return 'binary:' + ts.SyntaxKind[init.operatorToken.kind];
-        case ts.SyntaxKind.PrefixUnaryExpression:
-        case ts.SyntaxKind.PostfixUnaryExpression: return 'unary:' + ts.SyntaxKind[init.operator];
-        case ts.SyntaxKind.TypeOfExpression: return 'typeof';
-        case ts.SyntaxKind.AsExpression:
-        case ts.SyntaxKind.TypeAssertionExpression: {
-            let t = '<t>';
-            try { t = init.type.getText ().slice (0, 24); } catch (e) {}
-            return 'as:' + t;
-        }
-        case ts.SyntaxKind.NewExpression:
-            return 'new:' + (ts.isIdentifier (init.expression) ? String (init.expression.escapedText) : '<e>');
-        case ts.SyntaxKind.TaggedTemplateExpression: return 'taggedtmpl';
-        case ts.SyntaxKind.FunctionExpression:
-        case ts.SyntaxKind.ArrowFunction: return 'fn';
-        case ts.SyntaxKind.VoidExpression: return 'void';
-        case ts.SyntaxKind.DeleteExpression: return 'delete';
-        case ts.SyntaxKind.SpreadElement: return 'spread';
-        default: return 'kind:' + ts.SyntaxKind[init.kind];
-    }
-}
-
-// no-family detail for the main layer. The DEAD-REACHABLE marker fires when the
-// initializer is exactly a shape `receiverMethodLocalType` (the method-call family)
-// would have classified — evidence that the non-this branch of localInitializerType
-// is unreachable at this revision.
-function jjncMainNoInit (printer, declaration) { /*JJN*/
-    if (!JJN_CENSUS) { return; }
-    let detail = jjncFamilyOf (declaration);
-    try {
-        const init = jjncUnwrap (declaration.initializer);
-        const dead = receiverMethodLocalType (init);
-        if (dead !== undefined) { detail += '|DEAD-REACHABLE:' + dead.type; }
-    } catch (e) {}
-    jjncMain ('noinit:' + detail);
-}
-
-function jjncLogDeclaration (printer, node, identation, printed) { /*JJN*/
-    const declarations = node?.declarations;
-    if (declarations === undefined || declarations.length !== 1) { return; }
-    const declaration = declarations[0];
-    if (declaration.initializer === undefined || !ts.isIdentifier (declaration.name)) { return; }
-    const parentKind = declaration.parent?.parent?.kind;
-    if (parentKind === ts.SyntaxKind.ForStatement
-        || parentKind === ts.SyntaxKind.ForOfStatement
-        || parentKind === ts.SyntaxKind.ForInStatement) { return; }
-    const source = declaration.getSourceFile ();
-    const rel = source.fileName.replace (/^.*?[\\/]ts[\\/]/, 'ts/');
-    const line = source.getLineAndCharacterOfPosition (declaration.getStart ()).line + 1;
-    const name = String (declaration.name.escapedText);
-    let printedName = name;
-    try { printedName = printer.printNode (declaration.name); } catch (e) {}
-    const iden = printer.getIden (identation);
-    const objMarker = `${iden}Object ${printedName} = `;
-    const isObject = printed.includes (objMarker);
-    const rec = {
-        file: rel,
-        line,
-        name,
-        fam: jjncFamilyOf (declaration),
-        v: isObject ? 'object' : 'typed',
-        main: jjnSlots.main,
-        lit: jjnSlots.lit,
-        num: jjnSlots.num,
-        df: jjnSlots.df,
-        col: jjnSlots.col,
-        han: jjnSlots.han,
-    };
-    if (isObject) {
-        const at = printed.lastIndexOf (objMarker);
-        rec.val = printed.slice (at + objMarker.length).replace (/\n/g, '\\n').slice (0, 72);
-    } else {
-        const at = printed.indexOf (` ${printedName} = `);
-        if (at !== -1) {
-            const head = printed.slice (0, at);
-            const nl = Math.max (head.lastIndexOf ('\n'), head.lastIndexOf (';')) + 1;
-            rec.type = head.slice (nl).trim ().slice (0, 64);
-        }
-    }
-    jjncWrite (rec);
-}
-
-// outermost wrapper: installed last so `printed` is the final post-processed text,
-// and every earlier layer's slot writes are final when the record is written.
-function jjnInstallCensus (printer) { /*JJN*/
-    if (!JJN_CENSUS || !printer || typeof printer.printVariableDeclarationList !== 'function' || printer._jjnCensusPatched) {
-        return;
-    }
-    printer._jjnCensusPatched = true;
-    const upstream = printer.printVariableDeclarationList.bind (printer);
-    printer.printVariableDeclarationList = function (node, identation) {
-        jjnSlots.main = null; jjnSlots.lit = null; jjnSlots.num = null;
-        jjnSlots.df = null; jjnSlots.col = null; jjnSlots.han = null;
-        const printed = upstream (node, identation);
-        try {
-            jjncLogDeclaration (printer, node, identation, printed);
-        } catch (e) {
-            try { jjncWrite ({ err: String (e).slice (0, 240) }); } catch (e2) {}
-        }
-        return printed;
-    };
-}
-// ===== END JJN-CENSUS TEMP INSTRUMENTATION =====
