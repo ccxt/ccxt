@@ -541,11 +541,9 @@ function renderTuple (type: IRType, existing: ExistingFile | undefined): string 
     }
     out.push ('public final class ' + type.name + ' {');
     out.push (...fieldLines);
-    // Lossless inverse support, same contract as the interface renderer. A tuple
-    // widens every slot to Long/Double, so rebuilding the list from the parsed
-    // fields is not an inverse: an integer volume of `2` comes back as `2.0`, and
-    // any slot the tuple doc does not name is dropped outright. Keeping the list
-    // the object was built from makes `TypedCores.from*` exact for tuples too.
+    // Lossless inverse support, same contract as the interface renderer: a tuple
+    // widens every slot to Long/Double, so a field-set rebuild is not an inverse.
+    // Keeping the list the object was built from makes from* exact for tuples too.
     out.push (INDENT + 'public final Object __raw;');
     out.push ('');
     // index-based constructors perform no unchecked cast, so they carry no @SuppressWarnings
@@ -606,15 +604,9 @@ function renderInterface (ir: TypesIR, className: string, fields: IRField[], exi
     }
     out.push ('public final class ' + className + ' {');
     out.push (...fieldLines);
-    // Lossless inverse support. A unified type is a *projection*: it names a fixed field
-    // set, while the payload CCXT actually produced carries a variable key set (venue
-    // extras, `fees`, keys no TS interface names). Rebuilding a map from the fields alone
-    // is therefore not an inverse -- it both drops real keys and invents nulls for keys the
-    // payload never had. Keeping a reference to the map the object was built from makes
-    // `TypedCores.from*` an exact inverse, which is what lets a strictly-typed core hand
-    // its result back to untyped code (reflective dispatch, pagination, the static-response
-    // comparator) with no observable change. It aliases the same map the constructor already
-    // read, so it costs a reference, not a copy.
+    // Lossless inverse support: a unified type is a fixed-shape projection of a
+    // variable-shape payload, so from* hands back the map the object was built
+    // from (aliased, not copied) instead of a lossy field-set rebuild.
     out.push (INDENT + 'public final Object __raw;');
     out.push ('');
     if (existing === undefined || existing.ctorAnnotated) {

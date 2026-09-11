@@ -614,15 +614,10 @@ public class BaseTest {
     }
 
     /**
-     * Exact inverse of the typed-core projection, for the reflective test path.
-     *
-     * <p>Typed cores hand back unified type objects (Ticker, Order, ...). The static
-     * request/response harness compares against JSON fixtures recorded from the raw
-     * representation and reaches into results with string keys, so detype here — via
-     * the payload the type retains in its public {@code __raw} field — and the
-     * comparator sees the same map the exchange actually produced. A field-set rebuild
-     * would drop venue extras and invent nulls; this is a field read. Types without the
-     * field (ws caches, order books) pass through untouched.
+     * Exact inverse of the typed-core projection, for the reflective test path: a typed
+     * unified class retains the payload it was built from in a public {@code __raw} field,
+     * so detype is a field read (a field-set rebuild would drop venue extras and invent
+     * nulls). Types without the field -- ws caches, order books -- pass through.
      */
     public static Object detypeForComparison(Object value) {
         if (value == null) {

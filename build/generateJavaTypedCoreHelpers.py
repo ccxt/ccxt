@@ -309,10 +309,9 @@ def emit_family(name, fields):
     L.append('        if (!(value instanceof %s typed)) {' % name)
     L.append('            return value;')
     L.append('        }')
-    L.append('        // Exact inverse: hand back the very payload the type was built from.')
-    L.append('        // Reconstructing from the declared fields is NOT an inverse -- the type is a')
-    L.append('        // fixed-shape projection of a variable-shape payload, so it would drop venue')
-    L.append('        // extras and invent nulls for keys that were never present.')
+    L.append('        // Exact inverse: hand back the payload the type was built from. A' )
+    L.append('        // field-set rebuild would drop venue extras and invent nulls -- the type' )
+    L.append('        // is a fixed-shape projection of a variable-shape payload.' )
     L.append('        if (typed.__raw != null) {')
     L.append('            return typed.__raw;')
     L.append('        }')
@@ -322,10 +321,9 @@ def emit_family(name, fields):
         L.append('        // null. There is no field set to rebuild from; hand the value back as-is.')
         L.append('        return value;')
     elif positional:
-        L.append('        // Positional tuple: the constructor reads by index off a bare List and')
-        L.append('        // widens every slot to Long/Double, so rebuilding from the parsed fields')
-        L.append('        // is only a fallback for a type constructed without a payload -- it would')
-        L.append('        // turn an integer volume of 2 back into 2.0.')
+        L.append('        // Positional tuple: the constructor widens every slot to Long/Double,')
+        L.append('        // so a rebuild is only a fallback for a type constructed without a')
+        L.append('        // payload -- it would turn an integer volume of 2 back into 2.0.')
         L.append('        List<Object> out = new ArrayList<>();')
         by_index = {f['index']: f for f in fields}
         for idx in range(max(by_index) + 1):
@@ -336,10 +334,9 @@ def emit_family(name, fields):
                 L.append('        out.add(typed.%s);' % f['field'])
         L.append('        return out;')
     else:
-        L.append('        // nulls are PUT rather than omitted: the constructor reads every key via')
-        L.append('        // safe* accessors, so a present-but-null key and an absent key are')
-        L.append('        // indistinguishable on the way back in. Putting them keeps the key set')
-        L.append('        // stable, which is what round-trip callers compare on.')
+        L.append('        // nulls are PUT rather than omitted: the constructor reads every key,')
+        L.append('        // so present-but-null and absent are indistinguishable on the way back,')
+        L.append('        // and a stable key set is what round-trip callers compare on.')
         L.append('        Map<String, Object> out = new LinkedHashMap<>();')
         for f in fields:
             if f['kind'] in ('scalar', 'info', 'raw'):

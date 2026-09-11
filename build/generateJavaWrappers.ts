@@ -349,10 +349,8 @@ function genMethod(m: MethodInfo, castToObject = false, preConvert = true): stri
     const fullParamDecl = allParams.map(p => `${p.javaType} ${p.name}`).join(', ');
     const delegateCall = genDelegateCall(methodName, allParams, castToObject);
     // A core whose return is in build/javaTypedCores.ts already hands back the
-    // unified type, so the wrapper must NOT convert a second time (`new Ticker(res)`
-    // on a Ticker is a ClassCastException in TypeHelper.toMap). `Helpers.joinTyped`
-    // is the generic join (CF<Object> is not a CF<Ticker>). Only the crypto tier:
-    // prediction cores are deliberately untyped in this slice.
+    // unified type, so the wrapper does not convert again (double conversion is a
+    // ClassCastException in TypeHelper.toMap). Prediction cores stay untyped.
     const preConverted = preConvert && !castToObject && m.javaReturnType !== 'Object' && TYPED_CORES[m.name] !== undefined;
 
     const lines: string[] = [];

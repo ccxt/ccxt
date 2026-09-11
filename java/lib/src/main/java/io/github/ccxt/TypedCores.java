@@ -49,17 +49,15 @@ public final class TypedCores {
         if (!(value instanceof ADL typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("rank", typed.rank);
@@ -109,17 +107,15 @@ public final class TypedCores {
         if (!(value instanceof Account typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("type", typed.type);
@@ -166,17 +162,15 @@ public final class TypedCores {
         if (!(value instanceof AllGreeks typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("info", typed.info);
         return out;
@@ -220,17 +214,15 @@ public final class TypedCores {
         if (!(value instanceof Balance typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("free", typed.free);
         out.put("used", typed.used);
@@ -277,17 +269,15 @@ public final class TypedCores {
         if (!(value instanceof BalanceAccount typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("free", typed.free);
         out.put("used", typed.used);
@@ -336,10 +326,9 @@ public final class TypedCores {
         if (!(value instanceof Balances typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
@@ -387,17 +376,15 @@ public final class TypedCores {
         if (!(value instanceof BorrowInterest typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("currency", typed.currency);
@@ -449,17 +436,15 @@ public final class TypedCores {
         if (!(value instanceof CancellationRequest typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("clientOrderId", typed.clientOrderId);
@@ -505,17 +490,15 @@ public final class TypedCores {
         if (!(value instanceof Conversion typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("timestamp", typed.timestamp);
@@ -568,17 +551,15 @@ public final class TypedCores {
         if (!(value instanceof CrossBorrowRate typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("currency", typed.currency);
         out.put("rate", typed.rate);
@@ -627,17 +608,15 @@ public final class TypedCores {
         if (!(value instanceof CrossBorrowRates typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         return out;
     }
@@ -680,17 +659,15 @@ public final class TypedCores {
         if (!(value instanceof Currencies typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         return out;
     }
@@ -733,10 +710,9 @@ public final class TypedCores {
         if (!(value instanceof CurrencyInterface typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
@@ -784,17 +760,15 @@ public final class TypedCores {
         if (!(value instanceof CurrencyLimits typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("amount", fromMinMax(typed.amount));
         out.put("withdraw", fromMinMax(typed.withdraw));
@@ -839,17 +813,15 @@ public final class TypedCores {
         if (!(value instanceof DepositAddress typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("currency", typed.currency);
         out.put("network", typed.network);
@@ -897,17 +869,15 @@ public final class TypedCores {
         if (!(value instanceof DepositAddresses typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("info", typed.info);
         return out;
@@ -951,10 +921,9 @@ public final class TypedCores {
         if (!(value instanceof DepositWithdrawFee typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
@@ -1002,17 +971,15 @@ public final class TypedCores {
         if (!(value instanceof DepositWithdrawFeeNetwork typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("fee", typed.fee);
         out.put("percentage", typed.percentage);
@@ -1057,17 +1024,15 @@ public final class TypedCores {
         if (!(value instanceof DepositWithdrawFees typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("info", typed.info);
         return out;
@@ -1111,17 +1076,15 @@ public final class TypedCores {
         if (!(value instanceof Fee typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("rate", typed.rate);
         out.put("cost", typed.cost);
@@ -1167,17 +1130,15 @@ public final class TypedCores {
         if (!(value instanceof FundingHistory typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("symbol", typed.symbol);
@@ -1227,17 +1188,15 @@ public final class TypedCores {
         if (!(value instanceof FundingRate typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("timestamp", typed.timestamp);
@@ -1298,17 +1257,15 @@ public final class TypedCores {
         if (!(value instanceof FundingRateHistory typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("fundingRate", typed.fundingRate);
@@ -1356,17 +1313,15 @@ public final class TypedCores {
         if (!(value instanceof FundingRates typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         return out;
     }
@@ -1409,17 +1364,15 @@ public final class TypedCores {
         if (!(value instanceof Greeks typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("timestamp", typed.timestamp);
@@ -1484,17 +1437,15 @@ public final class TypedCores {
         if (!(value instanceof IsolatedBorrowRate typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("base", typed.base);
@@ -1546,17 +1497,15 @@ public final class TypedCores {
         if (!(value instanceof IsolatedBorrowRates typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         return out;
     }
@@ -1599,17 +1548,15 @@ public final class TypedCores {
         if (!(value instanceof LastPrice typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("timestamp", typed.timestamp);
@@ -1658,17 +1605,15 @@ public final class TypedCores {
         if (!(value instanceof LastPrices typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         return out;
     }
@@ -1711,17 +1656,15 @@ public final class TypedCores {
         if (!(value instanceof LedgerEntry typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("timestamp", typed.timestamp);
@@ -1779,17 +1722,15 @@ public final class TypedCores {
         if (!(value instanceof Leverage typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("marginMode", typed.marginMode);
@@ -1837,17 +1778,15 @@ public final class TypedCores {
         if (!(value instanceof LeverageTier typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("tier", typed.tier);
         out.put("symbol", typed.symbol);
@@ -1898,17 +1837,15 @@ public final class TypedCores {
         if (!(value instanceof Leverages typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         return out;
     }
@@ -1951,17 +1888,15 @@ public final class TypedCores {
         if (!(value instanceof Limits typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("amount", fromMinMax(typed.amount));
         out.put("cost", fromMinMax(typed.cost));
@@ -2009,17 +1944,15 @@ public final class TypedCores {
         if (!(value instanceof Liquidation typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("timestamp", typed.timestamp);
@@ -2072,17 +2005,15 @@ public final class TypedCores {
         if (!(value instanceof LongShortRatio typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("timestamp", typed.timestamp);
@@ -2131,17 +2062,15 @@ public final class TypedCores {
         if (!(value instanceof MarginLoan typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("currency", typed.currency);
@@ -2191,17 +2120,15 @@ public final class TypedCores {
         if (!(value instanceof MarginMode typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("marginMode", typed.marginMode);
@@ -2247,17 +2174,15 @@ public final class TypedCores {
         if (!(value instanceof MarginModes typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         return out;
     }
@@ -2300,17 +2225,15 @@ public final class TypedCores {
         if (!(value instanceof MarginModification typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("type", typed.type);
@@ -2363,17 +2286,15 @@ public final class TypedCores {
         if (!(value instanceof MarketInterface typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("numericId", typed.numericId);
@@ -2458,17 +2379,15 @@ public final class TypedCores {
         if (!(value instanceof MarketMarginModes typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("cross", typed.cross);
         out.put("isolated", typed.isolated);
@@ -2513,17 +2432,15 @@ public final class TypedCores {
         if (!(value instanceof MinMax typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("min", typed.min);
         out.put("max", typed.max);
@@ -2568,17 +2485,15 @@ public final class TypedCores {
         if (!(value instanceof Network typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("network", typed.network);
@@ -2631,17 +2546,15 @@ public final class TypedCores {
         if (!(value instanceof NetworkLimits typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("withdraw", fromMinMax(typed.withdraw));
         out.put("deposit", fromMinMax(typed.deposit));
@@ -2686,17 +2599,15 @@ public final class TypedCores {
         if (!(value instanceof OHLCV typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // Positional tuple: the constructor reads by index off a bare List and
-        // widens every slot to Long/Double, so rebuilding from the parsed fields
-        // is only a fallback for a type constructed without a payload -- it would
-        // turn an integer volume of 2 back into 2.0.
+        // Positional tuple: the constructor widens every slot to Long/Double,
+        // so a rebuild is only a fallback for a type constructed without a
+        // payload -- it would turn an integer volume of 2 back into 2.0.
         List<Object> out = new ArrayList<>();
         out.add(typed.timestamp);
         out.add(typed.open);
@@ -2745,17 +2656,15 @@ public final class TypedCores {
         if (!(value instanceof OpenInterest typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("openInterestAmount", typed.openInterestAmount);
@@ -2806,17 +2715,15 @@ public final class TypedCores {
         if (!(value instanceof OpenInterests typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         return out;
     }
@@ -2859,17 +2766,15 @@ public final class TypedCores {
         if (!(value instanceof Option typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("currency", typed.currency);
         out.put("symbol", typed.symbol);
@@ -2929,17 +2834,15 @@ public final class TypedCores {
         if (!(value instanceof OptionChain typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         return out;
     }
@@ -2982,17 +2885,15 @@ public final class TypedCores {
         if (!(value instanceof Order typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("clientOrderId", typed.clientOrderId);
@@ -3061,10 +2962,9 @@ public final class TypedCores {
         if (!(value instanceof OrderBook typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
@@ -3112,17 +3012,15 @@ public final class TypedCores {
         if (!(value instanceof OrderBooks typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         return out;
     }
@@ -3165,10 +3063,9 @@ public final class TypedCores {
         if (!(value instanceof OrderRequest typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
@@ -3216,17 +3113,15 @@ public final class TypedCores {
         if (!(value instanceof Position typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("id", typed.id);
@@ -3297,17 +3192,15 @@ public final class TypedCores {
         if (!(value instanceof PositionModeInfo typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("hedged", typed.hedged);
         out.put("info", typed.info);
@@ -3352,17 +3245,15 @@ public final class TypedCores {
         if (!(value instanceof Precision typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("amount", typed.amount);
         out.put("price", typed.price);
@@ -3410,10 +3301,9 @@ public final class TypedCores {
         if (!(value instanceof PredictionEvent typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
@@ -3461,17 +3351,15 @@ public final class TypedCores {
         if (!(value instanceof PredictionFees typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("trading", typed.trading);
         out.put("resolution", typed.resolution);
@@ -3516,17 +3404,15 @@ public final class TypedCores {
         if (!(value instanceof PredictionMarket typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("market", typed.market);
@@ -3600,17 +3486,15 @@ public final class TypedCores {
         if (!(value instanceof PredictionOpenInterest typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("openInterestAmount", typed.openInterestAmount);
         out.put("openInterestValue", typed.openInterestValue);
@@ -3661,17 +3545,15 @@ public final class TypedCores {
         if (!(value instanceof PredictionOrder typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("clientOrderId", typed.clientOrderId);
@@ -3740,10 +3622,9 @@ public final class TypedCores {
         if (!(value instanceof PredictionOrderBook typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
@@ -3791,10 +3672,9 @@ public final class TypedCores {
         if (!(value instanceof PredictionOrderRequest typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
@@ -3842,17 +3722,15 @@ public final class TypedCores {
         if (!(value instanceof PredictionOutcome typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("outcome", typed.outcome);
         out.put("outcomeId", typed.outcomeId);
@@ -3909,17 +3787,15 @@ public final class TypedCores {
         if (!(value instanceof PredictionPosition typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("timestamp", typed.timestamp);
@@ -3986,17 +3862,15 @@ public final class TypedCores {
         if (!(value instanceof PredictionSettlement typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("timestamp", typed.timestamp);
@@ -4054,17 +3928,15 @@ public final class TypedCores {
         if (!(value instanceof PredictionTicker typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("timestamp", typed.timestamp);
         out.put("datetime", typed.datetime);
@@ -4130,17 +4002,15 @@ public final class TypedCores {
         if (!(value instanceof PredictionTickers typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("info", typed.info);
         return out;
@@ -4184,17 +4054,15 @@ public final class TypedCores {
         if (!(value instanceof PredictionTrade typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("amount", typed.amount);
         out.put("price", typed.price);
@@ -4254,17 +4122,15 @@ public final class TypedCores {
         if (!(value instanceof PredictionTradingFee typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("maker", typed.maker);
         out.put("taker", typed.taker);
@@ -4315,17 +4181,15 @@ public final class TypedCores {
         if (!(value instanceof Status typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("status", typed.status);
         out.put("updated", typed.updated);
@@ -4373,17 +4237,15 @@ public final class TypedCores {
         if (!(value instanceof Ticker typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("symbol", typed.symbol);
         out.put("timestamp", typed.timestamp);
@@ -4448,17 +4310,15 @@ public final class TypedCores {
         if (!(value instanceof Tickers typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("info", typed.info);
         return out;
@@ -4502,17 +4362,15 @@ public final class TypedCores {
         if (!(value instanceof Trade typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("amount", typed.amount);
         out.put("price", typed.price);
@@ -4568,10 +4426,9 @@ public final class TypedCores {
         if (!(value instanceof TradingFeeInterface typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
@@ -4619,17 +4476,15 @@ public final class TypedCores {
         if (!(value instanceof TradingFees typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("info", typed.info);
         return out;
@@ -4673,17 +4528,15 @@ public final class TypedCores {
         if (!(value instanceof Transaction typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("txid", typed.txid);
@@ -4746,17 +4599,15 @@ public final class TypedCores {
         if (!(value instanceof TransferEntry typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("timestamp", typed.timestamp);
@@ -4808,17 +4659,15 @@ public final class TypedCores {
         if (!(value instanceof WithdrawalResponse typed)) {
             return value;
         }
-        // Exact inverse: hand back the very payload the type was built from.
-        // Reconstructing from the declared fields is NOT an inverse -- the type is a
-        // fixed-shape projection of a variable-shape payload, so it would drop venue
-        // extras and invent nulls for keys that were never present.
+        // Exact inverse: hand back the payload the type was built from. A
+        // field-set rebuild would drop venue extras and invent nulls -- the type
+        // is a fixed-shape projection of a variable-shape payload.
         if (typed.__raw != null) {
             return typed.__raw;
         }
-        // nulls are PUT rather than omitted: the constructor reads every key via
-        // safe* accessors, so a present-but-null key and an absent key are
-        // indistinguishable on the way back in. Putting them keeps the key set
-        // stable, which is what round-trip callers compare on.
+        // nulls are PUT rather than omitted: the constructor reads every key,
+        // so present-but-null and absent are indistinguishable on the way back,
+        // and a stable key set is what round-trip callers compare on.
         Map<String, Object> out = new LinkedHashMap<>();
         out.put("id", typed.id);
         out.put("info", typed.info);
