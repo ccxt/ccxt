@@ -36,6 +36,7 @@ import io.github.ccxt.base.Precise;
 import io.github.ccxt.base.Misc;
 import io.github.ccxt.base.Strings;
 import io.github.ccxt.errors.*;
+import io.github.ccxt.types.MarketInterface;
 import java.util.Random;
 import java.lang.reflect.Constructor;
 
@@ -3837,6 +3838,60 @@ public class BaseExchange {
     public java.util.concurrent.CompletableFuture<Object> fetchCurrenciesAsync(Object... args) { return fetchCurrencies(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchMarketsAsync(Object... args) { return fetchMarkets(args); }
     public java.util.concurrent.CompletableFuture<Object> fetchBalanceWsAsync(Object... args) { return fetchBalanceWs(args); }
+
+    // Typed market views over the raw rows this.markets / this.markets_by_id hold: raw
+    // Map rows, with per-id lists of them in markets_by_id. MarketInterface is a wrapper
+    // view, never stored, so naming it on the fields would ClassCastException on the first typed read.
+
+    /** Typed view of the loaded markets: this.markets' entries, each raw row wrapped in a
+     *  MarketInterface. Null while markets are not loaded; a fresh view per call. */
+    @SuppressWarnings("unchecked")
+    public Map<String, MarketInterface> marketsTyped () {
+        if (this.markets == null) {
+            return null;
+        }
+        Map<String, Object> rawMarkets = (Map<String, Object>) this.markets;
+        Map<String, MarketInterface> result = new LinkedHashMap<> ();
+        for (Map.Entry<String, Object> entry : rawMarkets.entrySet ()) {
+            result.put (entry.getKey (), new MarketInterface (entry.getValue ()));
+        }
+        return result;
+    }
+
+    /** Single typed market lookup, resolved exactly like market(symbol): this.markets first,
+     *  then the markets_by_id conflict list, then the expired-option path. */
+    public MarketInterface marketTyped (String symbol) {
+        Object raw = this.market (symbol);
+        if (raw == null) {
+            return null;
+        }
+        return new MarketInterface (raw);
+    }
+
+    /** Typed markets_by_id: for each id, the markets sharing it (a list, since ids may
+     *  conflict) wrapped in MarketInterface. Null while markets are not loaded. */
+    @SuppressWarnings("unchecked")
+    public Map<String, List<MarketInterface>> marketsByIdTyped () {
+        if (this.markets_by_id == null) {
+            return null;
+        }
+        Map<String, Object> rawMarketsById = (Map<String, Object>) this.markets_by_id;
+        Map<String, List<MarketInterface>> result = new LinkedHashMap<> ();
+        for (Map.Entry<String, Object> entry : rawMarketsById.entrySet ()) {
+            List<MarketInterface> typed = new ArrayList<> ();
+            Object value = entry.getValue ();
+            if (value instanceof List) {
+                for (Object row : (List<Object>) value) {
+                    typed.add (new MarketInterface (row));
+                }
+            } else if (value != null) {
+                // a value setMarkets never produces is surfaced, not hidden
+                typed.add (new MarketInterface (value));
+            }
+            result.put (entry.getKey (), typed);
+        }
+        return result;
+    }
 
     // ------------------------------------------------------------------------
     // METHODS BELOW THIS LINE ARE TRANSPILED FROM TYPESCRIPT
