@@ -7,14 +7,16 @@
 
 #pragma once
 
-#include "../base/Exchange.h"
+#include "../../base/PredictionExchange.h"
 
 namespace ccxt {
 
-class hyperliquidApi : public Exchange {
+namespace prediction {
+
+class hyperliquidApi : public PredictionExchange {
 public:
     hyperliquidApi () = default;
-    explicit hyperliquidApi (std::any config) : Exchange (config) {}
+    explicit hyperliquidApi (std::any config) : PredictionExchange (config) {}
 
     // Calls the publicPostInfo endpoint. Returns a JSON object, a JSON array or a JSON scalar.
     virtual std::shared_future<std::any> publicPostInfo (std::any parameters = ccxt::dict {}) {
@@ -28,4 +30,5 @@ public:
 
 };
 
+} // namespace prediction
 } // namespace ccxt

@@ -22,6 +22,7 @@ import log from 'ololog';
 
 const REST_DIR = './cpp/ccxt/exchanges';
 const PRO_DIR = './cpp/ccxt/pro';
+const PREDICTION_DIR = './cpp/ccxt/prediction';
 const CMake = '-S cpp -B cpp/build';
 const BUILD_JOBS = 8;   // -j14 OOM-kills big TUs against the session cgroup cap
 
@@ -38,6 +39,10 @@ function knownProIds (): Set<string> {
     return new Set (fs.readdirSync (dir)
         .filter ((f) => f.endsWith ('.ts'))
         .map ((f) => f.replace ('.ts', '')));
+}
+
+function knownPredictionIds (): Set<string> {
+    return new Set (JSON.parse (fs.readFileSync ('./exchanges.json', 'utf8')).prediction || []);
 }
 
 // base classes named in generated class declarations: `class X : public ccxt::Y`
@@ -91,9 +96,10 @@ function resolveDependencies (kept: Set<string>): { rest: Set<string>, pro: Set<
     return { rest, pro };
 }
 
-function pruneExchanges (keepRest: Set<string>, keepPro: Set<string>): void {
+function pruneExchanges (keepRest: Set<string>, keepPro: Set<string>, keepPrediction: Set<string>): void {
     const allIds = knownExchangeIds ();
     const proIds = knownProIds ();
+    const predictionIds = knownPredictionIds ();
     let deleted = 0;
     const pruneDir = (dir: string, keep: Set<string>, ids: Set<string>) => {
         for (const file of fs.readdirSync (dir)) {
@@ -109,10 +115,17 @@ function pruneExchanges (keepRest: Set<string>, keepPro: Set<string>): void {
     };
     pruneDir (REST_DIR, keepRest, allIds);
     pruneDir (PRO_DIR, keepPro, proIds);
-    log.green ('Pruned ' + deleted + ' generated exchange file(s); kept ' + keepRest.size + ' REST / ' + keepPro.size + ' pro');
+    pruneDir (PREDICTION_DIR, keepPrediction, predictionIds);
+    log.green ('Pruned ' + deleted + ' generated exchange file(s); kept ' + keepRest.size + ' REST / ' + keepPro.size + ' pro / ' + keepPrediction.size + ' prediction');
 }
 
 function transpileOne (id: string): void {
+    const prediction = fs.existsSync ('./ts/src/prediction/' + id + '.ts')
+        && !fs.existsSync ('./ts/src/' + id + '.ts');
+    if (prediction) {
+        sh ('npx tsx build/cppTranspiler.ts --prediction ' + id + ' --force');
+        return;
+    }
     if (!fs.existsSync ('./ts/src/' + id + '.ts')) {
         throw new Error ('no REST source ts/src/' + id + '.ts for exchange "' + id + '"');
     }
@@ -127,7 +140,7 @@ function main (): void {
 
     if (argsRaw.includes ('--restore')) {
         log.cyan ('Restoring the full generated tree from git (transpile output is deterministic)...');
-        sh ('git checkout -- ' + REST_DIR + ' ' + PRO_DIR);
+        sh ('git checkout -- ' + REST_DIR + ' ' + PRO_DIR + ' ' + PREDICTION_DIR + ' cpp/ccxt/api');
         sh ('cmake ' + CMake);
         log.green ('Restored. Run the full build as usual: cmake --build cpp/build --parallel 8 && cmake --build cpp/build --parallel 1');
         return;
@@ -158,9 +171,11 @@ function main (): void {
     }
 
     // 3. resolve the class-hierarchy closure, then prune everything else
-    const { rest, pro } = resolveDependencies (new Set (ids));
-    log.cyan ('Kept (with dependencies): REST [' + [...rest].join (', ') + '] pro [' + [...pro].join (', ') + ']');
-    pruneExchanges (rest, pro);
+    const predictionIds = knownPredictionIds ();
+    const keepPrediction = new Set (ids.filter ((id) => predictionIds.has (id)));
+    const { rest, pro } = resolveDependencies (new Set (ids.filter ((id) => !predictionIds.has (id))));
+    log.cyan ('Kept (with dependencies): REST [' + [...rest].join (', ') + '] pro [' + [...pro].join (', ') + '] prediction [' + [...keepPrediction].join (', ') + ']');
+    pruneExchanges (rest, pro, keepPrediction);
 
     // 4. reconfigure (the tu_*.cpp GLOB changes) and build the test + CLI targets
     sh ('cmake ' + CMake);

@@ -417,7 +417,7 @@ public:
     // Asymmetric signing is not wired yet: binance only needs these for RSA/ed25519 API
     // keys, while the hmac path -- what every static request fixture exercises -- is
     // real. They throw rather than returning a plausible-looking wrong signature.
-    virtual std::any rsa (std::any request, std::any secretKey, std::any algorithm = std::any {});
+    virtual std::any rsa (std::any request, std::any secretKey, std::any algorithm = std::any {}, std::any padding = std::any {});
     virtual std::any eddsa (std::any request, std::any secretKey, std::any algorithm = std::any {});
     virtual std::any jwt (std::any data, std::any secretKey, std::any algorithm = std::any {},
                           std::any isRsa = std::any {}, std::any opts = std::any {});

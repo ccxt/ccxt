@@ -7,14 +7,16 @@
 
 #pragma once
 
-#include "../base/Exchange.h"
+#include "../../base/PredictionExchange.h"
 
 namespace ccxt {
 
-class binanceApi : public Exchange {
+namespace prediction {
+
+class binanceApi : public PredictionExchange {
 public:
     binanceApi () = default;
-    explicit binanceApi (std::any config) : Exchange (config) {}
+    explicit binanceApi (std::any config) : PredictionExchange (config) {}
 
     // Calls the sapiPrivateGetCategoryList endpoint. Returns a JSON object.
     virtual std::shared_future<std::any> sapiPrivateGetCategoryList (std::any parameters = ccxt::dict {}) {
@@ -118,4 +120,5 @@ public:
 
 };
 
+} // namespace prediction
 } // namespace ccxt

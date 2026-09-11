@@ -7,14 +7,16 @@
 
 #pragma once
 
-#include "../base/Exchange.h"
+#include "../../base/PredictionExchange.h"
 
 namespace ccxt {
 
-class opinionApi : public Exchange {
+namespace prediction {
+
+class opinionApi : public PredictionExchange {
 public:
     opinionApi () = default;
-    explicit opinionApi (std::any config) : Exchange (config) {}
+    explicit opinionApi (std::any config) : PredictionExchange (config) {}
 
     // Calls the opinionPublicGetMarket endpoint. Returns a JSON object or a JSON array.
     virtual std::shared_future<std::any> opinionPublicGetMarket (std::any parameters = ccxt::dict {}) {
@@ -118,4 +120,5 @@ public:
 
 };
 
+} // namespace prediction
 } // namespace ccxt
