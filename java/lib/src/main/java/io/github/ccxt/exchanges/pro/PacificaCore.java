@@ -947,7 +947,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
         Object trades = this.myTrades;
         Object symbols = new java.util.HashMap<String, Object>() {{}};
         Object data = this.safeList(message, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;
@@ -1474,7 +1474,7 @@ public class PacificaCore extends io.github.ccxt.exchanges.Pacifica
             Object limit = this.safeInteger(this.options, "ordersLimit", 1000);
             this.orders = new ArrayCache.ArrayCacheBySymbolById(((Number)limit).intValue());
         }
-        Object dataLength = Helpers.getArrayLength(data);
+        Integer dataLength = Helpers.getArrayLength(data);
         if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
         {
             return;

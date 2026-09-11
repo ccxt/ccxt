@@ -327,7 +327,7 @@ public class LimitlessCore extends LimitlessApi
             // every active limitless market. Cap the total number of markets collected.
             Object maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
             Object allRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object queriesLength = Helpers.getArrayLength(queries);
+            Integer queriesLength = Helpers.getArrayLength(queries);
             if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
             {
                 Object requestedLimit = this.safeInteger(parameters, "limit", 50);
@@ -368,10 +368,10 @@ public class LimitlessCore extends LimitlessApi
                 Object totalMarketsCount = this.safeInteger(firstPageResponse, "totalMarketsCount");
                 Object firstData = this.safeList(firstPageResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 allRaw = this.arrayConcat(allRaw, firstData);
-                java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                Object cappedPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(maxMarkets, pageSize))));
+                Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Double cappedPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(maxMarkets, pageSize))));
                 Object knownTotal = ((Helpers.isTrue((!Helpers.isEqual(totalMarketsCount, null))))) ? totalMarketsCount : 0;
-                Object allPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(knownTotal, pageSize))));
+                Double allPages = Math.ceil(Double.parseDouble(Helpers.toString(Helpers.divide(knownTotal, pageSize))));
                 Object totalPages = Helpers.mathMin(allPages, cappedPages);
                 for (var i = 2; Helpers.isLessThanOrEqual(i, totalPages); i++)
                 {
@@ -380,7 +380,7 @@ public class LimitlessCore extends LimitlessApi
                     ((java.util.List<Object>)promises).add(this.limitlessPublicGetMarketsActive(this.extend(request, rest)));
                 }
                 Object responses = (Helpers.promiseAll(promises)).join();
-                Object length = Helpers.getArrayLength(responses);
+                Integer length = Helpers.getArrayLength(responses);
                 for (var j = 0; Helpers.isLessThan(j, length); j++)
                 {
                     Object response = this.safeDict(responses, j);
@@ -389,8 +389,8 @@ public class LimitlessCore extends LimitlessApi
                 }
                 Object lastPageResponse = this.safeDict(responses, Helpers.subtract(length, 1));
                 Object lastPageData = this.safeList(lastPageResponse, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object lastPageLength = Helpers.getArrayLength(lastPageData);
-                Object allRawLength = Helpers.getArrayLength(allRaw);
+                Integer lastPageLength = Helpers.getArrayLength(lastPageData);
+                Integer allRawLength = Helpers.getArrayLength(allRaw);
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isGreaterThanOrEqual(lastPageLength, pageSize)) && Helpers.isTrue(Helpers.isLessThan(allRawLength, maxMarkets))))
                 {
                     while (true)
@@ -405,7 +405,7 @@ public class LimitlessCore extends LimitlessApi
                         }
                         Object rawPageMarkets = this.safeList(response, "data", responseRows);
                         Object page_markets = ((Helpers.isTrue((!Helpers.isEqual(rawPageMarkets, null))))) ? rawPageMarkets : new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                        Object pageMarketsLength = Helpers.getArrayLength(page_markets);
+                        Integer pageMarketsLength = Helpers.getArrayLength(page_markets);
                         if (Helpers.isTrue(Helpers.isEqual(pageMarketsLength, 0)))
                         {
                             break;
@@ -415,7 +415,7 @@ public class LimitlessCore extends LimitlessApi
                             Object raw = Helpers.GetValue(page_markets, i);
                             ((java.util.List<Object>)allRaw).add(raw);
                         }
-                        Object allRawCount = Helpers.getArrayLength(allRaw);
+                        Integer allRawCount = Helpers.getArrayLength(allRaw);
                         if (Helpers.isTrue(Helpers.isTrue(Helpers.isLessThan(pageMarketsLength, pageSize)) || Helpers.isTrue(Helpers.isGreaterThanOrEqual(allRawCount, maxMarkets))))
                         {
                             break;
@@ -423,7 +423,7 @@ public class LimitlessCore extends LimitlessApi
                     }
                 }
             }
-            java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object eventGroups = new java.util.HashMap<String, Object>() {{}};
             // group rows carry their tradeable children in a nested `markets` list — expand them
             // into regular rows before parsing (a group row itself has no tokens)
@@ -465,7 +465,7 @@ public class LimitlessCore extends LimitlessApi
                 Helpers.addElementToObject(eventsDict, eventKey, this.parseEvent(g));
             }
             this.events = eventsDict;
-            Object marketsLength = Helpers.getArrayLength(markets);
+            Integer marketsLength = Helpers.getArrayLength(markets);
             if (Helpers.isTrue(Helpers.isGreaterThan(marketsLength, maxMarkets)))
             {
                 return this.arraySlice(markets, 0, maxMarkets);
@@ -583,7 +583,7 @@ public class LimitlessCore extends LimitlessApi
             put( "amount", LimitlessCore.this.parseNumber(LimitlessCore.this.parsePrecision(LimitlessCore.this.numberToString(collateralDecimals))) );
             put( "price", 0.001 );
         }};
-        java.util.List<Object> outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object outcomes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object tokenEntries = Helpers.objectKeys(tokens);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tokenEntries)); i++)
         {
@@ -595,7 +595,7 @@ public class LimitlessCore extends LimitlessApi
             // limitless's binary yes/no markets). Object.keys iteration order is NOT stable across
             // languages (Go randomizes map iteration), so map the leg to its canonical index by
             // label rather than by loop position — otherwise Go/Java flag the wrong winner
-            Object labelLower = ((String)outcomeLabel).toLowerCase();
+            String labelLower = ((String)outcomeLabel).toLowerCase();
             Object legIndex = i;
             if (Helpers.isTrue(Helpers.isEqual(labelLower, "yes")))
             {
@@ -638,7 +638,7 @@ public class LimitlessCore extends LimitlessApi
                 }} );
             }});
         }
-        Object outcomesLength = Helpers.getArrayLength(outcomes);
+        Integer outcomesLength = Helpers.getArrayLength(outcomes);
         // effectively-final copy for the market object literal below (reassigned in the loop)
         Object marketResolvedOutcome = resolvedOutcome;
         final Object finalOutcomesLength = outcomesLength;
@@ -752,7 +752,7 @@ public class LimitlessCore extends LimitlessApi
      */
     public Object expandGroupRows(Object rawRows)
     {
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawRows)); i++)
         {
             Object raw = Helpers.GetValue(rawRows, i);
@@ -762,7 +762,7 @@ public class LimitlessCore extends LimitlessApi
             {
                 Object groupSlug = this.safeString(raw, "slug");
                 Object groupTitle = this.safeString(raw, "title", groupSlug);
-                Object nestedMarketsLength = Helpers.getArrayLength(nestedMarkets);
+                Integer nestedMarketsLength = Helpers.getArrayLength(nestedMarkets);
                 for (var j = 0; Helpers.isLessThan(j, nestedMarketsLength); j++)
                 {
                     // extend copies — the raw child stays untouched
@@ -1010,10 +1010,10 @@ public class LimitlessCore extends LimitlessApi
         Object endDate = this.safeString(eventVar, "deadline", this.safeString(eventVar, "expiresAt"));
         Object title = this.safeString(eventVar, "title", groupId);
         Object hasGroupId = Helpers.isTrue((!Helpers.isEqual(groupId, null))) && Helpers.isTrue((!Helpers.isEqual(groupId, "")));
-        String eventSlug = ((Helpers.isTrue(hasGroupId))) ? this.shortenSlug(groupId) : null;
+        Object eventSlug = ((Helpers.isTrue(hasGroupId))) ? this.shortenSlug(groupId) : null;
         Object hasEndDate = Helpers.isTrue((!Helpers.isEqual(endDate, null))) && Helpers.isTrue((!Helpers.isEqual(endDate, "")));
         Object endTimestamp = ((Helpers.isTrue(hasEndDate))) ? this.parse8601(endDate) : null;
-        java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object rawMarkets = this.safeList(eventVar, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         // aggregate 24h volume across the markets so sort by volume works
         Object totalVolume = 0;
@@ -1086,7 +1086,7 @@ public class LimitlessCore extends LimitlessApi
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "addressOrSlug", slug );
             }};
-            java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters)), this.limitlessPublicGetMarketsSlugOrderbook(new java.util.HashMap<String, Object>() {{
+            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.limitlessPublicGetMarketsAddressOrSlug(this.extend(request, parameters)), this.limitlessPublicGetMarketsSlugOrderbook(new java.util.HashMap<String, Object>() {{
         put( "slug", slug );
     }})));
             Object responses = (Helpers.promiseAll(promises)).join();
@@ -1259,8 +1259,8 @@ public class LimitlessCore extends LimitlessApi
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price
             Object rawBids = this.safeList(book, "bids", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object rawAsks = this.safeList(book, "asks", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object rawBidsLength = Helpers.getArrayLength(rawBids);
-            Object rawAsksLength = Helpers.getArrayLength(rawAsks);
+            Integer rawBidsLength = Helpers.getArrayLength(rawBids);
+            Integer rawAsksLength = Helpers.getArrayLength(rawAsks);
             Object yesBestBid = ((Helpers.isTrue((Helpers.isGreaterThan(rawBidsLength, 0))))) ? Helpers.GetValue(rawBids, 0) : null;
             Object yesBestAsk = ((Helpers.isTrue((Helpers.isGreaterThan(rawAsksLength, 0))))) ? Helpers.GetValue(rawAsks, 0) : null;
             Object yesBidPrice = this.safeString(yesBestBid, "price");
@@ -1300,14 +1300,14 @@ public class LimitlessCore extends LimitlessApi
             }
         }
         Object prices = this.safeList(raw, "prices", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object pricesLength = Helpers.getArrayLength(prices);
+        Integer pricesLength = Helpers.getArrayLength(prices);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(lastStr, null))) && Helpers.isTrue((Helpers.isGreaterThan(pricesLength, 0)))))
         {
             lastStr = ((Helpers.isTrue((isYes)))) ? this.safeString(prices, 0) : this.safeString(prices, 1);
         }
         // volume and book sizes are in USDC micro-units (6 decimals)
         Object rawVolume = this.safeString(raw, "volume");
-        String volumeStr = null;
+        Object volumeStr = null;
         if (Helpers.isTrue(!Helpers.isEqual(rawVolume, null)))
         {
             volumeStr = Precise.stringDiv(rawVolume, "1000000");
@@ -1383,7 +1383,7 @@ public class LimitlessCore extends LimitlessApi
             // market and book only once
             (this.loadOutcomes(outcomes)).join();
             Object outcomesBySlug = new java.util.HashMap<String, Object>() {{}};
-            java.util.List<Object> slugs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object slugs = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
             {
                 Object outcomeObj = this.outcome(Helpers.GetValue(outcomes, i));
@@ -1408,7 +1408,7 @@ public class LimitlessCore extends LimitlessApi
                     Helpers.addElementToObject(outcomesBySlug, slug, grouped);
                 }
             }
-            java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(slugs)); i++)
             {
                 Object slug = Helpers.GetValue(slugs, i);
@@ -1501,7 +1501,7 @@ public class LimitlessCore extends LimitlessApi
             //     }
             //
             Object rows = this.safeList(response, "events", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object row = Helpers.GetValue(rows, i);
@@ -1572,8 +1572,8 @@ public class LimitlessCore extends LimitlessApi
             // the book endpoint is quoted in the yes token, the no side mirrors at 1 - price with bids and asks swapped
             Object bidsSource = ((Helpers.isTrue((isYes)))) ? rawBids : rawAsks;
             Object asksSource = ((Helpers.isTrue((isYes)))) ? rawAsks : rawBids;
-            java.util.List<Object> bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object bids = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object asks = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var bi = 0; Helpers.isLessThan(bi, Helpers.getArrayLength(bidsSource)); bi++)
             {
                 Object priceStr = this.safeString(Helpers.GetValue(bidsSource, bi), "price");
@@ -1685,7 +1685,7 @@ public class LimitlessCore extends LimitlessApi
             Object rawHistoryList = this.safeList(response, "data", this.safeList(response, "prices", responseRows));
             Object rawHistory = ((Helpers.isTrue((!Helpers.isEqual(rawHistoryList, null))))) ? rawHistoryList : new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object history = rawHistory;
-            Object rawHistoryLength = Helpers.getArrayLength(rawHistory);
+            Integer rawHistoryLength = Helpers.getArrayLength(rawHistory);
             if (Helpers.isTrue(Helpers.isGreaterThan(rawHistoryLength, 0)))
             {
                 Object first = this.safeDict(rawHistory, 0, new java.util.HashMap<String, Object>() {{}});
@@ -1712,7 +1712,7 @@ public class LimitlessCore extends LimitlessApi
             }
             // the endpoint returns raw price points, not candles - bucket them into
             // timeframe-aligned candles (single points would carry unaligned timestamps)
-            java.util.List<Object> pseudoTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object pseudoTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(history)); i++)
             {
                 Object point = Helpers.GetValue(history, i);
@@ -1745,7 +1745,7 @@ public class LimitlessCore extends LimitlessApi
             Object sorted = this.sortBy(pseudoTrades, "timestamp");
             Object ms = Helpers.multiply(this.parseTimeframe(timeframe), 1000);
             Object candles = new java.util.HashMap<String, Object>() {{}};
-            java.util.List<Object> bucketOrder = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object bucketOrder = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(sorted)); i++)
             {
                 Object point = Helpers.GetValue(sorted, i);
@@ -1756,7 +1756,7 @@ public class LimitlessCore extends LimitlessApi
                     throw new ExchangeError((String)Helpers.add(this.id, " method() missing pTs")) ;
                 }
                 Object bucket = Helpers.multiply(this.parseToInt(Helpers.divide(pTs, ms)), ms);
-                Object key = String.valueOf(bucket);
+                String key = String.valueOf(bucket);
                 if (!Helpers.isTrue((Helpers.inOp(candles, key))))
                 {
                     Helpers.addElementToObject(candles, key, new java.util.ArrayList<Object>(java.util.Arrays.asList(bucket, pPrice, pPrice, pPrice, pPrice, 0)));
@@ -1773,7 +1773,7 @@ public class LimitlessCore extends LimitlessApi
                     Helpers.addElementToObject(candles, key, candle); // php arrays are value types - write the mutation back
                 }
             }
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bucketOrder)); i++)
             {
                 ((java.util.List<Object>)result).add(Helpers.GetValue(candles, Helpers.GetValue(bucketOrder, i)));
@@ -1933,12 +1933,12 @@ public class LimitlessCore extends LimitlessApi
             {
                 (this.loadOutcome(outcome)).join();
             }
-            Object length = Helpers.getArrayLength(ids);
+            Integer length = Helpers.getArrayLength(ids);
             if (Helpers.isTrue(Helpers.isGreaterThan(length, 50)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchOrdersByIds can only fetch up to 50 orders at a time")) ;
             }
-            java.util.List<Object> items = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object items = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, length); i++)
             {
                 Object id = this.safeString(ids, i);
@@ -2048,7 +2048,7 @@ public class LimitlessCore extends LimitlessApi
             //     }
             //
             Object results = this.safeList(response, "results", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> found = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object found = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(results)); i++)
             {
                 Object item = this.safeDict(results, i, new java.util.HashMap<String, Object>() {{}});
@@ -2231,13 +2231,13 @@ public class LimitlessCore extends LimitlessApi
         Object rawSide = this.safeString(rawOrder, "side");
         Object side = this.parseOrderSide(rawSide);
         Object price = this.safeString(rawOrder, "price");
-        String amountKey = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "takerAmount" : "makerAmount"; // todo check
+        Object amountKey = ((Helpers.isTrue((Helpers.isEqual(side, "buy"))))) ? "takerAmount" : "makerAmount"; // todo check
         Object amount = this.safeString(rawOrder, amountKey);
         Object remaining = this.safeString(rawOrder, "remainingSize");
         Object datetime = this.safeString(rawOrder, "createdAt");
         Long ts = this.parse8601(datetime);
         Object timeInForce = this.safeString2(rawOrder, "type", "orderType");
-        String type = null;
+        Object type = null;
         if (Helpers.isTrue(Helpers.isEqual(timeInForce, "GTC")))
         {
             type = "limit";
@@ -2402,7 +2402,7 @@ public class LimitlessCore extends LimitlessApi
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
             Object response = (this.limitlessPrivateGetProfilesMe(parameters)).join();
-            java.util.List<Object> responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
+            Object responseList = new java.util.ArrayList<Object>(java.util.Arrays.asList(response));
             return this.parseAccounts(responseList);
         });
 
@@ -2568,7 +2568,7 @@ public class LimitlessCore extends LimitlessApi
                 makerAmount = this.amountToPredictionPrecision(outcome, amount);
             } else
             {
-                String calculatedCost = Precise.stringMul(amountString, priceString);
+                Object calculatedCost = Precise.stringMul(amountString, priceString);
                 if (Helpers.isTrue(Helpers.isEqual(side, "buy")))
                 {
                     makerAmount = this.costToPredictionPrecision(outcome, calculatedCost);
@@ -2699,7 +2699,7 @@ public class LimitlessCore extends LimitlessApi
     {
         // builds and signs an EIP-1559 (type 0x02) transaction, returning the signed raw tx hex
         Object accessList = this.rlpEncodeList(new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> fields = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.rlpEncodeBytes(this.intToRlpHex(this.safeInteger(tx, "chainId"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
+        Object fields = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.rlpEncodeBytes(this.intToRlpHex(this.safeInteger(tx, "chainId"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "nonce"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxPriorityFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "maxFeePerGas"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "gasLimit"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "to"))), this.rlpEncodeBytes(this.hexToRlpBytes(this.safeString(tx, "value", "0x0"))), this.rlpEncodeBytes(this.remove0xPrefix(this.safeString(tx, "data", "0x"))), accessList));
         Object payload = Helpers.add("02", this.rlpEncodeList(fields));
         Object hashHex = this.hash(this.base16ToBinary(payload), keccak(), "hex");
         Object signature = ecdsa(hashHex, this.remove0xPrefix(privateKey), secp256k1(), null);
@@ -2708,7 +2708,7 @@ public class LimitlessCore extends LimitlessApi
         rHex = this.padHexToEven(rHex);
         sHex = this.padHexToEven(sHex);
         Object yParity = this.safeInteger(signature, "v");
-        java.util.List<Object> signedFields = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object signedFields = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(fields)); i++)
         {
             ((java.util.List<Object>)signedFields).add(Helpers.GetValue(fields, i));
@@ -2753,14 +2753,14 @@ public class LimitlessCore extends LimitlessApi
                 owner = this.ethGetAddressFromPrivateKey(this.privateKey);
             }
             Object gasLimit = this.safeString(parameters, "gasLimit", "0x186a0");
-            String maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
+            Object maxUint = "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
             Object amountHex = maxUint;
             Object amount = this.safeString(parameters, "amount");
             if (Helpers.isTrue(!Helpers.isEqual(amount, null)))
             {
                 Object decimals = this.safeInteger(this.options, "usdcDecimals", 6);
                 // scale the human USDC amount to base units (amount / 10^-decimals = amount * 10^decimals)
-                String scaled = Precise.stringDiv(amount, this.parsePrecision(this.numberToString(decimals)));
+                Object scaled = Precise.stringDiv(amount, this.parsePrecision(this.numberToString(decimals)));
                 Object amountInt = this.parseToInt(scaled);
                 Object amountBase16 = this.intToBase16(amountInt);
                 amountHex = Helpers.padStart((String)amountBase16, ((Number)64).intValue(), ((String)"0").charAt(0));
@@ -2887,7 +2887,7 @@ public class LimitlessCore extends LimitlessApi
             Object response = (this.limitlessPrivatePostOrdersCancelBatch(this.extend(request, parameters))).join();
             Object canceled = this.safeList(response, "canceled", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object failed = this.safeList(response, "failed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object failedLethgn = Helpers.getArrayLength(failed);
+            Integer failedLethgn = Helpers.getArrayLength(failed);
             if (Helpers.isTrue(Helpers.isGreaterThan(failedLethgn, 0)))
             {
                 Object message = this.json(response);
@@ -3058,15 +3058,15 @@ public class LimitlessCore extends LimitlessApi
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             // response contains both trade, settlement, split and merge history
             // we filter out the settlements here and only return the trades
-            java.util.List<Object> trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(data)); i++)
             {
                 Object item = this.safeDict(data, i);
                 String strategy = (String)this.safeStringLower(item, "strategy");
                 if (Helpers.isTrue(!Helpers.isEqual(strategy, null)))
                 {
-                    Object buyIndex = Helpers.getIndexOf(strategy, "buy");
-                    Object sellIndex = Helpers.getIndexOf(strategy, "sell");
+                    Integer buyIndex = Helpers.getIndexOf(strategy, "buy");
+                    Integer sellIndex = Helpers.getIndexOf(strategy, "sell");
                     if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(buyIndex, 0))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(sellIndex, 0)))))
                     {
                         ((java.util.List<Object>)trades).add(item);
@@ -3097,7 +3097,7 @@ public class LimitlessCore extends LimitlessApi
             // public market events feed trade, see fetchTrades for the response sample
             Long ts = this.parse8601(this.safeString(trade, "createdAt"));
             Object sideRaw = this.safeString(trade, "side");
-            String feedSide = null;
+            Object feedSide = null;
             if (Helpers.isTrue(Helpers.isEqual(sideRaw, "0")))
             {
                 feedSide = "buy";
@@ -3105,9 +3105,9 @@ public class LimitlessCore extends LimitlessApi
             {
                 feedSide = "sell";
             }
-            String amountStr = Precise.stringDiv(matchedSize, "1000000");
+            Object amountStr = Precise.stringDiv(matchedSize, "1000000");
             Object priceStr = this.safeString(trade, "price");
-            String costStr = null;
+            Object costStr = null;
             if (Helpers.isTrue(!Helpers.isEqual(priceStr, null)))
             {
                 costStr = Precise.stringMul(priceStr, amountStr);
@@ -3176,10 +3176,10 @@ public class LimitlessCore extends LimitlessApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parsePredictionTrade() missing rawSide")) ;
         }
-        Object sellIndex = Helpers.getIndexOf(rawSide, "sell");
-        String side = ((Helpers.isTrue((Helpers.isGreaterThanOrEqual(sellIndex, 0))))) ? "sell" : "buy";
-        String type = null;
-        String takerOrMaker = null;
+        Integer sellIndex = Helpers.getIndexOf(rawSide, "sell");
+        Object side = ((Helpers.isTrue((Helpers.isGreaterThanOrEqual(sellIndex, 0))))) ? "sell" : "buy";
+        Object type = null;
+        Object takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isEqual(rawSide, null)))
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parsePredictionTrade() missing rawSide")) ;
@@ -3200,7 +3200,7 @@ public class LimitlessCore extends LimitlessApi
         Object rawMarket = this.safeDict(trade, "market", new java.util.HashMap<String, Object>() {{}});
         Object slug = this.safeString(rawMarket, "slug");
         Object outcomeIndex = this.safeInteger(trade, "outcomeIndex");
-        String label = ((Helpers.isTrue((Helpers.isEqual(outcomeIndex, 0))))) ? "yes" : "no";
+        Object label = ((Helpers.isTrue((Helpers.isEqual(outcomeIndex, 0))))) ? "yes" : "no";
         Object outcome = this.getOutcomeBySlugAndLabel(slug, label, market);
         Object tradeOutcome = this.safeString(outcome, "outcome");
         final Object finalType = type;
@@ -3351,8 +3351,8 @@ public class LimitlessCore extends LimitlessApi
             //     }
             //
             Object clob = this.safeList(response, "clob", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> labels = new java.util.ArrayList<Object>(java.util.Arrays.asList("yes", "no"));
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object labels = new java.util.ArrayList<Object>(java.util.Arrays.asList("yes", "no"));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clob)); i++)
             {
                 Object entry = this.safeDict(clob, i);
@@ -3392,7 +3392,7 @@ public class LimitlessCore extends LimitlessApi
         Object parsed = this.parsePredictionPosition(position, outcomeObj);
         Helpers.addElementToObject(parsed, "contracts", this.parseNumber(this.applyScale(contracts)));
         Object latestTrade = this.safeDict(entry, "latestTrade");
-        String key = "latestYesPrice";
+        Object key = "latestYesPrice";
         if (Helpers.isTrue(Helpers.isEqual(label, "no")))
         {
             key = "latestNoPrice";
@@ -3486,12 +3486,12 @@ public class LimitlessCore extends LimitlessApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchEvents() missing queries")) ;
             }
-            Object queriesLength = Helpers.getArrayLength(queries);
+            Integer queriesLength = Helpers.getArrayLength(queries);
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status")));
             Object eventId = this.safeString2(parameters, "eventId", "slug");
             // always fetch fresh from the API (never serve the possibly-cold cache): a query searches, an
             // eventId/slug does a direct lookup, and any other scope (tags) pages the active-markets listing
-            java.util.List<Object> rawMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rawMarkets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             if (Helpers.isTrue(Helpers.isGreaterThan(queriesLength, 0)))
             {
                 Object requestedLimit = this.safeInteger(parameters, "limit", 50);
@@ -3534,7 +3534,7 @@ public class LimitlessCore extends LimitlessApi
                 // categories' listings server-side — never the whole active listing
                 Object requestedTags = this.safeList(parameters, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 Object listRaw = (this.fetchRawMarketsByTags(requestedTags, parameters)).join();
-                Object listRawLength = Helpers.getArrayLength(listRaw);
+                Integer listRawLength = Helpers.getArrayLength(listRaw);
                 for (var i = 0; Helpers.isLessThan(i, listRawLength); i++)
                 {
                     ((java.util.List<Object>)rawMarkets).add(Helpers.GetValue(listRaw, i));
@@ -3552,12 +3552,12 @@ public class LimitlessCore extends LimitlessApi
             // group rows carry their tradeable children in a nested `markets` list — expand them
             // into regular rows before parsing (a group row itself has no tokens)
             Object expandedMarkets = this.expandGroupRows(rawMarkets);
-            Object rawMarketsLength = Helpers.getArrayLength(expandedMarkets);
+            Integer rawMarketsLength = Helpers.getArrayLength(expandedMarkets);
             for (var i = 0; Helpers.isLessThan(i, rawMarketsLength); i++)
             {
                 Object raw = Helpers.GetValue(expandedMarkets, i);
                 Object groupId = this.safeStringN(raw, new java.util.ArrayList<Object>(java.util.Arrays.asList("groupSlug", "groupId")), this.safeString(raw, "slug"));
-                String eventKey = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(groupId, null)) && Helpers.isTrue(!Helpers.isEqual(groupId, "")))))) ? this.shortenSlug(groupId) : null;
+                Object eventKey = ((Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(groupId, null)) && Helpers.isTrue(!Helpers.isEqual(groupId, "")))))) ? this.shortenSlug(groupId) : null;
                 Object m = this.parseMarket(raw);
                 if (Helpers.isTrue(Helpers.isEqual(m, null)))
                 {
@@ -3585,9 +3585,9 @@ public class LimitlessCore extends LimitlessApi
                     Helpers.addElementToObject(eventGroup, "markets", groupMarkets);
                 }
             }
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object eventKeys = Helpers.objectKeys(eventGroups);
-            Object eventKeysLength = Helpers.getArrayLength(eventKeys);
+            Integer eventKeysLength = Helpers.getArrayLength(eventKeys);
             for (var i = 0; Helpers.isLessThan(i, eventKeysLength); i++)
             {
                 Object g = Helpers.GetValue(eventGroups, Helpers.GetValue(eventKeys, i));
@@ -3632,7 +3632,7 @@ public class LimitlessCore extends LimitlessApi
             Object maxMarkets = this.safeInteger(parameters, "limit", this.safeInteger(this.options, "fetchMarketsLimit", 1000));
             Object pageSize = this.safeInteger(this.options, "marketsPageSize", 25);
             Object rest = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("query", "queries", "limit", "sort", "searchIn", "eventId", "slug", "status", "tags")));
-            java.util.List<Object> allRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object allRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object page = 1;
             Object collected = 0;
             while (true)
@@ -3652,7 +3652,7 @@ public class LimitlessCore extends LimitlessApi
                     response = (this.limitlessPublicGetMarketsActive(this.extend(request, rest))).join();
                 }
                 Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object dataLength = Helpers.getArrayLength(data);
+                Integer dataLength = Helpers.getArrayLength(data);
                 if (Helpers.isTrue(Helpers.isEqual(dataLength, 0)))
                 {
                     break;
@@ -3698,13 +3698,13 @@ public class LimitlessCore extends LimitlessApi
             {
                 categories = categoriesResponse;
             }
-            java.util.List<Object> wanted = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object wanted = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tags)); i++)
             {
                 ((java.util.List<Object>)wanted).add(((String)Helpers.GetValue(tags, i)).toLowerCase());
             }
-            java.util.List<Object> categoryIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            Object categoriesLength = Helpers.getArrayLength(categories);
+            Object categoryIds = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Integer categoriesLength = Helpers.getArrayLength(categories);
             for (var i = 0; Helpers.isLessThan(i, categoriesLength); i++)
             {
                 Object category = Helpers.GetValue(categories, i);
@@ -3728,17 +3728,17 @@ public class LimitlessCore extends LimitlessApi
                     ((java.util.List<Object>)categoryIds).add(categoryId);
                 }
             }
-            Object categoryIdsLength = Helpers.getArrayLength(categoryIds);
+            Integer categoryIdsLength = Helpers.getArrayLength(categoryIds);
             if (Helpers.isTrue(Helpers.isEqual(categoryIdsLength, 0)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " fetchEvents() could not match the requested tags to any limitless category — GET /categories lists the valid names")) ;
             }
             Object seen = new java.util.HashMap<String, Object>() {{}};
-            java.util.List<Object> allRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object allRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var ci = 0; Helpers.isLessThan(ci, categoryIdsLength); ci++)
             {
                 Object categoryMarkets = (this.fetchRawActiveMarkets(parameters, Helpers.GetValue(categoryIds, ci))).join();
-                Object categoryMarketsLength = Helpers.getArrayLength(categoryMarkets);
+                Integer categoryMarketsLength = Helpers.getArrayLength(categoryMarkets);
                 for (var mi = 0; Helpers.isLessThan(mi, categoryMarketsLength); mi++)
                 {
                     Object raw = Helpers.GetValue(categoryMarkets, mi);
@@ -3805,7 +3805,7 @@ public class LimitlessCore extends LimitlessApi
             }
             this.checkRequiredCredentials();
             Object timestamp = this.iso8601(this.milliseconds());
-            String newline = "\n"; // eslint-disable-line quotes
+            Object newline = "\n"; // eslint-disable-line quotes
             Object payload = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(timestamp, newline), method), newline), url), newline), bodyString);
             Object signature = this.hmac(this.encode(payload), this.base64ToBinary(this.secret), sha256(), "base64");
             final Object finalTimestamp = timestamp;

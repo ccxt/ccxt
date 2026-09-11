@@ -1687,7 +1687,7 @@ public class DigifinexCore extends DigifinexApi
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " parseTrade() returned no side")) ;
             }
-            Object parts = Helpers.split(side, "_");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(side, "_");
             side = this.safeString(parts, 0);
             type = this.safeString(parts, 1);
             if (Helpers.isTrue(Helpers.isEqual(type, null)))
@@ -2493,7 +2493,7 @@ public class DigifinexCore extends DigifinexApi
             if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(marketType, "spot"))) || Helpers.isTrue((Helpers.isEqual(marketType, "margin")))))
             {
                 Object canceledOrders = this.safeList(response, "success", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object numCanceledOrders = Helpers.getArrayLength(canceledOrders);
+                Integer numCanceledOrders = Helpers.getArrayLength(canceledOrders);
                 if (Helpers.isTrue(!Helpers.isEqual(numCanceledOrders, 1)))
                 {
                     throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(this.id, " cancelOrder() "), id), " not found")) ;
@@ -2715,8 +2715,8 @@ public class DigifinexCore extends DigifinexApi
             lastTradeTimestamp = this.safeTimestamp(order, "finished_date");
             if (Helpers.isTrue(!Helpers.isEqual(side, null)))
             {
-                Object parts = Helpers.split(side, "_");
-                Object numParts = Helpers.getArrayLength(parts);
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(side, "_");
+                Integer numParts = Helpers.getArrayLength(parts);
                 if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
                 {
                     side = Helpers.GetValue(parts, 0);
@@ -4441,7 +4441,7 @@ public class DigifinexCore extends DigifinexApi
                 Object symbol = null;
                 if (Helpers.isTrue(Helpers.isArray(symbols)))
                 {
-                    Object symbolsLength = Helpers.getArrayLength(symbols);
+                    Integer symbolsLength = Helpers.getArrayLength(symbols);
                     if (Helpers.isTrue(Helpers.isGreaterThan(symbolsLength, 1)))
                     {
                         throw new BadRequest((String)Helpers.add(this.id, " fetchPositions() symbols argument cannot contain more than 1 symbol")) ;

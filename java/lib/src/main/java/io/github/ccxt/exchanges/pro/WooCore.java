@@ -1136,7 +1136,7 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
             Object authenticated = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(authenticated, null)))
             {
-                Object ts = String.valueOf(this.nonce());
+                String ts = String.valueOf(this.nonce());
                 Object auth = Helpers.add("|", ts);
                 Object signature = this.hmac(this.encode(auth), this.encode(this.secret), sha256());
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -1979,8 +1979,8 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                 Helpers.callDynamically(this, method, new Object[] {client, message});
                 return;
             }
-            Object splitTopic = Helpers.split(topic, "@");
-            Object splitLength = Helpers.getArrayLength(splitTopic);
+            java.util.List<Object> splitTopic = (java.util.List<Object>) Helpers.split(topic, "@");
+            Integer splitLength = Helpers.getArrayLength(splitTopic);
             if (Helpers.isTrue(Helpers.isEqual(splitLength, 2)))
             {
                 Object name = this.safeString(splitTopic, 1);
@@ -1994,8 +1994,8 @@ public class WooCore extends io.github.ccxt.exchanges.Woo
                     Helpers.callDynamically(this, method, new Object[] {client, message});
                     return;
                 }
-                Object splitName = Helpers.split(name, "_");
-                Object splitNameLength = Helpers.getArrayLength(splitTopic);
+                java.util.List<Object> splitName = (java.util.List<Object>) Helpers.split(name, "_");
+                Integer splitNameLength = Helpers.getArrayLength(splitTopic);
                 if (Helpers.isTrue(Helpers.isEqual(splitNameLength, 2)))
                 {
                     method = this.safeValue(methods, this.safeString(splitName, 0));

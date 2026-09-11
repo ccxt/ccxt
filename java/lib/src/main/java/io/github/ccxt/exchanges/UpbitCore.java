@@ -1484,7 +1484,7 @@ public class UpbitCore extends UpbitApi
             }
             if (Helpers.isTrue(Helpers.isEqual(timeframeValue, "minutes")))
             {
-                Object numMinutes = Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(timeframePeriod, 60))));
+                Long numMinutes = Math.round(Double.parseDouble(Helpers.toString(Helpers.divide(timeframePeriod, 60))));
                 Helpers.addElementToObject(request, "unit", numMinutes);
                 response = (this.publicGetCandlesTimeframeUnit(this.extend(request, parameters))).join();
             } else
@@ -2375,7 +2375,7 @@ public class UpbitCore extends UpbitApi
             put( "order", id );
             put( "type", finalType );
         }});
-        Object numTrades = Helpers.getArrayLength(trades);
+        Integer numTrades = Helpers.getArrayLength(trades);
         if (Helpers.isTrue(Helpers.isGreaterThan(numTrades, 0)))
         {
             // the timestamp in fetchOrder trades is missing
@@ -3012,7 +3012,7 @@ public class UpbitCore extends UpbitApi
                 put( "access_key", UpbitCore.this.apiKey );
                 put( "nonce", nonce );
             }};
-            Object hasQuery = Helpers.getArrayLength(Helpers.objectKeys(query));
+            Integer hasQuery = Helpers.getArrayLength(Helpers.objectKeys(query));
             Object auth = null;
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(method, "GET"))) && Helpers.isTrue((!Helpers.isEqual(method, "DELETE")))))
             {

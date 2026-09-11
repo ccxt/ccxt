@@ -1057,7 +1057,7 @@ public class WooCore extends WooApi
     public Object parseMarket(Object market)
     {
         String marketId = this.safeString(market, "symbol", "");
-        Object parts = Helpers.split(marketId, "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "_");
         String first = this.safeString(parts, 0);
         String marketType = null;
         Object spot = false;
@@ -1810,13 +1810,13 @@ public class WooCore extends WooApi
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
             parameters = this.omit(parameters, new java.util.ArrayList<Object>(java.util.Arrays.asList("reduceOnly", "reduce_only")));
-            Object orderType = ((String)type).toUpperCase();
+            String orderType = ((String)type).toUpperCase();
             if (Helpers.isTrue(Helpers.isEqual(this.markets, null)))
             {
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            Object orderSide = ((String)((String)side)).toUpperCase();
+            String orderSide = ((String)((String)side)).toUpperCase();
             final Object finalOrderSide = orderSide;
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "symbol", Helpers.GetValue(market, "id") );
@@ -3434,8 +3434,8 @@ public class WooCore extends WooApi
             return currency;
         } else
         {
-            Object parts = Helpers.split(networkizedCode, "_");
-            Object partsLength = Helpers.getArrayLength(parts);
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(networkizedCode, "_");
+            Integer partsLength = Helpers.getArrayLength(parts);
             String firstPart = this.safeString(parts, 0);
             Object currencyId = this.safeString(parts, 1, firstPart);
             if (Helpers.isTrue(Helpers.isGreaterThan(partsLength, 2)))
@@ -4003,7 +4003,7 @@ public class WooCore extends WooApi
                 parameters = this.keysort(parameters);
             }
             Object auth = "";
-            Object ts = String.valueOf(this.nonce());
+            String ts = String.valueOf(this.nonce());
             url = Helpers.add(url, pathWithParams);
             final Object finalTs = ts;
             headers = new java.util.HashMap<String, Object>() {{
@@ -4817,7 +4817,7 @@ public class WooCore extends WooApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     Object market = this.market(Helpers.GetValue(symbols, 0));
@@ -5359,7 +5359,7 @@ public class WooCore extends WooApi
             Object request = new java.util.HashMap<String, Object>() {{}};
             if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
             {
-                Object symbolsLength = Helpers.getArrayLength(symbols);
+                Integer symbolsLength = Helpers.getArrayLength(symbols);
                 if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 1)))
                 {
                     Object market = this.market(Helpers.GetValue(symbols, 0));

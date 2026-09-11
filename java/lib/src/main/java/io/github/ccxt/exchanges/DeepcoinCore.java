@@ -1485,7 +1485,7 @@ public class DeepcoinCore extends DeepcoinApi
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " fetchDepositAddresses requires a list with one currency code")) ;
             }
-            Object length = Helpers.getArrayLength(codes);
+            Integer length = Helpers.getArrayLength(codes);
             if (Helpers.isTrue(!Helpers.isEqual(length, 1)))
             {
                 throw new NotSupported((String)Helpers.add(this.id, " fetchDepositAddresses requires a list with one currency code")) ;
@@ -1562,7 +1562,7 @@ public class DeepcoinCore extends DeepcoinApi
                 parameters = this.omit(parameters, "network");
             }
             Object addressess = (this.fetchDepositAddresses(new java.util.ArrayList<Object>(java.util.Arrays.asList(code)), parameters)).join();
-            Object length = Helpers.getArrayLength(addressess);
+            Integer length = Helpers.getArrayLength(addressess);
             Object address = this.safeDict(addressess, 0, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(network, null))) && Helpers.isTrue((Helpers.isGreaterThan(length, 1)))))
             {
@@ -2404,7 +2404,7 @@ public class DeepcoinCore extends DeepcoinApi
             }};
             Object response = (this.privateGetDeepcoinTradeOrderByID(this.extend(request, parameters))).join();
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object length = Helpers.getArrayLength(data);
+            Integer length = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isEqual(length, 0)))
             {
                 throw new OrderNotFound((String)Helpers.add(Helpers.add(this.id, " fetchOpenOrder() could not find order id "), id)) ;

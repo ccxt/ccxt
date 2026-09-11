@@ -633,8 +633,8 @@ public class BigoneCore extends BigoneApi
 }});
             }
         }
-        Object chainLength = Helpers.getArrayLength(chains);
-        String type = null;
+        Integer chainLength = Helpers.getArrayLength(chains);
+        Object type = null;
         if (Helpers.isTrue(Helpers.isEqual(this.safeBool(rawCurrency, "is_fiat"), true)))
         {
             type = "fiat";
@@ -691,7 +691,7 @@ public class BigoneCore extends BigoneApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)));
+            Object promises = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.publicGetAssetPairs(parameters), this.contractPublicGetSymbols(parameters)));
             Object promisesResult = (Helpers.promiseAll(promises)).join();
             Object response = Helpers.GetValue(promisesResult, 0);
             Object contractResponse = Helpers.GetValue(promisesResult, 1);
@@ -748,7 +748,7 @@ public class BigoneCore extends BigoneApi
             //    ]
             //
             Object markets = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(markets)); i++)
             {
                 Object market = Helpers.GetValue(markets, i);
@@ -927,7 +927,7 @@ public class BigoneCore extends BigoneApi
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        String marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "asset_pair_name"))))) ? "spot" : "swap";
+        Object marketType = ((Helpers.isTrue((Helpers.inOp(ticker, "asset_pair_name"))))) ? "spot" : "swap";
         String marketId = this.safeString2(ticker, "asset_pair_name", "symbol");
         String symbol = (String) this.safeSymbol(marketId, market, "-", marketType);
         String close = this.safeString2(ticker, "close", "latestPrice");
@@ -1221,7 +1221,7 @@ public class BigoneCore extends BigoneApi
     public Object parseContractBidsAsks(Object bidsAsks)
     {
         Object bidsAsksKeys = Helpers.objectKeys(bidsAsks);
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(bidsAsksKeys)); i++)
         {
             Object price = Helpers.GetValue(bidsAsksKeys, i);
@@ -1299,7 +1299,7 @@ public class BigoneCore extends BigoneApi
         market = this.safeMarket(marketId, market, "-");
         String side = this.safeString(trade, "side");
         String takerSide = this.safeString(trade, "taker_side");
-        String takerOrMaker = null;
+        Object takerOrMaker = null;
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(takerSide, null))) && Helpers.isTrue((!Helpers.isEqual(side, null)))) && Helpers.isTrue((!Helpers.isEqual(side, "SELF_TRADING")))))
         {
             takerOrMaker = ((Helpers.isTrue((Helpers.isEqual(takerSide, side))))) ? "taker" : "maker";
@@ -1710,7 +1710,7 @@ public class BigoneCore extends BigoneApi
             triggerPrice = null;
         }
         Object immediateOrCancel = this.safeBool(order, "immediate_or_cancel");
-        String timeInForce = null;
+        Object timeInForce = null;
         if (Helpers.isTrue(Helpers.isEqual(immediateOrCancel, true)))
         {
             timeInForce = "IOC";
@@ -1825,7 +1825,7 @@ public class BigoneCore extends BigoneApi
             }
             Object market = this.market(symbol);
             Object isBuy = (Helpers.isEqual(side, "buy"));
-            String requestSide = ((Helpers.isTrue(isBuy))) ? "BID" : "ASK";
+            Object requestSide = ((Helpers.isTrue(isBuy))) ? "BID" : "ASK";
             Object uppercaseType = ((String)type).toUpperCase();
             Object isLimit = Helpers.isEqual(uppercaseType, "LIMIT");
             Object exchangeSpecificParam = this.safeBool(parameters, "post_only", false);
@@ -2010,7 +2010,7 @@ public class BigoneCore extends BigoneApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object cancelled = this.safeList(data, "cancelled", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object failed = this.safeList(data, "failed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(cancelled)); i++)
             {
                 Object orderId = Helpers.GetValue(cancelled, i);
@@ -2297,7 +2297,7 @@ public class BigoneCore extends BigoneApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", "OpenAPIV2" );
                 put( "sub", BigoneCore.this.apiKey );
@@ -2375,7 +2375,7 @@ public class BigoneCore extends BigoneApi
             //     }
             //
             Object data = this.safeList(response, "data", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isLessThan(dataLength, 1)))
             {
                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddress() returned empty address response")) ;
@@ -2473,7 +2473,7 @@ public class BigoneCore extends BigoneApi
         String txid = this.safeString(transaction, "txid");
         String address = this.safeString(transaction, "target_address");
         String tag = this.safeString(transaction, "memo");
-        String type = ((Helpers.isTrue((Helpers.inOp(transaction, "customer_id"))))) ? "withdrawal" : "deposit";
+        Object type = ((Helpers.isTrue((Helpers.inOp(transaction, "customer_id"))))) ? "withdrawal" : "deposit";
         Object intern = this.safeBool(transaction, "is_internal");
         return new java.util.HashMap<String, Object>() {{
             put( "info", transaction );

@@ -1249,7 +1249,7 @@ public class WhitebitCore extends WhitebitApi
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(currencyIds)); i++)
         {
             Object entry = Helpers.GetValue(currencyIds, i);
-            Object splitEntry = Helpers.split(entry, " ");
+            java.util.List<Object> splitEntry = (java.util.List<Object>) Helpers.split(entry, " ");
             Object currencyId = Helpers.GetValue(splitEntry, 0);
             Object feeInfo = Helpers.GetValue(response, entry);
             String code = (String) this.safeCurrencyCode(currencyId);
@@ -1278,7 +1278,7 @@ public class WhitebitCore extends WhitebitApi
                 }};
                 if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
                 {
-                    Object networkLength = ((String)networkId).length();
+                    Integer networkLength = ((String)networkId).length();
                     networkId = Helpers.slice(networkId, 1, Helpers.subtract(networkLength, 1));
                     Object networkCode = this.networkIdToCode(networkId, code);
                     if (Helpers.isTrue(!Helpers.isEqual(networkCode, null)))
@@ -5320,7 +5320,7 @@ public class WhitebitCore extends WhitebitApi
         if (Helpers.isTrue(Helpers.isEqual(accessibility, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object secret = this.encode(this.secret);
             String request = Helpers.add(Helpers.add(Helpers.add(Helpers.add("/", "api"), "/"), version), pathWithParams);
             var nonceWindowrequestParamsVariable = this.handleOptionAndParams(parameters, "sign", "nonceWindow", false);
@@ -5384,12 +5384,12 @@ public class WhitebitCore extends WhitebitApi
                 {
                     Object errorObject = this.safeDict(response, "errors", new java.util.HashMap<String, Object>() {{}});
                     Object errorKeys = Helpers.objectKeys(errorObject);
-                    Object errorsLength = Helpers.getArrayLength(errorKeys);
+                    Integer errorsLength = Helpers.getArrayLength(errorKeys);
                     if (Helpers.isTrue(Helpers.isGreaterThan(errorsLength, 0)))
                     {
                         Object errorKey = Helpers.GetValue(errorKeys, 0);
                         Object errorMessageArray = this.safeList(errorObject, errorKey, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                        Object errorMessageLength = Helpers.getArrayLength(errorMessageArray);
+                        Integer errorMessageLength = Helpers.getArrayLength(errorMessageArray);
                         errorInfo = ((Helpers.isTrue((Helpers.isGreaterThan(errorMessageLength, 0))))) ? Helpers.GetValue(errorMessageArray, 0) : body;
                     }
                 }
@@ -5403,13 +5403,13 @@ public class WhitebitCore extends WhitebitApi
             {
                 Object errMsg = this.safeDict(response, "message", new java.util.HashMap<String, Object>() {{}});
                 Object errKeys = Helpers.objectKeys(errMsg);
-                Object errKeysLength = Helpers.getArrayLength(errKeys);
+                Integer errKeysLength = Helpers.getArrayLength(errKeys);
                 Object errorInfo = body;
                 if (Helpers.isTrue(Helpers.isGreaterThan(errKeysLength, 0)))
                 {
                     Object errorKey = Helpers.GetValue(errKeys, 0);
                     Object errorMessageArray = this.safeList(errMsg, errorKey, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                    Object errorMessageLength = Helpers.getArrayLength(errorMessageArray);
+                    Integer errorMessageLength = Helpers.getArrayLength(errorMessageArray);
                     errorInfo = ((Helpers.isTrue((Helpers.isGreaterThan(errorMessageLength, 0))))) ? Helpers.GetValue(errorMessageArray, 0) : body;
                 }
                 Object feedback = Helpers.add(Helpers.add(this.id, " "), body);

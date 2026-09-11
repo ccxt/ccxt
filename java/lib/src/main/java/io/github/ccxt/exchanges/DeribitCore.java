@@ -801,10 +801,10 @@ public class DeribitCore extends DeribitApi
     public Object createExpiredOptionMarket(Object symbol)
     {
         // support expired option contracts
-        String quote = "USD";
+        Object quote = "USD";
         Object settle = null;
-        Object optionParts = Helpers.split(symbol, "-");
-        Object symbolBase = Helpers.split(symbol, "/");
+        java.util.List<Object> optionParts = (java.util.List<Object>) Helpers.split(symbol, "-");
+        java.util.List<Object> symbolBase = (java.util.List<Object>) Helpers.split(symbol, "/");
         Object base = null;
         Object expiry = null;
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
@@ -835,7 +835,7 @@ public class DeribitCore extends DeribitApi
         }
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(base, "_"), Helpers.opNeg(1))))
         {
-            Object splitSymbol = Helpers.split(base, "_");
+            java.util.List<Object> splitSymbol = (java.util.List<Object>) Helpers.split(base, "_");
             splitBase = this.safeString(splitSymbol, 0);
         }
         String strike = this.safeString(optionParts, 2);
@@ -1166,8 +1166,8 @@ public class DeribitCore extends DeribitApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> instrumentsResponses = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object instrumentsResponses = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object parsedMarkets = new java.util.HashMap<String, Object>() {{}};
             Object fetchAllMarkets = null;
             var fetchAllMarketsparametersVariable = this.handleOptionAndParams(parameters, "fetchMarkets", "fetchAllMarkets", true);
@@ -1324,7 +1324,7 @@ public class DeribitCore extends DeribitApi
                     Object strike = null;
                     Object optionType = null;
                     Object symbol = id;
-                    String type = "swap";
+                    Object type = "swap";
                     if (Helpers.isTrue(future))
                     {
                         type = "future";
@@ -1350,7 +1350,7 @@ public class DeribitCore extends DeribitApi
                             {
                                 strike = this.safeNumber(market, "strike");
                                 optionType = this.safeString(market, "option_type");
-                                String letter = ((Helpers.isTrue((Helpers.isEqual(optionType, "call"))))) ? "C" : "P";
+                                Object letter = ((Helpers.isTrue((Helpers.isEqual(optionType, "call"))))) ? "C" : "P";
                                 symbol = Helpers.add(Helpers.add(Helpers.add(Helpers.add(symbol, "-"), this.numberToString(strike)), "-"), letter);
                             }
                         }
@@ -1843,7 +1843,7 @@ public class DeribitCore extends DeribitApi
             }};
             if (Helpers.isTrue(!Helpers.isEqual(type, null)))
             {
-                String requestType = null;
+                Object requestType = null;
                 if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
                 {
                     requestType = "spot";
@@ -2056,13 +2056,13 @@ public class DeribitCore extends DeribitApi
         // Amount for inverse perpetual and futures is in USD which in ccxt is the cost
         // For options amount and linear is in corresponding cryptocurrency contracts, e.g., BTC or ETH
         String amount = this.safeString(trade, "amount");
-        String cost = Precise.stringMul(amount, priceString);
+        Object cost = Precise.stringMul(amount, priceString);
         if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
         {
             cost = Precise.stringDiv(amount, priceString);
         }
         String liquidity = this.safeString(trade, "liquidity");
-        String takerOrMaker = null;
+        Object takerOrMaker = null;
         if (Helpers.isTrue(!Helpers.isEqual(liquidity, null)))
         {
             // M = maker, T = taker, MT = both
@@ -2478,7 +2478,7 @@ public class DeribitCore extends DeribitApi
         // For options and Linear contracts amount is in corresponding cryptocurrency, e.g., BTC or ETH
         String filledString = this.safeString(order, "filled_amount");
         String amount = this.safeString(order, "amount");
-        String cost = Precise.stringMul(filledString, averageString);
+        Object cost = Precise.stringMul(filledString, averageString);
         if (Helpers.isTrue(Helpers.isEqual(this.safeBool(market, "inverse"), true)))
         {
             if (Helpers.isTrue(!Helpers.isEqual(averageString, "0")))
@@ -3392,7 +3392,7 @@ public class DeribitCore extends DeribitApi
         String status = this.parseTransactionStatus(this.safeString(transaction, "state"));
         String address = this.safeString(transaction, "address");
         Object feeCost = this.safeNumber(transaction, "fee");
-        String type = "deposit";
+        Object type = "deposit";
         Object fee = null;
         if (Helpers.isTrue(!Helpers.isEqual(feeCost, null)))
         {
@@ -3465,7 +3465,7 @@ public class DeribitCore extends DeribitApi
         String unrealizedPnl = this.safeString(position, "floating_profit_loss");
         String initialMarginString = this.safeString(position, "initial_margin");
         String notionalString = this.safeString(position, "size_currency");
-        String notionalStringAbs = Precise.stringAbs(notionalString);
+        Object notionalStringAbs = Precise.stringAbs(notionalString);
         String maintenanceMarginString = this.safeString(position, "maintenance_margin");
         final Object finalMarket = market;
         final Object finalSide = side;
@@ -3684,7 +3684,7 @@ public class DeribitCore extends DeribitApi
         //     }
         //
         Object volatilityResult = this.safeList(volatility, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(volatilityResult)); i++)
         {
             Object timestamp = this.safeInteger(Helpers.GetValue(volatilityResult, i), 0);
@@ -4087,7 +4087,7 @@ public class DeribitCore extends DeribitApi
             paginate = ((java.util.List<Object>) paginateparametersVariable).get(0);
             parameters = ((java.util.List<Object>) paginateparametersVariable).get(1);
             Object maxEntriesPerRequest = 744; // seems exchange returns max 744 items per request
-            String eachItemDuration = "1h";
+            Object eachItemDuration = "1h";
             if (Helpers.isTrue(paginate))
             {
                 // fix for: https://github.com/ccxt/ccxt/issues/25040
@@ -4146,7 +4146,7 @@ public class DeribitCore extends DeribitApi
             //        ]
             //    }
             //
-            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object result = this.safeList(response, "result", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
@@ -4292,7 +4292,7 @@ public class DeribitCore extends DeribitApi
     {
         if (Helpers.isTrue(!Helpers.isEqual(cursor, null)))
         {
-            Object dataLength = Helpers.getArrayLength(data);
+            Integer dataLength = Helpers.getArrayLength(data);
             if (Helpers.isTrue(Helpers.isGreaterThan(dataLength, 0)))
             {
                 Object first = Helpers.GetValue(data, 0);
@@ -4879,9 +4879,9 @@ public class DeribitCore extends DeribitApi
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
-            Object timestamp = String.valueOf(this.milliseconds());
-            String requestBody = "";
+            String nonce = String.valueOf(this.nonce());
+            String timestamp = String.valueOf(this.milliseconds());
+            Object requestBody = "";
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getArrayLength(Helpers.objectKeys(parameters)), 0)))
             {
                 request = Helpers.add(request, Helpers.add("?", this.urlencode(parameters)));

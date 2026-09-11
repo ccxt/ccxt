@@ -736,7 +736,7 @@ public class IndodaxCore extends IndodaxApi
             {
                 Object key = Helpers.GetValue(keys, i);
                 Object rawTicker = Helpers.GetValue(tickers, key);
-                Object marketId = Helpers.replace((String)key, (String)"_", (String)"");
+                String marketId = Helpers.replace((String)key, (String)"_", (String)"");
                 Object market = this.safeMarket(marketId);
                 Object parsed = this.parseTicker(rawTicker, market);
                 Helpers.addElementToObject(parsedTickers, marketId, parsed);
@@ -1753,7 +1753,7 @@ public class IndodaxCore extends IndodaxApi
                             {
                                 throw new ExchangeError((String)Helpers.add(this.id, " fetchDepositAddresses() missing networkId")) ;
                             }
-                            Object networkIds = Helpers.split(networkId, ",");
+                            java.util.List<Object> networkIds = (java.util.List<Object>) Helpers.split(networkId, ",");
                             for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(networkIds)); j++)
                             {
                                 Object _netIdTmp = this.networkIdToCode(Helpers.GetValue(networkIds, j), code);

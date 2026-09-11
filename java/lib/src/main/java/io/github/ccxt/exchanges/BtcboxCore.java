@@ -282,15 +282,15 @@ public class BtcboxCore extends BtcboxApi
             //
             Object result2Data = this.safeDict(response2, "data", new java.util.HashMap<String, Object>() {{}});
             Object marketIds = Helpers.objectKeys(response1);
-            java.util.List<Object> markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object markets = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketIds)); i++)
             {
                 Object marketId = Helpers.GetValue(marketIds, i);
-                Object symbolParts = Helpers.split(marketId, "_");
+                java.util.List<Object> symbolParts = (java.util.List<Object>) Helpers.split(marketId, "_");
                 String baseCurr = this.safeString(symbolParts, 0, "");
                 String quote = this.safeString(symbolParts, 1, "");
-                Object quoteId = ((String)quote).toLowerCase();
-                Object id = ((String)baseCurr).toLowerCase();
+                String quoteId = ((String)quote).toLowerCase();
+                String id = ((String)baseCurr).toLowerCase();
                 Object res = this.safeDict(response1, marketId, new java.util.HashMap<String, Object>() {{}});
                 Object symbol = Helpers.add(Helpers.add(baseCurr, "/"), quote);
                 Object fee = ((Helpers.isTrue((Helpers.isEqual(id, "BTC"))))) ? this.parseNumber("0.0005") : this.parseNumber("0.0010");
@@ -418,7 +418,7 @@ public class BtcboxCore extends BtcboxApi
 
     public Object parseBalance(Object response)
     {
-        java.util.Map<String, Object> result = new java.util.HashMap<String, Object>() {{
+        Object result = new java.util.HashMap<String, Object>() {{
             put( "info", response );
         }};
         Object codes = Helpers.objectKeys(this.currencies);
@@ -486,8 +486,8 @@ public class BtcboxCore extends BtcboxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object numSymbols = Helpers.getArrayLength(this.symbols);
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Integer numSymbols = Helpers.getArrayLength(this.symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numSymbols, 1)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
@@ -547,8 +547,8 @@ public class BtcboxCore extends BtcboxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object numSymbols = Helpers.getArrayLength(this.symbols);
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Integer numSymbols = Helpers.getArrayLength(this.symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numSymbols, 1)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
@@ -647,8 +647,8 @@ public class BtcboxCore extends BtcboxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{}};
-            Object numSymbols = Helpers.getArrayLength(this.symbols);
+            Object request = new java.util.HashMap<String, Object>() {{}};
+            Integer numSymbols = Helpers.getArrayLength(this.symbols);
             if (Helpers.isTrue(Helpers.isGreaterThan(numSymbols, 1)))
             {
                 Helpers.addElementToObject(request, "coin", Helpers.GetValue(market, "baseId"));
@@ -695,7 +695,7 @@ public class BtcboxCore extends BtcboxApi
                 (this.loadMarkets()).join();
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "amount", amount );
                 put( "price", price );
                 put( "type", side );
@@ -740,7 +740,7 @@ public class BtcboxCore extends BtcboxApi
                 symbol = "BTC/JPY";
             }
             Object market = this.market(symbol);
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "id", id );
                 put( "coin", Helpers.GetValue(market, "baseId") );
             }};
@@ -755,7 +755,7 @@ public class BtcboxCore extends BtcboxApi
 
     public String parseOrderStatus(Object status)
     {
-        java.util.Map<String, Object> statuses = new java.util.HashMap<String, Object>() {{
+        Object statuses = new java.util.HashMap<String, Object>() {{
             put( "part", "open" );
             put( "all", "closed" );
             put( "cancelled", "canceled" );
@@ -795,7 +795,7 @@ public class BtcboxCore extends BtcboxApi
         String remaining = this.safeString(order, "amount_outstanding");
         String price = this.safeString(order, "price");
         // status is set by fetchOrder method only
-        String status = this.parseOrderStatus(this.safeString(order, "status"));
+        Object status = this.parseOrderStatus(this.safeString(order, "status"));
         // fetchOrders do not return status, use heuristic
         if (Helpers.isTrue(Helpers.isEqual(status, null)))
         {
@@ -904,7 +904,7 @@ public class BtcboxCore extends BtcboxApi
             }
             Object market = this.market(symbol);
             final Object finalType = type;
-            java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
+            Object request = new java.util.HashMap<String, Object>() {{
                 put( "type", finalType );
                 put( "coin", Helpers.GetValue(market, "baseId") );
             }};
@@ -1011,7 +1011,7 @@ public class BtcboxCore extends BtcboxApi
         } else
         {
             this.checkRequiredCredentials();
-            Object nonce = String.valueOf(this.nonce());
+            String nonce = String.valueOf(this.nonce());
             Object query = this.extend(new java.util.HashMap<String, Object>() {{
                 put( "key", BtcboxCore.this.apiKey );
                 put( "nonce", nonce );

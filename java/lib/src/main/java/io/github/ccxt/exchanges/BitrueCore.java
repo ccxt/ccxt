@@ -770,8 +770,8 @@ public class BitrueCore extends BitrueApi
             //     {}
             //
             Object keys = Helpers.objectKeys(response);
-            Object keysLength = Helpers.getArrayLength(keys);
-            String formattedStatus = ((Helpers.isTrue((Helpers.isGreaterThan(keysLength, 0))))) ? "maintenance" : "ok";
+            Integer keysLength = Helpers.getArrayLength(keys);
+            Object formattedStatus = ((Helpers.isTrue((Helpers.isGreaterThan(keysLength, 0))))) ? "maintenance" : "ok";
             return new java.util.HashMap<String, Object>() {{
                 put( "status", formattedStatus );
                 put( "updated", null );
@@ -945,9 +945,9 @@ public class BitrueCore extends BitrueApi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            java.util.List<Object> promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object promisesRaw = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object types = null;
-            java.util.List<Object> defaultTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse"));
+            Object defaultTypes = new java.util.ArrayList<Object>(java.util.Arrays.asList("spot", "linear", "inverse"));
             Object fetchMarketsOptions = this.safeDict(this.options, "fetchMarkets");
             if (Helpers.isTrue(!Helpers.isEqual(fetchMarketsOptions, null)))
             {
@@ -1059,7 +1059,7 @@ public class BitrueCore extends BitrueApi
         String id = this.safeString(market, "symbol", "");
         String lowercaseId = (String)this.safeStringLower(market, "symbol");
         Object side = this.safeInteger(market, "side"); // 1 linear, 0 inverse, undefined spot
-        String type = "spot";
+        Object type = "spot";
         Object isLinear = null;
         Object isInverse = null;
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
@@ -1078,7 +1078,7 @@ public class BitrueCore extends BitrueApi
         Object settle = null;
         if (Helpers.isTrue(isContract))
         {
-            Object symbolSplit = Helpers.split(id, "-");
+            java.util.List<Object> symbolSplit = (java.util.List<Object>) Helpers.split(id, "-");
             baseId = this.safeString(symbolSplit, 1);
             quoteId = this.safeString(symbolSplit, 2);
             if (Helpers.isTrue(Helpers.isEqual(isLinear, true)))
@@ -1963,7 +1963,7 @@ public class BitrueCore extends BitrueApi
         String symbol = (String) this.safeSymbol(marketId, market);
         String orderId = this.safeString(trade, "orderId");
         String id = this.safeString2(trade, "id", "tradeId");
-        String side = null;
+        Object side = null;
         Object buyerMaker = this.safeBool(trade, "isBuyerMaker"); // ignore "m" until Bitrue fixes api
         Object isBuyer = this.safeBool(trade, "isBuyer");
         if (Helpers.isTrue(!Helpers.isEqual(buyerMaker, null)))
@@ -1982,7 +1982,7 @@ public class BitrueCore extends BitrueApi
                 put( "currency", BitrueCore.this.safeCurrencyCode(BitrueCore.this.safeString(trade, "commissionAssert")) );
             }};
         }
-        String takerOrMaker = null;
+        Object takerOrMaker = null;
         Object isMaker = this.safeBool(trade, "isMaker");
         if (Helpers.isTrue(!Helpers.isEqual(isMaker, null)))
         {
@@ -2283,7 +2283,7 @@ public class BitrueCore extends BitrueApi
             Object market = this.market(symbol);
             Object response = null;
             Object data = new java.util.HashMap<String, Object>() {{}};
-            Object uppercaseType = ((String)type).toUpperCase();
+            String uppercaseType = ((String)type).toUpperCase();
             final Object finalSide = side;
             final Object finalUppercaseType = uppercaseType;
             Object request = new java.util.HashMap<String, Object>() {{
@@ -2329,7 +2329,7 @@ public class BitrueCore extends BitrueApi
                     {
                         Object amountString = this.numberToString(amount);
                         Object priceString = this.numberToString(price);
-                        String quoteAmount = Precise.stringMul(amountString, priceString);
+                        Object quoteAmount = Precise.stringMul(amountString, priceString);
                         Object requestAmount = ((Helpers.isTrue((!Helpers.isEqual(cost, null))))) ? cost : quoteAmount;
                         Helpers.addElementToObject(request, "amount", this.costToPrecision(symbol, requestAmount));
                         Helpers.addElementToObject(request, "volume", this.costToPrecision(symbol, requestAmount));
@@ -3204,13 +3204,13 @@ public class BitrueCore extends BitrueApi
         {
             if (Helpers.isTrue(!Helpers.isEqual(addressTo, null)))
             {
-                Object parts = Helpers.split(addressTo, "_");
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(addressTo, "_");
                 addressTo = this.safeString(parts, 0);
                 tagTo = this.safeString(parts, 1);
             }
             if (Helpers.isTrue(!Helpers.isEqual(addressFrom, null)))
             {
-                Object parts = Helpers.split(addressFrom, "_");
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(addressFrom, "_");
                 addressFrom = this.safeString(parts, 0);
                 tagFrom = this.safeString(parts, 1);
             }
@@ -3220,14 +3220,14 @@ public class BitrueCore extends BitrueApi
         Object updated = this.safeInteger(transaction, "updatedAt");
         Object payAmount = (Helpers.inOp(transaction, "payAmount"));
         Object ctime = (Helpers.inOp(transaction, "ctime"));
-        String type = ((Helpers.isTrue((Helpers.isTrue(payAmount) || Helpers.isTrue(ctime))))) ? "withdrawal" : "deposit";
+        Object type = ((Helpers.isTrue((Helpers.isTrue(payAmount) || Helpers.isTrue(ctime))))) ? "withdrawal" : "deposit";
         Object status = this.parseTransactionStatusByType(this.safeString(transaction, "status"), type);
         Object amount = this.safeNumber(transaction, "amount");
         Object network = null;
         String currencyId = this.safeString2(transaction, "symbol", "coin");
         if (Helpers.isTrue(!Helpers.isEqual(currencyId, null)))
         {
-            Object parts = Helpers.split(currencyId, "_");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(currencyId, "_");
             currencyId = this.safeString(parts, 0);
             String networkId = this.safeString(parts, 1);
             if (Helpers.isTrue(!Helpers.isEqual(networkId, null)))
@@ -3355,7 +3355,7 @@ public class BitrueCore extends BitrueApi
         //
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         Object chainDetails = this.safeList(fee, "chainDetail", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object chainDetailLength = Helpers.getArrayLength(chainDetails);
+        Integer chainDetailLength = Helpers.getArrayLength(chainDetails);
         Object result = new java.util.HashMap<String, Object>() {{
             put( "info", fee );
             put( "withdraw", new java.util.HashMap<String, Object>() {{
@@ -3449,7 +3449,7 @@ public class BitrueCore extends BitrueApi
         Object toAccount = null;
         if (Helpers.isTrue(!Helpers.isEqual(transferType, null)))
         {
-            Object accountSplit = Helpers.split(transferType, "_to_");
+            java.util.List<Object> accountSplit = (java.util.List<Object>) Helpers.split(transferType, "_to_");
             fromAccount = this.safeString(accountSplit, 0);
             toAccount = this.safeString(accountSplit, 1);
         }
@@ -3765,7 +3765,7 @@ public class BitrueCore extends BitrueApi
                 }
             } else
             {
-                Object timestamp = String.valueOf(this.nonce());
+                String timestamp = String.valueOf(this.nonce());
                 Object signPath = null;
                 if (Helpers.isTrue(Helpers.isEqual(type, "fapi")))
                 {
@@ -3779,7 +3779,7 @@ public class BitrueCore extends BitrueApi
                 if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
                 {
                     Object keys = Helpers.objectKeys(parameters);
-                    Object keysLength = Helpers.getArrayLength(keys);
+                    Integer keysLength = Helpers.getArrayLength(keys);
                     if (Helpers.isTrue(Helpers.isGreaterThan(keysLength, 0)))
                     {
                         signMessage = Helpers.add(signMessage, Helpers.add("?", this.urlencode(parameters)));

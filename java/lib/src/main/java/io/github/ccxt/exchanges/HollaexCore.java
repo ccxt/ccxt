@@ -1800,7 +1800,7 @@ public class HollaexCore extends HollaexApi
         Object tag = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
-            Object parts = Helpers.split(address, ":");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(address, ":");
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
         }
@@ -2142,7 +2142,7 @@ public class HollaexCore extends HollaexApi
         Object tagFrom = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
-            Object parts = Helpers.split(address, ":");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(address, ":");
             address = this.safeString(parts, 0);
             tag = this.safeString(parts, 1);
             addressTo = address;
@@ -2328,7 +2328,7 @@ public class HollaexCore extends HollaexApi
         if (Helpers.isTrue(!Helpers.isEqual(withdrawalFees, null)))
         {
             Object keys = Helpers.objectKeys(withdrawalFees);
-            Object keysLength = Helpers.getArrayLength(keys);
+            Integer keysLength = Helpers.getArrayLength(keys);
             for (var i = 0; Helpers.isLessThan(i, keysLength); i++)
             {
                 Object key = Helpers.GetValue(keys, i);
@@ -2340,7 +2340,7 @@ public class HollaexCore extends HollaexApi
                 {
                     throw new ArgumentsRequired((String)Helpers.add(this.id, " requires a networkCode argument")) ;
                 }
-                Object networkCodeUpper = ((String)networkCode).toUpperCase(); // default to the upper case network code
+                String networkCodeUpper = ((String)networkCode).toUpperCase(); // default to the upper case network code
                 Object withdrawalFee = this.safeNumber(value, "value");
                 Helpers.addElementToObject(Helpers.GetValue(result, "networks"), networkCodeUpper, new java.util.HashMap<String, Object>() {{
     put( "deposit", null );
@@ -2431,7 +2431,7 @@ public class HollaexCore extends HollaexApi
             this.checkRequiredCredentials();
             Long defaultExpires = (Long) this.safeInteger2(this.options, "api-expires", "expires", this.parseToInt(Helpers.divide(this.timeout, 1000)));
             Object expires = this.sum(this.seconds(), defaultExpires);
-            Object expiresString = String.valueOf(expires);
+            String expiresString = String.valueOf(expires);
             Object auth = Helpers.add(Helpers.add(method, path), expiresString);
             headers = new java.util.HashMap<String, Object>() {{
                 put( "api-key", HollaexCore.this.apiKey );
@@ -2481,7 +2481,7 @@ public class HollaexCore extends HollaexApi
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             String message = this.safeString(response, "message");
             this.throwBroadlyMatchedException(Helpers.GetValue(this.exceptions, "broad"), message, feedback);
-            Object status = String.valueOf(code);
+            String status = String.valueOf(code);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), status, feedback);
         }
         return null;

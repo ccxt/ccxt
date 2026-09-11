@@ -190,7 +190,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTickers() symbols is required")) ;
             }
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new BadSymbol((String)Helpers.add(this.id, " watchTickers requires a non-empty symbols array")) ;
@@ -261,7 +261,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -458,7 +458,7 @@ public class CoinbaseexchangeCore extends io.github.ccxt.exchanges.Coinbaseexcha
             Object symbols = symbols3;
             Object limit = Helpers.getArg(optionalArgs, 0, null);
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new BadRequest((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;

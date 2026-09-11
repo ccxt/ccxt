@@ -310,7 +310,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object orderRequest = this.createOrderRequest(symbol, type, side, amount, price, parameters, true);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "trade");
             (this.authenticate(url)).join();
-            Object requestId = String.valueOf(this.requestId());
+            String requestId = String.valueOf(this.requestId());
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "op", "order.create" );
                 put( "reqId", requestId );
@@ -365,7 +365,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object orderRequest = this.editOrderRequest(id, symbol, type, side, amount, price, parameters);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "trade");
             (this.authenticate(url)).join();
-            Object requestId = String.valueOf(this.requestId());
+            String requestId = String.valueOf(this.requestId());
             Object request = new java.util.HashMap<String, Object>() {{
                 put( "op", "order.amend" );
                 put( "reqId", requestId );
@@ -411,7 +411,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             Object orderRequest = this.cancelOrderRequest(id, symbol, parameters);
             Object url = Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "private"), "trade");
             (this.authenticate(url)).join();
-            Object requestId = String.valueOf(this.requestId());
+            String requestId = String.valueOf(this.requestId());
             if (Helpers.isTrue(Helpers.inOp(orderRequest, "orderFilter")))
             {
                 ((java.util.Map<String,Object>)orderRequest).remove((String)"orderFilter");
@@ -707,8 +707,8 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             symbol = Helpers.GetValue(parsed, "symbol");
         } else if (Helpers.isTrue(Helpers.isEqual(updateType, "delta")))
         {
-            Object topicParts = Helpers.split(topic, ".");
-            Object topicLength = Helpers.getArrayLength(topicParts);
+            java.util.List<Object> topicParts = (java.util.List<Object>) Helpers.split(topic, ".");
+            Integer topicLength = Helpers.getArrayLength(topicParts);
             Object marketId = this.safeString(topicParts, Helpers.subtract(topicLength, 1));
             Object market = this.safeMarket(marketId, null, null, type);
             symbol = Helpers.GetValue(market, "symbol");
@@ -972,8 +972,8 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         //
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object topic = this.safeString(message, "topic", "");
-        Object topicParts = Helpers.split(topic, ".");
-        Object topicLength = Helpers.getArrayLength(topicParts);
+        java.util.List<Object> topicParts = (java.util.List<Object>) Helpers.split(topic, ".");
+        Integer topicLength = Helpers.getArrayLength(topicParts);
         Object timeframeId = this.safeString(topicParts, 1);
         Object timeframe = this.findTimeframe(timeframeId);
         if (Helpers.isTrue(Helpers.isEqual(timeframe, null)))
@@ -1072,7 +1072,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
             {
                 (this.loadMarkets()).join();
             }
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOrderBookForSymbols() requires a non-empty array of symbols")) ;
@@ -1330,7 +1330,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
                 (this.loadMarkets()).join();
             }
             symbols = this.marketSymbols(symbols);
-            Object symbolsLength = Helpers.getArrayLength(symbols);
+            Integer symbolsLength = Helpers.getArrayLength(symbols);
             if (Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchTradesForSymbols() requires a non-empty array of symbols")) ;
@@ -1443,7 +1443,7 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
         Object topic = this.safeString(message, "topic", "");
         Object trades = data;
-        Object parts = Helpers.split(topic, ".");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(topic, ".");
         Object isSpot = Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(client.url, "spot"), 0);
         String marketType = ((Helpers.isTrue((isSpot)))) ? "spot" : "contract";
         Object marketId = this.safeString(parts, 1);
@@ -2018,9 +2018,9 @@ public class BybitCore extends io.github.ccxt.exchanges.Bybit
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(messageHashes)); i++)
         {
             Object messageHash = Helpers.GetValue(messageHashes, i);
-            Object parts = Helpers.split(messageHash, "::");
+            java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(messageHash, "::");
             Object symbolsString = Helpers.GetValue(parts, 1);
-            Object symbols = Helpers.split(symbolsString, ",");
+            java.util.List<Object> symbols = (java.util.List<Object>) Helpers.split(symbolsString, ",");
             Object positions = this.filterByArray(newPositions, "symbol", symbols, false);
             if (!Helpers.isTrue(this.isEmpty(positions)))
             {

@@ -902,8 +902,8 @@ public class WoofiproCore extends WoofiproApi
         {
             throw new ExchangeError((String)Helpers.add(this.id, " parseMarket() missing marketId")) ;
         }
-        Object parts = Helpers.split(marketId, "_");
-        String marketType = "swap";
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(marketId, "_");
+        Object marketType = "swap";
         String baseId = this.safeString(parts, 1);
         String quoteId = this.safeString(parts, 2);
         String base = (String) this.safeCurrencyCode(baseId);
@@ -1215,10 +1215,10 @@ public class WoofiproCore extends WoofiproApi
         {
             Helpers.addElementToObject(fee, "cost", feeCost);
         }
-        String cost = Precise.stringMul(price, amount);
+        Object cost = Precise.stringMul(price, amount);
         String side = (String)this.safeStringLower(trade, "side");
         String id = this.safeString(trade, "id");
-        String takerOrMaker = null;
+        Object takerOrMaker = null;
         if (Helpers.isTrue(isFromFetchOrder))
         {
             Object isMaker = Helpers.isEqual(this.safeString(trade, "is_maker"), "1");
@@ -1318,7 +1318,7 @@ public class WoofiproCore extends WoofiproApi
         Object lastFundingRateTimestamp = this.safeInteger(fundingRate, "last_funding_rate_timestamp");
         String fundingTimeString = this.safeString(fundingRate, "last_funding_rate_timestamp");
         String nextFundingTimeString = this.safeString(fundingRate, "next_funding_time");
-        String millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
+        Object millisecondsInterval = Precise.stringSub(nextFundingTimeString, fundingTimeString);
         final Object finalMarket = market;
         return new java.util.HashMap<String, Object>() {{
             put( "info", fundingRate );
@@ -1618,7 +1618,7 @@ public class WoofiproCore extends WoofiproApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object timestamp = this.safeInteger(response, "timestamp");
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object row = Helpers.GetValue(rows, i);
@@ -1755,7 +1755,7 @@ public class WoofiproCore extends WoofiproApi
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object rows = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object timestamp = this.safeInteger(response, "timestamp");
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
             {
                 Object row = Helpers.GetValue(rows, i);
@@ -1844,7 +1844,7 @@ public class WoofiproCore extends WoofiproApi
             //
             Object data = this.safeDict(response, "data", new java.util.HashMap<String, Object>() {{}});
             Object result = this.safeList(data, "rows", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object entry = Helpers.GetValue(result, i);
@@ -2243,7 +2243,7 @@ public class WoofiproCore extends WoofiproApi
         String side = (String)this.safeStringLower(order, "side");
         String filled = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("total_executed_quantity", "totalExecutedQuantity", "executed_quantity", "executed")));
         Object average = this.omitZero(this.safeString2(order, "average_executed_price", "averageExecutedPrice"));
-        String remaining = Precise.stringSub(amount, filled);
+        Object remaining = Precise.stringSub(amount, filled);
         Object fee = this.safeValue2(order, "total_fee", "totalFee");
         String feeCurrency = this.safeString2(order, "fee_asset", "feeAsset");
         Object transactions = this.safeValue(order, "Transactions");
@@ -2255,7 +2255,7 @@ public class WoofiproCore extends WoofiproApi
         {
             Object first = this.safeValue(childOrders, 0);
             Object innerChildOrders = this.safeList(first, "childOrders", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object innerChildOrdersLength = Helpers.getArrayLength(innerChildOrders);
+            Integer innerChildOrdersLength = Helpers.getArrayLength(innerChildOrders);
             if (Helpers.isTrue(Helpers.isGreaterThan(innerChildOrdersLength, 0)))
             {
                 Object takeProfitOrder = this.safeValue(innerChildOrders, 0);
@@ -2366,13 +2366,13 @@ public class WoofiproCore extends WoofiproApi
          * @returns {object} request to be sent to the exchange
          */
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only");
-        Object orderType = ((String)type).toUpperCase();
+        String orderType = ((String)type).toUpperCase();
         if (Helpers.isTrue(Helpers.isEqual(side, null)))
         {
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrderRequest() requires a side argument")) ;
         }
         Object market = this.market(symbol);
-        Object orderSide = ((String)side).toUpperCase();
+        String orderSide = ((String)side).toUpperCase();
         final Object finalOrderSide = orderSide;
         Object request = new java.util.HashMap<String, Object>() {{
             put( "symbol", Helpers.GetValue(market, "id") );
@@ -2388,9 +2388,9 @@ public class WoofiproCore extends WoofiproApi
         Object isMarket = Helpers.isEqual(orderType, "MARKET");
         String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
         Object postOnly = this.isPostOnly(isMarket, null, parameters);
-        String orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
-        String priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
-        String typeKey = ((Helpers.isTrue(isConditional))) ? "type" : "order_type";
+        Object orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
+        Object priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
+        Object typeKey = ((Helpers.isTrue(isConditional))) ? "type" : "order_type";
         Helpers.addElementToObject(request, typeKey, orderType); // LIMIT/MARKET/IOC/FOK/POST_ONLY/ASK/BID
         if (!Helpers.isTrue(isConditional))
         {
@@ -2432,8 +2432,8 @@ public class WoofiproCore extends WoofiproApi
         } else if (Helpers.isTrue(Helpers.isTrue(hasStopLoss) || Helpers.isTrue(hasTakeProfit)))
         {
             Helpers.addElementToObject(request, "algo_type", "TP_SL");
-            java.util.List<Object> childOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-            String closeSide = ((Helpers.isTrue((Helpers.isEqual(orderSide, "BUY"))))) ? "SELL" : "BUY";
+            Object childOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object closeSide = ((Helpers.isTrue((Helpers.isEqual(orderSide, "BUY"))))) ? "SELL" : "BUY";
             if (Helpers.isTrue(hasStopLoss))
             {
                 Object stopLossPrice = this.safeValue2(stopLoss, "triggerPrice", "price", stopLoss);
@@ -2545,7 +2545,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -2634,8 +2634,8 @@ public class WoofiproCore extends WoofiproApi
                 Helpers.addElementToObject(request, "triggerPrice", this.priceToPrecision(symbol, triggerPrice));
             }
             Object isConditional = Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) || Helpers.isTrue((!Helpers.isEqual(this.safeValue(parameters, "childOrders"), null)));
-            String orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
-            String priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
+            Object orderQtyKey = ((Helpers.isTrue(isConditional))) ? "quantity" : "order_quantity";
+            Object priceKey = ((Helpers.isTrue(isConditional))) ? "price" : "order_price";
             if (Helpers.isTrue(!Helpers.isEqual(price, null)))
             {
                 Helpers.addElementToObject(request, priceKey, this.priceToPrecision(symbol, price));
@@ -2657,7 +2657,7 @@ public class WoofiproCore extends WoofiproApi
             {
                 Helpers.addElementToObject(request, "symbol", Helpers.GetValue(market, "id"));
                 Helpers.addElementToObject(request, "side", ((String)side).toUpperCase());
-                Object orderType = ((String)type).toUpperCase();
+                String orderType = ((String)type).toUpperCase();
                 String timeInForce = (String)this.safeStringLower(parameters, "timeInForce");
                 Object isMarket = Helpers.isEqual(orderType, "MARKET");
                 Object postOnly = this.isPostOnly(isMarket, null, parameters);
@@ -3491,7 +3491,7 @@ public class WoofiproCore extends WoofiproApi
         currency = this.safeCurrency(currencyId, currency);
         Object amount = this.safeNumber(item, "amount");
         String side = this.safeString(item, "token_side");
-        String direction = ((Helpers.isTrue((Helpers.isEqual(side, "DEPOSIT"))))) ? "in" : "out";
+        Object direction = ((Helpers.isTrue((Helpers.isEqual(side, "DEPOSIT"))))) ? "in" : "out";
         Object timestamp = this.safeInteger(item, "created_time");
         Object fee = this.parseTokenAndFeeTemp(item, "fee_token", "fee_amount");
         return this.safeLedgerEntry(new java.util.HashMap<String, Object>() {{
@@ -4231,7 +4231,7 @@ public class WoofiproCore extends WoofiproApi
         String contract = this.safeString(position, "symbol");
         market = this.safeMarket(contract, market);
         String size = this.safeString(position, "position_qty");
-        String side = null;
+        Object side = null;
         if (Helpers.isTrue(Precise.stringGt(size, "0")))
         {
             side = "long";
@@ -4245,7 +4245,7 @@ public class WoofiproCore extends WoofiproApi
         String entryPrice = this.safeString(position, "average_open_price");
         String unrealisedPnl = this.safeString(position, "unsettled_pnl");
         size = Precise.stringAbs(size);
-        String notional = Precise.stringMul(size, markPrice);
+        Object notional = Precise.stringMul(size, markPrice);
         final Object finalMarket = market;
         final Object finalSize = size;
         final Object finalSide = side;
@@ -4452,7 +4452,7 @@ public class WoofiproCore extends WoofiproApi
                 parameters = this.keysort(parameters);
             }
             Object auth = "";
-            Object ts = String.valueOf(this.nonce());
+            String ts = String.valueOf(this.nonce());
             url = Helpers.add(url, pathWithParams);
             Object apiKey = this.apiKey;
             if (Helpers.isTrue(Helpers.isLessThan(Helpers.getIndexOf(apiKey, "ed25519:"), 0)))
@@ -4488,7 +4488,7 @@ public class WoofiproCore extends WoofiproApi
             Object secret = this.secret;
             if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(secret, "ed25519:"), 0)))
             {
-                Object parts = Helpers.split(secret, "ed25519:");
+                java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(secret, "ed25519:");
                 secret = Helpers.GetValue(parts, 1);
             }
             Object signature = eddsa(this.encode(auth), this.base58ToBinary(secret), ed25519());

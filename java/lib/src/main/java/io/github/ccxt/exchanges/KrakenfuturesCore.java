@@ -543,13 +543,13 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             //    }
             //
             Object instruments = this.safeList(response, "instruments", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(instruments)); i++)
             {
                 Object market = Helpers.GetValue(instruments, i);
                 String id = this.safeString(market, "symbol");
                 String marketType = this.safeString(market, "type");
-                String type = null;
+                Object type = null;
                 Object index = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(((String)marketType), " index"), 0));
                 Object linear = null;
                 Object inverse = null;
@@ -568,14 +568,14 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 Object swap = (Helpers.isEqual(type, "swap"));
                 Object future = (Helpers.isEqual(type, "future"));
                 Object symbol = id;
-                Object split = Helpers.split(((String)id), "_");
+                java.util.List<Object> split = (java.util.List<Object>) Helpers.split(((String)id), "_");
                 String splitMarket = this.safeString(split, 1);
-                Object baseId = Helpers.slice(((String)splitMarket), 0, Helpers.subtract(((String)((String)splitMarket)).length(), 3));
-                String quoteId = "usd"; // always USD
+                String baseId = Helpers.slice(((String)splitMarket), 0, Helpers.subtract(((String)((String)splitMarket)).length(), 3));
+                Object quoteId = "usd"; // always USD
                 String base = (String) this.safeCurrencyCode(baseId);
                 String quote = (String) this.safeCurrencyCode(quoteId);
                 // swap == perpetual
-                String settle = null;
+                Object settle = null;
                 Object settleId = null;
                 String cvtp = this.safeString(market, "contractValueTradePrecision");
                 Object amountPrecision = this.parseNumber(this.integerPrecisionToAmount(cvtp));
@@ -667,7 +667,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 }});
             }
             Object settlementCurrencies = Helpers.GetValue(Helpers.GetValue(this.options, "settlementCurrencies"), "flex");
-            java.util.List<Object> currencies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object currencies = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(settlementCurrencies)); i++)
             {
                 Object code = Helpers.GetValue(settlementCurrencies, i);
@@ -892,9 +892,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Long timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         String open = this.safeString(ticker, "open24h");
         String last = this.safeString(ticker, "last");
-        String change = Precise.stringSub(last, open);
-        String percentage = Precise.stringMul(Precise.stringDiv(change, open), "100");
-        String average = Precise.stringDiv(Precise.stringAdd(open, last), "2");
+        Object change = Precise.stringSub(last, open);
+        Object percentage = Precise.stringMul(Precise.stringDiv(change, open), "100");
+        Object average = Precise.stringDiv(Precise.stringAdd(open, last), "2");
         String volume = this.safeString(ticker, "vol24h");
         Object baseVolume = null;
         Object quoteVolume = null;
@@ -1271,7 +1271,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 Object elements = this.safeList(response, "elements", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
                 // we need to reverse the list to fix chronology
                 rawTrades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-                Object length = Helpers.getArrayLength(elements);
+                Integer length = Helpers.getArrayLength(elements);
                 for (var i = 0; Helpers.isLessThan(i, length); i++)
                 {
                     Object index = Helpers.subtract(Helpers.subtract(length, 1), i);
@@ -1412,7 +1412,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             type = this.parseOrderType(type);
         }
         market = this.safeMarket(marketId, market);
-        String cost = null;
+        Object cost = null;
         Object linear = this.safeBool(market, "linear");
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(amount, null))) && Helpers.isTrue((!Helpers.isEqual(price, null)))) && Helpers.isTrue((!Helpers.isEqual(market, null)))))
         {
@@ -1426,7 +1426,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             String contractSize = this.safeString(market, "contractSize");
             cost = Precise.stringMul(cost, contractSize);
         }
-        String takerOrMaker = null;
+        Object takerOrMaker = null;
         String fillType = this.safeString(trade, "fillType");
         if (Helpers.isTrue(!Helpers.isEqual(fillType, null)))
         {
@@ -1711,7 +1711,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object ordersRequests = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orders)); i++)
             {
                 Object rawOrder = Helpers.GetValue(orders, i);
@@ -1867,9 +1867,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 (this.loadMarkets()).join();
             }
-            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             Object clientOrderIds = this.safeList(parameters, "clientOrderIds", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            Object clientOrderIdsLength = Helpers.getArrayLength(clientOrderIds);
+            Integer clientOrderIdsLength = Helpers.getArrayLength(clientOrderIds);
             if (Helpers.isTrue(Helpers.isGreaterThan(clientOrderIdsLength, 0)))
             {
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(clientOrderIds)); i++)
@@ -1985,7 +1985,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             //
             Object cancelStatus = this.safeDict(response, "cancelStatus");
             Object orderEvents = this.safeList(cancelStatus, "orderEvents", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object orders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderEvents)); i++)
             {
                 Object orderEvent = this.safeDict(orderEvents, 0);
@@ -2193,7 +2193,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 response = (this.historyGetOrders(this.extend(request, parameters))).join();
             }
             Object allOrders = this.safeList(response, "elements", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> closedOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object closedOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allOrders)); i++)
             {
                 Object order = Helpers.GetValue(allOrders, i);
@@ -2275,7 +2275,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 response = (this.historyGetOrders(this.extend(request, parameters))).join();
             }
             Object allOrders = this.safeList(response, "elements", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> canceledAndRejected = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object canceledAndRejected = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(allOrders)); i++)
             {
                 Object order = Helpers.GetValue(allOrders, i);
@@ -2734,7 +2734,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         }
         Object orderEvents = this.safeList(order, "orderEvents", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String errorStatus = this.safeString(order, "status");
-        Object orderEventsLength = Helpers.getArrayLength(orderEvents);
+        Integer orderEventsLength = Helpers.getArrayLength(orderEvents);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(order, "orderEvents"))) && Helpers.isTrue((!Helpers.isEqual(errorStatus, null)))) && Helpers.isTrue((Helpers.isEqual(orderEventsLength, 0)))))
         {
             // creteOrders error response
@@ -2748,10 +2748,10 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object fixedVar = false;
         Object statusId = null;
         Object price = null;
-        java.util.List<Object> trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isGreaterThan(orderEventsLength, 0)))
         {
-            java.util.List<Object> executions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object executions = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(orderEvents)); i++)
             {
                 Object item = Helpers.GetValue(orderEvents, i);
@@ -2800,7 +2800,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         }
         // This may be incorrectly marked as "open" if only execution report is given,
         // but will be fixed below
-        String status = this.parseOrderStatus(statusId);
+        Object status = this.parseOrderStatus(statusId);
         Object isClosed = this.inArray(status, new java.util.ArrayList<Object>(java.util.Arrays.asList("canceled", "rejected", "closed")));
         String marketId = this.safeString2(details, "symbol", "tradeable");
         market = this.safeMarket(marketId, market);
@@ -2810,9 +2810,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         String amount = this.safeString(details, "quantity");
         Object filled = this.safeString2(details, "filledSize", "filled", "0.0");
         Object remaining = this.safeString(details, "unfilledSize");
-        String average = null;
+        Object average = null;
         Object filled2 = "0.0";
-        Object tradesLength = Helpers.getArrayLength(trades);
+        Integer tradesLength = Helpers.getArrayLength(trades);
         if (Helpers.isTrue(Helpers.isGreaterThan(tradesLength, 0)))
         {
             Object vwapSum = "0.0";
@@ -2857,7 +2857,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         {
             amount = Precise.stringAdd(filled, remaining);
         }
-        String cost = null;
+        Object cost = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(filled, null))) && Helpers.isTrue((!Helpers.isEqual(market, null)))))
         {
             Object whichPrice = ((Helpers.isTrue((!Helpers.isEqual(average, null))))) ? average : price;
@@ -2878,7 +2878,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             id = this.safeString2(details, "orderId", "uid");
         }
         String type = (String)this.safeStringLower2(details, "type", "orderType");
-        String timeInForce = "gtc";
+        Object timeInForce = "gtc";
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(type, "ioc")) || Helpers.isTrue(Helpers.isEqual(this.parseOrderType(type), "market"))))
         {
             timeInForce = "ioc";
@@ -3070,7 +3070,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object logs = this.safeList(response, "logs", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             // each execution emits two rows: a cash leg(asset is a currency) and
             // a position-size leg(asset equals the contract id) - keep the cash legs only
-            java.util.List<Object> rows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object rows = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(logs)); i++)
             {
                 Object row = Helpers.GetValue(logs, i);
@@ -3141,8 +3141,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         String before = this.safeString(item, "old_balance");
         String after = this.safeString(item, "new_balance");
         String feeCost = this.safeString(item, "fee");
-        String amount = null;
-        String direction = null;
+        Object amount = null;
+        Object direction = null;
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(before, null))) && Helpers.isTrue((!Helpers.isEqual(after, null)))))
         {
             amount = Precise.stringSub(after, before);
@@ -3410,8 +3410,8 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             {
                 continue;
             }
-            Object splitCode = Helpers.split(code, "_");
-            Object codeLength = Helpers.getArrayLength(splitCode);
+            java.util.List<Object> splitCode = (java.util.List<Object>) Helpers.split(code, "_");
+            Integer codeLength = Helpers.getArrayLength(splitCode);
             if (Helpers.isTrue(Helpers.isGreaterThan(codeLength, 1)))
             {
                 continue;
@@ -3462,7 +3462,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object marketIds = this.marketIds(symbols);
             Object response = (this.publicGetTickers(parameters)).join();
             Object tickers = this.safeList(response, "tickers", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-            java.util.List<Object> fundingRates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object fundingRates = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tickers)); i++)
             {
                 Object entry = Helpers.GetValue(tickers, i);
@@ -3518,9 +3518,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Long timestamp = this.parse8601(this.safeString(ticker, "lastTime"));
         String markPriceString = this.safeString(ticker, "markPrice");
         String fundingRateString = this.safeString(ticker, "fundingRate");
-        String fundingRateResult = Precise.stringDiv(fundingRateString, markPriceString);
+        Object fundingRateResult = Precise.stringDiv(fundingRateString, markPriceString);
         String nextFundingRateString = this.safeString(ticker, "fundingRatePrediction");
-        String nextFundingRateResult = Precise.stringDiv(nextFundingRateString, markPriceString);
+        Object nextFundingRateResult = Precise.stringDiv(nextFundingRateString, markPriceString);
         if (Helpers.isTrue(Precise.stringGt(fundingRateResult, "0.25")))
         {
             fundingRateResult = "0.25";
@@ -3609,7 +3609,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             //    }
             //
             Object rates = this.safeValue(response, "rates");
-            java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rates)); i++)
             {
                 Object item = Helpers.GetValue(rates, i);
@@ -3677,7 +3677,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
     {
         Object symbols = Helpers.getArg(optionalArgs, 0, null);
         Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         // a degraded response missing openPositions must fail loudly - a flat
         // account and "could not read positions" are not interchangeable for
         // reconciliation logic, see https://github.com/ccxt/ccxt/issues/29710
@@ -3724,7 +3724,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Object leverage = this.safeNumber(position, "maxFixedLeverage");
-        String marginType = "cross";
+        Object marginType = "cross";
         if (Helpers.isTrue(!Helpers.isEqual(leverage, null)))
         {
             marginType = "isolated";
@@ -3876,7 +3876,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
         Object marginLevels = this.safeValue(info, "marginLevels");
         String marketId = this.safeString(info, "symbol");
         market = this.safeMarket(marketId, market);
-        java.util.List<Object> tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object tiers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isEqual(marginLevels, null)))
         {
             return tiers;
@@ -3888,7 +3888,7 @@ public class KrakenfuturesCore extends KrakenfuturesApi
             Object minNotional = this.safeNumber2(tier, "numNonContractUnits", "contracts");
             if (Helpers.isTrue(!Helpers.isEqual(i, 0)))
             {
-                Object tiersLength = Helpers.getArrayLength(tiers);
+                Integer tiersLength = Helpers.getArrayLength(tiers);
                 Object previousTier = Helpers.GetValue(tiers, Helpers.subtract(tiersLength, 1));
                 Helpers.addElementToObject(previousTier, "maxNotional", minNotional);
             }
@@ -3952,7 +3952,7 @@ final Object finalI = i;
         {
             Object market = this.market(account);
             Object marketId = Helpers.GetValue(market, "id");
-            Object splitId = Helpers.split(((String)marketId), "_");
+            java.util.List<Object> splitId = (java.util.List<Object>) Helpers.split(((String)marketId), "_");
             if (Helpers.isTrue(Helpers.isEqual(Helpers.GetValue(market, "inverse"), true)))
             {
                 return Helpers.add("fi_", this.safeString(splitId, 1));

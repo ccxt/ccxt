@@ -119,14 +119,14 @@ public Object describe()
         Object tags = this.safeList(parameters, "tags", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         String eventId = this.safeString(parameters, "eventId");
         String slug = this.safeString(parameters, "slug");
-        Object queriesLength = Helpers.getArrayLength(queries);
-        Object tagsLength = Helpers.getArrayLength(tags);
+        Integer queriesLength = Helpers.getArrayLength(queries);
+        Integer tagsLength = Helpers.getArrayLength(tags);
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(query, null))) || Helpers.isTrue((Helpers.isGreaterThan(queriesLength, 0)))) || Helpers.isTrue((Helpers.isGreaterThan(tagsLength, 0)))) || Helpers.isTrue((!Helpers.isEqual(eventId, null)))) || Helpers.isTrue((!Helpers.isEqual(slug, null)))))
         {
             return null;
         }
         Object extraScopeParams = this.safeList(this.options, "eventScopeParams", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object extraScopeParamsLength = Helpers.getArrayLength(extraScopeParams);
+        Integer extraScopeParamsLength = Helpers.getArrayLength(extraScopeParams);
         Object extraNames = "";
         for (var i = 0; Helpers.isLessThan(i, extraScopeParamsLength); i++)
         {
@@ -154,7 +154,7 @@ public Object describe()
         String slug = this.safeString(parameters, "slug");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(eventId, null))) || Helpers.isTrue((!Helpers.isEqual(slug, null)))))
         {
-            java.util.List<Object> filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object filtered = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(result)); i++)
             {
                 Object eventVar = Helpers.GetValue(result, i);
@@ -183,7 +183,7 @@ public Object describe()
         String sort = this.safeString(parameters, "sort");
         if (Helpers.isTrue(!Helpers.isEqual(sort, null)))
         {
-            String sortKey = null;
+            Object sortKey = null;
             if (Helpers.isTrue(Helpers.isEqual(sort, "volume")))
             {
                 sortKey = "volume";
@@ -211,7 +211,7 @@ public Object describe()
         {
             // clamp to the result length: arraySlice(x, 0, limit) with limit > length panics in Go
             // via reflect Slice, and throws in C#, unlike JS/Python which return the whole array
-            Object resultLength = Helpers.getArrayLength(result);
+            Integer resultLength = Helpers.getArrayLength(result);
             Object sliceEnd = limit;
             if (Helpers.isTrue(Helpers.isGreaterThan(sliceEnd, resultLength)))
             {
@@ -231,7 +231,7 @@ public Object describe()
             return events;
         }
         Object wantActive = (Helpers.isEqual(status, "active"));
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
@@ -261,7 +261,7 @@ public Object describe()
         }
         Object checkTitle = Helpers.isTrue((Helpers.isEqual(searchIn, "title"))) || Helpers.isTrue((Helpers.isEqual(searchIn, "both")));
         Object checkDescription = Helpers.isTrue((Helpers.isEqual(searchIn, "description"))) || Helpers.isTrue((Helpers.isEqual(searchIn, "both")));
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
@@ -270,7 +270,7 @@ public Object describe()
             Object matched = false;
             for (var qi = 0; Helpers.isLessThan(qi, Helpers.getArrayLength(queries)); qi++)
             {
-                Object q = ((String)Helpers.GetValue(queries, qi)).toLowerCase();
+                String q = ((String)Helpers.GetValue(queries, qi)).toLowerCase();
                 if (Helpers.isTrue(Helpers.isEqual(title, null)))
                 {
                     throw new ExchangeError((String)Helpers.add(this.id, " filterEventsBySearchIn() missing title")) ;
@@ -305,8 +305,8 @@ public Object describe()
         // of the same tag compare equal — venues surface tags in different forms and callers
         // pass any of them. keeping the word boundary avoids cross-word false positives that
         // plain concatenation would create ("us open" vs "household")
-        Object lower = ((String)tag).toLowerCase();
-        String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
+        String lower = ((String)tag).toLowerCase();
+        Object allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
         Object s = "";
         Object pendingSep = false;
@@ -338,7 +338,7 @@ public Object describe()
         {
             return events;
         }
-        java.util.List<Object> wanted = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object wanted = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(tags)); i++)
         {
             Object wantedKey = this.normalizeTagKey(Helpers.GetValue(tags, i));
@@ -348,7 +348,7 @@ public Object describe()
                 ((java.util.List<Object>)wanted).add(wantedKey);
             }
         }
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(events)); i++)
         {
             Object eventVar = Helpers.GetValue(events, i);
@@ -455,7 +455,7 @@ public Object describe()
         {
             return new java.util.ArrayList<Object>(java.util.Arrays.asList());
         }
-        java.util.List<Object> result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object result = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object seen = new java.util.HashMap<String, Object>() {{}};
         Object keys = Helpers.objectKeys(this.events);
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(keys)); i++)
@@ -627,9 +627,9 @@ public Object describe()
             put( "trillion", "T" );
             put( "percent", "pct" );
         }};
-        java.util.List<Object> stopWords = new java.util.ArrayList<Object>(java.util.Arrays.asList("will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"));
+        Object stopWords = new java.util.ArrayList<Object>(java.util.Arrays.asList("will", "the", "a", "an", "after", "before", "in", "at", "by", "of", "there", "be", "to", "or", "and", "for", "on", "its", "that", "this", "from", "with", "as", "is", "are", "was", "were", "?", "how", "many", "who", "what", "when", "where", "which", "much"));
         Object lower = ((Helpers.isTrue((Helpers.isEqual(slug, null))))) ? "" : ((String)slug).toLowerCase();
-        String allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
+        Object allowed = "abcdefghijklmnopqrstuvwxyz0123456789";
         Object chars = this.stringToCharsArray(lower);
         Object s = "";
         Object lastDash = true; // start true to drop leading separators
@@ -656,7 +656,7 @@ public Object describe()
                 s = Helpers.replaceAll((String)s, (String)replacementKey, (String)replacementValue);
             }
         }
-        Object rawParts = Helpers.split(s, "-");
+        java.util.List<Object> rawParts = (java.util.List<Object>) Helpers.split(s, "-");
         Object parts = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawParts)); i++)
         {
@@ -666,7 +666,7 @@ public Object describe()
                 ((java.util.List<Object>)parts).add(w);
             }
         }
-        Object joined = String.join((String)"_", (java.util.List<String>)parts);
+        String joined = String.join((String)"_", (java.util.List<String>)parts);
         return ((String)joined).toUpperCase();
     }
 
@@ -702,8 +702,8 @@ public Object describe()
         {
             outcome = "";
         }
-        Object upper = ((String)outcome).toUpperCase();
-        String allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+        String upper = ((String)outcome).toUpperCase();
+        Object allowed = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
         Object chars = this.stringToCharsArray(upper);
         Object label = "";
         Object pendingSep = false;
@@ -738,7 +738,7 @@ public Object describe()
         // so alias the handle onto a shallow copy per row; the caller's rows stay symbol-free
         Object currencies = Helpers.getArg(optionalArgs, 0, null);
         Object marketsList = this.toArray(markets);
-        java.util.List<Object> aliased = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object aliased = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(marketsList)); i++)
         {
             Object row = Helpers.GetValue(marketsList, i);
@@ -799,7 +799,7 @@ public Object describe()
                     String existingId = this.safeString(existing, "outcomeId");
                     if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(existingId, null))) && Helpers.isTrue((!Helpers.isEqual(ocId, null)))) && Helpers.isTrue((!Helpers.isEqual(existingId, ocId)))))
                     {
-                        Object idLen = ((String)ocId).length();
+                        Integer idLen = ((String)ocId).length();
                         Object suffix = ocId;
                         if (Helpers.isTrue(Helpers.isGreaterThan(idLen, 6)))
                         {
@@ -852,7 +852,7 @@ public Object describe()
             this.markets = this.createSafeDictionary();
         }
         Object markets = this.safeList(eventVar, "markets", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-        Object marketsLength = Helpers.getArrayLength(markets);
+        Integer marketsLength = Helpers.getArrayLength(markets);
         for (var i = 0; Helpers.isLessThan(i, marketsLength); i++)
         {
             Object m = Helpers.GetValue(markets, i);
@@ -886,7 +886,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(!Helpers.isEqual(outcomes, null)))
             {
-                java.util.List<Object> missing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                Object missing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                 for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(outcomes)); i++)
                 {
                     if (Helpers.isTrue(Helpers.isTrue(reload) || !Helpers.isTrue(this.hasOutcome(Helpers.GetValue(outcomes, i)))))
@@ -900,7 +900,7 @@ public Object describe()
                 if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(missingLength, 0))) && Helpers.isTrue((Helpers.isEqual(loadAll, true)))) && !Helpers.isTrue(wasWarm)) && !Helpers.isTrue(reload)))
                 {
                     (this.loadOutcomes()).join();
-                    java.util.List<Object> stillMissing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+                    Object stillMissing = new java.util.ArrayList<Object>(java.util.Arrays.asList());
                     for (var i = 0; Helpers.isLessThan(i, missingLength); i++)
                     {
                         if (!Helpers.isTrue(this.hasOutcome(Helpers.GetValue(missing, i))))
@@ -1011,7 +1011,7 @@ public Object describe()
         // download. returns undefined for id-like inputs (numeric token ids, 0x hashes) that
         // carry no searchable words
         Object marketPart = outcomeSymbol;
-        Object colonIndex = Helpers.getIndexOf(outcomeSymbol, ":");
+        Integer colonIndex = Helpers.getIndexOf(outcomeSymbol, ":");
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(colonIndex, 0)))
         {
             marketPart = Helpers.slice(outcomeSymbol, 0, colonIndex);
@@ -1021,11 +1021,11 @@ public Object describe()
             return null;
         }
         // handles join words with '_' (slug-derived) or legacy '-' separated inputs (normalized below)
-        Object normalized = Helpers.replaceAll((String)((String)marketPart).toLowerCase(), (String)"-", (String)"_");
-        Object rawWords = Helpers.split(normalized, "_");
+        String normalized = Helpers.replaceAll((String)((String)marketPart).toLowerCase(), (String)"-", (String)"_");
+        java.util.List<Object> rawWords = (java.util.List<Object>) Helpers.split(normalized, "_");
         Object words = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         Object hasLetters = false;
-        String letters = "abcdefghijklmnopqrstuvwxyz";
+        Object letters = "abcdefghijklmnopqrstuvwxyz";
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rawWords)); i++)
         {
             Object word = Helpers.GetValue(rawWords, i);
@@ -1056,7 +1056,7 @@ public Object describe()
             ((java.util.List<Object>)words).add(word);
             hasLetters = true;
         }
-        Object wordsLength = Helpers.getArrayLength(words);
+        Integer wordsLength = Helpers.getArrayLength(words);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(wordsLength, 0))) || !Helpers.isTrue(hasLetters)))
         {
             // a purely numeric/symbolic handle is an id, not searchable text
@@ -1744,8 +1744,8 @@ public Object describe()
         // parse embedded fills with the OUTCOME-aware parser (parseTrades would drop them on the symbol filter)
         Object rawTrades = this.safeList(outcomeOrder, "trades", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
         Object trades = this.parsePredictionTrades(rawTrades, outcomeObj);
-        Object tradesLength = Helpers.getArrayLength(trades);
-        java.util.List<Object> feeList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Integer tradesLength = Helpers.getArrayLength(trades);
+        Object feeList = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isGreaterThan(tradesLength, 0)))
         {
             if (Helpers.isTrue(Helpers.isEqual(filled, null)))
@@ -1818,11 +1818,11 @@ public Object describe()
         }
         Object fee = this.safeDict(outcomeOrder, "fee");
         // own-line length reads so the regex transpiler emits count() (array), not strlen()
-        Object feeListLength = Helpers.getArrayLength(feeList);
+        Integer feeListLength = Helpers.getArrayLength(feeList);
         if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(fee, null))) && Helpers.isTrue((Helpers.isGreaterThan(feeListLength, 0)))))
         {
             Object reduced = this.reduceFeesByCurrency(feeList);
-            Object reducedLength = Helpers.getArrayLength(reduced);
+            Integer reducedLength = Helpers.getArrayLength(reduced);
             if (Helpers.isTrue(Helpers.isGreaterThan(reducedLength, 0)))
             {
                 fee = Helpers.GetValue(reduced, 0);
@@ -2171,7 +2171,7 @@ public Object describe()
         // per venue: kalshi positions are market-level, polymarket ones are per token)
         Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
         Object rows = this.toArray(positions);
-        java.util.List<Object> results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object results = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(rows)); i++)
         {
             Object parsed = this.parsePredictionPosition(Helpers.GetValue(rows, i));
@@ -2235,7 +2235,7 @@ public Object describe()
             return "";
         }
         // prepend a nibble so the hex has an even number of characters (whole bytes)
-        Object hexLength = ((String)hex).length();
+        Integer hexLength = ((String)hex).length();
         if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(hexLength, 2)), 0)))
         {
             return Helpers.add("0", hex);
@@ -2324,7 +2324,7 @@ public Object describe()
         }
         Object h = this.remove0xPrefix(hexValue);
         Object start = 0;
-        Object total = Helpers.getArrayLength(h);
+        Integer total = Helpers.getArrayLength(h);
         while (Helpers.isTrue((Helpers.isLessThan(start, total))) && Helpers.isTrue((Helpers.isEqual(Helpers.slice(h, start, Helpers.add(start, 1)), "0"))))
         {
             start = Helpers.add(start, 1);

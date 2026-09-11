@@ -225,13 +225,13 @@ public class RevolutxCore extends RevolutxApi
         Object implodedPath = this.implodeParams(path, parameters);
         Object query = this.omit(parameters, this.extractParams(path));
         Object queryKeys = Helpers.objectKeys(query);
-        Object queryLength = Helpers.getArrayLength(queryKeys);
+        Integer queryLength = Helpers.getArrayLength(queryKeys);
         Object url = Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), api), "/"), implodedPath);
         Object queryString = "";
         if (Helpers.isTrue(Helpers.isEqual(api, "private")))
         {
             this.checkRequiredCredentials();
-            Object timestamp = String.valueOf(this.milliseconds());
+            String timestamp = String.valueOf(this.milliseconds());
             if (Helpers.isTrue(Helpers.isEqual(method, "GET")))
             {
                 if (Helpers.isTrue(Helpers.isGreaterThan(queryLength, 0)))

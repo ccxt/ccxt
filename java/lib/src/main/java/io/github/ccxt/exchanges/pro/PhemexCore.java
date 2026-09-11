@@ -318,7 +318,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //        "type": "snapshot",
         //    }
         //
-        java.util.List<Object> tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object tickers = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.inOp(message, "market24h")))
         {
             Object ticker = this.safeValue(message, "market24h");
@@ -492,7 +492,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //         "type": "snapshot",
         //     }
         //
-        String name = "trade";
+        Object name = "trade";
         Object marketId = this.safeString(message, "symbol");
         Object market = this.safeMarket(marketId);
         Object symbol = Helpers.GetValue(market, "symbol");
@@ -599,7 +599,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             symbol = Helpers.GetValue(market, "symbol");
             Object isSwap = Helpers.GetValue(market, "swap");
             Object settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
-            String name = "spot_market24h";
+            Object name = "spot_market24h";
             if (Helpers.isTrue(Helpers.isEqual(isSwap, true)))
             {
                 name = ((Helpers.isTrue(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
@@ -647,7 +647,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object market = this.market(first);
             Object isSwap = Helpers.GetValue(market, "swap");
             Object settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
-            String name = "spot_market24h";
+            Object name = "spot_market24h";
             if (Helpers.isTrue(Helpers.isEqual(isSwap, true)))
             {
                 name = ((Helpers.isTrue(settleIsUSDT))) ? "perp_market24h_pack_p" : "market24h";
@@ -655,7 +655,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Object requestId = this.requestId();
             Object subscriptionHash = Helpers.add(name, ".subscribe");
-            java.util.List<Object> messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+            Object messageHashes = new java.util.ArrayList<Object>(java.util.Arrays.asList());
             for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(symbols)); i++)
             {
                 ((java.util.List<Object>)messageHashes).add(Helpers.add("ticker:", Helpers.GetValue(symbols, i)));
@@ -710,7 +710,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object isSwap = Helpers.GetValue(market, "swap");
             Object settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             Object isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
-            String name = ((Helpers.isTrue(isUsdtSwap))) ? "trade_p" : "trade";
+            Object name = ((Helpers.isTrue(isUsdtSwap))) ? "trade_p" : "trade";
             Object messageHash = Helpers.add("trade:", symbol);
             Object method = Helpers.add(name, ".subscribe");
             Object subscribe = new java.util.HashMap<String, Object>() {{
@@ -760,7 +760,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object isSwap = Helpers.GetValue(market, "swap");
             Object settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             Object isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
-            String name = ((Helpers.isTrue(isUsdtSwap))) ? "orderbook_p" : "orderbook";
+            Object name = ((Helpers.isTrue(isUsdtSwap))) ? "orderbook_p" : "orderbook";
             Object messageHash = Helpers.add("orderbook:", symbol);
             Object method = Helpers.add(name, ".subscribe");
             Object subscribe = new java.util.HashMap<String, Object>() {{
@@ -809,7 +809,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object isSwap = Helpers.GetValue(market, "swap");
             Object settleIsUSDT = Helpers.isEqual(Helpers.GetValue(market, "settle"), "USDT");
             Object isUsdtSwap = Helpers.isTrue((Helpers.isEqual(isSwap, true))) && Helpers.isTrue(settleIsUSDT);
-            String name = ((Helpers.isTrue(isUsdtSwap))) ? "kline_p" : "kline";
+            Object name = ((Helpers.isTrue(isUsdtSwap))) ? "kline_p" : "kline";
             Object messageHash = Helpers.add(Helpers.add(Helpers.add("kline:", timeframe), ":"), symbol);
             Object method = Helpers.add(name, ".subscribe");
             Object subscribe = new java.util.HashMap<String, Object>() {{
@@ -894,7 +894,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         Object symbol = Helpers.GetValue(market, "symbol");
         Object type = this.safeString(message, "type");
         Object depth = this.safeInteger(message, "depth");
-        String name = "orderbook";
+        Object name = "orderbook";
         Object messageHash = Helpers.add(Helpers.add(name, ":"), symbol);
         Object nonce = this.safeInteger(message, "sequence");
         Object timestamp = this.safeIntegerProduct(message, "timestamp", 0.000001);
@@ -1075,8 +1075,8 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //        ...
         //    ]
         //
-        String channel = "trades";
-        Object tradesLength = Helpers.getArrayLength(message);
+        Object channel = "trades";
+        Integer tradesLength = Helpers.getArrayLength(message);
         if (Helpers.isTrue(Helpers.isEqual(tradesLength, 0)))
         {
             return;
@@ -1334,13 +1334,13 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         //    ]
         //
         Object trades = new java.util.ArrayList<Object>(java.util.Arrays.asList());
-        java.util.List<Object> parsedOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
+        Object parsedOrders = new java.util.ArrayList<Object>(java.util.Arrays.asList());
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "closed"))) || Helpers.isTrue((Helpers.inOp(message, "fills")))) || Helpers.isTrue((Helpers.inOp(message, "open")))))
         {
             Object closed = this.safeValue(message, "closed", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object open = this.safeValue(message, "open", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
             Object orders = this.arrayConcat(open, closed);
-            Object ordersLength = Helpers.getArrayLength(orders);
+            Integer ordersLength = Helpers.getArrayLength(orders);
             if (Helpers.isTrue(Helpers.isEqual(ordersLength, 0)))
             {
                 return;
@@ -1354,7 +1354,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             }
         } else
         {
-            Object messageLength = Helpers.getArrayLength(message);
+            Integer messageLength = Helpers.getArrayLength(message);
             if (Helpers.isTrue(Helpers.isEqual(messageLength, 0)))
             {
                 return;
@@ -1719,7 +1719,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
         }
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.inOp(message, "accounts"))) || Helpers.isTrue((Helpers.inOp(message, "accounts_p")))) || Helpers.isTrue((Helpers.inOp(message, "wallets")))))
         {
-            String type = ((Helpers.isTrue((Helpers.inOp(message, "accounts"))))) ? "swap" : "spot";
+            Object type = ((Helpers.isTrue((Helpers.inOp(message, "accounts"))))) ? "swap" : "spot";
             if (Helpers.isTrue(Helpers.inOp(message, "accounts_p")))
             {
                 type = "perpetual";
@@ -1772,7 +1772,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object requestId = this.seconds();
             Object settleIsUSDT = (Helpers.isEqual(this.safeValue(parameters, "settle", ""), "USDT"));
             parameters = this.omit(parameters, "settle");
-            String channel = "aop.subscribe";
+            Object channel = "aop.subscribe";
             if (Helpers.isTrue(Helpers.isEqual(type, "spot")))
             {
                 channel = "wo.subscribe";
@@ -1803,7 +1803,7 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             Client client = this.client(url);
             Object requestId = this.requestId();
-            String messageHash = "authenticated";
+            Object messageHash = "authenticated";
             Object future = this.safeValue(client.subscriptions, messageHash);
             if (Helpers.isTrue(Helpers.isEqual(future, null)))
             {
@@ -1811,13 +1811,13 @@ public class PhemexCore extends io.github.ccxt.exchanges.Phemex
                 Object expiration = Helpers.add(this.seconds(), expiryDelta);
                 Object payload = Helpers.add(this.apiKey, String.valueOf(expiration));
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256());
-                String method = "user.auth";
+                Object method = "user.auth";
                 Object request = new java.util.HashMap<String, Object>() {{
                     put( "method", method );
                     put( "params", new java.util.ArrayList<Object>(java.util.Arrays.asList("API", PhemexCore.this.apiKey, signature, expiration)) );
                     put( "id", requestId );
                 }};
-                Object subscriptionHash = String.valueOf(requestId);
+                String subscriptionHash = String.valueOf(requestId);
                 Object message = this.extend(request, parameters);
                 if (!Helpers.isTrue((Helpers.inOp(client.subscriptions, messageHash))))
                 {

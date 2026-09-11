@@ -153,7 +153,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             if (Helpers.isTrue(Helpers.isEqual(privateSubscription, null)))
             {
                 Object id = this.requestId();
-                Object timestamp = String.valueOf(this.milliseconds());
+                String timestamp = String.valueOf(this.milliseconds());
                 Object payload = Helpers.add(this.apiKey, timestamp);
                 Object signature = this.hmac(this.encode(payload), this.encode(this.secret), sha256(), "hex");
                 java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
@@ -303,7 +303,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                     Object subHash = this.safeString(subHashes, i);
                     if (Helpers.isTrue(!Helpers.isEqual(subHash, null)))
                     {
-                        Object parts = Helpers.split(subHash, "::");
+                        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(subHash, "::");
                         Object symbol = this.safeString(parts, 1);
                         if (Helpers.isTrue(Helpers.isEqual(symbol, "all")))
                         {
@@ -442,7 +442,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             Object since = Helpers.getArg(optionalArgs, 0, null);
             Object limit = Helpers.getArg(optionalArgs, 1, null);
             Object parameters = Helpers.getArg(optionalArgs, 2, new java.util.HashMap<String, Object>() {{}});
-            Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
+            Integer symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " watchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
@@ -490,7 +490,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
         return java.util.concurrent.CompletableFuture.supplyAsync(() -> {
 
             Object parameters = Helpers.getArg(optionalArgs, 0, new java.util.HashMap<String, Object>() {{}});
-            Object symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
+            Integer symbolsLength = Helpers.getArrayLength(symbolsAndTimeframes);
             if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(symbolsLength, 0)) || !Helpers.isTrue(Helpers.isArray(Helpers.GetValue(symbolsAndTimeframes, 0)))))
             {
                 throw new ArgumentsRequired((String)Helpers.add(this.id, " unWatchOHLCVForSymbols() requires a an array of symbols and timeframes, like  ['ETH/USDC', '1m']")) ;
@@ -1347,13 +1347,13 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
             {
                 Object account = this.safeDict(message, "a", new java.util.HashMap<String, Object>() {{}});
                 Object balances = this.safeList(account, "B", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object balancesLength = Helpers.getArrayLength(balances);
+                Integer balancesLength = Helpers.getArrayLength(balances);
                 if (Helpers.isTrue(Helpers.isGreaterThan(balancesLength, 0)))
                 {
                     this.handleBalance(client, message);
                 }
                 Object positions = this.safeList(account, "p", new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object positionsLength = Helpers.getArrayLength(positions);
+                Integer positionsLength = Helpers.getArrayLength(positions);
                 if (Helpers.isTrue(Helpers.isGreaterThan(positionsLength, 0)))
                 {
                     this.handlePositions(client, message);

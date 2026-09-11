@@ -455,7 +455,7 @@ public class DydxCore extends io.github.ccxt.exchanges.Dydx
         // }
         //
         Object id = this.safeString(message, "id", "");
-        Object part = Helpers.split(id, "/");
+        java.util.List<Object> part = (java.util.List<Object>) Helpers.split(id, "/");
         Object interval = this.safeString(part, 1);
         Object timeframe = this.findTimeframe(interval);
         Object marketId = this.safeString(part, 0);

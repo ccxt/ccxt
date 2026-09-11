@@ -345,7 +345,7 @@ public class NdaxCore extends io.github.ccxt.exchanges.Ndax
                 }
                 java.util.List<Object> parsed = new java.util.ArrayList<Object>(java.util.Arrays.asList(this.parseToInt(Helpers.multiply((Helpers.divide(timestamp, duration)), duration)), this.safeFloat(ohlcv, 3), this.safeFloat(ohlcv, 1), this.safeFloat(ohlcv, 2), this.safeFloat(ohlcv, 4), this.safeFloat(ohlcv, 5)));
                 Object stored = this.safeValue(Helpers.GetValue(this.ohlcvs, symbol), timeframe, new java.util.ArrayList<Object>(java.util.Arrays.asList()));
-                Object length = Helpers.getArrayLength(stored);
+                Integer length = Helpers.getArrayLength(stored);
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThan(length, 0))) && Helpers.isTrue((Helpers.isEqual(Helpers.GetValue(parsed, 0), Helpers.GetValue(Helpers.GetValue(stored, Helpers.subtract(length, 1)), 0))))))
                 {
                     Object previous = Helpers.GetValue(stored, Helpers.subtract(length, 1));

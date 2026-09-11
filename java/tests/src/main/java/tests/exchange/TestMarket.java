@@ -262,7 +262,7 @@ public class TestMarket extends BaseTest {
         }
         // check precisions
         Object precisionKeys = Helpers.objectKeys(Helpers.GetValue(market, "precision"));
-        Object precisionKeysLen = Helpers.getArrayLength(precisionKeys);
+        Integer precisionKeysLen = Helpers.getArrayLength(precisionKeys);
         Assert(Helpers.isGreaterThanOrEqual(precisionKeysLen, 2), Helpers.add("precision should have \"amount\" and \"price\" keys at least", logText));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(precisionKeys)); i++)
         {
@@ -283,7 +283,7 @@ public class TestMarket extends BaseTest {
         }
         // check limits
         Object limitsKeys = Helpers.objectKeys(Helpers.GetValue(market, "limits"));
-        Object limitsKeysLength = Helpers.getArrayLength(limitsKeys);
+        Integer limitsKeysLength = Helpers.getArrayLength(limitsKeys);
         Assert(Helpers.isGreaterThanOrEqual(limitsKeysLength, 3), Helpers.add("limits should have \"amount\", \"price\" and \"cost\" keys at least", logText));
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(limitsKeys)); i++)
         {

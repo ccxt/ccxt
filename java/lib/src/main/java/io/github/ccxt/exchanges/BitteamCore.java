@@ -522,7 +522,7 @@ public class BitteamCore extends BitteamApi
     {
         String id = this.safeString(market, "name");
         Object numericId = this.safeInteger(market, "id");
-        Object parts = Helpers.split(((String)id), "_");
+        java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(((String)id), "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String base = (String) this.safeCurrencyCode(baseId);
@@ -2772,13 +2772,13 @@ public class BitteamCore extends BitteamApi
             {
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/ccxt/order/"), 0))) && Helpers.isTrue((Helpers.isEqual(method, "GET")))))
                 {
-                    Object parts = Helpers.split(url, "/order/");
+                    java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(url, "/order/");
                     String orderId = this.safeString(parts, 1);
                     throw new OrderNotFound((String)Helpers.add(Helpers.add(Helpers.add(this.id, " order "), orderId), " not found")) ;
                 }
                 if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(url, "/cmc/orderbook/"), 0)))
                 {
-                    Object parts = Helpers.split(url, "/cmc/orderbook/");
+                    java.util.List<Object> parts = (java.util.List<Object>) Helpers.split(url, "/cmc/orderbook/");
                     String symbolId = this.safeString(parts, 1);
                     throw new BadSymbol((String)Helpers.add(Helpers.add(Helpers.add(this.id, " symbolId "), symbolId), " not found")) ;
                 }

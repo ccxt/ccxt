@@ -999,9 +999,9 @@ public class LighterCore extends LighterApi
             throw new ArgumentsRequired((String)Helpers.add(this.id, " createOrder() requires a price argument")) ;
         }
         Object reduceOnly = this.safeBool2(parameters, "reduceOnly", "reduce_only", false); // default false
-        Object orderType = ((String)type).toUpperCase();
+        String orderType = ((String)type).toUpperCase();
         Object market = this.market(symbol);
-        Object orderSide = ((String)((String)side)).toUpperCase();
+        String orderSide = ((String)((String)side)).toUpperCase();
         Object request = new java.util.HashMap<String, Object>() {{
             put( "market_index", LighterCore.this.parseToInt(Helpers.GetValue(market, "id")) );
         }};
@@ -1232,7 +1232,7 @@ public class LighterCore extends LighterApi
             groupingType = ((java.util.List<Object>) groupingTypeparametersVariable).get(0);
             parameters = ((java.util.List<Object>) groupingTypeparametersVariable).get(1); // default GROUPING_TYPE_ONE_TRIGGERS_A_ONE_CANCELS_THE_OTHER
             Object orderRequests = this.createOrderRequest(symbol, type, side, amount, price, parameters);
-            Object totalOrderRequests = Helpers.getArrayLength(orderRequests);
+            Integer totalOrderRequests = Helpers.getArrayLength(orderRequests);
             Object apiKeyIndex = null;
             Object order = null;
             if (Helpers.isTrue(Helpers.isGreaterThan(totalOrderRequests, 0)))
