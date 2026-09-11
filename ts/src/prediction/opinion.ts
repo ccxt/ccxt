@@ -5,7 +5,7 @@ import { ecdsa } from '../base/functions/crypto.js';
 import { TRUNCATE, ROUND, DECIMAL_PLACES } from '../base/functions/number.js';
 import { Precise } from '../base/Precise.js';
 import { ArrayCache, ArrayCacheByOutcomeById } from '../base/ws/Cache.js';
-import type { Balances, Dict, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
+import type { Balances, Dict, Endpoint, Int, Market, Num, OHLCV, PredictionEvent, PredictionOrder, PredictionOrderBook, PredictionPosition, PredictionTicker, PredictionTickers, PredictionTrade, Str, Strings, fetchEventsParams } from '../base/types.js';
 import { AccountNotEnabled, AuthenticationError, ArgumentsRequired, BadRequest, ExchangeError, InsufficientFunds, InvalidOrder, PermissionDenied } from '../base/errors.js';
 
 // ---------------------------------------------------------------------------
@@ -72,34 +72,34 @@ export default class opinion extends Exchange {
                 'opinion': {
                     'public': {
                         'get': {
-                            'market': 1,
-                            'market/{marketId}': 1,
-                            'market/categorical/{marketId}': 1,
-                            'market/slug/{slug}': 1,
+                            'market': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/{marketId}': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/categorical/{marketId}': { 'cost': 1 } as Endpoint<Dict>,
+                            'market/slug/{slug}': { 'cost': 1 } as Endpoint<Dict>,
                             'label': 1,
-                            'token/latest-price': 1,
-                            'token/orderbook': 1,
-                            'token/price-history': 1,
-                            'quoteToken': 1,
+                            'token/latest-price': { 'cost': 1 } as Endpoint<Dict>,
+                            'token/orderbook': { 'cost': 1 } as Endpoint<Dict>,
+                            'token/price-history': { 'cost': 1 } as Endpoint<Dict>,
+                            'quoteToken': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                     'private': {
                         'get': {
-                            'order': 1,
-                            'order/{orderId}': 1,
-                            'positions/user/{walletAddress}': 1,
-                            'trade/user/{walletAddress}': 1,
-                            'auth/api-key': 1,
-                            'user/auth': 1,
-                            'user/balance': 1,
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/{orderId}': { 'cost': 1 } as Endpoint<Dict>,
+                            'positions/user/{walletAddress}': { 'cost': 1 } as Endpoint<Dict>,
+                            'trade/user/{walletAddress}': { 'cost': 1 } as Endpoint<Dict>,
+                            'auth/api-key': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/auth': { 'cost': 1 } as Endpoint<Dict>,
+                            'user/balance': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'post': {
-                            'auth/api-key': 1,
-                            'order': 1,
-                            'order/cancel': 1,
+                            'auth/api-key': { 'cost': 1 } as Endpoint<Dict>,
+                            'order': { 'cost': 1 } as Endpoint<Dict>,
+                            'order/cancel': { 'cost': 1 } as Endpoint<Dict>,
                         },
                         'delete': {
-                            'auth/api-key': 1,
+                            'auth/api-key': { 'cost': 1 } as Endpoint<Dict>,
                         },
                     },
                 },
