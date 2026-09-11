@@ -1171,7 +1171,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                 put( "type", "swap" );
             }};
             Object response = (this.fetchBalance((Object)(parameters))).join();
-            this.balance = this.extend(response, this.balance);
+            this.balance = (java.util.Map<String, Object>) (this.extend(response, this.balance));
             // don't remove the future from the .futures cache
             io.github.ccxt.ws.Future future = (io.github.ccxt.ws.Future)Helpers.GetValue(client.futures, messageHash);
             future.resolve();
@@ -1248,7 +1248,7 @@ public class BydfiCore extends io.github.ccxt.exchanges.Bydfi
                 }
             }
             Object parsedBalance = this.safeBalance(result);
-            this.balance = this.extend(this.balance, parsedBalance);
+            this.balance = (java.util.Map<String, Object>) (this.extend(this.balance, parsedBalance));
             client.resolve(this.balance, messageHash);
         }
     }

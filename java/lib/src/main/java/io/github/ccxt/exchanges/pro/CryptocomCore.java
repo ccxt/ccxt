@@ -1390,7 +1390,7 @@ public class CryptocomCore extends io.github.ccxt.exchanges.Cryptocom
             {
                 Helpers.addElementToObject(this.balance, code, account);
             }
-            this.balance = this.safeBalance(this.balance);
+            this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
         }
         client.resolve(this.balance, messageHash);
         Object messageHashRequest = this.safeString(message, "id");

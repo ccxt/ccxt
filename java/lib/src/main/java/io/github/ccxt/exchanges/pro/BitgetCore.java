@@ -2910,7 +2910,7 @@ public class BitgetCore extends io.github.ccxt.exchanges.Bitget
         // REST parseBalance sets info, keep the ws structure at parity,
         // see https://github.com/ccxt/ccxt/issues/21973
         Helpers.addElementToObject(this.balance, "info", message);
-        this.balance = this.safeBalance(this.balance);
+        this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
         String messageHash = (String) Helpers.add("balance:", instType);
         client.resolve(this.balance, messageHash);
     }

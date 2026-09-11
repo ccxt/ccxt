@@ -2338,7 +2338,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
             {
                 Helpers.addElementToObject(this.balance, code, account);
             }
-            this.balance = this.safeBalance(this.balance);
+            this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
             client.resolve(this.balance, channel);
         } else
         {
@@ -2367,7 +2367,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                     Helpers.addElementToObject(account, "total", this.safeString(detail, "equity"));
                     Helpers.addElementToObject(this.balance, code, account);
                 }
-                this.balance = this.safeBalance(this.balance);
+                this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
                 client.resolve(this.balance, "account");
                 return;
             }
@@ -2421,7 +2421,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                 {
                     Helpers.addElementToObject(this.balance, code, unifiedAccount);
                 }
-                this.balance = this.safeBalance(this.balance);
+                this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
                 client.resolve(this.balance, "accounts_unify");
             } else if (Helpers.isTrue(Helpers.isEqual(subType, "linear")))
             {
@@ -2438,7 +2438,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                         Helpers.addElementToObject(account, "used", this.safeString(first, "margin_frozen"));
                         Helpers.addElementToObject(account, "total", this.safeString(first, "margin_balance"));
                         Helpers.addElementToObject(this.balance, code, account);
-                        this.balance = this.safeBalance(this.balance);
+                        this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
                     }
                 } else
                 {
@@ -2455,7 +2455,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                         {
                             Helpers.addElementToObject(this.balance, code, account);
                         }
-                        this.balance = this.safeBalance(this.balance);
+                        this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
                     }
                 }
             } else
@@ -2473,7 +2473,7 @@ public class HtxCore extends io.github.ccxt.exchanges.Htx
                     {
                         Helpers.addElementToObject(this.balance, code, account);
                     }
-                    this.balance = this.safeBalance(this.balance);
+                    this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
                 }
             }
             client.resolve(this.balance, messageHash);

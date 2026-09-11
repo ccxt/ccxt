@@ -2054,7 +2054,7 @@ public class OkxCore extends io.github.ccxt.exchanges.Okx
         Object channel = this.safeString(arg, "channel");
         Object balance = this.parseTradingBalance(message);
         java.util.Map<String, Object> newBalance = this.deepExtend(this.balance, balance);
-        this.balance = this.safeBalance(newBalance);
+        this.balance = (java.util.Map<String, Object>) (this.safeBalance(newBalance));
         client.resolve(this.balance, channel);
     }
 

@@ -144,8 +144,11 @@ public class BaseExchange {
     public Object precisionMode = DECIMAL_PLACES;
     public volatile Object currencies_by_id = new HashMap<String, Object>();
 
-    public Object accounts = new HashMap<String, Object>();
-    public Object accountsById = new HashMap<String, Object>();
+    // account rows are plain dicts (id/type/code/info); the typed Account wrapper is
+    // built at the fetchAccounts boundary, not stored here. `accountsById` is the
+    // indexBy(..., 'id') result — id-keyed rows, same dicts.
+    public List<Object> accounts = new ArrayList<>();
+    public Map<String, Object> accountsById = new HashMap<String, Object>();
     public Object status = new HashMap<String, Object>();
 
     public long paddingMode = NO_PADDING;
@@ -244,7 +247,8 @@ public class BaseExchange {
     public Object tickers = new ConcurrentHashMap<String, Object>();
     public Object fundingRates = new ConcurrentHashMap<String, Object>();
     public Object bidsasks = new ConcurrentHashMap<String, Object>();
-    public Object balance = new ConcurrentHashMap<String, Object>();
+    // watchBalance cache: account/type-keyed dict of safeBalance-shaped balance dicts
+    public Map<String, Object> balance = new ConcurrentHashMap<String, Object>();
     public Object liquidations = new ConcurrentHashMap<String, Object>();
     public Object myLiquidations = new ConcurrentHashMap<String, Object>();
     public Object trades = new ConcurrentHashMap<String, Object>();
@@ -4210,7 +4214,7 @@ public Object describe()
 
     public void cleanWsData()
     {
-        this.balance = this.createSafeDictionary(true);
+        this.balance = (java.util.Map<String, Object>) (this.createSafeDictionary(true));
         this.orderbooks = this.createSafeDictionary(true);
         this.tickers = this.createSafeDictionary(true);
         this.liquidations = null;
@@ -8903,7 +8907,7 @@ public Object describe()
             Object parameters = Helpers.getArg(optionalArgs, 1, new java.util.HashMap<String, Object>() {{}});
             if (Helpers.isTrue(reload))
             {
-                this.accounts = (this.fetchAccounts(parameters)).join();
+                this.accounts = (java.util.List<Object>) (this.fetchAccounts(parameters).join());
             } else
             {
                 if (Helpers.isTrue(!Helpers.isEqual(this.accounts, null)))
@@ -8911,7 +8915,7 @@ public Object describe()
                     return this.accounts;
                 } else
                 {
-                    this.accounts = (this.fetchAccounts(parameters)).join();
+                    this.accounts = (java.util.List<Object>) (this.fetchAccounts(parameters).join());
                 }
             }
             this.accountsById = this.indexBy(this.accounts, "id");

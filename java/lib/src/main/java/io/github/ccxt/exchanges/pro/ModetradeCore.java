@@ -1505,7 +1505,7 @@ public class ModetradeCore extends io.github.ccxt.exchanges.Modetrade
                 Helpers.addElementToObject(this.balance, code, account);
             }
         }
-        this.balance = this.safeBalance(this.balance);
+        this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
         client.resolve(this.balance, "balance");
     }
 

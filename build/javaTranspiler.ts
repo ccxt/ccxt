@@ -1445,7 +1445,35 @@ class NewTranspiler {
         baseClass = this.removeUnreachableReturnNull(baseClass);
 
         baseClass = this.addDeprecatedAnnotations(baseClass);
+        baseClass = this.castHandWrittenFieldAssignments(baseClass);
         return baseClass;
+    }
+
+    // Hand-written BaseExchange fields with concrete declared types are fed by
+    // expressions the printer erases to `Object`: `.join()` on the untyped
+    // fetchAccounts future, and the balance helpers (safeBalance / extend /
+    // deepExtend / parseBalance / parseWsBalance) which return plain dicts.
+    // The checkcast just names the value each call already returns — the array
+    // of account rows for fetchAccounts, the balance dict for the rest — so it
+    // moves no runtime value, it only satisfies the narrowed field:
+    //
+    //     List<Object> accounts        (BaseExchange, hand-written)
+    //     Map<String, Object> balance  (BaseExchange, hand-written)
+    //
+    // Idempotent: after the cast the RHS no longer starts with `this.` inside
+    // the parens the patterns anchor on, so a second pass has nothing to match.
+    // A future call shape this misses fails compilation at the assignment —
+    // loudly — instead of degrading the declared type.
+    castHandWrittenFieldAssignments(content: string): string {
+        content = content.replace(
+            /this\.accounts = \((this\.fetchAccounts\([^)]*\))\)\.join\(\);/g,
+            'this.accounts = (java.util.List<Object>) ($1.join());'
+        );
+        content = content.replace(
+            /this\.balance = (this\.[A-Za-z0-9_]+\([^;]*\));/g,
+            'this.balance = (java.util.Map<String, Object>) ($1);'
+        );
+        return content;
     }
 
     // Return the transpiled+fixed body (no outer braces) of the TS `Exchange extends
@@ -2026,6 +2054,7 @@ class NewTranspiler {
             content = this.postProcessWsJava(content, name, true, true);
         }
         content = this.addDeprecatedAnnotations(content);
+        content = this.castHandWrittenFieldAssignments(content);
         return this.createGeneratedHeader().join('\n') + '\n' + javaImports + content;
     }
 
@@ -3620,6 +3649,9 @@ class NewTranspiler {
             // noImplicitAny bags: Object so safeValue assignments typecheck (Map is too narrow)
             [/public (?:Dict|java\.util\.Map<String, Object>) skippedMethods\b/g, 'public Object skippedMethods'],
             [/public (?:Dict|java\.util\.Map<String, Object>) checkedPublicTests\b/g, 'public Object checkedPublicTests'],
+            // `exchange.accounts = accounts` assigns the Object local from safeList to the
+            // hand-written `List<Object> accounts` field (BaseExchange) — carry the field's type.
+            [/\b(\w+)\.accounts = accounts;/g, '$1.accounts = (java.util.List<Object>) accounts;'],
 
         ])
         // Null-safe Array.isArray (see Helpers.isArrayJs).

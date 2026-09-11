@@ -213,7 +213,7 @@ public class BitrueCore extends io.github.ccxt.exchanges.Bitrue
                 }
             }
         }
-        this.balance = this.safeBalance(this.balance);
+        this.balance = (java.util.Map<String, Object>) (this.safeBalance(this.balance));
     }
 
     /**

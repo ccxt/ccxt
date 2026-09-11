@@ -575,7 +575,7 @@ public class BitoproCore extends io.github.ccxt.exchanges.Bitopro
                 Helpers.addElementToObject(result, code, account);
             }
         }
-        this.balance = this.safeBalance(result);
+        this.balance = (java.util.Map<String, Object>) (this.safeBalance(result));
         client.resolve(this.balance, eventVar);
     }
 

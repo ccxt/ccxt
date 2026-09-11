@@ -142,7 +142,7 @@ public class BlockchaincomCore extends io.github.ccxt.exchanges.Blockchaincom
             }
         }
         String messageHash = (String) "balance";
-        this.balance = this.safeBalance(result);
+        this.balance = (java.util.Map<String, Object>) (this.safeBalance(result));
         client.resolve(this.balance, messageHash);
     }
 

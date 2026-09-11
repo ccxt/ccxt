@@ -1528,7 +1528,7 @@ public class HitbtcCore extends io.github.ccxt.exchanges.Hitbtc
         Object messageHash = this.safeString(message, "method");
         Object parameters = this.safeValue(message, "params");
         Object balance = this.parseBalance(parameters);
-        this.balance = this.deepExtend(this.balance, balance);
+        this.balance = (java.util.Map<String, Object>) (this.deepExtend(this.balance, balance));
         client.resolve(this.balance, messageHash);
     }
 

@@ -2723,7 +2723,7 @@ public class TestMain extends BaseTest
             Object accounts = exchange.safeList(exchangeData, "accounts");
             if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(accounts, null)) && Helpers.isTrue(!Helpers.isEqual(accounts, null))))
             {
-                exchange.accounts = accounts;
+                exchange.accounts = (java.util.List<Object>) accounts;
             }
             // exchange.options = exchange.deepExtend (exchange.options, globalOptions); // custom options to be used in the tests
             exchange.extendExchangeOptions(globalOptions);
