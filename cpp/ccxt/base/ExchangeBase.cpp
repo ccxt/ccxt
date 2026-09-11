@@ -100,6 +100,7 @@ std::any jsonToAny (const nlohmann::ordered_json& j) {
     }
     if (j.is_object ()) {
         dict out;
+        out.store->reserve (j.size ());   // skip rehash churn on big payloads
         for (auto it = j.begin (); it != j.end (); ++it) {
             out.set (it.key (), jsonToAny (it.value ()));
         }
