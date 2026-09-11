@@ -6481,13 +6481,13 @@ class BaseExchange(object):
             return self.number_to_string(value)
         return value
 
-    def is_tick_precision(self):
+    def is_tick_precision(self) -> bool:
         return self.precisionMode == TICK_SIZE
 
-    def is_decimal_precision(self):
+    def is_decimal_precision(self) -> bool:
         return self.precisionMode == DECIMAL_PLACES
 
-    def is_significant_precision(self):
+    def is_significant_precision(self) -> bool:
         return self.precisionMode == SIGNIFICANT_DIGITS
 
     def safe_number(self, obj: object, key: NullableIndexType, defaultNumber: Num = None):

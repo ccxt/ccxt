@@ -1087,7 +1087,7 @@ class bitrue(Exchange, ImplicitAPI):
             'info': response,
         }
         timestamp = self.safe_integer(response, 'updateTime')
-        balances = self.safe_value_2(response, 'balances', 'account', [])
+        balances = self.safe_list_2(response, 'balances', 'account', [])
         for i in range(0, len(balances)):
             balance = balances[i]
             currencyId = self.safe_string_2(balance, 'asset', 'marginCoin')

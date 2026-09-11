@@ -110,7 +110,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         if event == 'subscribed':
             return
         result = {'info': message}
-        balances = self.safe_value(message, 'balances', [])
+        balances = self.safe_list(message, 'balances', [])
         for i in range(0, len(balances)):
             entry = balances[i]
             currencyId = self.safe_string(entry, 'currency')
@@ -518,7 +518,7 @@ class blockchaincom(ccxt.async_support.blockchaincom):
         elif event == 'rejected':
             raise ExchangeError(self.id + ' ' + self.json(message))
         elif event == 'snapshot':
-            orders = self.safe_value(message, 'orders', [])
+            orders = self.safe_list(message, 'orders', [])
             for i in range(0, len(orders)):
                 order = orders[i]
                 parsedOrder = self.parse_ws_order(order)

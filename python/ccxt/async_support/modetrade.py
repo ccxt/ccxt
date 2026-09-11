@@ -1387,7 +1387,7 @@ class modetrade(Exchange, ImplicitAPI):
         childOrders = self.safe_value(order, 'childOrders')
         if childOrders is not None:
             first = self.safe_value(childOrders, 0)
-            innerChildOrders = self.safe_value(first, 'childOrders', [])
+            innerChildOrders = self.safe_list(first, 'childOrders', [])
             innerChildOrdersLength = len(innerChildOrders)
             if innerChildOrdersLength > 0:
                 takeProfitOrder = self.safe_value(innerChildOrders, 0)

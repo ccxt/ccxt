@@ -579,7 +579,7 @@ class luno(Exchange, ImplicitAPI):
         #     }
         #
         result = []
-        markets = self.safe_value(response, 'markets', [])
+        markets = self.safe_list(response, 'markets', [])
         for i in range(0, len(markets)):
             market = markets[i]
             id = self.safe_string(market, 'market_id')
@@ -675,7 +675,7 @@ class luno(Exchange, ImplicitAPI):
         :returns dict: a dictionary of `account structures <https://docs.ccxt.com/?id=account-structure>` indexed by the account type
         """
         response = self.privateGetBalance(params)
-        wallets = self.safe_value(response, 'balance', [])
+        wallets = self.safe_list(response, 'balance', [])
         result = []
         for i in range(0, len(wallets)):
             account = wallets[i]
@@ -691,7 +691,7 @@ class luno(Exchange, ImplicitAPI):
         return result
 
     def parse_balance(self, response: object) -> Balances:
-        wallets = self.safe_value(response, 'balance', [])
+        wallets = self.safe_list(response, 'balance', [])
         result = {
             'info': response,
             'timestamp': None,

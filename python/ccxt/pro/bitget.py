@@ -648,7 +648,7 @@ class bitget(ccxt.async_support.bitget):
             limit = self.safe_integer(self.options, 'OHLCVLimit', 1000)
             stored = ArrayCacheByTimestamp(limit)
             self.ohlcvs[symbol][timeframe] = stored
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             parsed = self.parse_ws_ohlcv(data[i], market)
             stored.append(parsed)
@@ -2279,7 +2279,7 @@ class bitget(ccxt.async_support.bitget):
         #
         arg = self.safe_dict(message, 'arg', {})
         instType = self.safe_string_lower(arg, 'instType')
-        data = self.safe_value(message, 'data', [])
+        data = self.safe_list(message, 'data', [])
         for i in range(0, len(data)):
             rawBalance = data[i]
             if instType == 'uta':

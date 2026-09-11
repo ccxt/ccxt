@@ -4399,7 +4399,7 @@ class bitget(Exchange, ImplicitAPI):
         #         ]
         #     }
         #
-        data = self.safe_value(response, 'data', [])
+        data = self.safe_list(response, 'data', [])
         result = {}
         for i in range(0, len(data)):
             entry = data[i]
@@ -9436,7 +9436,7 @@ class bitget(Exchange, ImplicitAPI):
         #         }
         #     }
         #
-        data = self.safe_value(response, 'data', {})
+        data = self.safe_dict(response, 'data', {})
         data['ts'] = self.safe_integer(response, 'requestTime')
         return self.parse_transfer(data, currency)
 
@@ -9514,7 +9514,7 @@ class bitget(Exchange, ImplicitAPI):
         #         "transfer": "true""
         #     }
         #
-        chains = self.safe_value(fee, 'chains', [])
+        chains = self.safe_list(fee, 'chains', [])
         chainsLength = len(chains)
         result = {
             'info': fee,
@@ -9998,7 +9998,7 @@ class bitget(Exchange, ImplicitAPI):
         #
         timestamp = self.safe_integer(response, 'requestTime')
         data = self.safe_value(response, 'data', [])
-        first = self.safe_value(data, 0, {})
+        first = self.safe_dict(data, 0, {})
         first['timestamp'] = timestamp
         return self.parse_isolated_borrow_rate(first, market)
 
@@ -10120,7 +10120,7 @@ class bitget(Exchange, ImplicitAPI):
             #     }
             #
             data = self.safe_value(response, 'data', [])
-            result = self.safe_value(data, 0, {})
+            result = self.safe_dict(data, 0, {})
         timestamp = self.safe_integer(response, 'requestTime')
         result['timestamp'] = timestamp
         return self.parse_borrow_rate(result, currency)

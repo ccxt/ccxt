@@ -2424,7 +2424,7 @@ class bitstamp(Exchange, ImplicitAPI):
         """
         return code.lower()
 
-    def is_fiat(self, code: object):
+    def is_fiat(self, code: object) -> bool:
         return code == 'USD' or code == 'EUR' or code == 'GBP'
 
     def fetch_deposit_address(self, code: str, params={}) -> DepositAddress:
@@ -2634,7 +2634,7 @@ class bitstamp(Exchange, ImplicitAPI):
             if isinstance(reasonInner, str):
                 errors.append(reasonInner)
             else:
-                all = self.safe_value(reasonInner, '__all__', [])
+                all = self.safe_list(reasonInner, '__all__', [])
                 for i in range(0, len(all)):
                     errors.append(all[i])
             code = self.safe_string(response, 'code')

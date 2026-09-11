@@ -1781,7 +1781,7 @@ class weex(ccxt.async_support.weex):
             self.clean_cache(subscription)
         return message
 
-    def handle_error_message(self, client: Client, message: object):
+    def handle_error_message(self, client: Client, message: object) -> bool:
         #
         #     {
         #         "result": False,

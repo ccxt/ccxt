@@ -860,7 +860,7 @@ class deribit(Exchange, ImplicitAPI):
             #         "testnet": False
             #     }
             #
-            currenciesResult = self.safe_value(currenciesResponse, 'result', [])
+            currenciesResult = self.safe_list(currenciesResponse, 'result', [])
             for i in range(0, len(currenciesResult)):
                 currencyId = self.safe_string(currenciesResult[i], 'currency')
                 request = {
@@ -942,7 +942,7 @@ class deribit(Exchange, ImplicitAPI):
                 #
                 instrumentsResponses.append(instrumentsResponse)
         for i in range(0, len(instrumentsResponses)):
-            instrumentsResult = self.safe_value(instrumentsResponses[i], 'result', [])
+            instrumentsResult = self.safe_list(instrumentsResponses[i], 'result', [])
             for k in range(0, len(instrumentsResult)):
                 market = instrumentsResult[k]
                 kind = self.safe_string(market, 'kind')
@@ -1717,7 +1717,7 @@ class deribit(Exchange, ImplicitAPI):
         #     }
         #
         result = self.safe_value(response, 'result', {})
-        fees = self.safe_value(result, 'fees', [])
+        fees = self.safe_list(result, 'fees', [])
         perpetualFee = {}
         futureFee = {}
         optionFee = {}
@@ -2843,7 +2843,7 @@ class deribit(Exchange, ImplicitAPI):
         #         "testnet": False
         #     }
         #
-        volatilityResult = self.safe_value(volatility, 'result', [])
+        volatilityResult = self.safe_list(volatility, 'result', [])
         result = []
         for i in range(0, len(volatilityResult)):
             timestamp = self.safe_integer(volatilityResult[i], 0)
@@ -3201,7 +3201,7 @@ class deribit(Exchange, ImplicitAPI):
         #    }
         #
         rates = []
-        result = self.safe_value(response, 'result', [])
+        result = self.safe_list(response, 'result', [])
         for i in range(0, len(result)):
             fr = result[i]
             rate = self.parse_funding_rate(fr, market)

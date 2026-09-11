@@ -517,7 +517,7 @@ class bitmex(Exchange, ImplicitAPI):
         code = self.safe_currency_code(asset)
         id = self.safe_string(currency, 'currency')
         name = self.safe_string(currency, 'name')
-        chains = self.safe_value(currency, 'networks', [])
+        chains = self.safe_list(currency, 'networks', [])
         depositEnabled = False
         withdrawEnabled = False
         networks = {}
@@ -2919,7 +2919,7 @@ class bitmex(Exchange, ImplicitAPI):
         #        ]
         #    }
         #
-        networks = self.safe_value(fee, 'networks', [])
+        networks = self.safe_list(fee, 'networks', [])
         networksLength = len(networks)
         result = {
             'info': fee,

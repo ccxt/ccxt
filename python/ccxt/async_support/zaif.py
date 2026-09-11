@@ -332,7 +332,7 @@ class zaif(Exchange, ImplicitAPI):
             'timestamp': None,
             'datetime': None,
         }
-        funds = self.safe_value(balances, 'funds', {})
+        funds = self.safe_dict(balances, 'funds', {})
         currencyIds = list(funds.keys())
         for i in range(0, len(currencyIds)):
             currencyId = currencyIds[i]

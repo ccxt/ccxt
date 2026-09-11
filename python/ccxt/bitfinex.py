@@ -577,7 +577,7 @@ class bitfinex(Exchange, ImplicitAPI):
             },
         })
 
-    def is_fiat(self, code: object):
+    def is_fiat(self, code: object) -> bool:
         return(code in self.options['fiat'])
 
     def get_currency_name(self, code: object):
@@ -981,7 +981,7 @@ class bitfinex(Exchange, ImplicitAPI):
         # there is a difference between self and the v1 api, namely trading wallet is called margin in v2
         if self.markets is None:
             self.load_markets()
-        accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'v2AccountsByType', {})
         requestedType = self.safe_string(params, 'type', 'exchange')
         accountType = self.safe_string(accountsByType, requestedType, requestedType)
         if accountType is None:
@@ -1029,7 +1029,7 @@ class bitfinex(Exchange, ImplicitAPI):
         # however we support it in CCXT(from just looking at web inspector)
         if self.markets is None:
             self.load_markets()
-        accountsByType = self.safe_value(self.options, 'v2AccountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'v2AccountsByType', {})
         fromId = self.safe_string(accountsByType, fromAccount)
         if fromId is None:
             keys = list(accountsByType.keys())
@@ -2605,7 +2605,7 @@ class bitfinex(Exchange, ImplicitAPI):
         #     ]
         #
         result = {}
-        fiat = self.safe_value(self.options, 'fiat', {})
+        fiat = self.safe_dict(self.options, 'fiat', {})
         feeData = self.safe_value(response, 4, [])
         makerData = self.safe_value(feeData, 0, [])
         takerData = self.safe_value(feeData, 1, [])

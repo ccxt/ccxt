@@ -1133,7 +1133,7 @@ class hitbtc(Exchange, ImplicitAPI):
         """
         type = self.safe_string_lower(params, 'type', 'spot')
         params = self.omit(params, ['type'])
-        accountsByType = self.safe_value(self.options, 'accountsByType', {})
+        accountsByType = self.safe_dict(self.options, 'accountsByType', {})
         account = None if (type is None) else self.safe_string(accountsByType, type, type)
         response: dict
         if account == 'wallet':
@@ -2666,7 +2666,7 @@ class hitbtc(Exchange, ImplicitAPI):
             await self.load_markets()
         if code != 'USDT':
             raise ExchangeError(self.id + ' convertCurrencyNetwork() only supports USDT currently')
-        networks = self.safe_value(self.options, 'networks', {})
+        networks = self.safe_dict(self.options, 'networks', {})
         fromNetwork = fromNetwork.upper()
         toNetwork = toNetwork.upper()
         fromNetwork = self.safe_string(networks, fromNetwork)  # handle ETH>ERC20 alias
@@ -3035,7 +3035,7 @@ class hitbtc(Exchange, ImplicitAPI):
         marginMode = self.safe_string(position, 'type')
         leverage = self.safe_number(position, 'leverage')
         datetime = self.safe_string(position, 'updated_at')
-        positions = self.safe_value(position, 'positions', [])
+        positions = self.safe_list(position, 'positions', [])
         liquidationPrice = None
         entryPrice = None
         contracts = None
@@ -3044,7 +3044,7 @@ class hitbtc(Exchange, ImplicitAPI):
             liquidationPrice = self.safe_number(entry, 'price_liquidation')
             entryPrice = self.safe_number(entry, 'price_entry')
             contracts = self.safe_number(entry, 'quantity')
-        currencies = self.safe_value(position, 'currencies', [])
+        currencies = self.safe_list(position, 'currencies', [])
         collateral = None
         for i in range(0, len(currencies)):
             entry = currencies[i]
@@ -3566,7 +3566,7 @@ class hitbtc(Exchange, ImplicitAPI):
         #         ]
         #    }
         #
-        networks = self.safe_value(fee, 'networks', [])
+        networks = self.safe_list(fee, 'networks', [])
         result = self.deposit_withdraw_fee(fee)
         for j in range(0, len(networks)):
             networkEntry = networks[j]
