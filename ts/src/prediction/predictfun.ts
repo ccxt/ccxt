@@ -3948,7 +3948,7 @@ export default class predictfun extends Exchange {
             authHeaders['Content-Type'] = 'application/json';
             body = this.json (params);
         }
-        headers = this.extend (authHeaders, headers);
+        headers = this.extend (headers, authHeaders);
         return { 'url': url, 'method': method, 'body': body, 'headers': headers };
     }
 }
