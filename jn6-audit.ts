@@ -62,7 +62,10 @@ type Verdict = { javaType: string } | { drop: string };
 /** Mirrors renderField(): what the emitter would declare for this TS field. */
 function simulateRender (ir: TypesIR, field: IRField, javaName: string, existing: { name: string; javaType: string } | undefined): Verdict {
     const key = unquote (field.name);
-    if (stripNullish (field.tsType) === 'any') return { 'javaType': 'Map<String, Object>' };
+    if (stripNullish (field.tsType) === 'any') {
+        // `info` is the raw payload map; any other `any` member is a passthrough bag and stays Object
+        return { 'javaType': key === 'info' ? 'Map<String, Object>' : 'Object' };
+    }
     if (field.kind === 'scalar' && resolveScalar (ir, stripNullish (field.tsType)) === 'Dictionary<any>') return { 'javaType': 'Map<String, Object>' };
     const scalar = scalarFor (field.tsType, key);
     if (scalar !== undefined) return { 'javaType': scalar.javaType };
@@ -77,15 +80,16 @@ function simulateRender (ir: TypesIR, field: IRField, javaName: string, existing
     if (field.kind === 'dict' && field.elementType !== undefined) {
         let elementClass = classFor (ir, field.elementType);
         if (elementClass === undefined && existing !== undefined) {
-            const match = existing.javaType.match (/^Map<String, (.+)>$/);
+            const match = existing.javaType.match (/^Map<String, ([A-Za-z0-9_]+)>$/);
             elementClass = match === null ? undefined : match[1];
         }
-        if (elementClass === undefined || elementClass === 'Object') return { 'drop': 'Dictionary<unnameable> (value type "' + field.elementType + '")' };
+        if (elementClass === undefined || elementClass === 'Object') return { 'javaType': 'Map<String, Object>' };
         return { 'javaType': 'Map<String, ' + elementClass + '>' };
     }
     let objectClass = classFor (ir, field.tsType);
     if (objectClass === undefined && field.kind === 'inline' && existing !== undefined) objectClass = existing.javaType;
-    if (objectClass === undefined) return { 'drop': 'unnameable object type "' + field.tsType + '" (' + field.kind + ')' };
+    if (objectClass === undefined) return { 'javaType': 'Map<String, Object>' };
+    if (existing !== undefined && field.kind === 'inline' && objectClass.indexOf ('Map<') === 0) return { 'javaType': 'Map<String, Object>' };
     return { 'javaType': objectClass };
 }
 

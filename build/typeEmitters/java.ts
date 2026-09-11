@@ -326,7 +326,29 @@ function arrayElement (field: IRField): string | undefined {
 
 interface Emitted { javaType: string; statements: string[]; needsCollectors: boolean }
 
-function renderField (ir: TypesIR, field: IRField, javaName: string, existing: ExistingField | undefined, containsKey: boolean): Emitted | undefined {
+/** A field this port cannot model at all. Carries the reason so the driver can report it. */
+interface Unrenderable { drop: string }
+
+/**
+ * The honest untyped map, for fields whose TS type is `any` / an anonymous object literal /
+ * `Dictionary<any>` and whose payload is therefore arbitrary decoded JSON. Never widened into a
+ * class the payload may not be (that would fabricate), never narrowed to a shape it may not have
+ * (`params` carries a LIST on the batch-order paths — see the `omit` contract — so it is declared
+ * `Object` above instead).
+ */
+function untypedMapField (javaName: string, key: string): Emitted {
+    const raw = javaName + 'Raw';
+    return {
+        'javaType': 'Map<String, Object>',
+        'statements': [
+            BODY + 'Object ' + raw + ' = TypeHelper.safeValue(data, "' + key + '");',
+            BODY + 'this.' + javaName + ' = ' + raw + ' instanceof Map ? (Map<String, Object>) ' + raw + ' : null;',
+        ],
+        'needsCollectors': false,
+    };
+}
+
+function renderField (ir: TypesIR, field: IRField, javaName: string, existing: ExistingField | undefined, containsKey: boolean): Emitted | Unrenderable | undefined {
     const key = unquote (field.name);
     const raw = javaName + 'Raw';
     // `info` is the raw exchange payload; every other `any` member is a passthrough param bag
@@ -334,12 +356,11 @@ function renderField (ir: TypesIR, field: IRField, javaName: string, existing: E
         if (key === 'info') {
             return { 'javaType': 'Map<String, Object>', 'statements': [ BODY + 'this.info = TypeHelper.getInfo(data);' ], 'needsCollectors': false };
         }
+        // TS says `any`, and the same key carries a LIST on the batch-order paths: a
+        // Map<String, Object> declaration here would silently null that payload.
         return {
-            'javaType': 'Map<String, Object>',
-            'statements': [
-                BODY + 'Object ' + raw + ' = TypeHelper.safeValue(data, "' + key + '");',
-                BODY + 'this.' + javaName + ' = ' + raw + ' instanceof Map ? (Map<String, Object>) ' + raw + ' : null;',
-            ],
+            'javaType': 'Object',
+            'statements': [ BODY + 'this.' + javaName + ' = TypeHelper.safeValue(data, "' + key + '");' ],
             'needsCollectors': false,
         };
     }
@@ -347,14 +368,7 @@ function renderField (ir: TypesIR, field: IRField, javaName: string, existing: E
     // type — the plain map, same as a non-info `any`. Only the aliases: a literal
     // `Dictionary<any>` (CurrencyInterface.networks) keeps the class the port picked below.
     if (field.kind === 'scalar' && resolveScalar (ir, stripNullish (field.tsType)) === 'Dictionary<any>') {
-        return {
-            'javaType': 'Map<String, Object>',
-            'statements': [
-                BODY + 'Object ' + raw + ' = TypeHelper.safeValue(data, "' + key + '");',
-                BODY + 'this.' + javaName + ' = ' + raw + ' instanceof Map ? (Map<String, Object>) ' + raw + ' : null;',
-            ],
-            'needsCollectors': false,
-        };
+        return untypedMapField (javaName, key);
     }
     const scalar = scalarFor (field.tsType, key);
     if (scalar !== undefined) {
@@ -398,17 +412,21 @@ function renderField (ir: TypesIR, field: IRField, javaName: string, existing: E
                 'needsCollectors': true,
             };
         }
-        return undefined;
+        return { 'drop': 'array whose element type "' + element + '" has no Java class' };
     }
     if (field.kind === 'dict' && field.elementType !== undefined) {
         // `Dictionary<any>` carries no element name in TS - keep the class the port already picked
         let elementClass = classFor (ir, field.elementType);
         if (elementClass === undefined && existing !== undefined) {
-            const match = existing.javaType.match (/^Map<String, (.+)>$/);
+            // a plain identifier only: `new List<X>(value)` would not compile
+            const match = existing.javaType.match (/^Map<String, ([A-Za-z0-9_]+)>$/);
             elementClass = match === null ? undefined : match[1];
         }
         if (elementClass === undefined || elementClass === 'Object') {
-            return undefined;
+            // no nameable element type and nothing usable on disk to recover one from: the bag
+            // holds arbitrary decoded JSON, so keep the plain map. Returning undefined here would
+            // silently DROP a member TS declares (and delete it from a file that has one).
+            return untypedMapField (javaName, key);
         }
         return {
             'javaType': 'Map<String, ' + elementClass + '>',
@@ -426,11 +444,22 @@ function renderField (ir: TypesIR, field: IRField, javaName: string, existing: E
     }
     // an object: either a named TS interface, or an inline literal the port already named
     let objectClass = classFor (ir, field.tsType);
+    let recoveredFromFile = false;
     if (objectClass === undefined && field.kind === 'inline' && existing !== undefined) {
         objectClass = existing.javaType;
+        recoveredFromFile = true;
     }
     if (objectClass === undefined) {
-        return undefined;
+        // TS declares an anonymous object literal and no committed file names a Java class for it
+        // (a fresh generation, or the file was deleted): keep the honest untyped map. Returning
+        // undefined here would silently DROP a member TS declares, along with its payload - the
+        // exact drift this generator exists to prevent.
+        return untypedMapField (javaName, key);
+    }
+    if (recoveredFromFile && objectClass.indexOf ('Map<') === 0) {
+        // a committed map-typed member (looked up from the file, not nameable in TS): the
+        // class-style constructor below would emit `new Map<String, X>(raw)` and not compile
+        return untypedMapField (javaName, key);
     }
     if (containsKey) {
         return {
@@ -548,6 +577,7 @@ function renderInterface (ir: TypesIR, className: string, fields: IRField[], exi
     const rendered: Record<string, Emitted> = {};
     const javaNameOf: Record<string, string> = {};
     const desired: string[] = [];
+    const dropped: string[] = [];
     for (let i = 0; i < fields.length; i++) {
         const field = fields[i];
         const key = unquote (field.name);
@@ -555,14 +585,17 @@ function renderInterface (ir: TypesIR, className: string, fields: IRField[], exi
         const existingField = existing === undefined ? undefined : existing.fieldByName[javaName];
         const containsKey = existing !== undefined && existing.containsKeyStyle[javaName] === true;
         const emitted = renderField (ir, field, javaName, existingField, containsKey);
-        if (emitted === undefined) {
-            // a shape this port does not model (e.g. an index signature); leave it out rather
-            // than emit something that will not compile
+        if (emitted === undefined || 'drop' in emitted) {
+            // report it: a field TS declares that this port cannot model must not vanish silently
+            dropped.push (key + ' (' + (emitted === undefined ? 'unhandled TS type' : emitted.drop) + ')');
             continue;
         }
         rendered[javaName] = emitted;
         javaNameOf[javaName] = key;
         desired.push (javaName);
+    }
+    if (dropped.length > 0) {
+        console.log ('  WARN    ' + path.join (TYPES_DIR, className + '.java') + ': ' + dropped.length.toString () + ' TS field(s) not modelled: ' + dropped.join ('; '));
     }
     const existingOrder = existing === undefined ? [] : existing.fields.map ((f) => f.name);
     const order = reconcileOrder (desired, existingOrder);
