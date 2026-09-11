@@ -170,7 +170,12 @@ public class BaseExchange {
     public double rateLimit;
     public double rollingWindowSize = 60000;
     public String rateLimiterAlgorithm = "leakyBucket";                        // 0.0 by default
-    public Object exceptions = new HashMap<String, Object>();
+    // Map<String, Object> of per-market-type tables: each value is itself a
+    // Map<String, Class<? extends BaseError>> keyed by "exact" / "broad" (or a nested
+    // per-market-type map of those). Every write site already stores exactly this shape
+    // (`setProperties(describe())` casts the "exceptions" value to Map<String, Object>);
+    // the throw helpers read through Object-keyed lookups, so the values stay Object.
+    public Map<String, Object> exceptions = new HashMap<String, Object>();
     public Object urls = new HashMap<String, Object>();
     public Object precision = new HashMap<String, Object>();
 

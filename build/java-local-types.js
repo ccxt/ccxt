@@ -1989,16 +1989,10 @@ function javaLocalTypeOf (printer, declaration, narrowed) {
     const fileName = declaration.getSourceFile ().fileName;
     const isProFile = /[\\/]pro[\\/]/.test (fileName);
     const info = localInitializerType (printer, declaration, isProFile, narrowed);
-    if (process.env.JN18_TRACE === '1' && /UppercaseType|positionsForSymbolLength|timeframeKeys|urlParts$/.test (String (sourceName))) {
-        console.error ('[JN18] info ' + String (sourceName) + ' -> ' + JSON.stringify (info) + ' @ ' + fileName);
-    }
     if (info === undefined) {
         return undefined;
     }
     if (!isSafeToNarrow (printer, declaration, sourceName, info.type, isProFile, info)) {
-        if (process.env.JN18_TRACE === '1') {
-            console.error ('[JN18] unsafe ' + String (sourceName) + ' (type ' + info.type + ') @ ' + fileName);
-        }
         return undefined;
     }
     return info;
@@ -3158,9 +3152,6 @@ export function installJavaLocalTypes (transpiler) {
         const iden = printer.getIden (identation);
         const marker = `${iden}${printer.VAR_TOKEN} ${printer.printNode (declaration.name)} = `;
         const at = printed.lastIndexOf (marker);
-        if (process.env.JN18_TRACE === '1' && /UppercaseType|urlParts$|positionsForSymbolLength|timeframeKeys/.test (String (declaration.name.escapedText))) {
-            console.error ('[JN18-W] ' + String (declaration.name.escapedText) + ' at=' + at + ' marker=' + JSON.stringify (marker) + ' head=' + JSON.stringify (printed.slice (0, 200)));
-        }
         if (at === -1) {
             return printed;
         }
