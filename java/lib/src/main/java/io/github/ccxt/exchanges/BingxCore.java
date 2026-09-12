@@ -3094,7 +3094,7 @@ public class BingxCore extends BingxApi
         String close = this.safeString(ticker, "lastPrice");
         String quoteVolume = this.safeString(ticker, "quoteVolume");
         String baseVolume = this.safeString(ticker, "volume");
-        Object percentage = this.safeString(ticker, "priceChangePercent");
+        String percentage = this.safeString(ticker, "priceChangePercent");
         if (Helpers.isTrue(!Helpers.isEqual(percentage, null)))
         {
             percentage = Helpers.replace((String)percentage, (String)"%", (String)"");
@@ -7742,7 +7742,7 @@ final Object finalMarket = market;
         //    }
         //
         String code = this.safeString(response, "code");
-        Object message = this.safeString(response, "msg");
+        String message = this.safeString(response, "msg");
         String transferErrorMsg = this.safeString(response, "transferErrorMsg"); // handling with errors from transfer endpoint
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(transferErrorMsg, null))) || Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(code, null)) && Helpers.isTrue(!Helpers.isEqual(code, "0"))))))
         {

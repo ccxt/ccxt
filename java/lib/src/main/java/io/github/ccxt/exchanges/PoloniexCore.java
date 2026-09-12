@@ -3334,7 +3334,7 @@ public class PoloniexCore extends PoloniexApi
 
     public Object parseDepositAddressSpecial(Object response, Object currency, Object networkEntry)
     {
-        Object address = this.safeString(response, "address");
+        String address = this.safeString(response, "address");
         if (Helpers.isTrue(Helpers.isEqual(address, null)))
         {
             address = this.safeString(response, Helpers.GetValue(networkEntry, "id"));
@@ -3899,7 +3899,7 @@ public class PoloniexCore extends PoloniexApi
         Object timestamp = this.safeTimestamp(transaction, "timestamp");
         String currencyId = this.safeString(transaction, "currency");
         String code = (String) this.safeCurrencyCode(currencyId);
-        Object status = this.safeString(transaction, "status", "pending");
+        String status = this.safeString(transaction, "status", "pending");
         status = ((String)this.parseTransactionStatus(status));
         String txid = this.safeString(transaction, "txid");
         String type = ((Helpers.isTrue((Helpers.inOp(transaction, "withdrawalRequestsId"))))) ? "withdrawal" : "deposit";

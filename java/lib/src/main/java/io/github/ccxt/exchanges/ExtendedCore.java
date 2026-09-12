@@ -700,7 +700,7 @@ public class ExtendedCore extends ExtendedApi
         //
         Object tradingConfig = this.safeDict(market, "tradingConfig", new java.util.HashMap<String, Object>() {{}});
         String marketId = this.safeString(market, "name");
-        Object baseId = this.safeString(market, "assetName", "");
+        String baseId = this.safeString(market, "assetName", "");
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(baseId, "SPOT"), 0)))
         {
             baseId = Helpers.replace((String)baseId, (String)"SPOT", (String)"");
@@ -876,7 +876,7 @@ public class ExtendedCore extends ExtendedApi
         //       "availableForTradeFactors": []
         //     }
         //
-        Object currencyId = this.safeString(currency, "symbol");
+        String currencyId = this.safeString(currency, "symbol");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(currencyId, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(currencyId, "SPOT"), 0)))))
         {
             currencyId = Helpers.replace((String)currencyId, (String)"SPOT", (String)"");

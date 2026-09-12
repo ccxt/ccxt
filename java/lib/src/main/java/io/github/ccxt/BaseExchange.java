@@ -12186,7 +12186,7 @@ public Object describe()
         for (var i = 0; Helpers.isLessThan(i, Helpers.getArrayLength(input)); i++)
         {
             Object entry = Helpers.GetValue(input, i);
-            Object id = this.safeString(entry, "id");
+            String id = this.safeString(entry, "id");
             if (Helpers.isTrue(Helpers.isEqual(id, null)))
             {
                 String price = this.safeString(entry, "price");

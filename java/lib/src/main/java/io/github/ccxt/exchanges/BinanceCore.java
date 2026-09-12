@@ -4364,7 +4364,7 @@ public class BinanceCore extends BinanceApi
             throw new ExchangeError((String)Helpers.add(this.id, " markets not loaded")) ;
         }
         // defaultType has legacy support on binance
-        Object defaultType = this.safeString(this.options, "defaultType");
+        String defaultType = this.safeString(this.options, "defaultType");
         String defaultSubType = this.safeString(this.options, "defaultSubType");
         Boolean isLegacyLinear = Helpers.isEqual(defaultType, "future");
         Boolean isLegacyInverse = Helpers.isEqual(defaultType, "delivery");
@@ -12157,7 +12157,7 @@ public class BinanceCore extends BinanceApi
                 tag = null;
             }
         }
-        Object txid = this.safeString(transaction, "txId");
+        String txid = this.safeString(transaction, "txId");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(txid, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(txid, "Internal transfer "), 0)))))
         {
             txid = Helpers.slice(txid, 18, null);
@@ -12562,7 +12562,7 @@ public class BinanceCore extends BinanceApi
                 String fromAccount = this.safeString(parameters, "fromAccount", defaultType);
                 String defaultTo = ((Helpers.isTrue((Helpers.isEqual(fromAccount, "future"))))) ? "spot" : "future";
                 String toAccount = this.safeString(parameters, "toAccount", defaultTo);
-                Object type = this.safeString(parameters, "type");
+                String type = this.safeString(parameters, "type");
                 Object accountsByType = this.safeDict(this.options, "accountsByType", new java.util.HashMap<String, Object>() {{}});
                 String fromId = this.safeString(accountsByType, fromAccount);
                 String toId = this.safeString(accountsByType, toAccount);

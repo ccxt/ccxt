@@ -510,7 +510,9 @@ function receiverUseIsWrite (identifier) {
 // strings. The receiver must have exactly one binding in the enclosing function (no
 // shadowing), that binding must be a declaration BEFORE the site with a string-elements
 // producer, and every other use of the name must be a read.
-function elementAccessHasStringElements (initializer) {
+// Exported for the SS-02 reassignment acceptance (build/javaTranspiler.ts), which
+// applies the same proof to a WRITE `x = recv[key]` on a narrowed String local.
+export function elementAccessHasStringElements (initializer) {
     const site = unwrapParens (initializer);
     if (site?.kind !== ts.SyntaxKind.ElementAccessExpression) {
         return false;

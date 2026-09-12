@@ -3270,7 +3270,7 @@ public class PhemexCore extends PhemexApi
             {
                 Object hedged = this.safeBool(parameters, "hedged", false);
                 parameters = this.omit(parameters, "hedged");
-                Object posSide = this.safeStringLower(parameters, "posSide");
+                String posSide = (String)this.safeStringLower(parameters, "posSide");
                 if (Helpers.isTrue(Helpers.isEqual(posSide, null)))
                 {
                     if (Helpers.isTrue(Helpers.isEqual(hedged, true)))

@@ -4011,7 +4011,7 @@ final Object finalId = id;
             }
             Object defaultDepositMethods = this.safeValue(this.options, "depositMethods", new java.util.HashMap<String, Object>() {{}});
             String defaultDepositMethod = this.safeString(defaultDepositMethods, code);
-            Object depositMethod = this.safeString(parameters, "method", defaultDepositMethod);
+            String depositMethod = this.safeString(parameters, "method", defaultDepositMethod);
             // if the user has specified an exchange-specific method in params
             // we pass it as is, otherwise we take the 'network' unified param
             if (Helpers.isTrue(Helpers.isEqual(depositMethod, null)))

@@ -3437,7 +3437,7 @@ public class WooCore extends WooApi
             Object parts = Helpers.split(networkizedCode, "_");
             Object partsLength = Helpers.getArrayLength(parts);
             String firstPart = this.safeString(parts, 0);
-            Object currencyId = this.safeString(parts, 1, firstPart);
+            String currencyId = this.safeString(parts, 1, firstPart);
             if (Helpers.isTrue(Helpers.isGreaterThan(partsLength, 2)))
             {
                 currencyId = Helpers.add(currencyId, Helpers.add("_", this.safeString(parts, 2)));

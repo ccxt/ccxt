@@ -1096,8 +1096,8 @@ public class BithumbCore extends BithumbApi
                 percentage = null;
             }
         }
-        Object high = this.safeString2(ticker, "max_price", "high_price");
-        Object low = this.safeString2(ticker, "min_price", "low_price");
+        String high = this.safeString2(ticker, "max_price", "high_price");
+        String low = this.safeString2(ticker, "min_price", "low_price");
         // Some generation 2 ticker payloads can contain inconsistent high/low versus last.
         if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(close, null))) && Helpers.isTrue((!Helpers.isEqual(high, null)))) && Helpers.isTrue(Precise.stringGt(close, high))))
         {
@@ -3903,7 +3903,7 @@ public class BithumbCore extends BithumbApi
                 for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(value)); j++)
                 {
                     Object item = Helpers.GetValue(value, j);
-                    Object valueString = this.safeString(value, j);
+                    String valueString = this.safeString(value, j);
                     if (Helpers.isTrue(Helpers.isEqual(valueString, null)))
                     {
                         valueString = this.json(item);
@@ -3921,7 +3921,7 @@ public class BithumbCore extends BithumbApi
                     result = Helpers.add(result, "&");
                 }
                 Object encodedKey = this.encodeURIComponent(key);
-                Object valueString = this.safeString(query, key);
+                String valueString = this.safeString(query, key);
                 Object encodedValue = this.encodeURIComponent(valueString);
                 result = Helpers.add(result, Helpers.add(Helpers.add(encodedKey, "="), encodedValue));
             }

@@ -11136,7 +11136,7 @@ final Object finalMinNotional = minNotional;
                 response = (this.privateUtaGetV3PositionCurrentPosition(this.extend(request, parameters))).join();
             } else if (Helpers.isTrue(Helpers.isEqual(method, "privateMixGetV2MixPositionAllPosition")))
             {
-                Object marginCoin = this.safeString(parameters, "marginCoin", "USDT");
+                String marginCoin = this.safeString(parameters, "marginCoin", "USDT");
                 if (Helpers.isTrue(!Helpers.isEqual(market, null)))
                 {
                     marginCoin = ((String)Helpers.GetValue(market, "settleId"));

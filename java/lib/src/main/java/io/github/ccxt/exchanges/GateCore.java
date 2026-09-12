@@ -2034,7 +2034,7 @@ public class GateCore extends GateApi
         Object symbolBase = Helpers.split(symbol, "/");
         Object marketIdBase = Helpers.split(symbol, "_");
         Object base = null;
-        Object expiry = this.safeString(optionParts, 1);
+        String expiry = this.safeString(optionParts, 1);
         if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(symbol, "/"), Helpers.opNeg(1))))
         {
             base = this.safeString(symbolBase, 0);
@@ -5302,7 +5302,7 @@ public class GateCore extends GateApi
         Object market = Helpers.getArg(optionalArgs, 0, null);
         String id = this.safeString2(trade, "id", "trade_id");
         Object timestamp = null;
-        Object msString = this.safeString(trade, "create_time_ms");
+        String msString = this.safeString(trade, "create_time_ms");
         if (Helpers.isTrue(!Helpers.isEqual(msString, null)))
         {
             msString = Precise.stringMul(msString, "1000");
@@ -6687,8 +6687,8 @@ final Object finalPointFee = pointFee;
         amount = this.safeString2(order, "amount", "size", amount);
         side = this.safeString(order, "side", side);
         price = this.safeString(order, "price", price);
-        Object remainingString = this.safeString(order, "left");
-        Object cost = this.safeString(order, "filled_total");
+        String remainingString = this.safeString(order, "left");
+        String cost = this.safeString(order, "filled_total");
         Double triggerPrice = this.safeNumber(trigger, "price");
         Object average = this.safeNumber2(order, "avg_deal_price", "fill_price");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(triggerPrice, null))) && Helpers.isTrue((!Helpers.isEqual(triggerPrice, 0)))))

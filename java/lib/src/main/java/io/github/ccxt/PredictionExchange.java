@@ -780,7 +780,7 @@ public Object describe()
         for (var j = 0; Helpers.isLessThan(j, Helpers.getArrayLength(outcomesList)); j++)
         {
             Object oc = Helpers.GetValue(outcomesList, j);
-            Object ocSymbol = this.safeString2(oc, "outcome", "symbol");
+            String ocSymbol = this.safeString2(oc, "outcome", "symbol");
             String ocId = this.safeString2(oc, "outcomeId", "id");
             // assign unconditionally — safeString2 keeps the canonical key when present
             // and falls back to the legacy one, so this never clobbers and avoids a

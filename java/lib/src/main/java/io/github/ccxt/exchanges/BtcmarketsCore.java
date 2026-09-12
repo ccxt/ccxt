@@ -565,7 +565,7 @@ public class BtcmarketsCore extends BtcmarketsApi
         }
         Object cryptoPaymentDetail = this.safeDict(transaction, "paymentDetail", new java.util.HashMap<String, Object>() {{}});
         String txid = this.safeString(cryptoPaymentDetail, "txId");
-        Object address = this.safeString(cryptoPaymentDetail, "address");
+        String address = this.safeString(cryptoPaymentDetail, "address");
         Object tag = null;
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
@@ -573,7 +573,7 @@ public class BtcmarketsCore extends BtcmarketsApi
             Object numParts = Helpers.getArrayLength(addressParts);
             if (Helpers.isTrue(Helpers.isGreaterThan(numParts, 1)))
             {
-                address = Helpers.GetValue(addressParts, 0);
+                address = (String) Helpers.GetValue(addressParts, 0);
                 tag = Helpers.GetValue(addressParts, 1);
             }
         }

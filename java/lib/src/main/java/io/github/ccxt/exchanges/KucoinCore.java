@@ -4419,7 +4419,7 @@ public class KucoinCore extends KucoinApi
     public Object parseDepositAddress(Object depositAddress, Object... optionalArgs)
     {
         Object currency = Helpers.getArg(optionalArgs, 0, null);
-        Object address = this.safeString(depositAddress, "address");
+        String address = this.safeString(depositAddress, "address");
         // BCH/BSV is returned with a "bitcoincash:" prefix, which we cut off here and only keep the address
         if (Helpers.isTrue(!Helpers.isEqual(address, null)))
         {
@@ -9320,9 +9320,9 @@ public class KucoinCore extends KucoinApi
         Object currency = Helpers.getArg(optionalArgs, 0, null);
         String currencyId = this.safeString(transaction, "currency");
         String code = (String) this.safeCurrencyCode(currencyId, currency);
-        Object address = this.safeString(transaction, "address");
+        String address = this.safeString(transaction, "address");
         String amount = this.safeString(transaction, "amount");
-        Object txid = this.safeString(transaction, "walletTxId");
+        String txid = this.safeString(transaction, "walletTxId");
         if (Helpers.isTrue(!Helpers.isEqual(txid, null)))
         {
             Object txidParts = Helpers.split(txid, "@");
@@ -9333,11 +9333,11 @@ public class KucoinCore extends KucoinApi
                 {
                     if (Helpers.isTrue(Helpers.isGreaterThan(((String)Helpers.GetValue(txidParts, 1)).length(), 1)))
                     {
-                        address = Helpers.GetValue(txidParts, 1);
+                        address = (String) Helpers.GetValue(txidParts, 1);
                     }
                 }
             }
-            txid = Helpers.GetValue(txidParts, 0);
+            txid = (String) Helpers.GetValue(txidParts, 0);
         }
         String type = ((Helpers.isTrue((Helpers.isEqual(txid, null))))) ? "withdrawal" : "deposit";
         String rawStatus = this.safeString(transaction, "status");
