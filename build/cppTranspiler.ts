@@ -651,6 +651,84 @@ class CppTranspilerDriver {
         return { content: out, impls: impls.join ('\n\n') };
     }
 
+    // Hot-path optimisation of the generated setMarkets definition (live
+    // loadMarkets runs it once per market over thousands of entries):
+    // (1) hoist the repeated getValue(value, "id") lookups into one valueId;
+    // (2) hoist defaultCurrencyPrecision out of the per-market currencies loop
+    // (it only depends on precisionMode);
+    // (3) replace the undefined-strip key-list rebuild with a direct
+    // entries() iteration. All rewrites are scoped to the setMarkets
+    // definition so identical patterns in other members stay untouched;
+    // a missing anchor only warns — the generation still succeeds.
+    optimizeSetMarketsBody (impls: string): string {
+        const start = impls.indexOf ('std::any Exchange::setMarkets(');
+        if (start < 0) return impls;
+        const nextMember = impls.indexOf ('\nstd::any Exchange::', start + 12);
+        const end = nextMember >= 0 ? nextMember : impls.length;
+        let sm = impls.slice (start, end);
+
+        // (3) direct entries() iteration for the undefined-strip — regex form:
+        // the backend's body formatting is irregular (mixed indents, next-line
+        // braces, `dict {}` spacing), so anchor on the valueDefined decl and
+        // consume everything up to the deepExtend call.
+        const stripRe =
+            /std::any valueDefined = ccxt::dict\s*\{\};[\s\S]*?std::any market = this->deepExtend/;
+        const stripTo = [
+            '    std::any valueDefined = ccxt::dict{};',
+            '    {',
+            '      const ccxt::dict valueDict = std::any_cast<ccxt::dict>(value);',
+            '      for (const auto& valueKv : valueDict.entries()) {',
+            '        if (isTrue(!isEqual(valueKv.second, std::any{}))) {',
+            '          ::setValue(valueDefined, valueKv.first, valueKv.second);',
+            '        }',
+            '      }',
+            '    }',
+        ].join ('\n');
+        if (stripRe.test (sm)) {
+            sm = sm.replace (stripRe,
+                stripTo + '\n    std::any market = this->deepExtend');
+        } else {
+            log.warn ('[cpp] setMarkets: undefined-strip anchor not found, skipping rewrite');
+        }
+
+        // (1) hoist getValue(value, "id") — three lookups per market.
+        // Replace the uses FIRST, then insert the declaration — inserting
+        // before the replace would match the inserted line itself and
+        // produce `std::any valueId = valueId;` (self-init UB, segfault).
+        const valueDecl = '    std::any value = ::getValue(marketValues, i);';
+        if (sm.includes (valueDecl)) {
+            sm = sm.replace (/::getValue\(value, std::string\("id"\)\)/g, 'valueId');
+            sm = sm.replace (valueDecl, valueDecl
+                + '\n    std::any valueId = ::getValue(value, std::string("id"));');
+        } else {
+            log.warn ('[cpp] setMarkets: value-decl anchor not found, skipping rewrite');
+        }
+
+        // (2) hoist defaultCurrencyPrecision out of the per-market loop — regex
+        // form for the same formatting irregularity: delete the per-iteration
+        // decl (ends at the first `std::string("1e-8"))));`), then re-insert it
+        // before the loop, after the quoteCurrencies decl. Idempotent: a second
+        // regen deletes the hoisted copy and re-inserts the same text.
+        const precisionDeclRe =
+            /std::any defaultCurrencyPrecision =[\s\S]*?std::string\("1e-8"\)\)\)\)\);/;
+        const quoteCurrenciesRe = /std::any quoteCurrencies = ccxt::list\s*\{\};/;
+        if (precisionDeclRe.test (sm) && quoteCurrenciesRe.test (sm)) {
+            sm = sm.replace (precisionDeclRe, '');
+            const hoistedPrecision = [
+                '    std::any defaultCurrencyPrecision =',
+                '        (isTrue((isEqual(this->precisionMode, DECIMAL_PLACES)))',
+                '             ? std::any(8)',
+                '             : std::any(this->parseNumber(std::string("1e-8"))));',
+            ].join ('\n');
+            sm = sm.replace (quoteCurrenciesRe,
+                (m: string) => m + '\n' + hoistedPrecision);
+        } else {
+            log.warn ('[cpp] setMarkets: currency-precision anchors not found, skipping rewrite');
+        }
+
+        return impls.slice (0, start) + sm + impls.slice (end);
+    }
+
     extractMemberFromIndex (content: string, at: number, name: string, qualifier: string): { start: number, end: number, decl: string, impl: string } | undefined {
         // the body brace is the first '{' after the signature's terminating ')'
         // — the backend emits both `) {` and `)\n    {` (brace on the next line,
@@ -839,14 +917,15 @@ class CppTranspilerDriver {
         // (upstream rename), it simply stays inline.
         const fixed = applyCommonFixes (baseMethods);
         const { content: inc, impls } = this.extractAllMembers (fixed, 'Exchange');
-        if (impls.length) {
+        const optimizedImpls = this.optimizeSetMarketsBody (impls);
+        if (optimizedImpls.length) {
             overwriteFileAndFolder (SET_MARKETS_FILE,
                 createGeneratedHeader ().join ('\n')
                 + '\n// Out-of-line definitions of the generated ccxt::Exchange base members;\n'
                 + '// included by cpp/ccxt/base/Exchange.SetMarkets.cpp, which compiles at\n'
                 + '// -O2 (the per-market safe*/deepExtend loops dominate live loadMarkets).\n\n'
                 + 'namespace ccxt {\n\n'
-                + impls + '\n\n'
+                + optimizedImpls + '\n\n'
                 + '} // namespace ccxt\n');
         }
 
