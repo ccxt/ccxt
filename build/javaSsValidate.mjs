@@ -74,6 +74,16 @@ function computeCounts(repo, scopeRel) {
 }
 
 // Added-line ternary audit. target === null → diff base against the worktree.
+// a ternary line is NEW only when no removed line in the same file matches it modulo the
+// declared type token and `(String)` casts — a retyped `Object x = c ? a : b;` is not a new ternary
+function ternaryKey(line) {
+  return line
+    .replace(/^(\s*)(?:Object|String|Long|Double|Boolean|Integer|java\.util\.List<Object>|java\.util\.Map<String, Object>)\s+(?=[A-Za-z_$][A-Za-z0-9_$]*\s*=)/, '$1<T> ')
+    .replace(/\(\(String\)\s*([A-Za-z_$][A-Za-z0-9_$]*)\)/g, '$1')
+    .replace(/\(String\)\s*/g, '')
+    .replace(/\(Object\)\s+(?=[A-Za-z_$])/g, '')
+    .trim();
+}
 function ternaryAudit(repo, base, target, diffScope = 'java') {
   const args = ['diff', '--no-color', '-U0', base];
   if (target) args.push(target);
@@ -81,6 +91,8 @@ function ternaryAudit(repo, base, target, diffScope = 'java') {
   const out = git(repo, args);
   const res = { scope: diffScope, base, target: target || '<worktree>', addedLines: 0, removedLines: 0, ternaryCount: 0, ternaryLines: [] };
   let curFile = null;
+  const added = new Map(); // file -> [text]
+  const removed = new Map(); // file -> Map(key -> count)
   for (const raw of out.split('\n')) {
     if (raw.startsWith('+++ ')) { curFile = raw.startsWith('+++ b/') ? raw.slice(6) : raw.slice(4).trim(); continue; }
     if (raw.startsWith('--- ')) continue;
@@ -88,11 +100,27 @@ function ternaryAudit(repo, base, target, diffScope = 'java') {
       res.addedLines++;
       const content = raw.slice(1);
       if (content.includes(' ? ')) {
-        res.ternaryCount++;
-        res.ternaryLines.push({ file: curFile, text: content });
+        if (!added.has(curFile)) added.set(curFile, []);
+        added.get(curFile).push(content);
       }
     } else if (raw.startsWith('-') && !raw.startsWith('---')) {
       res.removedLines++;
+      const content = raw.slice(1);
+      if (content.includes(' ? ')) {
+        if (!removed.has(curFile)) removed.set(curFile, new Map());
+        const k = ternaryKey(content);
+        removed.get(curFile).set(k, (removed.get(curFile).get(k) || 0) + 1);
+      }
+    }
+  }
+  for (const [file, lines] of added) {
+    const pool = removed.get(file) || new Map();
+    for (const content of lines) {
+      const k = ternaryKey(content);
+      const n = pool.get(k) || 0;
+      if (n > 0) { pool.set(k, n - 1); continue; }
+      res.ternaryCount++;
+      res.ternaryLines.push({ file, text: content });
     }
   }
   return res;

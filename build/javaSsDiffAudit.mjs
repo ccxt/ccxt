@@ -35,11 +35,31 @@ const TYPE_ALT = TYPE_WORDS.join('|');
 const DECL_RX = new RegExp('^[ \\t]*(?:(?:public|protected|private|static|final)[ \\t]+)*(?:' + TYPE_ALT + ')[ \\t]+(?:\\[[ \\t]*\\])?[A-Za-z_$][A-Za-z0-9_$]*[ \\t]*(?:=|;|\\()');
 const TYPENORM_RX = new RegExp('\\b(?:' + TYPE_ALT + ')\\b', 'g');
 
+// `((String)<balanced-expr>)` -> `<balanced-expr>` (string literals respected); loops to a fixpoint
+function stripWrappedStringCasts(s) {
+  const open = '((String)';
+  for (;;) {
+    let at = -1;
+    for (let k = s.indexOf(open); k !== -1; k = s.indexOf(open, k + 1)) {
+      if (k === 0 || !/[A-Za-z0-9_$]/.test(s[k - 1])) { at = k; break; } // `foo((String)x)` is a call, not a wrapper
+    }
+    if (at === -1) return s;
+    let depth = 1, j = at + open.length, closed = -1;
+    for (; j < s.length; j++) {
+      const ch = s[j];
+      if (ch === '"') { j++; while (j < s.length && s[j] !== '"') { if (s[j] === '\\') j++; j++; } continue; }
+      if (ch === '(') depth++;
+      else if (ch === ')') { depth--; if (depth === 0) { closed = j; break; } }
+    }
+    if (closed === -1) return s;
+    s = s.slice(0, at) + s.slice(at + open.length, closed) + s.slice(closed + 1);
+  }
+}
 function stripCasts(s) {
-  return s
-    .replace(/\(\(String\)[ \t]*([A-Za-z_$][A-Za-z0-9_$]*)\)/g, '$1')
+  return stripWrappedStringCasts(s)
     .replace(/\(String\)[ \t]*/g, '')
-    .replace(/\(Object\)[ \t]+(?=[A-Za-z_$])/g, ''); // SS-05: `(Object) arg` dropped at String-typed wrapper positions
+    .replace(/\(Object\)[ \t]+(?=[A-Za-z_$])/g, '') // SS-05: `(Object) arg` dropped at String-typed wrapper positions
+    .replace(/([(,=] ?)\(([A-Za-z_$][A-Za-z0-9_$]*)\)(?=[,;)])/g, '$1$2'); // `(x)` left by a dropped cast
 }
 function typeNorm(s) {
   return s.replace(TYPENORM_RX, '<T>');
