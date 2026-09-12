@@ -734,6 +734,7 @@ class deepcoin extends \ccxt\async\deepcoin {
          * @param {string} $symbol unified $symbol of the $market to fetch the order book for
          * @param {int} [$limit] the maximum amount of order book entries to return.
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->aggregation] price aggregation level of the book, e.g. '0.1' or '0.0001', defaults to the market's price tick size
          * @return {array} an ~@link https://docs.ccxt.com/?id=order-book-structure order book structure~
          */
         if ($this->markets === null) {
@@ -741,7 +742,8 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
         $market = $this->market($symbol);
         $messageHash = 'orderbook' . '::' . $market['symbol'];
-        $suffix = '_0.1';
+        $suffix = null;
+        list($suffix, $params) = $this->order_book_suffix($market, 'watchOrderBook', $params);
         $orderbook = Async\await($this->watch_public($market, $messageHash, '25', $params, $suffix));
         return $orderbook->limit();
     }
@@ -758,6 +760,7 @@ class deepcoin extends \ccxt\async\deepcoin {
          *
          * @param {string} $symbol unified array of symbols
          * @param {array} [$params] extra parameters specific to the exchange API endpoint
+         * @param {string} [$params->aggregation] price aggregation level the book was subscribed with, defaults to the market's price tick size
          * @return {array} A dictionary of ~@link https://docs.ccxt.com/?id=order-book-structure order book structures~
          */
         if ($this->markets === null) {
@@ -765,11 +768,38 @@ class deepcoin extends \ccxt\async\deepcoin {
         }
         $market = $this->market($symbol);
         $messageHash = 'orderbook' . '::' . $market['symbol'];
-        $suffix = '_0.1';
+        $suffix = null;
+        list($suffix, $params) = $this->order_book_suffix($market, 'unWatchOrderBook', $params);
         $subscription = array(
             'topic' => 'orderbook',
         );
         return Async\await($this->un_watch_public($market, $messageHash, '25', $params, $subscription, $suffix));
+    }
+
+    public function order_book_suffix(array $market, string $methodName, $params = array()): array {
+        // the 25-level book is published per price-$aggregation level and the
+        // level is part of the FilterValue ('DeepCoin_BTC/USDT_0.1'). the
+        // venue only serves the levels that exist for that $market, from the
+        // tick size up to a few coarser steps => subscribing to a level the
+        // $market does not have is answered with 'orderbook does not exist:
+        // XRP/USDT_0.1, no available orderbook data' and nothing is
+        // streamed. a fixed '_0.1' therefore only worked for markets whose
+        // tick happens to be 0.1 or finer by a step or two (23 of the first
+        // 120 spot markets, 52 of 120 swaps in a live probe); the tick size
+        // itself was accepted on 116 and 117 of them, and the handful whose
+        // tick was rejected accepted the next coarser level
+        $symbol = $this->safe_string($market, 'symbol');
+        $aggregation = null;
+        list($aggregation, $params) = $this->handle_option_and_params($params, $methodName, 'aggregation');
+        if ($aggregation === null) {
+            $precision = $this->safe_dict($market, 'precision', array());
+            $tickSize = $this->safe_number($precision, 'price');
+            if ($tickSize === null) {
+                throw new BadRequest($this->id . ' ' . $methodName . '() requires a $params["aggregation"] price level for ' . $symbol . ' because the $market has no price precision');
+            }
+            $aggregation = $this->number_to_string($tickSize);
+        }
+        return array( '_' . $aggregation, $params );
     }
 
     public function handle_order_book(Client $client, mixed $message) {
