@@ -3364,7 +3364,7 @@ export default class pacifica extends Exchange {
         finalHeaders['timestamp'] = timestamp;
         finalHeaders['expiry_window'] = expiryWindow;
         const request = finalHeaders;
-        const response = await this.privatePostAccountSubaccountCreate (request);
+        const response = await this.privatePostAccountSubaccountCreate (this.extend (request, params));
         //
         // {
         //   "success": true,
