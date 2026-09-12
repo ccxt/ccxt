@@ -7892,7 +7892,9 @@ impl std::ops::DerefMut for ${coreName} {
         // not transpiled"): `removeAt ()` / `slice ()` are JS Array helpers on
         // BaseCache with no port equivalent; the python/php/cs lanes ship
         // hand-written siblings (test_cache_native.*). Skip it here too.
-        const SKIP = new Set<string>(['tests.init', 'test.close', 'test.close.manual', 'test.clientRetention', 'test.cacheNative']);
+        // `test.bingxBalanceReconciliation` uses native JS clients and controlled
+        // promises to exercise snapshot races; keep it in the JS test lane.
+        const SKIP = new Set<string>(['tests.init', 'test.close', 'test.close.manual', 'test.clientRetention', 'test.cacheNative', 'test.bingxBalanceReconciliation']);
         const SKIP_PREFIXES = ['test.singleFlight', 'test.serverPingLiveness'];
         for (const testName of testFiles) {
             if (SKIP.has(testName) || SKIP_PREFIXES.some(p => testName.startsWith(p))) continue;
