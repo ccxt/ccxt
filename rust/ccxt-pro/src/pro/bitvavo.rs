@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -528,7 +532,7 @@ impl BitvavoCore {
         //
         self.handle_bid_ask(client.clone(), message.clone());
         let mut event: Value = self.safe_string_k(message.clone(), "event", &[]);
-        let mut tickers: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -577,7 +581,7 @@ impl BitvavoCore {
 
     pub fn handle_bid_ask(&mut self, mut client: Value, mut message: Value) {
         let mut event: Value = Value::Str("bidask".to_string());
-        let mut tickers: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut tickers: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut result: Value = Value::List(vec![]);
         {
                         let mut i: Value = Value::Int(0);
@@ -2540,7 +2544,7 @@ impl BitvavoCore {
         //         }
         //     }
         //
-        let mut subscriptions: Value = self.safe_value_k(message.clone(), "subscriptions", &[Value::Map({
+        let mut subscriptions: Value = self.safe_dict_k(message.clone(), "subscriptions", &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
         })]);

@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -2113,7 +2117,7 @@ impl BybitCore {
         let mut executionFast: bool = is_equal(&topic, &Value::Str("execution.fast".to_string()));
         let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
         if !is_true(&Value::Bool(is_array(&data))) {
-            data = self.safe_value_k(data.clone(), "result", &[Value::List(vec![])]);
+            data = self.safe_list_k(data.clone(), "result", &[Value::List(vec![])]);
         }
         if is_equal(&self.myTrades, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);
@@ -2338,7 +2342,7 @@ impl BybitCore {
         }
         let mut cache: Value = self.positions.clone();
         let mut newPositions: Value = Value::List(vec![]);
-        let mut rawPositions: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawPositions: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         {
                         let mut i: Value = Value::Int(0);
             let mut __for_first_217: bool = true;
@@ -2772,7 +2776,7 @@ impl BybitCore {
             self.orders = ArrayCacheBySymbolById::new(limit.clone());
         }
         let mut orders: Value = self.orders.clone();
-        let mut rawOrders: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+        let mut rawOrders: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
         let mut first: Value = self.safe_value(rawOrders.clone(), Value::Int(0), &[Value::Map({
             let mut m = indexmap::IndexMap::new();
             m
@@ -3040,7 +3044,7 @@ impl BybitCore {
         let mut account: Value = Value::Null;
         if is_equal(&topic, &Value::Str("outboundAccountInfo".to_string())) {
             account = Value::Str("spot".to_string());
-            let mut data: Value = self.safe_value_k(message.clone(), "data", &[Value::List(vec![])]);
+            let mut data: Value = self.safe_list_k(message.clone(), "data", &[Value::List(vec![])]);
             {
                                 let mut i: Value = Value::Int(0);
                 let mut __for_first_222: bool = true;

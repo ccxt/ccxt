@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct PacificaCore {
@@ -4442,11 +4446,15 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 }));
+        if is_equal(&self.markets, &Value::Null) {
+            self.load_markets(&[]).await;
+        }
+        let mut currency: Value = self.currency(code.clone());
         let mut operationType: Value = Value::Str("transfer_funds".to_string());
         let mut sigPayload: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();
                 m.insert("to_account".to_string(), toAccount.clone());
-                m.insert("amount".to_string(), amount.clone());
+                m.insert("amount".to_string(), self.number_to_string(amount.clone()));
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
@@ -4468,24 +4476,48 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
     let mut m = indexmap::IndexMap::new();
     m
 })]);
-        return self.parse_transfer(data.clone(), &[]);
+        let __ws_arg_29 = self.parse_transfer(data.clone(), &[currency.clone()]);
+        let __ws_arg_30 = self.safe_string_k(request.clone(), "account", &[]);
+        return self.extend(__ws_arg_29, &[Value::Map({
+    let mut m = indexmap::IndexMap::new();
+        m.insert("amount".to_string(), amount.clone());
+        m.insert("fromAccount".to_string(), __ws_arg_30);
+        m.insert("toAccount".to_string(), toAccount.clone());
+    m
+})]);
 
     Value::Null
 }
 
     pub fn parse_transfer(&self, mut transfer: Value, optional_args: &[Value]) -> Value {
         let mut currency = get_arg(optional_args, 0, Value::Null);
+        //
+        // {
+        //   "success": true,
+        //   "data": {
+        //     "success": true,
+        //     "error": null
+        //   },
+        //   "error": null,
+        //   "code": null
+        // }
+        //
+        let mut success: Value = self.safe_bool_k(transfer.clone(), "success", &[]);
+        let mut status: Value = Value::Null;
+        if !is_equal(&success, &Value::Null) {
+            status = ternary(is_true(&(is_equal(&success, &Value::Bool(true)))), Value::Str("ok".to_string()), Value::Str("failed".to_string()));
+        }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
         m.insert("info".to_string(), transfer.clone());
         m.insert("id".to_string(), Value::Null);
         m.insert("timestamp".to_string(), Value::Null);
         m.insert("datetime".to_string(), Value::Null);
-        m.insert("currency".to_string(), Value::Null);
+        m.insert("currency".to_string(), self.safe_currency_code(Value::Null, &[currency.clone()]));
         m.insert("amount".to_string(), Value::Null);
         m.insert("fromAccount".to_string(), Value::Null);
         m.insert("toAccount".to_string(), Value::Null);
-        m.insert("status".to_string(), Value::Str("ok".to_string()));
+        m.insert("status".to_string(), status.clone());
     m
 });
 
@@ -4587,8 +4619,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
-        let __ws_arg_29 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_agent_bind(&[__ws_arg_29]).await;
+        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_agent_bind(&[__ws_arg_31]).await;
 
     Value::Null
 }
@@ -4604,8 +4636,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
-        let __ws_arg_30 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_account_api_keys_create(&[__ws_arg_30]).await;
+        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_account_api_keys_create(&[__ws_arg_32]).await;
 
     Value::Null
 }
@@ -4622,8 +4654,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
-        let __ws_arg_31 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_account_api_keys_revoke(&[__ws_arg_31]).await;
+        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_account_api_keys_revoke(&[__ws_arg_33]).await;
 
     Value::Null
 }
@@ -4639,8 +4671,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
-        let __ws_arg_32 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_account_api_keys(&[__ws_arg_32]).await;
+        let __ws_arg_34 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_account_api_keys(&[__ws_arg_34]).await;
 
     Value::Null
 }
@@ -4658,8 +4690,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
-        let __ws_arg_33 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_account_builder_codes_approve(&[__ws_arg_33]).await;
+        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_account_builder_codes_approve(&[__ws_arg_35]).await;
 
     Value::Null
 }
@@ -4670,8 +4702,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
                 m.insert("account".to_string(), address.clone());
             m
         });
-        let __ws_arg_34 = self.extend(request.clone(), &[]);
-        return self.public_get_account_builder_codes_approvals(&[__ws_arg_34]).await;
+        let __ws_arg_36 = self.extend(request.clone(), &[]);
+        return self.public_get_account_builder_codes_approvals(&[__ws_arg_36]).await;
 
     Value::Null
 }
@@ -4688,8 +4720,8 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             m
         });
         let mut request: Value = self.post_action_request(operationType.clone(), sigPayload.clone(), params.clone());
-        let __ws_arg_35 = self.extend(request.clone(), &[params.clone()]);
-        return self.private_post_account_builder_codes_revoke(&[__ws_arg_35]).await;
+        let __ws_arg_37 = self.extend(request.clone(), &[params.clone()]);
+        return self.private_post_account_builder_codes_revoke(&[__ws_arg_37]).await;
 
     Value::Null
 }

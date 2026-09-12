@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 
 
@@ -1360,7 +1364,7 @@ impl KrakenfuturesCore {
         //            ...
         //        ]
         //    }
-        let mut orders: Value = self.safe_value_k(message.clone(), "orders", &[Value::List(vec![])]);
+        let mut orders: Value = self.safe_list_k(message.clone(), "orders", &[Value::List(vec![])]);
         let mut limit: Value = self.safe_integer_k(self.options.clone(), "ordersLimit", &[]);
         self.orders = ArrayCacheBySymbolById::new(limit.clone());
         let mut feed: Value = self.safe_string_k(message.clone(), "feed", &[]);
@@ -1982,7 +1986,7 @@ impl KrakenfuturesCore {
             client.resolve(&[get_value(&self.balance, &Value::Str("margin".to_string())), add(&messageHash, &Value::Str("futures".to_string()))]);
         }
         if !is_equal(&flexFutures, &Value::Null) {
-            let mut flexFutureCurrencies: Value = self.safe_value_k(flexFutures.clone(), "currencies", &[Value::Map({
+            let mut flexFutureCurrencies: Value = self.safe_dict_k(flexFutures.clone(), "currencies", &[Value::Map({
                 let mut m = indexmap::IndexMap::new();
                 m
             })]);
@@ -2044,7 +2048,7 @@ impl KrakenfuturesCore {
         //        ]
         //    }
         //
-        let mut trades: Value = self.safe_value_k(message.clone(), "fills", &[Value::List(vec![])]);
+        let mut trades: Value = self.safe_list_k(message.clone(), "fills", &[Value::List(vec![])]);
         let mut stored: Value = self.myTrades.clone();
         if is_equal(&stored, &Value::Null) {
             let mut limit: Value = self.safe_integer_k(self.options.clone(), "tradesLimit", &[Value::Int(1000)]);

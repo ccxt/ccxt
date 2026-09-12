@@ -3060,14 +3060,17 @@ class pacifica(Exchange, ImplicitAPI):
         :param int [params.expiryWindow]: time to live in milliseconds
         :returns dict: a `transfer structure <https://docs.ccxt.com/?id=transfer-structure>`
         """
+        if self.markets is None:
+            await self.load_markets()
+        currency = self.currency(code)
         operationType = 'transfer_funds'
         sigPayload = {
             'to_account': toAccount,
-            'amount': amount,
+            'amount': self.number_to_string(amount),
         }
         request = self.post_action_request(operationType, sigPayload, params)
         params = self.omit(params, ['expiryWindow'])
-        response = self.privatePostAccountSubaccountTransfer(self.extend(request, params))
+        response = await self.privatePostAccountSubaccountTransfer(self.extend(request, params))
         #
         # {
         #   "success": True,
@@ -3080,7 +3083,11 @@ class pacifica(Exchange, ImplicitAPI):
         # }
         #
         data = self.safe_dict(response, 'data', {})
-        return self.parse_transfer(data)
+        return self.extend(self.parse_transfer(data, currency), {
+            'amount': amount,
+            'fromAccount': self.safe_string(request, 'account'),
+            'toAccount': toAccount,
+        })
 
     def parse_transfer(self, transfer: dict, currency: Currency = None) -> TransferEntry:
         #
@@ -3094,16 +3101,20 @@ class pacifica(Exchange, ImplicitAPI):
         #   "code": null
         # }
         #
+        success = self.safe_bool(transfer, 'success')
+        status = None
+        if success is not None:
+            status = 'ok' if (success is True) else 'failed'
         return {
             'info': transfer,
             'id': None,
             'timestamp': None,
             'datetime': None,
-            'currency': None,
+            'currency': self.safe_currency_code(None, currency),
             'amount': None,
             'fromAccount': None,
             'toAccount': None,
-            'status': 'ok',
+            'status': status,
         }
 
     async def create_sub_account(self, name: str, params={}):

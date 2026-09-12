@@ -1903,9 +1903,11 @@ func (this *Nado) ParseWsTimestamp(message any, key any) any {
 	if ccxt.IsTrue(ccxt.IsEqual(value, nil)) {
 		return nil
 	}
-	var length int = ccxt.GetLength(value)
-	if ccxt.IsTrue(ccxt.IsGreaterThan(length, 13)) {
-		return this.ParseToInt(ccxt.Slice(value, 0, ccxt.Subtract(length, 6)))
+	// keep the string-size reads inline: assigning the size to a standalone
+	// local is the regex transpiler's ARRAY hint and would emit php count()
+	// on a string, breaking every ws parser with a TypeError
+	if ccxt.IsTrue(ccxt.IsGreaterThan(ccxt.GetLength(value), 13)) {
+		return this.ParseToInt(ccxt.Slice(value, 0, ccxt.Subtract(ccxt.GetLength(value), 6)))
 	}
 	return this.SafeInteger(message, key)
 }

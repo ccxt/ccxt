@@ -1589,7 +1589,8 @@ public class P2bCore extends P2bApi
             String errorCode = this.safeString(response, "errorCode");
             Object feedback = Helpers.add(Helpers.add(this.id, " "), body);
             this.throwExactlyMatchedException(Helpers.GetValue(this.exceptions, "exact"), errorCode, feedback);
-            if (Helpers.isTrue(Helpers.isLessThan(code, 400)))
+            Object codeAsString = String.valueOf(code);
+            if (Helpers.isTrue(Helpers.isTrue((Helpers.isLessThan(code, 400))) || !Helpers.isTrue((Helpers.inOp(this.httpExceptions, codeAsString)))))
             {
                 throw new ExchangeError((String)feedback) ;
             }

@@ -4400,7 +4400,7 @@ public partial class myriad : PredictionExchange
      * @ignore
      * @method
      * @name myriad#sign
-     * @description builds the request url and attaches the x-api-key header for private endpoints
+     * @description builds the request url and attaches the apiKey header for private endpoints
      * @param {string} path the endpoint path
      * @param {string|string[]} api the api group and access level
      * @param {string} method the http method
@@ -4445,9 +4445,17 @@ public partial class myriad : PredictionExchange
         }
         if (isTrue(isTrue((!isEqual(this.apiKey, null))) && isTrue((!isEqual(this.apiKey, "")))))
         {
-            headers = this.extend(headers, new Dictionary<string, object>() {
-                { "x-api-key", this.apiKey },
-            });
+            // keep this literal split. the php transpiler prefixes every occurrence of a local or
+            // parameter name with '$' at the text level, including occurrences inside single-quoted
+            // string literals, and this method's second parameter is named after the middle segment
+            // of the header below. collapsing the two halves back into one literal therefore emits a
+            // corrupted header name in php only - every other language stays green, so the
+            // regression would ship silently. pinned by the fixture in
+            // ts/src/test/static/request/prediction/myriad.json
+            string headerKey = add("x-api", "-key");
+            Dictionary<string, object> headersKey = new Dictionary<string, object>() {};
+            ((IDictionary<string,object>)headersKey)[(string)headerKey] = this.apiKey;
+            headers = this.extend(headers, headersKey);
         }
         return new Dictionary<string, object>() {
             { "url", url },

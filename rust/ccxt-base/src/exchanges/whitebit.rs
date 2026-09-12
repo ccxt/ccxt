@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct WhitebitCore {
@@ -5811,7 +5815,7 @@ match _try_result { Ok(__try_ok) => { if !matches!(__try_ok, Value::Null) { retu
                     let mut errorsLength: Value = get_array_length(&errorKeys);
                     if is_greater_than(&errorsLength, &Value::Int(0)) {
                         let mut errorKey: Value = get_value(&errorKeys, &Value::Int(0));
-                        let mut errorMessageArray: Value = self.safe_value(errorObject.clone(), errorKey.clone(), &[Value::List(vec![])]);
+                        let mut errorMessageArray: Value = self.safe_list(errorObject.clone(), errorKey.clone(), &[Value::List(vec![])]);
                         let mut errorMessageLength: Value = get_array_length(&errorMessageArray);
                         errorInfo = ternary(is_true(&(is_greater_than(&errorMessageLength, &Value::Int(0)))), get_value(&errorMessageArray, &Value::Int(0)), body.clone());
                     }

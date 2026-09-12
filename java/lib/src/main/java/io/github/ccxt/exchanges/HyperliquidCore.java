@@ -662,7 +662,13 @@ public class HyperliquidCore extends HyperliquidApi
             } else
             {
                 Object fetchDexesLength = Helpers.getArrayLength(fetchDexes);
-                for (var i = 1; Helpers.isLessThan(i, maxLimit); i++)
+                // index 0 is the null main dex, so the loop runs 1..maxLimit to load
+                // exactly maxLimit dexes. do NOT rewrite this as `i <= maxLimit`: the
+                // python transpiler collapses every for-loop bound to an exclusive
+                // range(), so `<=` silently emits range(1, maxLimit) and loads one dex
+                // too few (build/transpile.ts treats <, <=, > and >= identically)
+                Object maxIteration = this.sum(maxLimit, 1);
+                for (var i = 1; Helpers.isLessThan(i, maxIteration); i++)
                 {
                     if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(i, fetchDexesLength)))
                     {

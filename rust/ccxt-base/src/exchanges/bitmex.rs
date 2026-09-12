@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 
 
 pub struct BitmexCore {
@@ -1267,7 +1271,7 @@ impl BitmexCore {
         let mut code: Value = self.safe_currency_code(asset.clone(), &[]);
         let mut id: Value = self.safe_string_k(currency.clone(), "currency", &[]);
         let mut name: Value = self.safe_string_k(currency.clone(), "name", &[]);
-        let mut chains: Value = self.safe_value_k(currency.clone(), "networks", &[Value::List(vec![])]);
+        let mut chains: Value = self.safe_list_k(currency.clone(), "networks", &[Value::List(vec![])]);
         let mut depositEnabled: Value = Value::Bool(false);
         let mut withdrawEnabled: Value = Value::Bool(false);
         let mut networks: Value = Value::Map({
@@ -3880,7 +3884,7 @@ impl BitmexCore {
         //        ]
         //    }
         //
-        let mut networks: Value = self.safe_value_k(fee.clone(), "networks", &[Value::List(vec![])]);
+        let mut networks: Value = self.safe_list_k(fee.clone(), "networks", &[Value::List(vec![])]);
         let mut networksLength: Value = get_array_length(&networks);
         let mut result: Value = Value::Map({
             let mut m = indexmap::IndexMap::new();

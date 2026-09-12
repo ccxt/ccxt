@@ -10,6 +10,10 @@ use crate::runtime::*;
 // `self.load_markets(...)`, … on this Core resolve to the base defaults.
 use crate::exchange_generated::ExchangeBase;
 use crate::exchange::ExchangeRuntime;
+// Dynamic `this[method](...)` re-entries are emitted as
+// `self.call_dynamic_checked(...)` (blanket-impl'd on every Core) so an
+// unresolvable name raises NotSupported instead of yielding a silent Null.
+use crate::exchange::CallDynamicChecked;
 use crate::pro::*;
 use crate::prediction_exchange_generated::PredictionBase;
 use crate::prediction_exchange::PredictionRuntime;
@@ -5256,7 +5260,7 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
  * @ignore
  * @method
  * @name myriad#sign
- * @description builds the request url and attaches the x-api-key header for private endpoints
+ * @description builds the request url and attaches the apiKey header for private endpoints
  * @param {string} path the endpoint path
  * @param {string|string[]} api the api group and access level
  * @param {string} method the http method
@@ -5305,11 +5309,20 @@ if let Err(_try_err) = _try_result { let e: Value = panic_to_value(_try_err);
             }
         }
         if is_true(&(!is_equal(&self.apiKey, &Value::Null))) && is_true(&(!is_equal(&self.apiKey, &Value::Str("".to_string())))) {
-            headers = self.extend(headers.clone(), &[Value::Map({
+            // keep this literal split. the php transpiler prefixes every occurrence of a local or
+            // parameter name with '$' at the text level, including occurrences inside single-quoted
+            // string literals, and this method's second parameter is named after the middle segment
+            // of the header below. collapsing the two halves back into one literal therefore emits a
+            // corrupted header name in php only - every other language stays green, so the
+            // regression would ship silently. pinned by the fixture in
+            // ts/src/test/static/request/prediction/myriad.json
+            let mut headerKey: Value = add(&Value::Str("x-api".to_string()), &Value::Str("-key".to_string()));
+            let mut headersKey: Value = Value::Map({
                 let mut m = indexmap::IndexMap::new();
-                    m.insert("x-api-key".to_string(), self.apiKey.clone());
                 m
-            })]);
+            });
+            add_element_to_object(&mut headersKey, &headerKey, self.apiKey.clone());
+            headers = self.extend(headers.clone(), &[headersKey.clone()]);
         }
         return Value::Map({
     let mut m = indexmap::IndexMap::new();
