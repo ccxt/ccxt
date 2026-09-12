@@ -8817,10 +8817,10 @@ public Object describe()
             java.util.List<Object> retryDelayparametersVariable = (java.util.List<Object>) this.handleOptionAndParams(parameters, path, "maxRetriesOnFailureDelay", retryDelay);
             retryDelay = ((java.util.List<Object>) retryDelayparametersVariable).get(0);
             parameters = ((java.util.List<Object>) retryDelayparametersVariable).get(1);
-            Object fetchData = null;
             Boolean fetchDataCacheEnabled = Helpers.isGreaterThan(this.fetchHistoryCacheSize, 0);
             for (var i = 0; Helpers.isLessThan(i, Helpers.add(retries, 1)); i++)
             {
+                Object fetchData = null;
                 if (Helpers.isTrue(fetchDataCacheEnabled))
                 {
                     fetchData = new java.util.HashMap<String, Object>() {{
@@ -8835,13 +8835,13 @@ public Object describe()
                 {
                     this.setLastRestRequestTimestamp();
                     Object request = this.sign(path, api, method, parameters, headers, body);
-                    if (Helpers.isTrue(Helpers.isTrue(fetchDataCacheEnabled) && Helpers.isTrue((!Helpers.isEqual(fetchData, null)))))
+                    if (Helpers.isTrue(!Helpers.isEqual(fetchData, null)))
                     {
                         Helpers.addElementToObject(fetchData, "request", request);
                     }
                     this.setLastRequest(request);
                     Object response = (this.fetch(Helpers.GetValue(request, "url"), Helpers.GetValue(request, "method"), Helpers.GetValue(request, "headers"), Helpers.GetValue(request, "body"))).join();
-                    if (Helpers.isTrue(Helpers.isTrue(fetchDataCacheEnabled) && Helpers.isTrue((!Helpers.isEqual(fetchData, null)))))
+                    if (Helpers.isTrue(!Helpers.isEqual(fetchData, null)))
                     {
                         Helpers.addElementToObject(Helpers.GetValue(fetchData, "response"), "body", response);
                         this.addFetchCache(fetchData);
@@ -8849,7 +8849,7 @@ public Object describe()
                     return response;
                 } catch(Exception e)
                 {
-                    if (Helpers.isTrue(Helpers.isTrue(fetchDataCacheEnabled) && Helpers.isTrue((!Helpers.isEqual(fetchData, null)))))
+                    if (Helpers.isTrue(!Helpers.isEqual(fetchData, null)))
                     {
                         Helpers.addElementToObject(fetchData, "error", e);
                         this.addFetchCache(fetchData);

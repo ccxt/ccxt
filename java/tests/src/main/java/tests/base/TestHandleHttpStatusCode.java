@@ -27,7 +27,7 @@ public class TestHandleHttpStatusCode extends BaseTest
             //     against the constructor). The status → class mapping is pinned by
             //     ts/src/test/base/errors/** instead — do not weaken this list by adding
             //     statuses that are absent from httpExceptions.
-            Object caught = false;
+            Boolean caught = false;
             try
             {
                 exchange.handleHttpStatusCode(429, "reason", "url", "GET", "body");
