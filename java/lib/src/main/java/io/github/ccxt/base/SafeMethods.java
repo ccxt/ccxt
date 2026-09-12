@@ -141,28 +141,78 @@ public final class SafeMethods {
     }
 
     // ----------------------------
+    // safeString family — value selection and default handling, TS-exact.
+    //
+    // Reference: ts/src/base/functions/type.ts
+    //   prop (o, k)   skips undefined / null / ''      (absent is null in Java)
+    //   safeString    String passthrough; finite Number -> String (x); everything else
+    //                 (booleans, lists, dicts, non-finite numbers) -> $default
+    //   prop2 / getValueFromKeysInArray  same skip rule for every extra key
+    //
+    // JS cannot tell `1` and `1.0` apart, so `String (1.0)` is "1". The Java JSON
+    // parser yields a Double for "1.0"; NumberHelpers.NumberToString collapses
+    // integral doubles the same way (PHP/C#/Go do too; python str (1.0) is "1.0" —
+    // we follow TS). Non-finite numbers are not coercible, per Number.isFinite.
+
+    /** TS `String (x)` when the value is string-coercible, otherwise null (caller applies the default). */
+    private static String stringValueOrNull(Object value) {
+        if (value == null) return null;
+        if (value instanceof String s) {
+            if (s.isEmpty()) return null;
+            return s;
+        }
+        if (value instanceof Number n) {
+            return numberValueOrNull(n);
+        }
+        // booleans, lists, dicts and arbitrary objects are not string-coercible in TS
+        return null;
+    }
+
+    /** TS `String (x)` for numbers: integral doubles lose the fraction ("1.0" -> "1"). */
+    private static String numberValueOrNull(Number number) {
+        if (number instanceof Double d) {
+            if (d.isNaN() || d.isInfinite()) return null;
+            return NumberHelpers.NumberToString(d);
+        }
+        if (number instanceof Float f) {
+            if (f.isNaN() || f.isInfinite()) return null;
+            long asLong = (long) f.doubleValue();
+            if ((float) asLong == f) return Long.toString(asLong);
+            return String.valueOf(f);
+        }
+        if (number instanceof java.math.BigDecimal bd) {
+            return bd.toPlainString();
+        }
+        if (number instanceof java.math.BigInteger) {
+            return number.toString();
+        }
+        return NumberHelpers.NumberToString(number);
+    }
+
+    /** TS `$default`: a String default is returned verbatim, other types are not representable. */
+    private static String defaultOrNull(Object... defaultValue) {
+        Object dv = opt(defaultValue);
+        if (dv instanceof String s) return s;
+        return null;
+    }
+
+    /** TS safeString core: coerce a present value, else fall back to the default. */
+    private static String coerceOrDefault(Object value, Object... defaultValue) {
+        String s = stringValueOrNull(value);
+        if (s != null) return s;
+        return defaultOrNull(defaultValue);
+    }
+
+    /** TS `v !== undefined && v !== null && v !== ''` (undefined is null in Java). */
+    private static boolean isMissingValue(Object value) {
+        if (value == null) return true;
+        if (value instanceof String s) return s.isEmpty();
+        return false;
+    }
 
     public static String SafeStringTyped(Object obj, Object key, Object... defaultValue) {
         Object result = SafeValue(obj, key);
-        if (result != null) {
-            if (result instanceof String s) {
-                if (s != null && !s.isEmpty()) return s;
-            } else if (result instanceof Float f) {
-                return String.valueOf(f);
-            } else if (result instanceof Integer i) {
-                return String.valueOf(i);
-            } else if (result instanceof Double d) {
-                return String.valueOf(d);
-            } else if (result instanceof java.math.BigDecimal bd) {
-                return bd.toPlainString();
-            } else if (result instanceof List<?> || result instanceof Map<?, ?>) {
-                return (opt(defaultValue) instanceof String s) ? s : null;
-            } else {
-                String s = String.valueOf(result);
-                if (s != null && !s.isEmpty()) return s;
-            }
-        }
-        return (opt(defaultValue) instanceof String s) ? s : null;
+        return coerceOrDefault(result, defaultValue);
     }
 
     public static String SafeString(Object obj, Object key, Object... defaultValue) {
@@ -174,8 +224,12 @@ public final class SafeMethods {
     }
 
     public static String safeString2(Object obj, Object key1, Object key2, Object... defaultValue) {
-        String result = SafeStringTyped(obj, key1);
-        return (result != null) ? result :  SafeStringTyped(obj, key2, defaultValue);
+        // TS prop2: the first key holding a non-missing value wins; if that value is not
+        // string-coercible the default is returned and key2 is NOT tried.
+        Object first = SafeValue(obj, key1);
+        if (first != null) return coerceOrDefault(first, defaultValue);
+        Object second = SafeValue(obj, key2);
+        return coerceOrDefault(second, defaultValue);
     }
 
     public static String safeStringN(Object obj, Object keys, Object... defaultValue) {
@@ -188,25 +242,7 @@ public final class SafeMethods {
 
     public static String SafeStringN(Object obj, List<Object> keys, Object... defaultValue2) {
         Object result = SafeValueN(obj, keys);
-        if (result != null) {
-            if (result instanceof String s) {
-                if (s != null && !s.isEmpty()) return s;
-            } else if (result instanceof Float f) {
-                return String.valueOf(f);
-            } else if (result instanceof Integer i) {
-                return String.valueOf(i);
-            } else if (result instanceof Double d) {
-                return String.valueOf(d);
-            } else if (result instanceof java.math.BigDecimal bd) {
-                return bd.toPlainString();
-            } else if (result instanceof List<?> || result instanceof Map<?, ?>) {
-                return (opt(defaultValue2) instanceof String s) ? s : null;
-            } else {
-                String s = String.valueOf(result);
-                if (s != null && !s.isEmpty()) return s;
-            }
-        }
-        return (opt(defaultValue2) instanceof String s) ? s : null;
+        return coerceOrDefault(result, defaultValue2);
     }
 
     // ----------------------------
@@ -311,7 +347,8 @@ public final class SafeMethods {
                 }
                 if (idx >= 0 && idx < l.size()) {
                     Object val = l.get(idx);
-                    if (val != null) return val;
+                    // TS getValueFromKeysInArray skips '' as well as null
+                    if (!isMissingValue(val)) return val;
                 }
             }
             return defaultValue;
