@@ -2852,6 +2852,354 @@
                     "status": "ok"
                 }
             }
+        ],
+        "fetchHip3Markets": [
+            {
+                "description": "hip3 dex limit of 1 loads exactly 1 dex(es)",
+                "method": "fetchHip3Markets",
+                "input": [],
+                "options": {
+                    "fetchMarkets": {
+                        "hip3": {
+                            "limit": 1,
+                            "dexes": []
+                        }
+                    }
+                },
+                "httpResponse": [
+                    {
+                        "collateralToken": "0",
+                        "universe": [
+                            {
+                                "name": "TESTDEX",
+                                "szDecimals": 2,
+                                "maxLeverage": 5,
+                                "onlyIsolated": true
+                            }
+                        ]
+                    },
+                    {
+                        "name": "flx"
+                    },
+                    {
+                        "name": "xyz"
+                    },
+                    {
+                        "name": "abc"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "110000",
+                        "lowercaseId": null,
+                        "symbol": "TESTDEX/USDC:USDC",
+                        "base": "TESTDEX",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "110000",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": null,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.00045,
+                        "maker": 0.00015,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.0001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": 5
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "name": "TESTDEX",
+                            "szDecimals": 2,
+                            "maxLeverage": 5,
+                            "onlyIsolated": true,
+                            "baseId": 110000,
+                            "collateralToken": "0",
+                            "hip3": true,
+                            "dex": "flx"
+                        },
+                        "baseName": "TESTDEX"
+                    }
+                ]
+            },
+            {
+                "description": "hip3 dex limit of 3 loads exactly 3 dex(es)",
+                "method": "fetchHip3Markets",
+                "input": [],
+                "options": {
+                    "fetchMarkets": {
+                        "hip3": {
+                            "limit": 3,
+                            "dexes": []
+                        }
+                    }
+                },
+                "httpResponse": [
+                    {
+                        "collateralToken": "0",
+                        "universe": [
+                            {
+                                "name": "TESTDEX",
+                                "szDecimals": 2,
+                                "maxLeverage": 5,
+                                "onlyIsolated": true
+                            }
+                        ]
+                    },
+                    {
+                        "name": "flx"
+                    },
+                    {
+                        "name": "xyz"
+                    },
+                    {
+                        "name": "abc"
+                    }
+                ],
+                "parsedResponse": [
+                    {
+                        "id": "110000",
+                        "lowercaseId": null,
+                        "symbol": "TESTDEX/USDC:USDC",
+                        "base": "TESTDEX",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "110000",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": null,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.00045,
+                        "maker": 0.00015,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.0001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": 5
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "name": "TESTDEX",
+                            "szDecimals": 2,
+                            "maxLeverage": 5,
+                            "onlyIsolated": true,
+                            "baseId": 110000,
+                            "collateralToken": "0",
+                            "hip3": true,
+                            "dex": "flx"
+                        },
+                        "baseName": "TESTDEX"
+                    },
+                    {
+                        "id": "120000",
+                        "lowercaseId": null,
+                        "symbol": "TESTDEX/USDC:USDC",
+                        "base": "TESTDEX",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "120000",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": null,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.00045,
+                        "maker": 0.00015,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.0001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": 5
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "name": "TESTDEX",
+                            "szDecimals": 2,
+                            "maxLeverage": 5,
+                            "onlyIsolated": true,
+                            "baseId": 120000,
+                            "collateralToken": "0",
+                            "hip3": true,
+                            "dex": "xyz"
+                        },
+                        "baseName": "TESTDEX"
+                    },
+                    {
+                        "id": "130000",
+                        "lowercaseId": null,
+                        "symbol": "TESTDEX/USDC:USDC",
+                        "base": "TESTDEX",
+                        "quote": "USDC",
+                        "settle": "USDC",
+                        "baseId": "130000",
+                        "quoteId": "USDC",
+                        "settleId": "USDC",
+                        "type": "swap",
+                        "spot": false,
+                        "margin": null,
+                        "swap": true,
+                        "future": false,
+                        "option": false,
+                        "index": null,
+                        "active": true,
+                        "contract": true,
+                        "linear": true,
+                        "inverse": false,
+                        "subType": null,
+                        "taker": 0.00045,
+                        "maker": 0.00015,
+                        "contractSize": 1,
+                        "expiry": null,
+                        "expiryDatetime": null,
+                        "strike": null,
+                        "optionType": null,
+                        "precision": {
+                            "amount": 0.01,
+                            "price": 0.0001
+                        },
+                        "limits": {
+                            "leverage": {
+                                "min": null,
+                                "max": 5
+                            },
+                            "amount": {
+                                "min": null,
+                                "max": null
+                            },
+                            "price": {
+                                "min": null,
+                                "max": null
+                            },
+                            "cost": {
+                                "min": 10,
+                                "max": null
+                            }
+                        },
+                        "marginModes": {
+                            "cross": null,
+                            "isolated": null
+                        },
+                        "created": null,
+                        "info": {
+                            "name": "TESTDEX",
+                            "szDecimals": 2,
+                            "maxLeverage": 5,
+                            "onlyIsolated": true,
+                            "baseId": 130000,
+                            "collateralToken": "0",
+                            "hip3": true,
+                            "dex": "abc"
+                        },
+                        "baseName": "TESTDEX"
+                    }
+                ]
+            }
         ]
     }
 }
