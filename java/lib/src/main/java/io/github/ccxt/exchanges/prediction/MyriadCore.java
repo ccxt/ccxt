@@ -546,7 +546,7 @@ public class MyriadCore extends MyriadApi
                     String qSlug = this.safeString(q, "slug", "");
                     String qTitle = this.safeString(q, "title", "");
                     String qHandle = this.shortenSlug(qSlug);
-                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(((String)qId).toLowerCase(), idLower))) || Helpers.isTrue((Helpers.isEqual(((String)qSlug).toLowerCase(), idLower)))) || Helpers.isTrue((Helpers.isEqual(((String)qTitle).toLowerCase(), idLower)))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(qHandle, null))) && Helpers.isTrue((Helpers.isEqual(((String)qHandle).toLowerCase(), idLower)))))))
+                    if (Helpers.isTrue(Helpers.isTrue(Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(qId.toLowerCase(), idLower))) || Helpers.isTrue((Helpers.isEqual(qSlug.toLowerCase(), idLower)))) || Helpers.isTrue((Helpers.isEqual(qTitle.toLowerCase(), idLower)))) || Helpers.isTrue((Helpers.isTrue((!Helpers.isEqual(qHandle, null))) && Helpers.isTrue((Helpers.isEqual(qHandle.toLowerCase(), idLower)))))))
                     {
                         return q;
                     }
@@ -933,7 +933,7 @@ public class MyriadCore extends MyriadApi
         {
             throw new ExchangeError(Helpers.add(this.id, " signEvmTransaction() missing rHex")) ;
         }
-        Object rHexLength = ((String)rHex).length();
+        Object rHexLength = rHex.length();
         if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(rHexLength, 2)), 0)))
         {
             rHex = Helpers.add("0", rHex);
@@ -942,7 +942,7 @@ public class MyriadCore extends MyriadApi
         {
             throw new ExchangeError(Helpers.add(this.id, " signEvmTransaction() missing sHex")) ;
         }
-        Object sHexLength = ((String)sHex).length();
+        Object sHexLength = sHex.length();
         if (Helpers.isTrue(!Helpers.isEqual((Helpers.mod(sHexLength, 2)), 0)))
         {
             sHex = Helpers.add("0", sHex);
@@ -4705,7 +4705,7 @@ final Object finalNetworkId = networkId;
         Long ts = this.safeInteger(data, "ts");
         // the channel pushes a signed share delta per fill/redeem/split/merge (no absolute balance);
         // apply it to the REST-seeded balance keyed by outcome id to maintain a running contracts figure
-        Object deltaStr = this.safeString(data, "delta", "0");
+        String deltaStr = this.safeString(data, "delta", "0");
         Object firstChar = Helpers.slice(deltaStr, 0, 1);
         if (Helpers.isTrue(Helpers.isEqual(firstChar, "+")))
         {

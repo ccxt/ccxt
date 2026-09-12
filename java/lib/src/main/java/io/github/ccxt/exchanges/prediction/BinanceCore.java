@@ -1200,7 +1200,7 @@ final Object finalMarketSymbol = marketSymbol;
             String marketId = this.safeString(order, "marketId");
             String outcome = this.safeStringUpper(order, "outcome");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-            Object outcomeName = this.safeString(market, "market");
+            String outcomeName = this.safeString(market, "market");
             if (Helpers.isTrue(Helpers.isEqual(outcomeName, null)))
             {
                 outcomeName = marketId;
@@ -1629,7 +1629,7 @@ final Object finalMarketSymbol = marketSymbol;
             String marketId = this.safeString(position, "marketId");
             String outcome = this.safeStringUpper(position, "outcomeName");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-            Object outcomeName = this.safeString(market, "market");
+            String outcomeName = this.safeString(market, "market");
             if (Helpers.isTrue(Helpers.isEqual(outcomeName, null)))
             {
                 outcomeName = marketId;
@@ -1827,7 +1827,7 @@ final Object finalMarketSymbol = marketSymbol;
             String marketId = this.safeString(trade, "marketId");
             String outcome = this.safeStringUpper(trade, "outcome");
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.safeMarket(marketId);
-            Object outcomeName = this.safeString(market, "market");
+            String outcomeName = this.safeString(market, "market");
             if (Helpers.isTrue(Helpers.isEqual(outcomeName, null)))
             {
                 outcomeName = marketId;

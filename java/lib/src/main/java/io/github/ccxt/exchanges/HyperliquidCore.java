@@ -540,7 +540,7 @@ public class HyperliquidCore extends HyperliquidApi
         String fullName = this.safeString(rawCurrency, "fullName");
         if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(fullName, null)) && Helpers.isTrue(!Helpers.isEqual(name, null))))
         {
-            Boolean isWrapped = Helpers.isTrue(fullName.startsWith("Unit ")) && Helpers.isTrue(name.startsWith("U"));
+            Boolean isWrapped = Helpers.isTrue(fullName.startsWith(((String)"Unit "))) && Helpers.isTrue(name.startsWith(((String)"U")));
             if (Helpers.isTrue(isWrapped))
             {
                 Object parts = Helpers.split(name, "U");

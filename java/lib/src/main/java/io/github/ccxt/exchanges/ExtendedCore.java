@@ -703,7 +703,7 @@ public class ExtendedCore extends ExtendedApi
         String baseId = this.safeString(market, "assetName", "");
         if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(baseId, "SPOT"), 0)))
         {
-            baseId = Helpers.replace(baseId, "SPOT", "");
+            baseId = Helpers.replace(baseId, (String)"SPOT", (String)"");
         }
         String quoteId = this.safeString(market, "collateralAssetName");
         String base = this.safeCurrencyCode(baseId);
@@ -879,7 +879,7 @@ public class ExtendedCore extends ExtendedApi
         String currencyId = this.safeString(currency, "symbol");
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(currencyId, null))) && Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(currencyId, "SPOT"), 0)))))
         {
-            currencyId = Helpers.replace(currencyId, "SPOT", "");
+            currencyId = Helpers.replace(currencyId, (String)"SPOT", (String)"");
         }
         String code = this.safeCurrencyCode(currencyId);
         if (Helpers.isTrue(Helpers.isEqual(currencyId, "USD")))

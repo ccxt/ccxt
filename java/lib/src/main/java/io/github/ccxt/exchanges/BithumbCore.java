@@ -2546,7 +2546,7 @@ public class BithumbCore extends BithumbApi
         {
             if (Helpers.isTrue(Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))
             {
-                Object normalized = Helpers.replace(datetime, "+09:00", "Z");
+                Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
                 Long normalizedTimestamp = this.parse8601(normalized);
                 if (Helpers.isTrue(!Helpers.isEqual(normalizedTimestamp, null)))
                 {
@@ -3281,7 +3281,7 @@ public class BithumbCore extends BithumbApi
         Object timestamp = this.parse8601(datetime);
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(datetime, null))) && Helpers.isTrue((Helpers.isGreaterThan(Helpers.getIndexOf(datetime, "+09:00"), Helpers.opNeg(1))))))
         {
-            Object normalized = Helpers.replace(datetime, "+09:00", "Z");
+            Object normalized = Helpers.replace(datetime, (String)"+09:00", (String)"Z");
             Long normalizedTimestamp = this.parse8601(normalized);
             if (Helpers.isTrue(!Helpers.isEqual(normalizedTimestamp, null)))
             {
@@ -3951,7 +3951,7 @@ public class BithumbCore extends BithumbApi
         } else
         {
             this.checkRequiredCredentials();
-            Boolean isVersionedApi = (Helpers.isTrue(endpoint.startsWith("/v1/")) || Helpers.isTrue(endpoint.startsWith("/v2/")));
+            Boolean isVersionedApi = (Helpers.isTrue(endpoint.startsWith(((String)"/v1/"))) || Helpers.isTrue(endpoint.startsWith(((String)"/v2/"))));
             if (Helpers.isTrue(isVersionedApi))
             {
                 headers = new java.util.HashMap<String, Object>() {{

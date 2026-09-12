@@ -3001,7 +3001,7 @@ public class OkxCore extends OkxApi
                 if (Helpers.isTrue(this.isSandboxModeEnabled))
                 {
                     String instFamily = this.safeString(data, "instFamily", "");
-                    if (Helpers.isTrue(instFamily.startsWith("TEST")))
+                    if (Helpers.isTrue(instFamily.startsWith(((String)"TEST"))))
                     {
                         continue;
                     }

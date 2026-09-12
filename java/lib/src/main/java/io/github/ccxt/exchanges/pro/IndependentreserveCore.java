@@ -73,7 +73,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
             symbol = Helpers.GetValue(market, "symbol");
             Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "?subscribe=ticker-"), Helpers.GetValue(market, "base")), "-"), Helpers.GetValue(market, "quote"));
-            Object messageHash = Helpers.add("trades:", symbol);
+            String messageHash = Helpers.add("trades:", symbol);
             Object trades = (this.watch(url, messageHash, null, messageHash, null)).join();
             return this.filterBySinceLimit(trades, since, limit, "timestamp", true);
         });
@@ -101,9 +101,9 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //    }
         //
         Object data = this.safeValue(message, "Data", new java.util.HashMap<String, Object>() {{}});
-        Object marketId = this.safeString(data, "Pair");
-        Object symbol = this.safeSymbol(marketId, null, "-");
-        Object messageHash = Helpers.add("trades:", symbol);
+        String marketId = this.safeString(data, "Pair");
+        String symbol = this.safeSymbol(marketId, null, "-");
+        String messageHash = Helpers.add("trades:", symbol);
         Object stored = this.safeValue(this.trades, symbol);
         if (Helpers.isTrue(Helpers.isEqual(stored, null)))
         {
@@ -132,8 +132,8 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //    }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object datetime = this.safeString(trade, "TradeDate");
-        Object marketId = this.safeString(market, "Pair");
+        String datetime = this.safeString(trade, "TradeDate");
+        String marketId = this.safeString(market, "Pair");
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
             put( "info", trade );
             put( "id", IndependentreserveCore.this.safeString(trade, "TradeGuid") );
@@ -179,7 +179,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
             }
             Object limitString = this.numberToString(limit);
             Object url = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws"), "/orderbook/"), limitString), "?subscribe="), Helpers.GetValue(market, "base")), "-"), Helpers.GetValue(market, "quote"));
-            Object messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), limitString);
+            String messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), limitString);
             java.util.Map<String, Object> subscription = new java.util.HashMap<String, Object>() {{
                 put( "receivedSnapshot", false );
             }};
@@ -213,21 +213,21 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
         //        "Event": "OrderBookSnapshot",
         //    }
         //
-        Object eventVar = this.safeString(message, "Event");
-        Object channel = this.safeString(message, "Channel");
+        String eventVar = this.safeString(message, "Event");
+        String channel = this.safeString(message, "Channel");
         if (Helpers.isTrue(Helpers.isEqual(channel, null)))
         {
             return;
         }
         Object parts = Helpers.split(channel, "/");
-        Object depth = this.safeString(parts, 1);
-        Object baseId = this.safeString(parts, 2);
-        Object quoteId = this.safeString(parts, 3);
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String depth = this.safeString(parts, 1);
+        String baseId = this.safeString(parts, 2);
+        String quoteId = this.safeString(parts, 3);
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Object orderBook = this.safeDict(message, "Data", new java.util.HashMap<String, Object>() {{}});
-        Object messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), depth);
+        String messageHash = Helpers.add(Helpers.add(Helpers.add("orderbook:", symbol), ":"), depth);
         Object subscription = this.safeValue(client.subscriptions, messageHash, new java.util.HashMap<String, Object>() {{}});
         Object receivedSnapshot = this.safeBool(subscription, "receivedSnapshot", false);
         Long timestamp = this.safeInteger(message, "Time");
@@ -346,7 +346,7 @@ public class IndependentreserveCore extends io.github.ccxt.exchanges.Independent
 
     public void handleMessage(Client client, Object message)
     {
-        Object eventVar = this.safeString(message, "Event");
+        String eventVar = this.safeString(message, "Event");
         java.util.Map<String, Object> handlers = new java.util.HashMap<String, Object>() {{
             put( "Subscriptions", "handleSubscriptions");
             put( "Heartbeat", "handleHeartbeat");

@@ -259,7 +259,7 @@ public class HyperliquidCore extends HyperliquidApi
         // Parse expiry: "20260503-0600" → "20260503"
         Object expiryDate = ((Helpers.isTrue((!Helpers.isEqual(expiry, ""))))) ? Helpers.GetValue(Helpers.split(expiry, "-"), 0) : "";
         String label = ((Helpers.isTrue((Helpers.isEqual(side, 0))))) ? "YES" : "NO";
-        Object base = ((String)underlying).toUpperCase();
+        Object base = underlying.toUpperCase();
         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(targetPrice, null))) && Helpers.isTrue((!Helpers.isEqual(targetPrice, "")))))
         {
             base = Helpers.add(Helpers.add(base, "_ABOVE_"), targetPrice);
@@ -292,7 +292,7 @@ public class HyperliquidCore extends HyperliquidApi
             String targetPrice = this.safeString(desc, "targetPrice");
             String expiry = this.safeString(desc, "expiry", "");
             Object expiryDate = ((Helpers.isTrue((!Helpers.isEqual(expiry, ""))))) ? Helpers.GetValue(Helpers.split(expiry, "-"), 0) : "";
-            Object base = ((String)underlying).toUpperCase();
+            Object base = underlying.toUpperCase();
             if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(targetPrice, null))) && Helpers.isTrue((!Helpers.isEqual(targetPrice, "")))))
             {
                 base = Helpers.add(Helpers.add(base, "_ABOVE_"), targetPrice);
@@ -345,7 +345,7 @@ public class HyperliquidCore extends HyperliquidApi
                         {
                             bucketLabel = Helpers.add(Helpers.add(Helpers.add("BETWEEN_", Helpers.GetValue(thresholds, Helpers.subtract(index, 1))), "_"), Helpers.GetValue(thresholds, index));
                         }
-                        Object base = Helpers.add(Helpers.add(((String)questionUnderlying).toUpperCase(), "_"), bucketLabel);
+                        Object base = Helpers.add(Helpers.add(questionUnderlying.toUpperCase(), "_"), bucketLabel);
                         if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(expiryDate, null))) && Helpers.isTrue((!Helpers.isEqual(expiryDate, "")))))
                         {
                             base = Helpers.add(Helpers.add(base, "_"), expiryDate);
@@ -356,7 +356,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Boolean isFallbackLike = Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(rawDescription, "other"))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(nameLower, "fallback"), 0)))) || Helpers.isTrue((Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(nameLower, "other"), 0)));
                 if (Helpers.isTrue(Helpers.isTrue((Helpers.isTrue(!Helpers.isEqual(questionUnderlying, null)) && Helpers.isTrue(!Helpers.isEqual(questionUnderlying, "")))) && Helpers.isTrue(isFallbackLike)))
                 {
-                    Object base = Helpers.add(((String)questionUnderlying).toUpperCase(), "_OTHER");
+                    Object base = Helpers.add(questionUnderlying.toUpperCase(), "_OTHER");
                     if (Helpers.isTrue(Helpers.isTrue((!Helpers.isEqual(expiryDate, null))) && Helpers.isTrue((!Helpers.isEqual(expiryDate, "")))))
                     {
                         base = Helpers.add(Helpers.add(base, "_"), expiryDate);
@@ -1302,7 +1302,7 @@ public class HyperliquidCore extends HyperliquidApi
                 Object oc = this.safeDict(outcomesList, i, new java.util.HashMap<String, Object>() {{}});
                 String ocSymbol = this.safeString2(oc, "outcome", "symbol", "");
                 String ocLabel = this.safeStringUpper(oc, "label");
-                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(ocLabel, normalizedHint)) || Helpers.isTrue(((String)ocSymbol).endsWith(Helpers.add(":", normalizedHint)))))
+                if (Helpers.isTrue(Helpers.isTrue(Helpers.isEqual(ocLabel, normalizedHint)) || Helpers.isTrue(ocSymbol.endsWith(((String)Helpers.add(":", normalizedHint))))))
                 {
                     return oc;
                 }

@@ -81,7 +81,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
+            String messageHash = Helpers.add("orderbook:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
@@ -125,11 +125,11 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         //     }
         //
         Object data = this.safeValue(message, "data", new java.util.HashMap<String, Object>() {{}});
-        Object baseId = this.safeStringUpper(data, "target_currency");
-        Object quoteId = this.safeStringUpper(data, "quote_currency");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
-        Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
+        String baseId = this.safeStringUpper(data, "target_currency");
+        String quoteId = this.safeStringUpper(data, "quote_currency");
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
         Long timestamp = this.safeInteger(data, "timestamp");
         Object orderbook = this.safeValue(this.orderbooks, symbol);
         if (Helpers.isTrue(Helpers.isEqual(orderbook, null)))
@@ -146,7 +146,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         this.handleDeltas(Helpers.GetValue(orderbook, "bids"), bids);
         Helpers.addElementToObject(orderbook, "timestamp", timestamp);
         Helpers.addElementToObject(orderbook, "datetime", this.iso8601(timestamp));
-        Object messageHash = Helpers.add("orderbook:", symbol);
+        String messageHash = Helpers.add("orderbook:", symbol);
         Helpers.addElementToObject(this.orderbooks, symbol, orderbook);
         client.resolve(orderbook, messageHash);
     }
@@ -177,7 +177,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
+            String messageHash = Helpers.add("ticker:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
@@ -228,7 +228,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         Object ticker = this.parseWsTicker(data);
         Object symbol = Helpers.GetValue(ticker, "symbol");
         Helpers.addElementToObject(this.tickers, ((String)symbol), ticker);
-        Object messageHash = Helpers.add("ticker:", symbol);
+        String messageHash = Helpers.add("ticker:", symbol);
         client.resolve(Helpers.GetValue(this.tickers, ((String)symbol)), messageHash);
     }
 
@@ -261,12 +261,12 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
         Long timestamp = this.safeInteger(ticker, "timestamp");
-        Object last = this.safeString(ticker, "last");
-        Object baseId = this.safeString(ticker, "target_currency");
-        Object quoteId = this.safeString(ticker, "quote_currency");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
-        Object symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
+        String last = this.safeString(ticker, "last");
+        String baseId = this.safeString(ticker, "target_currency");
+        String quoteId = this.safeString(ticker, "quote_currency");
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
+        String symbol = this.symbol(Helpers.add(Helpers.add(base, "/"), quote));
         return this.safeTicker(new java.util.HashMap<String, Object>() {{
             put( "symbol", symbol );
             put( "timestamp", timestamp );
@@ -315,7 +315,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
                 (this.loadMarkets()).join();
             }
             java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
-            Object messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
+            String messageHash = Helpers.add("trade:", Helpers.GetValue(market, "symbol"));
             Object url = Helpers.GetValue(Helpers.GetValue(this.urls, "api"), "ws");
             java.util.Map<String, Object> request = new java.util.HashMap<String, Object>() {{
                 put( "request_type", "SUBSCRIBE" );
@@ -364,7 +364,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
             Helpers.addElementToObject(this.trades, ((String)symbol), stored);
         }
         Helpers.callDynamically(stored, "append", new Object[]{trade});
-        Object messageHash = Helpers.add("trade:", symbol);
+        String messageHash = Helpers.add("trade:", symbol);
         client.resolve(stored, messageHash);
     }
 
@@ -382,10 +382,10 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         //     }
         //
         Object market = Helpers.getArg(optionalArgs, 0, null);
-        Object baseId = this.safeStringUpper(trade, "target_currency");
-        Object quoteId = this.safeStringUpper(trade, "quote_currency");
-        Object base = this.safeCurrencyCode(baseId);
-        Object quote = this.safeCurrencyCode(quoteId);
+        String baseId = this.safeStringUpper(trade, "target_currency");
+        String quoteId = this.safeStringUpper(trade, "quote_currency");
+        String base = this.safeCurrencyCode(baseId);
+        String quote = this.safeCurrencyCode(quoteId);
         Object symbol = Helpers.add(Helpers.add(base, "/"), quote);
         Long timestamp = this.safeInteger(trade, "timestamp");
         market = this.safeMarket(symbol, market);
@@ -395,8 +395,8 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         {
             side = ((Helpers.isTrue((Helpers.isEqual(isSellerMaker, true))))) ? "sell" : "buy";
         }
-        Object priceString = this.safeString(trade, "price");
-        Object amountString = this.safeString(trade, "qty");
+        String priceString = this.safeString(trade, "price");
+        String amountString = this.safeString(trade, "qty");
         final Object finalMarket = market;
         final Object finalSide = side;
         return this.safeTrade(new java.util.HashMap<String, Object>() {{
@@ -425,7 +425,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         //         "message": "Invalid Topic"
         //     }
         //
-        Object type = this.safeString(message, "response_type", "");
+        String type = this.safeString(message, "response_type", "");
         if (Helpers.isTrue(Helpers.isEqual(type, "ERROR")))
         {
             return true;
@@ -439,7 +439,7 @@ public class CoinoneCore extends io.github.ccxt.exchanges.Coinone
         {
             return;
         }
-        Object type = this.safeString(message, "response_type");
+        String type = this.safeString(message, "response_type");
         if (Helpers.isTrue(Helpers.isEqual(type, "PONG")))
         {
             this.handlePong(client, message);

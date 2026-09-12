@@ -2763,7 +2763,7 @@ public class LimitlessCore extends LimitlessApi
                 String scaled = Precise.stringDiv(amount, this.parsePrecision(this.numberToString(decimals)));
                 Long amountInt = this.parseToInt(scaled);
                 String amountBase16 = this.intToBase16(amountInt);
-                amountHex = Helpers.padStart(((String)amountBase16), ((Number)64).intValue(), "0".charAt(0));
+                amountHex = Helpers.padStart(amountBase16, ((Number)64).intValue(), ((String)"0").charAt(0));
             }
             // approve(spender, amount) -> selector 0x095ea7b3
             Object approveData = Helpers.add(Helpers.add("0x095ea7b3", this.padHexAddress(spender)), amountHex);

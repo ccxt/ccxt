@@ -3052,7 +3052,7 @@ final Object finalClobTokenId = clobTokenId;
         String ctLenHex = this.intToBase16(orderTypeString.length());
         // assign before padStart so the PHP transpiler's str_pad regex (which only matches a
         // simple identifier) picks it up instead of leaking a padStart() function call
-        Object lenHex = Helpers.padStart(((String)ctLenHex), ((Number)4).intValue(), "0".charAt(0));
+        Object lenHex = Helpers.padStart(ctLenHex, ((Number)4).intValue(), ((String)"0").charAt(0));
         Object orderTypeStringHex = this.binaryToBase16(this.encode(orderTypeString));
         Object wrappedSignature = Helpers.add(Helpers.add(Helpers.add(Helpers.add(Helpers.add("0x", innerSig), this.remove0xPrefix(appDomainSep)), this.remove0xPrefix(contentsHash)), orderTypeStringHex), lenHex);
         // lowercase for byte-stable output across languages (intToBase16/binaryToBase16 emit

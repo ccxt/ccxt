@@ -3044,7 +3044,7 @@ public class ToobitCore extends ToobitApi
         String amountRaw = this.safeString(item, "change", "");
         Object amount = this.parseNumber(Precise.stringAbs(amountRaw));
         String direction = "in";
-        if (Helpers.isTrue(amountRaw.startsWith("-")))
+        if (Helpers.isTrue(amountRaw.startsWith(((String)"-"))))
         {
             direction = "out";
         }

@@ -1019,7 +1019,7 @@ public class KrakenCore extends KrakenApi
             {
                 throw new ExchangeError(Helpers.add(this.id, " parseCurrency() missing id")) ;
             }
-            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(id, altName)) && Helpers.isTrue((Helpers.isTrue(id.startsWith("X")) || Helpers.isTrue(id.startsWith("Z"))))))
+            if (Helpers.isTrue(Helpers.isTrue(!Helpers.isEqual(id, altName)) && Helpers.isTrue((Helpers.isTrue(id.startsWith(((String)"X"))) || Helpers.isTrue(id.startsWith(((String)"Z")))))))
             {
                 code = this.safeCurrencyCode(altName);
                 // also, add map in commonCurrencies:
@@ -2469,7 +2469,7 @@ public class KrakenCore extends KrakenApi
         }
         String status = this.parseOrderStatus(this.safeString(order, "status"));
         String id = this.safeStringN(order, new java.util.ArrayList<Object>(java.util.Arrays.asList("id", "txid", "order_id", "amend_id")));
-        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(id, null))) || Helpers.isTrue((id.startsWith("[")))))
+        if (Helpers.isTrue(Helpers.isTrue((Helpers.isEqual(id, null))) || Helpers.isTrue((id.startsWith(((String)"["))))))
         {
             Object txid = this.safeList(order, "txid");
             id = this.safeString(txid, 0);

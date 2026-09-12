@@ -1161,7 +1161,7 @@ final Object finalTokenId = tokenId;
         String priceInt = this.safeString(priceParts, 0, "0");
         String priceFrac = this.safeString(priceParts, 1, "");
         String priceDenom = "1000000";
-        String priceNum = Precise.stringAdd(Precise.stringMul(priceInt, priceDenom), Helpers.padEnd(((String)priceFrac), ((Number)6).intValue(), "0".charAt(0)));
+        String priceNum = Precise.stringAdd(Precise.stringMul(priceInt, priceDenom), Helpers.padEnd(priceFrac, ((Number)6).intValue(), ((String)"0").charAt(0)));
         if (Helpers.isTrue(Helpers.isEqual(priceNum, "0")))
         {
             throw new InvalidOrder(Helpers.add(Helpers.add(this.id, " createOrder() invalid price "), priceStr)) ;

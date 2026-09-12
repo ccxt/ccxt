@@ -388,7 +388,7 @@ public class BitflyerCore extends BitflyerApi
             {
                 Object market = Helpers.GetValue(markets, i);
                 String id = this.safeString(market, "product_code");
-                Object currencies = Helpers.split((id), "_");
+                Object currencies = Helpers.split(id, "_");
                 String marketType = this.safeString(market, "market_type");
                 Boolean swap = (Helpers.isEqual(marketType, "FX"));
                 Boolean future = (Helpers.isEqual(marketType, "Futures"));
@@ -415,18 +415,18 @@ public class BitflyerCore extends BitflyerApi
                         // no alias:
                         // { product_code: 'BTCJPY11MAR2022', market_type: 'Futures' }
                         // TODO this will break if there are products with 4 chars
-                        baseId = Helpers.slice((id), 0, 3);
-                        quoteId = Helpers.slice((id), 3, 6);
+                        baseId = Helpers.slice(id, 0, 3);
+                        quoteId = Helpers.slice(id, 3, 6);
                         // last 9 chars are expiry date
-                        Object expiryDate = Helpers.slice((id), Helpers.opNeg(9), null);
+                        Object expiryDate = Helpers.slice(id, Helpers.opNeg(9), null);
                         expiry = this.parseExpiryDate(expiryDate);
                     } else
                     {
                         Object splitAlias = Helpers.split(alias, "_");
                         String currencyIds = this.safeString(splitAlias, 0);
-                        baseId = Helpers.slice((currencyIds), 0, Helpers.opNeg(3));
-                        quoteId = Helpers.slice((currencyIds), Helpers.opNeg(3), null);
-                        Object splitId = Helpers.split((id), (currencyIds));
+                        baseId = Helpers.slice(currencyIds, 0, Helpers.opNeg(3));
+                        quoteId = Helpers.slice(currencyIds, Helpers.opNeg(3), null);
+                        Object splitId = Helpers.split(id, (currencyIds));
                         String expiryDate = this.safeString(splitId, 1);
                         expiry = this.parseExpiryDate(expiryDate);
                     }

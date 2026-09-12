@@ -550,13 +550,13 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 String id = this.safeString(market, "symbol");
                 String marketType = this.safeString(market, "type");
                 String type = null;
-                Boolean index = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf((marketType), " index"), 0));
+                Boolean index = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketType, " index"), 0));
                 Object linear = null;
                 Object inverse = null;
                 Object expiry = null;
                 if (!Helpers.isTrue(index))
                 {
-                    linear = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf((marketType), "_vanilla"), 0));
+                    linear = (Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(marketType, "_vanilla"), 0));
                     inverse = !Helpers.isTrue(linear);
                     String settleTime = this.safeString(market, "lastTradingTime");
                     type = ((Helpers.isTrue((Helpers.isEqual(settleTime, null))))) ? "swap" : "future";
@@ -568,9 +568,9 @@ public class KrakenfuturesCore extends KrakenfuturesApi
                 Boolean swap = (Helpers.isEqual(type, "swap"));
                 Boolean future = (Helpers.isEqual(type, "future"));
                 Object symbol = id;
-                Object split = Helpers.split((id), "_");
+                Object split = Helpers.split(id, "_");
                 String splitMarket = this.safeString(split, 1);
-                Object baseId = Helpers.slice((splitMarket), 0, Helpers.subtract((splitMarket).length(), 3));
+                Object baseId = Helpers.slice(splitMarket, 0, Helpers.subtract(splitMarket.length(), 3));
                 String quoteId = "usd"; // always USD
                 String base = this.safeCurrencyCode(baseId);
                 String quote = this.safeCurrencyCode(quoteId);

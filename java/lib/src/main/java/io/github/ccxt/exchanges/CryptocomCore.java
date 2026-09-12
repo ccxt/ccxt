@@ -2424,7 +2424,7 @@ public class CryptocomCore extends CryptocomApi
                 java.util.Map<String, Object> market = (java.util.Map<String, Object>) this.market(symbol);
                 java.util.Map<String, Object> orderItem = new java.util.HashMap<String, Object>() {{
                     put( "instrument_name", Helpers.GetValue(market, "id") );
-                    put( "order_id", String.valueOf((id)) );
+                    put( "order_id", String.valueOf(id) );
                 }};
                 ((java.util.List<Object>)orderRequests).add(orderItem);
             }

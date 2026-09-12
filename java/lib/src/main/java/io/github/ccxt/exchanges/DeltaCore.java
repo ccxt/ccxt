@@ -1746,7 +1746,7 @@ public class DeltaCore extends DeltaApi
         String type = this.safeString(metaData, "order_type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
-            type = Helpers.replace(type, "_order", "");
+            type = Helpers.replace(type, (String)"_order", (String)"");
         }
         String feeCostString = this.safeString(trade, "commission");
         Object fee = null;
@@ -2240,7 +2240,7 @@ public class DeltaCore extends DeltaApi
         String type = this.safeString(order, "order_type");
         if (Helpers.isTrue(!Helpers.isEqual(type, null)))
         {
-            type = Helpers.replace(type, "_order", "");
+            type = Helpers.replace(type, (String)"_order", (String)"");
         }
         String price = this.safeString(order, "limit_price");
         String amount = this.safeString(order, "size");

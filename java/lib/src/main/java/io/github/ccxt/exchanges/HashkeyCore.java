@@ -1161,7 +1161,7 @@ public class HashkeyCore extends HashkeyApi
         Boolean isSpot = true;
         Boolean isSwap = false;
         Object suffix = "";
-        Object parts = Helpers.split((marketId), "-");
+        Object parts = Helpers.split(marketId, "-");
         String secondPart = this.safeString(parts, 1);
         if (Helpers.isTrue(Helpers.isEqual(secondPart, "PERPETUAL")))
         {
@@ -2851,7 +2851,7 @@ public class HashkeyCore extends HashkeyApi
         String amountString = this.safeString(item, "change");
         Object amount = this.parseNumber(amountString);
         String direction = "in";
-        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf((amountString), "-"), 0)))
+        if (Helpers.isTrue(Helpers.isGreaterThanOrEqual(Helpers.getIndexOf(amountString, "-"), 0)))
         {
             direction = "out";
         }

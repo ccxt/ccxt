@@ -2041,7 +2041,7 @@ public class GateCore extends GateApi
         } else
         {
             base = this.safeString(marketIdBase, 0);
-            expiry = Helpers.slice((expiry), 2, 8); // convert 20230728 to 230728
+            expiry = Helpers.slice(expiry, 2, 8); // convert 20230728 to 230728
         }
         String strike = this.safeString(optionParts, 2);
         String optionType = this.safeString(optionParts, 3);
@@ -2222,7 +2222,7 @@ public class GateCore extends GateApi
                 String id = this.safeString(spotMarket, "id");
                 Object marginMarket = this.safeValue(marginMarkets, id);
                 java.util.Map<String, Object> market = this.deepExtend(marginMarket, spotMarket);
-                var baseIdquoteIdVariable = Helpers.split((id), "_");
+                var baseIdquoteIdVariable = Helpers.split(id, "_");
                 var baseId = ((java.util.List<Object>) baseIdquoteIdVariable).get(0);
                 var quoteId = ((java.util.List<Object>) baseIdquoteIdVariable).get(1);
                 String base = this.safeCurrencyCode(baseId);
@@ -2464,7 +2464,7 @@ public class GateCore extends GateApi
         //    }
         //
         String id = this.safeString(market, "name");
-        Object parts = Helpers.split((id), "_");
+        Object parts = Helpers.split(id, "_");
         String baseId = this.safeString(parts, 0);
         String quoteId = this.safeString(parts, 1);
         String date = this.safeString(parts, 2);
@@ -4217,7 +4217,7 @@ public class GateCore extends GateApi
             {
                 this.checkRequiredArgument("fetchTickers", symbols, "symbols");
                 String marketId = this.safeString(market, "id");
-                Object optionParts = Helpers.split((marketId), "-");
+                Object optionParts = Helpers.split(marketId, "-");
                 Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 response = (this.publicOptionsGetTickers(this.extend(request, requestParams))).join();
             } else
@@ -5306,7 +5306,7 @@ public class GateCore extends GateApi
         if (Helpers.isTrue(!Helpers.isEqual(msString, null)))
         {
             msString = Precise.stringMul(msString, "1000");
-            msString = Helpers.slice((msString), 0, 13);
+            msString = Helpers.slice(msString, 0, 13);
             timestamp = this.parseToInt(msString);
         } else
         {
@@ -8279,7 +8279,7 @@ final Object finalRebate = rebate;
                 if (Helpers.isTrue(!Helpers.isEqual(symbols, null)))
                 {
                     String marketId = this.safeString(market, "id");
-                    Object optionParts = Helpers.split((marketId), "-");
+                    Object optionParts = Helpers.split(marketId, "-");
                     Helpers.addElementToObject(request, "underlying", this.safeString(optionParts, 0));
                 }
             } else
@@ -9838,7 +9838,7 @@ final Object finalI = i;
         String type = this.safeString(item, "type");
         String rawTimestamp = this.safeString(item, "time");
         Object timestamp = null;
-        if (Helpers.isTrue(Helpers.isGreaterThan((rawTimestamp).length(), 10)))
+        if (Helpers.isTrue(Helpers.isGreaterThan(rawTimestamp.length(), 10)))
         {
             timestamp = Helpers.parseInt((rawTimestamp));
         } else
